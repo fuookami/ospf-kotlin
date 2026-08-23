@@ -1,10 +1,8 @@
 
 /**
- * 产能调度解
- * Capacity Scheduling Solution
+ * 产能调度解 / Capacity Scheduling Solution
  *
- * 存储产能调度的完整解。
- * Stores complete solution for capacity scheduling.
+ * 存储产能调度的完整解。 / Stores complete solution for capacity scheduling.
 */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
@@ -21,8 +19,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 typealias CapacityDurationQuantity<V> = Quantity<V>
 
 /**
- * 动作分配结果
- * Action Allocation Result
+ * 动作分配结果 / Action Allocation Result
  *
  * Represents allocation result for a single action in a specific time slot.
  *
@@ -31,38 +28,32 @@ typealias CapacityDurationQuantity<V> = Quantity<V>
 data class ActionAllocation<A : ProductionAction>(
 
     /**
-     * 生产动作
-     * The production action
+     * 生产动作 / The production action
     */
     val action: A,
 
     /**
-     * 时隙
-     * The time slot
+     * 时隙 / The time slot
     */
     val slot: TimeSlot,
 
     /**
-     * 时隙索引
-     * Slot index
+     * 时隙索引 / Slot index
     */
     val slotIndex: Int,
 
     /**
-     * 分配数量
-     * Allocated amount
+     * 分配数量 / Allocated amount
     */
     val amount: UInt64,
 
     /**
-     * 分配时长
-     * Allocated duration
+     * 分配时长 / Allocated duration
     */
     val duration: Duration,
 
     /**
-     * 顺序（可选）
-     * Order (optional)
+     * 顺序（可选） / Order (optional)
     */
     val order: Int = 0
 ) {
@@ -84,8 +75,7 @@ data class ActionAllocation<A : ProductionAction>(
 }
 
 /**
- * 执行器产能结果
- * Executor Capacity Result
+ * 执行器产能结果 / Executor Capacity Result
  *
  * Represents capacity usage for a single executor in a specific time slot.
 */
@@ -97,20 +87,17 @@ data class ExecutorCapacityResult(
     val executor: Executor,
 
     /**
-     * 时隙
-     * The time slot
+     * 时隙 / The time slot
     */
     val slot: TimeSlot,
 
     /**
-     * 时隙索引
-     * Slot index
+     * 时隙索引 / Slot index
     */
     val slotIndex: Int,
 
     /**
-     * 执行器总使用时长
-     * Total used duration
+     * 执行器总使用时长 / Total used duration
     */
     val totalDuration: Duration
 ) {
@@ -132,8 +119,7 @@ data class ExecutorCapacityResult(
 }
 
 /**
- * 产能调度解
- * Capacity Scheduling Solution
+ * 产能调度解 / Capacity Scheduling Solution
  *
  * Stores complete solution for capacity scheduling.
  *
@@ -152,14 +138,12 @@ data class CapacitySchedulingSolution<A : ProductionAction>(
     val actionAllocations: List<ActionAllocation<A>>,
 
     /**
-     * 所有执行器产能结果
-     * All executor capacity results
+     * 所有执行器产能结果 / All executor capacity results
     */
     val executorCapacities: List<ExecutorCapacityResult>,
 
     /**
-     * 所有动作分配（按时隙分组）
-     * All action allocations grouped by slot
+     * 所有动作分配（按时隙分组） / All action allocations grouped by slot
     */
     val allocationsBySlot: Map<TimeSlot, List<ActionAllocation<A>>> = actionAllocations.groupBy { it.slot },
 
@@ -184,19 +168,18 @@ data class CapacitySchedulingSolution<A : ProductionAction>(
     /**
      * 获取指定时隙的动作分配结果
      *
-     * @param slot Time slot to query / 要查询的时隙
-     * @return Action allocations in the specified slot / 指定时隙内的动作分配列表
+     * @param slot 要查询的时隙 / Time slot to query
+     * @return 指定时隙内的动作分配列表 / Action allocations in the specified slot
     */
     fun allocationsInSlot(slot: TimeSlot): List<ActionAllocation<A>> {
         return allocationsBySlot[slot] ?: emptyList()
     }
 
     /**
-     * 获取指定时隙的执行器产能结果
-     * Get executor capacity results for specified slot
+     * 获取指定时隙的执行器产能结果 / Get executor capacity results for specified slot
      *
-     * @param slot Time slot to query / 要查询的时隙
-     * @return Action allocations in the specified slot / 指定时隙内的动作分配列表
+     * @param slot 要查询的时隙 / Time slot to query
+     * @return 指定时隙内的动作分配列表 / Action allocations in the specified slot
     */
     fun capacitiesInSlot(slot: TimeSlot): List<ExecutorCapacityResult> {
         return capacitiesBySlot[slot] ?: emptyList()
@@ -205,8 +188,8 @@ data class CapacitySchedulingSolution<A : ProductionAction>(
     /**
      * 获取指定动作的所有分配结果
      *
-     * @param action Production action to query / 要查询的生产动作
-     * @return All allocation results for the specified action / 指定动作的所有分配结果列表
+     * @param action 要查询的生产动作 / Production action to query
+     * @return 指定动作的所有分配结果列表 / All allocation results for the specified action
     */
     fun allocationsForAction(action: A): List<ActionAllocation<A>> {
         return actionAllocations.filter { it.action == action }
@@ -215,8 +198,8 @@ data class CapacitySchedulingSolution<A : ProductionAction>(
     /**
      * 获取指定执行器的所有产能结果
      *
-     * @param executor Executor to query / 要查询的执行器
-     * @return All capacity results for the specified executor / 指定执行器的所有产能结果列表
+     * @param executor 要查询的执行器 / Executor to query
+     * @return 指定执行器的所有产能结果列表 / All capacity results for the specified executor
     */
     fun capacitiesForExecutor(executor: Executor): List<ExecutorCapacityResult> {
         return executorCapacities.filter { it.executor == executor }

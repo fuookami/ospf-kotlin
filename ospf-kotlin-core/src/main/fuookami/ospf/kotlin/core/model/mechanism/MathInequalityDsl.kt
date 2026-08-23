@@ -1,6 +1,5 @@
 /**
- * 数学不等式 DSL 扩展函数
- * Mathematical inequality DSL extension functions
+ * 数学不等式 DSL 扩展函数 / Mathematical inequality DSL extension functions
 */
 @file:Suppress("unused", "EXTENSION_SHADOWED_BY_MEMBER")
 package fuookami.ospf.kotlin.core.model.mechanism
@@ -19,8 +18,7 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 数学不等式 DSL
- * Mathematical inequality DSL
+ * 数学不等式 DSL / Mathematical inequality DSL
 */
 
 /** 将令牌表不安全转换为目标数值类型 / Unchecked-cast a token table to the target numeric type */
@@ -487,8 +485,7 @@ infix fun Symbol.gr(rhs: Double): LinearInequality<Flt64> = LinearInequality<Flt
 
 // Symbol vs LinearPolynomial<Flt64>
 /**
- * 将 Symbol 转换为单项线性多项式
- * Convert a Symbol to a single-term linear polynomial
+ * 将 Symbol 转换为单项线性多项式 / Convert a Symbol to a single-term linear polynomial
  *
  * @return 线性多项式 / linear polynomial
 */
@@ -738,8 +735,7 @@ infix fun Symbol.gr(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Fl
 // ========== AbstractVariableItem DSL ==========
 
 /**
- * 将变量项转换为单项线性多项式
- * Convert a variable item to a single-term linear polynomial
+ * 将变量项转换为单项线性多项式 / Convert a variable item to a single-term linear polynomial
  *
  * @return 线性多项式 / linear polynomial
 */

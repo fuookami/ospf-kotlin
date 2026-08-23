@@ -1,6 +1,5 @@
 /**
- * 本地文件对象存储
- * Local file object storage
+ * 本地文件对象存储 / Local file object storage
 */
 package fuookami.ospf.kotlin.framework.solver.remote.adapter.localfs
 
@@ -14,8 +13,7 @@ import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 import fuookami.ospf.kotlin.framework.solver.remote.port.ObjectStoragePort
 
 /**
- * 本地文件对象存储端口实现。
- * Local file object storage port implementation.
+ * 本地文件对象存储端口实现。 / Local file object storage port implementation.
  *
  * @property root 存储根目录 / Storage root directory
 */

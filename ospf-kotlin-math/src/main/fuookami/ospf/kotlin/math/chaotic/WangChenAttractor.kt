@@ -1,12 +1,9 @@
 /**
- * 王-陈吸引子
- * Wang-Chen Attractor
+ * 王-陈吸引子 / Wang-Chen Attractor
  *
  * 王-陈吸引子是一个四维超混沌吸引子系统，
  * 通过非线性耦合项产生复杂的混沌动力学行为。
- * 常用于超混沌系统分析、加密通信和复杂动力学研究。
- *
- * The Wang-Chen attractor is a four-dimensional hyperchaotic attractor system
+ * 常用于超混沌系统分析、加密通信和复杂动力学研究。 / The Wang-Chen attractor is a four-dimensional hyperchaotic attractor system
  * that produces complex chaotic dynamics through nonlinear coupling terms.
  * Commonly used for hyperchaotic system analysis, encrypted communication, and complex dynamics research.
 */
@@ -20,8 +17,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 王-陈吸引子
- * Wang-Chen Attractor
+ * 王-陈吸引子 / Wang-Chen Attractor
  *
  * @property alpha 系统参数 alpha（x 与 y 之间线性耦合系数）/ System parameter alpha (linear coupling coefficient between x and y)
  * @property beta 系统参数 beta（x 方向线性增益系数）/ System parameter beta (linear gain coefficient in x direction)
@@ -60,8 +56,7 @@ data class WangChenAttractor<V : FloatingNumber<V>>(
 }
 
 /**
- * 王-陈吸引子生成器
- * Wang-Chen Attractor Generator
+ * 王-陈吸引子生成器 / Wang-Chen Attractor Generator
  *
  * @property attractor 王-陈吸引子实例 / Wang-Chen attractor instance
 */

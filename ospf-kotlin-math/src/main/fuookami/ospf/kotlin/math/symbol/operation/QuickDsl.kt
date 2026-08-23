@@ -8,25 +8,38 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 
 /**
- * 泛型快捷 DSL
- * Quick DSL
+ * 泛型快捷 DSL / Quick DSL
  *
- * 提供基于 Flt64ValueConverter 的泛型快捷 DSL，支持 Flt64/FltX/Rtn64/RtnX 四种数值类型。
- * Provides generic quick DSL based on Flt64ValueConverter, supporting Flt64/FltX/Rtn64/RtnX numeric types.
+ * 提供基于 Flt64ValueConverter 的泛型快捷 DSL，支持 Flt64、FltX、Rtn64、RtnX、Int64、IntX、UInt64 和 UIntX。
+ * Provides generic quick DSL based on Flt64ValueConverter, supporting Flt64, FltX, Rtn64, RtnX, Int64, IntX, UInt64, and UIntX.
 */
 
 /**
- * 泛型快捷 DSL
- * Quick DSL
+ * 从符号创建指定数值类型的线性多项式（系数为 1） / Create a typed linear polynomial from a symbol (coefficient = 1)
  *
- * 通过 Flt64ValueConverter 提供泛型多项式构造和聚合函数。
- * Provides generic polynomial construction and aggregation functions via Flt64ValueConverter.
+ * 通过显式 Flt64ValueConverter 提供数值类型。 / Uses an explicit Flt64ValueConverter for the numeric type.
+ *
+ * @param symbol 符号 / Symbol
+ * @param converter Flt64 到目标数值类型的转换器 / Flt64 converter for the target numeric type
+ * @return 指定数值类型的线性多项式 / Typed linear polynomial
+*/
+@JvmName("quickGenericLinearPolynomialFromSymbol")
+fun <T> LinearPolynomial(symbol: Symbol, converter: Flt64ValueConverter<T>): LinearPolynomial<T>
+        where T : NumberField<T>, T : RealNumber<T> {
+    return QuickDsl(converter).LinearPolynomial(symbol)
+}
+
+/**
+ * 泛型快捷 DSL / Quick DSL
+ *
+ * 通过 Flt64ValueConverter 提供泛型多项式构造和聚合函数。 / Provides generic polynomial construction and aggregation functions via Flt64ValueConverter.
  *
  * @param V 数值类型，同时满足 NumberField 和 RealNumber 约束 / Numeric type satisfying both NumberField and RealNumber constraints
  * @param converter Flt64 到 V 的转换器 / Flt64 to V converter
  * @property converter Flt64 到 V 的转换器 / Flt64 to V converter
-*/
+ */
 class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : NumberField<V>, V : RealNumber<V> {
+
     // ========== LinearPolynomial constructors ==========
     // 线性多项式构造函数 / Linear polynomial constructors
 
@@ -141,8 +154,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
     // 线性聚合函数 / Linear aggregation functions
 
     /**
-     * 对集合中每个元素的符号求和（线性多项式）
-     * Sum symbols from each element in a collection (linear polynomial)
+     * 对集合中每个元素的符号求和（线性多项式） / Sum symbols from each element in a collection (linear polynomial)
      *
      * @param items 元素集合 / Collection of elements
      * @param selector 从元素提取符号的函数 / Function to extract symbol from element
@@ -154,8 +166,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
     }
 
     /**
-     * 对符号集合求和（线性多项式）
-     * Sum a collection of symbols (linear polynomial)
+     * 对符号集合求和（线性多项式） / Sum a collection of symbols (linear polynomial)
      *
      * @param symbols 符号集合 / Collection of symbols
      * @return 线性多项式之和 / Sum as linear polynomial
@@ -167,8 +178,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
     // 二次聚合函数 / Quadratic aggregation functions
 
     /**
-     * 对集合中每个元素的符号求和（二次多项式）
-     * Sum symbols from each element in a collection (quadratic polynomial)
+     * 对集合中每个元素的符号求和（二次多项式） / Sum symbols from each element in a collection (quadratic polynomial)
      *
      * @param items 元素集合 / Collection of elements
      * @param selector 从元素提取符号的函数 / Function to extract symbol from element
@@ -180,8 +190,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
     }
 
     /**
-     * 对符号集合求和（二次多项式）
-     * Sum a collection of symbols (quadratic polynomial)
+     * 对符号集合求和（二次多项式） / Sum a collection of symbols (quadratic polynomial)
      *
      * @param symbols 符号集合 / Collection of symbols
      * @return 二次多项式之和 / Sum as quadratic polynomial

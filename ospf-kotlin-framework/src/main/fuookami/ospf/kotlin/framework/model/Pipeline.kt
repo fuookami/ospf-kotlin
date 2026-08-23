@@ -1,9 +1,7 @@
 /**
- * 求解管线
- * Solving Pipeline
+ * 求解管线 / Solving Pipeline
  *
- * 定义约束管线、列生成管线和启发式分析管线的接口层次。
- * Defines the interface hierarchy for constraint pipelines, column generation pipelines,
+ * 定义约束管线、列生成管线和启发式分析管线的接口层次。 / Defines the interface hierarchy for constraint pipelines, column generation pipelines,
  * and heuristic analysis pipelines.
 */
 package fuookami.ospf.kotlin.framework.model
@@ -17,16 +15,14 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.functional.sum
 
 /**
- * 约束管线接口
- * Constraint pipeline interface
+ * 约束管线接口 / Constraint pipeline interface
  *
  * @param M 模型类型 / Model type
 */
 interface Pipeline<in M : Model<*>> : MetaConstraintGroup {
 
     /**
-     * 注册管线到模型
-     * Register pipeline to model
+     * 注册管线到模型 / Register pipeline to model
      *
      * @param model 目标模型 / Target model
     */
@@ -37,8 +33,7 @@ interface Pipeline<in M : Model<*>> : MetaConstraintGroup {
     }
 
     /**
-     * 执行管线
-     * Execute pipeline
+     * 执行管线 / Execute pipeline
      *
      * @param model 目标模型 / Target model
      * @return 操作结果 / Operation result
@@ -46,8 +41,7 @@ interface Pipeline<in M : Model<*>> : MetaConstraintGroup {
     operator fun invoke(model: M): Try
 
     /**
-     * 获取线性模型不可行原因
-     * Get linear model infeasible reasons
+     * 获取线性模型不可行原因 / Get linear model infeasible reasons
      *
      * @param iis 线性三元模型视图 / Linear triad model view
      * @return 不可行原因列表 / List of infeasible reasons
@@ -59,8 +53,7 @@ interface Pipeline<in M : Model<*>> : MetaConstraintGroup {
     }
 
     /**
-     * 获取二次模型不可行原因
-     * Get quadratic model infeasible reasons
+     * 获取二次模型不可行原因 / Get quadratic model infeasible reasons
      *
      * @param iis 二次四元模型视图 / Quadratic tetrad model view
      * @return 不可行原因列表 / List of infeasible reasons
@@ -73,8 +66,7 @@ interface Pipeline<in M : Model<*>> : MetaConstraintGroup {
 }
 
 /**
- * 列生成管线接口
- * Column generation pipeline interface
+ * 列生成管线接口 / Column generation pipeline interface
  *
  * @param Args 参数类型 / Argument type
  * @param Model 元模型类型 / Meta model type
@@ -87,8 +79,7 @@ interface CGPipeline<
         > : Pipeline<Model> {
     companion object {
         /**
-         * 按键刷新影子价格
-         * Refresh shadow prices by key
+         * 按键刷新影子价格 / Refresh shadow prices by key
          *
          * @param pipeline 列生成管线 / Column generation pipeline
          * @param shadowPriceMap 目标影子价格映射 / Target shadow price map
@@ -123,8 +114,7 @@ interface CGPipeline<
     }
 
     /**
-     * 获取影子价格提取器
-     * Get shadow price extractor
+     * 获取影子价格提取器 / Get shadow price extractor
      *
      * @return 影子价格提取器，可能为 null / Shadow price extractor, may be null
     */
@@ -133,8 +123,7 @@ interface CGPipeline<
     }
 
     /**
-     * 刷新影子价格
-     * Refresh shadow prices
+     * 刷新影子价格 / Refresh shadow prices
      *
      * @param shadowPriceMap 目标影子价格映射 / Target shadow price map
      * @param model 元模型 / Meta model
@@ -170,16 +159,14 @@ interface CGPipeline<
 }
 
 /**
- * 启发式分析管线接口
- * Heuristic analysis pipeline interface
+ * 启发式分析管线接口 / Heuristic analysis pipeline interface
  *
  * @param M 模型类型 / Model type
 */
 interface HAPipeline<in M : Model<*>> : Pipeline<M> {
 
     /**
-     * 启发式分析目标值
-     * Heuristic analysis objective value
+     * 启发式分析目标值 / Heuristic analysis objective value
      *
      * @property tag 目标标签 / Objective tag
      * @property value 目标值 / Objective value
@@ -190,8 +177,7 @@ interface HAPipeline<in M : Model<*>> : Pipeline<M> {
     )
 
     /**
-     * 执行管线（默认空操作）
-     * Execute pipeline (default no-op)
+     * 执行管线（默认空操作） / Execute pipeline (default no-op)
      *
      * @param model 目标模型 / Target model
      * @return 操作结果 / Operation result
@@ -199,8 +185,7 @@ interface HAPipeline<in M : Model<*>> : Pipeline<M> {
     override operator fun invoke(model: M): Try = ok
 
     /**
-     * 执行启发式分析
-     * Execute heuristic analysis
+     * 执行启发式分析 / Execute heuristic analysis
      *
      * @param model 目标模型 / Target model
      * @param solution 解向量 / Solution vector
@@ -220,8 +205,7 @@ interface HAPipeline<in M : Model<*>> : Pipeline<M> {
         }
 
     /**
-     * 计算目标值
-     * Calculate objective value
+     * 计算目标值 / Calculate objective value
      *
      * @param model 目标模型 / Target model
      * @param solution 解向量 / Solution vector
@@ -230,8 +214,7 @@ interface HAPipeline<in M : Model<*>> : Pipeline<M> {
     fun calculate(model: M, solution: List<Flt64>): Ret<Flt64?>
 
     /**
-     * 检查解的有效性
-     * Check solution validity
+     * 检查解的有效性 / Check solution validity
      *
      * @param model 目标模型 / Target model
      * @param solution 解向量 / Solution vector
@@ -251,16 +234,14 @@ interface HAPipeline<in M : Model<*>> : Pipeline<M> {
 }
 
 /**
- * 管线列表类型别名
- * Pipeline list type alias
+ * 管线列表类型别名 / Pipeline list type alias
  *
  * @param M 模型类型 / Model type
 */
 typealias PipelineList<M> = List<Pipeline<M>>
 
 /**
- * 执行管线列表中的所有管线
- * Execute all pipelines in pipeline list
+ * 执行管线列表中的所有管线 / Execute all pipelines in pipeline list
  *
  * @param model 目标模型 / Target model
  * @param M 模型类型 / Model type
@@ -284,8 +265,7 @@ operator fun <M : Model<*>> PipelineList<M>.invoke(model: M): Try {
 }
 
 /**
- * 列生成管线列表类型别名
- * Column generation pipeline list type alias
+ * 列生成管线列表类型别名 / Column generation pipeline list type alias
  *
  * @param Args 参数类型 / Argument type
  * @param Model 模型类型 / Model type
@@ -294,8 +274,7 @@ operator fun <M : Model<*>> PipelineList<M>.invoke(model: M): Try {
 typealias CGPipelineList<Args, Model, Map> = List<CGPipeline<Args, Model, Map>>
 
 /**
- * 启发式分析管线列表类型别名
- * Heuristic analysis pipeline list type alias
+ * 启发式分析管线列表类型别名 / Heuristic analysis pipeline list type alias
  *
  * @param M 模型类型 / Model type
 */

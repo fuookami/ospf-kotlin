@@ -19,17 +19,13 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 松弛变量函数符号 / Slack variable function symbol
  *
- * 提供 [SlackFunction]，为不等式引入正/负松弛变量。
- *
- * Provides [SlackFunction] for introducing positive/negative slack variables for inequalities.
+ * 提供 [SlackFunction]，为不等式引入正/负松弛变量。 / Provides [SlackFunction] for introducing positive/negative slack variables for inequalities.
 */
 
 /**
  * 松弛变量函数 / Slack variable function
  *
- * 为不等式 x <= y 引入正/负松弛变量，使得 x + neg - pos = y。
- *
- * Introduces positive/negative slack variables for inequality x <= y, so that x + neg - pos = y.
+ * 为不等式 x <= y 引入正/负松弛变量，使得 x + neg - pos = y。 / Introduces positive/negative slack variables for inequality x <= y, so that x + neg - pos = y.
  *
  * @property x 左侧多项式 / Left-hand side polynomial
  * @property y 右侧多项式 / Right-hand side polynomial
@@ -94,8 +90,7 @@ class SlackFunction<V>(
     }
 
     /**
-     * 根据变量类型创建辅助变量。
-     * Create an auxiliary variable based on the variable type.
+     * 根据变量类型创建辅助变量。 / Create an auxiliary variable based on the variable type.
      *
      * @param baseName 变量基础名称 / base variable name
      * @return 创建的变量项 / the created variable item
@@ -161,8 +156,7 @@ class SlackFunction<V>(
 
     companion object {
         /**
-         * 通用 V 类型调用：使用 x 和 y 多项式的主入口点。
-         * Generic V-generic invoke: primary entry point with x and y polynomials.
+         * 通用 V 类型调用：使用 x 和 y 多项式的主入口点。 / Generic V-generic invoke: primary entry point with x and y polynomials.
          *
          * @param x 左侧多项式 / left-hand side polynomial
          * @param y 右侧多项式 / right-hand side polynomial

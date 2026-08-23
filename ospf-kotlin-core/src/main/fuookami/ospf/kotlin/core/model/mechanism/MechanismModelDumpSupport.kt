@@ -1,6 +1,5 @@
 /**
- * 机制模型转储支持
- * Mechanism model dump support
+ * 机制模型转储支持 / Mechanism model dump support
 */
 package fuookami.ospf.kotlin.core.model.mechanism
 
@@ -43,8 +42,7 @@ private fun <V> notifyDumpingConstraintsCompleted(
 }
 
 /**
- * 异步批量转储项目
- * Dump items asynchronously in batches
+ * 异步批量转储项目 / Dump items asynchronously in batches
  *
  * @param T 输入类型 / Input type
  * @param R 输出类型 / Output type
@@ -101,8 +99,7 @@ internal suspend fun <T, R> dumpItemsAsync(
 }
 
 /**
- * 异步转储机制模型部件（约束和子目标）
- * Dump mechanism model parts (constraints and sub-objectives) asynchronously
+ * 异步转储机制模型部件（约束和子目标） / Dump mechanism model parts (constraints and sub-objectives) asynchronously
  *
  * @param V 数值类型 / The number type
  * @param RC 关系约束类型 / Relation constraint type

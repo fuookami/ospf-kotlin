@@ -7,8 +7,7 @@ import kotlin.time.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 /**
- * 迭代计数器，跟踪总迭代次数、无改进迭代次数和运行时间。
- * Iteration counter, tracking total iterations, no-improvement iterations, and elapsed time.
+ * 迭代计数器，跟踪总迭代次数、无改进迭代次数和运行时间。 / Iteration counter, tracking total iterations, no-improvement iterations, and elapsed time.
  *
  * @property _iteration 当前迭代次数 / Current iteration count
  * @property _notBetterIteration 连续无改进迭代次数 / Consecutive no-improvement iteration count
@@ -31,8 +30,7 @@ open class Iteration(
     val time get() = Clock.System.now() - begin
 
     /**
-     * 推进迭代计数器。
-     * Advance the iteration counter.
+     * 推进迭代计数器。 / Advance the iteration counter.
      *
      * @param better 本轮是否有改进 / Whether this round improved
     */

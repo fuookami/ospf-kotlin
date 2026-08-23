@@ -85,7 +85,7 @@ class CplexLinearBendersDecompositionSolver(
 
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
-                        metaModel.tokens.setSolution(result.value.solution)
+                        metaModel.tokens.setSolution(result.value.values)
                         jobs.joinAll()
                         Ok(result.value)
                     }
@@ -178,7 +178,7 @@ class CplexLinearBendersDecompositionSolver(
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
                         metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
-                            token.variable to result.value.solution[index]
+                            token.variable to result.value.values[index]
                         }.toMap() + fixedVariables)
                         jobs.joinAll()
                         Ok(
@@ -325,7 +325,7 @@ class CoptLinearBendersDecompositionSolver(
 
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
-                        metaModel.tokens.setSolution(result.value.solution)
+                        metaModel.tokens.setSolution(result.value.values)
                         jobs.joinAll()
                         Ok(result.value)
                     }
@@ -462,7 +462,7 @@ class CoptLinearBendersDecompositionSolver(
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
                         metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
-                            token.variable to result.value.solution[index]
+                            token.variable to result.value.values[index]
                         }.toMap() + fixedVariables)
                         jobs.joinAll()
                         val cuts = when (val result = mechanismModel.generateFlt64OptimalCut(

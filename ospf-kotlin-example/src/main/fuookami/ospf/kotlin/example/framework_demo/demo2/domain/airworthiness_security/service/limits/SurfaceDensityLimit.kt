@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -16,8 +17,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 /**
  * 约束每个限制区的表面密度到最大允许值。Constrains surface density per limit zone to the maximum allowed value.
  *
- * @property surfaceDensity The surface density estimation and limits / 表面密度估算与限制
- * @property positions The list of cargo positions / 货物位置列表
+ * @property surfaceDensity 表面密度估算与限制 / The surface density estimation and limits
+ * @property positions 货物位置列表 / The list of cargo positions
 */
 class SurfaceDensityLimit(
     private val surfaceDensity: SurfaceDensity,
@@ -36,13 +37,13 @@ class SurfaceDensityLimit(
             relation = LinearPolynomial(surfaceDensity.surfaceDensity[j].value) leq limitZone.maxSurfaceDensity.value,
             name = "${name}_${limitZone.name}_${position}"
                     )) {
-                        is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                        is Ok -> {}
 
-                        is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                        is Failed -> {
                             return Failed(result.error)
                         }
 
-                        is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                        is Fatal -> {
                             return Fatal(result.errors)
                         }
                     }

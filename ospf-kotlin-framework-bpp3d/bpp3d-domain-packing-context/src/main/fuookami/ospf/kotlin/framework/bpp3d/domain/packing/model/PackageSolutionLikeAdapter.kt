@@ -64,8 +64,7 @@ data class PackageSolutionLikeMaterialItem(
 )
 
 /**
- * 包装解决方案节点，包含形状、物料项和子节点。
- * Package solution like node, containing shape, material items and child nodes.
+ * 包装解决方案节点，包含形状、物料项和子节点。 / Package solution like node, containing shape, material items and child nodes.
  *
  * @property shape 包装形状 / package shape
  * @property materialItems 物料项列表 / list of material items
@@ -78,8 +77,7 @@ data class PackageSolutionLikeNode(
 )
 
 /**
- * 合并两个物料值，将右值累加到左值上。左值为空时直接返回右值。
- * Merge two material values by accumulating the right value onto the left. Returns the right value directly when the left is null.
+ * 合并两个物料值，将右值累加到左值上。左值为空时直接返回右值。 / Merge two material values by accumulating the right value onto the left. Returns the right value directly when the left is null.
  *
  * @param lhs 已有的物料值，可为空 / existing material value, nullable
  * @param rhs 待合并的物料值 / material value to merge
@@ -93,8 +91,7 @@ private fun mergeMaterialValue(
 }
 
 /**
- * 将包装解决方案数量转换为装箱程序物料值。
- * Convert the package solution like quantity to a packing program material value.
+ * 将包装解决方案数量转换为装箱程序物料值。 / Convert the package solution like quantity to a packing program material value.
  *
  * @return 装箱程序物料值 / packing program material value
 */
@@ -110,8 +107,7 @@ private fun PackageSolutionLikeQuantity.toMaterialValue(): PackingProgramMateria
 }
 
 /**
- * 将包装解决方案节点树递归转换为装箱程序。递归处理子节点并合并所有物料值。
- * Recursively convert the package solution node tree into a packing program. Processes child nodes recursively and merges all material values.
+ * 将包装解决方案节点树递归转换为装箱程序。递归处理子节点并合并所有物料值。 / Recursively convert the package solution node tree into a packing program. Processes child nodes recursively and merges all material values.
  *
  * @return 装箱程序，可能失败 / packing program, may fail
 */

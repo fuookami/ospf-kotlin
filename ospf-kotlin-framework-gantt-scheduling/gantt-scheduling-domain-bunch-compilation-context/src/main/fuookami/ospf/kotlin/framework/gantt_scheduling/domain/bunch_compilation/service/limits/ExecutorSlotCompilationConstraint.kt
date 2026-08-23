@@ -77,7 +77,7 @@ class ExecutorSlotCompilationConstraint<
     }
 
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
-        return { map, args ->
+        return AbstractGanttSchedulingShadowPriceExtractor { map, args ->
             shadowPriceExtractor?.invoke(args) ?: when (args) {
                 is SlotBunchGanttSchedulingShadowPriceArguments<*, *> -> {
                     if (args.task == null && args.prevTask == null) {

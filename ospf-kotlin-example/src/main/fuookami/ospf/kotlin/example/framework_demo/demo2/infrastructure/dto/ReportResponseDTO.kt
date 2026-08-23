@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.utils.error.*
  * Data transfer object for report generation response.
  * 报告生成响应的数据传输对象。
  *
- * @property succeed whether the report request was processed successfully / 报告请求是否处理成功
+ * @property succeed 报告请求是否处理成功 / whether the report request was processed successfully
 */
 @Serializable
 data class ReportResponseDTO(
@@ -18,8 +18,8 @@ data class ReportResponseDTO(
      * Constructs an error response from a failed request.
      * 从失败请求构造错误响应。
      *
-     * @param request the original request DTO / 原始请求DTO
-     * @param error the error encountered during processing / 处理过程中遇到的错误
+     * @param request 原始请求DTO / the original request DTO
+     * @param error 处理过程中遇到的错误 / the error encountered during processing
     */
     constructor(
         request: RequestDTO,

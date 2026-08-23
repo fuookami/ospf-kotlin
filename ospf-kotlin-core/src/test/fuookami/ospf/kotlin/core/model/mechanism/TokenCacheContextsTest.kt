@@ -145,7 +145,7 @@ class TokenCacheContextsTest {
 
         val result = listOf(symbol).register(tokenTable)
 
-        assertTrue(result is Ok<*, *, *>)
+        assertTrue(result is Ok)
 
         tokenTable.close()
     }

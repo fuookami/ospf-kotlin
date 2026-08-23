@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.solver.SolveOptions
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.solver.progress.SolverProgressContext
 import fuookami.ospf.kotlin.core.solver.value.SolveValueConversionPolicy
 
 /**
@@ -16,6 +17,7 @@ import fuookami.ospf.kotlin.core.solver.value.SolveValueConversionPolicy
  * @property modelBuildingStatusCallBack 模型构建状态回调，可为 null / Model building status callback, nullable
  * @property registrationStatusCallBack 注册状态回调，可为 null / Registration status callback, nullable
  * @property solvingStatusCallBack 求解状态回调，可为 null / Solving status callback, nullable
+ * @property progressContext 统一进度上报上下文，可为 null / Unified progress reporting context, nullable
  * @property valueConversionPolicy 值转换策略，可为 null / Value conversion policy, nullable
  * @property bendersIterationLimit Benders 迭代次数限制，可为 null / Benders iteration limit, nullable
  * @property bendersStallIterationLimit Benders 停滞迭代次数限制，可为 null / Benders stall iteration limit, nullable
@@ -27,6 +29,7 @@ data class FrameworkSolveOptions(
     val modelBuildingStatusCallBack: ModelBuildingStatusCallBack? = null,
     val registrationStatusCallBack: RegistrationStatusCallBack? = null,
     val solvingStatusCallBack: SolvingStatusCallBack? = null,
+    val progressContext: SolverProgressContext? = null,
     val valueConversionPolicy: SolveValueConversionPolicy? = null,
     val bendersIterationLimit: UInt64? = null,
     val bendersStallIterationLimit: UInt64? = null
@@ -37,8 +40,7 @@ data class FrameworkSolveOptions(
         get() = valueConversionPolicy ?: SolveValueConversionPolicy.Strict
 
     /**
-     * 获取求解名称（带回退默认值）
-     * Get solve name with fallback default
+     * 获取求解名称（带回退默认值） / Get solve name with fallback default
      *
      * @param defaultName 默认名称 / Default name
      * @return 有效求解名称 / Effective solve name
@@ -46,8 +48,7 @@ data class FrameworkSolveOptions(
     fun solveName(defaultName: String): String = name ?: defaultName
 
     /**
-     * 转换为核心层求解选项
-     * Convert to core-level solve options
+     * 转换为核心层求解选项 / Convert to core-level solve options
      *
      * @return 核心层求解选项 / Core-level solve options
     */
@@ -56,13 +57,13 @@ data class FrameworkSolveOptions(
             solutionAmount = solutionAmount,
             modelBuildingStatusCallBack = modelBuildingStatusCallBack,
             solvingStatusCallBack = solvingStatusCallBack,
+            progressContext = progressContext,
             valueConversionPolicy = valueConversionPolicy
         )
     }
 
     /**
-     * 构建器
-     * Builder
+     * 构建器 / Builder
     */
     class Builder {
         /** 求解名称 / Solve name */
@@ -83,6 +84,9 @@ data class FrameworkSolveOptions(
         /** 求解状态回调 / Solving status callback */
         var solvingStatusCallBack: SolvingStatusCallBack? = null
 
+        /** 统一进度上报上下文 / Unified progress reporting context */
+        var progressContext: SolverProgressContext? = null
+
         /** 值转换策略 / Value conversion policy */
         var valueConversionPolicy: SolveValueConversionPolicy? = null
 
@@ -93,8 +97,7 @@ data class FrameworkSolveOptions(
         var bendersStallIterationLimit: UInt64? = null
 
         /**
-         * 构建求解选项
-         * Build solve options
+         * 构建求解选项 / Build solve options
          *
          * @return 框架求解选项 / Framework solve options
         */
@@ -106,6 +109,7 @@ data class FrameworkSolveOptions(
                 modelBuildingStatusCallBack = modelBuildingStatusCallBack,
                 registrationStatusCallBack = registrationStatusCallBack,
                 solvingStatusCallBack = solvingStatusCallBack,
+                progressContext = progressContext,
                 valueConversionPolicy = valueConversionPolicy,
                 bendersIterationLimit = bendersIterationLimit,
                 bendersStallIterationLimit = bendersStallIterationLimit
@@ -115,16 +119,14 @@ data class FrameworkSolveOptions(
 
     companion object {
         /**
-         * 创建构建器
-         * Create builder
+         * 创建构建器 / Create builder
          *
          * @return 新构建器实例 / New builder instance
         */
         fun builder(): Builder = Builder()
 
         /**
-         * 通过构建器 DSL 构建求解选项
-         * Build solve options via builder DSL
+         * 通过构建器 DSL 构建求解选项 / Build solve options via builder DSL
          *
          * @param block 构建器配置块 / Builder configuration block
          * @return 框架求解选项 / Framework solve options

@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 /**
  * 包装时长的飞行小时值（支持算术和比较）。A flight hour value wrapping a duration, supporting arithmetic and comparison.
  *
- * @property hours The flight hours duration / 飞行小时时长
+ * @property hours 飞行小时时长 / The flight hours duration
 */
 data class FlightHour(
     val hours: Duration
@@ -30,8 +30,8 @@ data class FlightHour(
 /**
  * Checks if this value is strictly less than the other / 检查此值是否严格小于另一个值
  *
- * @param rhs The right-hand side value to compare / 要比较的右侧值
- * @return true if this value is strictly less, false otherwise / 如果此值严格小于则为true，否则为false
+ * @param rhs 要比较的右侧值 / The right-hand side value to compare
+ * @return 如果此值严格小于则为true，否则为false / true if this value is strictly less, false otherwise
 */
 
     infix fun ls(rhs: FlightHour): Boolean {
@@ -41,8 +41,8 @@ data class FlightHour(
 /**
  * Checks if this value is less than or equal to the other / 检查此值是否小于或等于另一个值
  *
- * @param rhs The right-hand side value to compare / 要比较的右侧值
- * @return true if this value is less than or equal, false otherwise / 如果此值小于或等于则为true，否则为false
+ * @param rhs 要比较的右侧值 / The right-hand side value to compare
+ * @return 如果此值小于或等于则为true，否则为false / true if this value is less than or equal, false otherwise
 */
 
     infix fun leq(rhs: FlightHour): Boolean {
@@ -53,7 +53,7 @@ data class FlightHour(
 /**
  * 包装计数的飞行循环值（支持算术和比较）。A flight cycle value wrapping a count, supporting arithmetic and comparison.
  *
- * @property cycles The flight cycle count / 飞行循环计数
+ * @property cycles 飞行循环计数 / The flight cycle count
 */
 data class FlightCycle(
     val cycles: UInt64
@@ -73,8 +73,8 @@ data class FlightCycle(
 /**
  * Checks if this value is strictly less than the other / 检查此值是否严格小于另一个值
  *
- * @param rhs The right-hand side value to compare / 要比较的右侧值
- * @return true if this value is strictly less, false otherwise / 如果此值严格小于则为true，否则为false
+ * @param rhs 要比较的右侧值 / The right-hand side value to compare
+ * @return 如果此值严格小于则为true，否则为false / true if this value is strictly less, false otherwise
 */
 
     infix fun ls(rhs: FlightCycle): Boolean {
@@ -84,8 +84,8 @@ data class FlightCycle(
 /**
  * Checks if this value is less than or equal to the other / 检查此值是否小于或等于另一个值
  *
- * @param rhs The right-hand side value to compare / 要比较的右侧值
- * @return true if this value is less than or equal, false otherwise / 如果此值小于或等于则为true，否则为false
+ * @param rhs 要比较的右侧值 / The right-hand side value to compare
+ * @return 如果此值小于或等于则为true，否则为false / true if this value is less than or equal, false otherwise
 */
 
     infix fun leq(rhs: FlightCycle): Boolean {
@@ -96,9 +96,9 @@ data class FlightCycle(
 /**
  * 具有过期时间和剩余飞行小时/循环限制的飞行循环维护周期。A flight cycle maintenance period with expiration time and remaining flight hour/cycle limits.
  *
- * @property expirationTime The expiration time of the period / 周期的过期时间
- * @property remainingFlightHour The remaining flight hour limit / 剩余飞行小时限制
- * @property remainingFlightCycle The remaining flight cycle limit / 剩余飞行循环限制
+ * @property expirationTime 周期的过期时间 / The expiration time of the period
+ * @property remainingFlightHour 剩余飞行小时限制 / The remaining flight hour limit
+ * @property remainingFlightCycle 剩余飞行循环限制 / The remaining flight cycle limit
 */
 data class FlightCyclePeriod(
     val expirationTime: Instant,
@@ -109,8 +109,8 @@ data class FlightCyclePeriod(
     /**
      * 检查给定飞行小时是否在剩余限制内。Checks whether the given flight hour is within the remaining limit.
      *
-     * @param flightHour The flight hour to check / 要检查的飞行小时
-     * @return true if within the remaining limit, false otherwise / 如果在剩余限制内则为true，否则为false
+     * @param flightHour 要检查的飞行小时 / The flight hour to check
+     * @return 如果在剩余限制内则为true，否则为false / true if within the remaining limit, false otherwise
     */
     fun enabled(flightHour: FlightHour): Boolean {
         return remainingFlightHour == null || flightHour leq remainingFlightHour
@@ -119,8 +119,8 @@ data class FlightCyclePeriod(
     /**
      * 检查给定飞行循环是否在剩余限制内。Checks whether the given flight cycle is within the remaining limit.
      *
-     * @param flightCycle The flight cycle to check / 要检查的飞行循环
-     * @return true if within the remaining limit, false otherwise / 如果在剩余限制内则为true，否则为false
+     * @param flightCycle 要检查的飞行循环 / The flight cycle to check
+     * @return 如果在剩余限制内则为true，否则为false / true if within the remaining limit, false otherwise
     */
     fun enabled(flightCycle: FlightCycle): Boolean {
         return remainingFlightCycle == null || flightCycle leq remainingFlightCycle
@@ -129,8 +129,8 @@ data class FlightCyclePeriod(
     /**
      * 返回超出剩余限制的飞行小时数。Returns the excess flight hours beyond the remaining limit.
      *
-     * @param flightHour The flight hour to compare / 要比较的飞行小时
-     * @return The excess flight hours beyond the remaining limit / 超出剩余限制的飞行小时
+     * @param flightHour 要比较的飞行小时 / The flight hour to compare
+     * @return 超出剩余限制的飞行小时 / The excess flight hours beyond the remaining limit
     */
     fun overFlightHour(flightHour: FlightHour): FlightHour {
         return if (remainingFlightHour != null && remainingFlightHour ls flightHour) {
@@ -143,8 +143,8 @@ data class FlightCyclePeriod(
     /**
      * 返回超出剩余限制的飞行循环数。Returns the excess flight cycles beyond the remaining limit.
      *
-     * @param flightCycle The flight cycle to compare / 要比较的飞行循环
-     * @return The excess flight cycles beyond the remaining limit / 超出剩余限制的飞行循环
+     * @param flightCycle 要比较的飞行循环 / The flight cycle to compare
+     * @return 超出剩余限制的飞行循环 / The excess flight cycles beyond the remaining limit
     */
     fun overFlightCycle(flightCycle: FlightCycle): FlightCycle {
         return if (remainingFlightCycle != null && remainingFlightCycle leq flightCycle) {

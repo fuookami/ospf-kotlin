@@ -1,10 +1,6 @@
 /**
- * 复制概念接口
- *
- * Copy concept interface providing copy semantics for types.
- * 为类型提供复制语义的复制概念接口。
- *
- * This interface extends Movable and provides a default move implementation
+ * 复制概念接口 / Copy concept interface providing copy semantics for types.
+ * 为类型提供复制语义的复制概念接口。 / This interface extends Movable and provides a default move implementation
  * that delegates to copy, since copying is a valid implementation of moving.
  * 此接口扩展了 Movable，并提供了默认的移动实现委托给复制，
  * 因为复制是移动的有效实现方式。
@@ -12,12 +8,8 @@
 package fuookami.ospf.kotlin.utils.concept
 
 /**
- * 可复制接口
- *
- * Interface for types that support copy semantics.
- * 支持复制语义的类型接口。
- *
- * Types implementing this interface can create a deep copy of themselves.
+ * 可复制接口 / Interface for types that support copy semantics.
+ * 支持复制语义的类型接口。 / Types implementing this interface can create a deep copy of themselves.
  * The default move implementation delegates to copy.
  * 实现此接口的类型可以创建自身的深拷贝。
  * 默认的移动实现委托给复制。
@@ -27,9 +19,7 @@ package fuookami.ospf.kotlin.utils.concept
 interface Copyable<Self> : Movable<Self> {
 
     /**
-     * 默认移动实现，委托给复制
-     *
-     * Default move implementation that delegates to copy.
+     * 默认移动实现，委托给复制 / Default move implementation that delegates to copy.
      * 默认的移动实现委托给复制。
      *
      * @return 复制后的新实例 / A copy of the instance
@@ -37,9 +27,7 @@ interface Copyable<Self> : Movable<Self> {
     override fun move() = copy()
 
     /**
-     * 创建实例的深拷贝
-     *
-     * Creates a deep copy of the instance.
+     * 创建实例的深拷贝 / Creates a deep copy of the instance.
      * 创建实例的深拷贝。
      *
      * @return 复制后的新实例 / A copy of the instance
@@ -48,9 +36,7 @@ interface Copyable<Self> : Movable<Self> {
 }
 
 /**
- * 复制元素的便捷函数
- *
- * Convenience function to copy a non-null element.
+ * 复制元素的便捷函数 / Convenience function to copy a non-null element.
  * 复制非空元素的便捷函数。
  *
  * @param T 可复制类型 / The copyable type
@@ -61,9 +47,7 @@ interface Copyable<Self> : Movable<Self> {
 fun <T : Copyable<T>> copy(ele: T) = ele.copy()
 
 /**
- * 复制可空元素的便捷函数
- *
- * Convenience function to copy a nullable element.
+ * 复制可空元素的便捷函数 / Convenience function to copy a nullable element.
  * 复制可空元素的便捷函数。
  *
  * @param T 可复制类型 / The copyable type
@@ -75,9 +59,7 @@ fun <T : Copyable<T>> copy(ele: T) = ele.copy()
 fun <T : Copyable<T>> copy(ele: T?) = ele?.copy()
 
 /**
- * 如果元素非空则复制，否则返回默认值
- *
- * Copies the element if not null, otherwise returns the default value.
+ * 如果元素非空则复制，否则返回默认值 / Copies the element if not null, otherwise returns the default value.
  * 如果元素非空则复制，否则返回默认值。
  *
  * @param T 可复制类型 / The copyable type
@@ -88,9 +70,7 @@ fun <T : Copyable<T>> copy(ele: T?) = ele?.copy()
 fun <T : Copyable<T>> T?.copyIfNotNullOr(default: () -> T): T = this?.copy() ?: default()
 
 /**
- * 如果元素非空则复制，否则返回默认值
- *
- * Copies the element if not null, otherwise returns the default value.
+ * 如果元素非空则复制，否则返回默认值 / Copies the element if not null, otherwise returns the default value.
  * 如果元素非空则复制，否则返回默认值。
  *
  * @param T 可复制类型 / The copyable type

@@ -40,5 +40,5 @@ IIS 计算状态枚举：
 
 ## 与其他包的关系
 
-- **solver/output** — IIS 结果嵌入在 `LinearInfeasibleSolverOutput` 和 `QuadraticInfeasibleSolverOutput` 中
+- **solver/output** — IIS 结果嵌入在 `LinearInfeasibleSolverOutput` 和 `QuadraticInfeasibleSolverOutput` 中；诊断失败时由 `iisAvailable` 和 `diagnostics` 区分占位快照与真实 IIS
 - **model/intermediate** — IIS 视图引用 `LinearTriadModelView` 和 `QuadraticTetradModelView`

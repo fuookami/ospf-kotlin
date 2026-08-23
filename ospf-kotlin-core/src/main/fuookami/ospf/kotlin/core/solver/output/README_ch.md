@@ -4,7 +4,8 @@
 
 ## 概述
 
-`output` 子包定义了 OSPF 框架中**求解结果的数据结构**。提供密封接口和数据类，表示可行解、不可行输出、求解器状态和求解统计信息。
+`output` 子包定义求解结果的兼容数据结构。主结果契约位于 `solver.report.SolveReport`；本包保留
+求解器状态视图以及显式 IIS 兼容入口所需的物化 artifact。
 
 ## 包结构
 
@@ -27,16 +28,10 @@ output/
 - **`LinearSolverOutput`** — 线性求解器输出标记
 - **`QuadraticSolverOutput`** — 二次求解器输出标记
 
-**`FeasibleSolverOutput<V>`** — 可行解输出，包含：
-- `obj` / `objValue` — 目标值（Flt64 和 V 类型双视图）
-- `solution` — 解向量
-- `time` — 求解时间
-- `gap` — 最优间隙
-- `bestBound` / `bestBoundValue` — 最优界
-- `mipGap` — MIP 间隙
-- `iterations` / `nodeCount` — 求解器统计
+**`SolveReport<V>`** — 唯一主统一结果，包含正交问题状态、终止原因、解/incumbent、证明、
+统计、诊断、provenance 和指纹。
 
-**`LinearInfeasibleSolverOutput`** / **`QuadraticInfeasibleSolverOutput`** — 不可行输出，含 IIS 信息。
+**`LinearInfeasibleSolverOutput`** / **`QuadraticInfeasibleSolverOutput`** — 不可行输出，含 IIS 信息。`iisAvailable=false` 表示 IIS 编排失败，`iis` 仅为原模型快照，具体失败原因保存在 `diagnostics.errors` 中；`withIIS()` 此时返回空 IIS。
 
 ### SolverStatus (`SolverStatus.kt`)
 
@@ -52,6 +47,7 @@ output/
 
 ## 与其他包的关系
 
-- **solver** — 求解器接口返回 `SolverOutput` 子类型
+- **solver.report** — 求解器接口返回 `SolveReport<V>`
+- **solver** — 显式 IIS 兼容入口返回 `SolverOutput` artifact
 - **solver/iis** — IIS 结果嵌入在不可行输出类型中
-- **solver/value** — `FeasibleSolverOutput` 使用 `IntoValue<V>` 进行类型转换
+- **solver/value** — `SolveReport<Flt64>.convertTo(converter)` 使用 `IntoValue<V>` 转换解和诊断值类型

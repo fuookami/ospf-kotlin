@@ -6,8 +6,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.application
 /**
  * 主生产计划 / Master Production Scheduling
  *
- * 甘特排程框架的 MPS 层入口标记类，用于在业务场景中区分计划层级。
- * Gantt scheduling framework MPS-tier entry marker class, used to distinguish planning levels in business scenarios.
+ * 甘特排程框架的 MPS 层入口标记类，用于在业务场景中区分计划层级。 / Gantt scheduling framework MPS-tier entry marker class, used to distinguish planning levels in business scenarios.
 */
 class MPS {
 }

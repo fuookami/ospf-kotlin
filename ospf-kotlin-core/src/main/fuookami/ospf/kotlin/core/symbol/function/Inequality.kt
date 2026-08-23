@@ -19,17 +19,13 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 不等式满足指示函数符号 / Inequality satisfaction indicator function symbol
  *
- * 提供 [InequalityFunction]，判断不等式是否满足并返回二值指示变量。
- *
- * Provides [InequalityFunction] for checking inequality satisfaction and returning a binary indicator.
+ * 提供 [InequalityFunction]，判断不等式是否满足并返回二值指示变量。 / Provides [InequalityFunction] for checking inequality satisfaction and returning a binary indicator.
 */
 
 /**
- * 不等式满足指示函数。
- * Inequality satisfaction indicator function.
+ * 不等式满足指示函数。 / Inequality satisfaction indicator function.
  *
- * 给定线性表达式和比较类型，返回：
- * Given a linear expression and a comparison type, returns:
+ * 给定线性表达式和比较类型，返回： / Given a linear expression and a comparison type, returns:
  * - 1 若不等式满足 / if the inequality is satisfied
  * - 0 若不等式违反 / if the inequality is violated
  *

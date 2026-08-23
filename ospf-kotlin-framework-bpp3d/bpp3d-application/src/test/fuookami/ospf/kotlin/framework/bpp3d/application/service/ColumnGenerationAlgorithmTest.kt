@@ -4,34 +4,64 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.core.solver.toSolveReport
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.test.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlinx.coroutines.runBlocking
+import fuookami.ospf.kotlin.core.solver.report.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.geometry.Axis3
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.intermediate.Cell
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityBinLayer as QuantityBinLayer
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem as QuantityItem
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItemPlacement as QuantityItemPlacement
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial as QuantityMaterial
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityPackage as QuantityPackage
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityPackageShape as QuantityPackageShape
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.DemandShadowPriceKey
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
+import fuookami.ospf.kotlin.core.solver.report.*
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -586,18 +616,18 @@ class ColumnGenerationAlgorithmTest {
                 toLogModel: Boolean,
                 registrationStatusCallBack: RegistrationStatusCallBack?,
                 solvingStatusCallBack: SolvingStatusCallBack?
-            ): Ret<FeasibleSolverOutput<Flt64>> {
+            ): Ret<SolveReport<Flt64>> {
                 for (token in metaModel.tokens.tokensInSolver) {
                     if (token.name == prototype.variableName) {
                         milpRadiusTokens.add(token.name)
                     }
                 }
                 return Ok(
-                    FeasibleSolverOutput(
-                        obj = Flt64(3.0),
-                        solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.one },
-                        time = Duration.ZERO,
-                        possibleBestObj = Flt64(3.0),
+                    SolverStatus.Feasible.toSolveReport(
+                        objective = Flt64(3.0),
+                        values = List(metaModel.tokens.tokensInSolver.size) { Flt64.one },
+                        solveTime = Duration.ZERO,
+                        bestBound = Flt64(3.0),
                         gap = Flt64.zero
                     )
                 )
@@ -618,11 +648,11 @@ class ColumnGenerationAlgorithmTest {
                 val tagged = metaModel.constraints.first { it.args is DemandShadowPriceKey }
                 return Ok(
                     lpResultOf(
-                        result = FeasibleSolverOutput(
-                            obj = Flt64(2.0),
-                            solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
-                            time = Duration.ZERO,
-                            possibleBestObj = Flt64(2.0),
+                        result = SolverStatus.Feasible.toSolveReport(
+                            objective = Flt64(2.0),
+                            values = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
+                            solveTime = Duration.ZERO,
+                            bestBound = Flt64(2.0),
                             gap = Flt64.zero
                         ),
                         dualSolution = linkedMapOf(fakeConstraint(tagged) to Flt64.one)
@@ -744,18 +774,18 @@ class ColumnGenerationAlgorithmTest {
                 toLogModel: Boolean,
                 registrationStatusCallBack: RegistrationStatusCallBack?,
                 solvingStatusCallBack: SolvingStatusCallBack?
-            ): Ret<FeasibleSolverOutput<Flt64>> {
+            ): Ret<SolveReport<Flt64>> {
                 for (token in metaModel.tokens.tokensInSolver) {
                     if (token.name == prototype.variableName) {
                         milpRadiusTokens.add(token.name)
                     }
                 }
                 return Ok(
-                    FeasibleSolverOutput(
-                        obj = Flt64(5.0),
-                        solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
-                        time = Duration.ZERO,
-                        possibleBestObj = Flt64(5.0),
+                    SolverStatus.Feasible.toSolveReport(
+                        objective = Flt64(5.0),
+                        values = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
+                        solveTime = Duration.ZERO,
+                        bestBound = Flt64(5.0),
                         gap = Flt64.zero
                     )
                 )
@@ -776,11 +806,11 @@ class ColumnGenerationAlgorithmTest {
                 val tagged = metaModel.constraints.first { it.args is DemandShadowPriceKey }
                 return Ok(
                     lpResultOf(
-                        result = FeasibleSolverOutput(
-                            obj = Flt64(4.0),
-                            solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
-                            time = Duration.ZERO,
-                            possibleBestObj = Flt64(4.0),
+                        result = SolverStatus.Feasible.toSolveReport(
+                            objective = Flt64(4.0),
+                            values = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
+                            solveTime = Duration.ZERO,
+                            bestBound = Flt64(4.0),
                             gap = Flt64.zero
                         ),
                         dualSolution = linkedMapOf(fakeConstraint(tagged) to Flt64.one)
@@ -898,18 +928,18 @@ class ColumnGenerationAlgorithmTest {
                 toLogModel: Boolean,
                 registrationStatusCallBack: RegistrationStatusCallBack?,
                 solvingStatusCallBack: SolvingStatusCallBack?
-            ): Ret<FeasibleSolverOutput<Flt64>> {
+            ): Ret<SolveReport<Flt64>> {
                 for (token in metaModel.tokens.tokensInSolver) {
                     if (token.name == prototype.variableName) {
                         milpRadiusTokens.add(token.name)
                     }
                 }
                 return Ok(
-                    FeasibleSolverOutput(
-                        obj = Flt64(5.0),
-                        solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
-                        time = Duration.ZERO,
-                        possibleBestObj = Flt64(5.0),
+                    SolverStatus.Feasible.toSolveReport(
+                        objective = Flt64(5.0),
+                        values = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
+                        solveTime = Duration.ZERO,
+                        bestBound = Flt64(5.0),
                         gap = Flt64.zero
                     )
                 )
@@ -930,11 +960,11 @@ class ColumnGenerationAlgorithmTest {
                 }
                 return Ok(
                     lpResultOf(
-                        result = FeasibleSolverOutput(
-                            obj = Flt64(4.0),
-                            solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
-                            time = Duration.ZERO,
-                            possibleBestObj = Flt64(4.0),
+                        result = SolverStatus.Feasible.toSolveReport(
+                            objective = Flt64(4.0),
+                            values = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
+                            solveTime = Duration.ZERO,
+                            bestBound = Flt64(4.0),
                             gap = Flt64.zero
                         ),
                         dualSolution = linkedMapOf(fakeConstraint(tagged) to Flt64.one)
@@ -1022,13 +1052,13 @@ class ColumnGenerationAlgorithmTest {
                 toLogModel: Boolean,
                 registrationStatusCallBack: RegistrationStatusCallBack?,
                 solvingStatusCallBack: SolvingStatusCallBack?
-            ): Ret<FeasibleSolverOutput<Flt64>> {
+            ): Ret<SolveReport<Flt64>> {
                 val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.one }
-                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
-                    obj = Flt64(9.0),
-                    solution = solution,
-                    time = Duration.ZERO,
-                    possibleBestObj = Flt64(9.0),
+                val output: SolveReport<Flt64> = SolverStatus.Feasible.toSolveReport(
+                    objective = Flt64(9.0),
+                    values = solution,
+                    solveTime = Duration.ZERO,
+                    bestBound = Flt64(9.0),
                     gap = Flt64.zero
                 )
                 return Ok(
@@ -1048,11 +1078,11 @@ class ColumnGenerationAlgorithmTest {
                     fakeConstraint(tagged) to Flt64(7.0)
                 )
                 val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero }
-                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
-                    obj = Flt64(11.0),
-                    solution = solution,
-                    time = Duration.ZERO,
-                    possibleBestObj = Flt64(11.0),
+                val output: SolveReport<Flt64> = SolverStatus.Feasible.toSolveReport(
+                    objective = Flt64(11.0),
+                    values = solution,
+                    solveTime = Duration.ZERO,
+                    bestBound = Flt64(11.0),
                     gap = Flt64.zero
                 )
                 return Ok(lpResultOf(output, dual))
@@ -1146,7 +1176,7 @@ class ColumnGenerationAlgorithmTest {
                 toLogModel: Boolean,
                 registrationStatusCallBack: RegistrationStatusCallBack?,
                 solvingStatusCallBack: SolvingStatusCallBack?
-            ): Ret<FeasibleSolverOutput<Flt64>> {
+            ): Ret<SolveReport<Flt64>> {
                 error("not used in this test")
             }
 
@@ -1217,7 +1247,7 @@ class ColumnGenerationAlgorithmTest {
                 toLogModel: Boolean,
                 registrationStatusCallBack: RegistrationStatusCallBack?,
                 solvingStatusCallBack: SolvingStatusCallBack?
-            ): Ret<FeasibleSolverOutput<Flt64>> {
+            ): Ret<SolveReport<Flt64>> {
                 error("not used in this test")
             }
 
@@ -1354,7 +1384,7 @@ class ColumnGenerationAlgorithmTest {
                 toLogModel: Boolean,
                 registrationStatusCallBack: RegistrationStatusCallBack?,
                 solvingStatusCallBack: SolvingStatusCallBack?
-            ): Ret<FeasibleSolverOutput<Flt64>> {
+            ): Ret<SolveReport<Flt64>> {
                 error("final milp should be disabled in this test")
             }
 
@@ -1365,11 +1395,11 @@ class ColumnGenerationAlgorithmTest {
                 registrationStatusCallBack: RegistrationStatusCallBack?,
                 solvingStatusCallBack: SolvingStatusCallBack?
             ): Ret<ColumnGenerationSolver.LPResult> {
-                val output = FeasibleSolverOutput(
-                    obj = Flt64(3.0),
-                    solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
-                    time = Duration.ZERO,
-                    possibleBestObj = Flt64(3.0),
+                val output = SolverStatus.Feasible.toSolveReport(
+                    objective = Flt64(3.0),
+                    values = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
+                    solveTime = Duration.ZERO,
+                    bestBound = Flt64(3.0),
                     gap = Flt64.zero
                 )
                 return Ok(lpResultOf(output, emptyMap<Constraint<Flt64, Linear>, Flt64>()))
@@ -1432,12 +1462,12 @@ class ColumnGenerationAlgorithmTest {
                 toLogModel: Boolean,
                 registrationStatusCallBack: RegistrationStatusCallBack?,
                 solvingStatusCallBack: SolvingStatusCallBack?
-            ): Ret<FeasibleSolverOutput<Flt64>> {
-                val output = FeasibleSolverOutput(
-                    obj = Flt64(5.0),
-                    solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.one },
-                    time = Duration.ZERO,
-                    possibleBestObj = Flt64(5.0),
+            ): Ret<SolveReport<Flt64>> {
+                val output = SolverStatus.Feasible.toSolveReport(
+                    objective = Flt64(5.0),
+                    values = List(metaModel.tokens.tokensInSolver.size) { Flt64.one },
+                    solveTime = Duration.ZERO,
+                    bestBound = Flt64(5.0),
                     gap = Flt64.zero
                 )
                 return Ok(output)
@@ -1451,11 +1481,11 @@ class ColumnGenerationAlgorithmTest {
                 solvingStatusCallBack: SolvingStatusCallBack?
             ): Ret<ColumnGenerationSolver.LPResult> {
                 val tagged = metaModel.constraints.first { it.args is DemandShadowPriceKey }
-                val output = FeasibleSolverOutput(
-                    obj = Flt64(3.0),
-                    solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
-                    time = Duration.ZERO,
-                    possibleBestObj = Flt64(3.0),
+                val output = SolverStatus.Feasible.toSolveReport(
+                    objective = Flt64(3.0),
+                    values = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
+                    solveTime = Duration.ZERO,
+                    bestBound = Flt64(3.0),
                     gap = Flt64.zero
                 )
                 return Ok(
@@ -1517,7 +1547,7 @@ class ColumnGenerationAlgorithmTest {
                 toLogModel: Boolean,
                 registrationStatusCallBack: RegistrationStatusCallBack?,
                 solvingStatusCallBack: SolvingStatusCallBack?
-            ): Ret<FeasibleSolverOutput<Flt64>> {
+            ): Ret<SolveReport<Flt64>> {
                 error("not used in this test")
             }
 
@@ -1588,13 +1618,13 @@ class ColumnGenerationAlgorithmTest {
                 toLogModel: Boolean,
                 registrationStatusCallBack: RegistrationStatusCallBack?,
                 solvingStatusCallBack: SolvingStatusCallBack?
-            ): Ret<FeasibleSolverOutput<Flt64>> {
+            ): Ret<SolveReport<Flt64>> {
                 val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.one }
-                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
-                    obj = Flt64(9.0),
-                    solution = solution,
-                    time = Duration.ZERO,
-                    possibleBestObj = Flt64(9.0),
+                val output: SolveReport<Flt64> = SolverStatus.Feasible.toSolveReport(
+                    objective = Flt64(9.0),
+                    values = solution,
+                    solveTime = Duration.ZERO,
+                    bestBound = Flt64(9.0),
                     gap = Flt64.zero
                 )
                 return Ok(output)
@@ -1612,11 +1642,11 @@ class ColumnGenerationAlgorithmTest {
                     fakeConstraint(tagged) to Flt64(7.0)
                 )
                 val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero }
-                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
-                    obj = Flt64(11.0),
-                    solution = solution,
-                    time = Duration.ZERO,
-                    possibleBestObj = Flt64(11.0),
+                val output: SolveReport<Flt64> = SolverStatus.Feasible.toSolveReport(
+                    objective = Flt64(11.0),
+                    values = solution,
+                    solveTime = Duration.ZERO,
+                    bestBound = Flt64(11.0),
                     gap = Flt64.zero
                 )
                 return Ok(lpResultOf(output, dual))
@@ -1703,13 +1733,13 @@ class ColumnGenerationAlgorithmTest {
                 toLogModel: Boolean,
                 registrationStatusCallBack: RegistrationStatusCallBack?,
                 solvingStatusCallBack: SolvingStatusCallBack?
-            ): Ret<FeasibleSolverOutput<Flt64>> {
+            ): Ret<SolveReport<Flt64>> {
                 val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64(2.0) }
-                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
-                    obj = Flt64(17.0),
-                    solution = solution,
-                    time = Duration.ZERO,
-                    possibleBestObj = Flt64(17.0),
+                val output: SolveReport<Flt64> = SolverStatus.Feasible.toSolveReport(
+                    objective = Flt64(17.0),
+                    values = solution,
+                    solveTime = Duration.ZERO,
+                    bestBound = Flt64(17.0),
                     gap = Flt64.zero
                 )
                 return Ok(output)
@@ -1727,11 +1757,11 @@ class ColumnGenerationAlgorithmTest {
                     fakeConstraint(tagged) to Flt64(5.0)
                 )
                 val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero }
-                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
-                    obj = Flt64(13.0),
-                    solution = solution,
-                    time = Duration.ZERO,
-                    possibleBestObj = Flt64(13.0),
+                val output: SolveReport<Flt64> = SolverStatus.Feasible.toSolveReport(
+                    objective = Flt64(13.0),
+                    values = solution,
+                    solveTime = Duration.ZERO,
+                    bestBound = Flt64(13.0),
                     gap = Flt64.zero
                 )
                 return Ok(lpResultOf(output, dual))
@@ -1833,13 +1863,13 @@ class ColumnGenerationAlgorithmTest {
                 toLogModel: Boolean,
                 registrationStatusCallBack: RegistrationStatusCallBack?,
                 solvingStatusCallBack: SolvingStatusCallBack?
-            ): Ret<FeasibleSolverOutput<Flt64>> {
+            ): Ret<SolveReport<Flt64>> {
                 val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.one }
-                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
-                    obj = Flt64(23.0),
-                    solution = solution,
-                    time = Duration.ZERO,
-                    possibleBestObj = Flt64(23.0),
+                val output: SolveReport<Flt64> = SolverStatus.Feasible.toSolveReport(
+                    objective = Flt64(23.0),
+                    values = solution,
+                    solveTime = Duration.ZERO,
+                    bestBound = Flt64(23.0),
                     gap = Flt64.zero
                 )
                 return Ok(output)
@@ -1859,11 +1889,11 @@ class ColumnGenerationAlgorithmTest {
                     dual[fakeConstraint(constraint)] = Flt64((index + 1).toDouble())
                 }
                 val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero }
-                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
-                    obj = Flt64(19.0),
-                    solution = solution,
-                    time = Duration.ZERO,
-                    possibleBestObj = Flt64(19.0),
+                val output: SolveReport<Flt64> = SolverStatus.Feasible.toSolveReport(
+                    objective = Flt64(19.0),
+                    values = solution,
+                    solveTime = Duration.ZERO,
+                    bestBound = Flt64(19.0),
                     gap = Flt64.zero
                 )
                 return Ok(lpResultOf(output, dual))
@@ -1970,13 +2000,13 @@ class ColumnGenerationAlgorithmTest {
                 toLogModel: Boolean,
                 registrationStatusCallBack: RegistrationStatusCallBack?,
                 solvingStatusCallBack: SolvingStatusCallBack?
-            ): Ret<FeasibleSolverOutput<Flt64>> {
+            ): Ret<SolveReport<Flt64>> {
                 val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.one }
-                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
-                    obj = Flt64(61.0),
-                    solution = solution,
-                    time = Duration.ZERO,
-                    possibleBestObj = Flt64(61.0),
+                val output: SolveReport<Flt64> = SolverStatus.Feasible.toSolveReport(
+                    objective = Flt64(61.0),
+                    values = solution,
+                    solveTime = Duration.ZERO,
+                    bestBound = Flt64(61.0),
                     gap = Flt64.zero
                 )
                 return Ok(output)
@@ -1996,11 +2026,11 @@ class ColumnGenerationAlgorithmTest {
                     dual[fakeConstraint(constraint)] = Flt64((index + 1).toDouble())
                 }
                 val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero }
-                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
-                    obj = Flt64(37.0),
-                    solution = solution,
-                    time = Duration.ZERO,
-                    possibleBestObj = Flt64(37.0),
+                val output: SolveReport<Flt64> = SolverStatus.Feasible.toSolveReport(
+                    objective = Flt64(37.0),
+                    values = solution,
+                    solveTime = Duration.ZERO,
+                    bestBound = Flt64(37.0),
                     gap = Flt64.zero
                 )
                 return Ok(lpResultOf(output, dual))
@@ -2048,7 +2078,7 @@ class ColumnGenerationAlgorithmTest {
 
     @Suppress("UNCHECKED_CAST")
     private fun lpResultOf(
-        result: FeasibleSolverOutput<Flt64>,
+        result: SolveReport<Flt64>,
         dualSolution: Map<*, *>
     ): ColumnGenerationSolver.LPResult {
         val constructor = ColumnGenerationSolver.LPResult::class.java.declaredConstructors
@@ -2060,7 +2090,8 @@ class ColumnGenerationAlgorithmTest {
     private fun fakeConstraint(origin: fuookami.ospf.kotlin.core.model.mechanism.MathConstraint): Constraint<Flt64, Linear> {
         return object : Constraint<Flt64, Linear> {
             override val lhs: List<Cell<Flt64>> = emptyList()
-            override val sign: ConstraintRelation = ConstraintRelation.Equal
+            override val sign: fuookami.ospf.kotlin.core.model.basic.ConstraintRelation =
+                fuookami.ospf.kotlin.core.model.basic.ConstraintRelation.Equal
             override val rhs: Flt64 = Flt64.zero
             override val lazy: Boolean = false
             override val name: String = "fake-dual"

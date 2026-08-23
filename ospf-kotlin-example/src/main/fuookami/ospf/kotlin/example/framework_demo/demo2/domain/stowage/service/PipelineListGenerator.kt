@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
  * based on the current aggregation and stowage mode.
  * 根据当前聚合和装载模式，组装配载优化模型的约束管道列表的生成器。
  *
- * @property aggregation the stowage aggregation / 配载聚合
+ * @property aggregation 配载聚合 / the stowage aggregation
 */
 data class PipelineListGenerator(
     private val aggregation: Aggregation
@@ -27,8 +27,8 @@ data class PipelineListGenerator(
      * Generates the list of constraint pipelines for the given stowage mode.
      * 为给定装载模式生成约束管道列表。
      *
-     * @param stowageMode the stowage mode / 装载模式
-     * @return the list of constraint pipelines or failure / 约束管道列表或失败
+     * @param stowageMode 装载模式 / the stowage mode
+     * @return 约束管道列表或失败 / the list of constraint pipelines or failure
     */
     operator fun invoke(
         stowageMode: StowageMode
@@ -70,7 +70,7 @@ data class PipelineListGenerator(
 
         if (aggregation.positions.any { it.status.recommendedWeightNeeded }) {
             pipelines.add(
-                PredicateLoadWeightLimit(
+                RecommendLoadWeightLimit(
                     positions = aggregation.positions,
                     load = aggregation.load,
                 )

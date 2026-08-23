@@ -1,6 +1,5 @@
 /**
- * 中间模型转储状态
- * Intermediate model dumping status
+ * 中间模型转储状态 / Intermediate model dumping status
 */
 package fuookami.ospf.kotlin.core.model.intermediate
 
@@ -9,8 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.model.basic.*
 
 /**
- * 中间模型转储进度状态，跟踪约束的准备进度。
- * Intermediate model dumping progress status tracking constraint readiness.
+ * 中间模型转储进度状态，跟踪约束的准备进度。 / Intermediate model dumping progress status tracking constraint readiness.
  *
  * @property readyConstraintAmount 已就绪约束数量 / Number of ready constraints
  * @property totalConstraintAmount 约束总数 / Total number of constraints
@@ -25,11 +23,12 @@ data class IntermediateModelDumpingStatus(
 }
 
 /** 中间模型转储状态回调 / Intermediate model dumping status callback */
-typealias IntermediateModelDumpingStatusCallBack = (IntermediateModelDumpingStatus) -> Try
+fun interface IntermediateModelDumpingStatusCallBack {
+    operator fun invoke(status: IntermediateModelDumpingStatus): Try
+}
 
 /**
- * 将中间模型转储状态转换为模型构建状态。
- * Convert intermediate model dumping status to model building status.
+ * 将中间模型转储状态转换为模型构建状态。 / Convert intermediate model dumping status to model building status.
  *
  * @param modelName 模型名称 / The model name
  * @param quadratic 是否为二次模型 / Whether the model is quadratic

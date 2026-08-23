@@ -1,12 +1,9 @@
 /**
- * 正弦映射
- * Sine Map
+ * 正弦映射 / Sine Map
  *
  * 正弦映射是基于正弦函数的一维混沌映射。
  * 该映射利用正弦函数的非线性产生混沌行为，与逻辑斯蒂映射具有相似的分岔结构。
- * 常用于混沌加密、伪随机数生成和混沌动力学研究。
- *
- * The sine map is a one-dimensional chaotic map based on the sine function.
+ * 常用于混沌加密、伪随机数生成和混沌动力学研究。 / The sine map is a one-dimensional chaotic map based on the sine function.
  * This map generates chaotic behavior using the nonlinearity of the sine function, exhibiting a bifurcation structure similar to the logistic map.
  * Commonly used for chaos encryption, pseudo-random number generation, and chaotic dynamics research.
 */
@@ -19,8 +16,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 正弦映射
- * Sine Map
+ * 正弦映射 / Sine Map
  *
  * 公式 / Formula: x_{n+1} = mu * sin(pi * x)
  *
@@ -45,8 +41,7 @@ data class SineMap<V : FloatingNumber<V>>(
 }
 
 /**
- * 正弦映射生成器
- * Sine Map Generator
+ * 正弦映射生成器 / Sine Map Generator
 */
 data class SineMapGenerator(
     val sineMap: SineMap<Flt64> = SineMap(),

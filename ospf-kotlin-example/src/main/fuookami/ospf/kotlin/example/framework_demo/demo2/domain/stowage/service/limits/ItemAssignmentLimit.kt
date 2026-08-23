@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -14,8 +15,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
  * Enforces item loading constraints based on item assignment status.
  * 根据货物分配状态强制执行货物装载约束。
  *
- * @property items the list of cargo items to be stowed / 待装载的货物项目列表
- * @property stowage the stowage decision variable matrix / 装载决策变量矩阵
+ * @property items 待装载的货物项目列表 / the list of cargo items to be stowed
+ * @property stowage 装载决策变量矩阵 / the stowage decision variable matrix
 */
 class ItemAssignmentLimit(
     private val items: List<Item>,
@@ -30,13 +31,13 @@ class ItemAssignmentLimit(
                         stowage.loaded[i] eq true,
                         name = "${name}_${item}"
                     )) {
-                        is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                        is Ok -> {}
 
-                        is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                        is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
                     }
@@ -47,13 +48,13 @@ class ItemAssignmentLimit(
                         stowage.loaded[i] leq true,
                         name = "${name}_${item}"
                     )) {
-                        is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                        is Ok -> {}
 
-                        is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                        is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
                     }

@@ -9,11 +9,15 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.syncRun
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 
-/** 创建环境函数类型 / Creating environment function type */
-typealias CreatingEnvironmentFunction = (Task) -> Try
+/** 创建环境函数 / Creating environment function */
+fun interface CreatingEnvironmentFunction {
+    operator fun invoke(env: Task): Try
+}
 
-/** MOSEK 原生回调函数类型 / MOSEK native callback function type */
-typealias NativeCallBack = (Task, Callback) -> Unit
+/** MOSEK 原生回调函数 / MOSEK native callback function */
+fun interface NativeCallBack {
+    operator fun invoke(task: Task, callback: Callback)
+}
 
 /** MOSEK 求解器回调函数类型 / MOSEK solver callback function type */
 typealias Function = suspend (SolverStatus?, Task) -> Try

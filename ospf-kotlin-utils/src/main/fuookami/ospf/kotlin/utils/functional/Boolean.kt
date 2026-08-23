@@ -7,9 +7,7 @@
 package fuookami.ospf.kotlin.utils.functional
 
 /**
- * 可空 Boolean 的逻辑与操作
- *
- * Logical AND operation for nullable Boolean values.
+ * 可空 Boolean 的逻辑与操作 / Logical AND operation for nullable Boolean values.
  * 可空 Boolean 值的逻辑与操作。
  *
  * @param other 另一个可空 Boolean 值 / Another nullable Boolean value

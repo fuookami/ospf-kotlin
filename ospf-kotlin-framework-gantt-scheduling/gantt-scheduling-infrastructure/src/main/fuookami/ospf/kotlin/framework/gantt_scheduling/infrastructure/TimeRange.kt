@@ -23,8 +23,8 @@ import fuookami.ospf.kotlin.utils.min
  * Time range [start, end), implementing TimeSlot interface.
  * 时间范围 [start, end)，实现 TimeSlot 接口。
  *
- * @property start Start time (default DISTANT_PAST) / 开始时间（默认为 DISTANT_PAST）
- * @property end End time (default DISTANT_FUTURE) / 结束时间（默认为 DISTANT_FUTURE）
+ * @property start 开始时间（默认为 DISTANT_PAST） / Start time (default DISTANT_PAST)
+ * @property end 结束时间（默认为 DISTANT_FUTURE） / End time (default DISTANT_FUTURE)
 */
 // [b, e)
 @Serializable
@@ -626,7 +626,7 @@ fun List<TimeRange>.backAt(i: Int): TimeRange {
 inline fun <T> _findLowerBoundImpl(
     list: List<T>,
     time: TimeRange,
-    crossinline extractor: Extractor<TimeRange, T>
+    extractor: Extractor<TimeRange, T>
 ): Int {
     return if (time.start <= extractor(list.first()).start) {
         0
@@ -696,7 +696,7 @@ suspend inline fun <T> _findLowerBoundParallellyImpl(
 inline fun <T> _findUpperBoundImpl(
     list: List<T>,
     time: TimeRange,
-    crossinline extractor: Extractor<TimeRange, T>
+    extractor: Extractor<TimeRange, T>
 ): Int {
     return if (time.end <= extractor(list.first()).start) {
         0
@@ -764,7 +764,7 @@ suspend inline fun <T> _findUpperBoundParallellyImpl(
 */
 inline fun <T> List<T>.findImpl(
     time: TimeRange,
-    crossinline extractor: Extractor<TimeRange, T>
+    extractor: Extractor<TimeRange, T>
 ): Pair<Int, Int>? {
     return if (this.isEmpty()) {
         null
@@ -840,7 +840,7 @@ suspend inline fun <T> List<T>.findParallellyImpl(
 */
 inline fun <T> List<T>.findFromImpl(
     time: Instant,
-    crossinline extractor: Extractor<TimeRange, T>
+    extractor: Extractor<TimeRange, T>
 ): Pair<Int, Int>? {
     return this.findImpl(
         time = TimeRange(
@@ -880,7 +880,7 @@ suspend inline fun <T> List<T>.findFromParallellyImpl(
 */
 inline fun <T> List<T>.findUntilImpl(
     time: Instant,
-    crossinline extractor: Extractor<TimeRange, T>
+    extractor: Extractor<TimeRange, T>
 ): Pair<Int, Int>? {
     return this.findImpl(
         time = TimeRange(
@@ -1106,7 +1106,7 @@ suspend fun <T> List<T>.findUntilParallelly(
 */
 inline fun <T> List<T>.find(
     time: TimeRange,
-    crossinline extractor: Extractor<TimeRange, T>
+    extractor: Extractor<TimeRange, T>
 ): List<T> {
     return this.findImpl(time) { extractor(it) }
         ?.let { this@find.subList(it.first, it.second) }
@@ -1140,7 +1140,7 @@ suspend inline fun <T> List<T>.findParallelly(
 */
 inline fun <T> List<T>.findFrom(
     time: Instant,
-    crossinline extractor: Extractor<TimeRange, T>
+    extractor: Extractor<TimeRange, T>
 ): List<T> {
     return this.findFromImpl(time) { extractor(it) }
         ?.let { this@findFrom.subList(it.first, it.second) }
@@ -1174,7 +1174,7 @@ suspend inline fun <T> List<T>.findFromParallelly(
 */
 inline fun <T> List<T>.findUntil(
     time: Instant,
-    crossinline extractor: Extractor<TimeRange, T>
+    extractor: Extractor<TimeRange, T>
 ): List<T> {
     return this.findUntilImpl(time) { extractor(it) }
         ?.let { this@findUntil.subList(it.first, it.second) }

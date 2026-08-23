@@ -14,11 +14,29 @@
     <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
     <artifactId>ospf-kotlin-framework-network-scheduling</artifactId>
     <packaging>pom</packaging>
+    <modules>
+        <module>network-scheduling-infrastructure</module>
+        <module>network-scheduling-domain-vrp-context</module>
+        <module>network-scheduling-domain-flow-context</module>
+        <module>network-scheduling-domain-route-generation-context</module>
+        <module>network-scheduling-domain-route-compilation-context</module>
+        <module>network-scheduling-application</module>
+    </modules>
 
     <dependencies>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
             <artifactId>ospf-kotlin-utils${ospf.kotlin.artifact.suffix}</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-math${ospf.kotlin.artifact.suffix}</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-quantities${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

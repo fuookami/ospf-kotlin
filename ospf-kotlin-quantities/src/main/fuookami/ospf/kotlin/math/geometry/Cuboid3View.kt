@@ -1,9 +1,7 @@
 /**
- * 三维长方体视图
- * 3D cuboid view
+ * 三维长方体视图 / 3D cuboid view
  *
- * 通过轴置换对原始长方体进行视角变换，提供变换后的尺寸。
- * Transforms an original cuboid through axis permutation, providing transformed dimensions.
+ * 通过轴置换对原始长方体进行视角变换，提供变换后的尺寸。 / Transforms an original cuboid through axis permutation, providing transformed dimensions.
 */
 package fuookami.ospf.kotlin.math.geometry
 
@@ -11,11 +9,9 @@ import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 /**
- * 三维长方体视图
- * 3D cuboid view
+ * 三维长方体视图 / 3D cuboid view
  *
- * 通过轴置换对原始长方体进行视角变换，提供变换后的尺寸。
- * Transforms an original cuboid through axis permutation, providing transformed dimensions.
+ * 通过轴置换对原始长方体进行视角变换，提供变换后的尺寸。 / Transforms an original cuboid through axis permutation, providing transformed dimensions.
  *
  * @property origin 原始长方体 / Original cuboid
  * @property permutation 轴置换（默认 XYZ）/ Axis permutation (default XYZ)

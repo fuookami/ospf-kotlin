@@ -2,8 +2,7 @@
  * MyBatis 值类型转换器
  * MyBatis Value Type Converter
  *
- * 将 OSPF 自定义类型转换为 JDBC 兼容类型。
- * Converts OSPF custom types to JDBC-compatible types.
+ * 将 OSPF 自定义类型转换为 JDBC 兼容类型。 / Converts OSPF custom types to JDBC-compatible types.
 */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
@@ -32,8 +31,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 object MybatisValueConverter {
 
     /**
-     * 将任意值转换为 JDBC 兼容类型
-     * Convert any value to JDBC-compatible type
+     * 将任意值转换为 JDBC 兼容类型 / Convert any value to JDBC-compatible type
      *
      * 支持的转换：
      * - UInt32 → Int

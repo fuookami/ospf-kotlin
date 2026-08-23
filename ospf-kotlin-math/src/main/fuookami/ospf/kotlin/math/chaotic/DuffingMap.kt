@@ -1,12 +1,9 @@
 /**
- * 达芬映射
- * Duffing Map
+ * 达芬映射 / Duffing Map
  *
  * 达芬映射是来源于达芬振子离散化的二维混沌映射。
  * 该映射展现出复杂的混沌动力学行为，与达芬方程有密切关联。
- * 常用于非线性动力学研究和混沌同步研究。
- *
- * The Duffing map is a two-dimensional chaotic map derived from the discretization of the Duffing oscillator.
+ * 常用于非线性动力学研究和混沌同步研究。 / The Duffing map is a two-dimensional chaotic map derived from the discretization of the Duffing oscillator.
  * This map exhibits complex chaotic dynamical behavior, closely related to the Duffing equation.
  * Commonly used for nonlinear dynamics research and chaos synchronization studies.
 */
@@ -20,8 +17,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 达芬映射
- * Duffing Map
+ * 达芬映射 / Duffing Map
  *
  * 公式 / Formula:
  * x_{n+1} = y
@@ -51,8 +47,7 @@ data class DuffingMap<V : FloatingNumber<V>>(
 }
 
 /**
- * 达芬映射生成器
- * Duffing Map Generator
+ * 达芬映射生成器 / Duffing Map Generator
 */
 data class DuffingMapGenerator(
     val duffingMap: DuffingMap<Flt64> = DuffingMap(),

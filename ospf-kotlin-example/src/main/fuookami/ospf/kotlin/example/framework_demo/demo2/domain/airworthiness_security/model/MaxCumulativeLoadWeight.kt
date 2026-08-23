@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
  * Cumulative load weight limits along the fuselage in forward or aft direction.
  * 沿机身向前或向后的累积载荷重量限制。
  *
- * @property limitZones The list of cumulative load weight limit zones. / 累积载荷重量限制区域列表
+ * @property limitZones 累积载荷重量限制区域列表 / The list of cumulative load weight limit zones.
 */
 class MaxCumulativeLoadWeight(
     val limitZones: List<LimitZone>,
@@ -25,8 +25,8 @@ class MaxCumulativeLoadWeight(
      * A part of a checkpoint contributing to cumulative load weight.
      * 对累积载荷重量有贡献的检查点部分。
      *
-     * @property position The cargo position. / 货物位置
-     * @property weight The weight coefficient for this part. / 此部分的重量系数
+     * @property position 货物位置 / The cargo position.
+     * @property weight 此部分的重量系数 / The weight coefficient for this part.
     */
     data class Part(
         val position: Position,
@@ -37,10 +37,10 @@ class MaxCumulativeLoadWeight(
      * A checkpoint for cumulative load weight verification.
      * 累积载荷重量验证的检查点。
      *
-     * @property zone The parent limit zone. / 父限制区域
-     * @property toArm The arm up to which load is accumulated. / 累积载荷的力臂上限
-     * @property maxSum The maximum allowed cumulative sum. / 最大允许累积和
-     * @property parts The parts contributing to this checkpoint. / 贡献此检查点的部分
+     * @property zone 父限制区域 / The parent limit zone.
+     * @property toArm 累积载荷的力臂上限 / The arm up to which load is accumulated.
+     * @property maxSum 最大允许累积和 / The maximum allowed cumulative sum.
+     * @property parts 贡献此检查点的部分 / The parts contributing to this checkpoint.
     */
     data class CheckPoint(
         val zone: LimitZone,
@@ -53,8 +53,8 @@ class MaxCumulativeLoadWeight(
      * A point defining the cumulative load weight limit curve.
      * 定义累积载荷重量限制曲线的点。
      *
-     * @property toArm The arm position. / 力臂位置
-     * @property maxSum The maximum cumulative sum at this arm. / 此力臂处的最大累积和
+     * @property toArm 力臂位置 / The arm position.
+     * @property maxSum 此力臂处的最大累积和 / The maximum cumulative sum at this arm.
     */
     data class Point(
         val toArm: Quantity<Flt64>,
@@ -65,18 +65,18 @@ class MaxCumulativeLoadWeight(
      * A zone defining cumulative load weight limits in a direction.
      * 定义某个方向上累积载荷重量限制的区域。
      *
-     * @property direction The direction of accumulation (FWD or AFT). / 累积方向（前向或后向）
-     * @property name The name of the limit zone. / 限制区域名称
-     * @property fromArm The starting arm for accumulation. / 累积的起始力臂
-     * @property points The limit curve points. / 限制曲线点
-     * @property checkpoints The checkpoints within this zone. / 此区域内的检查点
+     * @property direction 累积方向（前向或后向） / The direction of accumulation (FWD or AFT).
+     * @property name 限制区域名称 / The name of the limit zone.
+     * @property fromArm 累积的起始力臂 / The starting arm for accumulation.
+     * @property points 限制曲线点 / The limit curve points.
+     * @property checkpoints 此区域内的检查点 / The checkpoints within this zone.
     */
     data class LimitZone(
         val direction: Direction,
         val name: String,
         val fromArm: Quantity<Flt64>,
         val points: List<Point>,
-        val checkpoints: List<CheckPoint>
+        var checkpoints: List<CheckPoint>
     ) {
         companion object {
             operator fun invoke(
@@ -85,7 +85,76 @@ class MaxCumulativeLoadWeight(
                 points: List<Point>,
                 positions: List<Position>
             ): LimitZone {
-                TODO("not implemented yet")
+                val unit = fromArm.unit
+                val orderedPoints = points
+                    .distinctBy { it.toArm.to(unit)!!.value.toDouble() }
+                    .sortedBy { it.toArm.to(unit)!!.value.toDouble() }
+                    .let { sorted ->
+                        if (direction == Direction.AFT) {
+                            sorted.reversed()
+                        } else {
+                            sorted
+                        }
+                    }
+                val zone = LimitZone(
+                    direction = direction,
+                    name = "cumulative_${direction.name.lowercase()}_${fromArm.value}",
+                    fromArm = fromArm,
+                    points = orderedPoints,
+                    checkpoints = emptyList()
+                )
+
+                zone.checkpoints = orderedPoints.map { point ->
+                    CheckPoint(
+                        zone = zone,
+                        toArm = point.toArm,
+                        maxSum = point.maxSum,
+                        parts = contributingParts(
+                            fromArm = fromArm,
+                            toArm = point.toArm,
+                            positions = positions
+                        )
+                    )
+                }
+                return zone
+            }
+
+            private fun contributingParts(
+                fromArm: Quantity<Flt64>,
+                toArm: Quantity<Flt64>,
+                positions: List<Position>
+            ): List<Part> {
+                val unit = fromArm.unit
+                val intervalStart = minOf(
+                    fromArm.value.toDouble(),
+                    toArm.to(unit)!!.value.toDouble()
+                )
+                val intervalEnd = maxOf(
+                    fromArm.value.toDouble(),
+                    toArm.to(unit)!!.value.toDouble()
+                )
+                if (intervalStart == intervalEnd) {
+                    return emptyList()
+                }
+
+                return positions.mapNotNull { position ->
+                    val frontArm = position.coordinate.frontArm.to(unit)!!.value.toDouble()
+                    val backArm = position.coordinate.backArm.to(unit)!!.value.toDouble()
+                    val length = backArm - frontArm
+                    if (length <= 0.0) {
+                        null
+                    } else {
+                        val overlap = minOf(backArm, intervalEnd) - maxOf(frontArm, intervalStart)
+                        if (overlap > 0.0) {
+                            Part(
+                                position = position,
+                                weight = Flt64(overlap / length)
+                            )
+                        } else {
+                            null
+                        }
+                    }
+                }
             }
         }
     }

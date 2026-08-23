@@ -1,10 +1,10 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -23,9 +23,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
  * Models advice loading constraints for amount and weight slack at each position.
  * 建模每个位置的建议装载数量和重量松弛约束。
  *
- * @property aircraftModel The aircraft model providing weight unit information. / 提供重量单位信息的飞行器模型
- * @property positions The list of stowage positions. / 配载位置列表
- * @property load The load model for cargo assignment. / 货物分配的装载模型
+ * @property aircraftModel 提供重量单位信息的飞行器模型 / The aircraft model providing weight unit information.
+ * @property positions 配载位置列表 / The list of stowage positions.
+ * @property load 货物分配的装载模型 / The load model for cargo assignment.
 */
 class AdviceLoading(
     private val aircraftModel: AircraftModel,
@@ -39,8 +39,8 @@ class AdviceLoading(
      * Registers the advice loading slack symbols into the optimization model.
      * 将建议装载松弛符号注册到优化模型中。
      *
-     * @param model The linear meta model to register into. / 要注册到的线性元模型
-     * @return The result of the registration operation. / 注册操作的结果
+     * @param model 要注册到的线性元模型 / The linear meta model to register into.
+     * @return 注册操作的结果 / The result of the registration operation.
     */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
@@ -51,7 +51,7 @@ class AdviceLoading(
                 if (position.ala != null) {
                     exampleThresholdSlack(
                         x = LinearPolynomial(
-                            monomials = listOf(LinearMonomial(Flt64.one, load.loadAmount[j])),
+                            monomials = listOf(Flt64.one * load.loadAmount[j]),
                             constant = Flt64.zero
                         ),
                         threshold = position.ala!!.toFlt64(),
@@ -68,13 +68,13 @@ class AdviceLoading(
             }
         }
         when (val result = model.add(amountSlack)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -85,7 +85,7 @@ class AdviceLoading(
                 if (position.alw != null) {
                     exampleThresholdSlack(
                         x = LinearPolynomial(
-                            monomials = listOf(LinearMonomial(Flt64.one, load.estimateLoadWeight[j].to(aircraftModel.weightUnit)!!.value)),
+                            monomials = listOf(Flt64.one * load.estimateLoadWeight[j].to(aircraftModel.weightUnit)!!.value),
                             constant = Flt64.zero
                         ),
                         threshold = position.alw!!.to(aircraftModel.weightUnit)!!.value,
@@ -102,13 +102,13 @@ class AdviceLoading(
             }
         }
         when (val result = model.add(weightSlack)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }

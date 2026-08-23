@@ -1,11 +1,9 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /**
- * 日志记录模型
- * Log Record Model
+ * 日志记录模型 / Log Record Model
  *
- * 定义日志记录类型、接口和持久化对象。
- * Defines log record types, interfaces, and persistence objects.
+ * 定义日志记录类型、接口和持久化对象。 / Defines log record types, interfaces, and persistence objects.
 */
 package fuookami.ospf.kotlin.framework.log
 
@@ -25,8 +23,7 @@ import fuookami.ospf.kotlin.utils.serialization.*
 import fuookami.ospf.kotlin.framework.persistence.*
 
 /**
- * 获取运行时日志序列化器
- * Get runtime log serializer
+ * 获取运行时日志序列化器 / Get runtime log serializer
  *
  * @param value 日志值 / Log value
  * @param T 日志值类型 / Log value type
@@ -41,8 +38,7 @@ private fun <T : Any> runtimeLogSerializer(value: T): KSerializer<T> {
 }
 
 /**
- * 日志记录类型
- * Log record type
+ * 日志记录类型 / Log record type
 */
 enum class LogRecordType {
     /** 信息 / Info */
@@ -56,8 +52,7 @@ enum class LogRecordType {
 }
 
 /**
- * 日志记录接口
- * Log record interface
+ * 日志记录接口 / Log record interface
 */
 interface LogRecord {
     companion object {}
@@ -85,8 +80,7 @@ interface LogRecord {
 }
 
 /**
- * 日志记录持久化对象
- * Log record persistence object
+ * 日志记录持久化对象 / Log record persistence object
  *
  * @param T 日志值类型 / Log value type
 */
@@ -107,8 +101,7 @@ data class LogRecordPO<T : Any>(
     companion object {}
 
     /**
-     * 便捷构造函数（自动设置时间和可用时间）
-     * Convenience constructor (auto-sets time and available time)
+     * 便捷构造函数（自动设置时间和可用时间） / Convenience constructor (auto-sets time and available time)
      *
      * @param app 应用名 / Application name
      * @param version 版本 / Version
@@ -152,8 +145,7 @@ data class LogRecordPO<T : Any>(
     }
 
     /**
-     * 转换为字符串持久化对象（使用序列化器）
-     * Convert to string persistence object (using serializer)
+     * 转换为字符串持久化对象（使用序列化器） / Convert to string persistence object (using serializer)
      *
      * @param serializer 序列化器 / Serializer
      * @return 字符串持久化对象 / String persistence object
@@ -163,8 +155,7 @@ data class LogRecordPO<T : Any>(
     }
 
     /**
-     * 转换为字符串持久化对象（使用自定义序列化函数）
-     * Convert to string persistence object (using custom serialization function)
+     * 转换为字符串持久化对象（使用自定义序列化函数） / Convert to string persistence object (using custom serialization function)
      *
      * @param serializer 自定义序列化函数 / Custom serialization function
      * @return 字符串持久化对象 / String persistence object
@@ -183,8 +174,7 @@ data class LogRecordPO<T : Any>(
     }
 
     /**
-     * 转换为字节数组持久化对象（使用序列化器）
-     * Convert to byte array persistence object (using serializer)
+     * 转换为字节数组持久化对象（使用序列化器） / Convert to byte array persistence object (using serializer)
      *
      * @param serializer 序列化器 / Serializer
      * @return 字节数组持久化对象 / Byte array persistence object
@@ -202,8 +192,7 @@ data class LogRecordPO<T : Any>(
     }
 
     /**
-     * 转换为字节数组持久化对象（使用自定义序列化函数）
-     * Convert to byte array persistence object (using custom serialization function)
+     * 转换为字节数组持久化对象（使用自定义序列化函数） / Convert to byte array persistence object (using custom serialization function)
      *
      * @param serializer 自定义序列化函数 / Custom serialization function
      * @return 字节数组持久化对象 / Byte array persistence object

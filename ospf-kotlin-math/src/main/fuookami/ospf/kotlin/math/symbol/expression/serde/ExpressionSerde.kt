@@ -1,6 +1,5 @@
 /**
- * 表达式序列化与反序列化
- * Expression Serialization and Deserialization
+ * 表达式序列化与反序列化 / Expression Serialization and Deserialization
  *
  * 提供 ScalarExpression 和 BooleanExpression 的 JSON 序列化/反序列化。
  * Provides JSON serialization/deserialization for ScalarExpression and BooleanExpression.
@@ -40,7 +39,7 @@ internal sealed interface ScalarExpressionData {
      * Serialization data for a scalar property path reference.
      * 标量属性路径引用的序列化数据。
      *
-     * @property path the property path for value lookup / 用于值查找的属性路径
+     * @property path 用于值查找的属性路径 / the property path for value lookup
     */
     @Serializable
     @SerialName("Reference")
@@ -52,7 +51,7 @@ internal sealed interface ScalarExpressionData {
      * Serialization data for a scalar symbol reference.
      * 标量符号引用的序列化数据。
      *
-     * @property identifier the serialized symbol identifier / 序列化的符号标识符
+     * @property identifier 序列化的符号标识符 / the serialized symbol identifier
     */
     @Serializable
     @SerialName("SymbolReference")
@@ -131,7 +130,7 @@ internal sealed interface ScalarExpressionData {
      * Serialization data for a scalar boolean wrapper expression.
      * 标量布尔包装表达式的序列化数据。
      *
-     * @property expr the wrapped boolean expression / 被包装的布尔表达式
+     * @property expr 被包装的布尔表达式 / the wrapped boolean expression
     */
     @Serializable
     @SerialName("Boolean")
@@ -218,7 +217,7 @@ internal sealed interface BooleanExpressionData {
      * Serialization data for a logical AND expression.
      * 逻辑与表达式的序列化数据。
      *
-     * @property operands the list of boolean sub-expressions / 布尔子表达式列表
+     * @property operands 布尔子表达式列表 / the list of boolean sub-expressions
     */
     @Serializable
     @SerialName("And")
@@ -230,7 +229,7 @@ internal sealed interface BooleanExpressionData {
      * Serialization data for a logical OR expression.
      * 逻辑或表达式的序列化数据。
      *
-     * @property operands the list of boolean sub-expressions / 布尔子表达式列表
+     * @property operands 布尔子表达式列表 / the list of boolean sub-expressions
     */
     @Serializable
     @SerialName("Or")
@@ -242,7 +241,7 @@ internal sealed interface BooleanExpressionData {
      * Serialization data for a logical NOT expression.
      * 逻辑非表达式的序列化数据。
      *
-     * @property operand the boolean sub-expression to negate / 待取反的布尔子表达式
+     * @property operand 待取反的布尔子表达式 / the boolean sub-expression to negate
     */
     @Serializable
     @SerialName("Not")
@@ -277,7 +276,7 @@ private val json = Json {
  * Safely cast ScalarExpression<Any?> to ScalarExpression<Any> at the JSON deserialization boundary.
  * 将 ScalarExpression<Any?> 安全转换为 ScalarExpression<Any>，用于 JSON 反序列化边界。
  *
- * @return the same expression re-typed as ScalarExpression<Any> / 重新类型化为 ScalarExpression<Any> 的同一表达式
+ * @return 重新类型化为 ScalarExpression<Any> 的同一表达式 / the same expression re-typed as ScalarExpression<Any>
 */
 @Suppress("UNCHECKED_CAST")
 private fun ScalarExpression<Any?>.asAnyScalarExpression(): ScalarExpression<Any> {
@@ -292,7 +291,7 @@ private fun ScalarExpression<Any?>.asAnyScalarExpression(): ScalarExpression<Any
  * Convert ScalarExpression to serialization data.
  * 将 ScalarExpression 转换为序列化数据。
  *
- * @return the serialization data / 序列化数据
+ * @return 序列化数据 / the serialization data
 */
 internal fun ScalarExpression<*>.toData(): ScalarExpressionData = when (this) {
     is ScalarConstant<*> -> ScalarExpressionData.Constant(
@@ -336,7 +335,7 @@ internal fun ScalarExpression<*>.toData(): ScalarExpressionData = when (this) {
  * Restore ScalarExpression from serialization data.
  * 从序列化数据恢复 ScalarExpression。
  *
- * @return the restored scalar expression / 恢复的标量表达式
+ * @return 恢复的标量表达式 / the restored scalar expression
 */
 internal fun ScalarExpressionData.toScalarExpression(): ScalarExpression<Any> = when (this) {
     is ScalarExpressionData.Constant -> {
@@ -386,7 +385,7 @@ internal fun ScalarExpressionData.toScalarExpression(): ScalarExpression<Any> = 
  * Convert BooleanExpression to serialization data.
  * 将 BooleanExpression 转换为序列化数据。
  *
- * @return the serialization data / 序列化数据
+ * @return 序列化数据 / the serialization data
 */
 internal fun BooleanExpression.toData(): BooleanExpressionData = when (this) {
     is BooleanConstant -> BooleanExpressionData.BooleanConstant(
@@ -432,7 +431,7 @@ internal fun BooleanExpression.toData(): BooleanExpressionData = when (this) {
  * Restore BooleanExpression from serialization data.
  * 从序列化数据恢复 BooleanExpression。
  *
- * @return the restored boolean expression / 恢复的布尔表达式
+ * @return 恢复的布尔表达式 / the restored boolean expression
 */
 internal fun BooleanExpressionData.toBooleanExpression(): BooleanExpression = when (this) {
     is BooleanExpressionData.BooleanConstant -> BooleanConstant(
@@ -477,8 +476,7 @@ internal fun BooleanExpressionData.toBooleanExpression(): BooleanExpression = wh
 // ========== 公共 API / Public API ==========
 
 /**
- * 将布尔表达式序列化为 JSON 字符串
- * Serialize boolean expression to JSON string
+ * 将布尔表达式序列化为 JSON 字符串 / Serialize boolean expression to JSON string
  *
  * @return JSON 字符串 / JSON string
 */
@@ -487,8 +485,7 @@ fun BooleanExpression.toJsonString(): String {
 }
 
 /**
- * 从 JSON 字符串反序列化布尔表达式
- * Deserialize boolean expression from JSON string
+ * 从 JSON 字符串反序列化布尔表达式 / Deserialize boolean expression from JSON string
  *
  * @param jsonString JSON 字符串 / JSON string
  * @return 反序列化后的布尔表达式 / Deserialized boolean expression
@@ -499,8 +496,7 @@ fun booleanExpressionFromJson(jsonString: String): BooleanExpression {
 }
 
 /**
- * 尝试从 JSON 字符串反序列化布尔表达式
- * Try to deserialize boolean expression from JSON string
+ * 尝试从 JSON 字符串反序列化布尔表达式 / Try to deserialize boolean expression from JSON string
  *
  * @param jsonString JSON 字符串 / JSON string
  * @return 反序列化后的布尔表达式，失败时返回 null / Deserialized boolean expression, null on failure
@@ -514,8 +510,7 @@ fun booleanExpressionFromJsonOrNull(jsonString: String): BooleanExpression? {
 }
 
 /**
- * 将标量表达式序列化为 JSON 字符串
- * Serialize scalar expression to JSON string
+ * 将标量表达式序列化为 JSON 字符串 / Serialize scalar expression to JSON string
  *
  * @return JSON 字符串 / JSON string
 */
@@ -524,8 +519,7 @@ fun ScalarExpression<*>.toJsonString(): String {
 }
 
 /**
- * 从 JSON 字符串反序列化标量表达式
- * Deserialize scalar expression from JSON string
+ * 从 JSON 字符串反序列化标量表达式 / Deserialize scalar expression from JSON string
  *
  * @param jsonString JSON 字符串 / JSON string
  * @return 反序列化后的标量表达式 / Deserialized scalar expression
@@ -536,8 +530,7 @@ fun scalarExpressionFromJson(jsonString: String): ScalarExpression<Any> {
 }
 
 /**
- * 尝试从 JSON 字符串反序列化标量表达式
- * Try to deserialize scalar expression from JSON string
+ * 尝试从 JSON 字符串反序列化标量表达式 / Try to deserialize scalar expression from JSON string
  *
  * @param jsonString JSON 字符串 / JSON string
  * @return 反序列化后的标量表达式，失败时返回 null / Deserialized scalar expression, null on failure

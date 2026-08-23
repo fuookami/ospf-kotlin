@@ -3,7 +3,8 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.l
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -36,11 +37,11 @@ class ProduceQuantityMinimization<
     override val name: String = "produce_quantity_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
-        val cost = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
+        var cost = LinearPolynomial()
         for (product in products) {
             val thresholdValue = threshold(product)
             if (thresholdValue eq Flt64.zero) {
-                cost += LinearMonomial(coefficient(product), produce.quantity[product])
+                cost += coefficient(product) * produce.quantity[product]
             } else {
                 val slack = produceSlack(
                     x = produce.quantity[product],
@@ -61,11 +62,11 @@ class ProduceQuantityMinimization<
                         return Fatal(result.errors)
                     }
                 }
-                cost += LinearMonomial(coefficient(product), slack)
+                cost += coefficient(product) * slack
             }
         }
         when (val result = model.minimize(
-            polynomial = cost.toLinearPolynomial(),
+            polynomial = cost,
             name = "produce quantity"
         )) {
             is Ok -> {}

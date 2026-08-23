@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.report.SolveReport
 import fuookami.ospf.kotlin.core.solver.scip.ScipQuadraticSolver
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.function.ProductFunction
@@ -29,11 +29,11 @@ import fuookami.ospf.kotlin.core.variable.RealVar
 class QuadraticFunctionSolveTest {
     private fun isScipAvailable(): Boolean = ScipAvailability.isAvailable()
 
-    private fun asFeasibleOutput(output: Any): FeasibleSolverOutput<Flt64> {
-        // SCIP 求解成功路径返回 FeasibleSolverOutput<Flt64>，此处将测试边界转换收敛到最小作用域。
-        // Successful SCIP solve path returns FeasibleSolverOutput<Flt64>; keep this test-boundary cast in minimal scope.
+    private fun asFeasibleOutput(output: Any): SolveReport<Flt64> {
+        // SCIP 求解成功路径返回 SolveReport<Flt64>，此处将测试边界转换收敛到最小作用域。
+        // Successful SCIP solve path returns SolveReport<Flt64>; keep this test-boundary cast in minimal scope.
         @Suppress("UNCHECKED_CAST")
-        val feasible = output as FeasibleSolverOutput<Flt64>
+        val feasible = output as SolveReport<Flt64>
         return feasible
     }
 
@@ -57,8 +57,8 @@ class QuadraticFunctionSolveTest {
 
         val model = QuadraticMetaModel(name = "p12-product-solve")
         try {
-            assertTrue(model.add(listOf(x, y)) is Ok<*, *, *>)
-            assertTrue(product.registerAuxiliaryTokens(model.tokens) is Ok<*, *, *>)
+            assertTrue(model.add(listOf(x, y)) is Ok)
+            assertTrue(product.registerAuxiliaryTokens(model.tokens) is Ok)
 
             // Constraint: x + y = 10
             val sumConstraint = LinearPolynomial(
@@ -68,36 +68,36 @@ class QuadraticFunctionSolveTest {
                 ),
                 constant = Flt64(-10.0)
             )
-            assertTrue(model.addConstraint(sumConstraint eq Flt64.zero) is Ok<*, *, *>)
+            assertTrue(model.addConstraint(sumConstraint eq Flt64.zero) is Ok)
 
             // Minimize x*y
-            assertTrue(model.minimize(product.polynomial) is Ok<*, *, *>)
+            assertTrue(model.minimize(product.polynomial) is Ok)
             val mechanismRet = runBlocking {
                 QuadraticMechanismModel.invoke<Flt64>(metaModel = model)
             }
-            assertTrue(mechanismRet is Ok<*, *, *>)
+            assertTrue(mechanismRet is Ok)
             val mechanismModel = requireNotNull(mechanismRet.value)
 
-            assertTrue(product.registerConstraints(mechanismModel) is Ok<*, *, *>)
+            assertTrue(product.registerConstraints(mechanismModel) is Ok)
 
             val solver = ScipQuadraticSolver()
             val result = runBlocking {
                 val tetrad = solver.dump(mechanismModel)
                 solver(tetrad)
             }
-            assertTrue(result is Ok<*, *, *>, "SCIP quadratic solve should succeed")
+            assertTrue(result is Ok, "SCIP quadratic solve should succeed")
 
             val output = asFeasibleOutput(requireNotNull(result.value))
-            assertTrue(output.solution.isNotEmpty(),
+            assertTrue(output.values.isNotEmpty(),
                 "SCIP feasible solution should contain variable assignments")
 
             // x*y minimized with x+y=10 and x,y>=0 => minimum is 0 (one of x,y = 0)
-            val objValue = output.obj.toDouble()
+            val objValue = (output.solution?.objective ?: error("Solver returned no incumbent objective")).toDouble()
             assertTrue(objValue < 0.01,
                 "objective x*y should be ~0 but was $objValue")
 
             // Verify variable values via model.setSolution
-            model.setSolution(output.solution)
+            model.setSolution(output.values)
             val xVal = model.tokens.find(x)?.result?.toDouble() ?: 0.0
             val yVal = model.tokens.find(y)?.result?.toDouble() ?: 0.0
             assertTrue(xVal < 0.01 || yVal < 0.01,
@@ -118,7 +118,7 @@ class QuadraticFunctionSolveTest {
 
         val model = QuadraticMetaModel(name = "p12-ineq-solve")
         try {
-            assertTrue(model.add(listOf(x, y)) is Ok<*, *, *>)
+            assertTrue(model.add(listOf(x, y)) is Ok)
 
             // Constraint: x + y >= 4
             val sumPoly = LinearPolynomial(
@@ -128,7 +128,7 @@ class QuadraticFunctionSolveTest {
                 ),
                 constant = Flt64.zero
             )
-            assertTrue(model.addConstraint(sumPoly ge Flt64(4.0)) is Ok<*, *, *>)
+            assertTrue(model.addConstraint(sumPoly ge Flt64(4.0)) is Ok)
 
             // Minimize x^2 + y^2 (convex quadratic)
             val objective = QuadraticPolynomial(
@@ -138,11 +138,11 @@ class QuadraticFunctionSolveTest {
                 ),
                 constant = Flt64.zero
             )
-            assertTrue(model.minimize(objective) is Ok<*, *, *>)
+            assertTrue(model.minimize(objective) is Ok)
             val mechanismRet = runBlocking {
                 QuadraticMechanismModel.invoke<Flt64>(metaModel = model)
             }
-            assertTrue(mechanismRet is Ok<*, *, *>)
+            assertTrue(mechanismRet is Ok)
             val mechanismModel = requireNotNull(mechanismRet.value)
 
             val solver = ScipQuadraticSolver()
@@ -150,18 +150,18 @@ class QuadraticFunctionSolveTest {
                 val tetrad = solver.dump(mechanismModel)
                 solver(tetrad)
             }
-            assertTrue(result is Ok<*, *, *>, "SCIP quadratic solve should succeed")
+            assertTrue(result is Ok, "SCIP quadratic solve should succeed")
 
             val output = asFeasibleOutput(requireNotNull(result.value))
-            assertTrue(output.solution.isNotEmpty(),
+            assertTrue(output.values.isNotEmpty(),
                 "SCIP feasible solution should contain variable assignments")
 
             // x^2+y^2 minimized with x+y>=4 => x=y=2, objective = 8
-            val objValue = output.obj.toDouble()
+            val objValue = (output.solution?.objective ?: error("Solver returned no incumbent objective")).toDouble()
             assertTrue(Math.abs(objValue - 8.0) < 0.1,
                 "objective x^2+y^2 should be ~8 but was $objValue")
 
-            model.setSolution(output.solution)
+            model.setSolution(output.values)
             val xVal = model.tokens.find(x)?.result?.toDouble() ?: 0.0
             val yVal = model.tokens.find(y)?.result?.toDouble() ?: 0.0
             assertTrue(Math.abs(xVal - 2.0) < 0.1,

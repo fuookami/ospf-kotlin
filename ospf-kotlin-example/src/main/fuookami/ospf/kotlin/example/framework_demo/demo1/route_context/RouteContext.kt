@@ -23,8 +23,8 @@ class RouteContext {
      * Initializes the route context by building the network graph, services, and assignment from input data.
      * 通过从输入数据构建网络图、服务和分配来初始化路由上下文。
      *
-     * @param input the aggregated input data / 聚合输入数据
-     * @return the initialization result / 初始化结果
+     * @param input 聚合输入数据 / the aggregated input data
+     * @return 初始化结果 / the initialization result
     */
     fun init(input: Input): Try {
         var totalDemand = UInt64(0U)
@@ -91,8 +91,8 @@ class RouteContext {
      * Registers route-related decision variables and constraints into the model.
      * 将路由相关决策变量与约束注册到模型中。
      *
-     * @param model the linear meta model / 线性元模型
-     * @return the registration result / 注册结果
+     * @param model 线性元模型 / the linear meta model
+     * @return 注册结果 / the registration result
     */
     fun register(model: LinearMetaModel<Flt64>): Try {
         return aggregation.register(model)
@@ -102,8 +102,8 @@ class RouteContext {
      * Constructs route model constraints and pipelines.
      * 构建路由模型约束与管线。
      *
-     * @param model the linear meta model / 线性元模型
-     * @return the construction result / 构建结果
+     * @param model 线性元模型 / the linear meta model
+     * @return 构建结果 / the construction result
     */
     fun construct(model: LinearMetaModel<Flt64>): Try {
         val generator = PipelineListGenerator(aggregation)

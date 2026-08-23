@@ -167,8 +167,8 @@ open class AbstractTaskBunch<
 /**
  * contains.
  * contains。
- * @param task The task to check for membership in the bunch / 要检查是否包含在任务束中的任务
- * @return Whether the bunch contains the given task / 任务束是否包含给定任务
+ * @param task 要检查是否包含在任务束中的任务 / The task to check for membership in the bunch
+ * @return 任务束是否包含给定任务 / Whether the bunch contains the given task
 */
     open fun contains(task: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>): Boolean {
         return keys.contains(task.key)
@@ -177,9 +177,9 @@ open class AbstractTaskBunch<
 /**
  * contains.
  * contains。
- * @param prev The preceding task in the pair / 任务对中的前序任务
- * @param succ The succeeding task in the pair / 任务对中的后续任务
- * @return Whether the bunch contains both tasks as consecutive entries / 任务束是否包含这两个任务且它们相邻
+ * @param prev 任务对中的前序任务 / The preceding task in the pair
+ * @param succ 任务对中的后续任务 / The succeeding task in the pair
+ * @return 任务束是否包含这两个任务且它们相邻 / Whether the bunch contains both tasks as consecutive entries
 */
     open fun contains(
         prev: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>,
@@ -197,8 +197,8 @@ open class AbstractTaskBunch<
 /**
  * contains.
  * contains。
- * @param taskPair The pair of tasks to check for consecutive membership / 要检查是否相邻包含的任务对
- * @return Whether the bunch contains both tasks in the pair as consecutive entries / 任务束是否包含该任务对且它们相邻
+ * @param taskPair 要检查是否相邻包含的任务对 / The pair of tasks to check for consecutive membership
+ * @return 任务束是否包含该任务对且它们相邻 / Whether the bunch contains both tasks in the pair as consecutive entries
 */
     open fun contains(
         taskPair: Pair<AbstractTask<@UnsafeVariance E, @UnsafeVariance A>, AbstractTask<@UnsafeVariance E, @UnsafeVariance A>>
@@ -209,8 +209,8 @@ open class AbstractTaskBunch<
 /**
  * get.
  * get。
- * @param originTask The task to look up in the bunch / 要在任务束中查找的任务
- * @return The matching task from the bunch, or null if not found / 任务束中匹配的任务，未找到时为null
+ * @param originTask 要在任务束中查找的任务 / The task to look up in the bunch
+ * @return 任务束中匹配的任务，未找到时为null / The matching task from the bunch, or null if not found
 */
     open fun get(originTask: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>): T? {
         val task = keys[originTask.key]

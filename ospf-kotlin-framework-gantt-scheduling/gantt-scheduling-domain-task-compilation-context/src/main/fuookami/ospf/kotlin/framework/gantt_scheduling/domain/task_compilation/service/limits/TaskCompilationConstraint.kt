@@ -66,7 +66,7 @@ class TaskCompilationConstraint<
     }
 
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
-        return { map, args ->
+        return AbstractGanttSchedulingShadowPriceExtractor { map, args ->
             shadowPriceExtractor?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
                     args.task?.let { task ->

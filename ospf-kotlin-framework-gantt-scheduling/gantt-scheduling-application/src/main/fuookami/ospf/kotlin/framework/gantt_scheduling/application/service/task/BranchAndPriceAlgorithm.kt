@@ -122,8 +122,7 @@ class BranchAndPriceAlgorithm<
     private val executorAmount: UInt64 get() = UInt64(executors.size)
 
     /**
-     * 计算未固定任务的执行器数量。
-     * Calculate the number of executors that are not associated with fixed tasks.
+     * 计算未固定任务的执行器数量。 / Calculate the number of executors that are not associated with fixed tasks.
      *
      * @param fixedTasks 已固定的任务集合 / The set of fixed tasks.
      * @return 未固定任务的执行器数量 / The number of executors without fixed tasks.
@@ -133,8 +132,7 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 计算当前状态下每个执行器的最小列数要求。
-     * Calculate the minimum column amount requirement per executor in the current state.
+     * 计算当前状态下每个执行器的最小列数要求。 / Calculate the minimum column amount requirement per executor in the current state.
      *
      * @param fixedTasks 已固定的任务集合 / The set of fixed tasks.
      * @param configuration 算法配置 / The algorithm configuration.
@@ -174,7 +172,7 @@ class BranchAndPriceAlgorithm<
                 // solve ip with initial column / 使用初始列求解 IP
                 val ipRet = when (val result = solver.solveMILP("${id.value}_$iteration", model)) {
                     is Ok -> {
-                        model.setSolution(result.value.solution)
+                        model.setSolution(result.value.values)
                         result.value
                     }
 
@@ -202,10 +200,10 @@ class BranchAndPriceAlgorithm<
                     }
                 }
                 mainProblemSolvingTimes += UInt64.one
-                mainProblemSolvingTime += ipRet.time
-                iteration.refreshIpObj(ipRet.obj)
+                mainProblemSolvingTime += ipRet.solveTime ?: Duration.ZERO
+                iteration.refreshIpObj(ipRet.solution?.objective ?: Flt64.zero)
 
-                if (ipRet.obj eq Flt64.zero) {
+                if ((ipRet.solution?.objective ?: Flt64.zero) eq Flt64.zero) {
                     return Ok(bestSolution)
                 }
 
@@ -481,7 +479,7 @@ class BranchAndPriceAlgorithm<
                     // 所有生产设备已经有被固定的列（串）或者被隐藏，求解一个 IP 结束本次主迭代
                     val thisIpRet = when (val result = solver.solveMILP("${id.value}_${iteration}_ip", model)) {
                         is Ok -> {
-                            model.setSolution(result.value.solution)
+                            model.setSolution(result.value.values)
                             result.value
                         }
 
@@ -494,13 +492,13 @@ class BranchAndPriceAlgorithm<
                         }
                     }
                     mainProblemSolvingTimes += UInt64.one
-                    mainProblemSolvingTime += thisIpRet.time
+                    mainProblemSolvingTime += thisIpRet.solveTime ?: Duration.ZERO
                     logMILPResults(iteration.iteration, model)
-                    if (iteration.refreshIpObj(thisIpRet.obj)) {
+                    if (iteration.refreshIpObj(thisIpRet.solution?.objective ?: Flt64.zero)) {
                         when (val result = analyzeSolution(iteration.iteration, model)) {
                             is Ok -> {
                                 bestSolution = result.value
-                                if (thisIpRet.obj eq Flt64.zero) {
+                                if ((thisIpRet.solution?.objective ?: Flt64.zero) eq Flt64.zero) {
                                     return Ok(bestSolution)
                                 }
                             }
@@ -541,8 +539,7 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 在模型中注册上下文和提取上下文，并添加初始列。
-     * Register the context and extract contexts in the model, and add initial columns.
+     * 在模型中注册上下文和提取上下文，并添加初始列。 / Register the context and extract contexts in the model, and add initial columns.
      *
      * @param model 线性元模型 / The linear meta model.
      * @return 操作结果 / The result of the operation.
@@ -590,8 +587,7 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 求解受限主问题（RMP）的线性松弛，提取影子价格。
-     * Solve the linear relaxation of the restricted master problem (RMP) and extract shadow prices.
+     * 求解受限主问题（RMP）的线性松弛，提取影子价格。 / Solve the linear relaxation of the restricted master problem (RMP) and extract shadow prices.
      *
      * @param id 求解器运行标识 / The solver run identifier.
      * @param iteration 当前迭代 / The current iteration.
@@ -621,8 +617,8 @@ class BranchAndPriceAlgorithm<
         }
 
         mainProblemSolvingTimes += UInt64.one
-        mainProblemSolvingTime += lpRet.result.time
-        if (iteration.refreshLpObj(lpRet.result.obj) && withKeeping) {
+        mainProblemSolvingTime += lpRet.result.solveTime ?: Duration.ZERO
+        if (iteration.refreshLpObj(lpRet.result.solution?.objective ?: Flt64.zero) && withKeeping) {
             when (val ret = keepTasks(iteration.iteration, model)) {
                 is Ok -> {}
 
@@ -654,8 +650,7 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 求解子问题（定价问题），生成具有负约简成本的新列。
-     * Solve the sub-problem (pricing problem) to generate new columns with negative reduced cost.
+     * 求解子问题（定价问题），生成具有负约简成本的新列。 / Solve the sub-problem (pricing problem) to generate new columns with negative reduced cost.
      *
      * @param id 求解器运行标识 / The solver run identifier.
      * @param iteration 当前迭代 / The current iteration.
@@ -691,8 +686,7 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 从 LP 对偶解中提取影子价格映射。
-     * Extract the shadow price map from the LP dual solution.
+     * 从 LP 对偶解中提取影子价格映射。 / Extract the shadow price map from the LP dual solution.
      *
      * @param model 线性元模型 / The linear meta model.
      * @param shadowPrices 对偶解 / The dual solution.
@@ -734,8 +728,7 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 向模型添加新生成的列（任务），并去重后刷新模型。
-     * Add newly generated columns (tasks) to the model, deduplicate, and flush the model.
+     * 向模型添加新生成的列（任务），并去重后刷新模型。 / Add newly generated columns (tasks) to the model, deduplicate, and flush the model.
      *
      * @param iteration 当前迭代编号 / Current iteration number.
      * @param newTasks 新生成的任务列表 / The list of newly generated tasks.
@@ -768,8 +761,7 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 根据约简成本移除冗余列，控制列总数不超过上限。
-     * Remove redundant columns based on reduced cost to keep total column count under the limit.
+     * 根据约简成本移除冗余列，控制列总数不超过上限。 / Remove redundant columns based on reduced cost to keep total column count under the limit.
      *
      * @param maximumReducedCost 最大约简成本阈值 / The maximum reduced cost threshold.
      * @param maximumColumnAmount 最大列数 / The maximum column amount.
@@ -812,8 +804,7 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 从模型中提取并固定任务（将任务绑定到特定执行器）。
-     * Extract and fix tasks from the model (bind tasks to specific executors).
+     * 从模型中提取并固定任务（将任务绑定到特定执行器）。 / Extract and fix tasks from the model (bind tasks to specific executors).
      *
      * @param iteration 当前迭代编号 / Current iteration number.
      * @param model 线性元模型 / The linear meta model.
@@ -840,8 +831,7 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 从模型中提取并保留任务（在列删除中不被移除）。
-     * Extract and keep tasks from the model (exempt from column removal).
+     * 从模型中提取并保留任务（在列删除中不被移除）。 / Extract and keep tasks from the model (exempt from column removal).
      *
      * @param iteration 当前迭代编号 / Current iteration number.
      * @param model 线性元模型 / The linear meta model.
@@ -868,8 +858,7 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 从模型中提取并隐藏执行器。
-     * Extract and hide executors from the model.
+     * 从模型中提取并隐藏执行器。 / Extract and hide executors from the model.
      *
      * @param model 线性元模型 / The linear meta model.
      * @return 操作结果 / The result of the operation.
@@ -895,8 +884,7 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 根据影子价格选择自由执行器（未被固定或隐藏）。
-     * Select free executors (not fixed or hidden) based on shadow prices.
+     * 根据影子价格选择自由执行器（未被固定或隐藏）。 / Select free executors (not fixed or hidden) based on shadow prices.
      *
      * @param shadowPriceMap 影子价格映射 / The shadow price map.
      * @param model 线性元模型 / The linear meta model.
@@ -927,8 +915,7 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 全局固定任务：将不在自由执行器中的已固定任务提交到上下文。
-     * Globally fix tasks: commit fixed tasks that are not in the free executors set to the context.
+     * 全局固定任务：将不在自由执行器中的已固定任务提交到上下文。 / Globally fix tasks: commit fixed tasks that are not in the free executors set to the context.
      *
      * @param freeExecutors 自由执行器集合 / The set of free executors.
      * @return 已固定的任务集合 / The set of fixed tasks.
@@ -956,8 +943,7 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 局部固定任务：根据当前解将高确定性的任务固定到执行器。
-     * Locally fix tasks: pin high-certainty tasks to executors based on the current solution.
+     * 局部固定任务：根据当前解将高确定性的任务固定到执行器。 / Locally fix tasks: pin high-certainty tasks to executors based on the current solution.
      *
      * @param iteration 当前迭代编号 / Current iteration number.
      * @param fixedTasks 已固定的任务集合 / The set of already fixed tasks.
@@ -982,8 +968,7 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 刷新当前迭代的上下文状态，清除保留任务和隐藏执行器。
-     * Flush the context state of the current iteration, clearing kept tasks and hidden executors.
+     * 刷新当前迭代的上下文状态，清除保留任务和隐藏执行器。 / Flush the context state of the current iteration, clearing kept tasks and hidden executors.
      *
      * @param iteration 当前迭代编号 / Current iteration number.
      * @return 操作结果 / The result of the operation.
@@ -1007,8 +992,7 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 分析当前解，提取任务调度方案。
-     * Analyze the current solution and extract the task scheduling plan.
+     * 分析当前解，提取任务调度方案。 / Analyze the current solution and extract the task scheduling plan.
      *
      * @param iteration 当前迭代编号 / Current iteration number.
      * @param model 线性元模型 / The linear meta model.
@@ -1034,8 +1018,7 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 记录 LP 求解结果日志（仅在非生产环境）。
-     * Log the LP solving results (only in non-production environment).
+     * 记录 LP 求解结果日志（仅在非生产环境）。 / Log the LP solving results (only in non-production environment).
      *
      * @param iteration 当前迭代编号 / Current iteration number.
      * @param model 线性元模型 / The linear meta model.
@@ -1059,8 +1042,7 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 记录 MILP 求解结果日志（仅在非生产环境）。
-     * Log the MILP solving results (only in non-production environment).
+     * 记录 MILP 求解结果日志（仅在非生产环境）。 / Log the MILP solving results (only in non-production environment).
      *
      * @param iteration 当前迭代编号 / Current iteration number.
      * @param model 线性元模型 / The linear meta model.

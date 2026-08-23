@@ -1,18 +1,14 @@
 /**
- * 群定後
- * Group Laws
+ * 群定後 / Group Laws
  *
- * 提供群代数结构定律验证类，验证结合律、单位元存在性和逆元存在性。
- * Provides group algebraic structure law validation class, verifying associativity, identity existence, and inverse existence.
+ * 提供群代数结构定律验证类，验证结合律、单位元存在性和逆元存在性。 / Provides group algebraic structure law validation class, verifying associativity, identity existence, and inverse existence.
 */
 package fuookami.ospf.kotlin.math.algebra.law
 
 /**
- * 群定律验证器
- * Group law validator
+ * 群定律验证器 / Group law validator
  *
- * 通过采样元素验证群的三条公理：结合律、单位元存在性、逆元存在性。
- * Validates three group axioms via sampled elements: associativity, identity existence, and inverse existence.
+ * 通过采样元素验证群的三条公理：结合律、单位元存在性、逆元存在性。 / Validates three group axioms via sampled elements: associativity, identity existence, and inverse existence.
  *
  * @property Self 群元素类型 / Group element type
  * @property samples 用于验证的采样元素集合 / Collection of sampled elements for verification
@@ -30,8 +26,7 @@ class GroupLaw<Self>(
 ) {
 
     /**
-     * 验证结合律
-     * Verify associativity
+     * 验证结合律 / Verify associativity
      *
      * @return 对所有采样元素满足结合律返回 true / True if associativity holds for all sampled elements
     */
@@ -51,8 +46,7 @@ class GroupLaw<Self>(
     }
 
     /**
-     * 验证单位元存在性
-     * Verify identity element existence
+     * 验证单位元存在性 / Verify identity element existence
      *
      * @return 对所有采样元素满足单位元性质返回 true / True if identity property holds for all sampled elements
     */
@@ -69,8 +63,7 @@ class GroupLaw<Self>(
     }
 
     /**
-     * 验证逆元存在性
-     * Verify inverse element existence
+     * 验证逆元存在性 / Verify inverse element existence
      *
      * @return 对所有采样元素满足逆元性质返回 true / True if inverse property holds for all sampled elements
     */
@@ -88,8 +81,7 @@ class GroupLaw<Self>(
     }
 
     /**
-     * 验证所有群定律
-     * Validate all group laws
+     * 验证所有群定律 / Validate all group laws
      *
      * @return 结合律、单位元、逆元均满足返回 true / True if associativity, identity, and inverse all hold
     */

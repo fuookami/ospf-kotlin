@@ -12,8 +12,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 圆柱能力路径状态。
- * Cylinder capability path status.
+ * 圆柱能力路径状态。 / Cylinder capability path status.
 */
 enum class CylinderCapabilityStatus {
     /** 仅长方体路径。 / Cuboid-only path. */
@@ -39,8 +38,7 @@ enum class CylinderCapabilityStatus {
 }
 
 /**
- * 圆柱能力路径。
- * Cylinder capability path.
+ * 圆柱能力路径。 / Cylinder capability path.
  *
  * @property source 调用来源 / call source
  * @property status 能力状态 / capability status
@@ -148,8 +146,7 @@ enum class CylinderCapabilityPath(
 }
 
 /**
- * 横向圆柱轴向未开放错误信息。
- * Unsupported horizontal cylinder axis message.
+ * 横向圆柱轴向未开放错误信息。 / Unsupported horizontal cylinder axis message.
  *
  * @param source 调用来源 / call source
  * @param axis 实际轴向 / actual axis
@@ -160,8 +157,7 @@ fun unsupportedCylinderAxisMessage(source: String, axis: Axis3): String {
 }
 
 /**
- * 横向圆柱候选来源未开放错误信息。
- * Unsupported generated horizontal cylinder source message.
+ * 横向圆柱候选来源未开放错误信息。 / Unsupported generated horizontal cylinder source message.
  *
  * @param source 调用来源 / call source
  * @return 错误信息 / error message
@@ -171,8 +167,7 @@ fun unsupportedGeneratedHorizontalCylinderSourceMessage(source: String): String 
 }
 
 /**
- * 要求横向圆柱候选放置来自已验证的轴向感知生成路径。
- * Require horizontal cylinder candidate placement to come from verified axis-aware generation.
+ * 要求横向圆柱候选放置来自已验证的轴向感知生成路径。 / Require horizontal cylinder candidate placement to come from verified axis-aware generation.
  *
  * @param shape 装箱形状 / packing shape
  * @param verifiedAxisAwareCandidate 是否为已验证轴向感知候选 / whether it is a verified axis-aware candidate
@@ -194,8 +189,7 @@ fun requireVerifiedGeneratedCylinderCandidate(
 }
 
 /**
- * 圆柱非直立朝向未开放错误信息。
- * Unsupported non-upright cylinder orientation message.
+ * 圆柱非直立朝向未开放错误信息。 / Unsupported non-upright cylinder orientation message.
  *
  * @param source 调用来源 / call source
  * @return 错误信息 / error message
@@ -205,8 +199,7 @@ fun unsupportedCylinderOrientationMessage(source: String): String {
 }
 
 /**
- * 圆柱侧放/卧放堆叠层策略未开放错误信息。
- * Unsupported side/lie cylinder top-layer policy message.
+ * 圆柱侧放/卧放堆叠层策略未开放错误信息。 / Unsupported side/lie cylinder top-layer policy message.
  *
  * @param source 调用来源 / call source
  * @return 错误信息 / error message
@@ -216,8 +209,7 @@ fun unsupportedCylinderTopLayerPolicyMessage(source: String): String {
 }
 
 /**
- * 无坐标圆柱堆叠/悬挂支撑未开放错误信息。
- * Unsupported coordinate-less cylinder stacking/hanging support message.
+ * 无坐标圆柱堆叠/悬挂支撑未开放错误信息。 / Unsupported coordinate-less cylinder stacking/hanging support message.
  *
  * @param source 调用来源 / call source
  * @return 错误信息 / error message
@@ -227,8 +219,7 @@ fun unsupportedCylinderStackingSupportMessage(source: String): String {
 }
 
 /**
- * 连续半径优化未开放错误信息。
- * Unsupported continuous radius optimization message.
+ * 连续半径优化未开放错误信息。 / Unsupported continuous radius optimization message.
  *
  * @param source 调用来源 / call source
  * @return 错误信息 / error message
@@ -238,8 +229,7 @@ fun unsupportedContinuousCylinderRadiusOptimizationMessage(source: String): Stri
 }
 
 /**
- * 连续半径优化缺口。
- * Continuous-radius optimization gap.
+ * 连续半径优化缺口。 / Continuous-radius optimization gap.
  *
  * @property detail 缺口说明 / gap detail
 */
@@ -268,8 +258,7 @@ enum class ContinuousCylinderRadiusOptimizationGap(
 }
 
 /**
- * 连续半径优化缺口报告。
- * Continuous-radius optimization gap report.
+ * 连续半径优化缺口报告。 / Continuous-radius optimization gap report.
  *
  * @property source 调用来源 / call source
  * @property radiusWeightFunctionKey 半径权重函数键（可选） / radius weight function key (optional)
@@ -290,8 +279,7 @@ data class ContinuousCylinderRadiusOptimizationGapReport(
     }
 
     /**
-     * 转为错误信息。
-     * Convert to error message.
+     * 转为错误信息。 / Convert to error message.
      *
      * @param rowDescription 行描述（可选） / row description (optional)
      * @return 错误信息 / error message
@@ -311,8 +299,7 @@ data class ContinuousCylinderRadiusOptimizationGapReport(
 }
 
 /**
- * 构建连续半径优化缺口报告。
- * Build continuous-radius optimization gap report.
+ * 构建连续半径优化缺口报告。 / Build continuous-radius optimization gap report.
  *
  * @param source 调用来源 / call source
  * @param radiusWeightFunctionKey 半径权重函数键（可选） / radius weight function key (optional)
@@ -359,8 +346,7 @@ fun continuousCylinderRadiusOptimizationGapReport(
 private val ContinuousRadiusVariableTokenRegex = Regex("[^A-Za-z0-9]+")
 
 /**
- * 将字符串转为连续半径变量 token。
- * Convert a string to a continuous-radius variable token.
+ * 将字符串转为连续半径变量 token。 / Convert a string to a continuous-radius variable token.
  *
  * @param fallback 空字符串时的回退值 / fallback value when string is empty
  * @return 连续半径变量 token / continuous-radius variable token
@@ -373,8 +359,7 @@ private fun String.continuousRadiusVariableToken(fallback: String): String {
 }
 
 /**
- * 构建连续半径变量名。
- * Build a continuous-radius variable name.
+ * 构建连续半径变量名。 / Build a continuous-radius variable name.
  *
  * @param source 调用来源 / call source
  * @param radiusWeightFunctionKey 半径权重函数键（可选） / radius weight function key (optional)
@@ -394,8 +379,7 @@ private fun continuousRadiusVariableName(
 }
 
 /**
- * 将直径量安全转换为半径界（除以2），返回结果或错误。
- * Safely convert a diameter quantity to a radius bound (divide by 2), returning result or error.
+ * 将直径量安全转换为半径界（除以2），返回结果或错误。 / Safely convert a diameter quantity to a radius bound (divide by 2), returning result or error.
  *
  * @param radiusUnitSource 目标单位参考量（可选） / target unit reference quantity (optional)
  * @return 成功时返回半径量，单位不兼容时返回错误 / returns the radius quantity on success, or error when units are incompatible
@@ -410,8 +394,7 @@ private fun Quantity<FltX>.toContinuousRadiusBoundFromDiameterSafe(
 }
 
 /**
- * 将半径量转为文本表示。
- * Convert a radius quantity to text representation.
+ * 将半径量转为文本表示。 / Convert a radius quantity to text representation.
  *
  * @return 半径文本表示 / radius text representation
 */
@@ -420,8 +403,7 @@ private fun Quantity<FltX>.radiusValueText(): String {
 }
 
 /**
- * 连续半径 solver 原生变量原型。
- * Solver-native continuous-radius variable prototype.
+ * 连续半径 solver 原生变量原型。 / Solver-native continuous-radius variable prototype.
  *
  * @property source 调用来源 / call source
  * @property radiusWeightFunctionKey 半径权重函数键（可选） / radius weight function key (optional)
@@ -519,8 +501,7 @@ data class ContinuousCylinderRadiusSolverPrototype(
             && radiusWeightFunctionKey != null
 
     /**
-     * 转为错误信息后缀。
-     * Convert to error message suffix.
+     * 转为错误信息后缀。 / Convert to error message suffix.
      *
      * @return 错误信息后缀 / error message suffix
     */
@@ -542,8 +523,7 @@ data class ContinuousCylinderRadiusSolverPrototype(
 }
 
 /**
- * 构建连续半径 solver 原生变量原型。
- * Build a solver-native continuous-radius variable prototype.
+ * 构建连续半径 solver 原生变量原型。 / Build a solver-native continuous-radius variable prototype.
  *
  * @param source 调用来源 / call source
  * @param radiusWeightFunctionKey 半径权重函数键（可选） / radius weight function key (optional)
@@ -667,11 +647,9 @@ fun continuousCylinderRadiusSolverPrototype(
 }
 
 /**
- * PWL 半径选择元数据。
- * PWL radius selection metadata.
+ * PWL 半径选择元数据。 / PWL radius selection metadata.
  *
- * 记录 solver 通过 PWL 近似路径选择半径时的诊断信息。
- * Records diagnostic information when the solver selects a radius via the PWL approximation path.
+ * 记录 solver 通过 PWL 近似路径选择半径时的诊断信息。 / Records diagnostic information when the solver selects a radius via the PWL approximation path.
  *
  * @property solverRadiusSquared solver 的近似 r² 值 q / solver's approximate r² value q
  * @property actualRadiusSquared 真实 r² 值 / actual r² value
@@ -698,8 +676,7 @@ data class PWLRadiusSelectionMetadata(
     }
 
     /**
-     * 计算真实圆柱体积（使用 solver 选择的半径）。
-     * Compute actual cylinder volume using solver-selected radius.
+     * 计算真实圆柱体积（使用 solver 选择的半径）。 / Compute actual cylinder volume using solver-selected radius.
      *
      * @param height 圆柱高度 / cylinder height
      * @param pi 圆周率 / pi
@@ -710,8 +687,7 @@ data class PWLRadiusSelectionMetadata(
     }
 
     /**
-     * 计算 PWL 近似体积（使用 q ≈ r²）。
-     * Compute PWL approximate volume using q ≈ r².
+     * 计算 PWL 近似体积（使用 q ≈ r²）。 / Compute PWL approximate volume using q ≈ r².
      *
      * @param height 圆柱高度 / cylinder height
      * @param pi 圆周率 / pi
@@ -723,8 +699,7 @@ data class PWLRadiusSelectionMetadata(
 }
 
 /**
- * 连续半径已选择结果。
- * Selected continuous-radius result.
+ * 连续半径已选择结果。 / Selected continuous-radius result.
  *
  * @property key 半径权重函数键 / radius weight function key
  * @property variableName solver 半径变量名（可选） / solver radius variable name (optional)
@@ -767,8 +742,7 @@ data class CylinderRadiusSelectionResult(
 }
 
 /**
- * 构建连续半径 solver 原型的稳定 item 来源。
- * Build a stable item source for continuous-radius solver prototypes.
+ * 构建连续半径 solver 原型的稳定 item 来源。 / Build a stable item source for continuous-radius solver prototypes.
  *
  * @param item 货物 / item
  * @return solver 原型来源 / solver prototype source
@@ -786,8 +760,7 @@ fun continuousCylinderRadiusSolverSource(item: Item): String {
 }
 
 /**
- * 获取连续半径已选择结果。
- * Get selected continuous-radius result.
+ * 获取连续半径已选择结果。 / Get selected continuous-radius result.
  *
  * @return 已选择半径结果；未使用连续半径 key 时返回 null / selected radius result, or null when no continuous-radius key is used
 */
@@ -803,8 +776,7 @@ fun PackageShapeSpec.VerticalCylinder.continuousRadiusSelectionResult(): Cylinde
 }
 
 /**
- * 获取连续半径 solver 原生变量原型。
- * Get the solver-native continuous-radius variable prototype.
+ * 获取连续半径 solver 原生变量原型。 / Get the solver-native continuous-radius variable prototype.
  *
  * @param source 调用来源 / call source
  * @return solver 原生变量原型；未使用连续半径 key 时返回 null / solver-native variable prototype, or null when no continuous-radius key is used
@@ -828,8 +800,7 @@ fun PackageShapeSpec.VerticalCylinder.continuousRadiusSolverPrototype(
 }
 
 /**
- * 圆柱进入仅长方体路径未开放错误信息。
- * Unsupported cylinder message for cuboid-only paths.
+ * 圆柱进入仅长方体路径未开放错误信息。 / Unsupported cylinder message for cuboid-only paths.
  *
  * @param source 调用来源 / call source
  * @param pathPredicate 路径谓词描述 / path predicate description
@@ -840,8 +811,7 @@ fun unsupportedCylinderCuboidOnlyPathMessage(source: String, pathPredicate: Stri
 }
 
 /**
- * 判断物品集合是否包含圆柱。
- * Return whether the item collection contains a cylinder.
+ * 判断物品集合是否包含圆柱。 / Return whether the item collection contains a cylinder.
  *
  * @param items 待检查物品 / items to check
  * @return 是否包含圆柱 / whether a cylinder exists
@@ -853,8 +823,7 @@ fun hasCylinderItem(items: Iterable<Item>): Boolean {
 }
 
 /**
- * 判断形状规格是否请求连续半径优化。
- * Return whether shape spec requests continuous radius optimization.
+ * 判断形状规格是否请求连续半径优化。 / Return whether shape spec requests continuous radius optimization.
  *
  * @param spec 包装形状规格 / package shape spec
  * @return 是否请求连续半径优化 / whether continuous radius optimization is requested
@@ -864,8 +833,7 @@ fun hasContinuousCylinderRadiusOptimization(spec: PackageShapeSpec): Boolean {
 }
 
 /**
- * 要求生产装箱形状具备确定的圆柱半径。
- * Require production packing shape to have a concrete cylinder radius.
+ * 要求生产装箱形状具备确定的圆柱半径。 / Require production packing shape to have a concrete cylinder radius.
  *
  * @param spec 包装形状规格 / package shape spec
  * @param source 调用来源 / call source
@@ -890,8 +858,7 @@ fun requireConcreteCylinderRadiusProductionMetadata(
 }
 
 /**
- * 要求圆柱为当前默认候选路径支持的竖直轴向。
- * Require the cylinder axis supported by current default candidate paths.
+ * 要求圆柱为当前默认候选路径支持的竖直轴向。 / Require the cylinder axis supported by current default candidate paths.
  *
  * @param shape 装箱形状 / packing shape
  * @param source 调用来源 / call source
@@ -908,8 +875,7 @@ fun requireVerticalCylinderAxis(
 }
 
 /**
- * 要求圆柱为当前默认候选路径支持的竖直轴向。
- * Require the cylinder axis supported by current default candidate paths.
+ * 要求圆柱为当前默认候选路径支持的竖直轴向。 / Require the cylinder axis supported by current default candidate paths.
  *
  * @param shape 装箱形状 / packing shape
  * @param path 能力路径 / capability path
@@ -929,8 +895,7 @@ fun requireVerticalCylinderAxis(
 }
 
 /**
- * 要求圆柱为轴向感知候选路径支持的轴向。
- * Require the cylinder axis supported by axis-aware candidate paths.
+ * 要求圆柱为轴向感知候选路径支持的轴向。 / Require the cylinder axis supported by axis-aware candidate paths.
  *
  * @param shape 装箱形状 / packing shape
  * @param path 能力路径 / capability path
@@ -951,8 +916,7 @@ fun requireAxisAwareCylinderCandidate(
 }
 
 /**
- * 要求圆柱支撑语义只使用直立 Y 轴圆柱。
- * Require cylinder support semantics to use upright Y-axis cylinders only.
+ * 要求圆柱支撑语义只使用直立 Y 轴圆柱。 / Require cylinder support semantics to use upright Y-axis cylinders only.
  *
  * @param shape 装箱形状 / packing shape
  * @param orientation 物品朝向 / item orientation
@@ -971,8 +935,7 @@ fun requireUprightVerticalCylinderSupport(
 }
 
 /**
- * 要求圆柱支撑语义只使用直立 Y 轴圆柱。
- * Require cylinder support semantics to use upright Y-axis cylinders only.
+ * 要求圆柱支撑语义只使用直立 Y 轴圆柱。 / Require cylinder support semantics to use upright Y-axis cylinders only.
  *
  * @param shape 装箱形状 / packing shape
  * @param orientation 物品朝向 / item orientation
@@ -995,8 +958,7 @@ fun requireUprightVerticalCylinderSupport(
 }
 
 /**
- * 要求简单块生成只接收当前已验证的圆柱能力。
- * Require simple block generation to accept only currently verified cylinder capability.
+ * 要求简单块生成只接收当前已验证的圆柱能力。 / Require simple block generation to accept only currently verified cylinder capability.
  *
  * @param item 物品 / item
  * @param source 调用来源 / call source
@@ -1023,8 +985,7 @@ fun requireSupportedCylinderItemForSimpleBlock(item: Item, source: String): Try 
 }
 
 /**
- * 要求简单块生成只接收当前已验证的圆柱能力。
- * Require simple block generation to accept only currently verified cylinder capability.
+ * 要求简单块生成只接收当前已验证的圆柱能力。 / Require simple block generation to accept only currently verified cylinder capability.
  *
  * @param item 物品 / item
  * @param path 能力路径 / capability path
@@ -1041,8 +1002,7 @@ fun requireSupportedCylinderItemForSimpleBlock(item: Item, path: CylinderCapabil
 }
 
 /**
- * 要求仅长方体路径不接收圆柱物品。
- * Require cuboid-only paths to reject cylinder items.
+ * 要求仅长方体路径不接收圆柱物品。 / Require cuboid-only paths to reject cylinder items.
  *
  * @param items 待检查物品 / items to check
  * @param source 调用来源 / call source
@@ -1067,8 +1027,7 @@ fun requireNoCylinderItemsForCuboidOnlyPath(
 }
 
 /**
- * 要求仅长方体路径不接收圆柱物品。
- * Require cuboid-only paths to reject cylinder items.
+ * 要求仅长方体路径不接收圆柱物品。 / Require cuboid-only paths to reject cylinder items.
  *
  * @param items 待检查物品 / items to check
  * @param path 能力路径 / capability path
@@ -1089,8 +1048,7 @@ fun requireNoCylinderItemsForCuboidOnlyPath(
 }
 
 /**
- * 从 solver 结果构建连续半径已选择结果。
- * Build selected continuous-radius result from solver output.
+ * 从 solver 结果构建连续半径已选择结果。 / Build selected continuous-radius result from solver output.
  *
  * @receiver 连续半径 solver 原生变量原型 / continuous-radius solver variable prototype
  * @param solverRadius solver 选出的半径 / solver-selected radius
@@ -1114,8 +1072,7 @@ fun ContinuousCylinderRadiusSolverPrototype.withSolverSelectedRadius(
 }
 
 /**
- * 从 PWL solver 结果构建连续半径已选择结果。
- * Build selected continuous-radius result from PWL solver output.
+ * 从 PWL solver 结果构建连续半径已选择结果。 / Build selected continuous-radius result from PWL solver output.
  *
  * @receiver 连续半径 solver 原生变量原型 / continuous-radius solver variable prototype
  * @param solverRadius solver 选出的半径 r / solver-selected radius r

@@ -1,6 +1,5 @@
 /**
- * 复杂块生成器。
- * Complex block generator.
+ * 复杂块生成器。 / Complex block generator.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
@@ -9,8 +8,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 /**
- * 复杂块生成器，用于将简单块按照 X、Y、Z 轴方向合并为复杂块。
- * Complex block generator for merging simple blocks into complex blocks along X, Y, and Z axes.
+ * 复杂块生成器，用于将简单块按照 X、Y、Z 轴方向合并为复杂块。 / Complex block generator for merging simple blocks into complex blocks along X, Y, and Z axes.
  *
  * @property config 复杂块生成配置 / Configuration for complex block generation
 */
@@ -19,8 +17,7 @@ class ComplexBlockGenerator(
 ) {
 
     /**
-     * 复杂块生成配置，控制各轴方向的合并开关及谓词。
-     * Configuration for complex block generation, controlling merge toggles and predicates per axis.
+     * 复杂块生成配置，控制各轴方向的合并开关及谓词。 / Configuration for complex block generation, controlling merge toggles and predicates per axis.
      *
      * @property withX 是否启用 X 轴方向合并 / Whether to enable merging along X axis
      * @property withY 是否启用 Y 轴方向合并 / Whether to enable merging along Y axis
@@ -44,8 +41,7 @@ class ComplexBlockGenerator(
         }
 
         /**
-         * 使用可空参数创建新配置，空值则回退到当前值。
-         * Create a new config with nullable parameters, falling back to current values for nulls.
+         * 使用可空参数创建新配置，空值则回退到当前值。 / Create a new config with nullable parameters, falling back to current values for nulls.
          *
          * @param withX 是否启用 X 轴方向合并 / Whether to enable merging along X axis
          * @param withY 是否启用 Y 轴方向合并 / Whether to enable merging along Y axis
@@ -74,8 +70,7 @@ class ComplexBlockGenerator(
         }
 
         /**
-         * 使用配置构造器创建新配置。
-         * Create a new config from a config builder.
+         * 使用配置构造器创建新配置。 / Create a new config from a config builder.
          *
          * @param builder 配置构造器 / Config builder
          * @return 新配置实例 / New config instance
@@ -93,8 +88,7 @@ class ComplexBlockGenerator(
     }
 
     /**
-     * 复杂块生成配置构造器，用于通过上下文函数构建配置。
-     * Config builder for constructing configuration via context functions.
+     * 复杂块生成配置构造器，用于通过上下文函数构建配置。 / Config builder for constructing configuration via context functions.
      *
      * @property withX 是否启用 X 轴方向合并 / Whether to enable merging along X axis
      * @property withY 是否启用 Y 轴方向合并 / Whether to enable merging along Y axis
@@ -113,8 +107,7 @@ class ComplexBlockGenerator(
     ) {
         companion object {
             /**
-             * 通过上下文函数构造配置构造器。
-             * Construct a config builder via a context function.
+             * 通过上下文函数构造配置构造器。 / Construct a config builder via a context function.
              *
              * @param func 上下文函数 / Context function
              * @return 配置构造器实例 / Config builder instance
@@ -133,8 +126,7 @@ class ComplexBlockGenerator(
 
     companion object {
         /**
-         * 通过上下文函数构造配置构造器。
-         * Construct a config builder via a context function.
+         * 通过上下文函数构造配置构造器。 / Construct a config builder via a context function.
          *
          * @param builder 上下文函数 / Context function
          * @return 配置构造器实例 / Config builder instance
@@ -147,8 +139,7 @@ class ComplexBlockGenerator(
     }
 
     /**
-     * 执行复杂块生成。
-     * Execute complex block generation.
+     * 执行复杂块生成。 / Execute complex block generation.
      *
      * @param items 可用物品及其数量映射 / Map of available items and their quantities
      * @param space 容器空间形状 / Container space shape
@@ -203,8 +194,7 @@ class ComplexBlockGenerator(
     }
 
     /**
-     * 沿 X 轴方向合并两个块。
-     * Merge two blocks along the X axis.
+     * 沿 X 轴方向合并两个块。 / Merge two blocks along the X axis.
      *
      * @param lhs 左侧块 / Left-hand side block
      * @param rhs 右侧块 / Right-hand side block
@@ -225,8 +215,7 @@ class ComplexBlockGenerator(
     }
 
     /**
-     * 沿 Y 轴方向合并两个块。
-     * Merge two blocks along the Y axis.
+     * 沿 Y 轴方向合并两个块。 / Merge two blocks along the Y axis.
      *
      * @param lhs 左侧块 / Left-hand side block
      * @param rhs 右侧块 / Right-hand side block
@@ -247,8 +236,7 @@ class ComplexBlockGenerator(
     }
 
     /**
-     * 沿 Z 轴方向合并两个块。
-     * Merge two blocks along the Z axis.
+     * 沿 Z 轴方向合并两个块。 / Merge two blocks along the Z axis.
      *
      * @param lhs  左侧块 / Left-hand side block
      * @param rhs  右侧块 / Right-hand side block
@@ -269,8 +257,7 @@ class ComplexBlockGenerator(
     }
 
     /**
-     * 检查复杂块是否可用。
-     * Check whether a complex block is enabled for placement.
+     * 检查复杂块是否可用。 / Check whether a complex block is enabled for placement.
      *
      * @param items       可用物品及其数量映射 / Map of available items and their quantities
      * @param space       容器空间形状 / Container space shape
@@ -288,8 +275,7 @@ class ComplexBlockGenerator(
     }
 
     /**
-     * 检查块的物品数量是否足够。
-     * Check whether the block's item amounts do not exceed available quantities.
+     * 检查块的物品数量是否足够。 / Check whether the block's item amounts do not exceed available quantities.
      *
      * @param items  可用物品及其数量映射 / Map of available items and their quantities
      * @param block  待检查的块 / Block to check

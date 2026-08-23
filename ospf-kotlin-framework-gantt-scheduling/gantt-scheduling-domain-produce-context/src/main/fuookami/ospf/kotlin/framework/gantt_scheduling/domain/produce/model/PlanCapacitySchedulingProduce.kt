@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
@@ -20,11 +20,9 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 
 /**
- * Plan 模式的产能调度产品产量管理
- * Plan-mode produce management for Capacity Scheduling
+ * Plan 模式的产能调度产品产量管理 / Plan-mode produce management for Capacity Scheduling
  *
- * 用于非列生成场景，在构造时绑定 Capacity 编译对象
- * Used for non-column generation scenarios, binds to Capacity compilation object at construction
+ * 用于非列生成场景，在构造时绑定 Capacity 编译对象 / Used for non-column generation scenarios, binds to Capacity compilation object at construction
  *
  * @param products 产品列表及其需求 / Product list with demands
  * @param compilation Capacity 编译对象 / Capacity compilation object
@@ -53,7 +51,7 @@ class PlanCapacitySchedulingProduce<
                     for ((s, _) in slots.withIndex()) {
                         val actionIndex = actions.indexOf(action)
                         if (actionIndex >= 0) {
-                            quantity[product].asMutable() += LinearMonomial(unitProduce.toSolverValue(), compilation.operationTime[actionIndex, s])
+                            quantity[product].asMutable() += unitProduce.toSolverValue() * compilation.operationTime[actionIndex, s]
                         }
                     }
                 }

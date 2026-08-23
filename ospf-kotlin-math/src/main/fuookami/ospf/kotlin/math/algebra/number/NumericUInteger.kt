@@ -1,8 +1,6 @@
 /**
  * Numeric Unsigned Integer Module
- * 数值无符号整数模块
- *
- * This module defines unsigned integer types with numeric semantics, including NUInt8, NUInt16, NUInt32, NUInt64, and NUIntX.
+ * 数值无符号整数模块 / This module defines unsigned integer types with numeric semantics, including NUInt8, NUInt16, NUInt32, NUInt64, and NUIntX.
  * Unlike regular unsigned integers, division operations of these types return rational number results instead of integer results,
  * thus providing more precise numerical calculations. Suitable for scenarios requiring precise numerical calculations.
  *
@@ -22,9 +20,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * Numeric Unsigned Integer Interface
- * 数值无符号整数接口
- *
- * Provides common implementation for numeric unsigned integer types, including default implementations
+ * 数值无符号整数接口 / Provides common implementation for numeric unsigned integer types, including default implementations
  * for increment/decrement, logarithm, power operations, trigonometric functions, and other mathematical operations.
  * Note: Division operation returns rational number result, subtraction operation may return signed integer result.
  *
@@ -159,11 +155,9 @@ interface NumericUInteger<Self, I>
 }
 
 /**
- * 数值无符号整数常量抽象类
- * Abstract Numeric Unsigned Integer Constants
+ * 数值无符号整数常量抽象类 / Abstract Numeric Unsigned Integer Constants
  *
- * 提供数值无符号整数类型的常用数值常量。
- * Provides common numeric constants for numeric unsigned integer types.
+ * 提供数值无符号整数类型的常用数值常量。 / Provides common numeric constants for numeric unsigned integer types.
  *
  * @param Self 数值无符号整数类型
  *             The numeric unsigned integer type
@@ -192,8 +186,7 @@ abstract class NumericUIntegerConstants<Self, I>(
  * NUInt8 序列化器
  * NUInt8 Serializer
  *
- * 用于 NUInt8 类型的 Kotlin 序列化框架序列化器。
- * Serializer for the NUInt8 type in the Kotlin serialization framework.
+ * 用于 NUInt8 类型的 Kotlin 序列化框架序列化器。 / Serializer for the NUInt8 type in the Kotlin serialization framework.
 */
 data object NUInt8Serializer : KSerializer<NUInt8> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NUInt8", PrimitiveKind.INT)
@@ -208,13 +201,10 @@ data object NUInt8Serializer : KSerializer<NUInt8> {
 }
 
 /**
- * 基于 UInt8 的数值无符号整数
- * Numeric Unsigned Integer based on UInt8
+ * 基于 UInt8 的数值无符号整数 / Numeric Unsigned Integer based on UInt8
  *
  * 使用 UInt8 作为底层类型的数值无符号整数。
- * 除法运算返回 URtn8 结果，减法运算可能返回 NInt8 结果，提供精确的数值计算。
- *
- * A numeric unsigned integer using UInt8 as the underlying type.
+ * 除法运算返回 URtn8 结果，减法运算可能返回 NInt8 结果，提供精确的数值计算。 / A numeric unsigned integer using UInt8 as the underlying type.
  * Division operation returns URtn8 result, subtraction operation may return NInt8 result, providing precise numerical calculations.
  *
  * @property value 底层的 UInt8 值
@@ -228,8 +218,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
      * NUInt8 常量对象
      * NUInt8 Constants Object
      *
-     * 提供常用的数值常量。
-     * Provides common numeric constants.
+     * 提供常用的数值常量。 / Provides common numeric constants.
     */
     companion object : NumericUIntegerConstants<NUInt8, UInt8>(NUInt8::invoke, UInt8) {
         operator fun invoke(value: UInt8) = NUInt8(value)
@@ -244,8 +233,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
     override fun toString() = value.toString()
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -258,8 +246,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
     override operator fun dec(): NUInt8 = NUInt8(value - UInt8.one)
 
     /**
-     * 偏序比较
-     * Partial order comparison
+     * 偏序比较 / Partial order comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -269,8 +256,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
     override fun partialOrd(rhs: NUInt8) = orderOf(value.compareTo(rhs.value))
 
     /**
-     * 相等性比较
-     * Equality comparison
+     * 相等性比较 / Equality comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -289,8 +275,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
     override fun abs() = NUInt8(value.abs())
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -300,8 +285,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
     override operator fun plus(rhs: NUInt8) = NUInt8(value + rhs.value)
 
     /**
-     * 减法（返回有符号整数）
-     * Subtraction (returns signed integer)
+     * 减法（返回有符号整数） / Subtraction (returns signed integer)
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -311,8 +295,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
     override operator fun minus(rhs: NUInt8) = NInt8(value.toInt8() - rhs.toInt8())
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -322,8 +305,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
     override operator fun times(rhs: NUInt8) = NUInt8(value * rhs.value)
 
     /**
-     * 除法（返回无符号有理数）
-     * Division (returns unsigned rational number)
+     * 除法（返回无符号有理数） / Division (returns unsigned rational number)
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -333,8 +315,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
     override operator fun div(rhs: NUInt8) = URtn8(value, rhs.value)
 
     /**
-     * 取余
-     * Remainder
+     * 取余 / Remainder
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -344,8 +325,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
     override operator fun rem(rhs: NUInt8) = NUInt8(value % rhs.value)
 
     /**
-     * 整数除法
-     * Integer division
+     * 整数除法 / Integer division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -426,8 +406,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
  * NUInt16 序列化器
  * NUInt16 Serializer
  *
- * 用于 NUInt16 类型的 Kotlin 序列化框架序列化器。
- * Serializer for the NUInt16 type in the Kotlin serialization framework.
+ * 用于 NUInt16 类型的 Kotlin 序列化框架序列化器。 / Serializer for the NUInt16 type in the Kotlin serialization framework.
 */
 data object NUInt16Serializer : KSerializer<NUInt16> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NUInt16", PrimitiveKind.INT)
@@ -442,13 +421,10 @@ data object NUInt16Serializer : KSerializer<NUInt16> {
 }
 
 /**
- * 基于 UInt16 的数值无符号整数
- * Numeric Unsigned Integer based on UInt16
+ * 基于 UInt16 的数值无符号整数 / Numeric Unsigned Integer based on UInt16
  *
  * 使用 UInt16 作为底层类型的数值无符号整数。
- * 除法运算返回 URtn16 结果，减法运算可能返回 NInt16 结果，提供精确的数值计算。
- *
- * A numeric unsigned integer using UInt16 as the underlying type.
+ * 除法运算返回 URtn16 结果，减法运算可能返回 NInt16 结果，提供精确的数值计算。 / A numeric unsigned integer using UInt16 as the underlying type.
  * Division operation returns URtn16 result, subtraction operation may return NInt16 result, providing precise numerical calculations.
  *
  * @property value 底层的 UInt16 值
@@ -462,8 +438,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
      * NUInt16 常量对象
      * NUInt16 Constants Object
      *
-     * 提供常用的数值常量。
-     * Provides common numeric constants.
+     * 提供常用的数值常量。 / Provides common numeric constants.
     */
     companion object : NumericUIntegerConstants<NUInt16, UInt16>(NUInt16::invoke, UInt16) {
         operator fun invoke(value: UInt16) = NUInt16(value)
@@ -478,8 +453,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
     override fun toString() = value.toString()
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -492,8 +466,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
     override operator fun dec(): NUInt16 = NUInt16(value - UInt16.one)
 
     /**
-     * 偏序比较
-     * Partial order comparison
+     * 偏序比较 / Partial order comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -503,8 +476,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
     override fun partialOrd(rhs: NUInt16) = orderOf(value.compareTo(rhs.value))
 
     /**
-     * 相等性比较
-     * Equality comparison
+     * 相等性比较 / Equality comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -523,8 +495,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
     override fun abs() = NUInt16(value.abs())
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -534,8 +505,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
     override operator fun plus(rhs: NUInt16) = NUInt16(value + rhs.value)
 
     /**
-     * 减法（返回有符号整数）
-     * Subtraction (returns signed integer)
+     * 减法（返回有符号整数） / Subtraction (returns signed integer)
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -545,8 +515,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
     override operator fun minus(rhs: NUInt16) = NInt16(value.toInt16() - rhs.toInt16())
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -556,8 +525,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
     override operator fun times(rhs: NUInt16) = NUInt16(value * rhs.value)
 
     /**
-     * 除法（返回无符号有理数）
-     * Division (returns unsigned rational number)
+     * 除法（返回无符号有理数） / Division (returns unsigned rational number)
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -567,8 +535,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
     override operator fun div(rhs: NUInt16) = URtn16(value, rhs.value)
 
     /**
-     * 取余
-     * Remainder
+     * 取余 / Remainder
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -578,8 +545,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
     override operator fun rem(rhs: NUInt16) = NUInt16(value % rhs.value)
 
     /**
-     * 整数除法
-     * Integer division
+     * 整数除法 / Integer division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -660,8 +626,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
  * NUInt32 序列化器
  * NUInt32 Serializer
  *
- * 用于 NUInt32 类型的 Kotlin 序列化框架序列化器。
- * Serializer for the NUInt32 type in the Kotlin serialization framework.
+ * 用于 NUInt32 类型的 Kotlin 序列化框架序列化器。 / Serializer for the NUInt32 type in the Kotlin serialization framework.
 */
 data object NUInt32Serializer : KSerializer<NUInt32> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NUInt32", PrimitiveKind.INT)
@@ -676,14 +641,11 @@ data object NUInt32Serializer : KSerializer<NUInt32> {
 }
 
 /**
- * 基于 UInt32 的数值无符号整数
- * Numeric Unsigned Integer based on UInt32
+ * 基于 UInt32 的数值无符号整数 / Numeric Unsigned Integer based on UInt32
  *
  * 使用 UInt32 作为底层类型的数值无符号整数。
  * 除法运算返回 URtn32 结果，减法运算可能返回 NInt32 结果，提供精确的数值计算。
- * 这是常用的数值无符号整数类型。
- *
- * A numeric unsigned integer using UInt32 as the underlying type.
+ * 这是常用的数值无符号整数类型。 / A numeric unsigned integer using UInt32 as the underlying type.
  * Division operation returns URtn32 result, subtraction operation may return NInt32 result, providing precise numerical calculations.
  * This is a commonly used numeric unsigned integer type.
  *
@@ -698,8 +660,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
      * NUInt32 常量对象
      * NUInt32 Constants Object
      *
-     * 提供常用的数值常量。
-     * Provides common numeric constants.
+     * 提供常用的数值常量。 / Provides common numeric constants.
     */
     companion object : NumericUIntegerConstants<NUInt32, UInt32>(NUInt32::invoke, UInt32) {
         operator fun invoke(value: UInt32) = NUInt32(value)
@@ -714,8 +675,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
     override fun toString() = value.toString()
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -728,8 +688,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
     override operator fun dec(): NUInt32 = NUInt32(value - UInt32.one)
 
     /**
-     * 偏序比较
-     * Partial order comparison
+     * 偏序比较 / Partial order comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -739,8 +698,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
     override fun partialOrd(rhs: NUInt32) = orderOf(value.compareTo(rhs.value))
 
     /**
-     * 相等性比较
-     * Equality comparison
+     * 相等性比较 / Equality comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -759,8 +717,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
     override fun abs() = NUInt32(value.abs())
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -770,8 +727,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
     override operator fun plus(rhs: NUInt32) = NUInt32(value + rhs.value)
 
     /**
-     * 减法（返回有符号整数）
-     * Subtraction (returns signed integer)
+     * 减法（返回有符号整数） / Subtraction (returns signed integer)
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -781,8 +737,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
     override operator fun minus(rhs: NUInt32) = NInt32(value.toInt32() - rhs.toInt32())
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -792,8 +747,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
     override operator fun times(rhs: NUInt32) = NUInt32(value * rhs.value)
 
     /**
-     * 除法（返回无符号有理数）
-     * Division (returns unsigned rational number)
+     * 除法（返回无符号有理数） / Division (returns unsigned rational number)
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -803,8 +757,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
     override operator fun div(rhs: NUInt32) = URtn32(value, rhs.value)
 
     /**
-     * 取余
-     * Remainder
+     * 取余 / Remainder
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -814,8 +767,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
     override operator fun rem(rhs: NUInt32) = NUInt32(value % rhs.value)
 
     /**
-     * 整数除法
-     * Integer division
+     * 整数除法 / Integer division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -896,8 +848,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
  * NUInt64 序列化器
  * NUInt64 Serializer
  *
- * 用于 NUInt64 类型的 Kotlin 序列化框架序列化器。
- * Serializer for the NUInt64 type in the Kotlin serialization framework.
+ * 用于 NUInt64 类型的 Kotlin 序列化框架序列化器。 / Serializer for the NUInt64 type in the Kotlin serialization framework.
 */
 data object NUInt64Serializer : KSerializer<NUInt64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NUInt64", PrimitiveKind.LONG)
@@ -912,14 +863,11 @@ data object NUInt64Serializer : KSerializer<NUInt64> {
 }
 
 /**
- * 基于 UInt64 的数值无符号整数
- * Numeric Unsigned Integer based on UInt64
+ * 基于 UInt64 的数值无符号整数 / Numeric Unsigned Integer based on UInt64
  *
  * 使用 UInt64 作为底层类型的数值无符号整数。
  * 除法运算返回 URtn64 结果，减法运算可能返回 NInt64 结果，提供精确的数值计算。
- * 适用于需要更大数值范围的情况。
- *
- * A numeric unsigned integer using UInt64 as the underlying type.
+ * 适用于需要更大数值范围的情况。 / A numeric unsigned integer using UInt64 as the underlying type.
  * Division operation returns URtn64 result, subtraction operation may return NInt64 result, providing precise numerical calculations.
  * Suitable for cases requiring larger numerical range.
  *
@@ -934,8 +882,7 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
      * NUInt64 常量对象
      * NUInt64 Constants Object
      *
-     * 提供常用的数值常量。
-     * Provides common numeric constants.
+     * 提供常用的数值常量。 / Provides common numeric constants.
     */
     companion object : NumericUIntegerConstants<NUInt64, UInt64>(NUInt64::invoke, UInt64) {
         operator fun invoke(value: UInt64) = NUInt64(value)
@@ -950,8 +897,7 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
     override fun toString() = value.toString()
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -964,8 +910,7 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
     override operator fun dec(): NUInt64 = NUInt64(value - UInt64.one)
 
     /**
-     * 偏序比较
-     * Partial order comparison
+     * 偏序比较 / Partial order comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -975,8 +920,7 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
     override fun partialOrd(rhs: NUInt64) = orderOf(value.compareTo(rhs.value))
 
     /**
-     * 相等性比较
-     * Equality comparison
+     * 相等性比较 / Equality comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -995,8 +939,7 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
     override fun abs() = NUInt64(value.abs())
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1006,8 +949,7 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
     override operator fun plus(rhs: NUInt64) = NUInt64(value + rhs.value)
 
     /**
-     * 减法（返回有符号整数）
-     * Subtraction (returns signed integer)
+     * 减法（返回有符号整数） / Subtraction (returns signed integer)
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1017,8 +959,7 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
     override operator fun minus(rhs: NUInt64) = NInt64(value.toInt64() - rhs.toInt64())
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1028,8 +969,7 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
     override operator fun times(rhs: NUInt64) = NUInt64(value * rhs.value)
 
     /**
-     * 除法（返回无符号有理数）
-     * Division (returns unsigned rational number)
+     * 除法（返回无符号有理数） / Division (returns unsigned rational number)
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1039,8 +979,7 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
     override operator fun div(rhs: NUInt64) = URtn64(value, rhs.value)
 
     /**
-     * 取余
-     * Remainder
+     * 取余 / Remainder
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1050,8 +989,7 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
     override operator fun rem(rhs: NUInt64) = NUInt64(value % rhs.value)
 
     /**
-     * 整数除法
-     * Integer division
+     * 整数除法 / Integer division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1133,9 +1071,7 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
  * NUIntX Serializer
  *
  * 用于 NUIntX（任意精度数值无符号整数）类型的 Kotlin 序列化框架序列化器。
- * 使用字符串格式进行序列化和反序列化。
- *
- * Serializer for the NUIntX (arbitrary precision numeric unsigned integer) type in the Kotlin serialization framework.
+ * 使用字符串格式进行序列化和反序列化。 / Serializer for the NUIntX (arbitrary precision numeric unsigned integer) type in the Kotlin serialization framework.
  * Uses string format for serialization and deserialization.
 */
 class NUIntXSerializer : KSerializer<NUIntX> {
@@ -1155,14 +1091,11 @@ class NUIntXSerializer : KSerializer<NUIntX> {
 }
 
 /**
- * 任意精度数值无符号整数
- * Arbitrary Precision Numeric Unsigned Integer
+ * 任意精度数值无符号整数 / Arbitrary Precision Numeric Unsigned Integer
  *
  * 使用 UIntX 作为底层类型的任意精度数值无符号整数。
  * 除法运算返回 URtnX 结果，减法运算可能返回 NIntX 结果，提供精确的数值计算。
- * 适用于需要极大数值或精确计算的场景。
- *
- * An arbitrary precision numeric unsigned integer using UIntX as the underlying type.
+ * 适用于需要极大数值或精确计算的场景。 / An arbitrary precision numeric unsigned integer using UIntX as the underlying type.
  * Division operation returns URtnX result, subtraction operation may return NIntX result, providing precise numerical calculations.
  * Suitable for scenarios requiring extremely large numbers or precise calculations.
  *
@@ -1177,8 +1110,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
      * NUIntX 常量对象
      * NUIntX Constants Object
      *
-     * 提供常用的数值常量。
-     * Provides common numeric constants.
+     * 提供常用的数值常量。 / Provides common numeric constants.
     */
     companion object : NumericUIntegerConstants<NUIntX, UIntX>(NUIntX::invoke, UIntX) {
         operator fun invoke(value: UIntX) = NUIntX(value)
@@ -1193,8 +1125,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     override fun toString() = value.toString()
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -1207,8 +1138,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     override operator fun dec(): NUIntX = NUIntX(value - UIntX.one)
 
     /**
-     * 偏序比较
-     * Partial order comparison
+     * 偏序比较 / Partial order comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -1218,8 +1148,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     override fun partialOrd(rhs: NUIntX) = orderOf(value.compareTo(rhs.value))
 
     /**
-     * 相等性比较
-     * Equality comparison
+     * 相等性比较 / Equality comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -1238,8 +1167,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     override fun abs() = NUIntX(value.abs())
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1249,8 +1177,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     override operator fun plus(rhs: NUIntX) = NUIntX(value + rhs.value)
 
     /**
-     * 减法（返回有符号整数）
-     * Subtraction (returns signed integer)
+     * 减法（返回有符号整数） / Subtraction (returns signed integer)
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1260,8 +1187,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     override operator fun minus(rhs: NUIntX) = NIntX(value.toIntX() - rhs.toIntX())
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1271,8 +1197,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     override operator fun times(rhs: NUIntX) = NUIntX(value * rhs.value)
 
     /**
-     * 除法（返回无符号有理数）
-     * Division (returns unsigned rational number)
+     * 除法（返回无符号有理数） / Division (returns unsigned rational number)
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1282,8 +1207,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     override operator fun div(rhs: NUIntX) = URtnX(value, rhs.value)
 
     /**
-     * 取余
-     * Remainder
+     * 取余 / Remainder
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1293,8 +1217,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     override operator fun rem(rhs: NUIntX) = NUIntX(value % rhs.value)
 
     /**
-     * 整数除法
-     * Integer division
+     * 整数除法 / Integer division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1310,8 +1233,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     override fun cub() = pow(3)
 
     /**
-     * 以指定基数计算对数
-     * Calculate logarithm with specified base
+     * 以指定基数计算对数 / Calculate logarithm with specified base
      *
      * @param base 对数基数
      *             The logarithm base
@@ -1344,8 +1266,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     }
 
     /**
-     * 计算浮点数次幂
-     * Calculate floating-point power
+     * 计算浮点数次幂 / Calculate floating-point power
      *
      * @param index 指数
      *              The exponent

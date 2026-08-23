@@ -1,11 +1,8 @@
 /**
- * 快速求和
- * Fast Summation
+ * 快速求和 / Fast Summation
  *
  * 提供多维数组的高性能求和操作，包括全量求和、轴向求和、多轴求和和累积求和。
- * 适用于所有实现了 Ring 接口的数值类型。
- *
- * Provides high-performance summation operations for multi-dimensional arrays,
+ * 适用于所有实现了 Ring 接口的数值类型。 / Provides high-performance summation operations for multi-dimensional arrays,
  * including sum all, sum along axis, sum along multiple axes, and cumulative sum.
  * Applicable to all numeric types implementing the Ring interface.
  *
@@ -26,8 +23,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 // ============================================================================
 
 /**
- * 轴索引越界异常
- * Exception thrown when axis index is out of bounds
+ * 轴索引越界异常 / Exception thrown when axis index is out of bounds
  *
  * @property axis 越界的轴索引 / The out-of-bounds axis index
  * @property maxAxis 最大合法轴索引 / The maximum valid axis index
@@ -45,8 +41,7 @@ class AxisOutOfBoundsException(
 // ============================================================================
 
 /**
- * 对数组所有元素求和
- * Sum all elements in the array
+ * 对数组所有元素求和 / Sum all elements in the array
  *
  * @param zero 零值（累加初始值） / The zero value for type T (initial accumulator)
  * @return 所有元素之和 / The sum of all elements
@@ -64,11 +59,9 @@ fun <T> AbstractMultiArray<T, *>.sumAll(zero: T): T where T : Ring<T> {
 // ============================================================================
 
 /**
- * 沿指定轴求和
- * Sum along a specified axis
+ * 沿指定轴求和 / Sum along a specified axis
  *
- * 返回一个减少一个维度的新 MultiArray。
- * Returns a new MultiArray with one fewer dimension.
+ * 返回一个减少一个维度的新 MultiArray。 / Returns a new MultiArray with one fewer dimension.
  *
  * @param axis 求和轴索引（从 0 开始） / The axis to sum along (0-indexed)
  * @param zero 零值（累加初始值） / The zero value for type T
@@ -123,11 +116,9 @@ fun <T> AbstractMultiArray<T, *>.sumAxis(axis: Int, zero: T): Ret<MultiArray<T, 
 // ============================================================================
 
 /**
- * 沿多个轴求和
- * Sum along multiple axes
+ * 沿多个轴求和 / Sum along multiple axes
  *
- * 返回一个移除指定轴后的新 MultiArray。
- * Returns a new MultiArray with the specified axes removed.
+ * 返回一个移除指定轴后的新 MultiArray。 / Returns a new MultiArray with the specified axes removed.
  *
  * @param axes 求和轴索引数组 / The axes to sum along
  * @param zero 零值（累加初始值） / The zero value for type T
@@ -191,11 +182,9 @@ fun <T> AbstractMultiArray<T, *>.sumAxes(axes: IntArray, zero: T): Ret<MultiArra
 // ============================================================================
 
 /**
- * 沿指定轴累积求和（前缀和）
- * Cumulative sum along an axis (prefix sum)
+ * 沿指定轴累积求和（前缀和） / Cumulative sum along an axis (prefix sum)
  *
- * 返回一个形状相同的新 MultiArray，其中每个元素是指定轴方向上的累积和。
- * Returns a new MultiArray with the same shape, where each element
+ * 返回一个形状相同的新 MultiArray，其中每个元素是指定轴方向上的累积和。 / Returns a new MultiArray with the same shape, where each element
  * is the cumulative sum along the specified axis.
  *
  * @param axis 累积求和轴索引 / The axis to cumsum along

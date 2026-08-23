@@ -123,3 +123,9 @@ object MyTable : Table<MyEntity>("my_table") {
 The `persistence/expression/` sub-package provides a KSP annotation processing-based SQL predicate pushdown framework. See the dedicated documentation:
 
 - [expression/README.md](expression/README.md)
+
+## Relational Query Plans
+
+The framework persistence API also exposes a database-independent [relational query plan](query/README.md). It is intended for controlled backend adapters: adapters register sources and columns, while callers provide immutable join, predicate, projection, ordering, grouping, and pagination semantics.
+
+`Inner`, `Left`, and `Exists` are distinct operations. `Exists` is a semi-join and is the preferred shape for one-to-many existence predicates because it preserves root cardinality. Root-granularity counting requires an explicit `rootKey`; unsupported composite-key strategies must be rejected rather than approximated.

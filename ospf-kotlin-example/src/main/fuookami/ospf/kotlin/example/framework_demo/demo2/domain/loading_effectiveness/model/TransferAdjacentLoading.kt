@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.*
@@ -27,10 +28,10 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * Models transfer adjacent loading constraints for same-source and same-destination adjacency.
  * 建模同来源和同目的地相邻的转运装载约束。
  *
- * @property adjacentPositions The list of adjacent position pairs. / 相邻位置对列表
- * @property sources The list of source flight numbers. / 来源航班号列表
- * @property destinations The list of destination IATA codes. / 目的地 IATA 代码列表
- * @property load The load model for cargo assignment. / 货物分配的装载模型
+ * @property adjacentPositions 相邻位置对列表 / The list of adjacent position pairs.
+ * @property sources 来源航班号列表 / The list of source flight numbers.
+ * @property destinations 目的地 IATA 代码列表 / The list of destination IATA codes.
+ * @property load 货物分配的装载模型 / The load model for cargo assignment.
 */
 class TransferAdjacentLoading(
     private val adjacentPositions: List<PositionPair>,
@@ -45,8 +46,8 @@ class TransferAdjacentLoading(
      * Registers the same-source and same-destination adjacent intermediate symbols into the optimization model.
      * 将同来源和同目的地相邻中间符号注册到优化模型中。
      *
-     * @param model The linear meta model to register into. / 要注册到的线性元模型
-     * @return The result of the registration operation. / 注册操作的结果
+     * @param model 要注册到的线性元模型 / The linear meta model to register into.
+     * @return 注册操作的结果 / The result of the registration operation.
     */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
@@ -67,7 +68,7 @@ class TransferAdjacentLoading(
                 if (position1.status.stowageNeeded || position1.status.adjustmentNeeded) {
                     LinearFunctionSymbolAdapter(
                         delegate = IfFunction(
-                            condition = loadAmount1 + loadAmount2 - Flt64.two,
+                            condition = loadAmount1 + loadAmount2 - Flt64.two + Flt64(NONZERO_TOLERANCE),
                             converter = flt64Converter,
                             name = "same_source_adjacent_${source}_${position1}_${position2}",
                         ),
@@ -87,13 +88,13 @@ class TransferAdjacentLoading(
             }
         }
         when (val result = model.add(sameSourceAdjacent)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -114,7 +115,7 @@ class TransferAdjacentLoading(
                 if (position1.status.stowageNeeded || position1.status.adjustmentNeeded) {
                     LinearFunctionSymbolAdapter(
                         delegate = IfFunction(
-                            condition = loadAmount1 + loadAmount2 - Flt64.two,
+                            condition = loadAmount1 + loadAmount2 - Flt64.two + Flt64(NONZERO_TOLERANCE),
                             converter = flt64Converter,
                             name = "same_destination_adjacent_${destination}_${position1}_${position2}",
                         ),
@@ -134,13 +135,13 @@ class TransferAdjacentLoading(
             }
         }
         when (val result = model.add(sameDestinationAdjacent)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }

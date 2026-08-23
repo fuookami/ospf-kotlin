@@ -1,10 +1,8 @@
 /**
- * 多项式矩阵形式
- * Polynomial Matrix Form
+ * 多项式矩阵形式 / Polynomial Matrix Form
  *
  * 提供将多项式转换为矩阵形式（c/d 向量和 Q 矩阵）的功能。
- * 支持线性和二次多项式的矩阵表示与反向还原。
- * Provides conversion of polynomials to matrix form (c/d vectors and Q matrix).
+ * 支持线性和二次多项式的矩阵表示与反向还原。 / Provides conversion of polynomials to matrix form (c/d vectors and Q matrix).
  * Supports matrix representation and reverse reconstruction for linear and quadratic polynomials.
 */
 package fuookami.ospf.kotlin.math.symbol.operation
@@ -22,11 +20,9 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.Try
 
 /**
- * 线性多项式矩阵形式
- * Linear polynomial matrix form
+ * 线性多项式矩阵形式 / Linear polynomial matrix form
  *
- * 表示 c^T * x + d 的矩阵形式。
- * Represents the matrix form c^T * x + d.
+ * 表示 c^T * x + d 的矩阵形式。 / Represents the matrix form c^T * x + d.
  *
  * @property c 系数向量 / Coefficient vector
  * @property d 常数项 / Constant term
@@ -39,11 +35,9 @@ data class LinearMatrixForm<T>(
 ) where T : Ring<T>
 
 /**
- * 二次多项式矩阵形式
- * Quadratic polynomial matrix form
+ * 二次多项式矩阵形式 / Quadratic polynomial matrix form
  *
- * 表示 x^T * Q * x + c^T * x + d 的矩阵形式。
- * Represents the matrix form x^T * Q * x + c^T * x + d.
+ * 表示 x^T * Q * x + c^T * x + d 的矩阵形式。 / Represents the matrix form x^T * Q * x + c^T * x + d.
  *
  * @property q 二次项系数矩阵 / Quadratic coefficient matrix
  * @property c 一次项系数向量 / Linear coefficient vector
@@ -58,8 +52,7 @@ data class QuadraticMatrixForm<T>(
 ) where T : Ring<T>
 
 /**
- * 验证符号顺序列表无重复符号
- * Validate that the symbol order list contains no duplicate symbols
+ * 验证符号顺序列表无重复符号 / Validate that the symbol order list contains no duplicate symbols
  *
  * @param order 符号顺序列表 / Symbol order list
  * @throws IllegalArgumentException 若存在重复符号 / If duplicate symbols exist
@@ -74,8 +67,8 @@ private fun validateOrder(order: List<Symbol>) {
  * Validate symbol order and return a result type.
  * 验证符号顺序并返回结果类型。
  *
- * @param order the symbol order list to validate / 要验证的符号顺序列表
- * @return ok if valid, Failed if duplicate symbols exist / 验证通过返回 ok，存在重复符号返回 Failed
+ * @param order 要验证的符号顺序列表 / the symbol order list to validate
+ * @return 验证通过返回 ok，存在重复符号返回 Failed / ok if valid, Failed if duplicate symbols exist
 */
 private fun validateOrderRet(order: List<Symbol>): Try {
     return if (order.toSet().size == order.size) {
@@ -89,9 +82,9 @@ private fun validateOrderRet(order: List<Symbol>): Try {
  * Require that a symbol index exists in the given map.
  * 要求符号索引在给定映射中存在。
  *
- * @param symbol the symbol to look up / 要查找的符号
- * @param indexOfSymbol the map from symbol to index / 符号到索引的映射
- * @return the index of the symbol, or Failed if not found / 符号的索引，未找到则返回 Failed
+ * @param symbol 要查找的符号 / the symbol to look up
+ * @param indexOfSymbol 符号到索引的映射 / the map from symbol to index
+ * @return 符号的索引，未找到则返回 Failed / the index of the symbol, or Failed if not found
 */
 private fun requireSymbolIndex(
     symbol: Symbol,
@@ -103,8 +96,7 @@ private fun requireSymbolIndex(
 }
 
 /**
- * 验证线性矩阵形式的维度一致性
- * Validate dimension consistency of linear matrix form
+ * 验证线性矩阵形式的维度一致性 / Validate dimension consistency of linear matrix form
  *
  * @param c 系数向量 / Coefficient vector
  * @param order 符号顺序列表 / Symbol order list
@@ -117,8 +109,7 @@ private fun <T> validateLinearMatrixDimensions(c: List<T>, order: List<Symbol>) 
 }
 
 /**
- * 验证二次矩阵形式的维度一致性
- * Validate dimension consistency of quadratic matrix form
+ * 验证二次矩阵形式的维度一致性 / Validate dimension consistency of quadratic matrix form
  *
  * @param q 二次项系数矩阵 / Quadratic coefficient matrix
  * @param c 一次项系数向量 / Linear coefficient vector
@@ -139,8 +130,7 @@ private fun <T> validateQuadraticMatrixDimensions(q: List<List<T>>, c: List<T>, 
 }
 
 /**
- * 将线性多项式转换为矩阵形式
- * Convert a linear polynomial to matrix form
+ * 将线性多项式转换为矩阵形式 / Convert a linear polynomial to matrix form
  *
  * @param order 符号顺序 / Symbol order
  * @param zero 零值 / Zero value
@@ -178,8 +168,7 @@ fun <T> LinearPolynomial<T>.toMatrixForm(
 }
 
 /**
- * 从矩阵形式还原线性多项式
- * Reconstruct a linear polynomial from matrix form
+ * 从矩阵形式还原线性多项式 / Reconstruct a linear polynomial from matrix form
  *
  * @param c 系数向量 / Coefficient vector
  * @param d 常数项 / Constant term
@@ -210,8 +199,7 @@ fun <T> linearPolynomialFromMatrixForm(
 }
 
 /**
- * 从线性矩阵形式还原多项式（便捷重载）
- * Reconstruct a polynomial from linear matrix form (convenience overload)
+ * 从线性矩阵形式还原多项式（便捷重载） / Reconstruct a polynomial from linear matrix form (convenience overload)
  *
  * @param form 线性矩阵形式 / Linear matrix form
  * @param zero 零值 / Zero value
@@ -233,8 +221,7 @@ fun <T> linearPolynomialFromMatrixForm(
 }
 
 /**
- * 将二次多项式转换为矩阵形式
- * Convert a quadratic polynomial to matrix form
+ * 将二次多项式转换为矩阵形式 / Convert a quadratic polynomial to matrix form
  *
  * @param order 符号顺序 / Symbol order
  * @param zero 零值 / Zero value
@@ -299,8 +286,7 @@ fun <T> QuadraticPolynomial<T>.toMatrixForm(
 }
 
 /**
- * 将规范多项式转换为矩阵形式（需为二次以下）
- * Convert a canonical polynomial to matrix form (must be at most quadratic)
+ * 将规范多项式转换为矩阵形式（需为二次以下） / Convert a canonical polynomial to matrix form (must be at most quadratic)
  *
  * @param order 符号顺序 / Symbol order
  * @param zero 零值 / Zero value
@@ -345,8 +331,7 @@ fun <T> CanonicalPolynomial<T>.toMatrixForm(
 }
 
 /**
- * 从矩阵形式还原二次多项式
- * Reconstruct a quadratic polynomial from matrix form
+ * 从矩阵形式还原二次多项式 / Reconstruct a quadratic polynomial from matrix form
  *
  * @param q 二次项系数矩阵 / Quadratic coefficient matrix
  * @param c 一次项系数向量 / Linear coefficient vector
@@ -414,8 +399,7 @@ fun <T> quadraticPolynomialFromMatrixForm(
 }
 
 /**
- * 从二次矩阵形式还原多项式（便捷重载）
- * Reconstruct a polynomial from quadratic matrix form (convenience overload)
+ * 从二次矩阵形式还原多项式（便捷重载） / Reconstruct a polynomial from quadratic matrix form (convenience overload)
  *
  * @param form 二次矩阵形式 / Quadratic matrix form
  * @param zero 零值 / Zero value

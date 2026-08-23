@@ -1,17 +1,14 @@
 /**
- * 三维长方体视图
- * 3D Cuboid View
+ * 三维长方体视图 / 3D Cuboid View
  *
- * 定义三维长方体的轴置换视图，将原始长方体按轴置换后展示。
- * Defines axis-permuted view of a 3D cuboid, presenting the original cuboid after axis permutation.
+ * 定义三维长方体的轴置换视图，将原始长方体按轴置换后展示。 / Defines axis-permuted view of a 3D cuboid, presenting the original cuboid after axis permutation.
 */
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 /**
- * 三维长方体的轴置换视图，将原始长方体按轴置换后展示。
- * Axis-permuted view of a 3D cuboid, presenting the original cuboid after axis permutation.
+ * 三维长方体的轴置换视图，将原始长方体按轴置换后展示。 / Axis-permuted view of a 3D cuboid, presenting the original cuboid after axis permutation.
  *
  * @param V 数值类型 / The numeric type
  * @property origin 原始长方体 / The original cuboid

@@ -1,9 +1,7 @@
 /**
- * 请求与响应 DTO 接口
- * Request and Response DTO interfaces
+ * 请求与响应 DTO 接口 / Request and Response DTO interfaces
  *
- * 定义 F-bounded 泛型约束的请求和响应数据传输对象。
- * Defines F-bounded generic constrained request and response data transfer objects.
+ * 定义 F-bounded 泛型约束的请求和响应数据传输对象。 / Defines F-bounded generic constrained request and response data transfer objects.
 */
 package fuookami.ospf.kotlin.framework.persistence
 

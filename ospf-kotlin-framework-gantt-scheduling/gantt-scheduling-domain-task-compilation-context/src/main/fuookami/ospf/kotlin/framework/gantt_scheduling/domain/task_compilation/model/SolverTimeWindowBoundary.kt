@@ -8,8 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 
 /**
- * Solver 时间窗口边界，用于集中把业务时间转为 solver 数值 /
- * Solver time-window boundary that centralizes business-time to solver-value conversion
+ * Solver 时间窗口边界，用于集中把业务时间转为 solver 数值 / / Solver time-window boundary that centralizes business-time to solver-value conversion
  *
  * @property source Flt64 时间窗口 / Flt64 time window
 */

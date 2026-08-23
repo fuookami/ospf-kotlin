@@ -1,6 +1,5 @@
 /**
- * 中间模型单元格
- * Intermediate model cells
+ * 中间模型单元格 / Intermediate model cells
 */
 package fuookami.ospf.kotlin.core.model.intermediate
 
@@ -11,22 +10,19 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
 
 /**
- * 通用单元格接口，支持多种求值方式。
- * Generic cell interface supporting multiple evaluation modes.
+ * 通用单元格接口，支持多种求值方式。 / Generic cell interface supporting multiple evaluation modes.
 */
 interface Cell<V : RealNumber<V>> {
 
     /**
-     * 使用标记的已知结果求值。
-     * Evaluate using the token's known result.
+     * 使用标记的已知结果求值。 / Evaluate using the token's known result.
      *
      * @return 求值结果，若标记结果未知则返回 null / The evaluation result, or null if the token result is unknown
     */
     fun evaluate(): V?
 
     /**
-     * 使用解向量按索引求值。
-     * Evaluate using a solution vector by index lookup.
+     * 使用解向量按索引求值。 / Evaluate using a solution vector by index lookup.
      *
      * @param solution 解向量，索引对应标记在标记表中的位置 / The solution vector whose indices correspond to token positions in the token table
      * @return 求值结果，若标记未在标记表中找到则返回 null / The evaluation result, or null if the token is not found in the token table
@@ -34,8 +30,7 @@ interface Cell<V : RealNumber<V>> {
     fun evaluate(solution: List<V>): V?
 
     /**
-     * 使用解映射按键求值。
-     * Evaluate using a solution map by key lookup.
+     * 使用解映射按键求值。 / Evaluate using a solution map by key lookup.
      *
      * @param solution 解映射，键对应变量项的唯一标识 / The solution map whose keys correspond to variable item keys
      * @return 求值结果，若键未在映射中找到则返回 null / The evaluation result, or null if the key is not found in the map
@@ -44,8 +39,7 @@ interface Cell<V : RealNumber<V>> {
 }
 
 /**
- * 线性单元格接口，持有系数和标记。
- * Linear cell interface holding coefficient and token.
+ * 线性单元格接口，持有系数和标记。 / Linear cell interface holding coefficient and token.
 */
 interface LinearCell<V : RealNumber<V>> : Cell<V> {
     val coefficient: V
@@ -53,8 +47,7 @@ interface LinearCell<V : RealNumber<V>> : Cell<V> {
 }
 
 /**
- * 二次单元格接口，持有系数和两个标记。
- * Quadratic cell interface holding coefficient and two tokens.
+ * 二次单元格接口，持有系数和两个标记。 / Quadratic cell interface holding coefficient and two tokens.
 */
 interface QuadraticCell<V : RealNumber<V>> : Cell<V> {
     val coefficient: V
@@ -63,8 +56,7 @@ interface QuadraticCell<V : RealNumber<V>> : Cell<V> {
 }
 
 /**
- * 线性单元格实现，使用 Flt64 系数和 IntoValue 转换器。
- * Linear cell implementation using Flt64 coefficient and IntoValue converter.
+ * 线性单元格实现，使用 Flt64 系数和 IntoValue 转换器。 / Linear cell implementation using Flt64 coefficient and IntoValue converter.
  *
  * @property tokenTable 符号表，用于按标记查找索引 / Token table for index lookup by token
  * @property _coefficientFlt64 Flt64 类型的原始系数 / Raw Flt64 coefficient
@@ -103,8 +95,7 @@ class LinearCellImpl<V>(
 }
 
 /**
- * 二次单元格实现，使用 Flt64 系数和 IntoValue 转换器。
- * Quadratic cell implementation using Flt64 coefficient and IntoValue converter.
+ * 二次单元格实现，使用 Flt64 系数和 IntoValue 转换器。 / Quadratic cell implementation using Flt64 coefficient and IntoValue converter.
  *
  * @property tokenTable 符号表，用于按标记查找索引 / Token table for index lookup by token
  * @property _coefficientFlt64 Flt64 类型的原始系数 / Raw Flt64 coefficient

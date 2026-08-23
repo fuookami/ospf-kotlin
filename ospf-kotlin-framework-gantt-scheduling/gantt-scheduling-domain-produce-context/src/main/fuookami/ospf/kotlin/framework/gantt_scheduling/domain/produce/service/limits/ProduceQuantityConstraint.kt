@@ -1,8 +1,7 @@
 /**
  * 生产数量约束服务 / Produce quantity constraint service
  *
- * 本文件定义生产数量约束管道及影子价格键，用于建模产品产量的上下限约束。
- * This file defines produce quantity constraint pipeline and shadow price key for modeling product output lower/upper bound constraints.
+ * 本文件定义生产数量约束管道及影子价格键，用于建模产品产量的上下限约束。 / This file defines produce quantity constraint pipeline and shadow price key for modeling product output lower/upper bound constraints.
 */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
@@ -175,7 +174,7 @@ class ProduceQuantityConstraint<
     }
 
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
-        return { map, args ->
+        return AbstractGanttSchedulingShadowPriceExtractor { map, args ->
             shadowPriceArguments?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
                     when (val task = args.task) {

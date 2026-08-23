@@ -1,8 +1,7 @@
 /**
  * 信息单位 / Information units
  *
- * 用于表示数据量的单位，如 bit, byte 等。
- * Units for representing data quantities, such as bits, bytes, etc.
+ * 用于表示数据量的单位，如 bit, byte 等。 / Units for representing data quantities, such as bits, bytes, etc.
  *
  * 单位常量来源 / Unit constant sources:
  * - Bit: 基本单位 / Base unit
@@ -18,8 +17,7 @@ import fuookami.ospf.kotlin.quantities.dimension.*
 /**
  * 比特（基本单位） / Bit (base unit)
  *
- * 信息的最小单位，表示一个二进制位。
- * The smallest unit of information, representing a single binary digit.
+ * 信息的最小单位，表示一个二进制位。 / The smallest unit of information, representing a single binary digit.
  *
  * 符号 / Symbol: bit
  * 换算关系 / Conversion: 1 bit = 1 bit (基本单位 / base unit)
@@ -42,8 +40,7 @@ object Bit : PhysicalUnit() {
 /**
  * 千比特 / Kilobit
  *
- * 一千比特，使用SI十进制前缀。
- * One thousand bits, using SI decimal prefix.
+ * 一千比特，使用SI十进制前缀。 / One thousand bits, using SI decimal prefix.
  *
  * 符号 / Symbol: kbit
  * 换算关系 / Conversion: 1 kbit = 10³ bit = 1000 bit
@@ -69,8 +66,7 @@ object Kilobit : PhysicalUnit() {
 /**
  * 兆比特 / Megabit
  *
- * 一百万比特。
- * One million bits.
+ * 一百万比特。 / One million bits.
  *
  * 符号 / Symbol: Mbit
  * 换算关系 / Conversion: 1 Mbit = 10⁶ bit = 1000000 bit
@@ -96,8 +92,7 @@ object Megabit : PhysicalUnit() {
 /**
  * 吉比特 / Gigabit
  *
- * 十亿比特。
- * One billion bits.
+ * 十亿比特。 / One billion bits.
  *
  * 符号 / Symbol: Gbit
  * 换算关系 / Conversion: 1 Gbit = 10⁹ bit
@@ -123,8 +118,7 @@ object Gigabit : PhysicalUnit() {
 /**
  * 太比特 / Terabit
  *
- * 一万亿比特。
- * One trillion bits.
+ * 一万亿比特。 / One trillion bits.
  *
  * 符号 / Symbol: Tbit
  * 换算关系 / Conversion: 1 Tbit = 10¹² bit
@@ -150,8 +144,7 @@ object Terabit : PhysicalUnit() {
 /**
  * 拍比特 / Petabit
  *
- * 一千万亿比特。
- * One quadrillion bits.
+ * 一千万亿比特。 / One quadrillion bits.
  *
  * 符号 / Symbol: Pbit
  * 换算关系 / Conversion: 1 Pbit = 10¹⁵ bit
@@ -177,8 +170,7 @@ object Petabit : PhysicalUnit() {
 /**
  * 艾比特 / Exabit
  *
- * 一百亿亿比特。
- * One quintillion bits.
+ * 一百亿亿比特。 / One quintillion bits.
  *
  * 符号 / Symbol: Ebit
  * 换算关系 / Conversion: 1 Ebit = 10¹⁸ bit
@@ -204,8 +196,7 @@ object Exabit : PhysicalUnit() {
 /**
  * 字节 / Byte
  *
- * 由8个比特组成的基本存储单位。
- * A basic storage unit consisting of 8 bits.
+ * 由8个比特组成的基本存储单位。 / A basic storage unit consisting of 8 bits.
  *
  * 符号 / Symbol: B
  * 换算关系 / Conversion: 1 B = 8 bit
@@ -228,8 +219,7 @@ object Byte : PhysicalUnit() {
 /**
  * 千字节 / Kilobyte
  *
- * 一千字节，使用SI十进制前缀。
- * One thousand bytes, using SI decimal prefix.
+ * 一千字节，使用SI十进制前缀。 / One thousand bytes, using SI decimal prefix.
  *
  * 符号 / Symbol: KB
  * 换算关系 / Conversion: 1 KB = 10³ B = 8000 bit
@@ -255,8 +245,7 @@ object Kilobyte : PhysicalUnit() {
 /**
  * 兆字节 / Megabyte
  *
- * 一百万字节。
- * One million bytes.
+ * 一百万字节。 / One million bytes.
  *
  * 符号 / Symbol: MB
  * 换算关系 / Conversion: 1 MB = 10⁶ B = 8000000 bit
@@ -282,8 +271,7 @@ object Megabyte : PhysicalUnit() {
 /**
  * 吉字节 / Gigabyte
  *
- * 十亿字节。
- * One billion bytes.
+ * 十亿字节。 / One billion bytes.
  *
  * 符号 / Symbol: GB
  * 换算关系 / Conversion: 1 GB = 10⁹ B
@@ -309,8 +297,7 @@ object Gigabyte : PhysicalUnit() {
 /**
  * 太字节 / Terabyte
  *
- * 一万亿字节。
- * One trillion bytes.
+ * 一万亿字节。 / One trillion bytes.
  *
  * 符号 / Symbol: TB
  * 换算关系 / Conversion: 1 TB = 10¹² B
@@ -336,8 +323,7 @@ object Terabyte : PhysicalUnit() {
 /**
  * 拍字节 / Petabyte
  *
- * 一千万亿字节。
- * One quadrillion bytes.
+ * 一千万亿字节。 / One quadrillion bytes.
  *
  * 符号 / Symbol: PB
  * 换算关系 / Conversion: 1 PB = 10¹⁵ B
@@ -363,8 +349,7 @@ object Petabyte : PhysicalUnit() {
 /**
  * 艾字节 / Exabyte
  *
- * 一百亿亿字节。
- * One quintillion bytes.
+ * 一百亿亿字节。 / One quintillion bytes.
  *
  * 符号 / Symbol: EB
  * 换算关系 / Conversion: 1 EB = 10¹⁸ B
@@ -390,8 +375,7 @@ object Exabyte : PhysicalUnit() {
 /**
  * 千字节（二进制前缀）/ Kibibyte
  *
- * 1024字节，使用IEC二进制前缀。
- * 1024 bytes, using IEC binary prefix.
+ * 1024字节，使用IEC二进制前缀。 / 1024 bytes, using IEC binary prefix.
  *
  * 符号 / Symbol: KiB
  * 换算关系 / Conversion: 1 KiB = 1024 B = 8192 bit
@@ -417,8 +401,7 @@ object Kibibyte : PhysicalUnit() {
 /**
  * 兆字节（二进制前缀）/ Mebibyte
  *
- * 1024千字节（二进制），使用IEC二进制前缀。
- * 1024 kibibytes, using IEC binary prefix.
+ * 1024千字节（二进制），使用IEC二进制前缀。 / 1024 kibibytes, using IEC binary prefix.
  *
  * 符号 / Symbol: MiB
  * 换算关系 / Conversion: 1 MiB = 1024 KiB = 1048576 B
@@ -444,8 +427,7 @@ object Mebibyte : PhysicalUnit() {
 /**
  * 吉字节（二进制前缀）/ Gibibyte
  *
- * 1024兆字节（二进制），使用IEC二进制前缀。
- * 1024 mebibytes, using IEC binary prefix.
+ * 1024兆字节（二进制），使用IEC二进制前缀。 / 1024 mebibytes, using IEC binary prefix.
  *
  * 符号 / Symbol: GiB
  * 换算关系 / Conversion: 1 GiB = 1024 MiB = 1073741824 B
@@ -471,8 +453,7 @@ object Gibibyte : PhysicalUnit() {
 /**
  * 太字节（二进制前缀）/ Tebibyte
  *
- * 1024吉字节（二进制），使用IEC二进制前缀。
- * 1024 gibibytes, using IEC binary prefix.
+ * 1024吉字节（二进制），使用IEC二进制前缀。 / 1024 gibibytes, using IEC binary prefix.
  *
  * 符号 / Symbol: TiB
  * 换算关系 / Conversion: 1 TiB = 1024 GiB = 1099511627776 B

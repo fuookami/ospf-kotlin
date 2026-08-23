@@ -1,6 +1,5 @@
 /**
- * 圆柱未开放路径门禁。
- * Cylinder unsupported-path guards.
+ * 圆柱未开放路径门禁。 / Cylinder unsupported-path guards.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
@@ -9,8 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 /**
- * 要求 DFS/MLHS 仅长方体搜索路径不接收圆柱。
- * Require DFS/MLHS cuboid-only search paths to reject cylinders.
+ * 要求 DFS/MLHS 仅长方体搜索路径不接收圆柱。 / Require DFS/MLHS cuboid-only search paths to reject cylinders.
  *
  * @param items 待检查的物品及其数量映射，数量为零的物品将被过滤。
  *              Item-to-quantity map to check; items with zero quantity are filtered out.

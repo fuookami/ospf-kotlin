@@ -1,10 +1,8 @@
 /**
- * 规范运算
- * Canonical Operations
+ * 规范运算 / Canonical Operations
  *
  * 提供规范多项式的核心运算操作，包括合并同类项、求值和部分求值。
- * 使用 PowerVectorKey 进行高效的幂向量比较，相比基二Map 的实现性能提升 50-100%。
- * Provides core operation functions for canonical polynomials,
+ * 使用 PowerVectorKey 进行高效的幂向量比较，相比基二Map 的实现性能提升 50-100%。 / Provides core operation functions for canonical polynomials,
  * including combining like terms, evaluation, and partial evaluation.
  * Uses PowerVectorKey for efficient power vector comparison,
  * achieving 50-100% performance improvement over Map-based implementation.
@@ -31,8 +29,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * 计算 Ring 类型的幂值 value^power
  * Compute power value^power for Ring types.
  *
- * 内部函数，供各运算文件共享使用。
- * Internal for use across operation files.
+ * 内部函数，供各运算文件共享使用。 / Internal for use across operation files.
  *
  * @param value 底数 / The base value
  * @param power 指数（非负） / The exponent (non-negative)
@@ -54,8 +51,7 @@ internal fun <T : Ring<T>> computeNonNegativeRingPower(value: T, power: Int, one
 }
 
 /**
- * 计算 Ring 类型的幂值，负指数仅在值实现 TimesGroup 时可用
- * Compute a Ring power; negative exponents are available only for TimesGroup values.
+ * 计算 Ring 类型的幂值，负指数仅在值实现 TimesGroup 时可用 / Compute a Ring power; negative exponents are available only for TimesGroup values.
  *
  * @param value 底数 / The base value
  * @param power 指数 / The exponent
@@ -79,8 +75,7 @@ internal fun <T : Ring<T>> computeRingPowerOrNull(value: T, power: Int, one: T):
 }
 
 /**
- * 计算 Ring 类型的幂值，失败时返回 Ret 错误
- * Compute a Ring power, returning a Ret error on failure.
+ * 计算 Ring 类型的幂值，失败时返回 Ret 错误 / Compute a Ring power, returning a Ret error on failure.
  *
  * @param value 底数 / The base value
  * @param power 指数 / The exponent
@@ -94,17 +89,14 @@ internal fun <T : Ring<T>> computeRingPower(value: T, power: Int, one: T): Ret<T
 }
 
 /**
- * 合并规范多项式中的同类项
- * Combine like terms in a canonical polynomial.
+ * 合并规范多项式中的同类项 / Combine like terms in a canonical polynomial.
  *
  * 直接 Ring 操作，无 Generic 转换。
  * 使用 PowerVectorKey 替代 Map<Symbol, Int32> 作为 HashMap 键进行优化：
  * - 稠密模式：适用于 totalSymbols 较小或稀疏度较高（powers.size / totalSymbols >= 0.5）的情况
  * - 稀疏模式：适用于 totalSymbols 较大且稀疏度较低的情况
  * - 通过预计算哈希消除幂排序开销
- * 相比原 Map 实现，性能提升约 50-100%。
- *
- * Direct Ring operation - no Generic conversion.
+ * 相比原 Map 实现，性能提升约 50-100%。 / Direct Ring operation - no Generic conversion.
  * Optimization: Uses PowerVectorKey instead of Map<Symbol, Int32> as HashMap key.
  * - Dense mode for small totalSymbols or high sparsity (powers.size / totalSymbols >= 0.5)
  * - Sparse mode for large totalSymbols with low sparsity
@@ -158,8 +150,7 @@ fun <T> Iterable<CanonicalMonomial<T>>.combineCanonicalMonomials(
 }
 
 /**
- * 合并规范多项式中的同类项
- * Combine like terms in a canonical polynomial.
+ * 合并规范多项式中的同类项 / Combine like terms in a canonical polynomial.
  *
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
@@ -175,11 +166,9 @@ fun <T> CanonicalPolynomial<T>.combineCanonicalPolynomialTerms(
 }
 
 /**
- * 使用给定值对规范多项式求值
- * Evaluate a canonical polynomial with given values.
+ * 使用给定值对规范多项式求值 / Evaluate a canonical polynomial with given values.
  *
- * 需要提供乘法单位元 one 用于幂运算。
- * Requires one (multiplicative identity) for power computation.
+ * 需要提供乘法单位元 one 用于幂运算。 / Requires one (multiplicative identity) for power computation.
  *
  * @param values 符号到值的映射 / Map of symbol to value
  * @param onMissing 缺失符号的回调函数（可选） / Callback for missing symbols (optional)
@@ -207,8 +196,7 @@ fun <T> CanonicalPolynomial<T>.evaluateCanonical(
 }
 
 /**
- * 使用有序符号和值对规范多项式求值
- * Evaluate a canonical polynomial with ordered symbols and values.
+ * 使用有序符号和值对规范多项式求值 / Evaluate a canonical polynomial with ordered symbols and values.
  *
  * @param order 符号顺序列表 / Ordered list of symbols
  * @param values 与符号顺序对应的值列表 / List of values corresponding to symbol order
@@ -249,11 +237,9 @@ fun <T> CanonicalPolynomial<T>.evaluateCanonicalOrdered(
 }
 
 /**
- * 对规范多项式进行部分求值
- * Partially evaluate a canonical polynomial.
+ * 对规范多项式进行部分求值 / Partially evaluate a canonical polynomial.
  *
- * 将已知符号的值代入，返回仅包含未知符号的规范多项式。
- * Substitutes known symbol values, returning a canonical polynomial with only unknown symbols.
+ * 将已知符号的值代入，返回仅包含未知符号的规范多项式。 / Substitutes known symbol values, returning a canonical polynomial with only unknown symbols.
  *
  * @param values 已知符号到值的映射 / Map of known symbol to value
  * @param zero 系数类型的零值 / Zero value for the coefficient type

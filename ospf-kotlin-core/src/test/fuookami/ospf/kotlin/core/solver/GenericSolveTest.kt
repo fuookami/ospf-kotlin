@@ -10,6 +10,8 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
+import fuookami.ospf.kotlin.core.solver.value.SolveValueConversionPolicy
 import fuookami.ospf.kotlin.core.testing.*
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -36,6 +38,183 @@ class GenericSolveTest {
         runQuadraticCase(GenericNumberCases.rtnX)
     }
 
+    @Test
+    fun solveReportEntrypointsShouldCarryPoolsAndGenericValues() = runBlocking {
+        val linearModel = linearTriadModel("report-linear")
+        val linearSolver = RecordingLinearSolveSolver()
+        val linearReport = (linearSolver.solveReport(
+            model = linearModel,
+            converter = GenericNumberCases.rtn64.converter
+        ) as Ok).value
+        assertEquals(ProblemStatus.Feasible, linearReport.problemStatus)
+        assertEquals(SolutionPresence.Incumbent, linearReport.solutionPresence)
+        assertEquals(2, linearReport.solution?.values?.size)
+        assertEquals(GenericNumberCases.rtn64.converter.intoValue(linearSolver.singleObj), linearReport.solution?.objective)
+
+        val linearPoolReport = (linearSolver.solveReport(
+            model = linearModel,
+            solutionAmount = UInt64(2),
+            converter = GenericNumberCases.rtn64.converter
+        ) as Ok).value
+        assertEquals(2, linearPoolReport.solution?.pool?.size)
+        assertEquals(
+            GenericNumberCases.rtn64.converter.intoValue(linearSolver.poolSolutionsFlt64[1][0]),
+            linearPoolReport.solution?.pool?.get(1)?.get(0)
+        )
+
+        val linearOptionReport = (linearSolver.solveReport(
+            model = linearModel,
+            options = SolveOptions(solutionAmount = UInt64(2))
+        ) as Ok).value
+        assertEquals(2, linearOptionReport.solution?.pool?.size)
+
+        val linearMechanism = linearMechanismModel(GenericNumberCases.rtn64, "report-linear-mechanism")
+        val linearMechanismReport = (linearSolver.solveReport(
+            model = linearMechanism,
+            converter = GenericNumberCases.rtn64.converter
+        ) as Ok).value
+        assertEquals(2, linearMechanismReport.solution?.values?.size)
+        linearMechanism.close()
+
+        val quadraticModel = quadraticTetradModel("report-quadratic")
+        val quadraticSolver = RecordingQuadraticSolveSolver()
+        val quadraticReport = (quadraticSolver.solveReport(
+            model = quadraticModel,
+            converter = GenericNumberCases.rtn64.converter
+        ) as Ok).value
+        assertEquals(ProblemStatus.Feasible, quadraticReport.problemStatus)
+        assertEquals(2, quadraticReport.solution?.values?.size)
+
+        val quadraticPoolReport = (quadraticSolver.solveReport(
+            model = quadraticModel,
+            solutionAmount = UInt64(2),
+            converter = GenericNumberCases.rtn64.converter
+        ) as Ok).value
+        assertEquals(2, quadraticPoolReport.solution?.pool?.size)
+
+        val quadraticOptionReport = (quadraticSolver.solveReport(
+            model = quadraticModel,
+            options = SolveOptions(solutionAmount = UInt64(2))
+        ) as Ok).value
+        assertEquals(2, quadraticOptionReport.solution?.pool?.size)
+
+        val quadraticMechanism = quadraticMechanismModel(GenericNumberCases.rtn64, "report-quadratic-mechanism")
+        val quadraticMechanismReport = (quadraticSolver.solveReport(
+            model = quadraticMechanism,
+            converter = GenericNumberCases.rtn64.converter
+        ) as Ok).value
+        assertEquals(2, quadraticMechanismReport.solution?.values?.size)
+        quadraticMechanism.close()
+    }
+
+    @Test
+    fun solveReportSolutionPoolShouldHonorStrictValueConversionPolicy() = runBlocking {
+        val invalidModel = LinearTriadModel(
+            impl = BasicLinearTriadModel(
+                variables = listOf(
+                    SolverVariable(
+                        index = 0,
+                        lowerBound = Flt64.nan,
+                        upperBound = Flt64.ten,
+                        type = Continuous,
+                        origin = null,
+                        name = "invalid_x"
+                    )
+                ),
+                constraints = LinearConstraintBatch(
+                    sparseLhs = SparseMatrix(),
+                    signs = emptyList(),
+                    rhs = emptyList(),
+                    names = emptyList(),
+                    sources = emptyList()
+                ),
+                name = "invalid-report-model"
+            ),
+            tokensInSolver = emptyList(),
+            objective = LinearObjective(
+                category = ObjectCategory.Minimum,
+                objective = emptyList()
+            )
+        )
+
+        val result = RecordingLinearSolveSolver().solveReport(
+            model = invalidModel,
+            options = SolveOptions(
+                solutionAmount = UInt64(2),
+                valueConversionPolicy = SolveValueConversionPolicy.Strict
+            )
+        )
+
+        assertTrue(result is Failed)
+    }
+
+    /**
+     * 验证解池报告入口传播取消令牌，并在预取消时不启动 backend。
+     * Verifies solution-pool report entry points propagate cancellation and do not start a backend when pre-cancelled.
+     */
+    @Test
+    fun solveReportSolutionPoolShouldPropagateCancellationToken() = runBlocking {
+        val linearHandle = SolveHandle.create()
+        val linearSolver = RecordingLinearSolveSolver()
+        assertTrue(
+            linearSolver.solveReport(
+                model = linearTriadModel("cancel-linear"),
+                options = SolveOptions(
+                    solutionAmount = UInt64(2),
+                    cancellationToken = linearHandle.token
+                )
+            ) is Ok
+        )
+        assertSame(linearHandle.token, linearSolver.lastPoolCancellationToken)
+        assertEquals(1, linearSolver.poolInvocationCount)
+
+        val quadraticHandle = SolveHandle.create()
+        val quadraticSolver = RecordingQuadraticSolveSolver()
+        assertTrue(
+            quadraticSolver.solveReport(
+                model = quadraticTetradModel("cancel-quadratic"),
+                options = SolveOptions(
+                    solutionAmount = UInt64(2),
+                    cancellationToken = quadraticHandle.token
+                )
+            ) is Ok
+        )
+        assertSame(quadraticHandle.token, quadraticSolver.lastPoolCancellationToken)
+        assertEquals(1, quadraticSolver.poolInvocationCount)
+
+        val cancelledLinearHandle = SolveHandle.create()
+        assertTrue(cancelledLinearHandle.cancel(reason = "pre-cancelled").ok)
+        val cancelledLinearSolver = RecordingLinearSolveSolver()
+        val cancelledLinearResult = cancelledLinearSolver.solveReport(
+            model = linearTriadModel("pre-cancel-linear"),
+            options = SolveOptions(
+                solutionAmount = UInt64(2),
+                cancellationToken = cancelledLinearHandle.token
+            )
+        )
+        assertEquals(
+            TerminationReason.Cancelled,
+            (cancelledLinearResult as Ok).value.terminationReason
+        )
+        assertEquals(0, cancelledLinearSolver.poolInvocationCount)
+
+        val cancelledQuadraticHandle = SolveHandle.create()
+        assertTrue(cancelledQuadraticHandle.cancel(reason = "pre-cancelled").ok)
+        val cancelledQuadraticSolver = RecordingQuadraticSolveSolver()
+        val cancelledQuadraticResult = cancelledQuadraticSolver.solveReport(
+            model = quadraticTetradModel("pre-cancel-quadratic"),
+            options = SolveOptions(
+                solutionAmount = UInt64(2),
+                cancellationToken = cancelledQuadraticHandle.token
+            )
+        )
+        assertEquals(
+            TerminationReason.Cancelled,
+            (cancelledQuadraticResult as Ok).value.terminationReason
+        )
+        assertEquals(0, cancelledQuadraticSolver.poolInvocationCount)
+    }
+
     private suspend fun <V> runLinearCase(numberCase: GenericNumberCase<V>)
             where V : RealNumber<V>, V : NumberField<V> {
         val triad = linearTriadModel("lin_${numberCase.name.lowercase()}")
@@ -43,7 +222,7 @@ class GenericSolveTest {
         val solver = RecordingLinearSolveSolver()
 
         var callbackCount = 0
-        val callback: SolvingStatusCallBack = {
+        val callback = SolvingStatusCallBack {
             callbackCount += 1
             ok
         }
@@ -120,7 +299,7 @@ class GenericSolveTest {
         val solver = RecordingQuadraticSolveSolver()
 
         var callbackCount = 0
-        val callback: SolvingStatusCallBack = {
+        val callback = SolvingStatusCallBack {
             callbackCount += 1
             ok
         }
@@ -190,7 +369,7 @@ class GenericSolveTest {
         mechanism.close()
     }
     private fun <V> assertFeasibleAndConverted(
-        ret: Ret<FeasibleSolverOutput<V>>,
+        ret: Ret<SolveReport<V>>,
         expectedFlt64: List<Flt64>,
         expectedObj: Flt64,
         expectedPossibleBestObj: Flt64,
@@ -204,8 +383,8 @@ class GenericSolveTest {
         val expectedPossibleBestObjValue = converterCase.converter.intoValue(expectedPossibleBestObj)
         val expectedBestBoundValue = expectedBestBound?.let { converterCase.converter.intoValue(it) }
 
-        assertEquals(expected.size, output.solution.size, "${converterCase.name}: solution size mismatch")
-        output.solution.withIndex().forEach { (i, value) ->
+        assertEquals(expected.size, output.values.size, "${converterCase.name}: solution size mismatch")
+        output.values.withIndex().forEach { (i, value) ->
             val expectedValue = expected[i]
             assertEquals(
                 converterCase.converter.fromValue(expectedValue),
@@ -219,15 +398,11 @@ class GenericSolveTest {
             )
         }
 
-            assertEquals(expectedObj, output.obj, "${converterCase.name}: solver-boundary obj mismatch")
-            assertEquals(expectedPossibleBestObj, output.possibleBestObj, "${converterCase.name}: solver-boundary possibleBestObj mismatch")
-            assertEquals(expectedBestBound, output.bestBound, "${converterCase.name}: solver-boundary bestBound mismatch")
-        assertEquals(expectedObjValue, output.objValueOrNull!!, "${converterCase.name}: objValue mismatch")
-        assertEquals(expectedPossibleBestObjValue, output.possibleBestObjValueOrNull!!, "${converterCase.name}: possibleBestObjValue mismatch")
-        assertEquals(expectedBestBoundValue, output.bestBoundValueOrNull!!, "${converterCase.name}: bestBoundValue mismatch")
+        assertEquals(expectedObjValue, output.solution?.objective, "${converterCase.name}: objective mismatch")
+        assertEquals(expectedBestBound, output.statistics.bestBound, "${converterCase.name}: bestBound mismatch")
     }
     private fun <V> assertPoolAndConverted(
-        ret: Ret<Pair<FeasibleSolverOutput<V>, List<Solution<V>>>>,
+        ret: Ret<Pair<SolveReport<V>, List<Solution<V>>>>,
         expectedPrimaryFlt64: List<Flt64>,
         expectedPoolFlt64: List<List<Flt64>>,
         expectedObj: Flt64,
@@ -239,7 +414,7 @@ class GenericSolveTest {
         val (primary, pool) = (ret as Ok).value
 
         val expectedPrimary = expectedPrimaryFlt64.map { converterCase.converter.intoValue(it) }
-        primary.solution.withIndex().forEach { (i, value) ->
+        primary.values.withIndex().forEach { (i, value) ->
             val expectedValue = expectedPrimary[i]
             assertEquals(
                 converterCase.converter.fromValue(expectedValue),
@@ -256,12 +431,8 @@ class GenericSolveTest {
         val expectedObjValue = converterCase.converter.intoValue(expectedObj)
         val expectedPossibleBestObjValue = converterCase.converter.intoValue(expectedPossibleBestObj)
         val expectedBestBoundValue = expectedBestBound?.let { converterCase.converter.intoValue(it) }
-            assertEquals(expectedObj, primary.obj, "${converterCase.name}: pool solver-boundary obj mismatch")
-            assertEquals(expectedPossibleBestObj, primary.possibleBestObj, "${converterCase.name}: pool solver-boundary possibleBestObj mismatch")
-            assertEquals(expectedBestBound, primary.bestBound, "${converterCase.name}: pool solver-boundary bestBound mismatch")
-        assertEquals(expectedObjValue, primary.objValueOrNull!!, "${converterCase.name}: pool objValue mismatch")
-        assertEquals(expectedPossibleBestObjValue, primary.possibleBestObjValueOrNull!!, "${converterCase.name}: pool possibleBestObjValue mismatch")
-        assertEquals(expectedBestBoundValue, primary.bestBoundValueOrNull!!, "${converterCase.name}: pool bestBoundValue mismatch")
+        assertEquals(expectedObjValue, primary.solution?.objective, "${converterCase.name}: pool objective mismatch")
+        assertEquals(expectedBestBound, primary.statistics.bestBound, "${converterCase.name}: pool bestBound mismatch")
 
         assertEquals(expectedPoolFlt64.size, pool.size, "${converterCase.name}: pool size mismatch")
         pool.withIndex().forEach { (rowIndex, row) ->
@@ -399,6 +570,9 @@ class GenericSolveTest {
 private class RecordingLinearSolveSolver : AbstractLinearSolver {
     override val name: String = "recording-linear-solve"
 
+    var lastPoolCancellationToken: CancellationToken? = null
+    var poolInvocationCount: Int = 0
+
     val singleObj = Flt64(10.0)
     val singlePossibleBestObj = Flt64(9.5)
     val singleBestBound = Flt64(9.0)
@@ -415,16 +589,15 @@ private class RecordingLinearSolveSolver : AbstractLinearSolver {
     override suspend fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput<Flt64>> {
+    ): Ret<SolveReport<Flt64>> {
         solvingStatusCallBack?.invoke(dummyStatus(name))
         return Ok(
-            FeasibleSolverOutput(
-                obj = singleObj,
-                solution = singleSolveFlt64,
-                time = 1.seconds,
-                possibleBestObj = singlePossibleBestObj,
-                gap = Flt64(0.05),
-                bestBound = singleBestBound
+            SolverStatus.Feasible.toSolveReport(
+                objective = singleObj,
+                values = singleSolveFlt64,
+                solveTime = 1.seconds,
+                bestBound = singleBestBound,
+                gap = Flt64(0.05)
             )
         )
     }
@@ -433,23 +606,36 @@ private class RecordingLinearSolveSolver : AbstractLinearSolver {
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
+    ): Ret<Pair<SolveReport<Flt64>, List<List<Flt64>>>> {
+        poolInvocationCount += 1
         solvingStatusCallBack?.invoke(dummyStatus(name))
         return Ok(
-            FeasibleSolverOutput(
-                obj = poolObj,
-                solution = poolPrimaryFlt64,
-                time = 2.seconds,
-                possibleBestObj = poolPossibleBestObj,
-                gap = Flt64(0.02),
-                bestBound = poolBestBound
+            SolverStatus.Feasible.toSolveReport(
+                objective = poolObj,
+                values = poolPrimaryFlt64,
+                solveTime = 2.seconds,
+                bestBound = poolBestBound,
+                gap = Flt64(0.02)
             ) to poolSolutionsFlt64
         )
+    }
+
+    override suspend fun invoke(
+        model: LinearTriadModelView,
+        solutionAmount: UInt64,
+        solvingStatusCallBack: SolvingStatusCallBack?,
+        cancellationToken: CancellationToken?
+    ): Ret<Pair<SolveReport<Flt64>, List<List<Flt64>>>> {
+        lastPoolCancellationToken = cancellationToken
+        return invoke(model, solutionAmount, solvingStatusCallBack)
     }
 }
 
 private class RecordingQuadraticSolveSolver : AbstractQuadraticSolver {
     override val name: String = "recording-quadratic-solve"
+
+    var lastPoolCancellationToken: CancellationToken? = null
+    var poolInvocationCount: Int = 0
 
     val singleObj = Flt64(-5.0)
     val singlePossibleBestObj = Flt64(-4.5)
@@ -467,16 +653,15 @@ private class RecordingQuadraticSolveSolver : AbstractQuadraticSolver {
     override suspend fun invoke(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput<Flt64>> {
+    ): Ret<SolveReport<Flt64>> {
         solvingStatusCallBack?.invoke(dummyStatus(name))
         return Ok(
-            FeasibleSolverOutput(
-                obj = singleObj,
-                solution = singleSolveFlt64,
-                time = 1.seconds,
-                possibleBestObj = singlePossibleBestObj,
-                gap = Flt64(0.03),
-                bestBound = singleBestBound
+            SolverStatus.Feasible.toSolveReport(
+                objective = singleObj,
+                values = singleSolveFlt64,
+                solveTime = 1.seconds,
+                bestBound = singleBestBound,
+                gap = Flt64(0.03)
             )
         )
     }
@@ -485,18 +670,28 @@ private class RecordingQuadraticSolveSolver : AbstractQuadraticSolver {
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
+    ): Ret<Pair<SolveReport<Flt64>, List<List<Flt64>>>> {
+        poolInvocationCount += 1
         solvingStatusCallBack?.invoke(dummyStatus(name))
         return Ok(
-            FeasibleSolverOutput(
-                obj = poolObj,
-                solution = poolPrimaryFlt64,
-                time = 2.seconds,
-                possibleBestObj = poolPossibleBestObj,
-                gap = Flt64(0.01),
-                bestBound = poolBestBound
+            SolverStatus.Feasible.toSolveReport(
+                objective = poolObj,
+                values = poolPrimaryFlt64,
+                solveTime = 2.seconds,
+                bestBound = poolBestBound,
+                gap = Flt64(0.01)
             ) to poolSolutionsFlt64
         )
+    }
+
+    override suspend fun invoke(
+        model: QuadraticTetradModelView,
+        solutionAmount: UInt64,
+        solvingStatusCallBack: SolvingStatusCallBack?,
+        cancellationToken: CancellationToken?
+    ): Ret<Pair<SolveReport<Flt64>, List<List<Flt64>>>> {
+        lastPoolCancellationToken = cancellationToken
+        return invoke(model, solutionAmount, solvingStatusCallBack)
     }
 }
 

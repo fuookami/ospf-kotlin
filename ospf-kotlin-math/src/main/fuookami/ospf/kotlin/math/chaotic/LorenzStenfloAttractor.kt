@@ -56,7 +56,7 @@ data class LorenzStenfloAttractor<V : FloatingNumber<V>>(
  * Lorenz-Stenflo 吸引子生成器，通过迭代产生混沌序列。
  *
  * @property attractor the Lorenz-Stenflo attractor instance / Lorenz-Stenflo 吸引子实例
- * @property _x the internal state variable for iteration / 迭代用的内部状态变量
+ * @property _x 迭代用的内部状态变量 / the internal state variable for iteration
 */
 data class LorenzStenfloAttractorGenerator(
     val attractor: LorenzStenfloAttractor<Flt64> = LorenzStenfloAttractor(),

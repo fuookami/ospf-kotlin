@@ -1,9 +1,7 @@
 /**
- * 数学函数求值器
- * Math Function Evaluator
+ * 数学函数求值器 / Math Function Evaluator
  *
- * 提供 Aviator 白名单中的 math.* 函数求值能力。
- * Provides evaluation for math.* functions from the Aviator whitelist.
+ * 提供 Aviator 白名单中的 math.* 函数求值能力。 / Provides evaluation for math.* functions from the Aviator whitelist.
 */
 package fuookami.ospf.kotlin.math.symbol.expression.operation
 
@@ -11,8 +9,7 @@ import kotlin.math.*
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunctionEvaluator
 
 /**
- * 数学函数求值器
- * Math Function Evaluator
+ * 数学函数求值器 / Math Function Evaluator
  *
  * 实现 ScalarFunctionEvaluator，覆盖 Aviator 白名单中的 17 个 math.* 函数。
  * 未识别的函数委托给 DefaultScalarFunctionEvaluator。
@@ -63,8 +60,8 @@ object MathFunctionEvaluator : ScalarFunctionEvaluator {
  * Evaluates the square root function.
  * 求值平方根函数。
  *
- * @param args function arguments containing a single numeric value / 包含单个数值的函数参数
- * @return the square root of the argument, or null if invalid / 参数的平方根，无效时返回 null
+ * @param args 包含单个数值的函数参数 / function arguments containing a single numeric value
+ * @return 参数的平方根，无效时返回 null / the square root of the argument, or null if invalid
 */
 
     // ========== 单参数函数 / Single-argument functions ==========
@@ -78,8 +75,8 @@ object MathFunctionEvaluator : ScalarFunctionEvaluator {
  * Evaluates the natural logarithm function.
  * 求值自然对数函数。
  *
- * @param args function arguments containing a single numeric value / 包含单个数值的函数参数
- * @return the natural logarithm of the argument, or null if invalid / 参数的自然对数，无效时返回 null
+ * @param args 包含单个数值的函数参数 / function arguments containing a single numeric value
+ * @return 参数的自然对数，无效时返回 null / the natural logarithm of the argument, or null if invalid
 */
     private fun evaluateLog(args: List<Any?>): Any? {
         val v = args.singleOrNull()?.asDoubleOrNull() ?: return null
@@ -90,8 +87,8 @@ object MathFunctionEvaluator : ScalarFunctionEvaluator {
  * Evaluates the base-10 logarithm function.
  * 求值以 10 为底的对数函数。
  *
- * @param args function arguments containing a single numeric value / 包含单个数值的函数参数
- * @return the base-10 logarithm of the argument, or null if invalid / 参数的以 10 为底的对数，无效时返回 null
+ * @param args 包含单个数值的函数参数 / function arguments containing a single numeric value
+ * @return 参数的以 10 为底的对数，无效时返回 null / the base-10 logarithm of the argument, or null if invalid
 */
     private fun evaluateLog10(args: List<Any?>): Any? {
         val v = args.singleOrNull()?.asDoubleOrNull() ?: return null
@@ -102,7 +99,7 @@ object MathFunctionEvaluator : ScalarFunctionEvaluator {
  * Evaluates the exponential function.
  * 求值指数函数。
  *
- * @param args function arguments containing a single numeric value / 包含单个数值的函数参数
+ * @param args 包含单个数值的函数参数 / function arguments containing a single numeric value
  * @return e raised to the power of the argument, or null if invalid / e 的参数次幂，无效时返回 null
 */
     private fun evaluateExp(args: List<Any?>): Any? {
@@ -114,8 +111,8 @@ object MathFunctionEvaluator : ScalarFunctionEvaluator {
  * Evaluates the sine function.
  * 求值正弦函数。
  *
- * @param args function arguments containing a single numeric value (radians) / 包含单个数值的函数参数（弧度）
- * @return the sine of the argument, or null if invalid / 参数的正弦值，无效时返回 null
+ * @param args 包含单个数值的函数参数（弧度） / function arguments containing a single numeric value (radians)
+ * @return 参数的正弦值，无效时返回 null / the sine of the argument, or null if invalid
 */
     private fun evaluateSin(args: List<Any?>): Any? {
         val v = args.singleOrNull()?.asDoubleOrNull() ?: return null
@@ -126,8 +123,8 @@ object MathFunctionEvaluator : ScalarFunctionEvaluator {
  * Evaluates the cosine function.
  * 求值余弦函数。
  *
- * @param args function arguments containing a single numeric value (radians) / 包含单个数值的函数参数（弧度）
- * @return the cosine of the argument, or null if invalid / 参数的余弦值，无效时返回 null
+ * @param args 包含单个数值的函数参数（弧度） / function arguments containing a single numeric value (radians)
+ * @return 参数的余弦值，无效时返回 null / the cosine of the argument, or null if invalid
 */
     private fun evaluateCos(args: List<Any?>): Any? {
         val v = args.singleOrNull()?.asDoubleOrNull() ?: return null
@@ -138,8 +135,8 @@ object MathFunctionEvaluator : ScalarFunctionEvaluator {
  * Evaluates the tangent function.
  * 求值正切函数。
  *
- * @param args function arguments containing a single numeric value (radians) / 包含单个数值的函数参数（弧度）
- * @return the tangent of the argument, or null if invalid / 参数的正切值，无效时返回 null
+ * @param args 包含单个数值的函数参数（弧度） / function arguments containing a single numeric value (radians)
+ * @return 参数的正切值，无效时返回 null / the tangent of the argument, or null if invalid
 */
     private fun evaluateTan(args: List<Any?>): Any? {
         val v = args.singleOrNull()?.asDoubleOrNull() ?: return null
@@ -150,8 +147,8 @@ object MathFunctionEvaluator : ScalarFunctionEvaluator {
  * Evaluates the arcsine function.
  * 求值反正弦函数。
  *
- * @param args function arguments containing a single numeric value / 包含单个数值的函数参数
- * @return the arcsine of the argument in radians, or null if invalid / 参数的反正弦值（弧度），无效时返回 null
+ * @param args 包含单个数值的函数参数 / function arguments containing a single numeric value
+ * @return 参数的反正弦值（弧度），无效时返回 null / the arcsine of the argument in radians, or null if invalid
 */
     private fun evaluateAsin(args: List<Any?>): Any? {
         val v = args.singleOrNull()?.asDoubleOrNull() ?: return null
@@ -162,8 +159,8 @@ object MathFunctionEvaluator : ScalarFunctionEvaluator {
  * Evaluates the arccosine function.
  * 求值反余弦函数。
  *
- * @param args function arguments containing a single numeric value / 包含单个数值的函数参数
- * @return the arccosine of the argument in radians, or null if invalid / 参数的反余弦值（弧度），无效时返回 null
+ * @param args 包含单个数值的函数参数 / function arguments containing a single numeric value
+ * @return 参数的反余弦值（弧度），无效时返回 null / the arccosine of the argument in radians, or null if invalid
 */
     private fun evaluateAcos(args: List<Any?>): Any? {
         val v = args.singleOrNull()?.asDoubleOrNull() ?: return null
@@ -174,8 +171,8 @@ object MathFunctionEvaluator : ScalarFunctionEvaluator {
  * Evaluates the arctangent function.
  * 求值反正切函数。
  *
- * @param args function arguments containing a single numeric value / 包含单个数值的函数参数
- * @return the arctangent of the argument in radians, or null if invalid / 参数的反正切值（弧度），无效时返回 null
+ * @param args 包含单个数值的函数参数 / function arguments containing a single numeric value
+ * @return 参数的反正切值（弧度），无效时返回 null / the arctangent of the argument in radians, or null if invalid
 */
     private fun evaluateAtan(args: List<Any?>): Any? {
         val v = args.singleOrNull()?.asDoubleOrNull() ?: return null
@@ -186,8 +183,8 @@ object MathFunctionEvaluator : ScalarFunctionEvaluator {
  * Evaluates the floor function.
  * 求值向下取整函数。
  *
- * @param args function arguments containing a single numeric value / 包含单个数值的函数参数
- * @return the largest integer less than or equal to the argument, or null if invalid / 小于或等于参数的最大整数，无效时返回 null
+ * @param args 包含单个数值的函数参数 / function arguments containing a single numeric value
+ * @return 小于或等于参数的最大整数，无效时返回 null / the largest integer less than or equal to the argument, or null if invalid
 */
     private fun evaluateFloor(args: List<Any?>): Any? {
         val v = args.singleOrNull()?.asDoubleOrNull() ?: return null
@@ -198,8 +195,8 @@ object MathFunctionEvaluator : ScalarFunctionEvaluator {
  * Evaluates the ceiling function.
  * 求值向上取整函数。
  *
- * @param args function arguments containing a single numeric value / 包含单个数值的函数参数
- * @return the smallest integer greater than or equal to the argument, or null if invalid / 大于或等于参数的最小整数，无效时返回 null
+ * @param args 包含单个数值的函数参数 / function arguments containing a single numeric value
+ * @return 大于或等于参数的最小整数，无效时返回 null / the smallest integer greater than or equal to the argument, or null if invalid
 */
     private fun evaluateCeil(args: List<Any?>): Any? {
         val v = args.singleOrNull()?.asDoubleOrNull() ?: return null
@@ -212,8 +209,8 @@ object MathFunctionEvaluator : ScalarFunctionEvaluator {
      * kotlin.math.round 返回 Double（4.0），此处显式转为 Long。
      * kotlin.math.round returns Double (4.0); here we explicitly convert to Long.
      *
-     * @param args function arguments containing a single numeric value / 包含单个数值的函数参数
-     * @return the argument rounded to Long, or null if invalid / 参数四舍五入后的 Long 值，无效时返回 null
+     * @param args 包含单个数值的函数参数 / function arguments containing a single numeric value
+     * @return 参数四舍五入后的 Long 值，无效时返回 null / the argument rounded to Long, or null if invalid
     */
     private fun evaluateRound(args: List<Any?>): Any? {
         val v = args.singleOrNull()?.asDoubleOrNull() ?: return null
@@ -224,8 +221,8 @@ object MathFunctionEvaluator : ScalarFunctionEvaluator {
  * Evaluates the power function.
  * 求值幂函数。
  *
- * @param args function arguments containing base and exponent / 包含底数和指数的函数参数
- * @return base raised to the power of exponent, or null if invalid / 底数的指数次幂，无效时返回 null
+ * @param args 包含底数和指数的函数参数 / function arguments containing base and exponent
+ * @return 底数的指数次幂，无效时返回 null / base raised to the power of exponent, or null if invalid
 */
 
     // ========== 双参数函数 / Two-argument functions ==========
@@ -241,8 +238,8 @@ object MathFunctionEvaluator : ScalarFunctionEvaluator {
  * Evaluates the maximum function.
  * 求值最大值函数。
  *
- * @param args function arguments containing two numeric values / 包含两个数值的函数参数
- * @return the larger of the two arguments, or null if invalid / 两个参数中的较大值，无效时返回 null
+ * @param args 包含两个数值的函数参数 / function arguments containing two numeric values
+ * @return 两个参数中的较大值，无效时返回 null / the larger of the two arguments, or null if invalid
 */
     private fun evaluateMax(args: List<Any?>): Any? {
         if (args.size != 2) return null
@@ -255,8 +252,8 @@ object MathFunctionEvaluator : ScalarFunctionEvaluator {
  * Evaluates the minimum function.
  * 求值最小值函数。
  *
- * @param args function arguments containing two numeric values / 包含两个数值的函数参数
- * @return the smaller of the two arguments, or null if invalid / 两个参数中的较小值，无效时返回 null
+ * @param args 包含两个数值的函数参数 / function arguments containing two numeric values
+ * @return 两个参数中的较小值，无效时返回 null / the smaller of the two arguments, or null if invalid
 */
     private fun evaluateMin(args: List<Any?>): Any? {
         if (args.size != 2) return null
@@ -269,7 +266,7 @@ object MathFunctionEvaluator : ScalarFunctionEvaluator {
  * Converts this value to Double, or returns null if not a numeric type.
  * 将此值转换为 Double，若非数值类型则返回 null。
  *
- * @return the value as Double, or null if conversion is not possible / 转换后的 Double 值，无法转换时返回 null
+ * @return 转换后的 Double 值，无法转换时返回 null / the value as Double, or null if conversion is not possible
 */
 
     // ========== 辅助 / Helpers ==========

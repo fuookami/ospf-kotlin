@@ -9,9 +9,7 @@ import java.security.SecureRandom
 
 /**
  * A singleton object for generating UUIDv7 identifiers.
- * 用于生成 UUIDv7 标识符的单例对象。
- *
- * UUIDv7 is a time-ordered UUID format that combines a Unix timestamp with random bits,
+ * 用于生成 UUIDv7 标识符的单例对象。 / UUIDv7 is a time-ordered UUID format that combines a Unix timestamp with random bits,
  * providing sortable unique identifiers suitable for distributed systems.
  * UUIDv7 是一种时间排序的 UUID 格式，将 Unix 时间戳与随机位组合，提供适合分布式系统的可排序唯一标识符。
 */
@@ -20,9 +18,7 @@ data object UUIDv7 {
 
     /**
      * Generates a new UUIDv7 as a 16-byte array.
-     * 生成一个新的 UUIDv7 作为 16 字节数组。
-     *
-     * The UUID structure:
+     * 生成一个新的 UUIDv7 作为 16 字节数组。 / The UUID structure:
      * - Bytes 0-5: 48-bit Unix timestamp in milliseconds
      * - Bytes 6-7: Version (4-bit) + Random data (12-bit)
      * - Bytes 8-15: Variant (2-bit) + Random data (62-bit)

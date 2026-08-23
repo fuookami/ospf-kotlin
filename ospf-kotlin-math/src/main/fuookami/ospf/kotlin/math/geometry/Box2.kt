@@ -1,9 +1,7 @@
 /**
- * 二维包围盒
- * 2D Bounding Box
+ * 二维包围盒 / 2D Bounding Box
  *
- * 定义二维几何空间中的包围盒，由位置 (x, y) 和投影形状定义。
- * Defines bounding box in 2D geometric space, defined by position (x, y) and projection shape.
+ * 定义二维几何空间中的包围盒，由位置 (x, y) 和投影形状定义。 / Defines bounding box in 2D geometric space, defined by position (x, y) and projection shape.
 */
 package fuookami.ospf.kotlin.math.geometry
 
@@ -16,8 +14,7 @@ import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
- * 二维包围盒，由位置 (x, y) 和形状定义。
- * 2D bounding box defined by position (x, y) and shape.
+ * 二维包围盒，由位置 (x, y) 和形状定义。 / 2D bounding box defined by position (x, y) and shape.
  *
  * @param V 数值类型 / The numeric type
  * @property x X 坐标 / X coordinate
@@ -31,8 +28,7 @@ data class Box2<V : FloatingNumber<V>>(
 ) {
     companion object {
         /**
-         * 在原点处创建包围盒
-         * Create a bounding box at the origin
+         * 在原点处创建包围盒 / Create a bounding box at the origin
          *
          * @param V 数值类型 / The numeric type
          * @param shape 二维形状 / The 2D shape
@@ -91,8 +87,7 @@ data class Box2<V : FloatingNumber<V>>(
         }
 
     /**
-     * 判断指定点是否在包围盒内
-     * Check whether a point is inside the bounding box
+     * 判断指定点是否在包围盒内 / Check whether a point is inside the bounding box
      *
      * @param x X 坐标 / X coordinate
      * @param y Y 坐标 / Y coordinate
@@ -143,8 +138,7 @@ data class Box2<V : FloatingNumber<V>>(
     }
 
     /**
-     * 判断两个包围盒是否重叠
-     * Check whether two bounding boxes overlap
+     * 判断两个包围盒是否重叠 / Check whether two bounding boxes overlap
      *
      * @param rhs 另一个包围盒 / The other bounding box
      * @return 是否重叠 / Whether they overlap
@@ -164,8 +158,7 @@ data class Box2<V : FloatingNumber<V>>(
     }
 
     /**
-     * 计算两个包围盒的交集，无交集返回 null
-     * Compute intersection of two boxes, returns null if no overlap
+     * 计算两个包围盒的交集，无交集返回 null / Compute intersection of two boxes, returns null if no overlap
      *
      * @param rhs 另一个包围盒 / The other bounding box
      * @return 交集包围盒，无交集返回 null / The intersection box, or null if no overlap
@@ -218,8 +211,7 @@ data class Box2<V : FloatingNumber<V>>(
     }
 
     /**
-     * 判断两个矩形包围盒是否重叠
-     * Check whether two rectangle bounding boxes overlap
+     * 判断两个矩形包围盒是否重叠 / Check whether two rectangle bounding boxes overlap
      *
      * @param rhs 另一个矩形包围盒 / The other rectangle bounding box
      * @return 是否重叠 / Whether they overlap
@@ -261,8 +253,7 @@ data class Box2<V : FloatingNumber<V>>(
     }
 
     /**
-     * 判断矩形包围盒与圆形包围盒是否重叠
-     * Check whether a rectangle bounding box overlaps with a circle bounding box
+     * 判断矩形包围盒与圆形包围盒是否重叠 / Check whether a rectangle bounding box overlaps with a circle bounding box
      *
      * @param circleBox 圆形包围盒 / The circle bounding box
      * @param circle 圆形形状 / The circle shape
@@ -294,8 +285,7 @@ data class Box2<V : FloatingNumber<V>>(
     }
 
     /**
-     * 判断两个圆形包围盒是否重叠
-     * Check whether two circle bounding boxes overlap
+     * 判断两个圆形包围盒是否重叠 / Check whether two circle bounding boxes overlap
      *
      * @param rhs 另一个圆形包围盒 / The other circle bounding box
      * @param lhs 左侧圆形形状 / The left circle shape
@@ -318,8 +308,7 @@ data class Box2<V : FloatingNumber<V>>(
 }
 
 /**
- * 二维轴对齐包围盒，等同于 Box2。
- * 2D axis-aligned bounding box, equivalent to Box2.
+ * 二维轴对齐包围盒，等同于 Box2。 / 2D axis-aligned bounding box, equivalent to Box2.
  *
  * @param V 数值类型 / The numeric type
  * @see Box2

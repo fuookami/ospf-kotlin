@@ -36,7 +36,7 @@ ospf：https://github.com/fuookami/ospf
 | `ospf-kotlin-framework-csp1d` | 一维下料框架 | [EN](ospf-kotlin-framework-csp1d/README.md) / [中文](ospf-kotlin-framework-csp1d/README_ch.md) |
 | `ospf-kotlin-framework-csp2d` | 规划中的二维下料框架 | [EN](ospf-kotlin-framework-csp2d/README.md) / [中文](ospf-kotlin-framework-csp2d/README_ch.md) |
 | `ospf-kotlin-framework-gantt-scheduling` | 甘特调度框架 | [EN](ospf-kotlin-framework-gantt-scheduling/README.md) / [中文](ospf-kotlin-framework-gantt-scheduling/README_ch.md) |
-| `ospf-kotlin-framework-network-scheduling` | 规划中的网络调度框架 | [EN](ospf-kotlin-framework-network-scheduling/README.md) / [中文](ospf-kotlin-framework-network-scheduling/README_ch.md) |
+| `ospf-kotlin-framework-network-scheduling` | 网络调度 / VRPTW 分支定价框架 | [EN](ospf-kotlin-framework-network-scheduling/README.md) / [中文](ospf-kotlin-framework-network-scheduling/README_ch.md) |
 | `ospf-kotlin-starters` | starter 依赖包 | [EN](ospf-kotlin-starters/README.md) / [中文](ospf-kotlin-starters/README_ch.md) |
 | `ospf-kotlin-example` | 示例和兼容性测试 | [EN](ospf-kotlin-example/README.md) / [中文](ospf-kotlin-example/README_ch.md) |
 | `ospf-kotlin-benchmark` | JMH benchmark smoke 与报告 | [EN](ospf-kotlin-benchmark/README.md) / [中文](ospf-kotlin-benchmark/README_ch.md) |

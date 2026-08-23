@@ -2,24 +2,43 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.mindopt
 
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.math.min
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.Duration.Companion.seconds
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.DurationUnit
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import com.alibaba.damo.mindopt.*
 
 /**
@@ -27,7 +46,7 @@ import com.alibaba.damo.mindopt.*
  *
  * MindOPT 二次求解器
  *
- * @property callBack Quadratic solver callback / 二次求解器回调
+ * @property callBack 二次求解器回调 / Quadratic solver callback
 */
 class MindOPTQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -38,7 +57,12 @@ class MindOPTQuadraticSolver(
     override suspend fun invoke(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput<Flt64>> {
+    ): Ret<SolveReport<Flt64>> {
+        when (val validation = model.identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         return MindOPTQuadraticSolverImpl(
             config = config,
             callBack = callBack,
@@ -54,7 +78,12 @@ class MindOPTQuadraticSolver(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
+    ): Ret<Pair<SolveReport<Flt64>, List<List<Flt64>>>> {
+        when (val validation = model.identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
         } else {
@@ -94,9 +123,9 @@ class MindOPTQuadraticSolver(
  *
  * MindOPT 二次求解器内部实现
  *
- * @property config Solver configuration / 求解器配置
- * @property callBack Quadratic solver callback / 二次求解器回调
- * @property statusCallBack Solving status callback / 求解状态回调
+ * @property config 求解器配置 / Solver configuration
+ * @property callBack 二次求解器回调 / Quadratic solver callback
+ * @property statusCallBack 求解状态回调 / Solving status callback
 */
 private class MindOPTQuadraticSolverImpl(
     private val config: SolverConfig,
@@ -107,14 +136,14 @@ private class MindOPTQuadraticSolverImpl(
 
     private lateinit var mindoptVars: List<MDOVar>
     private lateinit var mindoptConstraints: List<MDOQConstr>
-    private lateinit var output: FeasibleSolverOutput<Flt64>
+    private lateinit var output: SolveReport<Flt64>
 
     private var initialBestObj: Flt64? = null
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
 
-    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput<Flt64>> {
+    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<SolveReport<Flt64>> {
         mip = model.containsNotBinaryInteger
 
         val processes = arrayOf(
@@ -146,8 +175,8 @@ private class MindOPTQuadraticSolverImpl(
      *
      * 将二次模型导出到 MindOPT 求解器
      *
-     * @param model Quadratic tetrad model view / 二次四元组模型视图
-     * @return Operation result / 操作结果
+     * @param model 二次四元组模型视图 / Quadratic tetrad model view
+     * @return 操作结果 / Operation result
     */
     private suspend fun dump(model: QuadraticTetradModelView): Try {
         return try {
@@ -290,8 +319,8 @@ private class MindOPTQuadraticSolverImpl(
      *
      * 为二次模型配置 MindOPT 求解器参数
      *
-     * @param model Quadratic tetrad model view / 二次四元组模型视图
-     * @return Operation result / 操作结果
+     * @param model 二次四元组模型视图 / Quadratic tetrad model view
+     * @return 操作结果 / Operation result
     */
     private suspend fun configure(model: QuadraticTetradModelView): Try {
         return try {
@@ -318,7 +347,10 @@ private class MindOPTQuadraticSolverImpl(
                                     bestObj = currentObj
                                     bestBound = currentBound
                                     bestTime = currentTime
-                                } else if (currentTime - bestTime >= config.notImprovementTime!!) {
+                                } else if (currentTime - bestTime >= config.notImprovementTime!!
+                                    && config.interruptibleTime?.let { currentTime >= it } ?: true
+                                    && config.interruptibleGap?.let { (currentObj - currentBound).abs() ls it } ?: true
+                                ) {
                                     abort()
                                 }
                             }
@@ -398,7 +430,7 @@ private class MindOPTQuadraticSolverImpl(
      *
      * 分析二次求解结果并提取解
      *
-     * @return Operation result / 操作结果
+     * @return 操作结果 / Operation result
     */
     private suspend fun analyzeSolution(): Try {
         return try {
@@ -407,11 +439,11 @@ private class MindOPTQuadraticSolverImpl(
                 for (mindoptVar in mindoptVars) {
                     results.add(Flt64(mindoptVar.get(MDO.DoubleAttr.X)))
                 }
-                output = FeasibleSolverOutput<Flt64>(
-                    obj = Flt64(mindoptModel.get(MDO.DoubleAttr.ObjVal)),
-                    solution = results,
-                    time = mindoptModel.get(MDO.DoubleAttr.SolverTime).seconds,
-                    possibleBestObj = Flt64(
+                output = status.toSolveReport(
+                    objective = Flt64(mindoptModel.get(MDO.DoubleAttr.ObjVal)),
+                    values = results,
+                    solveTime = mindoptModel.get(MDO.DoubleAttr.SolverTime).seconds,
+                    bestBound = Flt64(
                         if (mip) {
                             mindoptModel.get(MDO.DoubleAttr.DualObjVal)
                         } else {

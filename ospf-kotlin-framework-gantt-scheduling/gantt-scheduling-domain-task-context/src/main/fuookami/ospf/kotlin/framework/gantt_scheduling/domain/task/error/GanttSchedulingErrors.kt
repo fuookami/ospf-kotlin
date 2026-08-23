@@ -28,8 +28,7 @@ class GanttSchedulingCapabilityError(
     /** 工厂方法 / Factory methods */
     companion object {
         /**
-         * 创建能力不支持错误
-         * Create capability not supported error
+         * 创建能力不支持错误 / Create capability not supported error
          *
          * @param capability 不支持的能力 / The unsupported capability
          * @return GanttSchedulingCapabilityError 实例 / GanttSchedulingCapabilityError instance
@@ -39,8 +38,7 @@ class GanttSchedulingCapabilityError(
         }
 
         /**
-         * 创建通用能力不支持错误
-         * Create generic capability not supported error
+         * 创建通用能力不支持错误 / Create generic capability not supported error
          *
          * @return GanttSchedulingCapabilityError 实例 / GanttSchedulingCapabilityError instance
         */
@@ -54,8 +52,7 @@ class GanttSchedulingCapabilityError(
  * Gantt Scheduling 生命周期错误
  * Gantt Scheduling lifecycle error
  *
- * 用于 Gantt Scheduling 领域中生命周期相关的错误。
- * Used for lifecycle-related errors in the Gantt Scheduling domain.
+ * 用于 Gantt Scheduling 领域中生命周期相关的错误。 / Used for lifecycle-related errors in the Gantt Scheduling domain.
  *
  * @property detail 错误详情 / Error detail
 */

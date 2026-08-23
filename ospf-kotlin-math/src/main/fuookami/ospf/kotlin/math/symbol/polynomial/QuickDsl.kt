@@ -10,18 +10,15 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
- * 多项式快捷 DSL
- * Polynomial Quick DSL
+ * 多项式快捷 DSL / Polynomial Quick DSL
  *
- * 提供多项式构建的泛型 DSL 扩展函数。
- * Provides generic DSL extension functions for polynomial construction.
+ * 提供多项式构建的泛型 DSL 扩展函数。 / Provides generic DSL extension functions for polynomial construction.
 */
 
 // ========== Linear polynomial construction ==========
 
 /**
- * 从可变线性多项式构造不可变线性多项式
- * Constructs an immutable linear polynomial from a mutable one
+ * 从可变线性多项式构造不可变线性多项式 / Constructs an immutable linear polynomial from a mutable one
  *
  * @param poly 可变线性多项式 / Mutable linear polynomial
  * @return 不可变线性多项式 / Immutable linear polynomial
@@ -34,8 +31,7 @@ fun <T : NumberField<T>> LinearPolynomial(poly: MutableLinearPolynomial<T>): Lin
 // ========== Linear aggregation: sum ==========
 
 /**
- * 将线性单项式列表求和为线性多项式
- * Sums linear monomials into a linear polynomial
+ * 将线性单项式列表求和为线性多项式 / Sums linear monomials into a linear polynomial
  *
  * @param monomials 线性单项式可迭代集合 / Iterable of linear monomials
  * @return 求和后的线性多项式 / Resulting linear polynomial
@@ -46,8 +42,7 @@ fun <T : Ring<T>> sum(monomials: Iterable<LinearMonomial<T>>): LinearPolynomial<
 }
 
 /**
- * 将多个线性多项式求和
- * Sums multiple linear polynomials
+ * 将多个线性多项式求和 / Sums multiple linear polynomials
  *
  * @param polynomials 线性多项式可迭代集合 / Iterable of linear polynomials
  * @return 合并后的线性多项式 / Combined linear polynomial
@@ -64,8 +59,7 @@ fun <T : Ring<T>> sum(polynomials: Iterable<LinearPolynomial<T>>): LinearPolynom
 }
 
 /**
- * 对元素集合应用选择器后求和为线性多项式
- * Sums elements after applying a selector to produce a linear polynomial
+ * 对元素集合应用选择器后求和为线性多项式 / Sums elements after applying a selector to produce a linear polynomial
  *
  * @param elements 元素可迭代集合 / Iterable of elements
  * @param selector 从元素提取线性单项式的函数 / Function to extract a linear monomial from an element
@@ -86,8 +80,7 @@ fun <T : Ring<T>, E> sum(
 }
 
 /**
- * 对元素集合应用选择器提取多项式后求和
- * Sums elements by extracting polynomials via a selector
+ * 对元素集合应用选择器提取多项式后求和 / Sums elements by extracting polynomials via a selector
  *
  * @param elements 元素可迭代集合 / Iterable of elements
  * @param selector 从元素提取线性多项式的函数 / Function to extract a linear polynomial from an element
@@ -105,8 +98,7 @@ fun <T : Ring<T>, E> sumPolynomials(
 }
 
 /**
- * 对元素集合应用选择器展平后求和为线性多项式
- * Flat-maps elements via a selector and sums the resulting monomials
+ * 对元素集合应用选择器展平后求和为线性多项式 / Flat-maps elements via a selector and sums the resulting monomials
  *
  * @param elements 元素可迭代集合 / Iterable of elements
  * @param selector 从元素提取线性单项式可迭代集合的函数 / Function returning an iterable of linear monomials per element
@@ -120,8 +112,7 @@ fun <T : Ring<T>, E> flatSum(
 }
 
 /**
- * 对元素集合应用可空转换后求和，过滤 null 结果
- * Sums elements after applying a nullable transform, filtering out nulls
+ * 对元素集合应用可空转换后求和，过滤 null 结果 / Sums elements after applying a nullable transform, filtering out nulls
  *
  * @param items 元素可迭代集合 / Iterable of elements
  * @param transform 可空转换函数 / Nullable transform function
@@ -136,8 +127,7 @@ fun <T : Ring<T>, E> sum(
 }
 
 /**
- * 对元素集合应用可空转换后安全求和，过滤 null 结果
- * Safely sums elements after applying a nullable transform, filtering out nulls
+ * 对元素集合应用可空转换后安全求和，过滤 null 结果 / Safely sums elements after applying a nullable transform, filtering out nulls
  *
  * @param items 元素可迭代集合 / Iterable of elements
  * @param transform 可空转换函数 / Nullable transform function
@@ -158,8 +148,7 @@ fun <T : Ring<T>, E> sumSafe(
 }
 
 /**
- * 对元素集合应用可空转换后求和，空结果返回 null
- * Sums elements after applying a nullable transform, returning null for empty results
+ * 对元素集合应用可空转换后求和，空结果返回 null / Sums elements after applying a nullable transform, returning null for empty results
  *
  * @param items 元素可迭代集合 / Iterable of elements
  * @param transform 可空转换函数 / Nullable transform function
@@ -178,8 +167,7 @@ fun <T : Ring<T>, E> sumOrNull(
 }
 
 /**
- * 对元素集合应用可空展平转换后求和，过滤 null 结果
- * Flat-maps elements via a nullable transform and sums the non-null monomials
+ * 对元素集合应用可空展平转换后求和，过滤 null 结果 / Flat-maps elements via a nullable transform and sums the non-null monomials
  *
  * @param list 元素可迭代集合 / Iterable of elements
  * @param transform 返回可空单项式可迭代集合的转换函数 / Transform returning iterable of nullable monomials
@@ -194,8 +182,7 @@ fun <T : Ring<T>, E> flatSum(
 }
 
 /**
- * 对元素集合应用可空展平转换后安全求和，过滤 null 结果
- * Safely flat-maps elements via a nullable transform and sums the non-null monomials
+ * 对元素集合应用可空展平转换后安全求和，过滤 null 结果 / Safely flat-maps elements via a nullable transform and sums the non-null monomials
  *
  * @param list 元素可迭代集合 / Iterable of elements
  * @param transform 返回可空单项式可迭代集合的转换函数 / Transform returning iterable of nullable monomials
@@ -219,8 +206,7 @@ fun <T : Ring<T>, E> flatSumSafe(
 }
 
 /**
- * 对元素集合应用可空展平转换后求和，空结果返回 null
- * Flat-maps elements via a nullable transform and returns null for empty results
+ * 对元素集合应用可空展平转换后求和，空结果返回 null / Flat-maps elements via a nullable transform and returns null for empty results
  *
  * @param list 元素可迭代集合 / Iterable of elements
  * @param transform 返回可空单项式可迭代集合的转换函数 / Transform returning iterable of nullable monomials
@@ -244,8 +230,7 @@ fun <T : Ring<T>, E> flatSumOrNull(
 // ========== Quadratic aggregation: qsum ==========
 
 /**
- * 将二次单项式列表求和为二次多项式
- * Sums quadratic monomials into a quadratic polynomial
+ * 将二次单项式列表求和为二次多项式 / Sums quadratic monomials into a quadratic polynomial
  *
  * @param monomials 二次单项式可迭代集合 / Iterable of quadratic monomials
  * @return 求和后的二次多项式 / Resulting quadratic polynomial
@@ -256,8 +241,7 @@ fun <T : Ring<T>> qsum(monomials: Iterable<QuadraticMonomial<T>>): QuadraticPoly
 }
 
 /**
- * 将多个二次多项式求和
- * Sums multiple quadratic polynomials
+ * 将多个二次多项式求和 / Sums multiple quadratic polynomials
  *
  * @param polynomials 二次多项式可迭代集合 / Iterable of quadratic polynomials
  * @return 合并后的二次多项式 / Combined quadratic polynomial
@@ -274,8 +258,7 @@ fun <T : Ring<T>> qsum(polynomials: Iterable<QuadraticPolynomial<T>>): Quadratic
 }
 
 /**
- * 对元素集合应用选择器后求和为二次多项式
- * Sums elements after applying a selector to produce a quadratic polynomial
+ * 对元素集合应用选择器后求和为二次多项式 / Sums elements after applying a selector to produce a quadratic polynomial
  *
  * @param elements 元素可迭代集合 / Iterable of elements
  * @param selector 从元素提取二次单项式的函数 / Function to extract a quadratic monomial from an element
@@ -296,8 +279,7 @@ fun <T : Ring<T>, E> qsum(
 }
 
 /**
- * 对元素集合应用选择器提取二次多项式后求和
- * Sums elements by extracting quadratic polynomials via a selector
+ * 对元素集合应用选择器提取二次多项式后求和 / Sums elements by extracting quadratic polynomials via a selector
  *
  * @param elements 元素可迭代集合 / Iterable of elements
  * @param selector 从元素提取二次多项式的函数 / Function to extract a quadratic polynomial from an element
@@ -315,8 +297,7 @@ fun <T : Ring<T>, E> qsumPolynomials(
 }
 
 /**
- * 对元素集合应用可空展平转换后求和为二次多项式，过滤 null 结果
- * Flat-maps elements via a nullable transform and sums the non-null quadratic monomials
+ * 对元素集合应用可空展平转换后求和为二次多项式，过滤 null 结果 / Flat-maps elements via a nullable transform and sums the non-null quadratic monomials
  *
  * @param list 元素可迭代集合 / Iterable of elements
  * @param transform 返回可空二次单项式可迭代集合的转换函数 / Transform returning iterable of nullable quadratic monomials
@@ -330,8 +311,7 @@ fun <T : Ring<T>, E> flatQSum(
 }
 
 /**
- * 对元素集合应用可空展平转换后安全求和为二次多项式，过滤 null 结果
- * Safely flat-maps elements via a nullable transform and sums the non-null quadratic monomials
+ * 对元素集合应用可空展平转换后安全求和为二次多项式，过滤 null 结果 / Safely flat-maps elements via a nullable transform and sums the non-null quadratic monomials
  *
  * @param list 元素可迭代集合 / Iterable of elements
  * @param transform 返回可空二次单项式可迭代集合的转换函数 / Transform returning iterable of nullable quadratic monomials
@@ -355,8 +335,7 @@ fun <T : Ring<T>, E> flatQSumSafe(
 }
 
 /**
- * 对元素集合应用可空展平转换后求和为二次多项式，空结果返回 null
- * Flat-maps elements via a nullable transform and returns null for empty quadratic results
+ * 对元素集合应用可空展平转换后求和为二次多项式，空结果返回 null / Flat-maps elements via a nullable transform and returns null for empty quadratic results
  *
  * @param list 元素可迭代集合 / Iterable of elements
  * @param transform 返回可空二次单项式可迭代集合的转换函数 / Transform returning iterable of nullable quadratic monomials
@@ -378,8 +357,7 @@ fun <T : Ring<T>, E> flatQSumOrNull(
 }
 
 /**
- * 对元素集合应用可空转换后求和为二次多项式，过滤 null 结果
- * Sums elements after applying a nullable transform for quadratic monomials, filtering out nulls
+ * 对元素集合应用可空转换后求和为二次多项式，过滤 null 结果 / Sums elements after applying a nullable transform for quadratic monomials, filtering out nulls
  *
  * @param items 元素可迭代集合 / Iterable of elements
  * @param transform 可空转换函数 / Nullable transform function
@@ -394,8 +372,7 @@ fun <T : Ring<T>, E> qsum(
 }
 
 /**
- * 对元素集合应用可空转换后安全求和为二次多项式，过滤 null 结果
- * Safely sums elements after applying a nullable transform for quadratic monomials, filtering out nulls
+ * 对元素集合应用可空转换后安全求和为二次多项式，过滤 null 结果 / Safely sums elements after applying a nullable transform for quadratic monomials, filtering out nulls
  *
  * @param items 元素可迭代集合 / Iterable of elements
  * @param transform 可空转换函数 / Nullable transform function
@@ -416,8 +393,7 @@ fun <T : Ring<T>, E> qsumSafe(
 }
 
 /**
- * 对元素集合应用可空转换后求和为二次多项式，空结果返回 null
- * Sums elements after applying a nullable transform for quadratic monomials, returning null for empty results
+ * 对元素集合应用可空转换后求和为二次多项式，空结果返回 null / Sums elements after applying a nullable transform for quadratic monomials, returning null for empty results
  *
  * @param items 元素可迭代集合 / Iterable of elements
  * @param transform 可空转换函数 / Nullable transform function
@@ -438,8 +414,7 @@ fun <T : Ring<T>, E> qsumOrNull(
 // ========== Internal helper ==========
 
 /**
- * 获取给定类型 T 的零值
- * Returns the zero value for the given type T
+ * 获取给定类型 T 的零值 / Returns the zero value for the given type T
  *
  * @param value 用于推断类型的值 / Value used to infer the type
  * @return 该类型的零值 / Zero value of the type

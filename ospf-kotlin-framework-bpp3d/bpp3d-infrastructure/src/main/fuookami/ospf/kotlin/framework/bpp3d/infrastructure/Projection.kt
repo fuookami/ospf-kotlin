@@ -1,6 +1,5 @@
 /**
- * 投影基础设施。
- * Projection infrastructure.
+ * 投影基础设施。 / Projection infrastructure.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
@@ -64,24 +63,24 @@ sealed class ProjectivePlane {
 /**
  * length.
  * length。
- * @param space 3D container shape / 三维容器形状
- * @return length dimension on this projection plane / 此投影平面上的长度维度
+ * @param space 三维容器形状 / 3D container shape
+ * @return 此投影平面上的长度维度 / length dimension on this projection plane
 */
     abstract fun length(space: AbstractContainer3Shape): Quantity<FltX>
 
 /**
  * width.
  * width。
- * @param space 3D container shape / 三维容器形状
- * @return width dimension on this projection plane / 此投影平面上的宽度维度
+ * @param space 三维容器形状 / 3D container shape
+ * @return 此投影平面上的宽度维度 / width dimension on this projection plane
 */
     abstract fun width(space: AbstractContainer3Shape): Quantity<FltX>
 
 /**
  * height.
  * height。
- * @param space 3D container shape / 三维容器形状
- * @return height dimension on this projection plane / 此投影平面上的高度维度
+ * @param space 三维容器形状 / 3D container shape
+ * @return 此投影平面上的高度维度 / height dimension on this projection plane
 */
     abstract fun height(space: AbstractContainer3Shape): Quantity<FltX>
 
@@ -117,8 +116,8 @@ sealed class ProjectivePlane {
 /**
  * shape.
  * shape。
- * @param space 3D container shape / 三维容器形状
- * @return projection shape on this plane / 此平面上的投影形状
+ * @param space 三维容器形状 / 3D container shape
+ * @return 此平面上的投影形状 / projection shape on this plane
 */
     fun shape(space: AbstractContainer3Shape): ProjectionShape<FltX> {
         return ProjectionShape(
@@ -292,8 +291,8 @@ sealed interface Projection<
 /**
  * amount.
  * amount。
- * @param unit packing unit to check / 待检查的装箱单元
- * @return count of the given unit / 给定单元的数量
+ * @param unit 待检查的装箱单元 / packing unit to check
+ * @return 给定单元的数量 / count of the given unit
 */
     fun amount(unit: AbstractCuboid<*>): UInt64
 
@@ -301,8 +300,8 @@ sealed interface Projection<
  * Reconstructs 3D placements from this 2D projection at the given position.
  * 从此二维投影在给定坐标处重建三维放置列表。
  *
- * @param position 2D placement position on the projection plane / 投影平面上的二维放置坐标
- * @return list of 3D placements corresponding to this projection / 此投影对应的三维放置列表
+ * @param position 投影平面上的二维放置坐标 / 2D placement position on the projection plane
+ * @return 此投影对应的三维放置列表 / list of 3D placements corresponding to this projection
 */
     fun toPlacement3At(position: QuantityPoint2<V>): List<QuantityPlacement3<T, V>>
 }

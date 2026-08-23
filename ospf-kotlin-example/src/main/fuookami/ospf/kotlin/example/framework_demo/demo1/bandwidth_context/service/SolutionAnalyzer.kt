@@ -26,10 +26,10 @@ private typealias EdgeSolution = HashMap<Service, ArrayList<Pair<Edge, UInt64>>>
  * Extracts service paths from the solved model by tracing assignment and bandwidth variables using DFS.
  * 使用 DFS 通过跟踪分配和带宽变量从求解模型中提取服务路径。
  *
- * @property graph the route network graph / 路由网络图
- * @property services the list of services / 服务列表
- * @property assignment the service-to-node assignment model / 服务到节点的分配模型
- * @property aggregation the bandwidth aggregation model / 带宽聚合模型
+ * @property graph 路由网络图 / the route network graph
+ * @property services 服务列表 / the list of services
+ * @property assignment 服务到节点的分配模型 / the service-to-node assignment model
+ * @property aggregation 带宽聚合模型 / the bandwidth aggregation model
 */
 class SolutionAnalyzer(
     private val graph: Graph,
@@ -81,9 +81,9 @@ class SolutionAnalyzer(
      * Reconstructs service paths from the node and edge solutions by tracing edges from each assigned node.
      * 通过从每个分配节点追踪边，从节点和边解中重建服务路径。
      *
-     * @param nodeSolution the mapping from service to its assigned node / 服务到其分配节点的映射
-     * @param edgeSolution the mapping from service to its edge allocations / 服务到其边分配的映射
-     * @return the list of service paths / 服务路径列表
+     * @param nodeSolution 服务到其分配节点的映射 / the mapping from service to its assigned node
+     * @param edgeSolution 服务到其边分配的映射 / the mapping from service to its edge allocations
+     * @return 服务路径列表 / the list of service paths
     */
     private fun dump(nodeSolution: NodeSolution, edgeSolution: EdgeSolution): List<List<Node>> {
         val links = ArrayList<List<Node>>()
@@ -110,10 +110,10 @@ class SolutionAnalyzer(
      * Recursively traces edges using DFS to build service paths from the current node to client nodes.
      * 使用 DFS 递归追踪边，从当前节点到客户端节点构建服务路径。
      *
-     * @param edges the list of edge-bandwidth pairs for the current service / 当前服务的边-带宽对列表
-     * @param currentNode the node being visited / 当前访问的节点
-     * @param currentLike the path accumulated so far / 目前累积的路径
-     * @param links the mutable list collecting all completed paths / 收集所有完整路径的可变列表
+     * @param edges 当前服务的边-带宽对列表 / the list of edge-bandwidth pairs for the current service
+     * @param currentNode 当前访问的节点 / the node being visited
+     * @param currentLike 目前累积的路径 / the path accumulated so far
+     * @param links 收集所有完整路径的可变列表 / the mutable list collecting all completed paths
     */
     // DFS
     private fun findLink(

@@ -1,9 +1,7 @@
 /**
- * 符号标识序列化与反序列化
- * Symbol Identity Serialization and Deserialization
+ * 符号标识序列化与反序列化 / Symbol Identity Serialization and Deserialization
  *
- * 提供符号标识的序列化与反序列化功能，支持简单符号、带 ID 符号和复合符号的表达式。
- * Provides serialization and deserialization for symbol identities, supporting simple, ID-bearing, and composite symbol expressions.
+ * 提供符号标识的序列化与反序列化功能，支持简单符号、带 ID 符号和复合符号的表达式。 / Provides serialization and deserialization for symbol identities, supporting simple, ID-bearing, and composite symbol expressions.
 */
 package fuookami.ospf.kotlin.math.symbol.serde
 
@@ -13,11 +11,9 @@ import fuookami.ospf.kotlin.utils.serialization.writeJson
 import fuookami.ospf.kotlin.math.symbol.*
 
 /**
- * 序列化符号标识前缀
- * Serialized symbol identity prefix
+ * 序列化符号标识前缀 / Serialized symbol identity prefix
  *
- * 用于标识经过序列化编码的符号标识字符串。
- * Used to identify serialized and encoded symbol identity strings.
+ * 用于标识经过序列化编码的符号标识字符串。 / Used to identify serialized and encoded symbol identity strings.
 */
 const val SerializedSymbolIdentityPrefix = "__ospf_symbol_identity__"
 
@@ -25,8 +21,8 @@ const val SerializedSymbolIdentityPrefix = "__ospf_symbol_identity__"
  * Default symbol implementation.
  * 默认符号实现。
  *
- * @property name the symbol name / 符号名称
- * @property displayName the display name, or null / 显示名称，可为 null
+ * @property name 符号名称 / the symbol name
+ * @property displayName 显示名称，可为 null / the display name, or null
 */
 private data class DefaultSymbol(
     override val name: String,
@@ -37,19 +33,17 @@ private data class DefaultSymbol(
  * Creates a default symbol from the given name.
  * 根据名称创建默认符号。
  *
- * @param name the symbol name / 符号名称
- * @return the default symbol / 默认符号
+ * @param name 符号名称 / the symbol name
+ * @return 默认符号 / the default symbol
 */
 private fun defaultSymbolOf(name: String): Symbol {
     return DefaultSymbol(name)
 }
 
 /**
- * 符号标识表达式
- * Symbol identity expression
+ * 符号标识表达式 / Symbol identity expression
  *
- * 表示符号标识的序列化表达式，支持简单、带 ID 和复合形式。
- * Represents serialized expressions for symbol identities, supporting simple, ID-bearing, and composite forms.
+ * 表示符号标识的序列化表达式，支持简单、带 ID 和复合形式。 / Represents serialized expressions for symbol identities, supporting simple, ID-bearing, and composite forms.
 */
 @Serializable
 sealed interface SymbolIdentityExpr {
@@ -57,8 +51,7 @@ sealed interface SymbolIdentityExpr {
     val displayName: String?
 
     /**
-     * 简单符号标识
-     * Simple symbol identity
+     * 简单符号标识 / Simple symbol identity
      *
      * @property name 符号名称 / Symbol name
      * @property displayName 显示名称 / Display name
@@ -70,8 +63,7 @@ sealed interface SymbolIdentityExpr {
     ) : SymbolIdentityExpr
 
     /**
-     * 带 ID 符号标识
-     * ID-bearing symbol identity
+     * 带 ID 符号标识 / ID-bearing symbol identity
      *
      * @property name 符号名称 / Symbol name
      * @property id 符号标识 ID / Symbol identity ID
@@ -85,8 +77,7 @@ sealed interface SymbolIdentityExpr {
     ) : SymbolIdentityExpr
 
     /**
-     * 复合符号标识
-     * Composite symbol identity
+     * 复合符号标识 / Composite symbol identity
      *
      * @property operator 运算符名称 / Operator name
      * @property arg 单参数符号标识表达式 / Single-argument symbol identity expression
@@ -102,8 +93,7 @@ sealed interface SymbolIdentityExpr {
     ) : SymbolIdentityExpr
 
     /**
-     * 多参数复合符号标识
-     * Multi-argument composite symbol identity
+     * 多参数复合符号标识 / Multi-argument composite symbol identity
      *
      * @property operator 运算符名称 / Operator name
      * @property args 多参数符号标识表达式列表 / List of multi-argument symbol identity expressions
@@ -123,7 +113,7 @@ sealed interface SymbolIdentityExpr {
  * Symbol backed by a serialized identity expression.
  * 基于序列化标识表达式的符号。
  *
- * @property identityExpr the symbol identity expression / 符号标识表达式
+ * @property identityExpr 符号标识表达式 / the symbol identity expression
 */
 private data class SerializedIdentitySymbol(
     val identityExpr: SymbolIdentityExpr
@@ -138,7 +128,7 @@ private data class SerializedIdentitySymbol(
  * 将字节数组转换为十六进制字符串。
  *
  * @receiver the byte array to convert / 要转换的字节数组
- * @return the hexadecimal string representation / 十六进制字符串表示
+ * @return 十六进制字符串表示 / the hexadecimal string representation
 */
 private fun ByteArray.toHexString(): String {
     return joinToString(separator = "") { value -> "%02x".format(value) }
@@ -149,7 +139,7 @@ private fun ByteArray.toHexString(): String {
  * 将十六进制字符串转换为字节数组，格式无效时返回 null。
  *
  * @receiver the hexadecimal string to convert / 要转换的十六进制字符串
- * @return the byte array, or null if the hex string is invalid / 字节数组，格式无效时返回 null
+ * @return 字节数组，格式无效时返回 null / the byte array, or null if the hex string is invalid
 */
 private fun String.hexToByteArrayOrNull(): ByteArray? {
     if (length % 2 != 0) {
@@ -170,8 +160,7 @@ private val symbolIdentityJson = Json {
 }
 
 /**
- * 安全地从 JSON 对象中获取字符串字段
- * Safely get a string field from a JSON object
+ * 安全地从 JSON 对象中获取字符串字段 / Safely get a string field from a JSON object
  *
  * @param key 字段名 / Field name
  * @return 字符串值，不存在或类型不匹配时返回 null / String value, or null if absent or type mismatch
@@ -186,8 +175,7 @@ private fun JsonObject.stringOrNull(key: String): String? {
 }
 
 /**
- * 从 JSON 元素递归解析符号标识表达式
- * Recursively parse a symbol identity expression from a JSON element
+ * 从 JSON 元素递归解析符号标识表达式 / Recursively parse a symbol identity expression from a JSON element
  *
  * @param element JSON 元素 / JSON element
  * @return 解析后的符号标识表达式，失败时返回 null / Parsed symbol identity expression, or null on failure
@@ -245,8 +233,7 @@ private fun identityExprFromJsonElement(element: JsonElement): SymbolIdentityExp
 }
 
 /**
- * 从 JSON 字符串解析符号标识表达式，失败时返回 null
- * Parse a symbol identity expression from a JSON string, or null on failure
+ * 从 JSON 字符串解析符号标识表达式，失败时返回 null / Parse a symbol identity expression from a JSON string, or null on failure
  *
  * @param json JSON 字符串 / JSON string
  * @return 符号标识表达式 / Symbol identity expression
@@ -260,8 +247,7 @@ private fun parseIdentityExprOrNull(json: String): SymbolIdentityExpr? {
 }
 
 /**
- * 将符号标识表达式序列化为标识符字符串
- * Serializes a symbol identity expression into an identifier string
+ * 将符号标识表达式序列化为标识符字符串 / Serializes a symbol identity expression into an identifier string
  *
  * @receiver 符号标识表达式 / Symbol identity expression
  * @return 序列化后的标识符字符串 / Serialized identifier string
@@ -275,8 +261,7 @@ fun SymbolIdentityExpr.toSerializedIdentifier(): String {
 }
 
 /**
- * 将符号转换为符号标识表达式
- * Converts a symbol to a symbol identity expression
+ * 将符号转换为符号标识表达式 / Converts a symbol to a symbol identity expression
  *
  * @receiver 符号 / Symbol
  * @return 符号标识表达式 / Symbol identity expression
@@ -302,8 +287,7 @@ fun Symbol.toSymbolIdentityExpr(): SymbolIdentityExpr {
 }
 
 /**
- * 从序列化标识符字符串反序列化为符号
- * Deserializes a serialized identifier string into a symbol
+ * 从序列化标识符字符串反序列化为符号 / Deserializes a serialized identifier string into a symbol
  *
  * @param identifier 序列化的标识符字符串 / Serialized identifier string
  * @return 反序列化后的符号 / Deserialized symbol

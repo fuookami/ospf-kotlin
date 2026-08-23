@@ -1,12 +1,8 @@
 /**
- * 排序接口
- *
- * Interfaces for defining ordering and comparison operations.
+ * 排序接口 / Interfaces for defining ordering and comparison operations.
  * Similar to Haskell's Ord typeclass for type-safe ordering.
  * 定义排序和比较操作的接口。
- * 类似于 Haskell 的 Ord 类型类，用于类型安全的排序。
- *
- * Key types:
+ * 类似于 Haskell 的 Ord 类型类，用于类型安全的排序。 / Key types:
  * - [Order]: Represents comparison result (Less, Equal, Greater)
  * - [PartialOrd]: Partial ordering with nullable result
  * - [Ord]: Total ordering with definite result
@@ -19,37 +15,27 @@
 package fuookami.ospf.kotlin.utils.functional
 
 /**
- * 排序结果密封接口
- *
- * Sealed interface representing the result of a three-way comparison.
- * 表示三路比较结果的密封接口。
- *
- * Can be Less, Equal, or Greater with an associated integer value.
+ * 排序结果密封接口 / Sealed interface representing the result of a three-way comparison.
+ * 表示三路比较结果的密封接口。 / Can be Less, Equal, or Greater with an associated integer value.
  * 可以是 Less、Equal 或 Greater，并关联一个整数值。
 */
 sealed interface Order {
 
     /**
-     * 比较结果的整数值
-     *
-     * Integer value representing the comparison result.
+     * 比较结果的整数值 / Integer value representing the comparison result.
      * Negative for Less, zero for Equal, positive for Greater.
      * 表示比较结果的整数值。负数表示 Less，零表示 Equal，正数表示 Greater。
     */
     val value: Int
 
     /**
-     * 取反操作
-     *
-     * Negates the order (Less becomes Greater and vice versa).
+     * 取反操作 / Negates the order (Less becomes Greater and vice versa).
      * 取反排序结果（Less 变为 Greater，反之亦然）。
     */
     operator fun unaryMinus(): Order
 
     /**
-     * 如果相等则执行函数
-     *
-     * Executes the given function if this is Equal, returning its result.
+     * 如果相等则执行函数 / Executes the given function if this is Equal, returning its result.
      * Used for chained comparisons.
      * 如果是 Equal 则执行给定函数并返回其结果。用于链式比较。
      *
@@ -59,9 +45,7 @@ sealed interface Order {
     fun ifEqual(f: () -> Order): Order = this
 
     /**
-     * 小于结果
-     *
-     * Represents a "less than" comparison result.
+     * 小于结果 / Represents a "less than" comparison result.
      * 表示"小于"比较结果。
      *
      * @param value 负整数值 / Negative integer value
@@ -77,9 +61,7 @@ sealed interface Order {
     }
 
     /**
-     * 相等结果
-     *
-     * Represents an "equal" comparison result.
+     * 相等结果 / Represents an "equal" comparison result.
      * 表示"相等"比较结果。
     */
     data object Equal : Order {
@@ -93,9 +75,7 @@ sealed interface Order {
     }
 
     /**
-     * 大于结果
-     *
-     * Represents a "greater than" comparison result.
+     * 大于结果 / Represents a "greater than" comparison result.
      * 表示"大于"比较结果。
      *
      * @param value 正整数值 / Positive integer value
@@ -112,9 +92,7 @@ sealed interface Order {
 }
 
 /**
- * 从整数值创建 Order
- *
- * Creates an Order from an integer value.
+ * 从整数值创建 Order / Creates an Order from an integer value.
  * 从整数值创建 Order。
  *
  * @param value 比较值，负数为 Less，零为 Equal，正数为 Greater / Comparison value, negative for Less, zero for Equal, positive for Greater
@@ -131,9 +109,7 @@ fun orderOf(value: Int): Order {
 }
 
 /**
- * 计算两个 Comparable 值之间的顺序
- *
- * Computes the order between two Comparable values.
+ * 计算两个 Comparable 值之间的顺序 / Computes the order between two Comparable values.
  * 计算两个 Comparable 值之间的顺序。
  *
  * @param T 可比较的类型 / The Comparable type
@@ -185,9 +161,7 @@ infix fun <T : Comparable<T>> T?.ord(rhs: T?): Order {
 }
 
 /**
- * 部分排序接口
- *
- * Interface for partial ordering comparison. Returns null if values cannot be compared.
+ * 部分排序接口 / Interface for partial ordering comparison. Returns null if values cannot be compared.
  * 部分排序比较接口。如果值无法比较则返回 null。
  *
  * @param Self 实现此接口的类型 / The type implementing this interface
@@ -198,9 +172,7 @@ interface PartialOrd<in Self> : PartialEq<Self> {
     }
 
     /**
-     * 部分排序比较
-     *
-     * Compares `this` value with [rhs] for partial ordering.
+     * 部分排序比较 / Compares `this` value with [rhs] for partial ordering.
      * Returns [Order] if the values are comparable, or `null` if they are not.
      *
      * 将当前值与 [rhs] 进行部分排序比较。
@@ -213,9 +185,7 @@ interface PartialOrd<in Self> : PartialEq<Self> {
 }
 
 /**
- * 完全排序接口
- *
- * Interface for total ordering comparison. Extends [PartialOrd], [Eq], and [Comparable].
+ * 完全排序接口 / Interface for total ordering comparison. Extends [PartialOrd], [Eq], and [Comparable].
  * 完全排序比较接口。扩展 [PartialOrd]、[Eq] 和 [Comparable]。
  *
  * @param Self 实现此接口的类型 / The type implementing this interface
@@ -223,9 +193,7 @@ interface PartialOrd<in Self> : PartialEq<Self> {
 interface Ord<in Self> : PartialOrd<Self>, Eq<Self>, Comparable<Self> {
 
     /**
-     * 计算排序结果
-     *
-     * Computes the order between this value and another.
+     * 计算排序结果 / Computes the order between this value and another.
      * 计算此值与另一个值之间的顺序。
      *
      * @param rhs 要比较的值 / The value to compare with
@@ -246,9 +214,7 @@ interface Ord<in Self> : PartialOrd<Self>, Eq<Self>, Comparable<Self> {
     }
 
     /**
-     * 小于比较
-     *
-     * Checks if this value is less than another.
+     * 小于比较 / Checks if this value is less than another.
      * 检查此值是否小于另一个值。
      *
      * @param rhs 要比较的值 / The value to compare with
@@ -259,9 +225,7 @@ interface Ord<in Self> : PartialOrd<Self>, Eq<Self>, Comparable<Self> {
     }
 
     /**
-     * 小于等于比较
-     *
-     * Checks if this value is less than or equal to another.
+     * 小于等于比较 / Checks if this value is less than or equal to another.
      * 检查此值是否小于等于另一个值。
      *
      * @param rhs 要比较的值 / The value to compare with
@@ -272,9 +236,7 @@ interface Ord<in Self> : PartialOrd<Self>, Eq<Self>, Comparable<Self> {
     }
 
     /**
-     * 大于比较
-     *
-     * Checks if this value is greater than another.
+     * 大于比较 / Checks if this value is greater than another.
      * 检查此值是否大于另一个值。
      *
      * @param rhs 要比较的值 / The value to compare with
@@ -285,9 +247,7 @@ interface Ord<in Self> : PartialOrd<Self>, Eq<Self>, Comparable<Self> {
     }
 
     /**
-     * 大于等于比较
-     *
-     * Checks if this value is greater than or equal to another.
+     * 大于等于比较 / Checks if this value is greater than or equal to another.
      * 检查此值是否大于等于另一个值。
      *
      * @param rhs 要比较的值 / The value to compare with
@@ -299,9 +259,7 @@ interface Ord<in Self> : PartialOrd<Self>, Eq<Self>, Comparable<Self> {
 }
 
 /**
- * 两个可空 PartialOrd 值之间的部分排序比较
- *
- * Computes the partial order between two nullable PartialOrd values.
+ * 两个可空 PartialOrd 值之间的部分排序比较 / Computes the partial order between two nullable PartialOrd values.
  * Null is considered less than any non-null value.
  * 计算两个可空 PartialOrd 值之间的部分顺序。null 被认为小于任何非空值。
  *
@@ -322,9 +280,7 @@ infix fun <T : PartialOrd<T>> T?.partialOrd(rhs: T?): Order? {
 }
 
 /**
- * 两个可空 Ord 值之间的排序比较
- *
- * Computes the order between two nullable Ord values.
+ * 两个可空 Ord 值之间的排序比较 / Computes the order between two nullable Ord values.
  * Null is considered less than any non-null value.
  * 计算两个可空 Ord 值之间的顺序。null 被认为小于任何非空值。
  *
@@ -345,9 +301,7 @@ infix fun <T : Ord<T>> T?.ord(rhs: T?): Order {
 }
 
 /**
- * 将值限制在指定范围内
- *
- * Coerces this value within the specified range bounds.
+ * 将值限制在指定范围内 / Coerces this value within the specified range bounds.
  * 将此值限制在指定范围边界内。
  *
  * @param T 实现 Ord 的类型 / The type implementing Ord

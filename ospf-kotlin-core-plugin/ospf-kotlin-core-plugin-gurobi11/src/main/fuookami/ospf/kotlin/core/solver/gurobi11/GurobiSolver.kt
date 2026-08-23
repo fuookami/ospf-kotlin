@@ -44,7 +44,7 @@ abstract class GurobiSolver : AutoCloseable {
             env.set(GRB.DoubleParam.CSQueueTimeout, connectionTime.toDouble(DurationUnit.SECONDS))
             env.set(GRB.StringParam.ComputeServer, server)
             env.set(GRB.StringParam.ServerPassword, password)
-            when (val callbackResult = executeCreatingEnvironmentCallback(env, callBack)) {
+            when (val callbackResult = executeCreatingEnvironmentCallback(env, callBack?.let { it::invoke })) {
                 is Failed -> return callbackResult
                 is Fatal -> return callbackResult
                 else -> {}
@@ -74,7 +74,7 @@ abstract class GurobiSolver : AutoCloseable {
     ): Try {
         return try {
             env = GRBEnv()
-            when (val callbackResult = executeCreatingEnvironmentCallback(env, callBack)) {
+            when (val callbackResult = executeCreatingEnvironmentCallback(env, callBack?.let { it::invoke })) {
                 is Failed -> return callbackResult
                 is Fatal -> return callbackResult
                 else -> {}

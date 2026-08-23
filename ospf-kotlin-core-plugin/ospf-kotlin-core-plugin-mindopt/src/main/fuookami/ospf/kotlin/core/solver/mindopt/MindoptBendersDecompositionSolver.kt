@@ -24,8 +24,8 @@ import fuookami.ospf.kotlin.framework.solver.QuadraticBendersDecompositionSolver
  *
  * MindOPT 线性 Benders 分解求解器
  *
- * @property config Solver configuration / 求解器配置
- * @property linearCallBack Linear solver callback / 线性求解器回调
+ * @property config 求解器配置 / Solver configuration
+ * @property linearCallBack 线性求解器回调 / Linear solver callback
 */
 class MindOPTLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
@@ -86,7 +86,7 @@ class MindOPTLinearBendersDecompositionSolver(
 
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
-                        metaModel.tokens.setSolution(result.value.solution)
+                        metaModel.tokens.setSolution(result.value.values)
                         jobs.joinAll()
                         Ok(result.value)
                     }
@@ -189,7 +189,7 @@ class MindOPTLinearBendersDecompositionSolver(
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
                         metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
-                            token.variable to result.value.solution[index]
+                            token.variable to result.value.values[index]
                         }.toMap() + fixedVariables)
                         jobs.joinAll()
                         Ok(
@@ -236,9 +236,7 @@ class MindOPTLinearBendersDecompositionSolver(
  * MindOPT 二次 Benders 分解求解器
  *
  * 使用 MindOPT 求解器实现二次 Benders 分解策略，支持线性主问题求解（委托给线性 Benders 求解器）和二次主问题求解，
- * 以及二次子问题求解（含对偶解和 Farkas 证明提取）。
- *
- * MindOPT quadratic Benders decomposition solver
+ * 以及二次子问题求解（含对偶解和 Farkas 证明提取）。 / MindOPT quadratic Benders decomposition solver
  *
  * Implements quadratic Benders decomposition strategy using MindOPT solver, supporting linear master problem solving
  * (delegates to linear Benders solver) and quadratic master problem solving, as well as quadratic sub-problem solving
@@ -325,7 +323,7 @@ class MindOPTQuadraticBendersDecompositionSolver(
 
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
-                        metaModel.tokens.setSolution(result.value.solution)
+                        metaModel.tokens.setSolution(result.value.values)
                         jobs.joinAll()
                         Ok(result.value)
                     }
@@ -448,7 +446,7 @@ class MindOPTQuadraticBendersDecompositionSolver(
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
                         metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
-                            token.variable to result.value.solution[index]
+                            token.variable to result.value.values[index]
                         }.toMap() + fixedVariables)
                         jobs.joinAll()
                         val tidyDualSolution = dualSolution

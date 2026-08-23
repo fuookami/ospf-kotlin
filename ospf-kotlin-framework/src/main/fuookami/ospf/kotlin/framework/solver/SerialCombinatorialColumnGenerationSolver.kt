@@ -1,23 +1,27 @@
 /**
- * 串行组合列生成求解器
- * Serial Combinatorial Column Generation Solver
+ * 串行组合列生成求解器 / Serial Combinatorial Column Generation Solver
  *
- * 将多个列生成求解器串行运行，第一个成功即返回。
- * Runs multiple column generation solvers serially, returning on first success.
+ * 将多个列生成求解器串行运行，第一个成功即返回。 / Runs multiple column generation solvers serially, returning on first success.
 */
 package fuookami.ospf.kotlin.framework.solver
 
+import fuookami.ospf.kotlin.core.solver.report.*
 import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.error.SolverNotFoundError
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 串行组合列生成求解器
- * Serial combinatorial column generation solver
+ * 串行组合列生成求解器 / Serial combinatorial column generation solver
  *
  * @property solvers 列生成求解器列表（懒加载） / Column generation solver list (lazy loaded)
  * @property stopErrorCode 遇到即停止的错误码 / Error codes that stop execution
@@ -54,7 +58,7 @@ class SerialCombinatorialColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Flt64FeasibleSolverOutput> {
+    ): Ret<Flt64SolveReport> {
         for ((i, solver) in solvers.withIndex()) {
             when (val result = solver.value.solveMILP(
                 name = name,

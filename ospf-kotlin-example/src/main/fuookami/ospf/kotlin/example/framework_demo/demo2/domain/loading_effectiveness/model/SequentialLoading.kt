@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.*
@@ -26,11 +27,11 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * Models sequential loading order reversal between item pairs across position pairs.
  * 建模位置对之间的项目对顺序装载反转。
  *
- * @property items The list of cargo items. / 货物项列表
- * @property positions The list of stowage positions. / 配载位置列表
- * @property orderedItems The list of ordered item pairs for loading order comparison. / 用于装载顺序比较的有序货物项对列表
- * @property orderedPositions The list of ordered position pairs. / 有序位置对列表
- * @property stowage The stowage assignment model. / 配载分配模型
+ * @property items 货物项列表 / The list of cargo items.
+ * @property positions 配载位置列表 / The list of stowage positions.
+ * @property orderedItems 用于装载顺序比较的有序货物项对列表 / The list of ordered item pairs for loading order comparison.
+ * @property orderedPositions 有序位置对列表 / The list of ordered position pairs.
+ * @property stowage 配载分配模型 / The stowage assignment model.
 */
 class SequentialLoading(
     private val items: List<Item>,
@@ -46,7 +47,28 @@ class SequentialLoading(
             orderedPositions: List<PositionPair>,
             stowage: Stowage
         ): SequentialLoading {
-            TODO("not implemented yet")
+            val orderedItems = items
+                .filter { it.order?.order != null }
+                .sortedWith(compareBy<Item> { it.order!!.order!! }.thenBy { it.id })
+                .flatMapIndexed { index, item ->
+                    items
+                        .filter { it.order?.order != null }
+                        .sortedWith(compareBy<Item> { it.order!!.order!! }.thenBy { it.id })
+                        .drop(index + 1)
+                        .mapNotNull { other ->
+                            (item to other).takeIf {
+                                item.order!!.order!! < other.order!!.order!!
+                            }
+                        }
+                }
+
+            return SequentialLoading(
+                items = items,
+                positions = positions,
+                orderedItems = orderedItems,
+                orderedPositions = orderedPositions,
+                stowage = stowage
+            )
         }
     }
 
@@ -56,8 +78,8 @@ class SequentialLoading(
      * Registers the item order reverse intermediate symbols into the optimization model.
      * 将项目顺序反转中间符号注册到优化模型中。
      *
-     * @param model The linear meta model to register into. / 要注册到的线性元模型
-     * @return The result of the registration operation. / 注册操作的结果
+     * @param model 要注册到的线性元模型 / The linear meta model to register into.
+     * @return 注册操作的结果 / The result of the registration operation.
     */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
@@ -74,7 +96,8 @@ class SequentialLoading(
                 if (Stowage.stowageNeeded(item2, position1) && Stowage.stowageNeeded(item1, position2)) {
                     LinearFunctionSymbolAdapter(
                         delegate = IfFunction(
-                            condition = stowage.stowage[i1, j2] + stowage.stowage[i2, j1] - Flt64.two,
+                            condition = stowage.stowage[i1, j2] + stowage.stowage[i2, j1]
+                                - Flt64.two + Flt64(NONZERO_TOLERANCE),
                             converter = flt64Converter,
                             name = "item_order_reverse_${item1}_${item2}_${position1}_${position2}"
                         ),
@@ -89,13 +112,13 @@ class SequentialLoading(
             }
         }
         when (val result = model.add(itemOrderReverse)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }

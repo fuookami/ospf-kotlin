@@ -32,6 +32,14 @@ class BranchAndPriceAlgorithm(
 ) {
     private val logger = logger()
 
+    /** 路线图构建诊断。Route graph construction diagnostics. */
+    val routeGraphDiagnostics
+        get() = context.bunchGenerationContext.routeGraphDiagnostics
+
+    /** 最近一次定价诊断。Pricing diagnostics from the most recent generation round. */
+    val pricingDiagnostics
+        get() = context.bunchGenerationContext.pricingDiagnostics
+
     /**
      * 分支定价算法配置。Branch and price algorithm configuration.
      *

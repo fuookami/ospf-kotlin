@@ -1,10 +1,8 @@
 
 /**
- * 顺序约束
- * Order Constraint
+ * 顺序约束 / Order Constraint
  *
- * 每个顺序位置最多只能有一个动作不为0。
- * Each order position can have at most one action with non-zero allocation.
+ * 每个顺序位置最多只能有一个动作不为0。 / Each order position can have at most one action with non-zero allocation.
 */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.service.limits
@@ -13,7 +11,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
@@ -23,8 +21,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
  * 顺序约束（仅用于 CapacityOrderCompilation）
  * Order Constraint (only for CapacityOrderCompilation)
  *
- * 每个顺序位置最多只能有一个动作不为0。
- * Each order position can have at most one action with non-zero allocation.
+ * 每个顺序位置最多只能有一个动作不为0。 / Each order position can have at most one action with non-zero allocation.
  *
  * @param V 数值类型 / Numeric type
  * @param A 生产动作类型 / Production action type
@@ -43,10 +40,9 @@ class OrderConstraint<V : RealNumber<V>, A : ProductionAction>(
 ) {
 
     /**
-     * 应用约束到模型
-     * Apply constraint to model
+     * 应用约束到模型 / Apply constraint to model
      *
-     * @param model Linear meta model / 线性元模型
+     * @param model 线性元模型 / Linear meta model
      * @return Try result / Try 结果
     */
     operator fun invoke(model: LinearMetaModel<Flt64>): Try {
@@ -57,11 +53,11 @@ class OrderConstraint<V : RealNumber<V>, A : ProductionAction>(
             for (o in 0 until maxOrderPerSlot.toInt()) {
                 // Constraint 1: Each order position has at most one action
                 // 约束1: 每个顺序位置最多一个动作
-                val sumPoly = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
+                var sumPoly = LinearPolynomial()
                 for (a in actions.indices) {
-                    sumPoly += LinearMonomial(Flt64.one, b[a, t, o])
+                    sumPoly += b[a, t, o]
                 }
-                when (val result = model.addConstraint(sumPoly.toLinearPolynomial() leq Flt64.one, name = "${name}_unique_${t}_$o")) {
+                when (val result = model.addConstraint(sumPoly leq Flt64.one, name = "${name}_unique_${t}_$o")) {
                     is Ok -> {}
                     is Failed -> return Failed(result.error)
                     is Fatal -> return Fatal(result.errors)
@@ -85,7 +81,7 @@ class OrderConstraint<V : RealNumber<V>, A : ProductionAction>(
                             ErrorCode.IllegalArgument,
                             "${name}_link_ub_${a}_${t}_$o requires finite upper bound of x[$a,$t,$o]."
                         )
-                    val upperBoundPoly = LinearMonomial(upperBound, b[a, t, o]).toLinearPolynomial()
+                    val upperBoundPoly = LinearPolynomial(upperBound * b[a, t, o])
                     when (val result = model.addConstraint(x[a, t, o] leq upperBoundPoly, name = "${name}_link_ub_${a}_${t}_$o")) {
                         is Ok -> {}
                         is Failed -> return Failed(result.error)

@@ -14,14 +14,12 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
 
 /**
- * 分时隙任务束编译上下文接口
- * Slot-based bunch compilation context interface
+ * 分时隙任务束编译上下文接口 / Slot-based bunch compilation context interface
  *
  * 扩展 BunchCompilationContext，增加时隙相关功能。
  * Extends BunchCompilationContext with slot-related functionality.
  *
- * 提供产能预求解功能，获取时隙级中间值。
- * Provides capacity pre-solving functionality to obtain slot-level intermediate values.
+ * 提供产能预求解功能，获取时隙级中间值。 / Provides capacity pre-solving functionality to obtain slot-level intermediate values.
 */
 interface SlotBasedBunchCompilationContext<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
@@ -37,33 +35,29 @@ interface SlotBasedBunchCompilationContext<
         where V : RealNumber<V>, V : PlusGroup<V>, B : AbstractTaskBunch<T, E, A, V>, B : SlotBasedBunch<T, E, A> {
 
     /**
-     * 时隙列表
-     * List of time slots
+     * 时隙列表 / List of time slots
     */
     val slots: List<TimeSlot>
 
     /**
-     * 产能预求解器
-     * Capacity pre-solver
+     * 产能预求解器 / Capacity pre-solver
     */
     val capacityPreSolver: SlotBasedCapacityPreSolver<V, E, Action, M, R>
 
     /**
-     * 产能中间值（预求解后填充）
-     * Capacity intermediate values (populated after pre-solving)
+     * 产能中间值（预求解后填充） / Capacity intermediate values (populated after pre-solving)
     */
     val intermediateValues: CapacityIntermediateValues<Action, M, R, V>?
 
     /**
-     * 执行产能预求解
-     * Execute capacity pre-solving
+     * 执行产能预求解 / Execute capacity pre-solving
      *
      * 先求解 capacity scheduling 问题，然后提取中间值。
      * First solves the capacity scheduling problem, then extracts intermediate values.
      *
-     * @param model Linear meta model / 线性元模型 (solver boundary — Flt64)
-     * @param solver Solver / 求解器
-     * @return Intermediate values / 中间值
+     * @param model 线性元模型 (solver boundary — Flt64) / Linear meta model
+     * @param solver 求解器 / Solver
+     * @return 中间值 / Intermediate values
     */
     suspend fun preSolveCapacity(
         model: AbstractLinearMetaModel<Flt64>,
@@ -71,23 +65,21 @@ interface SlotBasedBunchCompilationContext<
     ): Ret<CapacityIntermediateValues<Action, M, R, V>>
 
     /**
-     * 获取指定时隙的约束
-     * Get constraints for specified slot
+     * 获取指定时隙的约束 / Get constraints for specified slot
      *
-     * @param slot The time slot / 时隙
-     * @param tolerance Tolerance for constraint bounds / 约束边界的容差
-     * @return Slot constraints / 时隙约束
+     * @param slot 时隙 / The time slot
+     * @param tolerance 约束边界的容差 / Tolerance for constraint bounds
+     * @return 时隙约束 / Slot constraints
     */
     fun slotConstraints(slot: TimeSlot, tolerance: V? = null): SlotConstraints<M, R, V>? {
         return intermediateValues?.slotConstraints(slot, tolerance)
     }
 
     /**
-     * 获取所有时隙的约束
-     * Get constraints for all slots
+     * 获取所有时隙的约束 / Get constraints for all slots
      *
-     * @param tolerance Tolerance for constraint bounds / 约束边界的容差
-     * @return Map of slot to constraints / 时隙到约束的映射
+     * @param tolerance 约束边界的容差 / Tolerance for constraint bounds
+     * @return 时隙到约束的映射 / Map of slot to constraints
     */
     fun allSlotConstraints(tolerance: V? = null): Map<TimeSlot, SlotConstraints<M, R, V>> {
         return slots.mapNotNull { slot ->
@@ -96,13 +88,12 @@ interface SlotBasedBunchCompilationContext<
     }
 
     /**
-     * 按时隙添加列
-     * Add columns by slot
+     * 按时隙添加列 / Add columns by slot
      *
-     * @param iteration Current iteration number / 当前迭代号
-     * @param newBunches New bunches to add / 要添加的新 bunch
-     * @param model Linear meta model / 线性元模型 (solver boundary — Flt64)
-     * @return Added bunches grouped by slot / 按时隙分组的已添加 bunch
+     * @param iteration 当前迭代号 / Current iteration number
+     * @param newBunches 要添加的新 bunch / New bunches to add
+     * @param model 线性元模型 (solver boundary — Flt64) / Linear meta model
+     * @return 按时隙分组的已添加 bunch / Added bunches grouped by slot
     */
     suspend fun addColumnsBySlot(
         iteration: UInt64,
@@ -111,11 +102,10 @@ interface SlotBasedBunchCompilationContext<
     ): Ret<Map<TimeSlot, List<B>>>
 
     /**
-     * 获取指定时隙的所有 bunch
-     * Get all bunches for specified slot
+     * 获取指定时隙的所有 bunch / Get all bunches for specified slot
      *
-     * @param slot The time slot / 时隙
-     * @return List of bunches in this slot / 该时隙的 bunch 列表
+     * @param slot 时隙 / The time slot
+     * @return 该时隙的 bunch 列表 / List of bunches in this slot
     */
     fun bunchesInSlot(slot: TimeSlot): List<B>
 }

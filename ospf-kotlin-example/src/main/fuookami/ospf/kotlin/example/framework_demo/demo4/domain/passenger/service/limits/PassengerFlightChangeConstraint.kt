@@ -5,7 +5,6 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.servi
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -29,10 +28,10 @@ private val flt64Converter = object : IntoValue<Flt64> {
 /**
  * 强制乘客航班变更中转时间可行性约束的管线。Pipeline enforcing transfer time feasibility constraints for passenger flight changes.
  *
- * @property timeWindow Time window for scheduling / 调度时间窗口
- * @property passengers List of flight-passenger associations / 航班乘客关联列表
- * @property time Task time estimation / 任务时间估算
- * @property change Passenger change component / 乘客变更组件
+ * @property timeWindow 调度时间窗口 / Time window for scheduling
+ * @property passengers 航班乘客关联列表 / List of flight-passenger associations
+ * @property time 任务时间估算 / Task time estimation
+ * @property change 乘客变更组件 / Passenger change component
 */
 class PassengerFlightChangeConstraint(
     private val timeWindow: TimeWindow<*>,
@@ -46,8 +45,8 @@ class PassengerFlightChangeConstraint(
     /**
      * 使用if函数添加航班变更可行性约束以进行中转时间检查。Adds flight change feasibility constraints using if-functions for transfer time checks.
      *
-     * @param model The linear meta model to add constraints to / 要添加约束的线性元模型
-     * @return Registration result / 注册结果
+     * @param model 要添加约束的线性元模型 / The linear meta model to add constraints to
+     * @return 注册结果 / Registration result
     */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (passenger in passengers) {
@@ -55,8 +54,8 @@ class PassengerFlightChangeConstraint(
                 for (toFlight in change.toFlights[passenger.flight] ?: emptyList()) {
                     val earliestStartTime = LinearPolynomial(
                         listOf(
-                            LinearMonomial(Flt64.one, time.estimateEndTime[passenger.prev.flight]),
-                            LinearMonomial(Flt64(-1.0), time.estimateStartTime[passenger.flight])
+                            Flt64.one * time.estimateEndTime[passenger.prev.flight],
+                            Flt64(-1.0) * time.estimateStartTime[passenger.flight]
                         ),
                         solverTimeWindow.valueOf(passenger.prev.flight.arr.passengerTransferTime)
                     )
@@ -90,7 +89,7 @@ class PassengerFlightChangeConstraint(
 
                     for (cls in PassengerClass.entries) {
                         val rhs = LinearPolynomial(
-                            listOf(LinearMonomial(passenger.amount.toFlt64(), estCondition.resultVar)),
+                            listOf(passenger.amount.toFlt64() * estCondition.resultVar),
                             Flt64.zero
                         )
                         when (val result = model.addConstraint(
@@ -116,8 +115,8 @@ class PassengerFlightChangeConstraint(
                 for (toFlight in change.toFlights[passenger.flight] ?: emptyList()) {
                     val lastestEndTime = LinearPolynomial(
                         listOf(
-                            LinearMonomial(Flt64.one, time.estimateEndTime[passenger.flight]),
-                            LinearMonomial(Flt64(-1.0), time.estimateStartTime[next.flight])
+                            Flt64.one * time.estimateEndTime[passenger.flight],
+                            Flt64(-1.0) * time.estimateStartTime[next.flight]
                         ),
                         solverTimeWindow.valueOf(next.flight.dep.passengerTransferTime)
                     )
@@ -151,7 +150,7 @@ class PassengerFlightChangeConstraint(
 
                     for (cls in PassengerClass.entries) {
                         val rhs = LinearPolynomial(
-                            listOf(LinearMonomial(passenger.amount.toFlt64(), eetCondition.resultVar)),
+                            listOf(passenger.amount.toFlt64() * eetCondition.resultVar),
                             Flt64.zero
                         )
                         when (val result = model.addConstraint(

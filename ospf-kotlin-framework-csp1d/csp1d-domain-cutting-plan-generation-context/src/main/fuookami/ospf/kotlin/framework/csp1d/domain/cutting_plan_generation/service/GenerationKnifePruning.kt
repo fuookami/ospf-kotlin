@@ -46,10 +46,10 @@ internal fun <V : RealNumber<V>> isMinKnifeCountUnreachable(
 /**
  * remainingGenerationCutCapacity.
  * remainingGenerationCutCapacity。
- * @param maxKnifeCount the maximum allowed number of cuts, or null if unlimited / 允许的最大刀数，为 null 时表示无上限
- * @param currentCuts the number of cuts already made / 已使用的刀数
- * @param searchCutCapacity the remaining cut capacity at the search level, or null if not constrained / 搜索层级的剩余可用刀数，为 null 时表示不受限
- * @return the remaining cut capacity constrained by both the max knife count and search capacity, or null if neither is constrained / 受最大刀数和搜索容量共同约束的剩余可用刀数，两者均无限时返回 null
+ * @param maxKnifeCount 允许的最大刀数，为 null 时表示无上限 / the maximum allowed number of cuts, or null if unlimited
+ * @param currentCuts 已使用的刀数 / the number of cuts already made
+ * @param searchCutCapacity 搜索层级的剩余可用刀数，为 null 时表示不受限 / the remaining cut capacity at the search level, or null if not constrained
+ * @return 受最大刀数和搜索容量共同约束的剩余可用刀数，两者均无限时返回 null / the remaining cut capacity constrained by both the max knife count and search capacity, or null if neither is constrained
 */
 internal fun remainingGenerationCutCapacity(
     maxKnifeCount: UInt64?,

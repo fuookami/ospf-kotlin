@@ -9,13 +9,13 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  *
  * 默认值移植自 fsra-proof 基础设施参数。
  *
- * @property fleetBalanceSlack Non-base airport fleet balance slack penalty / 非基地机场车队平衡松弛惩罚
- * @property fleetBalanceBaseSlack Base airport fleet balance slack penalty / 基地机场车队平衡松弛惩罚
- * @property executorLeisureCoeff Executor leisure minimization coefficient / 执行器空闲最小化系数
- * @property taskCancelCoeff Task cancellation minimization coefficient / 任务取消最小化系数
- * @property passengerCancelCoeff Passenger cancellation minimization coefficient / 乘客取消最小化系数
- * @property passengerClassChangeCoeff Passenger class change weighted coefficient / 乘客舱位变更加权系数
- * @property passengerFlightChangeCoeff Passenger flight change weighted coefficient / 乘客航班变更加权系数
+ * @property fleetBalanceSlack 非基地机场车队平衡松弛惩罚 / Non-base airport fleet balance slack penalty
+ * @property fleetBalanceBaseSlack 基地机场车队平衡松弛惩罚 / Base airport fleet balance slack penalty
+ * @property executorLeisureCoeff 执行器空闲最小化系数 / Executor leisure minimization coefficient
+ * @property taskCancelCoeff 任务取消最小化系数 / Task cancellation minimization coefficient
+ * @property passengerCancelCoeff 乘客取消最小化系数 / Passenger cancellation minimization coefficient
+ * @property passengerClassChangeCoeff 乘客舱位变更加权系数 / Passenger class change weighted coefficient
+ * @property passengerFlightChangeCoeff 乘客航班变更加权系数 / Passenger flight change weighted coefficient
 */
 data class Parameter(
     val fleetBalanceSlack: Flt64 = Flt64(60.0),

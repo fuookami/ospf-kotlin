@@ -1,6 +1,5 @@
 /**
- * Thomas 循环对称吸引子
- * Thomas Cyclically Symmetric Attractor
+ * Thomas 循环对称吸引子 / Thomas Cyclically Symmetric Attractor
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * Thomas 循环对称吸引子
- * Thomas Cyclically Symmetric Attractor
+ * Thomas 循环对称吸引子 / Thomas Cyclically Symmetric Attractor
  *
  * @property b 系统参数 b / System parameter b
  * @property h 时间步长 / Time step size
@@ -40,8 +38,7 @@ data class ThomasCyclicallySymmetricAttractor<V : FloatingNumber<V>>(val b: V, v
 }
 
 /**
- * Thomas 循环对称吸引子生成器
- * Thomas Cyclically Symmetric Attractor Generator
+ * Thomas 循环对称吸引子生成器 / Thomas Cyclically Symmetric Attractor Generator
 */
 data class ThomasCyclicallySymmetricAttractorGenerator(
     val attractor: ThomasCyclicallySymmetricAttractor<Flt64> = ThomasCyclicallySymmetricAttractor(),

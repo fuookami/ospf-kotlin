@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -33,10 +34,13 @@ class MaxCLIM(
      * A CLIM interpolation point.
      * CLIM 插值点。
      *
-     * @property tow Takeoff weight at this point. / 此点的起飞重量
-     * @property maxCLIM Maximum CLIM value at this point. / 此点的最大 CLIM 值
+     * @property tow 此点的起飞重量 / Takeoff weight at this point.
+     * @property maxCLIM 此点的最大 CLIM 值 / Maximum CLIM value at this point.
     */
     data class Point(
+        val tow: Quantity<Flt64>,
+        val maxCLIM: Quantity<Flt64>
+    )
 
     operator fun invoke(tow: Quantity<Flt64>): Quantity<Flt64> {
         val x = tow.to(aircraftModel.weightUnit)!!.value
@@ -66,8 +70,8 @@ class MaxCLIM(
      * Registers the maximum CLIM symbol with the given model.
      * 将最大 CLIM 符号注册到给定模型中。
      *
-     * @param model The linear meta model to register with. / 要注册的线性元模型
-     * @return Success or failure result. / 成功或失败结果
+     * @param model 要注册的线性元模型 / The linear meta model to register with.
+     * @return 成功或失败结果 / Success or failure result.
     */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
@@ -91,23 +95,21 @@ class MaxCLIM(
                 val y2 = sorted.last().maxCLIM.to(aircraftModel.torqueUnit)!!.value
                 val slope = (y2 - y1) / (x2 - x1)
                 val intercept = y1 - slope * x1
-                val poly = MutableLinearPolynomial()
-                poly += LinearMonomial(slope, xSymbol)
-                poly += intercept
+                val poly = slope * xSymbol + intercept
                 Quantity(
-                    LinearExpressionSymbol(LinearPolynomial(poly.monomials, poly.constant), name = "max_clim"),
+                    LinearExpressionSymbol(poly, name = "max_clim"),
                     aircraftModel.torqueUnit
                 )
             }
         }
         when (val result = model.add(maxCLIM)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                 return Failed(result.error)
             }
 
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Fatal -> {
                 return Fatal(result.errors)
             }
         }

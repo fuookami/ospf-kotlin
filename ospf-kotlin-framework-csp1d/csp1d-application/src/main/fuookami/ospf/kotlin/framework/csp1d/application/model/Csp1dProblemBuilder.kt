@@ -34,7 +34,7 @@ class Csp1dProblemBuilder<V : RealNumber<V>> {
      *
      * @param product 产品 / Product
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun product(product: Product<V>): Csp1dProblemBuilder<V> {
         productBuffer.add(product)
@@ -46,7 +46,7 @@ class Csp1dProblemBuilder<V : RealNumber<V>> {
      *
      * @param products 产品列表 / Products
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun products(products: Iterable<Product<V>>): Csp1dProblemBuilder<V> {
         productBuffer.addAll(products)
@@ -58,7 +58,7 @@ class Csp1dProblemBuilder<V : RealNumber<V>> {
      *
      * @param material 物料 / Material
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun material(material: Material<V>): Csp1dProblemBuilder<V> {
         materialBuffer.add(material)
@@ -70,7 +70,7 @@ class Csp1dProblemBuilder<V : RealNumber<V>> {
      *
      * @param materials 物料列表 / Materials
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun materials(materials: Iterable<Material<V>>): Csp1dProblemBuilder<V> {
         materialBuffer.addAll(materials)
@@ -82,7 +82,7 @@ class Csp1dProblemBuilder<V : RealNumber<V>> {
      *
      * @param machine 设备 / Machine
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun machine(machine: Machine<V>): Csp1dProblemBuilder<V> {
         machineBuffer.add(machine)
@@ -94,7 +94,7 @@ class Csp1dProblemBuilder<V : RealNumber<V>> {
      *
      * @param machines 设备列表 / Machines
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun machines(machines: Iterable<Machine<V>>): Csp1dProblemBuilder<V> {
         machineBuffer.addAll(machines)
@@ -106,7 +106,7 @@ class Csp1dProblemBuilder<V : RealNumber<V>> {
      *
      * @param costar 配规 / Costar
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun costar(costar: Costar<V>): Csp1dProblemBuilder<V> {
         costarBuffer.add(costar)
@@ -118,7 +118,7 @@ class Csp1dProblemBuilder<V : RealNumber<V>> {
      *
      * @param costars 配规列表 / Costars
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun costars(costars: Iterable<Costar<V>>): Csp1dProblemBuilder<V> {
         costarBuffer.addAll(costars)
@@ -130,7 +130,7 @@ class Csp1dProblemBuilder<V : RealNumber<V>> {
      *
      * @param demand 需求 / Demand
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun demand(demand: ProductDemand<V>): Csp1dProblemBuilder<V> {
         demandBuffer.add(demand)
@@ -142,7 +142,7 @@ class Csp1dProblemBuilder<V : RealNumber<V>> {
      *
      * @param demands 需求列表 / Demands
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun demands(demands: Iterable<ProductDemand<V>>): Csp1dProblemBuilder<V> {
         demandBuffer.addAll(demands)
@@ -154,7 +154,7 @@ class Csp1dProblemBuilder<V : RealNumber<V>> {
      *
      * @param configuration 配置 / Configuration
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun configuration(configuration: Csp1dConfiguration<V>): Csp1dProblemBuilder<V> {
         configurationValue = configuration
@@ -166,7 +166,7 @@ class Csp1dProblemBuilder<V : RealNumber<V>> {
      *
      * @param solveConfig 求解配置 / Solve configuration
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun solveConfig(solveConfig: Csp1dSolveConfig<V>): Csp1dProblemBuilder<V> {
         solveConfigValue = solveConfig
@@ -178,7 +178,7 @@ class Csp1dProblemBuilder<V : RealNumber<V>> {
      *
      * @param block 求解配置 builder / Solve configuration builder
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun solveConfig(block: Csp1dSolveConfigBuilder<V>.() -> Unit): Csp1dProblemBuilder<V> {
         solveConfigValue = csp1dSolveConfig(block)
@@ -229,7 +229,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      *
      * @param configuration 配置 / Configuration
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun columnGeneration(configuration: Csp1dConfiguration<V>): Csp1dSolveConfigBuilder<V> {
         columnGenerationValue = configuration
@@ -243,7 +243,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      * @param maxPricingPlans 每轮定价方案上限 / Pricing plan limit per iteration
      * @param iterationLimit 迭代上限 / Iteration limit
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun columnGeneration(
         maxInitialPlans: Int64,
@@ -263,7 +263,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      *
      * @param config yield 建模配置 / Yield modeling configuration
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun yieldConfig(config: YieldModelingConfig<V>?): Csp1dSolveConfigBuilder<V> {
         yieldConfigValue = config
@@ -275,7 +275,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      *
      * @param config waste 建模配置 / Waste modeling configuration
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun wasteConfig(config: WasteMinimizationConfig<V>?): Csp1dSolveConfigBuilder<V> {
         wasteConfigValue = config
@@ -287,7 +287,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      *
      * @param config length 建模配置 / Length modeling configuration
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun lengthConfig(config: LengthAssignmentModelingConfig<V>?): Csp1dSolveConfigBuilder<V> {
         lengthConfigValue = config
@@ -299,7 +299,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      *
      * @param limit Top-K 方案上限 / Top-K plan limit
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun topKPlanLimit(limit: Int64?): Csp1dSolveConfigBuilder<V> {
         topKPlanLimitValue = limit
@@ -311,7 +311,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      *
      * @param enabled 是否允许 / Whether enabled
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun allowPartialSolution(enabled: Boolean): Csp1dSolveConfigBuilder<V> {
         allowPartialSolutionValue = enabled
@@ -323,7 +323,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      *
      * @param extension 建模扩展 / Modeling extension
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun extension(extension: Csp1dModelingExtension<V>): Csp1dSolveConfigBuilder<V> {
         extensionsBuffer.add(extension)
@@ -335,7 +335,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      *
      * @param extensions 建模扩展列表 / Modeling extensions
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun extensions(extensions: Iterable<Csp1dModelingExtension<V>>): Csp1dSolveConfigBuilder<V> {
         extensionsBuffer.addAll(extensions)
@@ -347,7 +347,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      *
      * @param pipeline 扩展管线 / Extension pipeline
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun extensionPipeline(pipeline: Pipeline<LinearMetaModel<Flt64>>): Csp1dSolveConfigBuilder<V> {
         extensionsBuffer.add(Csp1dModelingExtension(pipeline))
@@ -360,7 +360,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      * @param pipeline 扩展管线 / Extension pipeline
      * @param mode 扩展适用模式 / Extension applicable mode
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun extensionPipeline(
         pipeline: Pipeline<LinearMetaModel<Flt64>>,
@@ -373,13 +373,12 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
     /**
      * 便捷方法：追加上下文感知扩展管线（默认所有模式）/ Convenience: add a context-aware extension pipeline (all modes)
      *
-     * 下游扩展管线通过 factory 接收 Csp1dModelingContext，无需闭包捕获即可访问领域数据。
-     * Downstream extension pipelines receive Csp1dModelingContext through factory,
+     * 下游扩展管线通过 factory 接收 Csp1dModelingContext，无需闭包捕获即可访问领域数据。 / Downstream extension pipelines receive Csp1dModelingContext through factory,
      * accessing domain data without closure capture.
      *
      * @param factory 上下文感知管线工厂 / Context-aware pipeline factory
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun contextAwareExtensionPipeline(
         factory: (Csp1dModelingContext<V>) -> Pipeline<LinearMetaModel<Flt64>>
@@ -396,7 +395,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      * @param factory 上下文感知管线工厂 / Context-aware pipeline factory
      * @param mode 扩展适用模式 / Extension applicable mode
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun contextAwareExtensionPipeline(
         factory: (Csp1dModelingContext<V>) -> Pipeline<LinearMetaModel<Flt64>>,
@@ -414,7 +413,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      *
      * @param policy 领域策略 / Domain policy
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun domainPolicy(policy: Csp1dDomainPolicy<V>): Csp1dSolveConfigBuilder<V> {
         domainPolicyBuffer.add(policy)
@@ -426,7 +425,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      *
      * @param policy 目标策略 / Objective policy
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun objectivePolicy(policy: Csp1dObjectivePolicy<V>): Csp1dSolveConfigBuilder<V> {
         objectivePolicyBuffer.add(policy)
@@ -438,7 +437,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      *
      * @param strategy 生成策略 / Generation strategy
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun generationStrategy(strategy: Csp1dGenerationStrategy<V>): Csp1dSolveConfigBuilder<V> {
         generationStrategyBuffer.add(strategy)
@@ -450,7 +449,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      *
      * @param policy 定价策略 / Pricing policy
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun pricingPolicy(policy: Csp1dPricingPolicy<V>): Csp1dSolveConfigBuilder<V> {
         pricingPolicyBuffer.add(policy)
@@ -462,7 +461,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      *
      * @param policy 流程策略 / Flow policy
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun flowPolicy(policy: Csp1dFlowPolicy<V>): Csp1dSolveConfigBuilder<V> {
         flowPolicyBuffer.add(policy)
@@ -474,7 +473,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      *
      * @param policy 提取策略 / Extraction policy
      *
-     * @return this builder for chaining / 此 builder 实例，用于链式调用
+     * @return 此 builder 实例，用于链式调用 / this builder for chaining
     */
     fun extractionPolicy(policy: Csp1dExtractionPolicy<V>): Csp1dSolveConfigBuilder<V> {
         extractionPolicyBuffer.add(policy)

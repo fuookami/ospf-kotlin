@@ -1,9 +1,7 @@
 /**
- * 物理量几何运算辅助函数
- * Quantity geometry operation helper functions
+ * 物理量几何运算辅助函数 / Quantity geometry operation helper functions
  *
- * 提供物理量的加减、比较、取极值、限制范围和获取零值等内部辅助函数。
- * Provides internal helper functions for quantity addition, subtraction, comparison, clamping, and zero value retrieval.
+ * 提供物理量的加减、比较、取极值、限制范围和获取零值等内部辅助函数。 / Provides internal helper functions for quantity addition, subtraction, comparison, clamping, and zero value retrieval.
 */
 package fuookami.ospf.kotlin.math.geometry
 
@@ -19,8 +17,7 @@ import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
- * 两个物理量相加（内部辅助函数）
- * Add two quantities (internal helper)
+ * 两个物理量相加（内部辅助函数） / Add two quantities (internal helper)
  *
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
@@ -47,8 +44,7 @@ internal fun <V : FloatingNumber<V>> quantityPlusSafe(lhs: Quantity<V>, rhs: Qua
 }
 
 /**
- * 两个物理量相加（内部辅助函数）
- * Add two quantities (internal helper)
+ * 两个物理量相加（内部辅助函数） / Add two quantities (internal helper)
  *
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
@@ -60,8 +56,7 @@ internal fun <V : FloatingNumber<V>> quantityPlusOrNull(lhs: Quantity<V>, rhs: Q
 }
 
 /**
- * 两个物理量相减（内部辅助函数）
- * Subtract two quantities (internal helper)
+ * 两个物理量相减（内部辅助函数） / Subtract two quantities (internal helper)
  *
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
@@ -88,8 +83,7 @@ internal fun <V : FloatingNumber<V>> quantityMinusSafe(lhs: Quantity<V>, rhs: Qu
 }
 
 /**
- * 两个物理量相减（内部辅助函数）
- * Subtract two quantities (internal helper)
+ * 两个物理量相减（内部辅助函数） / Subtract two quantities (internal helper)
  *
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
@@ -111,8 +105,7 @@ internal fun <V : FloatingNumber<V>> quantityProduct(lhs: Quantity<V>, rhs: V): 
 }
 
 /**
- * 比较两个物理量的大小（内部辅助函数）
- * Compare two quantities (internal helper)
+ * 比较两个物理量的大小（内部辅助函数） / Compare two quantities (internal helper)
  *
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
@@ -130,8 +123,7 @@ internal fun <V : FloatingNumber<V>> quantityOrdSafe(lhs: Quantity<V>, rhs: Quan
 }
 
 /**
- * 比较两个物理量的大小（内部辅助函数）
- * Compare two quantities (internal helper)
+ * 比较两个物理量的大小（内部辅助函数） / Compare two quantities (internal helper)
  *
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
@@ -144,8 +136,7 @@ internal fun <V : FloatingNumber<V>> quantityOrdOrNull(lhs: Quantity<V>, rhs: Qu
 }
 
 /**
- * 取两个物理量的较大值（内部辅助函数）
- * Get the maximum of two quantities (internal helper)
+ * 取两个物理量的较大值（内部辅助函数） / Get the maximum of two quantities (internal helper)
  *
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
@@ -163,8 +154,7 @@ internal fun <V : FloatingNumber<V>> quantityMaxSafe(lhs: Quantity<V>, rhs: Quan
 }
 
 /**
- * 取两个物理量的较大值（内部辅助函数）
- * Get the maximum of two quantities (internal helper)
+ * 取两个物理量的较大值（内部辅助函数） / Get the maximum of two quantities (internal helper)
  *
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
@@ -177,8 +167,7 @@ internal fun <V : FloatingNumber<V>> quantityMaxOrNull(lhs: Quantity<V>, rhs: Qu
 }
 
 /**
- * 取两个物理量的较小值（内部辅助函数）
- * Get the minimum of two quantities (internal helper)
+ * 取两个物理量的较小值（内部辅助函数） / Get the minimum of two quantities (internal helper)
  *
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
@@ -196,8 +185,7 @@ internal fun <V : FloatingNumber<V>> quantityMinSafe(lhs: Quantity<V>, rhs: Quan
 }
 
 /**
- * 取两个物理量的较小值（内部辅助函数）
- * Get the minimum of two quantities (internal helper)
+ * 取两个物理量的较小值（内部辅助函数） / Get the minimum of two quantities (internal helper)
  *
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
@@ -210,8 +198,7 @@ internal fun <V : FloatingNumber<V>> quantityMinOrNull(lhs: Quantity<V>, rhs: Qu
 }
 
 /**
- * 将物理量限制在指定范围内（内部辅助函数）
- * Clamp a quantity to a specified range (internal helper)
+ * 将物理量限制在指定范围内（内部辅助函数） / Clamp a quantity to a specified range (internal helper)
  *
  * @param value 待限制的物理量 / Quantity to clamp
  * @param lb 下界 / Lower bound
@@ -243,8 +230,7 @@ internal fun <V : FloatingNumber<V>> quantityClampSafe(
 }
 
 /**
- * 将物理量限制在指定范围内（内部辅助函数）
- * Clamp a quantity to a specified range (internal helper)
+ * 将物理量限制在指定范围内（内部辅助函数） / Clamp a quantity to a specified range (internal helper)
  *
  * @param value 待限制的物理量 / Quantity to clamp
  * @param lb 下界 / Lower bound
@@ -263,8 +249,7 @@ internal fun <V : FloatingNumber<V>> quantityClampOrNull(
 }
 
 /**
- * 判断物理量是否在指定范围内（内部辅助函数）
- * Check if a quantity is within a specified range (internal helper)
+ * 判断物理量是否在指定范围内（内部辅助函数） / Check if a quantity is within a specified range (internal helper)
  *
  * @param value 待检查的物理量 / Quantity to check
  * @param lb 下界 / Lower bound
@@ -307,8 +292,7 @@ internal fun <V : FloatingNumber<V>> quantityContainsInRangeSafe(
 }
 
 /**
- * 判断物理量是否在指定范围内（内部辅助函数）
- * Check if a quantity is within a specified range (internal helper)
+ * 判断物理量是否在指定范围内（内部辅助函数） / Check if a quantity is within a specified range (internal helper)
  *
  * @param value 待检查的物理量 / Quantity to check
  * @param lb 下界 / Lower bound
@@ -338,8 +322,7 @@ internal fun <V : FloatingNumber<V>> quantityContainsInRangeOrNull(
 }
 
 /**
- * 获取与给定物理量同单位的零值（内部辅助函数）
- * Get a zero-valued quantity with the same unit as the given quantity (internal helper)
+ * 获取与给定物理量同单位的零值（内部辅助函数） / Get a zero-valued quantity with the same unit as the given quantity (internal helper)
  *
  * @param quantity 参考物理量 / Reference quantity
  * @param V 数值类型 / Number type

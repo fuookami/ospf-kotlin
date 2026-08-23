@@ -1,6 +1,5 @@
 /**
- * Token 表接口与实现，管理中间符号的注册、缓存与求解结果。
- * Token table interfaces and implementations managing intermediate symbol registration, caching, and solve results.
+ * Token 表接口与实现，管理中间符号的注册、缓存与求解结果。 / Token table interfaces and implementations managing intermediate symbol registration, caching, and solve results.
 */
 package fuookami.ospf.kotlin.core.token
 
@@ -17,8 +16,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 重复符号错误，当尝试注册已存在的符号时抛出。
- * Repeated symbol error thrown when attempting to register an already-existing symbol.
+ * 重复符号错误，当尝试注册已存在的符号时抛出。 / Repeated symbol error thrown when attempting to register an already-existing symbol.
  *
  * @property repeatedSymbol 已存在的重复符号 / The pre-existing repeated symbol
  * @property symbol 新注册的冲突符号 / The new conflicting symbol being registered
@@ -31,8 +29,7 @@ class RepeatedSymbolError(
 }
 
 /**
- * Token 表的抽象接口，定义符号注册、缓存查询和求解结果管理的契约。
- * Abstract interface for token tables, defining the contract for symbol registration, cache queries, and solution management.
+ * Token 表的抽象接口，定义符号注册、缓存查询和求解结果管理的契约。 / Abstract interface for token tables, defining the contract for symbol registration, cache queries, and solution management.
  *
  * @param V 数值类型 / The number type
 */
@@ -596,8 +593,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
 }
 
 /**
- * 通用可变 Token 表接口骨架（C2-2.5a 声明层）。
- * Generic mutable token table interface skeleton - C2-2.5a declaration layer.
+ * 通用可变 Token 表接口骨架（C2-2.5a 声明层）。 / Generic mutable token table interface skeleton - C2-2.5a declaration layer.
  *
  * @param V 数值类型 / The number type
 */
@@ -662,8 +658,7 @@ interface AbstractMutableTokenTable<V> : AbstractTokenTable<V>, AddableTokenColl
 }
 
 /**
- * 不可变 token 表实现，封装已注册的 token 列表和符号集合。
- * Immutable token table implementation wrapping a registered token list and symbol collection.
+ * 不可变 token 表实现，封装已注册的 token 列表和符号集合。 / Immutable token table implementation wrapping a registered token list and symbol collection.
  *
  * @param V 数值类型 / The number type
  * @property category 符号操作类别 / Symbol operation category
@@ -809,8 +804,7 @@ data class TokenTable<V>(
 }
 
 /**
- * 可变 token 表的密封基类，支持符号和变量的增删操作。
- * Sealed base class for mutable token tables, supporting add/remove of symbols and variables.
+ * 可变 token 表的密封基类，支持符号和变量的增删操作。 / Sealed base class for mutable token tables, supporting add/remove of symbols and variables.
  *
  * @param V 数值类型 / The number type
  * @property category 符号操作类别 / Symbol operation category
@@ -1076,8 +1070,7 @@ sealed class MutableTokenTable<V>(
 }
 
 /**
- * 自动 token 表，变量缺失时自动创建 token。
- * Auto token table that creates tokens on-the-fly for missing variables.
+ * 自动 token 表，变量缺失时自动创建 token。 / Auto token table that creates tokens on-the-fly for missing variables.
  *
  * @param V 数值类型 / The number type
  * @param category 符号操作类别 / Symbol operation category
@@ -1115,8 +1108,7 @@ class AutoTokenTable<V>(
 }
 
 /**
- * 手动 token 表，变量需显式添加后才能使用。
- * Manual token table where variables must be explicitly added before use.
+ * 手动 token 表，变量需显式添加后才能使用。 / Manual token table where variables must be explicitly added before use.
  *
  * @param V 数值类型 / The number type
  * @param category 符号操作类别 / Symbol operation category

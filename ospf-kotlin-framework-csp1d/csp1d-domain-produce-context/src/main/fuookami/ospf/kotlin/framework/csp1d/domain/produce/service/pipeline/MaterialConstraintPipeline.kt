@@ -2,9 +2,9 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.produce.service.pipeline
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
@@ -14,16 +14,13 @@ import fuookami.ospf.kotlin.framework.model.*
 /**
  * 物料可用批次约束管线 / Material available batch constraint pipeline
  *
- * 为每个物料添加可用批次上限约束：
- * materialQuantity[i] <= available_batches
+ * 为每个物料添加可用批次上限约束： / materialQuantity[i] <= available_batches
  *
  * materialQuantity[i] 是中间符号，由 ProduceAggregation 管理，
  * 约束管线不再直接引用 x 变量。
  *
  * 实现 CGPipeline 接口，通过 constraint.args = MaterialUsageShadowPriceKey
- * 关联影子价格，替代约束名映射。
- *
- * Add available batch upper bound constraint for each material:
+ * 关联影子价格，替代约束名映射。 / Add available batch upper bound constraint for each material:
  * materialQuantity[i] <= available_batches
  *
  * materialQuantity[i] is an intermediate symbol managed by ProduceAggregation.
@@ -49,17 +46,14 @@ class MaterialConstraintPipeline<V : RealNumber<V>>(
 
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((materialIndex, material) in materials.withIndex()) {
-            if (material.availableBatches == fuookami.ospf.kotlin.math.algebra.number.UInt64.maximum) {
+            if (material.availableBatches == UInt64.maximum) {
                 continue
             }
 
             val constraintName = "material_$materialIndex"
             val priceKey = MaterialUsageShadowPriceKey(material.id)
 
-            val lhs = LinearPolynomial(
-                monomials = listOf(LinearMonomial(Flt64.one, produce.materialQuantity[materialIndex])),
-                constant = Flt64.zero
-            )
+            val lhs = LinearPolynomial(produce.materialQuantity[materialIndex])
             model.addConstraint(
                 relation = LinearInequality(
                     lhs = lhs,
@@ -88,7 +82,7 @@ class MaterialConstraintPipeline<V : RealNumber<V>>(
             AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments>
             >? {
         if (materials.isEmpty()) return null
-        return { map, args ->
+        return ShadowPriceExtractor { map, args ->
             if (args is Csp1dCuttingPlanShadowPriceArguments<*>) {
                 val key = MaterialUsageShadowPriceKey(args.plan.material.id)
                 map[key]?.price ?: Flt64.zero

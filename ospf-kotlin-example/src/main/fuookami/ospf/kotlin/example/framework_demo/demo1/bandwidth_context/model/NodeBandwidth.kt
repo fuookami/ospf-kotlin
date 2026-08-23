@@ -16,9 +16,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
  * Intermediate symbols for aggregated in-degree, out-degree, and out-flow at each node across all services.
  * 跨所有服务的每个节点聚合入度、出度和流出的中间符号。
  *
- * @property nodes the list of nodes / 节点列表
- * @property services the list of services / 服务列表
- * @property serviceBandwidth the service bandwidth model / 服务带宽模型
+ * @property nodes 节点列表 / the list of nodes
+ * @property services 服务列表 / the list of services
+ * @property serviceBandwidth 服务带宽模型 / the service bandwidth model
 */
 class NodeBandwidth(
     private val nodes: List<Node>,
@@ -33,8 +33,8 @@ class NodeBandwidth(
      * Registers all intermediate symbols to the model.
      * 注册所有中间符号到模型。
      *
-     * @param model the linear meta model / 线性元模型
-     * @return the operation result / 操作结果
+     * @param model 线性元模型 / the linear meta model
+     * @return 操作结果 / the operation result
     */
     fun register(model: LinearMetaModel<Flt64>): Try {
         if (!::inDegree.isInitialized) {

@@ -8,8 +8,10 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.syncRun
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 
-/** 创建环境函数类型 / Creating environment function type */
-typealias CreatingEnvironmentFunction = (GRBEnv) -> Try
+/** 创建环境函数 / Creating environment function */
+fun interface CreatingEnvironmentFunction {
+    operator fun invoke(env: GRBEnv): Try
+}
 
 /** Gurobi 原生回调函数类型 / Gurobi native callback function type */
 typealias NativeCallback = GRBCallback.() -> Unit

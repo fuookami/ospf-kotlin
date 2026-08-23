@@ -29,7 +29,7 @@ class TaskCancelMinimization<
         >(
     tasks: List<T>,
     private val compilation: Compilation,
-    private val coefficient: Extractor<Flt64?, T> = { Flt64.one },
+    private val coefficient: Extractor<Flt64?, T> = Extractor { Flt64.one },
     override val name: String = "task_cancel_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val tasks = if (compilation.taskCancelEnabled) {

@@ -8,8 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 /**
- * 创建多态二维放置，仅供 BLA 多态投影搜索和多态工厂内部复用。
- * Create a polymorphic 2D placement only for BLA polymorphic projection search and polymorphic factory internals.
+ * 创建多态二维放置，仅供 BLA 多态投影搜索和多态工厂内部复用。 / Create a polymorphic 2D placement only for BLA polymorphic projection search and polymorphic factory internals.
  *
  * 业务调用侧应优先使用 `itemPlacement2Of` 或 `blockPlacement2Of`，避免直接暴露底层 Cuboid 泛型。
  * Business callers should prefer `itemPlacement2Of` or `blockPlacement2Of` to avoid exposing the underlying Cuboid type parameter.
@@ -29,8 +28,7 @@ fun <T : Cuboid<T, FltX>, P : ProjectivePlane> placement2Of(
 }
 
 /**
- * 创建 Item 二维放置，隐藏底层 Cuboid 泛型工厂。
- * Create an item 2D placement while hiding the underlying Cuboid polymorphic factory.
+ * 创建 Item 二维放置，隐藏底层 Cuboid 泛型工厂。 / Create an item 2D placement while hiding the underlying Cuboid polymorphic factory.
  *
  * @param projection item 投影 / item projection
  * @param position 放置坐标 / placement position
@@ -47,8 +45,7 @@ fun <P : ProjectivePlane> itemPlacement2Of(
 }
 
 /**
- * 创建 Block 二维放置，隐藏底层 Cuboid 泛型工厂。
- * Create a Block 2D placement while hiding the underlying Cuboid polymorphic factory.
+ * 创建 Block 二维放置，隐藏底层 Cuboid 泛型工厂。 / Create a Block 2D placement while hiding the underlying Cuboid polymorphic factory.
  *
  * @param projection block 投影 / block projection
  * @param position 放置坐标 / placement position
@@ -75,8 +72,7 @@ private fun <T : Cuboid<T, FltX>> placement3Of(
 }
 
 /**
- * 创建 Item 三维放置，隐藏底层 Cuboid 泛型工厂。
- * Create an item 3D placement while hiding the underlying Cuboid polymorphic factory.
+ * 创建 Item 三维放置，隐藏底层 Cuboid 泛型工厂。 / Create an item 3D placement while hiding the underlying Cuboid polymorphic factory.
  *
  * @param view item 视图 / item view
  * @param position 放置坐标 / placement position
@@ -93,8 +89,7 @@ fun itemPlacement3Of(
 }
 
 /**
- * 创建 Item 三维放置，使用指定姿态构造视图。
- * Create an item 3D placement by building the view from an orientation.
+ * 创建 Item 三维放置，使用指定姿态构造视图。 / Create an item 3D placement by building the view from an orientation.
  *
  * @param item item 单元 / item unit
  * @param position 放置坐标 / placement position
@@ -113,8 +108,7 @@ fun itemPlacement3Of(
 }
 
 /**
- * 创建 BinLayer 三维放置，隐藏底层 Cuboid 泛型工厂。
- * Create a BinLayer 3D placement while hiding the underlying Cuboid polymorphic factory.
+ * 创建 BinLayer 三维放置，隐藏底层 Cuboid 泛型工厂。 / Create a BinLayer 3D placement while hiding the underlying Cuboid polymorphic factory.
  *
  * @param view layer 视图 / layer view
  * @param position 放置坐标 / placement position
@@ -131,8 +125,7 @@ fun binLayerPlacementOf(
 }
 
 /**
- * 创建 Block 三维放置，隐藏底层 Cuboid 泛型工厂。
- * Create a Block 3D placement while hiding the underlying Cuboid polymorphic factory.
+ * 创建 Block 三维放置，隐藏底层 Cuboid 泛型工厂。 / Create a Block 3D placement while hiding the underlying Cuboid polymorphic factory.
  *
  * @param view block 视图 / block view
  * @param position 放置坐标 / placement position
@@ -156,8 +149,8 @@ private fun <T : Cuboid<T, FltX>> QuantityPlacement3<T, FltX>.bottomPlacement():
  * Checks whether this placement overlaps with another on the bottom projection plane.
  * 检查此放置是否与另一个放置在底面投影上重叠。
  *
- * @param other the placement to check overlap against / 待检查重叠的另一个放置
- * @return whether the two placements overlap on the bottom plane / 两个放置是否在底面投影上重叠
+ * @param other 待检查重叠的另一个放置 / the placement to check overlap against
+ * @return 两个放置是否在底面投影上重叠 / whether the two placements overlap on the bottom plane
 */
 fun QuantityPlacement3<*, FltX>.overlappedOnBottom(other: QuantityPlacement3<*, FltX>): Boolean {
     return bottomPlacement().overlapped(other.bottomPlacement()).value == true
@@ -166,8 +159,8 @@ fun QuantityPlacement3<*, FltX>.overlappedOnBottom(other: QuantityPlacement3<*, 
 /**
  * Iterable.
  * Iterable。
- * @param target target placement / 目标放置
- * @return placements overlapping the target on the bottom / 在底面与目标重叠的放置列表
+ * @param target 目标放置 / target placement
+ * @return 在底面与目标重叠的放置列表 / placements overlapping the target on the bottom
 */
 fun Iterable<QuantityPlacement3<*, FltX>>.filterBottomOverlapped(
     target: QuantityPlacement3<*, FltX>

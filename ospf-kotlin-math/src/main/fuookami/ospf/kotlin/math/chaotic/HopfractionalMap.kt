@@ -3,9 +3,7 @@
  * Hopfractional Chaotic Map
  *
  * Hopfractional 映射是一种基于分数阶的混沌映射，
- * 通过控制参数产生混沌序列，常用于混沌加密和伪随机数生成。
- *
- * The Hopfractional map is a fractional-order-based chaotic map
+ * 通过控制参数产生混沌序列，常用于混沌加密和伪随机数生成。 / The Hopfractional map is a fractional-order-based chaotic map
  * that generates chaotic sequences through control parameters,
  * commonly used for chaotic encryption and pseudo-random number generation.
 */

@@ -6,17 +6,18 @@ package fuookami.ospf.kotlin.core.solver.iis
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.solver.report.BackendConfiguration
 
 /**
- * IIS（不可行子系统）计算配置。
- * IIS (Irreducible Infeasible Subsystem) computation configuration.
+ * IIS（不可行子系统）计算配置。 / IIS (Irreducible Infeasible Subsystem) computation configuration.
  *
  * @property time 计算时间限制 / Computation time limit
  * @property threadNum 线程数 / Thread count
  * @property notImprovementTime 无改进时间限制 / No improvement time limit
+ * @property interruptibleTime 可中断时间，求解时间未达到前不触发 notImprovementTime 中断 / Interruptible time; notImprovementTime interrupt is suppressed before this
  * @property computingStatusCallBack 计算状态回调 / Computing status callback
  * @property slackTolerance 松弛容忍度 / Slack tolerance
- * @property extraConfig 额外配置 / Extra configuration
+ * @property backendConfiguration 可审计 backend 配置 / Auditable backend configuration
 */
 data class IISConfig(
     val time: Duration = 30.seconds,
@@ -30,7 +31,8 @@ data class IISConfig(
         UInt64(32)
     },
     val notImprovementTime: Duration? = null,
+    val interruptibleTime: Duration? = null,
     val computingStatusCallBack: IISComputingStatusCallBack? = null,
     val slackTolerance: Flt64 = Flt64(1e-6),
-    val extraConfig: Any? = null
+    val backendConfiguration: BackendConfiguration? = null
 )

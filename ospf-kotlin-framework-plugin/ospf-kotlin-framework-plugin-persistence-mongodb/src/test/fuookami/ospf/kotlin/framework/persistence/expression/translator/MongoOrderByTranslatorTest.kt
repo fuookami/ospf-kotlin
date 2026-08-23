@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.framework.persistence.expression.SortBy
 
 @DisplayName("MongoOrderByTranslator Tests / MongoDB 排序翻译器测试")
 class MongoOrderByTranslatorTest {
-    private val resolver: MongoFieldNameResolver = { path: String -> path.substringAfterLast(".") }
+    private val resolver = MongoFieldNameResolver { path: String -> path.substringAfterLast(".") }
     private val codec = MongoClientSettings.getDefaultCodecRegistry()
 
     @Test

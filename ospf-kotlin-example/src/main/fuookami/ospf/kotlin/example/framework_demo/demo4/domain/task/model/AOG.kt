@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
  * 具有固定飞机、时间和机场的 AOG（飞机停场）计划。An AOG (Aircraft On Ground) plan with fixed aircraft, time, and airport.
  *
  * @property airport The airport where the AOG occurs / AOG发生的机场
- * @property status The set of flight task statuses / 航班任务状态集合
+ * @property status 航班任务状态集合 / The set of flight task statuses
 */
 class AOGPlan(
     override val aircraft: Aircraft,
@@ -39,9 +39,9 @@ class AOGPlan(
          * 创建具有稳定状态的 [AOGPlan]。Creates an [AOGPlan] with stable status for the given aircraft, time, and airport.
          *
          * @param aircraft The aircraft for the AOG / AOG的飞机
-         * @param scheduledTime The scheduled time range / 计划时间范围
+         * @param scheduledTime 计划时间范围 / The scheduled time range
          * @param airport The airport for the AOG / AOG的机场
-         * @return The created AOGPlan / 创建的AOG计划
+         * @return 创建的AOG计划 / The created AOGPlan
         */
         operator fun invoke(aircraft: Aircraft, scheduledTime: TimeRange, airport: Airport): AOGPlan {
             val status = stableStatus.toMutableSet()
@@ -98,9 +98,9 @@ class AOG internal constructor(
         /**
          * 创建应用给定恢复策略的已恢复 [AOG]。Creates a recovered [AOG] applying the given recovery policy.
          *
-         * @param origin The original AOG / 原始AOG
-         * @param recoveryPolicy The recovery policy assignment / 恢复策略分配
-         * @return The recovered AOG instance / 恢复后的AOG实例
+         * @param origin 原始AOG / The original AOG
+         * @param recoveryPolicy 恢复策略分配 / The recovery policy assignment
+         * @return 恢复后的AOG实例 / The recovered AOG instance
         */
         operator fun invoke(origin: AOG, recoveryPolicy: FlightTaskAssignment): AOG {
             val recoveryAirport =

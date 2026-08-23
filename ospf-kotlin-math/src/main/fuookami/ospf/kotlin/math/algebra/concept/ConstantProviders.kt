@@ -1,6 +1,5 @@
 /**
- * 常量提供而
- * Constant Providers
+ * 常量提供而 / Constant Providers
  *
  * 定义数值常量提供者接口(HasZero, HasOne, HasTwo, HasThree, HasFive, HasTen, HasHalf, HasBounds, HasFixedPrecision, HasInfinity, HasNaN, HasTranscendentals) 及组合接口(ArithmeticConst, RealConst, FloatingConst)，并提供伴伴对象反射解析机制。
  * Defines numeric constant provider interfaces (HasZero, HasOne, HasTwo, HasThree, HasFive, HasTen, HasHalf, HasBounds, HasFixedPrecision, HasInfinity, HasNaN, HasTranscendentals) and composite interfaces (ArithmeticConst, RealConst, FloatingConst), with companion object reflection resolution mechanism.
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 零常量提供而
- * Zero constant provider
+ * 零常量提供而 / Zero constant provider
 */
 interface HasZero<T> {
 
@@ -22,8 +20,7 @@ interface HasZero<T> {
 }
 
 /**
- * 一常量提供而
- * One constant provider
+ * 一常量提供而 / One constant provider
 */
 interface HasOne<T> {
 
@@ -32,8 +29,7 @@ interface HasOne<T> {
 }
 
 /**
- * 二常量提供而
- * Two constant provider
+ * 二常量提供而 / Two constant provider
 */
 interface HasTwo<T> {
 
@@ -42,8 +38,7 @@ interface HasTwo<T> {
 }
 
 /**
- * 三常量提供而
- * Three constant provider
+ * 三常量提供而 / Three constant provider
 */
 interface HasThree<T> {
 
@@ -52,8 +47,7 @@ interface HasThree<T> {
 }
 
 /**
- * 五常量提供而
- * Five constant provider
+ * 五常量提供而 / Five constant provider
 */
 interface HasFive<T> {
 
@@ -62,8 +56,7 @@ interface HasFive<T> {
 }
 
 /**
- * 十常量提供而
- * Ten constant provider
+ * 十常量提供而 / Ten constant provider
 */
 interface HasTen<T> {
 
@@ -72,8 +65,7 @@ interface HasTen<T> {
 }
 
 /**
- * 半常量提供而
- * Half constant provider
+ * 半常量提供而 / Half constant provider
 */
 interface HasHalf<T> {
 
@@ -82,8 +74,7 @@ interface HasHalf<T> {
 }
 
 /**
- * 边界常量提供而
- * Bounds constant provider
+ * 边界常量提供而 / Bounds constant provider
 */
 interface HasBounds<T> {
 
@@ -95,8 +86,7 @@ interface HasBounds<T> {
 }
 
 /**
- * 定点精度常量提供而
- * Fixed precision constant provider
+ * 定点精度常量提供而 / Fixed precision constant provider
 */
 interface HasFixedPrecision<T> {
 
@@ -111,8 +101,7 @@ interface HasFixedPrecision<T> {
 }
 
 /**
- * 无穷常量提供而
- * Infinity constant provider
+ * 无穷常量提供而 / Infinity constant provider
 */
 interface HasInfinity<T> {
 
@@ -124,8 +113,7 @@ interface HasInfinity<T> {
 }
 
 /**
- * NaN 常量提供而
- * NaN constant provider
+ * NaN 常量提供而 / NaN constant provider
 */
 interface HasNaN<T> {
 
@@ -134,8 +122,7 @@ interface HasNaN<T> {
 }
 
 /**
- * 超越数常量提供而
- * Transcendental numbers constant provider
+ * 超越数常量提供而 / Transcendental numbers constant provider
 */
 interface HasTranscendentals<T> {
 
@@ -150,14 +137,12 @@ interface HasTranscendentals<T> {
 }
 
 /**
- * 算术常量组合接口
- * Arithmetic constants composite interface
+ * 算术常量组合接口 / Arithmetic constants composite interface
 */
 interface ArithmeticConst<T> : HasZero<T>, HasOne<T>
 
 /**
- * 实数常量组合接口
- * Real number constants composite interface
+ * 实数常量组合接口 / Real number constants composite interface
 */
 interface RealConst<T> :
     ArithmeticConst<T>,
@@ -171,14 +156,12 @@ interface RealConst<T> :
     HasNaN<T>
 
 /**
- * 浮点数常量组合接口
- * Floating number constants composite interface
+ * 浮点数常量组合接口 / Floating number constants composite interface
 */
 interface FloatingConst<T> : RealConst<T>, HasHalf<T>, HasTranscendentals<T>
 
 /**
- * 伴生对象常量提供者反射解析器
- * Companion object constant provider reflection resolver
+ * 伴生对象常量提供者反射解析器 / Companion object constant provider reflection resolver
 */
 data object CompanionConstantProviderResolver {
 
@@ -190,8 +173,7 @@ data object CompanionConstantProviderResolver {
         get() = parseBoolean(System.getProperty(reflectionFallbackEnabledProperty))
 
     /**
-     * 解析字符串为布尔值
-     * Parse a string to boolean value
+     * 解析字符串为布尔值 / Parse a string to boolean value
      *
      * @param value 待解析的字符串
      * @return 解析后的布尔值
@@ -224,8 +206,7 @@ internal inline fun <T, R> Ret<T>.flatMapResolved(crossinline extractor: (T) -> 
 }
 
 /**
- * 通过伴生对象反射解析常量提供而
- * Resolve constant provider through companion object reflection
+ * 通过伴生对象反射解析常量提供而 / Resolve constant provider through companion object reflection
  *
  * @param T 目标类型
  * @param C 常量提供者类垌
@@ -246,8 +227,7 @@ internal inline fun <reified T, reified C : Any> resolveCompanionProvider(
 }
 
 /**
- * 安全解析伴生对象常量提供者
- * Safely resolve constant provider through companion object reflection
+ * 安全解析伴生对象常量提供者 / Safely resolve constant provider through companion object reflection
  *
  * @param T 目标类型
  * @param C 常量提供者类型
@@ -283,8 +263,7 @@ internal inline fun <reified T, reified C : Any> resolveCompanionProviderSafe(
 }
 
 /**
- * 尝试解析伴生对象常量提供者，失败返回 null
- * Try resolving constant provider through companion object reflection, returning null on failure
+ * 尝试解析伴生对象常量提供者，失败返回 null / Try resolving constant provider through companion object reflection, returning null on failure
  *
  * @param T 目标类型
  * @param C 常量提供者类型
@@ -305,8 +284,7 @@ internal inline fun <reified T, reified C : Any> resolveCompanionProviderOrNull(
 }
 
 /**
- * 解析算术常量
- * Resolve arithmetic constants
+ * 解析算术常量 / Resolve arithmetic constants
  *
  * @param T 算术类型
  * @param caller 调用者名秌
@@ -318,8 +296,7 @@ inline fun <reified T> resolveArithmeticConstants(caller: String): Ret<Arithmeti
 }
 
 /**
- * 安全解析算术常量
- * Safely resolve arithmetic constants
+ * 安全解析算术常量 / Safely resolve arithmetic constants
  *
  * @param T 算术类型
  * @param caller 调用者名称
@@ -334,8 +311,7 @@ inline fun <reified T> resolveArithmeticConstantsSafe(caller: String): Ret<Arith
 }
 
 /**
- * 尝试解析算术常量，失败返回 null
- * Try resolving arithmetic constants, returning null on failure
+ * 尝试解析算术常量，失败返回 null / Try resolving arithmetic constants, returning null on failure
  *
  * @param T 算术类型
  * @param caller 调用者名称
@@ -350,8 +326,7 @@ inline fun <reified T> resolveArithmeticConstantsOrNull(caller: String): Arithme
 }
 
 /**
- * 解析实数常量
- * Resolve real number constants
+ * 解析实数常量 / Resolve real number constants
  *
  * @param T 实数类型
  * @param caller 调用者名秌
@@ -363,8 +338,7 @@ inline fun <reified T> resolveRealNumberConstants(caller: String): Ret<RealNumbe
 }
 
 /**
- * 安全解析实数常量
- * Safely resolve real number constants
+ * 安全解析实数常量 / Safely resolve real number constants
  *
  * @param T 实数类型
  * @param caller 调用者名称
@@ -379,8 +353,7 @@ inline fun <reified T> resolveRealNumberConstantsSafe(caller: String): Ret<RealN
 }
 
 /**
- * 尝试解析实数常量，失败返回 null
- * Try resolving real number constants, returning null on failure
+ * 尝试解析实数常量，失败返回 null / Try resolving real number constants, returning null on failure
  *
  * @param T 实数类型
  * @param caller 调用者名称
@@ -395,8 +368,7 @@ inline fun <reified T> resolveRealNumberConstantsOrNull(caller: String): RealNum
 }
 
 /**
- * 解析浮点数常里
- * Resolve floating number constants
+ * 解析浮点数常里 / Resolve floating number constants
  *
  * @param T 浮点数类垌
  * @param caller 调用者名秌
@@ -408,8 +380,7 @@ inline fun <reified T> resolveFloatingNumberConstants(caller: String): Ret<Float
 }
 
 /**
- * 安全解析浮点数常量
- * Safely resolve floating number constants
+ * 安全解析浮点数常量 / Safely resolve floating number constants
  *
  * @param T 浮点数类型
  * @param caller 调用者名称
@@ -424,8 +395,7 @@ inline fun <reified T> resolveFloatingNumberConstantsSafe(caller: String): Ret<F
 }
 
 /**
- * 尝试解析浮点数常量，失败返回 null
- * Try resolving floating number constants, returning null on failure
+ * 尝试解析浮点数常量，失败返回 null / Try resolving floating number constants, returning null on failure
  *
  * @param T 浮点数类型
  * @param caller 调用者名称

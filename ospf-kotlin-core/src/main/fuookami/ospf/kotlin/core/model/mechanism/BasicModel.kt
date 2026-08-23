@@ -1,6 +1,5 @@
 /**
- * 模型基础层
- * Model base layer
+ * 模型基础层 / Model base layer
 */
 package fuookami.ospf.kotlin.core.model.mechanism
 
@@ -11,13 +10,10 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 模型层级结构的基础层：变量 + 约束 + 符号 + 缓存（无目标函数）。
- * Base layer of the model hierarchy: variables + constraints + symbols + caches (no objective).
+ * 模型层级结构的基础层：变量 + 约束 + 符号 + 缓存（无目标函数）。 / Base layer of the model hierarchy: variables + constraints + symbols + caches (no objective).
  *
  * 对应 Rust 实现中的 `BasicModel<V>`。
- * `MetaModel` 在此基础上扩展了目标函数和更高层语义。
- *
- * BasicModel delegates token storage to a [AbstractMutableTokenTable<V>] provided
+ * `MetaModel` 在此基础上扩展了目标函数和更高层语义。 / BasicModel delegates token storage to a [AbstractMutableTokenTable<V>] provided
  * at construction time -- the same mechanism used by MetaModel.
  *
  * This corresponds to `BasicModel<V>` in the Rust implementation.
@@ -41,8 +37,7 @@ open class BasicModel<V>(
     // ── Variable management ──────────────────────────────────────────────
 
     /**
-     * 添加变量项。
-     * Add a single variable item.
+     * 添加变量项。 / Add a single variable item.
      *
      * @param item 待添加的变量项 / The variable item to add
      * @return 操作结果 / The operation result
@@ -50,8 +45,7 @@ open class BasicModel<V>(
     open fun add(item: AbstractVariableItem<*, *>): Try = tokens.add(item)
 
     /**
-     * 批量添加变量项。
-     * Add variable items in batch.
+     * 批量添加变量项。 / Add variable items in batch.
      *
      * @param items 待添加的变量项集合 / The collection of variable items to add
      * @return 操作结果 / The operation result
@@ -61,8 +55,7 @@ open class BasicModel<V>(
     // ── Symbol management ────────────────────────────────────────────────
 
     /**
-     * 添加符号到模型。
-     * Add a symbol to the model.
+     * 添加符号到模型。 / Add a symbol to the model.
      *
      * @param symbol 待添加的符号 / The symbol to add
      * @return 操作结果 / The operation result
@@ -73,8 +66,7 @@ open class BasicModel<V>(
     }
 
     /**
-     * 添加符号及其依赖项到模型。
-     * Add a symbol and its dependencies to the model.
+     * 添加符号及其依赖项到模型。 / Add a symbol and its dependencies to the model.
      *
      * @param symbol       要添加的符号 / The symbol to add
      * @param dependencies 该符号所依赖的符号集合 / The set of symbols this symbol depends on
@@ -106,8 +98,7 @@ open class BasicModel<V>(
     }
 
     /**
-     * 从模型中移除符号。
-     * Remove a symbol from the model.
+     * 从模型中移除符号。 / Remove a symbol from the model.
      *
      * @param symbol 待移除的符号 / The symbol to remove
     */
@@ -119,8 +110,7 @@ open class BasicModel<V>(
     // ── Lifecycle ────────────────────────────────────────────────────────
 
     /**
-     * 刷新模型状态；当 [force] 为 `true` 时同时清除已缓存的求解结果。
-     * Flush model state; when [force] is `true`, also clear cached solution data.
+     * 刷新模型状态；当 [force] 为 `true` 时同时清除已缓存的求解结果。 / Flush model state; when [force] is `true`, also clear cached solution data.
      *
      * @param force 是否强制清除已缓存的求解结果 / Whether to force clear cached solution data
     */

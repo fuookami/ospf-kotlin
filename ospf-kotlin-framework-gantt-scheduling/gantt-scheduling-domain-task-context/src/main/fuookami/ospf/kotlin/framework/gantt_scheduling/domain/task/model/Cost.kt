@@ -132,7 +132,7 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
 /**
  * asMutable.
  * asMutable。
- * @return This cost as a MutableCost, or null if it is immutable / 将此成本转换为可变成本，不可变时返回null
+ * @return 将此成本转换为可变成本，不可变时返回null / This cost as a MutableCost, or null if it is immutable
 */
     fun asMutable(): MutableCost<V>? {
         return when (this) {

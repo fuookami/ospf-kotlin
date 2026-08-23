@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * Length derivation function: derive coil length from demand quantity and product properties.
  * 长度推导函数：从需求量和产品属性推导卷长
  *
- * @param V Numeric value type / 数值类型
+ * @param V 数值类型 / Numeric value type
 */
 fun interface LengthDerivation<V : RealNumber<V>> {
 
@@ -36,8 +36,8 @@ sealed interface LengthAssignmentConstraint<V : RealNumber<V>> {
      * Over-length constraint: product coil length must not exceed maxOverProduceLength.
      * 超长约束：产品卷长不得超过 maxOverProduceLength
      *
-     * @param V Numeric value type / 数值类型
-     * @property product Product subject to the constraint / 受约束的产品
+     * @param V 数值类型 / Numeric value type
+     * @property product 受约束的产品 / Product subject to the constraint
     */
     data class MaxOverLength<V : RealNumber<V>>(
         val product: Product<V>
@@ -47,9 +47,9 @@ sealed interface LengthAssignmentConstraint<V : RealNumber<V>> {
      * Minimum batch constraint: assigned batch count must not be below given value.
      * 最小批次约束：产品分配批次数不得低于给定值
      *
-     * @param V Numeric value type / 数值类型
-     * @property product Product subject to the constraint / 受约束的产品
-     * @property minBatches Minimum required batch count / 最小批次数
+     * @param V 数值类型 / Numeric value type
+     * @property product 受约束的产品 / Product subject to the constraint
+     * @property minBatches 最小批次数 / Minimum required batch count
     */
     data class MinBatchCount<V : RealNumber<V>>(
         val product: Product<V>,

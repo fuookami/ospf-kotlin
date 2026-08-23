@@ -1,11 +1,9 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /**
- * 日志上下文
- * Log Context
+ * 日志上下文 / Log Context
  *
- * 提供日志推送和保存的上下文管理。
- * Provides context management for log pushing and saving.
+ * 提供日志推送和保存的上下文管理。 / Provides context management for log pushing and saving.
 */
 package fuookami.ospf.kotlin.framework.log
 
@@ -22,14 +20,12 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.serialization.writeJson
 
 /**
- * 日志推送接口
- * Log pushing interface
+ * 日志推送接口 / Log pushing interface
 */
 interface Pushing {
 
     /**
-     * 推送日志记录（使用序列化器）
-     * Push log record (using serializer)
+     * 推送日志记录（使用序列化器） / Push log record (using serializer)
      *
      * @param value 日志记录 / Log record
      * @param serializer 序列化器 / Serializer
@@ -46,8 +42,7 @@ interface Pushing {
     }
 
     /**
-     * 推送日志记录（使用自定义序列化函数）
-     * Push log record (using custom serialization function)
+     * 推送日志记录（使用自定义序列化函数） / Push log record (using custom serialization function)
      *
      * @param value 日志记录 / Log record
      * @param serializer 自定义序列化函数 / Custom serialization function
@@ -58,8 +53,7 @@ interface Pushing {
 }
 
 /**
- * 推送日志记录（自动序列化）
- * Push log record (auto serialization)
+ * 推送日志记录（自动序列化） / Push log record (auto serialization)
  *
  * @param value 日志记录 / Log record
  * @param T 日志值类型 / Log value type
@@ -71,14 +65,12 @@ inline operator fun <reified T : Any> Pushing.invoke(value: LogRecordPO<T>): Try
 }
 
 /**
- * 日志保存接口
- * Log saving interface
+ * 日志保存接口 / Log saving interface
 */
 interface Saving {
 
     /**
-     * 保存日志记录（使用序列化器）
-     * Save log record (using serializer)
+     * 保存日志记录（使用序列化器） / Save log record (using serializer)
      *
      * @param value 日志记录 / Log record
      * @param serializer 序列化器 / Serializer
@@ -88,8 +80,7 @@ interface Saving {
     operator fun <T : Any> invoke(value: LogRecordPO<T>, serializer: KSerializer<T>): Try
 
     /**
-     * 保存日志记录（使用字符串序列化函数）
-     * Save log record (using string serialization function)
+     * 保存日志记录（使用字符串序列化函数） / Save log record (using string serialization function)
      *
      * @param value 日志记录 / Log record
      * @param serializer 字符串序列化函数 / String serialization function
@@ -103,8 +94,7 @@ interface Saving {
     }
 
     /**
-     * 保存日志记录（使用字节数组序列化函数）
-     * Save log record (using byte array serialization function)
+     * 保存日志记录（使用字节数组序列化函数） / Save log record (using byte array serialization function)
      *
      * @param value 日志记录 / Log record
      * @param serializer 字节数组序列化函数 / Byte array serialization function
@@ -119,8 +109,7 @@ interface Saving {
 }
 
 /**
- * 保存日志记录（自动序列化）
- * Save log record (auto serialization)
+ * 保存日志记录（自动序列化） / Save log record (auto serialization)
  *
  * @param value 日志记录 / Log record
  * @param T 日志值类型 / Log value type
@@ -132,8 +121,7 @@ inline operator fun <reified T : Any> Saving.invoke(value: LogRecordPO<T>): Try 
 }
 
 /**
- * 日志上下文构建器
- * Log context builder
+ * 日志上下文构建器 / Log context builder
  *
  * @property app 应用名 / Application name
  * @property version 版本 / Version
@@ -150,8 +138,7 @@ data class LogContextBuilder(
 ) {
 
     /**
-     * 构建日志上下文
-     * Build log context
+     * 构建日志上下文 / Build log context
      *
      * @return 日志上下文 / Log context
     */
@@ -167,8 +154,7 @@ data class LogContextBuilder(
 }
 
 /**
- * 日志上下文
- * Log context
+ * 日志上下文 / Log context
  *
  * @property app 应用名 / Application name
  * @property version 版本 / Version
@@ -187,8 +173,7 @@ class LogContext private constructor(
 
     companion object {
         /**
-         * 创建日志上下文
-         * Create log context
+         * 创建日志上下文 / Create log context
          *
          * @param app 应用名 / Application name
          * @param version 版本 / Version
@@ -215,8 +200,7 @@ class LogContext private constructor(
         }
 
         /**
-         * 通过构建器 DSL 创建日志上下文
-         * Create log context via builder DSL
+         * 通过构建器 DSL 创建日志上下文 / Create log context via builder DSL
          *
          * @param builder 构建器配置块 / Builder configuration block
          * @return 日志上下文 / Log context
@@ -236,8 +220,7 @@ class LogContext private constructor(
     }
 
     /**
-     * 推送日志（自动序列化）
-     * Push log (auto serialization)
+     * 推送日志（自动序列化） / Push log (auto serialization)
      *
      * @param step 步骤 / Step
      * @param value 日志值 / Log value
@@ -267,8 +250,7 @@ class LogContext private constructor(
     }
 
     /**
-     * 推送日志（使用序列化器）
-     * Push log (using serializer)
+     * 推送日志（使用序列化器） / Push log (using serializer)
      *
      * @param step 步骤 / Step
      * @param serializer 序列化器 / Serializer
@@ -299,8 +281,7 @@ class LogContext private constructor(
     }
 
     /**
-     * 推送日志（使用自定义序列化函数）
-     * Push log (using custom serialization function)
+     * 推送日志（使用自定义序列化函数） / Push log (using custom serialization function)
      *
      * @param step 步骤 / Step
      * @param serializer 自定义序列化函数 / Custom serialization function
@@ -348,8 +329,7 @@ class LogContext private constructor(
     }
 
     /**
-     * 保存日志（自动序列化）
-     * Save log (auto serialization)
+     * 保存日志（自动序列化） / Save log (auto serialization)
      *
      * @param step 步骤 / Step
      * @param value 日志值 / Log value
@@ -374,8 +354,7 @@ class LogContext private constructor(
     }
 
     /**
-     * 保存日志（使用序列化器）
-     * Save log (using serializer)
+     * 保存日志（使用序列化器） / Save log (using serializer)
      *
      * @param step 步骤 / Step
      * @param serializer 序列化器 / Serializer
@@ -423,8 +402,7 @@ class LogContext private constructor(
     }
 
     /**
-     * 保存日志（使用字符串序列化函数）
-     * Save log (using string serialization function)
+     * 保存日志（使用字符串序列化函数） / Save log (using string serialization function)
      *
      * @param step 步骤 / Step
      * @param serializer 字符串序列化函数 / String serialization function
@@ -473,8 +451,7 @@ class LogContext private constructor(
     }
 
     /**
-     * 保存日志（使用字节数组序列化函数）
-     * Save log (using byte array serialization function)
+     * 保存日志（使用字节数组序列化函数） / Save log (using byte array serialization function)
      *
      * @param step 步骤 / Step
      * @param serializer 字节数组序列化函数 / Byte array serialization function

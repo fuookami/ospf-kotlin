@@ -31,9 +31,9 @@ enum class Point {
  *
  * SCIP 求解器回调管理器
  *
- * @property nativeEventMask native event mask / 原生事件掩码
- * @property nativeCallback native callback function / 原生回调函数
- * @property map callback function map / 回调函数映射
+ * @property nativeEventMask 原生事件掩码 / native event mask
+ * @property nativeCallback 原生回调函数 / native callback function
+ * @property map 回调函数映射 / callback function map
 */
 class ScipSolverCallBack(
     internal var nativeEventMask: Long = EventMask.LP_EVENT or EventMask.NODE_EVENT or EventMask.SOL_EVENT,
@@ -102,8 +102,8 @@ class ScipSolverCallBack(
      *
      * 设置建模完成后的回调
      *
-     * @param function callback function / 回调函数
-     * @return current callback manager instance / 当前回调管理器实例
+     * @param function 回调函数 / callback function
+     * @return 当前回调管理器实例 / current callback manager instance
     */
     fun afterModeling(function: Function) = set(Point.AfterModeling, function)
 
@@ -112,8 +112,8 @@ class ScipSolverCallBack(
      *
      * 设置配置阶段的回调
      *
-     * @param function callback function / 回调函数
-     * @return current callback manager instance / 当前回调管理器实例
+     * @param function 回调函数 / callback function
+     * @return 当前回调管理器实例 / current callback manager instance
     */
     fun configuration(function: Function) = set(Point.Configuration, function)
 
@@ -122,8 +122,8 @@ class ScipSolverCallBack(
      *
      * 设置分析解阶段的回调
      *
-     * @param function callback function / 回调函数
-     * @return current callback manager instance / 当前回调管理器实例
+     * @param function 回调函数 / callback function
+     * @return 当前回调管理器实例 / current callback manager instance
     */
     fun analyzingSolution(function: Function) = set(Point.AnalyzingSolution, function)
 
@@ -132,8 +132,8 @@ class ScipSolverCallBack(
      *
      * 设置求解失败后的回调
      *
-     * @param function callback function / 回调函数
-     * @return current callback manager instance / 当前回调管理器实例
+     * @param function 回调函数 / callback function
+     * @return 当前回调管理器实例 / current callback manager instance
     */
     fun afterFailure(function: Function) = set(Point.AfterFailure, function)
 
@@ -142,8 +142,8 @@ class ScipSolverCallBack(
      *
      * 检查是否包含指定时机的回调
      *
-     * @param point callback point / 回调时机
-     * @return whether callbacks exist at the point / 是否存在该时机的回调
+     * @param point 回调时机 / callback point
+     * @return 是否存在该时机的回调 / whether callbacks exist at the point
     */
     fun contains(point: Point) = map.containsKey(point)
 
@@ -152,8 +152,8 @@ class ScipSolverCallBack(
      *
      * 获取指定时机的回调函数列表
      *
-     * @param point callback point / 回调时机
-     * @return callback function list or null / 回调函数列表或 null
+     * @param point 回调时机 / callback point
+     * @return 回调函数列表或 null / callback function list or null
     */
     fun get(point: Point): List<Function>? = map[point]
 

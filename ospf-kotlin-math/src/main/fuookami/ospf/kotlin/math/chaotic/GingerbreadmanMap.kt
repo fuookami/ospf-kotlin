@@ -1,6 +1,5 @@
 /**
- * 姜饼人映射
- * Gingerbreadman Map
+ * 姜饼人映射 / Gingerbreadman Map
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 姜饼人映射
- * Gingerbreadman Map
+ * 姜饼人映射 / Gingerbreadman Map
  *
  * @property one 常量 1 / Constant 1
 */
@@ -30,8 +28,7 @@ data class GingerbreadmanMap<V : FloatingNumber<V>>(val one: V) : Extractor<Poin
 }
 
 /**
- * 姜饼人映射生成器
- * Gingerbreadman Map Generator
+ * 姜饼人映射生成器 / Gingerbreadman Map Generator
  *
  * @property map 姜饼人映射实例 / Gingerbreadman map instance
 */

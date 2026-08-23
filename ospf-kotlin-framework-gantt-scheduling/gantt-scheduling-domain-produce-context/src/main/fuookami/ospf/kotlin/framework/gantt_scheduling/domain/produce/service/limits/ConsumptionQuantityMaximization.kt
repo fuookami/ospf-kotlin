@@ -3,7 +3,8 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.l
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -36,11 +37,11 @@ class ConsumptionQuantityMaximization<
     override val name: String = "consumption_quantity_maximization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
-        val cost = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
+        var cost = LinearPolynomial()
         for (material in materials) {
             val thresholdValue = threshold(material)
             if (thresholdValue eq Flt64.zero) {
-                cost += LinearMonomial(coefficient(material), consumption.quantity[material])
+                cost += coefficient(material) * consumption.quantity[material]
             } else {
                 val slack = produceSlack(
                     x = consumption.quantity[material],
@@ -61,11 +62,11 @@ class ConsumptionQuantityMaximization<
                         return Fatal(result.errors)
                     }
                 }
-                cost += LinearMonomial(coefficient(material), slack)
+                cost += coefficient(material) * slack
             }
         }
         when (val result = model.maximize(
-            polynomial = cost.toLinearPolynomial(),
+            polynomial = cost,
             name = "consumption quantity"
         )) {
             is Ok -> {}

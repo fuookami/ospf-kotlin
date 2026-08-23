@@ -1,13 +1,10 @@
 /**
- * 虚拟索引和向量模块
- * Dummy Index and Vector Module
+ * 虚拟索引和向量模块 / Dummy Index and Vector Module
  *
- * 本模块定义多维数组索引系统的核心类型，包括虚拟索引和向量类型。
- * This module defines core types for multi-dimensional array indexing system,
+ * 本模块定义多维数组索引系统的核心类型，包括虚拟索引和向量类型。 / This module defines core types for multi-dimensional array indexing system,
  * including dummy indices and vector types.
  *
- * 主要类型：
- * Main types:
+ * 主要类型： / Main types:
  * - [DummyIndex]: 虚拟索引，用于切片和视图操作
  *   Dummy index for slice and view operations
  * - [DummyIndexRange]: 虚拟索引范围接口
@@ -23,8 +20,7 @@
  * - [IteratorVector]: 迭代器向量类型别名
  *   Iterator vector type alias
  *
- * 虚拟索引类型：
- * Dummy index types:
+ * 虚拟索引类型： / Dummy index types:
  * - **All**: 表示该维度的所有元素（_a）
  *   Represents all elements in that dimension
  * - **Single**: 表示单个索引值
@@ -34,15 +30,13 @@
  * - **Discrete**: 表示离散索引集合
  *   Represents discrete index set
  *
- * 映射索引类型：
- * Map index types:
+ * 映射索引类型： / Map index types:
  * - **Map**: 将一个维度映射到另一个位置
  *   Maps one dimension to another position
  * - **Dummy**: 保持为虚拟索引
  *   Remains as dummy index
  *
- * 示例：
- * Example:
+ * 示例： / Example:
  * ```kotlin
  * // 使用虚拟索引创建视图
  * // Create view using dummy indices
@@ -61,55 +55,47 @@
 package fuookami.ospf.kotlin.multiarray
 
 /**
- * 虚拟索引范围接口
- * Dummy index range interface
+ * 虚拟索引范围接口 / Dummy index range interface
  *
- * 定义虚拟索引范围的行为，支持动态克隆。
- * Defines behavior for dummy index ranges, supporting dynamic cloning.
+ * 定义虚拟索引范围的行为，支持动态克隆。 / Defines behavior for dummy index ranges, supporting dynamic cloning.
 */
 interface DummyIndexRange {
 
     /**
-     * 获取范围的起始边界
-     * Get the start bound of the range
+     * 获取范围的起始边界 / Get the start bound of the range
      *
      * @return 范围的起始边界，null 表示无边界 / Start bound of the range, null means no bound
     */
     fun start(): Int?
 
     /**
-     * 获取范围的结束边界
-     * Get the end bound of the range
+     * 获取范围的结束边界 / Get the end bound of the range
      *
      * @return 范围的结束边界，null 表示无边界 / End bound of the range, null means no bound
     */
     fun end(): Int?
 
     /**
-     * 是否包含结束边界
-     * Whether the end bound is inclusive
+     * 是否包含结束边界 / Whether the end bound is inclusive
      *
-     * @return Whether the end bound is inclusive / 结束边界是否包含在内
+     * @return 结束边界是否包含在内 / Whether the end bound is inclusive
     */
     fun isInclusive(): Boolean = false
 
     /**
-     * 检查值是否在范围内
-     * Check if a value is contained in the range
+     * 检查值是否在范围内 / Check if a value is contained in the range
      *
-     * @param v Value to check / 要检查的值
-     * @param len Total length of the dimension / 维度的总长度
-     * @return Whether the value is contained in the range / 该值是否在范围内
+     * @param v 要检查的值 / Value to check
+     * @param len 维度的总长度 / Total length of the dimension
+     * @return 该值是否在范围内 / Whether the value is contained in the range
     */
     fun contains(v: Int, len: Int): Boolean
 }
 
 /**
- * 虚拟索引
- * Dummy index
+ * 虚拟索引 / Dummy index
  *
- * 表示多维数组的索引，支持三种形式：
- * Represents indices for multi-dimensional arrays, supporting three forms:
+ * 表示多维数组的索引，支持三种形式： / Represents indices for multi-dimensional arrays, supporting three forms:
  *
  * - `Index`: 单个索引，支持负数（从末尾计数）
  *   Single index, supports negative numbers (counting from the end)
@@ -123,38 +109,33 @@ interface DummyIndexRange {
 sealed class DummyIndex {
 
     /**
-     * 单个索引
-     * Single index
+     * 单个索引 / Single index
      *
      * @property index 索引值 / Index value
     */
     data class Index(val index: Int) : DummyIndex()
 
     /**
-     * 范围索引
-     * Range index
+     * 范围索引 / Range index
      *
      * @property range 虚拟索引范围 / Dummy index range
     */
     data class Range(val range: DummyIndexRange) : DummyIndex()
 
     /**
-     * 索引数组
-     * Index array
+     * 索引数组 / Index array
      *
      * @property indices 索引列表 / Index list
     */
     data class IndexArray(val indices: List<Int>) : DummyIndex()
 
     /**
-     * 全范围索引
-     * Full range index
+     * 全范围索引 / Full range index
     */
     data object All : DummyIndex()
 
     /**
-     * 计算虚拟索引在给定维度上的长度
-     * Calculate the length of dummy index in a given dimension
+     * 计算虚拟索引在给定维度上的长度 / Calculate the length of dummy index in a given dimension
      *
      * @param shape 形状
      * @param dimension 维度索引
@@ -176,8 +157,7 @@ sealed class DummyIndex {
     }
 
     /**
-     * 将虚拟索引转换为迭代器
-     * Convert dummy index to an iterator
+     * 将虚拟索引转换为迭代器 / Convert dummy index to an iterator
      *
      * @param shape 形状
      * @param dimension 维度索引
@@ -217,29 +197,26 @@ sealed class DummyIndex {
     }
 
     /**
-     * 计算实际边界值
-     * Calculate actual bound value
+     * 计算实际边界值 / Calculate actual bound value
      *
-     * 将边界值转换为实际索引值，支持负数索引（从末尾计数）。
-     * Converts bound value to actual index value, supporting negative indices (counting from the end).
+     * 将边界值转换为实际索引值，支持负数索引（从末尾计数）。 / Converts bound value to actual index value, supporting negative indices (counting from the end).
      *
      * @param bound 边界值，null 表示无边界 / Bound value, null means no bound
      * @param len 维度长度 / Dimension length
      * @return 实际边界值，null 表示无边界 / Actual bound value, null means no bound
     */
     private fun actualBound(bound: Int?, len: Int): Int? {
-        if (bound == null) return null
-        return if (bound >= 0) {
-            bound.coerceAtMost(len)
+        val b = bound ?: return null
+        return if (b >= 0) {
+            b.coerceAtMost(len)
         } else {
-            (len + bound).coerceAtLeast(0)
+            (len + b).coerceAtLeast(0)
         }
     }
 
     companion object {
         /**
-         * 从整数值创建单索引
-         * Create single index from integer value
+         * 从整数值创建单索引 / Create single index from integer value
          *
          * @param value 索引值 / Index value
          * @return 单索引 / Single index
@@ -260,8 +237,7 @@ sealed class DummyIndex {
         })
 
         /**
-         * 从整数列表创建索引数组
-         * Create index array from integer list
+         * 从整数列表创建索引数组 / Create index array from integer list
          *
          * @param indices 索引列表 / Index list
          * @return 索引数组 / Index array
@@ -269,8 +245,7 @@ sealed class DummyIndex {
         fun from(indices: List<Int>): DummyIndex = IndexArray(indices)
 
         /**
-         * 创建全范围索引
-         * Create full range index
+         * 创建全范围索引 / Create full range index
          *
          * @return 全范围索引 / Full range index
         */
@@ -279,41 +254,35 @@ sealed class DummyIndex {
 }
 
 /**
- * 虚拟索引迭代器
- * Dummy index iterator
+ * 虚拟索引迭代器 / Dummy index iterator
  *
- * 表示虚拟索引的迭代结果，支持三种模式：
- * Represents the iteration result of dummy indices, supporting three modes:
+ * 表示虚拟索引的迭代结果，支持三种模式： / Represents the iteration result of dummy indices, supporting three modes:
 */
 sealed class DummyIndexIterator {
 
     /**
-     * 单个索引
-     * Single index
+     * 单个索引 / Single index
      *
      * @property index 索引值 / Index value
     */
     data class Single(val index: Int) : DummyIndexIterator()
 
     /**
-     * 连续范围索引
-     * Continuous range indices
+     * 连续范围索引 / Continuous range indices
      *
      * @property range 整数范围 / Integer range
     */
     data class Continuous(val range: IntRange) : DummyIndexIterator()
 
     /**
-     * 离散索引集合
-     * Discrete index collection
+     * 离散索引集合 / Discrete index collection
      *
      * @property indices 索引列表 / Index list
     */
     data class Discrete(val indices: List<Int>) : DummyIndexIterator()
 
     /**
-     * 获取指定位置的索引值
-     * Get the index value at the specified position
+     * 获取指定位置的索引值 / Get the index value at the specified position
      *
      * @param i 位置索引
      * @return 该位置的索引值，如果超出范围则返回 null
@@ -327,10 +296,9 @@ sealed class DummyIndexIterator {
     }
 
     /**
-     * 获取迭代器的长度
-     * Get the length of the iterator
+     * 获取迭代器的长度 / Get the length of the iterator
      *
-     * @return Number of indices in this iterator / 迭代器中的索引数量
+     * @return 迭代器中的索引数量 / Number of indices in this iterator
     */
     fun len(): Int {
         return when (this) {
@@ -341,34 +309,29 @@ sealed class DummyIndexIterator {
     }
 
     /**
-     * 检查迭代器是否为空
-     * Check if the iterator is empty
+     * 检查迭代器是否为空 / Check if the iterator is empty
      *
-     * @return Whether the iterator has no indices / 迭代器是否为空
+     * @return 迭代器是否为空 / Whether the iterator has no indices
     */
     fun isEmpty(): Boolean = len() == 0
 }
 
 /**
- * 映射索引
- * Map index
+ * 映射索引 / Map index
  *
- * 用于维度转置和重映射操作。
- * Used for dimension transposition and remapping operations.
+ * 用于维度转置和重映射操作。 / Used for dimension transposition and remapping operations.
 */
 sealed class MapIndex {
 
     /**
-     * 虚拟索引
-     * Dummy index
+     * 虚拟索引 / Dummy index
      *
      * @property dummy 虚拟索引 / Dummy index
     */
     data class Dummy(val dummy: DummyIndex) : MapIndex()
 
     /**
-     * 映射占位符
-     * Map placeholder
+     * 映射占位符 / Map placeholder
      *
      * @property index 映射到的目标维度索引 / Target dimension index to map to
     */
@@ -385,8 +348,7 @@ sealed class MapIndex {
         fun from(dummy: DummyIndex): MapIndex = Dummy(dummy)
 
         /**
-         * 创建映射占位符
-         * Create map placeholder
+         * 创建映射占位符 / Create map placeholder
          *
          * @param index 目标维度索引 / Target dimension index
          * @return 映射索引 / Map index
@@ -396,25 +358,21 @@ sealed class MapIndex {
 }
 
 /**
- * 全范围虚拟索引的便捷访问对象
- * Convenience access object for full range dummy index
+ * 全范围虚拟索引的便捷访问对象 / Convenience access object for full range dummy index
 */
 val _a: DummyIndex.All get() = DummyIndex.All
 
 /**
- * 虚拟向量类型别名
- * Dummy vector type alias
+ * 虚拟向量类型别名 / Dummy vector type alias
 */
 typealias DummyVector = List<DummyIndex>
 
 /**
- * 映射向量类型别名
- * Map vector type alias
+ * 映射向量类型别名 / Map vector type alias
 */
 typealias MapVector = List<MapIndex>
 
 /**
- * 迭代器向量类型别名
- * Iterator vector type alias
+ * 迭代器向量类型别名 / Iterator vector type alias
 */
 typealias IteratorVector = List<DummyIndexIterator>

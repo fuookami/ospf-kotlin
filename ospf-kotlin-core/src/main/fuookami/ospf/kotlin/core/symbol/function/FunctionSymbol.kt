@@ -21,30 +21,23 @@ import fuookami.ospf.kotlin.core.variable.*
  *
  * 定义数学函数符号的基础接口（[MathFunctionSymbol]、[MathFunctionSymbolBase]）及
  * 线性函数符号适配器 [LinearFunctionSymbolAdapter]，用于将函数符号集成到
- * 中间符号体系中。
- *
- * Defines base interfaces for math function symbols ([MathFunctionSymbol],
+ * 中间符号体系中。 / Defines base interfaces for math function symbols ([MathFunctionSymbol],
  * [MathFunctionSymbolBase]) and the [LinearFunctionSymbolAdapter] for integrating
  * function symbols into the intermediate symbol system.
 */
 
 /**
- * 函数符号注册生命周期的 V 泛型基类。
- * V-generic base for function symbol registration lifecycle.
+ * 函数符号注册生命周期的 V 泛型基类。 / V-generic base for function symbol registration lifecycle.
  *
  * [registerAuxiliaryTokens] 与 [registerConstraints] 都在 V 类型边界上工作。
- * 实现会通过 [IntoValue]<V> 转换器，在内部构造约束时完成 V 与 Flt64 之间的转换。
- *
- * Both [registerAuxiliaryTokens] and [registerConstraints] operate on V-generic
+ * 实现会通过 [IntoValue]<V> 转换器，在内部构造约束时完成 V 与 Flt64 之间的转换。 / Both [registerAuxiliaryTokens] and [registerConstraints] operate on V-generic
  * boundaries. Implementations use their [IntoValue]<V> converter to convert
  * between V-generic data and Flt64 when constructing constraints internally.
  *
  * 运行时 token 集合与机制模型仍位于 Flt64 求解器边界，因此调用点会传入
  * `AddableTokenCollection<Flt64>` 与
  * `AbstractLinearMechanismModel<Flt64>`，
- * 它们也是 V 类型接口的子类型。
- *
- * At runtime, the token collection and mechanism model are always Flt64-based
+ * 它们也是 V 类型接口的子类型。 / At runtime, the token collection and mechanism model are always Flt64-based
  * (solver boundary), so call sites pass `AddableTokenCollection<Flt64>` and
  * `AbstractLinearMechanismModel<Flt64>` which are subtypes of the V-generic interfaces.
 */
@@ -66,8 +59,7 @@ interface MathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> 
 }
 
 /**
- * 可选接口，用于暴露结果多项式的 [MathFunctionSymbol] 实现。
- * Optional interface for [MathFunctionSymbol] implementations that expose
+ * 可选接口，用于暴露结果多项式的 [MathFunctionSymbol] 实现。 / Optional interface for [MathFunctionSymbol] implementations that expose
  * a result polynomial. [LinearFunctionSymbolAdapter] uses this to provide
  * a non-zero [polynomial] so that model.maximize(fn) and LinearPolynomial(fn)
  * produce the correct objective term.
@@ -83,10 +75,8 @@ interface HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
 }
 
 /**
- * 基于数学符号的函数符号的基础接口。
- * Base interface for math-symbol-based function symbols.
- * 每个函数符号创建辅助变量并生成线性约束。
- * Each function symbol creates helper variables and generates linear constraints.
+ * 基于数学符号的函数符号的基础接口。 / Base interface for math-symbol-based function symbols.
+ * 每个函数符号创建辅助变量并生成线性约束。 / Each function symbol creates helper variables and generates linear constraints.
  *
  * @param V 数值类型（必须实现 RealNumber 和 NumberField）/ the numeric type (must implement RealNumber and NumberField).
  * @property name 函数符号名称 / Function symbol name
@@ -97,16 +87,13 @@ interface MathFunctionSymbol<V> : MathFunctionSymbolBase<V> where V : RealNumber
     var displayName: String?
 
     /**
-     * 此函数创建的辅助变量（如正/负松弛变量）。
-     * Helper variables created by this function (e.g. pos/neg slack variables).
-     * 暴露出来以便框架在目标函数中引用它们。
-     * Exposed so the framework can reference them in objectives.
+     * 此函数创建的辅助变量（如正/负松弛变量）。 / Helper variables created by this function (e.g. pos/neg slack variables).
+     * 暴露出来以便框架在目标函数中引用它们。 / Exposed so the framework can reference them in objectives.
     */
     val helperVariables: List<AbstractVariableItem<*, *>>
 
     /**
-     * 在给定已解析的符号值下计算此函数符号。
-     * Evaluate this function symbol given resolved symbol values.
+     * 在给定已解析的符号值下计算此函数符号。 / Evaluate this function symbol given resolved symbol values.
      * @param values 符号到值的映射 / symbol-to-value mapping
      * @return 计算结果，若输入未解析则为 null / evaluation result, or null if input unresolved
     */
@@ -114,13 +101,11 @@ interface MathFunctionSymbol<V> : MathFunctionSymbolBase<V> where V : RealNumber
 }
 
 /**
- * 二次函数符号注册的内部非泛型基类。
- * Internal non-generic base for quadratic function symbol registration.
+ * 二次函数符号注册的内部非泛型基类。 / Internal non-generic base for quadratic function symbol registration.
  *
  * 镜像 [MathFunctionSymbolBase]，但用于二次机制模型。
  * Mirrors [MathFunctionSymbolBase] but for quadratic mechanism models.
- * 这是一个内部求解器边界接口。
- * This is an internal solver-boundary interface.
+ * 这是一个内部求解器边界接口。 / This is an internal solver-boundary interface.
 */
 internal interface QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
 
@@ -241,7 +226,7 @@ class LinearFunctionSymbolAdapter<V>(
 
     override val identifier: UInt64 get() = IdentifierGenerator.gen()
     override val index: Int get() = 0
-    override val category: Category get() = fuookami.ospf.kotlin.math.symbol.Linear
+    override val category: Category get() = Linear
     override val cached: Boolean get() = false
     override val dependencies: Set<IntermediateSymbol<*>> get() = emptySet()
     override val discrete: Boolean get() = false
@@ -267,14 +252,12 @@ class LinearFunctionSymbolAdapter<V>(
     override fun toRawString(unfold: UInt64): String = name
 
     /**
-     * 获取委托的结果多项式，若不存在则返回零多项式。
-     * Get the delegate's result polynomial, or a zero polynomial if unavailable.
+     * 获取委托的结果多项式，若不存在则返回零多项式。 / Get the delegate's result polynomial, or a zero polynomial if unavailable.
      *
      * @return 结果线性多项式 / result linear polynomial
     */
     /**
-     * 获取委托的结果多项式，若不存在则返回零多项式。
-     * Get the delegate's result polynomial, or a zero polynomial if unavailable.
+     * 获取委托的结果多项式，若不存在则返回零多项式。 / Get the delegate's result polynomial, or a zero polynomial if unavailable.
      *
      * @return 结果线性多项式 / result linear polynomial
     */

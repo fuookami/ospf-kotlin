@@ -379,18 +379,18 @@ interface ExtractBunchCompilationContext<
 /**
  * Registers the extract context to the meta model.
  * 将提取上下文注册到元模型。
- * @param model Meta model to register into / 要注册的元模型
- * @return Success or failure of the registration / 注册操作的成功或失败
+ * @param model 要注册的元模型 / Meta model to register into
+ * @return 注册操作的成功或失败 / Success or failure of the registration
 */
     fun register(model: MetaModel<Flt64>): Try
 
 /**
  * Adds new bunch columns to the model in the extract context.
  * 在提取上下文中向模型添加新的任务束列。
- * @param iteration Iteration number / 迭代编号
- * @param newBunches New bunches to add as columns / 要作为列添加的新任务束列表
- * @param model Linear meta model / 线性元模型
- * @return Success or failure of the column addition / 列添加操作的成功或失败
+ * @param iteration 迭代编号 / Iteration number
+ * @param newBunches 要作为列添加的新任务束列表 / New bunches to add as columns
+ * @param model 线性元模型 / Linear meta model
+ * @return 列添加操作的成功或失败 / Success or failure of the column addition
 */
     fun addColumns(
         iteration: UInt64,
@@ -401,10 +401,10 @@ interface ExtractBunchCompilationContext<
 /**
  * Extracts shadow prices from the dual solution in the extract context.
  * 在提取上下文中从对偶解提取影子价格。
- * @param shadowPriceMap Shadow price map to populate / 要填充的影子价格映射
- * @param model Solved linear meta model / 已求解的线性元模型
- * @param shadowPrices Dual solution from the solver / 求解器的对偶解
- * @return Success or failure of the extraction / 提取操作的成功或失败
+ * @param shadowPriceMap 要填充的影子价格映射 / Shadow price map to populate
+ * @param model 已求解的线性元模型 / Solved linear meta model
+ * @param shadowPrices 求解器的对偶解 / Dual solution from the solver
+ * @return 提取操作的成功或失败 / Success or failure of the extraction
 */
     fun extractShadowPrice(
         shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
@@ -415,9 +415,9 @@ interface ExtractBunchCompilationContext<
 /**
  * Logs the current iteration result in the extract context.
  * 在提取上下文中记录当前迭代结果。
- * @param iteration Iteration number / 迭代编号
- * @param model Solved linear meta model / 已求解的线性元模型
- * @return Success or failure of the logging / 日志记录操作的成功或失败
+ * @param iteration 迭代编号 / Iteration number
+ * @param model 已求解的线性元模型 / Solved linear meta model
+ * @return 日志记录操作的成功或失败 / Success or failure of the logging
 */
     fun logResult(iteration: UInt64, model: AbstractLinearMetaModel<Flt64>): Try {
         return ok

@@ -302,9 +302,9 @@ class DefaultCsp1dSolutionAnalyzer<V : RealNumber<V>> : Csp1dSolutionAnalyzer<V>
 /**
  * renderCuttingPlan.
  * renderCuttingPlan。
- * @param plan the cutting plan to render / 要渲染的切割方案
- * @param amount the number of times this cutting plan is selected / 该切割方案被选中的使用次数
- * @return the rendered cutting plan DTO / 渲染后的切割方案数据传输对象
+ * @param plan 要渲染的切割方案 / the cutting plan to render
+ * @param amount 该切割方案被选中的使用次数 / the number of times this cutting plan is selected
+ * @return 渲染后的切割方案数据传输对象 / the rendered cutting plan DTO
 */
     private fun renderCuttingPlan(
         plan: CuttingPlan<V>,
@@ -341,11 +341,11 @@ class DefaultCsp1dSolutionAnalyzer<V : RealNumber<V>> : Csp1dSolutionAnalyzer<V>
 /**
  * Converts to renderProductionDto.
  * 转换为RenderProductionDto。
- * @param production the production item (Product or Costar) to convert / 要转换的生产项（产品或伴生物）
- * @param x the horizontal offset of this production in the cutting plan / 该生产项在切割方案中的水平偏移量
- * @param width the width of this production slice / 该生产切片的宽度
- * @param amount the quantity of this production item / 该生产项的数量
- * @return the rendered cutting plan production DTO / 渲染后的切割方案生产项数据传输对象
+ * @param production 要转换的生产项（产品或伴生物） / the production item (Product or Costar) to convert
+ * @param x 该生产项在切割方案中的水平偏移量 / the horizontal offset of this production in the cutting plan
+ * @param width 该生产切片的宽度 / the width of this production slice
+ * @param amount 该生产项的数量 / the quantity of this production item
+ * @return 渲染后的切割方案生产项数据传输对象 / the rendered cutting plan production DTO
 */
     @Suppress("UNCHECKED_CAST")
     private fun toRenderProductionDto(

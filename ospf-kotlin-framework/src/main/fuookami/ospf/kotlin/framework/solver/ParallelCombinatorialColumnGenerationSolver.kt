@@ -1,23 +1,28 @@
 /**
- * 并行组合列生成求解器
- * Parallel Combinatorial Column Generation Solver
+ * 并行组合列生成求解器 / Parallel Combinatorial Column Generation Solver
  *
- * 将多个列生成求解器并行运行，取第一个或最优结果。
- * Runs multiple column generation solvers in parallel, taking the first or best result.
+ * 将多个列生成求解器并行运行，取第一个或最优结果。 / Runs multiple column generation solvers in parallel, taking the first or best result.
 */
 package fuookami.ospf.kotlin.framework.solver
 
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.error.SolverNotFoundError
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.core.solver.report.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 并行组合列生成求解器
- * Parallel combinatorial column generation solver
+ * 并行组合列生成求解器 / Parallel combinatorial column generation solver
  *
  * @property solvers 列生成求解器列表（懒加载） / Column generation solver list (lazy loaded)
  * @property mode 并行组合模式，默认 Best / Parallel combinatorial mode, default Best
@@ -33,9 +38,9 @@ class ParallelCombinatorialColumnGenerationSolver(
          * Construct from an iterable of solvers.
          * 从求解器可迭代集合构造。
          *
-         * @param solvers the solvers to combine / 要组合的求解器
-         * @param mode the combinatorial mode, default Best / 组合模式，默认 Best
-         * @return the parallel combinatorial solver / 并行组合求解器
+         * @param solvers 要组合的求解器 / the solvers to combine
+         * @param mode 组合模式，默认 Best / the combinatorial mode, default Best
+         * @return 并行组合求解器 / the parallel combinatorial solver
         */
         @JvmName("constructBySolvers")
         operator fun invoke(
@@ -49,9 +54,9 @@ class ParallelCombinatorialColumnGenerationSolver(
          * Construct from a list of solver provider functions.
          * 从求解器提供函数列表构造。
          *
-         * @param solvers the solver provider functions / 求解器提供函数列表
-         * @param mode the combinatorial mode, default Best / 组合模式，默认 Best
-         * @return the parallel combinatorial solver / 并行组合求解器
+         * @param solvers 求解器提供函数列表 / the solver provider functions
+         * @param mode 组合模式，默认 Best / the combinatorial mode, default Best
+         * @return 并行组合求解器 / the parallel combinatorial solver
         */
         @JvmName("constructBySolverExtractors")
         operator fun invoke(
@@ -70,10 +75,10 @@ class ParallelCombinatorialColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Flt64FeasibleSolverOutput> {
+    ): Ret<Flt64SolveReport> {
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: Flt64FeasibleSolverOutput? = null
+                var result: Flt64SolveReport? = null
                 val lock = Any()
                 try {
                     coroutineScope {
@@ -162,11 +167,11 @@ class ParallelCombinatorialColumnGenerationSolver(
                     if (successResults.isNotEmpty()) {
                         val bestResult = when (metaModel.objectCategory) {
                             ObjectCategory.Minimum -> {
-                                successResults.minBy { it.obj }
+                                successResults.minBy { it.solution?.objective ?: Flt64.zero }
                             }
 
                             ObjectCategory.Maximum -> {
-                                successResults.maxBy { it.obj }
+                                successResults.maxBy { it.solution?.objective ?: Flt64.zero }
                             }
                         }
                         Ok(bestResult)

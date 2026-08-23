@@ -20,8 +20,7 @@ import com.google.devtools.ksp.processing.SymbolProcessorProvider
 class PredicateSchemaProcessorProvider : SymbolProcessorProvider {
 
     /**
-     * 创建谓词 schema 处理器
-     * Create predicate schema processor
+     * 创建谓词 schema 处理器 / Create predicate schema processor
      *
      * @param environment KSP 处理器环境 / KSP processor environment
      * @return 谓词 schema 处理器实例 / Predicate schema processor instance
@@ -51,8 +50,7 @@ internal const val ColumnBinderPackage =
     "fuookami.ospf.kotlin.framework.persistence.expression"
 
 /**
- * 谓词属性信息
- * Predicate property information
+ * 谓词属性信息 / Predicate property information
  *
  * @property propertyName 原始属性名 / Original property name
  * @property backendName 后端字段名 / Backend field name

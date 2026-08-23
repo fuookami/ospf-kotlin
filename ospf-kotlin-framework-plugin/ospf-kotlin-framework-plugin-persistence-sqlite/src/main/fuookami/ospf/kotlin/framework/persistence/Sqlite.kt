@@ -1,9 +1,7 @@
 /**
- * SQLite 数据库客户端管理
- * SQLite database client management
+ * SQLite 数据库客户端管理 / SQLite database client management
  *
- * 提供 SQLite 数据源的初始化和管理功能。
- * Provides SQLite datasource initialization and management functionality.
+ * 提供 SQLite 数据源的初始化和管理功能。 / Provides SQLite datasource initialization and management functionality.
 */
 package fuookami.ospf.kotlin.framework.persistence
 
@@ -95,19 +93,16 @@ data class SqliteConfig(
 }
 
 /**
- * SQLite 客户端管理器
- * SQLite client manager
+ * SQLite 客户端管理器 / SQLite client manager
  *
- * 管理多个 SQLite 数据源实例，按名称索引。
- * Manages multiple SQLite datasource instances, indexed by name.
+ * 管理多个 SQLite 数据源实例，按名称索引。 / Manages multiple SQLite datasource instances, indexed by name.
 */
 object Sqlite {
     @get:Synchronized
     private val clients: MutableMap<SqliteClientKey, BasicDataSource> = HashMap()
 
     /**
-     * 初始化并获取 SQLite 数据库连接
-     * Initialize and get SQLite database connection
+     * 初始化并获取 SQLite 数据库连接 / Initialize and get SQLite database connection
      *
      * @param builder 配置构建器 lambda / Configuration builder lambda
      * @return Ktorm 数据库实例，初始化失败时返回 null / Ktorm database instance, or null if initialization fails
@@ -120,8 +115,7 @@ object Sqlite {
     }
 
     /**
-     * 获取或创建 SQLite 数据库连接
-     * Get or create SQLite database connection
+     * 获取或创建 SQLite 数据库连接 / Get or create SQLite database connection
      *
      * @param config SQLite 配置 / SQLite configuration
      * @return Ktorm 数据库实例，创建失败时返回 null / Ktorm database instance, or null if creation fails
@@ -152,8 +146,7 @@ object Sqlite {
     }
 
     /**
-     * 按键获取已注册的 SQLite 数据库连接
-     * Get registered SQLite database connection by key
+     * 按键获取已注册的 SQLite 数据库连接 / Get registered SQLite database connection by key
      *
      * @param key 客户端键（为 null 时返回第一个）/ Client key (returns first if null)
      * @return Ktorm 数据库实例，未找到时返回 null / Ktorm database instance, or null if not found
@@ -170,8 +163,7 @@ object Sqlite {
     }
 
     /**
-     * 按名称获取已注册的 SQLite 数据库连接
-     * Get registered SQLite database connection by name
+     * 按名称获取已注册的 SQLite 数据库连接 / Get registered SQLite database connection by name
      *
      * @param name 客户端名称 / Client name
      * @return Ktorm 数据库实例，未找到时返回 null / Ktorm database instance, or null if not found

@@ -8,6 +8,7 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.Duration.Companion.minutes
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.nextFlt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
@@ -26,7 +27,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
 /** 粒子群优化器策略接口 / Particle Swarm Optimizer policy interface */
 interface AbstractPSOPolicy<ObjValue, V> :
-    AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+    AbstractHeuristicPolicy where V : RealNumber<V>, V : NumberField<V> {
 
     /**
      * 加速粒子 / Accelerate particle
@@ -48,9 +49,7 @@ interface AbstractPSOPolicy<ObjValue, V> :
 /**
  * 粒子群优化器策略
  *
- * 实现粒子群优化的加速操作，使用惯性权重、局部学习因子和全局学习因子控制粒子运动。
- *
- * Particle Swarm Optimizer policy
+ * 实现粒子群优化的加速操作，使用惯性权重、局部学习因子和全局学习因子控制粒子运动。 / Particle Swarm Optimizer policy
  *
  * Implements acceleration operation for PSO, using inertia weight, local learning factor,
  * and global learning factor to control particle movement.
@@ -71,13 +70,13 @@ open class PSOPolicy<ObjValue, V>(
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
-    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
+    val randomGenerator: Generator<Flt64> = Generator { Random.nextFlt64() },
     private val converter: IntoValue<V>
 ) : HeuristicPolicy(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
-), AbstractPSOPolicy<ObjValue, V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+), AbstractPSOPolicy<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun invoke(
             w: Flt64 = Flt64(0.4),
@@ -87,7 +86,7 @@ open class PSOPolicy<ObjValue, V>(
             iterationLimit: UInt64 = UInt64.maximum,
             notBetterIterationLimit: UInt64 = UInt64.maximum,
             timeLimit: Duration = 30.minutes,
-            randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
+            randomGenerator: Generator<Flt64> = Generator { Random.nextFlt64() }
         ): PSOPolicy<Flt64, Flt64> {
             return PSOPolicy(
                 w = w,
@@ -139,9 +138,7 @@ open class PSOPolicy<ObjValue, V>(
 /**
  * 粒子群优化算法
  *
- * 实现基于粒子群的优化算法，每个粒子根据个体最优和全局最优更新位置和速度。
- *
- * Particle Swarm Optimization algorithm
+ * 实现基于粒子群的优化算法，每个粒子根据个体最优和全局最优更新位置和速度。 / Particle Swarm Optimization algorithm
  *
  * Implements swarm-based optimization algorithm, where each particle updates its position
  * and velocity based on personal best and global best.
@@ -159,7 +156,7 @@ class ParticleSwarmOptimizationAlgorithm<Obj, ObjValue, V>(
     val policy: AbstractPSOPolicy<ObjValue, V>,
     // converter must be provided explicitly; use PSOPolicy.Flt64 companion for V=Flt64 convenience / 转换器必须显式提供；V=Flt64 时可使用 PSOPolicy.Flt64 伴生对象
     private val converter: IntoValue<V>
-) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun invoke(
             particleAmount: UInt64 = UInt64(100UL),
@@ -185,7 +182,7 @@ class ParticleSwarmOptimizationAlgorithm<Obj, ObjValue, V>(
     */
     operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, ObjValue, V>,
-        initialVelocityGenerator: Extractor<Flt64, UInt64> = { Random.nextFlt64(Flt64.two) - Flt64.one },
+        initialVelocityGenerator: Extractor<Flt64, UInt64> = Extractor { Random.nextFlt64(Flt64.two) - Flt64.one },
         runningCallBack: ((Iteration, Particle<ObjValue, V>, List<Particle<ObjValue, V>>) -> Try)? = null
     ): List<Individual<ObjValue, V>> {
         val iteration = Iteration()

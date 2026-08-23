@@ -36,12 +36,12 @@ class TransferPlan internal constructor(
         /**
          * 使用给定参数创建 [TransferPlan]，为单飞机集调整状态。Creates a [TransferPlan] with the given parameters, adjusting status for single-aircraft sets.
          *
-         * @param dep The departure airport / 出发机场
-         * @param arr The arrival airport / 到达机场
-         * @param timeWindow The time window for the transfer / 中转的时间窗口
-         * @param aircrafts The set of enabled aircraft / 启用的飞机集合
-         * @param duration The optional flight duration / 可选的飞行时长
-         * @return The created transfer plan / 创建的中转计划
+         * @param dep 出发机场 / The departure airport
+         * @param arr 到达机场 / The arrival airport
+         * @param timeWindow 中转的时间窗口 / The time window for the transfer
+         * @param aircrafts 启用的飞机集合 / The set of enabled aircraft
+         * @param duration 可选的飞行时长 / The optional flight duration
+         * @return 创建的中转计划 / The created transfer plan
         */
         operator fun invoke(
             dep: Airport,
@@ -89,8 +89,8 @@ class TransferPlan internal constructor(
     /**
      * 检查给定飞机是否对此中转计划启用。Checks whether the given aircraft is enabled for this transfer plan.
      *
-     * @param aircraft The aircraft to check / 要检查的飞机
-     * @return true if the aircraft is enabled, false otherwise / 如果飞机启用则为true，否则为false
+     * @param aircraft 要检查的飞机 / The aircraft to check
+     * @return 如果飞机启用则为true，否则为false / true if the aircraft is enabled, false otherwise
     */
     fun enabled(aircraft: Aircraft): Boolean {
         return enabledAircrafts.contains(aircraft)
@@ -113,8 +113,8 @@ class Transfer internal constructor(
         /**
          * 从计划创建 [Transfer]（恒等构造函数）。Creates a [Transfer] from a plan (identity constructor).
          *
-         * @param plan The transfer plan / 中转计划
-         * @return The created transfer / 创建的中转
+         * @param plan 中转计划 / The transfer plan
+         * @return 创建的中转 / The created transfer
         */
         operator fun invoke(plan: Transfer): Transfer {
             return Transfer(plan = plan)
@@ -123,9 +123,9 @@ class Transfer internal constructor(
         /**
          * 创建应用给定恢复策略的已恢复 [Transfer]。Creates a recovered [Transfer] applying the given recovery policy.
          *
-         * @param origin The original transfer / 原始中转
-         * @param recoveryPolicy The recovery policy assignment / 恢复策略分配
-         * @return The recovered transfer instance / 恢复后的中转实例
+         * @param origin 原始中转 / The original transfer
+         * @param recoveryPolicy 恢复策略分配 / The recovery policy assignment
+         * @return 恢复后的中转实例 / The recovered transfer instance
         */
         operator fun invoke(origin: Transfer, recoveryPolicy: FlightTaskAssignment): Transfer {
             val recoveryAircraft =

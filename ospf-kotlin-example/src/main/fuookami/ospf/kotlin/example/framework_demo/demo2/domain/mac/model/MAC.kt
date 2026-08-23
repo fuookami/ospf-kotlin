@@ -1,9 +1,10 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -21,7 +22,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
  * Computes the Mean Aerodynamic Chord (MAC) percentage as a linear intermediate symbol.
  * 将平均气动弦（MAC）百分比计算为线性中间符号。
  *
- * @property mac The linear intermediate symbol representing the MAC percentage / 表示 MAC 百分比的线性中间符号
+ * @property mac 表示 MAC 百分比的线性中间符号 / The linear intermediate symbol representing the MAC percentage
 */
 class MAC(
     private val aircraftModel: AircraftModel,
@@ -35,8 +36,8 @@ class MAC(
      * Registers the MAC symbol into the optimization model.
      * 将 MAC 符号注册到优化模型中。
      *
-     * @param model The linear meta-model to register the MAC symbol into / 要注册 MAC 符号的线性元模型
-     * @return [Try] indicating success or failure / 表示成功或失败
+     * @param model 要注册 MAC 符号的线性元模型 / The linear meta-model to register the MAC symbol into
+     * @return 表示成功或失败 / [Try] indicating success or failure
     */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
@@ -49,7 +50,7 @@ class MAC(
                     formula.mac(
                         Quantity(
                             LinearPolynomial(
-                                monomials = listOf(LinearMonomial(Flt64.one, index.value)),
+                                monomials = listOf(Flt64.one * index.value),
                                 constant = Flt64.zero
                             ),
                             index.unit
@@ -66,13 +67,13 @@ class MAC(
             }
         }
         when (val result = model.add(mac)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                 return Failed(result.error)
             }
 
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Fatal -> {
                 return Fatal(result.errors)
             }
         }

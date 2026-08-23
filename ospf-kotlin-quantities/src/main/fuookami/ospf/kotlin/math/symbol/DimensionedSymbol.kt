@@ -1,9 +1,7 @@
 /**
- * 携带量纲信息的符号
- * Symbol with Dimension Information
+ * 携带量纲信息的符号 / Symbol with Dimension Information
  *
- * 用于量纲语义校验，确保符号表达式具备物理意义。
- * Used for dimension semantic validation to ensure symbol expressions have physical meaning.
+ * 用于量纲语义校验，确保符号表达式具备物理意义。 / Used for dimension semantic validation to ensure symbol expressions have physical meaning.
  *
  * 主要用途 / Main use cases:
  * - 在符号表达式中携带量纲信息 / Carry dimension information in symbol expressions
@@ -23,11 +21,9 @@ import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.dimension.*
 
 /**
- * 携带量纲信息的符号
- * Symbol with dimension information
+ * 携带量纲信息的符号 / Symbol with dimension information
  *
- * 用于量纲语义校验，确保符号表达式具备物理意义。
- * Used for dimension semantic validation to ensure symbol expressions have physical meaning.
+ * 用于量纲语义校验，确保符号表达式具备物理意义。 / Used for dimension semantic validation to ensure symbol expressions have physical meaning.
  *
  * 示例 / Example:
  * ```kotlin
@@ -52,11 +48,9 @@ data class DimensionedSymbol(
 ) : Symbol {
 
     /**
-     * 检查是否可以与另一个符号相加
-     * Check if this symbol can be added to another
+     * 检查是否可以与另一个符号相加 / Check if this symbol can be added to another
      *
-     * 只有量纲相同的符号才能相加。
-     * Only symbols with the same dimension can be added.
+     * 只有量纲相同的符号才能相加。 / Only symbols with the same dimension can be added.
      *
      * 示例 / Example:
      * ```kotlin
@@ -76,8 +70,7 @@ data class DimensionedSymbol(
     }
 
     /**
-     * 与另一个符号相乘得到的新量纲
-     * Get the resulting dimension from multiplying with another symbol
+     * 与另一个符号相乘得到的新量纲 / Get the resulting dimension from multiplying with another symbol
      *
      * 示例 / Example:
      * ```kotlin
@@ -94,8 +87,7 @@ data class DimensionedSymbol(
     }
 
     /**
-     * 除以另一个符号得到的新量纲
-     * Get the resulting dimension from dividing by another symbol
+     * 除以另一个符号得到的新量纲 / Get the resulting dimension from dividing by another symbol
      *
      * 示例 / Example:
      * ```kotlin

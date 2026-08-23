@@ -1,10 +1,8 @@
 /**
- * Flt64 不等式规范化
- * Flt64 Inequality Normalization
+ * Flt64 不等式规范化 / Flt64 Inequality Normalization
  *
  * 提供 Flt64 线性和二次不等式的规范化操作。
- * 将不等式两侧归并为左侧减右侧、右侧为零的标准形式。
- * Provides normalization operations for Flt64 linear and quadratic inequalities.
+ * 将不等式两侧归并为左侧减右侧、右侧为零的标准形式。 / Provides normalization operations for Flt64 linear and quadratic inequalities.
  * Standardizes inequalities to LHS-minus-RHS form with zero on the right-hand side.
 */
 package fuookami.ospf.kotlin.math.symbol.operation
@@ -16,8 +14,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
- * 将 Flt64 线性不等式规范化为标准形式（LHS - RHS <= 0）
- * Normalize a Flt64 linear inequality to standard form (LHS - RHS <= 0)
+ * 将 Flt64 线性不等式规范化为标准形式（LHS - RHS <= 0） / Normalize a Flt64 linear inequality to standard form (LHS - RHS <= 0)
  *
  * @receiver 待规范化的线性不等式 / The linear inequality to normalize
  * @return 规范化的不等式 / Normalized inequality
@@ -31,8 +28,7 @@ fun LinearInequality<Flt64>.normalize(): LinearInequality<Flt64> {
 }
 
 /**
- * 将 Flt64 二次不等式规范化为标准形式（LHS - RHS <= 0）
- * Normalize a Flt64 quadratic inequality to standard form (LHS - RHS <= 0)
+ * 将 Flt64 二次不等式规范化为标准形式（LHS - RHS <= 0） / Normalize a Flt64 quadratic inequality to standard form (LHS - RHS <= 0)
  *
  * @receiver 待规范化的二次不等式 / The quadratic inequality to normalize
  * @return 规范化的不等式 / Normalized inequality

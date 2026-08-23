@@ -7,26 +7,28 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  * Aggregated business objective parameters for the stowage optimization model.
  * 配载优化模型的聚合业务目标参数。
  *
- * @property macRangeC Weight coefficient for MAC range optimization. / 重心范围优化权重系数
- * @property longitudinalBalance Weight coefficient for longitudinal balance. / 纵向平衡权重系数
+ * @property macRangeC 重心范围优化权重系数 / Weight coefficient for MAC range optimization.
+ * @property longitudinalBalance 纵向平衡权重系数 / Weight coefficient for longitudinal balance.
  * @property B737LongitudinalBalance Weight coefficient for B737-specific longitudinal balance. / B737 专用纵向平衡权重系数
- * @property lateralBalance Weight coefficient for lateral balance. / 横向平衡权重系数
- * @property horizontalStabilizerWarn Weight coefficient for horizontal stabilizer warning. / 水平安定面警告权重系数
- * @property ballastWeight Weight coefficient for ballast weight penalty. / 压舱重量惩罚权重系数
- * @property emptyHated Weight coefficient for empty position penalty. / 空舱位惩罚权重系数
- * @property besideDoorMainPosition Weight coefficient for beside-door main position preference. / 门旁主舱位偏好权重系数
- * @property dividedEmpty Weight coefficient for divided empty position penalty. / 分隔空位惩罚权重系数
- * @property adviceLoadAmount Weight coefficient for advised load amount. / 建议装载量权重系数
- * @property adviceLoadWeight Weight coefficient for advised load weight. / 建议装载重量权重系数
- * @property sameFlowTransferIn Weight coefficient for same-flow transfer-in preference. / 同流向转入偏好权重系数
- * @property sameFlowTransferOut Weight coefficient for same-flow transfer-out preference. / 同流向转出偏好权重系数
- * @property itemOrder Weight coefficient for item ordering preference. / 货物排序偏好权重系数
- * @property trailerChange Weight coefficient for trailer change penalty. / 拖车更换惩罚权重系数
- * @property trailerCircling Weight coefficient for trailer circling penalty. / 拖车绕行惩罚权重系数
- * @property priority Weight coefficient for cargo priority. / 货物优先级权重系数
- * @property priorityCategory Weight coefficient for priority category. / 优先级类别权重系数
- * @property experimentalLongitudinalBalance Weight coefficient for experimental longitudinal balance in redundancy. / 余度中实验性纵向平衡权重系数
- * @property redundancyRange Weight coefficient for redundancy range. / 余度范围权重系数
+ * @property lateralBalance 横向平衡权重系数 / Weight coefficient for lateral balance.
+ * @property horizontalStabilizerWarn 水平安定面警告权重系数 / Weight coefficient for horizontal stabilizer warning.
+ * @property ballastWeight 压舱重量惩罚权重系数 / Weight coefficient for ballast weight penalty.
+ * @property emptyHated 空舱位惩罚权重系数 / Weight coefficient for empty position penalty.
+ * @property besideDoorMainPosition 门旁主舱位偏好权重系数 / Weight coefficient for beside-door main position preference.
+ * @property dividedEmpty 分隔空位惩罚权重系数 / Weight coefficient for divided empty position penalty.
+ * @property adviceLoadAmount 建议装载量权重系数 / Weight coefficient for advised load amount.
+ * @property adviceLoadWeight 建议装载重量权重系数 / Weight coefficient for advised load weight.
+ * @property sameFlowTransferIn 同流向转入偏好权重系数 / Weight coefficient for same-flow transfer-in preference.
+ * @property sameFlowTransferOut 同流向转出偏好权重系数 / Weight coefficient for same-flow transfer-out preference.
+ * @property itemOrder 货物排序偏好权重系数 / Weight coefficient for item ordering preference.
+ * @property trailerChange 拖车更换惩罚权重系数 / Weight coefficient for trailer change penalty.
+ * @property trailerCircling 拖车绕行惩罚权重系数 / Weight coefficient for trailer circling penalty.
+ * @property priority 货物优先级权重系数 / Weight coefficient for cargo priority.
+ * @property priorityCategory 优先级类别权重系数 / Weight coefficient for priority category.
+ * @property experimentalLongitudinalBalance 余度中实验性纵向平衡权重系数 / Weight coefficient for experimental longitudinal balance in redundancy.
+ * @property redundancyRange 余度范围权重系数 / Weight coefficient for redundancy range.
+ * @property weightRecommendationBalance 重量推荐的均衡偏差惩罚系数 / Penalty coefficient for weight-recommendation balance deviation.
+ * @property weightRecommendationPayload 重量推荐的载荷奖励系数 / Reward coefficient for weight-recommendation payload.
 */
 data class Parameter(
     // 业务目标参数：重心优化上下文
@@ -54,6 +56,9 @@ data class Parameter(
     // 业务目标参数：余度上下文
     val experimentalLongitudinalBalance: Flt64,
     val redundancyRange: Flt64,
+    // 业务目标参数：重量推荐上下文
+    val weightRecommendationBalance: Flt64,
+    val weightRecommendationPayload: Flt64
 ) {
 
     /**
@@ -87,8 +92,34 @@ data class Parameter(
             // 业务目标参数：余度上下文
             experimentalLongitudinalBalance: Flt64? = null,
             redundancyRange: Flt64? = null,
+            // 业务目标参数：重量推荐上下文
+            weightRecommendationBalance: Flt64? = null,
+            weightRecommendationPayload: Flt64? = null
         ): Parameter {
-            TODO("not implemented yet")
+            return Parameter(
+                macRangeC = macRangeC ?: Flt64.one,
+                longitudinalBalance = longitudinalBalance ?: Flt64.one,
+                B737LongitudinalBalance = B737LongitudinalBalance ?: Flt64.one,
+                lateralBalance = lateralBalance ?: Flt64.one,
+                horizontalStabilizerWarn = horizontalStabilizerWarn ?: Flt64.one,
+                ballastWeight = ballastWeight ?: Flt64.one,
+                emptyHated = emptyHated ?: Flt64.one,
+                besideDoorMainPosition = besideDoorMainPosition ?: Flt64.one,
+                dividedEmpty = dividedEmpty ?: Flt64.one,
+                adviceLoadAmount = adviceLoadAmount ?: Flt64.one,
+                adviceLoadWeight = adviceLoadWeight ?: Flt64.one,
+                sameFlowTransferIn = sameFlowTransferIn ?: Flt64.one,
+                sameFlowTransferOut = sameFlowTransferOut ?: Flt64.one,
+                itemOrder = itemOrder ?: Flt64.one,
+                trailerChange = trailerChange ?: Flt64.one,
+                trailerCircling = trailerCircling ?: Flt64.one,
+                priority = priority ?: Flt64.one,
+                priorityCategory = priorityCategory ?: Flt64.one,
+                experimentalLongitudinalBalance = experimentalLongitudinalBalance ?: Flt64.one,
+                redundancyRange = redundancyRange ?: Flt64.one,
+                weightRecommendationBalance = weightRecommendationBalance ?: Flt64.one,
+                weightRecommendationPayload = weightRecommendationPayload ?: Flt64.one
+            )
         }
     }
 }

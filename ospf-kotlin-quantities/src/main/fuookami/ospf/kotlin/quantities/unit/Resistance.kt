@@ -1,8 +1,7 @@
 /**
  * 电阻单位 / Electrical resistance units
  *
- * 用于测量电阻的单位。
- * Units for measuring electrical resistance.
+ * 用于测量电阻的单位。 / Units for measuring electrical resistance.
  *
  * 单位常量来源 / Unit constant sources:
  * - Ohm: SI导出单位，定义为伏特每安培 / SI derived unit, defined as volt per ampere
@@ -15,8 +14,7 @@ import fuookami.ospf.kotlin.quantities.dimension.Resistance
 /**
  * 欧姆 / Ohm
  *
- * 电阻的SI导出单位，定义为伏特每安培。
- * The SI derived unit of electrical resistance, defined as volt per ampere.
+ * 电阻的SI导出单位，定义为伏特每安培。 / The SI derived unit of electrical resistance, defined as volt per ampere.
  *
  * 符号 / Symbol: Ω
  * 换算关系 / Conversion: 1 Ω = 1 V/A = 1 kg·m²/(s³·A²)
@@ -36,8 +34,7 @@ object Ohm : DerivedPhysicalUnit(Volt / Ampere) {
 /**
  * 千欧 / Kiloohm
  *
- * 一千欧姆。
- * One thousand ohms.
+ * 一千欧姆。 / One thousand ohms.
  *
  * 符号 / Symbol: kΩ
  * 换算关系 / Conversion: 1 kΩ = 10³ Ω = 1000 Ω
@@ -57,8 +54,7 @@ object Kiloohm : DerivedPhysicalUnit(Ohm * Scale.kilo) {
 /**
  * 兆欧 / Megaohm
  *
- * 一百万欧姆。
- * One million ohms.
+ * 一百万欧姆。 / One million ohms.
  *
  * 符号 / Symbol: MΩ
  * 换算关系 / Conversion: 1 MΩ = 10⁶ Ω = 1000000 Ω

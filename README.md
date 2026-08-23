@@ -36,7 +36,7 @@ Top-level Maven modules now follow the same bilingual README convention: English
 | `ospf-kotlin-framework-csp1d` | 1D cutting stock framework | [EN](ospf-kotlin-framework-csp1d/README.md) / [中文](ospf-kotlin-framework-csp1d/README_ch.md) |
 | `ospf-kotlin-framework-csp2d` | Planned 2D cutting stock framework | [EN](ospf-kotlin-framework-csp2d/README.md) / [中文](ospf-kotlin-framework-csp2d/README_ch.md) |
 | `ospf-kotlin-framework-gantt-scheduling` | Gantt scheduling framework | [EN](ospf-kotlin-framework-gantt-scheduling/README.md) / [中文](ospf-kotlin-framework-gantt-scheduling/README_ch.md) |
-| `ospf-kotlin-framework-network-scheduling` | Planned network scheduling framework | [EN](ospf-kotlin-framework-network-scheduling/README.md) / [中文](ospf-kotlin-framework-network-scheduling/README_ch.md) |
+| `ospf-kotlin-framework-network-scheduling` | Network scheduling / VRPTW Branch-and-Price framework | [EN](ospf-kotlin-framework-network-scheduling/README.md) / [中文](ospf-kotlin-framework-network-scheduling/README_ch.md) |
 | `ospf-kotlin-starters` | Starter dependency bundles | [EN](ospf-kotlin-starters/README.md) / [中文](ospf-kotlin-starters/README_ch.md) |
 | `ospf-kotlin-example` | Examples and compatibility tests | [EN](ospf-kotlin-example/README.md) / [中文](ospf-kotlin-example/README_ch.md) |
 | `ospf-kotlin-benchmark` | JMH benchmark smoke and reports | [EN](ospf-kotlin-benchmark/README.md) / [中文](ospf-kotlin-benchmark/README_ch.md) |

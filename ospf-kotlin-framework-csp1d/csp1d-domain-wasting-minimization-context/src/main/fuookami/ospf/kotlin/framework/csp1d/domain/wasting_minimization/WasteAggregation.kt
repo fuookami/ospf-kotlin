@@ -14,9 +14,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dAggregatio
  *
  * 管理浪费最小化的配置信息和目标项计算逻辑。
  * 浪费目标项直接作用于 x 变量（余宽*penalty*x、余料*penalty*x 等），
- * 不需要额外的 slack 变量。
- *
- * Manage waste minimization configuration and objective term computation.
+ * 不需要额外的 slack 变量。 / Manage waste minimization configuration and objective term computation.
  * Waste objective terms act directly on x variables (restWidth*penalty*x, restMaterial*penalty*x, etc.)
  * without additional slack variables.
  *
@@ -38,8 +36,7 @@ class WasteAggregation<V : RealNumber<V>>(
     /**
      * 注册到元模型 / Register to meta model
      *
-     * 浪费最小化不需要注册额外变量。
-     * Waste minimization does not need to register additional variables.
+     * 浪费最小化不需要注册额外变量。 / Waste minimization does not need to register additional variables.
     */
     override fun register(model: LinearMetaModel<Flt64>): Try = ok
 

@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -18,9 +19,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
  * Enforces loading order constraints between adjacent non-bulk positions.
  * 强制执行相邻非散货位置之间的装载顺序约束。
  *
- * @property positions the list of available stowage positions / 可用装载位置列表
- * @property neighbours the list of adjacent position pairs / 相邻位置对列表
- * @property load the load decision variables / 装载决策变量
+ * @property positions 可用装载位置列表 / the list of available stowage positions
+ * @property neighbours 相邻位置对列表 / the list of adjacent position pairs
+ * @property load 装载决策变量 / the load decision variables
 */
 class LoadingOrderLimit(
     private val positions: List<Position>,
@@ -47,13 +48,13 @@ class LoadingOrderLimit(
                 load.actualLoaded[j1] geq load.actualLoaded[j2],
                 name = "${name}_${position1}_${position2}"
             )) {
-                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                is Ok -> {}
 
-                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
             }

@@ -39,7 +39,7 @@ interface CuttingPlanConstraint<V : RealNumber<V>> {
      * 判断当前搜索上下文是否满足约束
      * @return true 如果约束满足，可以继续搜索或产出方案；false 如果违反约束，应剪枝
      *
-     * @param context Current search context containing generated slices, accumulated width, and material info / 包含当前已生成切片、累计宽度和物料信息的搜索上下文
+     * @param context 包含当前已生成切片、累计宽度和物料信息的搜索上下文 / Current search context containing generated slices, accumulated width, and material info
     */
     fun isSatisfied(context: CuttingPlanConstraintContext<V>): Boolean
 

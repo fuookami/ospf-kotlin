@@ -1,9 +1,7 @@
 /**
- * 多项式解析器
- * Polynomial Parser
+ * 多项式解析器 / Polynomial Parser
  *
- * 提供多项式和不等式的递归下降解析功能，支持泛型 Ring<T> 类型。
- * Provides recursive descent parsing for polynomials and inequalities, supporting generic Ring<T> types.
+ * 提供多项式和不等式的递归下降解析功能，支持泛型 Ring<T> 类型。 / Provides recursive descent parsing for polynomials and inequalities, supporting generic Ring<T> types.
 */
 package fuookami.ospf.kotlin.math.symbol.parse
 
@@ -24,8 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 // ============================================================================
 
 /**
- * 捕获解析边界外异常并转换为解析失败
- * Catch boundary exceptions and convert them into parse failures
+ * 捕获解析边界外异常并转换为解析失败 / Catch boundary exceptions and convert them into parse failures
  *
  * @param input 原始输入字符串 / Original input string
  * @param block 解析代码块 / Parsing block
@@ -45,8 +42,7 @@ private inline fun <T> parseSafely(
 }
 
 /**
- * 解析字符串为规范多项式（泛型类型版本）
- * Parses a string into a canonical polynomial (generic number type version)
+ * 解析字符串为规范多项式（泛型类型版本） / Parses a string into a canonical polynomial (generic number type version)
  *
  * @param input 输入字符串 / Input string
  * @param numberParser 数值解析器 / Number parser
@@ -76,8 +72,7 @@ fun <T> parseCanonical(
 }
 
 /**
- * 解析字符串为线性多项式
- * Parses a string into a linear polynomial
+ * 解析字符串为线性多项式 / Parses a string into a linear polynomial
  *
  * @param input 输入字符串 / Input string
  * @param numberParser 数值解析器 / Number parser
@@ -103,8 +98,7 @@ fun <T> parseLinear(
 }
 
 /**
- * 解析字符串为线性多项式，若非线性则返回 null
- * Parses a string into a linear polynomial, returns null if not linear
+ * 解析字符串为线性多项式，若非线性则返回 null / Parses a string into a linear polynomial, returns null if not linear
  *
  * @param input 输入字符串 / Input string
  * @param numberParser 数值解析器 / Number parser
@@ -127,8 +121,7 @@ fun <T> parseLinearOrNull(
 }
 
 /**
- * 解析字符串为二次多项式
- * Parses a string into a quadratic polynomial
+ * 解析字符串为二次多项式 / Parses a string into a quadratic polynomial
  *
  * @param input 输入字符串 / Input string
  * @param numberParser 数值解析器 / Number parser
@@ -157,8 +150,7 @@ fun <T> parseQuadratic(
 }
 
 /**
- * 解析字符串为二次多项式，若非二次则返回 null
- * Parses a string into a quadratic polynomial, returns null if not quadratic
+ * 解析字符串为二次多项式，若非二次则返回 null / Parses a string into a quadratic polynomial, returns null if not quadratic
  *
  * @param input 输入字符串 / Input string
  * @param numberParser 数值解析器 / Number parser
@@ -183,8 +175,7 @@ fun <T> parseQuadraticOrNull(
 }
 
 /**
- * 解析字符串为线性不等式
- * Parses a string into a linear inequality
+ * 解析字符串为线性不等式 / Parses a string into a linear inequality
  *
  * @param input 输入字符串 / Input string
  * @param numberParser 数值解析器 / Number parser
@@ -210,8 +201,7 @@ fun <T> parseLinearInequality(
 }
 
 /**
- * 解析字符串为线性不等式，若非线性则返回 null
- * Parses a string into a linear inequality, returns null if not linear
+ * 解析字符串为线性不等式，若非线性则返回 null / Parses a string into a linear inequality, returns null if not linear
  *
  * @param input 输入字符串 / Input string
  * @param numberParser 数值解析器 / Number parser
@@ -252,8 +242,8 @@ fun <T> parseLinearInequalityOrNull(
  * Represents a single term in a parsed polynomial expression.
  * 表示已解析多项式表达式中的单个项。
  *
- * @property coefficient the numeric coefficient of the term / 项的数值系数
- * @property powers the map of symbols to their exponents / 符号到其指数的映射
+ * @property coefficient 项的数值系数 / the numeric coefficient of the term
+ * @property powers 符号到其指数的映射 / the map of symbols to their exponents
 */
 private data class ParsedTerm<T>(
     val coefficient: T,
@@ -264,8 +254,8 @@ private data class ParsedTerm<T>(
  * Represents a parsed polynomial with terms and a constant.
  * 表示包含项和常数的已解析多项式。
  *
- * @property terms the list of parsed terms / 已解析项的列表
- * @property constant the constant term of the polynomial / 多项式的常数项
+ * @property terms 已解析项的列表 / the list of parsed terms
+ * @property constant 多项式的常数项 / the constant term of the polynomial
 */
 private data class ParsedPolynomial<T>(
     val terms: List<ParsedTerm<T>>,
@@ -276,9 +266,9 @@ private data class ParsedPolynomial<T>(
  * Represents a parsed inequality with left-hand side, right-hand side, and comparison operator.
  * 表示包含左侧、右侧和比较运算符的已解析不等式。
  *
- * @property lhs the left-hand side polynomial / 左侧多项式
- * @property rhs the right-hand side polynomial / 右侧多项式
- * @property comparison the comparison operator / 比较运算符
+ * @property lhs 左侧多项式 / the left-hand side polynomial
+ * @property rhs 右侧多项式 / the right-hand side polynomial
+ * @property comparison 比较运算符 / the comparison operator
 */
 private data class ParsedInequality<T>(
     val lhs: ParsedPolynomial<T>,
@@ -290,13 +280,13 @@ private data class ParsedInequality<T>(
  * Recursive descent parser for polynomial and inequality expressions with generic Ring type.
  * 支持泛型 Ring 类型的多项式和不等式表达式递归下降解析器。
  *
- * @property input the original input string / 原始输入字符串
- * @property tokens the list of lexed tokens / 词法分析后的 token 列表
- * @property numberParser the parser for numeric values / 数值解析器
- * @property zero the zero value of type T / 类型 T 的零值
- * @property one the unit value of type T / 类型 T 的单位值
- * @property symbolOf the function to resolve symbol names / 符号名称解析函数
- * @property isZero the function to check if a value is zero / 零值判断函数
+ * @property input 原始输入字符串 / the original input string
+ * @property tokens 词法分析后的 token 列表 / the list of lexed tokens
+ * @property numberParser 数值解析器 / the parser for numeric values
+ * @property zero 类型 T 的零值 / the zero value of type T
+ * @property one 类型 T 的单位值 / the unit value of type T
+ * @property symbolOf 符号名称解析函数 / the function to resolve symbol names
+ * @property isZero 零值判断函数 / the function to check if a value is zero
 */
 private class DirectPolynomialParser<T>(
     private val input: String,
@@ -310,7 +300,7 @@ private class DirectPolynomialParser<T>(
     private var position: Int = 0
 
     /** 解析多项式 / Parse polynomial
-     * @return the parsed polynomial result / 解析后的多项式结果
+     * @return 解析后的多项式结果 / the parsed polynomial result
     */
     fun parsePolynomial(): ParseResult<ParsedPolynomial<T>> {
         return parseExpression().andThen { result ->
@@ -319,7 +309,7 @@ private class DirectPolynomialParser<T>(
     }
 
     /** 解析不等式 / Parse inequality
-     * @return the parsed inequality result / 解析后的不等式结果
+     * @return 解析后的不等式结果 / the parsed inequality result
     */
     fun parseInequality(): ParseResult<ParsedInequality<T>> {
         return parseExpression().andThen { lhs ->
@@ -347,7 +337,7 @@ private class DirectPolynomialParser<T>(
     }
 
     /** 解析加减法表达式 / Parse an addition/subtraction expression
-     * @return the parsed polynomial result / 解析后的多项式结果
+     * @return 解析后的多项式结果 / the parsed polynomial result
     */
     private fun parseExpression(): ParseResult<ParsedPolynomial<T>> {
         var result = when (val parsed = parseTerm()) {
@@ -385,8 +375,7 @@ private class DirectPolynomialParser<T>(
     }
 
     /**
-     * 解析乘法项
-     * Parse a multiplication term
+     * 解析乘法项 / Parse a multiplication term
      *
      * @return 解析后的多项式结果 / Parsed polynomial result
     */
@@ -416,8 +405,7 @@ private class DirectPolynomialParser<T>(
     }
 
     /**
-     * 解析幂运算
-     * Parse a power expression
+     * 解析幂运算 / Parse a power expression
      *
      * @return 解析后的多项式结果 / Parsed polynomial result
     */
@@ -462,8 +450,7 @@ private class DirectPolynomialParser<T>(
     }
 
     /**
-     * 解析因子（数字、标识符、括号表达式或取反）
-     * Parse a factor (number, identifier, parenthesized expression, or negation)
+     * 解析因子（数字、标识符、括号表达式或取反） / Parse a factor (number, identifier, parenthesized expression, or negation)
      *
      * @return 解析后的多项式结果 / Parsed polynomial result
     */
@@ -517,8 +504,7 @@ private class DirectPolynomialParser<T>(
     }
 
     /**
-     * 获取当前词法单元
-     * Get the current token
+     * 获取当前词法单元 / Get the current token
      *
      * @return 当前位置的词法单元 / Token at the current position
     */
@@ -530,8 +516,7 @@ private class DirectPolynomialParser<T>(
     }
 
     /**
-     * 期望当前词法单元为指定类型，匹配则前进
-     * Expect the current token to be of the given type; advance on match
+     * 期望当前词法单元为指定类型，匹配则前进 / Expect the current token to be of the given type; advance on match
      *
      * @param type 期望的词法单元类型 / Expected token type
      * @return 匹配结果 / Match result
@@ -551,8 +536,7 @@ private class DirectPolynomialParser<T>(
 }
 
 /**
- * 两个解析多项式相加
- * Add two parsed polynomials
+ * 两个解析多项式相加 / Add two parsed polynomials
  *
  * @param lhs 左操作数 / Left-hand operand
  * @param rhs 右操作数 / Right-hand operand
@@ -563,8 +547,7 @@ private fun <T> addParsed(lhs: ParsedPolynomial<T>, rhs: ParsedPolynomial<T>): P
 }
 
 /**
- * 对解析多项式取反
- * Negate a parsed polynomial
+ * 对解析多项式取反 / Negate a parsed polynomial
  *
  * @param poly 要取反的多项式 / Polynomial to negate
  * @return 取反后的多项式 / Negated polynomial
@@ -574,8 +557,7 @@ private fun <T> negateParsed(poly: ParsedPolynomial<T>): ParsedPolynomial<T> whe
 }
 
 /**
- * 两个解析多项式相减
- * Subtract one parsed polynomial from another
+ * 两个解析多项式相减 / Subtract one parsed polynomial from another
  *
  * @param lhs 左操作数 / Left-hand operand
  * @param rhs 右操作数 / Right-hand operand
@@ -586,8 +568,7 @@ private fun <T> subtractParsed(lhs: ParsedPolynomial<T>, rhs: ParsedPolynomial<T
 }
 
 /**
- * 两个解析多项式相乘
- * Multiply two parsed polynomials
+ * 两个解析多项式相乘 / Multiply two parsed polynomials
  *
  * @param lhs 左操作数 / Left-hand operand
  * @param rhs 右操作数 / Right-hand operand
@@ -620,8 +601,7 @@ private fun <T> multiplyParsed(
 }
 
 /**
- * 将解析多项式转换为规范多项式
- * Convert a parsed polynomial to a canonical polynomial
+ * 将解析多项式转换为规范多项式 / Convert a parsed polynomial to a canonical polynomial
  *
  * @param zero 类型零值 / Zero value of the type
  * @param isZero 零值判断函数 / Zero-check function

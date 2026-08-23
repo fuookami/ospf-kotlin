@@ -1,17 +1,14 @@
 /**
- * 面积单位
- * Area units
+ * 面积单位 / Area units
  *
- * 提供面积量纲的 SI 单位和英制单位定义，包括平方米、平方千米、公顷、平方英尺、英亩等。
- * Provides SI and imperial unit definitions for area dimension, including square meter, square kilometer, hectare, square foot, acre, etc.
+ * 提供面积量纲的 SI 单位和英制单位定义，包括平方米、平方千米、公顷、平方英尺、英亩等。 / Provides SI and imperial unit definitions for area dimension, including square meter, square kilometer, hectare, square foot, acre, etc.
 */
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.quantities.dimension.Area
 
 /**
- * 平方毫米
- * Square millimeter
+ * 平方毫米 / Square millimeter
  *
  * 定义：1 mm² = (10⁻³ m)² = 10⁻⁶ m²
  * Definition: 1 mm² = (10⁻³ m)² = 10⁻⁶ m²
@@ -24,8 +21,7 @@ object SquareMillimeter : DerivedPhysicalUnit(Millimeter * Millimeter) {
 }
 
 /**
- * 平方厘米
- * Square centimeter
+ * 平方厘米 / Square centimeter
  *
  * 定义：1 cm² = (10⁻² m)² = 10⁻⁴ m²
  * Definition: 1 cm² = (10⁻² m)² = 10⁻⁴ m²
@@ -38,8 +34,7 @@ object SquareCentimeter : DerivedPhysicalUnit(Centimeter * Centimeter) {
 }
 
 /**
- * 平方分米
- * Square decimeter
+ * 平方分米 / Square decimeter
  *
  * 定义：1 dm² = (10⁻¹ m)² = 10⁻² m²
  * Definition: 1 dm² = (10⁻¹ m)² = 10⁻² m²
@@ -52,11 +47,9 @@ object SquareDecimeter : DerivedPhysicalUnit(Decimeter * Decimeter) {
 }
 
 /**
- * 平方米（基本单位）
- * Square meter (base unit)
+ * 平方米（基本单位） / Square meter (base unit)
  *
- * SI 面积基本单位。
- * SI base unit for area.
+ * SI 面积基本单位。 / SI base unit for area.
 */
 object SquareMeter : DerivedPhysicalUnit(Meter * Meter) {
     override val name = "square meter"
@@ -66,8 +59,7 @@ object SquareMeter : DerivedPhysicalUnit(Meter * Meter) {
 }
 
 /**
- * 平方千米
- * Square kilometer
+ * 平方千米 / Square kilometer
  *
  * 定义：1 km² = (10³ m)² = 10⁶ m²
  * Definition: 1 km² = (10³ m)² = 10⁶ m²
@@ -80,8 +72,7 @@ object SquareKilometer : DerivedPhysicalUnit(Kilometer * Kilometer) {
 }
 
 /**
- * 公亩
- * Are
+ * 公亩 / Are
  *
  * 定义：1 are = 100 m²
  * Definition: 1 are = 100 m²
@@ -94,14 +85,12 @@ object Are : DerivedPhysicalUnit(SquareMeter * 100) {
 }
 
 /**
- * 公顷
- * Hectare
+ * 公顷 / Hectare
  *
  * 定义：1 ha = 10,000 m² = 1 hm²
  * Definition: 1 ha = 10,000 m² = 1 hm²
  *
- * 常用于土地面积测量。
- * Commonly used for land area measurement.
+ * 常用于土地面积测量。 / Commonly used for land area measurement.
 */
 object Hectare : DerivedPhysicalUnit(Hectometer * Hectometer) {
     override val name = "hectare"
@@ -111,8 +100,7 @@ object Hectare : DerivedPhysicalUnit(Hectometer * Hectometer) {
 }
 
 /**
- * 平方英寸
- * Square inch
+ * 平方英寸 / Square inch
  *
  * 定义：1 sq.in = (1 in)² = 6.4516 cm²
  * Definition: 1 sq.in = (1 in)² = 6.4516 cm²
@@ -125,8 +113,7 @@ object SquareInch : DerivedPhysicalUnit(Inch * Inch) {
 }
 
 /**
- * 平方英尺
- * Square foot
+ * 平方英尺 / Square foot
  *
  * 定义：1 sq.ft = (1 ft)² = 144 sq.in = 0.09290304 m²
  * Definition: 1 sq.ft = (1 ft)² = 144 sq.in = 0.09290304 m²
@@ -139,8 +126,7 @@ object SquareFoot : DerivedPhysicalUnit(Foot * Foot) {
 }
 
 /**
- * 平方码
- * Square yard
+ * 平方码 / Square yard
  *
  * 定义：1 sq.yd = (1 yd)² = 9 sq.ft = 0.83612736 m²
  * Definition: 1 sq.yd = (1 yd)² = 9 sq.ft = 0.83612736 m²
@@ -153,8 +139,7 @@ object SquareYard : DerivedPhysicalUnit(Yard * Yard) {
 }
 
 /**
- * 平方链
- * Square chain
+ * 平方链 / Square chain
  *
  * 定义：1 sq.ch = (1 ch)² = 66 ft × 66 ft = 404.68564224 m²
  * Definition: 1 sq.ch = (1 ch)² = 66 ft × 66 ft = 404.68564224 m²
@@ -167,8 +152,7 @@ object SquareChain : DerivedPhysicalUnit(Chain * Chain) {
 }
 
 /**
- * 平方杆
- * Square rod
+ * 平方杆 / Square rod
  *
  * 定义：1 sq.rd = (1 rd)² = 25.29285264 m²
  * Definition: 1 sq.rd = (1 rd)² = 25.29285264 m²
@@ -181,8 +165,7 @@ object SquareRod : DerivedPhysicalUnit(Rod * Rod) {
 }
 
 /**
- * 平方英里
- * Square mile
+ * 平方英里 / Square mile
  *
  * 定义：1 sq.mi = (1 mi)² = 2.589988110336 km²
  * Definition: 1 sq.mi = (1 mi)² = 2.589988110336 km²
@@ -195,14 +178,12 @@ object SquareMile : DerivedPhysicalUnit(Mile * Mile) {
 }
 
 /**
- * 英亩
- * Acre
+ * 英亩 / Acre
  *
  * 定义：1 acre = 43,560 sq.ft = 4,046.8564224 m²
  * Definition: 1 acre = 43,560 sq.ft = 4,046.8564224 m²
  *
- * 英制面积单位，常用于土地测量。
- * Imperial unit for area, commonly used in land surveying.
+ * 英制面积单位，常用于土地测量。 / Imperial unit for area, commonly used in land surveying.
 */
 object Acre : DerivedPhysicalUnit(SquareChain * 10) {
     override val name = "acre"

@@ -15,9 +15,9 @@ internal interface GenerationSliceTemplateCache<V : RealNumber<V>> {
 /**
  * get.
  * get。
- * @param material the cutting material whose equivalent slice templates are being looked up / 分切物料，用于查找其等价切片模板
- * @param collector the generation collector that collects, deduplicates, and prunes cutting plan candidates / 切割方案生成收集器，负责收集、去重和支配剪枝
- * @return the cached list of slice template groups for the equivalent material, or null if not cached / 该物料等价切片模板分组列表，若未缓存则返回 null
+ * @param material 分切物料，用于查找其等价切片模板 / the cutting material whose equivalent slice templates are being looked up
+ * @param collector 切割方案生成收集器，负责收集、去重和支配剪枝 / the generation collector that collects, deduplicates, and prunes cutting plan candidates
+ * @return 该物料等价切片模板分组列表，若未缓存则返回 null / the cached list of slice template groups for the equivalent material, or null if not cached
 */
     fun get(
         material: Material<V>,
@@ -27,8 +27,8 @@ internal interface GenerationSliceTemplateCache<V : RealNumber<V>> {
 /**
  * put.
  * put。
- * @param material the cutting material to associate with the cached slice templates / 分切物料，与缓存的切片模板关联
- * @param templates the list of slice template groups to cache for the material / 要缓存的切片模板分组列表
+ * @param material 分切物料，与缓存的切片模板关联 / the cutting material to associate with the cached slice templates
+ * @param templates 要缓存的切片模板分组列表 / the list of slice template groups to cache for the material
 */
     fun put(
         material: Material<V>,

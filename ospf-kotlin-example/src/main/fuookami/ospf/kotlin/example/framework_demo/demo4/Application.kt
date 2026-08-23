@@ -306,7 +306,7 @@ private class Demo4ResourceUsage(
 /** Demo material for production/consumption modeling.
  * 生产/消耗建模的演示物料。
  *
- * @property label The display label for the material / 物料的显示标签
+ * @property label 物料的显示标签 / The display label for the material
 */
 private data class Demo4Material(
     override val index: Int,

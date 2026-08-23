@@ -1,11 +1,9 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /**
- * 运行心跳模型
- * Running Heartbeat Models
+ * 运行心跳模型 / Running Heartbeat Models
  *
- * 定义求解过程中的子进度、运行中和完成心跳数据结构。
- * Defines sub-progress, running, and finish heartbeat data structures during solving.
+ * 定义求解过程中的子进度、运行中和完成心跳数据结构。 / Defines sub-progress, running, and finish heartbeat data structures during solving.
 */
 package fuookami.ospf.kotlin.framework
 
@@ -19,8 +17,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 
 /**
- * 子进度心跳
- * Sub-progress heartbeat
+ * 子进度心跳 / Sub-progress heartbeat
  *
  * @property estimatedTime 预估剩余时间 / Estimated remaining time
  * @property progress 子进度百分比 / Sub-progress percentage
@@ -33,8 +30,7 @@ data class SubProgressHeartBeat(
 )
 
 /**
- * 运行中心跳
- * Running heartbeat
+ * 运行中心跳 / Running heartbeat
  *
  * @property id 任务标识 / Task identifier
  * @property runTime 已运行时间 / Elapsed run time
@@ -58,8 +54,7 @@ data class RunningHeartBeat(
 }
 
 /**
- * 完成心跳
- * Finish heartbeat
+ * 完成心跳 / Finish heartbeat
  *
  * @property id 任务标识 / Task identifier
  * @property runTime 总运行时间 / Total run time
@@ -79,8 +74,7 @@ data class FinnishHeartBeat(
 
     companion object {
         /**
-         * 构造成功完成心跳
-         * Construct successful finish heartbeat
+         * 构造成功完成心跳 / Construct successful finish heartbeat
          *
          * @param id 任务标识 / Task identifier
          * @param runTime 总运行时间 / Total run time
@@ -96,8 +90,7 @@ data class FinnishHeartBeat(
         }
 
         /**
-         * 构造带错误的完成心跳
-         * Construct finish heartbeat with error
+         * 构造带错误的完成心跳 / Construct finish heartbeat with error
          *
          * @param id 任务标识 / Task identifier
          * @param runTime 总运行时间 / Total run time
@@ -114,8 +107,7 @@ data class FinnishHeartBeat(
         }
 
         /**
-         * 构造带错误的完成心跳（零运行时间）
-         * Construct finish heartbeat with error (zero run time)
+         * 构造带错误的完成心跳（零运行时间） / Construct finish heartbeat with error (zero run time)
          *
          * @param id 任务标识 / Task identifier
          * @param error 错误信息 / Error information

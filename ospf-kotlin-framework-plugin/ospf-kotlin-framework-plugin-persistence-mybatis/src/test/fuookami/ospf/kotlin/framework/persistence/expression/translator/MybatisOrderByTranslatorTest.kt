@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.framework.persistence.expression.SortBy
 class MybatisOrderByTranslatorTest {
     data class TestEntity(val id: Long, val name: String?)
 
-    private val resolver: MybatisColumnNameResolver = { path: String -> path.substringAfterLast(".") }
+    private val resolver = MybatisColumnNameResolver { path: String -> path.substringAfterLast(".") }
 
     @Test
     @DisplayName("should translate multi-field order by / 应翻译多字段排序")

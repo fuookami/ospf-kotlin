@@ -1,8 +1,7 @@
 /**
  * 消耗管理模块 / Consumption management module
  *
- * 本模块定义消耗相关的接口和类，用于建模原料消耗、储备约束及影子价格提取。
- * This module defines consumption-related interfaces and classes for modeling material consumption, reserve constraints, and shadow price extraction.
+ * 本模块定义消耗相关的接口和类，用于建模原料消耗、储备约束及影子价格提取。 / This module defines consumption-related interfaces and classes for modeling material consumption, reserve constraints, and shadow price extraction.
 */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
@@ -17,7 +16,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -38,8 +37,8 @@ interface Consumption {
 /**
  * Register consumption variables (over-quantity and less-quantity) into the linear meta model.
  * 将消耗变量（超量和不足量）注册到线性元模型中。
- * @param model Linear meta model to register consumption variables into / 要注册消耗变量的线性元模型
- * @return Operation result / 操作结果
+ * @param model 要注册消耗变量的线性元模型 / Linear meta model to register consumption variables into
+ * @return 操作结果 / Operation result
 */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try
 
@@ -262,8 +261,7 @@ abstract class AbstractConsumption<
     /**
      * 提取影子价格 / Extract shadow prices
      *
-     * 从松弛变量提取影子价格（对偶变量）。
-     * Extracts shadow prices (dual variables) from slack variables.
+     * 从松弛变量提取影子价格（对偶变量）。 / Extracts shadow prices (dual variables) from slack variables.
      *
      * @param Map 影子价格表类型 / Shadow price map type
      * @param shadowPriceMap 影子价格表 / Shadow price map
@@ -441,10 +439,7 @@ class BunchSchedulingConsumption<
             if (thisBunches.isNotEmpty()) {
                 quantity[material].flush()
                 for ((bunch, consumptionQuantity) in thisBunches) {
-                    quantity[material].asMutable() += LinearMonomial(
-                        consumptionQuantity.toSolverValue(),
-                        xi[bunch]
-                    )
+                    quantity[material].asMutable() += consumptionQuantity.toSolverValue() * xi[bunch]
                 }
             }
         }

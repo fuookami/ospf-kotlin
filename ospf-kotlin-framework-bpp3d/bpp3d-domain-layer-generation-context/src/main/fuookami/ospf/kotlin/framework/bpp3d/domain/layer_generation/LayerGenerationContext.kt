@@ -54,8 +54,8 @@ data class Bpp3dLayerGenerationRequest<V>(
  * @param x x-coordinate quantity / X 坐标量
  * @param y y-coordinate quantity / Y 坐标量
  * @param z z-coordinate quantity / Z 坐标量
- * @param unit packing unit to check / 待检查的装箱单元
- * @return 3D quantity point / 三维量纲点
+ * @param unit 待检查的装箱单元 / packing unit to check
+ * @return 三维量纲点 / 3D quantity point
 */
 private fun layerPoint3(
     x: Quantity<FltX>? = null,
@@ -192,8 +192,8 @@ interface Bpp3dLayerGenerator<V> {
 /**
  * generate.
  * generate。
- * @param request layer generation request / 层生成请求
- * @return list of layer generation results / 层生成结果列表
+ * @param request 层生成请求 / layer generation request
+ * @return 层生成结果列表 / list of layer generation results
 */
     suspend fun generate(
         request: Bpp3dLayerGenerationRequest<V>
@@ -201,8 +201,7 @@ interface Bpp3dLayerGenerator<V> {
 }
 
 /**
- * 使用泛型输入执行层生成。
- * Execute layer generation with quantity inputs.
+ * 使用泛型输入执行层生成。 / Execute layer generation with quantity inputs.
  *
  * @param T 量纲数值类型 / quantity numeric type
  * @param iteration 当前迭代 / current iteration
@@ -275,8 +274,8 @@ suspend fun <V> Bpp3dLayerGenerator<V>.generateFromProgramDemands(
 /**
  * resolveDemandDomainDiscrete.
  * resolveDemandDomainDiscrete。
- * @param unit packing unit to check / 待检查的装箱单元
- * @return whether the unit domain is discrete / 单位域是否为离散
+ * @param unit 待检查的装箱单元 / packing unit to check
+ * @return 单位域是否为离散 / whether the unit domain is discrete
 */
 private fun resolveDemandDomainDiscrete(unit: PhysicalUnit?): Boolean {
     val domainRaw = runCatching {
@@ -344,9 +343,9 @@ private suspend fun <V> delegatedOrDefault(
 /**
  * pickOrientation.
  * pickOrientation。
- * @param item item to evaluate / 待评估的货物
- * @param bin target bin type, or null / 目标箱型，或 null
- * @return first enabled orientation, or null / 第一个可用姿态，或 null
+ * @param item 待评估的货物 / item to evaluate
+ * @param bin 目标箱型，或 null / target bin type, or null
+ * @return 第一个可用姿态，或 null / first enabled orientation, or null
 */
 private fun pickOrientation(item: Item, bin: BinType<FltX>?): Orientation? {
     return item.enabledOrientations.firstOrNull { orientation ->
@@ -357,10 +356,10 @@ private fun pickOrientation(item: Item, bin: BinType<FltX>?): Orientation? {
 /**
  * Builds layer.
  * 构建Layer。
- * @param request layer generation request / 层生成请求
- * @param source source cylinder shape / 源圆柱形状
- * @param item item to evaluate / 待评估的货物
- * @return single-item bin layer, or null / 单货物箱层，或 null
+ * @param request 层生成请求 / layer generation request
+ * @param source 源圆柱形状 / source cylinder shape
+ * @param item 待评估的货物 / item to evaluate
+ * @return 单货物箱层，或 null / single-item bin layer, or null
 */
 private fun buildLayer(
     request: Bpp3dLayerGenerationRequest<*>,
@@ -650,9 +649,9 @@ private data class CirclePackingLayerCandidate(
 /**
  * cylinderAxisLength.
  * cylinderAxisLength。
- * @param source source cylinder shape / 源圆柱形状
- * @param axis cylinder axis direction / 圆柱轴向
- * @return axis-aligned length of the cylinder / 圆柱沿该轴的长度
+ * @param source 源圆柱形状 / source cylinder shape
+ * @param axis 圆柱轴向 / cylinder axis direction
+ * @return 圆柱沿该轴的长度 / axis-aligned length of the cylinder
 */
 private fun cylinderAxisLength(
     source: CylinderPackingShape3,
@@ -668,10 +667,10 @@ private fun cylinderAxisLength(
 /**
  * cylinderCandidateShape.
  * cylinderCandidateShape。
- * @param source source cylinder shape / 源圆柱形状
- * @param radius candidate radius / 候选半径
- * @param axis cylinder axis direction / 圆柱轴向
- * @return new cylinder packing shape with the given radius / 具有给定半径的新圆柱装载形状
+ * @param source 源圆柱形状 / source cylinder shape
+ * @param radius 候选半径 / candidate radius
+ * @param axis 圆柱轴向 / cylinder axis direction
+ * @return 具有给定半径的新圆柱装载形状 / new cylinder packing shape with the given radius
 */
 private fun cylinderCandidateShape(
     source: CylinderPackingShape3,
@@ -694,9 +693,9 @@ private fun cylinderCandidateShape(
 /**
  * circlePackingItemCandidates.
  * circlePackingItemCandidates。
- * @param item item to evaluate / 待评估的货物
- * @param bin target bin type, or null / 目标箱型，或 null
- * @return list of circle-packing item candidates / 圆密排货物候选列表
+ * @param item 待评估的货物 / item to evaluate
+ * @param bin 目标箱型，或 null / target bin type, or null
+ * @return 圆密排货物候选列表 / list of circle-packing item candidates
 */
 private fun circlePackingItemCandidates(
     item: Item,
@@ -741,7 +740,7 @@ private fun circlePackingItemCandidates(
 /**
  * requireConcreteCirclePackingRadiusMetadata.
  * requireConcreteCirclePackingRadiusMetadata。
- * @param item item to evaluate / 待评估的货物
+ * @param item 待评估的货物 / item to evaluate
 */
 private fun requireConcreteCirclePackingRadiusMetadata(item: Item) {
     item.packingShapeSpec?.let { spec ->
@@ -755,9 +754,9 @@ private fun requireConcreteCirclePackingRadiusMetadata(item: Item) {
 /**
  * circlePackingSource.
  * circlePackingSource。
- * @param pattern source pattern name / 来源模式名称
- * @param candidate circle packing item candidate / 圆密排货物候选
- * @return source string with optional suffix / 带可选后缀的来源字符串
+ * @param pattern 来源模式名称 / source pattern name
+ * @param candidate 圆密排货物候选 / circle packing item candidate
+ * @return 带可选后缀的来源字符串 / source string with optional suffix
 */
 private fun circlePackingSource(
     pattern: String,
@@ -770,10 +769,10 @@ private fun circlePackingSource(
 /**
  * circlePackingSource.
  * circlePackingSource。
- * @param pattern source pattern name / 来源模式名称
- * @param candidate circle packing item candidate / 圆密排货物候选
- * @param axis cylinder axis direction / 圆柱轴向
- * @return source string with optional suffix / 带可选后缀的来源字符串
+ * @param pattern 来源模式名称 / source pattern name
+ * @param candidate 圆密排货物候选 / circle packing item candidate
+ * @param axis 圆柱轴向 / cylinder axis direction
+ * @return 带可选后缀的来源字符串 / source string with optional suffix
 */
 private fun circlePackingSource(
     pattern: String,
@@ -787,8 +786,8 @@ private fun circlePackingSource(
 /**
  * circlePackingVolume.
  * circlePackingVolume。
- * @param placements item placements to sum volume for / 待求和体积的货物放置列表
- * @return total actual volume / 实际总体积
+ * @param placements 待求和体积的货物放置列表 / item placements to sum volume for
+ * @return 实际总体积 / total actual volume
 */
 private fun circlePackingVolume(placements: List<QuantityPlacement3<Item, FltX>>): Double {
     return placements.map { placement -> placement.resolvedPackingShape().actualVolume.value.toDouble() }.sum()
@@ -1625,7 +1624,7 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
     val candidates = ArrayList<CirclePackingLayerCandidate>()
     val items = request.items
         .filter { item ->
-            item.packageType.category != fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageCategory.Pallet
+            item.packageType.category != PackageCategory.Pallet
         }
         .distinct()
     for (item in items) {
@@ -2056,7 +2055,7 @@ class CirclePackingLayerGenerator<V>(
                 packed
             } else {
                 val preferred = it.items.filter { item ->
-                    item.packageType.category != fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageCategory.Pallet
+                    item.packageType.category != PackageCategory.Pallet
                 }
                 val fallback = if (preferred.isNotEmpty()) preferred else it.items
                 mapItemsToLayers(it, "circle-packing", CirclePackingLayerGenerator::class.java, fallback)

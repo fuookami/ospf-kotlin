@@ -55,13 +55,13 @@ class MaintenancePlan internal constructor(
         /**
          * 根据类别和过期时间创建具有适当状态的 [MaintenancePlan]。Creates a [MaintenancePlan] with appropriate status based on category and expiration.
          *
-         * @param aircraft The aircraft for maintenance / 维护的飞机
-         * @param scheduledTime The scheduled time range / 计划时间范围
-         * @param airports The list of airports where maintenance can occur / 可进行维护的机场列表
-         * @param expirationTime The expiration time of the maintenance / 维护的过期时间
-         * @param category The maintenance category / 维护类别
-         * @param timeWindow The scheduling time window / 调度时间窗口
-         * @return The created maintenance plan / 创建的维护计划
+         * @param aircraft 维护的飞机 / The aircraft for maintenance
+         * @param scheduledTime 计划时间范围 / The scheduled time range
+         * @param airports 可进行维护的机场列表 / The list of airports where maintenance can occur
+         * @param expirationTime 维护的过期时间 / The expiration time of the maintenance
+         * @param category 维护类别 / The maintenance category
+         * @param timeWindow 调度时间窗口 / The scheduling time window
+         * @return 创建的维护计划 / The created maintenance plan
         */
         operator fun invoke(
             aircraft: Aircraft,
@@ -141,8 +141,8 @@ class Maintenance internal constructor(
         /**
          * 从计划创建 [Maintenance]。Creates a [Maintenance] from a plan.
          *
-         * @param plan The maintenance plan / 维护计划
-         * @return The created maintenance / 创建的维护
+         * @param plan 维护计划 / The maintenance plan
+         * @return 创建的维护 / The created maintenance
         */
         operator fun invoke(plan: MaintenancePlan): Maintenance {
             return Maintenance(plan = plan)
@@ -151,9 +151,9 @@ class Maintenance internal constructor(
         /**
          * 创建应用给定恢复策略的已恢复 [Maintenance]。Creates a recovered [Maintenance] applying the given recovery policy.
          *
-         * @param origin The original maintenance / 原始维护
-         * @param recoveryPolicy The recovery policy assignment / 恢复策略分配
-         * @return The recovered maintenance instance / 恢复后的维护实例
+         * @param origin 原始维护 / The original maintenance
+         * @param recoveryPolicy 恢复策略分配 / The recovery policy assignment
+         * @return 恢复后的维护实例 / The recovered maintenance instance
         */
         operator fun invoke(origin: Maintenance, recoveryPolicy: FlightTaskAssignment): Maintenance {
             val recoveryTime = if (recoveryPolicy.time == null || recoveryPolicy.time == origin.scheduledTime!!) {

@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
@@ -50,7 +51,7 @@ class WasteObjectivePipeline<V : RealNumber<V>>(
      * Generate objective monomials.
      * 生成目标项单项式
      *
-     * @return List of linear monomials representing waste penalty terms / 表示浪费惩罚项的线性单项式列表
+     * @return 表示浪费惩罚项的线性单项式列表 / List of linear monomials representing waste penalty terms
     */
     fun objectiveMonomials(): List<LinearMonomial<Flt64>> {
         val monomials = ArrayList<LinearMonomial<Flt64>>()
@@ -63,7 +64,7 @@ class WasteObjectivePipeline<V : RealNumber<V>>(
                 val restWidthValue = plan.restWidth?.value ?: continue
                 if (restWidthValue > restWidthValue.constants.zero) {
                     val coeff = restWidthValue.toFlt64() * trimPenalty.toFlt64()
-                    monomials.add(LinearMonomial(coeff, produce[index]!!))
+                    monomials.add(coeff * produce[index]!!)
                 }
             }
         }
@@ -75,7 +76,7 @@ class WasteObjectivePipeline<V : RealNumber<V>>(
                 val plan = produce.cuttingPlans[index]
                 val restMaterialValue = restMaterialValue(plan, restMaterialMeasure) ?: continue
                 val coeff = restMaterialValue.toFlt64() * restMaterialPenalty.toFlt64()
-                monomials.add(LinearMonomial(coeff, produce[index]!!))
+                monomials.add(coeff * produce[index]!!)
             }
         }
 
@@ -85,7 +86,7 @@ class WasteObjectivePipeline<V : RealNumber<V>>(
                 val plan = produce.cuttingPlans[index]
                 val costPenalty = waste.materialCostPenalty[plan.material.id]
                 if (costPenalty != null) {
-                    monomials.add(LinearMonomial(costPenalty.toFlt64(), produce[index]!!))
+                    monomials.add(costPenalty.toFlt64() * produce[index]!!)
                 }
             }
         }
@@ -97,7 +98,7 @@ class WasteObjectivePipeline<V : RealNumber<V>>(
                 val overVar = overProductionVars.getOrNull(demandIndex) ?: continue
                 val productWidthValue = overProductionAreaWidthValue(demand, overProductionAreaMeasure) ?: continue
                 val coeff = productWidthValue.toFlt64() * overAreaPenalty.toFlt64()
-                monomials.add(LinearMonomial(coeff, overVar))
+                monomials.add(coeff * overVar)
             }
         }
 
@@ -108,9 +109,9 @@ class WasteObjectivePipeline<V : RealNumber<V>>(
      * Calculate the rest material value for a cutting plan based on the given measure.
      * 根据给定度量口径计算切割方案的余料值
      *
-     * @param plan Cutting plan / 切割方案
-     * @param measure Rest material measure policy / 余料度量口径
-     * @return Rest material value, or null if unavailable / 余料值，若不可用则返回 null
+     * @param plan 切割方案 / Cutting plan
+     * @param measure 余料度量口径 / Rest material measure policy
+     * @return 余料值，若不可用则返回 null / Rest material value, or null if unavailable
     */
     private fun restMaterialValue(
         plan: CuttingPlan<V>,
@@ -129,9 +130,9 @@ class WasteObjectivePipeline<V : RealNumber<V>>(
      * Calculate the width value used for over-production area penalty.
      * 计算超产面积惩罚所使用的宽度值
      *
-     * @param demand Product demand / 产品需求
-     * @param measure Over-production area measure policy / 超产面积度量口径
-     * @return Width value for over-production area, or null if unavailable / 超产面积宽度值，若不可用则返回 null
+     * @param demand 产品需求 / Product demand
+     * @param measure 超产面积度量口径 / Over-production area measure policy
+     * @return 超产面积宽度值，若不可用则返回 null / Width value for over-production area, or null if unavailable
     */
     private fun overProductionAreaWidthValue(
         demand: ProductDemand<V>,

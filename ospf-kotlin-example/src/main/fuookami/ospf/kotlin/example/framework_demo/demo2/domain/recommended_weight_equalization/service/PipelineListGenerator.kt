@@ -15,15 +15,20 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
  * Generates the pipeline of recommended weight equalization constraints for model construction.
  * 生成用于模型构建的推荐重量均衡约束管线。
  *
- * @property aggregation The aggregation containing weight equalization data / 包含重量均衡数据的聚合
+ * @property aggregation 包含重量均衡数据的聚合 / The aggregation containing weight equalization data
 */
 class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {
     operator fun invoke(
-        stowageMode: StowageMode
+        stowageMode: StowageMode,
+        parameter: Parameter
     ): Ret<PipelineList<AbstractLinearMetaModel<Flt64>>> {
-        val pipelines = kotlin.collections.ArrayList<Pipeline<AbstractLinearMetaModel<Flt64>>>()
+        if (stowageMode != StowageMode.WeightRecommendation) {
+            return Ok(emptyList())
+        }
+
+        val pipelines = ArrayList<Pipeline<AbstractLinearMetaModel<Flt64>>>()
 
         pipelines.add(
             ItemOrderLimit(
@@ -48,6 +53,13 @@ class PipelineListGenerator(
                 aircraftModel = aggregation.aircraftModel,
                 positions = aggregation.positions,
                 load = aggregation.load
+            )
+        )
+
+        pipelines.add(
+            RecommendedWeightDeviationObjective(
+                load = aggregation.load,
+                coefficient = { parameter.weightRecommendationBalance }
             )
         )
 

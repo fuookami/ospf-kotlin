@@ -26,13 +26,10 @@ import fuookami.ospf.kotlin.utils.functional.*
 */
 
 /**
- * 二次步进区间函数：若 x 在 [lower, upper] 范围内则 y = x，否则 y = 0。
- * Quadratic in-step-range function: y = x if x in [lower, upper], else y = 0.
- * 使用二值变量 z，其中 z=1 表示 x 在范围内。
- * Uses binary variable z where z=1 means x is in range.
+ * 二次步进区间函数：若 x 在 [lower, upper] 范围内则 y = x，否则 y = 0。 / Quadratic in-step-range function: y = x if x in [lower, upper], else y = 0.
+ * 使用二值变量 z，其中 z=1 表示 x 在范围内。 / Uses binary variable z where z=1 means x is in range.
  *
- * 约束：
- * Constraints:
+ * 约束： / Constraints:
  * - x - lower >= -M*(1-z)   =>   x - lower + M - M*z >= 0
  * - x - upper <= M*(1-z)    =>   x - upper - M + M*z <= 0
  * - y - x >= -M*(1-z)       =>   y - x + M - M*z >= 0
@@ -92,8 +89,7 @@ class QuadraticInStepRangeFunction<V>(
     }
 
     /**
-     * 从 token 表求值单个符号。
-     * Evaluate a single symbol from the token table.
+     * 从 token 表求值单个符号。 / Evaluate a single symbol from the token table.
      *
      * @param symbol 要求值的符号 / the symbol to evaluate
      * @param tokenTable token 表 / the token table
@@ -113,8 +109,7 @@ class QuadraticInStepRangeFunction<V>(
     }
 
     /**
-     * 从结果列表求值单个符号。
-     * Evaluate a single symbol from a results list.
+     * 从结果列表求值单个符号。 / Evaluate a single symbol from a results list.
      *
      * @param symbol 要求值的符号 / the symbol to evaluate
      * @param results 结果值列表 / list of result values
@@ -140,8 +135,7 @@ class QuadraticInStepRangeFunction<V>(
     }
 
     /**
-     * 从值映射求值单个符号。
-     * Evaluate a single symbol from a value map.
+     * 从值映射求值单个符号。 / Evaluate a single symbol from a value map.
      *
      * @param symbol 要求值的符号 / the symbol to evaluate
      * @param values 符号到值的映射 / symbol-to-value map
@@ -163,8 +157,7 @@ class QuadraticInStepRangeFunction<V>(
     }
 
     /**
-     * 求值二次多项式。
-     * Evaluate a quadratic polynomial.
+     * 求值二次多项式。 / Evaluate a quadratic polynomial.
      *
      * @param poly 要求值的二次多项式 / the quadratic polynomial to evaluate
      * @param resolve 符号解析函数 / symbol resolution function
@@ -188,8 +181,7 @@ class QuadraticInStepRangeFunction<V>(
     }
 
     /**
-     * 求值步进区间逻辑：x 在范围内返回 x，否则返回 0。
-     * Evaluate step-range logic: return x if in range, else 0.
+     * 求值步进区间逻辑：x 在范围内返回 x，否则返回 0。 / Evaluate step-range logic: return x if in range, else 0.
      *
      * @param resolve 符号解析函数 / symbol resolution function
      * @return 步进区间结果值或 null / step-range result value or null
@@ -300,8 +292,7 @@ class QuadraticInStepRangeFunction<V>(
     override fun toRawString(unfold: UInt64): String = displayName ?: name
 
     /**
-     * 将辅助变量 (z, y) 注册到 token 集合中。
-     * Register helper variables (z, y) with the token collection.
+     * 将辅助变量 (z, y) 注册到 token 集合中。 / Register helper variables (z, y) with the token collection.
     */
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(listOf(z, y))) {
@@ -312,8 +303,7 @@ class QuadraticInStepRangeFunction<V>(
     }
 
     /**
-     * 为步进区间函数注册 Big-M 约束。
-     * Register Big-M constraints for the in-step-range function.
+     * 为步进区间函数注册 Big-M 约束。 / Register Big-M constraints for the in-step-range function.
     */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         val m = bigM

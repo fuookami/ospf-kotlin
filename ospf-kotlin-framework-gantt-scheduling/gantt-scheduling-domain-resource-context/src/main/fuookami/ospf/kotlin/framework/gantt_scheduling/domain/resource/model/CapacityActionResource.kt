@@ -11,8 +11,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
 /**
  * 支持 ProductionAction 的资源接口 / Resource interface that supports ProductionAction
  *
- * 此接口定义了生产动作与资源消耗之间的关系
- * This interface defines the relationship between production actions and resource consumption
+ * 此接口定义了生产动作与资源消耗之间的关系 / This interface defines the relationship between production actions and resource consumption
  *
  * @param C 资源容量类型 / Resource capacity type
  * @param V 值类型 / Value type

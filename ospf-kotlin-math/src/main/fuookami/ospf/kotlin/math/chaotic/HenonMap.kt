@@ -1,12 +1,9 @@
 /**
- * 埃农映射
- * Henon Map
+ * 埃农映射 / Henon Map
  *
  * 埃农映射是由 Michel Henon 于 1976 年提出的经典二维混沌映射。
  * 该映射是 Lorenz 吸引子的截面映射简化模型，展现出奇异吸引子行为。
- * 常用于混沌理论研究、分形几何和动力系统教学。
- *
- * The Henon map is a classic two-dimensional chaotic map proposed by Michel Henon in 1976.
+ * 常用于混沌理论研究、分形几何和动力系统教学。 / The Henon map is a classic two-dimensional chaotic map proposed by Michel Henon in 1976.
  * This map is a simplified model of the Lorenz attractor's Poincare section, exhibiting strange attractor behavior.
  * Commonly used for chaos theory research, fractal geometry, and dynamical systems education.
 */
@@ -20,8 +17,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 埃农映射
- * Henon Map
+ * 埃农映射 / Henon Map
  *
  * 公式 / Formula:
  * x_{n+1} = 1 - a * x^2 + y
@@ -51,8 +47,7 @@ data class HenonMap<V : FloatingNumber<V>>(
 }
 
 /**
- * 埃农映射生成器
- * Henon Map Generator
+ * 埃农映射生成器 / Henon Map Generator
  * @property henonMap 埃农映射实例 / Henon map instance
  * @property _x 当前状态点 / Current state point
 */
@@ -80,8 +75,7 @@ data class HenonMapGenerator(
     }
 
     /**
-     * 当前状态点。
-     * The current state point.
+     * 当前状态点。 / The current state point.
     */
     val x by ::_x
 

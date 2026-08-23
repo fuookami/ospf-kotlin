@@ -16,8 +16,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 /**
  * 管理聚合和管线注册的批次编译上下文。Context for bunch compilation managing aggregation and pipeline registration.
  *
- * @property parameter Column generation master model coefficient parameters / 列生成主模型系数参数
- * @property freeAircraftSelectorConfiguration Free aircraft selector configuration / 自由飞机选择器配置
+ * @property parameter 列生成主模型系数参数 / Column generation master model coefficient parameters
+ * @property freeAircraftSelectorConfiguration 自由飞机选择器配置 / Free aircraft selector configuration
 */
 class BunchCompilationContext(
     private val parameter: Parameter = Parameter(),
@@ -31,8 +31,8 @@ class BunchCompilationContext(
     /**
      * 注册管线列表并委托父类注册。Registers the pipeline list and delegates to the parent registration.
      *
-     * @param model The optimization model to register with / 要注册的优化模型
-     * @return Success or failure / 成功或失败
+     * @param model 要注册的优化模型 / The optimization model to register with
+     * @return 成功或失败 / Success or failure
     */
     override fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         pipelineList = when (val result = PipelineListGenerator(aggregation, parameter)()) {

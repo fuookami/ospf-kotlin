@@ -1,6 +1,5 @@
 /**
- * 保守半径包络。
- * Conservative radius envelope.
+ * 保守半径包络。 / Conservative radius envelope.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
@@ -8,8 +7,7 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
 
 /**
- * 连续半径圆柱的保守包络尺寸。
- * Conservative envelope dimensions for continuous-radius cylinders.
+ * 连续半径圆柱的保守包络尺寸。 / Conservative envelope dimensions for continuous-radius cylinders.
  *
  * @property rMin 半径下界 / radius lower bound
  * @property rMax 半径上界 / radius upper bound

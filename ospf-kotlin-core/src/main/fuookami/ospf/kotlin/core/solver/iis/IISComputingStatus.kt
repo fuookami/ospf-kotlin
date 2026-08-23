@@ -8,8 +8,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.number.*
 
 /**
- * IIS 计算进度状态，包含边界和约束的剩余/总量信息。
- * IIS computing progress status, containing remaining/total information for bounds and constraints.
+ * IIS 计算进度状态，包含边界和约束的剩余/总量信息。 / IIS computing progress status, containing remaining/total information for bounds and constraints.
  *
  * @property restBoundAmount 剩余边界数量 / Remaining bound amount
  * @property totalBoundAmount 总边界数量 / Total bound amount
@@ -33,5 +32,7 @@ data class IISComputingStatus(
     val totalProgress: Flt64 get() = (restBoundAmount.toFlt64() + restConstraintAmount.toFlt64()) / (totalBoundAmount.toFlt64() + totalConstraintAmount.toFlt64())
 }
 
-/** IIS 计算状态回调函数类型 / IIS computing status callback function type */
-typealias IISComputingStatusCallBack = (Boolean, Duration, IISComputingStatus) -> Try
+/** IIS 计算状态回调 / IIS computing status callback */
+fun interface IISComputingStatusCallBack {
+    operator fun invoke(isFeasible: Boolean, time: Duration, status: IISComputingStatus): Try
+}

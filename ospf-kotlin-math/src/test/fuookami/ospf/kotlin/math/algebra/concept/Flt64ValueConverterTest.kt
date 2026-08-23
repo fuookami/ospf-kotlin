@@ -51,6 +51,23 @@ class Flt64ValueConverterTest {
     }
 
     @Test
+    fun integerCompanionsImplementFlt64ValueConverter() {
+        val int64Converter: Flt64ValueConverter<Int64> = Int64
+        val intXConverter: Flt64ValueConverter<IntX> = IntX
+        val uint64Converter: Flt64ValueConverter<UInt64> = UInt64
+        val uintXConverter: Flt64ValueConverter<UIntX> = UIntX
+
+        assertEquals(Int64(3), int64Converter.intoValue(Flt64(3.0)))
+        assertEquals(IntX(3L), intXConverter.intoValue(Flt64(3.0)))
+        assertEquals(UInt64(3), uint64Converter.intoValue(Flt64(3.0)))
+        assertEquals(UIntX(3L), uintXConverter.intoValue(Flt64(3.0)))
+        assertTrue(int64Converter.zero eq Int64.zero)
+        assertTrue(intXConverter.one eq IntX.one)
+        assertTrue(uint64Converter.zero eq UInt64.zero)
+        assertTrue(uintXConverter.one eq UIntX.one)
+    }
+
+    @Test
     fun resolvesConverterFromCompanionObject() {
         val property = CompanionConstantProviderResolver.reflectionFallbackEnabledProperty
         val previous = System.getProperty(property)

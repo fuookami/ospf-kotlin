@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -20,11 +21,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 /**
  * 约束每个机身区域内的总载荷重量到最大允许值。Constrains the total load weight within each fuselage zone to the maximum allowed value.
  *
- * @property aircraftModel The aircraft model providing unit configuration / 提供单位配置的飞机型号
- * @property fuselage The fuselage providing liferaft weight data / 提供救生筏重量数据的机身
- * @property maxZoneLoadWeight The maximum zone load weight limits / 各区域最大载荷重量限制
- * @property positions The list of cargo positions / 货物位置列表
- * @property load The load estimation model / 载荷估算模型
+ * @property aircraftModel 提供单位配置的飞机型号 / The aircraft model providing unit configuration
+ * @property fuselage 提供救生筏重量数据的机身 / The fuselage providing liferaft weight data
+ * @property maxZoneLoadWeight 各区域最大载荷重量限制 / The maximum zone load weight limits
+ * @property positions 货物位置列表 / The list of cargo positions
+ * @property load 载荷估算模型 / The load estimation model
 */
 class ZoneLoadWeightLimit(
     private val aircraftModel: AircraftModel,
@@ -40,28 +41,23 @@ class ZoneLoadWeightLimit(
                 continue
             }
 
-            val poly = MutableLinearPolynomial()
-            for (part in zone.parts) {
+            val poly = sum(zone.parts.map { part ->
                 val j = positions.indexOf(part.position)
-                poly += LinearMonomial(
-                    part.weight,
-                    load.estimateLoadWeight[j].value
-                )
-            }
-            if (zone.liferaft != null) {
-                poly += fuselage.liferaft!!.weight.to(aircraftModel.weightUnit)!!.value
-            }
+                part.weight * load.estimateLoadWeight[j].value
+            }) + (zone.liferaft?.let {
+                fuselage.liferaft!!.weight.to(aircraftModel.weightUnit)!!.value
+            } ?: Flt64.zero)
             when (val result = model.addConstraint(
-                relation = LinearPolynomial(poly.monomials, poly.constant) leq zone.maxLoadWeight.to(aircraftModel.weightUnit)!!.value,
+                relation = poly leq zone.maxLoadWeight.to(aircraftModel.weightUnit)!!.value,
                 name = "${name}_${zone.name}"
             )) {
-                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                is Ok -> {}
 
-                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
             }

@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -32,8 +33,8 @@ class MaxLoadWeight(
      * Registers the maximum load weight symbols into the model.
      * 将最大装载重量符号注册到模型中。
      *
-     * @param model the linear meta-model to register into / 要注册到的线性元模型
-     * @return success or failure / 成功或失败
+     * @param model 要注册到的线性元模型 / the linear meta-model to register into
+     * @return 成功或失败 / success or failure
     */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
@@ -67,9 +68,9 @@ class MaxLoadWeight(
             }
         }
         when (val result = model.add(maxLoadWeight)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         return ok

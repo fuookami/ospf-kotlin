@@ -7,7 +7,6 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -20,13 +19,12 @@ import fuookami.ospf.kotlin.example.exampleThresholdSlack
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
 /**
- * 车队平衡约束模型，确保飞机在各机场的分布与每个检查点的预期车队组成相匹配。
- * Models fleet balance constraints ensuring aircraft distribution across airports
+ * 车队平衡约束模型，确保飞机在各机场的分布与每个检查点的预期车队组成相匹配。 / Models fleet balance constraints ensuring aircraft distribution across airports
  * matches the expected fleet composition at each checkpoint.
  *
- * @property aircrafts Aircrafts requiring fleet balance tracking / 需要车队平衡跟踪的飞机列表
- * @property originBunches Original flight task bunches / 原始航班任务束列表
- * @property compilation Compilation information for column generation / 列生成的编译信息
+ * @property aircrafts 需要车队平衡跟踪的飞机列表 / Aircrafts requiring fleet balance tracking
+ * @property originBunches 原始航班任务束列表 / Original flight task bunches
+ * @property compilation 列生成的编译信息 / Compilation information for column generation
 */
 class FleetBalance(
     aircrafts: List<Aircraft>,
@@ -37,19 +35,18 @@ class FleetBalance(
     /**
      * 表示机场和飞机子机型组合的检查点（用于车队平衡跟踪）。Checkpoint representing an airport and aircraft minor type combination for fleet balance tracking.
      *
-     * @property airport The airport for this checkpoint / 此检查点的机场
-     * @property aircraftMinorType The aircraft minor type for this checkpoint / 此检查点的飞机子机型
+     * @property airport 此检查点的机场 / The airport for this checkpoint
+     * @property aircraftMinorType 此检查点的飞机子机型 / The aircraft minor type for this checkpoint
     */
     data class CheckPoint(
         val airport: Airport,
         val aircraftMinorType: AircraftMinorType
     ) : ManualIndexed() {
         /**
-         * 检查给定批次是否以匹配的飞机子机型到达此检查点。
-         * Checks whether the given bunch arrives at this checkpoint with the matching aircraft minor type.
+         * 检查给定批次是否以匹配的飞机子机型到达此检查点。 / Checks whether the given bunch arrives at this checkpoint with the matching aircraft minor type.
          *
-         * @param bunch The flight task bunch to check / 要检查的航班任务束
-         * @return Whether the bunch matches this checkpoint / 是否匹配此检查点
+         * @param bunch 要检查的航班任务束 / The flight task bunch to check
+         * @return 是否匹配此检查点 / Whether the bunch matches this checkpoint
         */
         operator fun invoke(bunch: FlightTaskBunch): Boolean {
             return bunch.aircraft.minorType == aircraftMinorType && bunch.arr == airport
@@ -75,8 +72,8 @@ class FleetBalance(
     /**
      * 指定检查点预期飞机数量和关联飞机列表的限制。Limit specifying the expected aircraft count and associated aircraft list at a checkpoint.
      *
-     * @property amount Expected aircraft count at the checkpoint / 检查点预期飞机数量
-     * @property aircrafts Associated aircraft list / 关联的飞机列表
+     * @property amount 检查点预期飞机数量 / Expected aircraft count at the checkpoint
+     * @property aircrafts 关联的飞机列表 / Associated aircraft list
     */
     data class Limit(
         val amount: UInt64,
@@ -108,11 +105,10 @@ class FleetBalance(
     lateinit var slack: LinearIntermediateSymbols1<Flt64>
 
     /**
-     * 向模型注册车队平衡符号和松弛变量。
-     * Registers fleet balance symbols and slack variables with the model.
+     * 向模型注册车队平衡符号和松弛变量。 / Registers fleet balance symbols and slack variables with the model.
      *
-     * @param model The optimization model to register with / 要注册的优化模型
-     * @return Success or failure / 成功或失败
+     * @param model 要注册的优化模型 / The optimization model to register with
+     * @return 成功或失败 / Success or failure
     */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (limits.isNotEmpty()) {
@@ -122,9 +118,9 @@ class FleetBalance(
                     Shape1(limits.size)
                 ) { l, _ ->
                     val limit = limits[l]
-                    val poly = MutableLinearPolynomial()
+                    var poly = LinearPolynomial()
                     for (aircraft in limit.second.aircrafts) {
-                        poly += LinearMonomial(Flt64.one, compilation.z[aircraft])
+                        poly += compilation.z[aircraft]
                     }
                     LinearExpressionSymbol(
                         poly,
@@ -149,10 +145,10 @@ class FleetBalance(
                     "fleet_slack",
                     Shape1(limits.size)
                 ) { l, _ ->
-                    val poly = MutableLinearPolynomial()
-                    poly += LinearMonomial(Flt64.one, fleet[l])
+                    var poly = LinearPolynomial()
+                    poly += fleet[l]
                     exampleThresholdSlack(
-                        x = LinearPolynomial(poly.monomials, poly.constant),
+                        x = poly,
                         threshold = limits[l].second.amount.toFlt64(),
                         withNegative = true,
                         withPositive = false,
@@ -177,12 +173,11 @@ class FleetBalance(
     }
 
     /**
-     * 向车队平衡表达式添加新批次的列。
-     * Adds columns for new bunches to the fleet balance expressions.
+     * 向车队平衡表达式添加新批次的列。 / Adds columns for new bunches to the fleet balance expressions.
      *
-     * @param iteration The current column generation iteration / 当前列生成迭代次数
-     * @param bunches New flight task bunches to add columns for / 要添加列的新航班任务束
-     * @return Success or failure / 成功或失败
+     * @param iteration 当前列生成迭代次数 / The current column generation iteration
+     * @param bunches 要添加列的新航班任务束 / New flight task bunches to add columns for
+     * @return 成功或失败 / Success or failure
     */
     fun addColumns(
         iteration: UInt64,
@@ -196,7 +191,7 @@ class FleetBalance(
                 val thisFleet = fleet[checkPoint]
                 thisFleet.flush()
                 for (bunch in thisBunches) {
-                    thisFleet.asMutable() += LinearMonomial(Flt64.one, xi[bunch])
+                    thisFleet.asMutable() += Flt64.one * xi[bunch]
                 }
             }
         }

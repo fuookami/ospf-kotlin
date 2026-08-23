@@ -16,9 +16,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 /**
  * 强制每航班每舱位乘客数量不超过飞机容量的管线。Pipeline enforcing that passenger amounts per flight and class do not exceed aircraft capacity.
  *
- * @property flights List of flight tasks / 航班任务列表
- * @property amount Passenger amount component / 乘客数量组件
- * @property capacity Flight capacity / 航班容量
+ * @property flights 航班任务列表 / List of flight tasks
+ * @property amount 乘客数量组件 / Passenger amount component
+ * @property capacity 航班容量 / Flight capacity
 */
 class PassengerFlightCapacityConstraint(
     private val flights: List<FlightTask>,
@@ -30,8 +30,8 @@ class PassengerFlightCapacityConstraint(
     /**
      * 向模型添加乘客航班容量约束。Adds passenger flight capacity constraints to the model.
      *
-     * @param model The linear meta model to add constraints to / 要添加约束的线性元模型
-     * @return Registration result / 注册结果
+     * @param model 要添加约束的线性元模型 / The linear meta model to add constraints to
+     * @return 注册结果 / Registration result
     */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (flight in flights) {

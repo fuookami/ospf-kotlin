@@ -8,12 +8,12 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.Diagnost
  * Data transfer object for the main optimization response.
  * 主优化响应的数据传输对象。
  *
- * @property succeed whether the optimization request was processed successfully / 优化请求是否处理成功
- * @property status the solver status string (e.g., "Optimal", "Error") / 求解器状态字符串（如"Optimal"、"Error"）
- * @property objective the objective function value, if available / 目标函数值（如可用）
- * @property assignments the list of cargo-to-position assignment strings / 货物到舱位的分配字符串列表
- * @property notes the list of informational notes from the solver / 求解器的信息备注列表
- * @property diagnostics the list of structured diagnostic notes / 结构化诊断备注列表
+ * @property succeed 优化请求是否处理成功 / whether the optimization request was processed successfully
+ * @property status 求解器状态字符串（如"Optimal"、"Error"） / the solver status string (e.g., "Optimal", "Error")
+ * @property objective 目标函数值（如可用） / the objective function value, if available
+ * @property assignments 货物到舱位的分配字符串列表 / the list of cargo-to-position assignment strings
+ * @property notes 求解器的信息备注列表 / the list of informational notes from the solver
+ * @property diagnostics 结构化诊断备注列表 / the list of structured diagnostic notes
 */
 @Serializable
 data class ResponseDTO(
@@ -29,8 +29,8 @@ data class ResponseDTO(
      * Constructs an error response from a failed request.
      * 从失败请求构造错误响应。
      *
-     * @param request the original request DTO / 原始请求DTO
-     * @param error the error encountered during processing / 处理过程中遇到的错误
+     * @param request 原始请求DTO / the original request DTO
+     * @param error 处理过程中遇到的错误 / the error encountered during processing
     */
     constructor(
         request: RequestDTO,
@@ -46,9 +46,9 @@ data class ResponseDTO(
          * Creates a response indicating no feasible solution was found.
          * 创建表示未找到可行解的响应。
          *
-         * @param status the solver status describing the infeasibility / 描述不可行性的求解器状态
-         * @param notes the informational notes about the infeasibility / 关于不可行性的信息备注
-         * @return a ResponseDTO indicating no solution / 表示无解的ResponseDTO
+         * @param status 描述不可行性的求解器状态 / the solver status describing the infeasibility
+         * @param notes 关于不可行性的信息备注 / the informational notes about the infeasibility
+         * @return 表示无解的ResponseDTO / a ResponseDTO indicating no solution
         */
         fun noSolution(status: String, notes: List<String>): ResponseDTO = ResponseDTO(
             succeed = false,
@@ -61,10 +61,10 @@ data class ResponseDTO(
          * Creates a response for an optimal solution.
          * 创建最优解的响应。
          *
-         * @param objective the optimal objective function value / 最优目标函数值
-         * @param assignments the list of cargo-to-position assignment strings / 货物到舱位的分配字符串列表
-         * @param notes the informational notes from the solver / 求解器的信息备注
-         * @return a ResponseDTO indicating an optimal solution / 表示最优解的ResponseDTO
+         * @param objective 最优目标函数值 / the optimal objective function value
+         * @param assignments 货物到舱位的分配字符串列表 / the list of cargo-to-position assignment strings
+         * @param notes 求解器的信息备注 / the informational notes from the solver
+         * @return 表示最优解的ResponseDTO / a ResponseDTO indicating an optimal solution
         */
         fun optimal(
             objective: Double,

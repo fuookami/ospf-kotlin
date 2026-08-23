@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.*
@@ -26,14 +27,14 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * Models trailer-based loading constraints including trailer change and trailer circling.
  * 建模基于拖车的装载约束，包括拖车更换和拖车环绕。
  *
- * @property items The list of cargo items. / 货物项列表
- * @property positions The list of stowage positions. / 配载位置列表
- * @property trailers The list of trailers. / 拖车列表
- * @property orderedItemsInTrailers The list of ordered item pairs within the same trailer. / 同一拖车内的有序货物项对列表
- * @property adjacentPositions The list of adjacent position pairs. / 相邻位置对列表
- * @property orderedTrailers The list of ordered trailer pairs. / 有序拖车对列表
- * @property stowage The stowage assignment model. / 配载分配模型
- * @property load The load model for cargo assignment. / 货物分配的装载模型
+ * @property items 货物项列表 / The list of cargo items.
+ * @property positions 配载位置列表 / The list of stowage positions.
+ * @property trailers 拖车列表 / The list of trailers.
+ * @property orderedItemsInTrailers 同一拖车内的有序货物项对列表 / The list of ordered item pairs within the same trailer.
+ * @property adjacentPositions 相邻位置对列表 / The list of adjacent position pairs.
+ * @property orderedTrailers 有序拖车对列表 / The list of ordered trailer pairs.
+ * @property stowage 配载分配模型 / The stowage assignment model.
+ * @property load 货物分配的装载模型 / The load model for cargo assignment.
 */
 class TrailerLoading(
     private val items: List<Item>,
@@ -54,7 +55,27 @@ class TrailerLoading(
             stowage: Stowage,
             load: Load
         ): TrailerLoading {
-            TODO("not implemented yet")
+            val orderedItemsInTrailers = trailers.flatMap { trailer ->
+                val trailerItems = items.filter { it in trailer.items }
+                trailerItems.flatMapIndexed { index, item ->
+                    trailerItems.drop(index + 1).map { item to it }
+                }
+            }
+            val orderedTrailers = trailers
+                .filter { trailer -> trailer.items.any { it in items } }
+                .sortedWith(compareBy<Trailer> { it.order }.thenBy { it.name })
+                .zipWithNext()
+
+            return TrailerLoading(
+                items = items,
+                positions = positions,
+                trailers = trailers,
+                orderedItemsInTrailers = orderedItemsInTrailers,
+                adjacentPositions = adjacentPositions,
+                orderedTrailers = orderedTrailers,
+                stowage = stowage,
+                load = load
+            )
         }
     }
 
@@ -65,8 +86,8 @@ class TrailerLoading(
      * Registers the trailer change and trailer circling intermediate symbols into the optimization model.
      * 将拖车更换和拖车环绕中间符号注册到优化模型中。
      *
-     * @param model The linear meta model to register into. / 要注册到的线性元模型
-     * @return The result of the registration operation. / 注册操作的结果
+     * @param model 要注册到的线性元模型 / The linear meta model to register into.
+     * @return 注册操作的结果 / The result of the registration operation.
     */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
@@ -85,7 +106,7 @@ class TrailerLoading(
 
                 LinearFunctionSymbolAdapter(
                     delegate = IfFunction(
-                        condition = loadAmount1 + loadAmount2 - Flt64.two,
+                        condition = loadAmount1 + loadAmount2 - Flt64.two + Flt64(NONZERO_TOLERANCE),
                         converter = flt64Converter,
                         name = "trailer_change_${trailer1}_${trailer2}_${position1}_${position2}"
                     ),
@@ -94,13 +115,13 @@ class TrailerLoading(
             }
         }
         when (val result = model.add(trailerChange)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -117,7 +138,8 @@ class TrailerLoading(
                 if (Stowage.stowageNeeded(item2, position1) && Stowage.stowageNeeded(item1, position2)) {
                     LinearFunctionSymbolAdapter(
                         delegate = IfFunction(
-                            condition = stowage.stowage[i2, j1] + stowage.stowage[i1, j2] - Flt64.two,
+                            condition = stowage.stowage[i2, j1] + stowage.stowage[i1, j2]
+                                - Flt64.two + Flt64(NONZERO_TOLERANCE),
                             converter = flt64Converter,
                             name = "trailer_circling_${item1}_${item2}_${position1}_${position2}"
                         ),
@@ -132,13 +154,13 @@ class TrailerLoading(
             }
         }
         when (val result = model.add(trailerCircling)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }

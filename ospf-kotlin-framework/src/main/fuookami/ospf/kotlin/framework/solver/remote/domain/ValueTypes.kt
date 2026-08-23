@@ -1,11 +1,9 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /**
- * 远程求解值类型
- * Remote solve value types
+ * 远程求解值类型 / Remote solve value types
  *
- * 定义远程求解领域中的强类型 ID、路径和序列化器。
- * Defines strongly-typed IDs, paths, and serializers for the remote solve domain.
+ * 定义远程求解领域中的强类型 ID、路径和序列化器。 / Defines strongly-typed IDs, paths, and serializers for the remote solve domain.
 */
 package fuookami.ospf.kotlin.framework.solver.remote.domain
 
@@ -49,8 +47,7 @@ data object RemoteSolverEpochMillisecondsInstantSerializer : KSerializer<Instant
 }
 
 /**
- * 任务 ID。
- * Task ID.
+ * 任务 ID。 / Task ID.
  *
  * @property value 原始 ID 值 / Raw ID value
 */
@@ -70,8 +67,8 @@ value class TaskId(val value: String) {
          * Creates a normalized instance by trimming whitespace.
          * 通过修剪空白创建规范化实例。
          *
-         * @param value the raw string value / 原始字符串值
-         * @return the normalized [TaskId] instance / 规范化的 [TaskId] 实例
+         * @param value 原始字符串值 / the raw string value
+         * @return 规范化的 [TaskId] 实例 / the normalized [TaskId] instance
         */
         fun of(value: String): TaskId {
             return TaskId(value.trim())
@@ -80,8 +77,7 @@ value class TaskId(val value: String) {
 }
 
 /**
- * 切片 ID。
- * Slice ID.
+ * 切片 ID。 / Slice ID.
  *
  * @property value 原始 ID 值 / Raw ID value
 */
@@ -101,8 +97,8 @@ value class SliceId(val value: String) {
          * Creates a normalized instance by trimming whitespace.
          * 通过修剪空白创建规范化实例。
          *
-         * @param value the raw string value / 原始字符串值
-         * @return the normalized [SliceId] instance / 规范化的 [SliceId] 实例
+         * @param value 原始字符串值 / the raw string value
+         * @return 规范化的 [SliceId] 实例 / the normalized [SliceId] instance
         */
         fun of(value: String): SliceId {
             return SliceId(value.trim())
@@ -111,8 +107,7 @@ value class SliceId(val value: String) {
 }
 
 /**
- * 节点 ID。
- * Node ID.
+ * 节点 ID。 / Node ID.
  *
  * @property value 原始 ID 值 / Raw ID value
 */
@@ -132,8 +127,8 @@ value class NodeId(val value: String) {
          * Creates a normalized instance by trimming whitespace.
          * 通过修剪空白创建规范化实例。
          *
-         * @param value the raw string value / 原始字符串值
-         * @return the normalized [NodeId] instance / 规范化的 [NodeId] 实例
+         * @param value 原始字符串值 / the raw string value
+         * @return 规范化的 [NodeId] 实例 / the normalized [NodeId] instance
         */
         fun of(value: String): NodeId {
             return NodeId(value.trim())
@@ -142,8 +137,7 @@ value class NodeId(val value: String) {
 }
 
 /**
- * 租户 ID。
- * Tenant ID.
+ * 租户 ID。 / Tenant ID.
  *
  * @property value 原始 ID 值 / Raw ID value
 */
@@ -163,8 +157,8 @@ value class TenantId(val value: String) {
          * Creates a normalized instance by trimming whitespace.
          * 通过修剪空白创建规范化实例。
          *
-         * @param value the raw string value / 原始字符串值
-         * @return the normalized [TenantId] instance / 规范化的 [TenantId] 实例
+         * @param value 原始字符串值 / the raw string value
+         * @return 规范化的 [TenantId] 实例 / the normalized [TenantId] instance
         */
         fun of(value: String): TenantId {
             return TenantId(value.trim())
@@ -173,8 +167,7 @@ value class TenantId(val value: String) {
 }
 
 /**
- * 请求 ID。
- * Request ID.
+ * 请求 ID。 / Request ID.
  *
  * @property value 原始 ID 值 / Raw ID value
 */
@@ -194,8 +187,8 @@ value class RequestId(val value: String) {
          * Creates a normalized instance by trimming whitespace.
          * 通过修剪空白创建规范化实例。
          *
-         * @param value the raw string value / 原始字符串值
-         * @return the normalized [RequestId] instance / 规范化的 [RequestId] 实例
+         * @param value 原始字符串值 / the raw string value
+         * @return 规范化的 [RequestId] 实例 / the normalized [RequestId] instance
         */
         fun of(value: String): RequestId {
             return RequestId(value.trim())
@@ -204,8 +197,7 @@ value class RequestId(val value: String) {
 }
 
 /**
- * 执行句柄 ID。
- * Execution handle ID.
+ * 执行句柄 ID。 / Execution handle ID.
  *
  * @property value 原始 ID 值 / Raw ID value
 */
@@ -225,8 +217,8 @@ value class HandleId(val value: String) {
          * Creates a normalized instance by trimming whitespace.
          * 通过修剪空白创建规范化实例。
          *
-         * @param value the raw string value / 原始字符串值
-         * @return the normalized [HandleId] instance / 规范化的 [HandleId] 实例
+         * @param value 原始字符串值 / the raw string value
+         * @return 规范化的 [HandleId] 实例 / the normalized [HandleId] instance
         */
         fun of(value: String): HandleId {
             return HandleId(value.trim())
@@ -256,8 +248,8 @@ value class TraceId(val value: String) {
          * Creates a normalized instance by trimming whitespace.
          * 通过修剪空白创建规范化实例。
          *
-         * @param value the raw string value / 原始字符串值
-         * @return the normalized [TraceId] instance / 规范化的 [TraceId] 实例
+         * @param value 原始字符串值 / the raw string value
+         * @return 规范化的 [TraceId] 实例 / the normalized [TraceId] instance
         */
         fun of(value: String): TraceId {
             return TraceId(value.trim())
@@ -266,8 +258,7 @@ value class TraceId(val value: String) {
 }
 
 /**
- * 对象路径。
- * Object path.
+ * 对象路径。 / Object path.
  *
  * @property value 原始路径 / Raw path
 */
@@ -288,8 +279,8 @@ value class ObjectPath(val value: String) {
          * Creates a normalized instance by trimming whitespace, converting backslashes to forward slashes, and removing leading slashes.
          * 通过修剪空白、转换反斜杠为正斜杠并移除前导斜杠创建规范化实例。
          *
-         * @param value the raw path string / 原始路径字符串
-         * @return the normalized [ObjectPath] instance / 规范化的 [ObjectPath] 实例
+         * @param value 原始路径字符串 / the raw path string
+         * @return 规范化的 [ObjectPath] 实例 / the normalized [ObjectPath] instance
         */
         fun of(value: String): ObjectPath {
             val normalized = value.trim().replace('\\', '/').trimStart('/')
@@ -299,8 +290,7 @@ value class ObjectPath(val value: String) {
 }
 
 /**
- * 对象版本。
- * Object version.
+ * 对象版本。 / Object version.
  *
  * @property value 原始版本 / Raw version
 */
@@ -320,8 +310,8 @@ value class ObjectVersion(val value: String) {
          * Creates a normalized instance by trimming whitespace.
          * 通过修剪空白创建规范化实例。
          *
-         * @param value the raw string value / 原始字符串值
-         * @return the normalized [ObjectVersion] instance / 规范化的 [ObjectVersion] 实例
+         * @param value 原始字符串值 / the raw string value
+         * @return 规范化的 [ObjectVersion] 实例 / the normalized [ObjectVersion] instance
         */
         fun of(value: String): ObjectVersion {
             return ObjectVersion(value.trim())
@@ -351,8 +341,8 @@ value class ObjectEtag(val value: String) {
          * Creates a normalized instance by trimming whitespace.
          * 通过修剪空白创建规范化实例。
          *
-         * @param value the raw string value / 原始字符串值
-         * @return the normalized [ObjectEtag] instance / 规范化的 [ObjectEtag] 实例
+         * @param value 原始字符串值 / the raw string value
+         * @return 规范化的 [ObjectEtag] 实例 / the normalized [ObjectEtag] instance
         */
         fun of(value: String): ObjectEtag {
             return ObjectEtag(value.trim())
@@ -361,8 +351,7 @@ value class ObjectEtag(val value: String) {
 }
 
 /**
- * 求解器类型名。
- * Solver type name.
+ * 求解器类型名。 / Solver type name.
  *
  * @property value 类型名 / Type name
 */
@@ -382,8 +371,8 @@ value class SolverTypeName(val value: String) {
          * Creates a normalized instance by trimming whitespace.
          * 通过修剪空白创建规范化实例。
          *
-         * @param value the raw string value / 原始字符串值
-         * @return the normalized [SolverTypeName] instance / 规范化的 [SolverTypeName] 实例
+         * @param value 原始字符串值 / the raw string value
+         * @return 规范化的 [SolverTypeName] 实例 / the normalized [SolverTypeName] instance
         */
         fun of(value: String): SolverTypeName {
             return SolverTypeName(value.trim())
@@ -392,8 +381,7 @@ value class SolverTypeName(val value: String) {
 }
 
 /**
- * 目标类型名。
- * Target type name.
+ * 目标类型名。 / Target type name.
  *
  * @property value 类型名 / Type name
 */
@@ -413,8 +401,8 @@ value class TargetTypeName(val value: String) {
          * Creates a normalized instance by trimming whitespace.
          * 通过修剪空白创建规范化实例。
          *
-         * @param value the raw string value / 原始字符串值
-         * @return the normalized [TargetTypeName] instance / 规范化的 [TargetTypeName] 实例
+         * @param value 原始字符串值 / the raw string value
+         * @return 规范化的 [TargetTypeName] 实例 / the normalized [TargetTypeName] instance
         */
         fun of(value: String): TargetTypeName {
             return TargetTypeName(value.trim())
@@ -423,8 +411,7 @@ value class TargetTypeName(val value: String) {
 }
 
 /**
- * 预算范围 ID。
- * Budget scope ID.
+ * 预算范围 ID。 / Budget scope ID.
  *
  * @property value 原始 ID 值 / Raw ID value
 */
@@ -444,8 +431,8 @@ value class BudgetScopeId(val value: String) {
          * Creates a normalized instance by trimming whitespace.
          * 通过修剪空白创建规范化实例。
          *
-         * @param value the raw string value / 原始字符串值
-         * @return the normalized [BudgetScopeId] instance / 规范化的 [BudgetScopeId] 实例
+         * @param value 原始字符串值 / the raw string value
+         * @return 规范化的 [BudgetScopeId] 实例 / the normalized [BudgetScopeId] instance
         */
         fun of(value: String): BudgetScopeId {
             return BudgetScopeId(value.trim())
@@ -454,8 +441,7 @@ value class BudgetScopeId(val value: String) {
 }
 
 /**
- * 操作者 ID。
- * Operator ID.
+ * 操作者 ID。 / Operator ID.
  *
  * @property value 原始 ID 值 / Raw ID value
 */
@@ -475,8 +461,8 @@ value class OperatorId(val value: String) {
          * Creates a normalized instance by trimming whitespace.
          * 通过修剪空白创建规范化实例。
          *
-         * @param value the raw string value / 原始字符串值
-         * @return the normalized [OperatorId] instance / 规范化的 [OperatorId] 实例
+         * @param value 原始字符串值 / the raw string value
+         * @return 规范化的 [OperatorId] 实例 / the normalized [OperatorId] instance
         */
         fun of(value: String): OperatorId {
             return OperatorId(value.trim())
@@ -485,8 +471,7 @@ value class OperatorId(val value: String) {
 }
 
 /**
- * 操作来源。
- * Operation source.
+ * 操作来源。 / Operation source.
  *
  * @property value 来源值 / Source value
 */
@@ -506,8 +491,8 @@ value class OperationSource(val value: String) {
          * Creates a normalized instance by trimming whitespace.
          * 通过修剪空白创建规范化实例。
          *
-         * @param value the raw string value / 原始字符串值
-         * @return the normalized [OperationSource] instance / 规范化的 [OperationSource] 实例
+         * @param value 原始字符串值 / the raw string value
+         * @return 规范化的 [OperationSource] 实例 / the normalized [OperationSource] instance
         */
         fun of(value: String): OperationSource {
             return OperationSource(value.trim())
@@ -516,8 +501,7 @@ value class OperationSource(val value: String) {
 }
 
 /**
- * 原因代码。
- * Reason code.
+ * 原因代码。 / Reason code.
  *
  * @property value 原因值 / Reason value
 */
@@ -537,8 +521,8 @@ value class ReasonCode(val value: String) {
          * Creates a normalized instance by trimming whitespace.
          * 通过修剪空白创建规范化实例。
          *
-         * @param value the raw string value / 原始字符串值
-         * @return the normalized [ReasonCode] instance / 规范化的 [ReasonCode] 实例
+         * @param value 原始字符串值 / the raw string value
+         * @return 规范化的 [ReasonCode] 实例 / the normalized [ReasonCode] instance
         */
         fun of(value: String): ReasonCode {
             return ReasonCode(value.trim())

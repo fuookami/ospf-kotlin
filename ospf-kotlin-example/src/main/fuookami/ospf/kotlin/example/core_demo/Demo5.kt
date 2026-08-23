@@ -27,8 +27,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 }
 
 /**
- * 0-1 背包问题：在重量限制下最大化货物价值。
- * 0-1 knapsack: maximize cargo value subject to a weight limit.
+ * 0-1 背包问题：在重量限制下最大化货物价值。 / 0-1 knapsack: maximize cargo value subject to a weight limit.
  *
  * @see https://fuookami.github.io/ospf/examples/example5.html
 */
@@ -157,7 +156,7 @@ data object Demo5 {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
             is Ok -> {
-                metaModel.tokens.setSolution(ret.value.solution)
+                metaModel.tokens.setSolution(ret.value.values)
             }
 
             is Failed -> {

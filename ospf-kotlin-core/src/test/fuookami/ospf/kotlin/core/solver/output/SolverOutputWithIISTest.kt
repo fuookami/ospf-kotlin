@@ -1,18 +1,23 @@
 package fuookami.ospf.kotlin.core.solver.output
 
+import fuookami.ospf.kotlin.core.solver.report.*
+import fuookami.ospf.kotlin.core.solver.toSolveReport
 import kotlin.test.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.Duration.Companion.seconds
+import fuookami.ospf.kotlin.core.solver.report.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class SolverOutputWithIISTest {
     @Test
     fun solverOutputShouldWrapOptionalIis() {
-        val output = FeasibleSolverOutput<Flt64>(
-            obj = Flt64.one,
-            solution = emptyList(),
-            time = 1.seconds,
-            possibleBestObj = Flt64.one,
+        val output = SolverStatus.Feasible.toSolveReport(
+            objective = Flt64.one,
+            values = emptyList(),
+            solveTime = 1.seconds,
+            bestBound = Flt64.one,
             gap = Flt64.zero
         )
 

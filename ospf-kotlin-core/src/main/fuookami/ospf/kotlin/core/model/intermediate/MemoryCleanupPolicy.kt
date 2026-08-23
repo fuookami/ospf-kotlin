@@ -1,14 +1,12 @@
 /**
- * 内存清理策略
- * Memory cleanup policy
+ * 内存清理策略 / Memory cleanup policy
 */
 package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.utils.memoryUseOver
 
 /**
- * 内存清理策略对象，通过系统属性控制何时触发 GC。
- * Memory cleanup policy object controlling when to trigger GC via system properties.
+ * 内存清理策略对象，通过系统属性控制何时触发 GC。 / Memory cleanup policy object controlling when to trigger GC via system properties.
 */
 internal object MemoryCleanupPolicy {
     private const val EnabledProperty = "ospf.core.model.memory.cleanup.enabled"

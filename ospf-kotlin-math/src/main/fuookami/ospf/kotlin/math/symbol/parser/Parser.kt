@@ -1,9 +1,7 @@
 /**
- * 多项式解析器
- * Polynomial Parser
+ * 多项式解析器 / Polynomial Parser
  *
- * 提供泛型 Ring<T> 多项式解析的公共入口函数。
- * Provides generic Ring<T> polynomial parsing public entry functions.
+ * 提供泛型 Ring<T> 多项式解析的公共入口函数。 / Provides generic Ring<T> polynomial parsing public entry functions.
 */
 package fuookami.ospf.kotlin.math.symbol.parser
 
@@ -14,8 +12,7 @@ import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
 import fuookami.ospf.kotlin.math.symbol.Symbol
 
 /**
- * 解析字符串为规范多项式（泛型类型版本）
- * Parses a string into a canonical polynomial (generic number type version)
+ * 解析字符串为规范多项式（泛型类型版本） / Parses a string into a canonical polynomial (generic number type version)
  *
  * @param input 输入字符串 / Input string
  * @param numberParser 数值解析器 / Number parser
@@ -39,8 +36,7 @@ fun <T> parse(
 }
 
 /**
- * 解析字符串为线性多项式，若非线性则返回 null
- * Parses a string into a linear polynomial, returns null if not linear
+ * 解析字符串为线性多项式，若非线性则返回 null / Parses a string into a linear polynomial, returns null if not linear
  *
  * @param input 输入字符串 / Input string
  * @param numberParser 数值解析器 / Number parser
@@ -62,8 +58,7 @@ fun <T> parseLinearPolynomialOrNull(
 }
 
 /**
- * 解析字符串为二次多项式，若非二次则返回 null
- * Parses a string into a quadratic polynomial, returns null if not quadratic
+ * 解析字符串为二次多项式，若非二次则返回 null / Parses a string into a quadratic polynomial, returns null if not quadratic
  *
  * @param input 输入字符串 / Input string
  * @param numberParser 数值解析器 / Number parser

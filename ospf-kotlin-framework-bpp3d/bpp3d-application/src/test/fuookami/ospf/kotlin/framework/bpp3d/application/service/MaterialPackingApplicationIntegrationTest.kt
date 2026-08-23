@@ -4,26 +4,48 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.core.solver.toSolveReport
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.test.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlinx.coroutines.runBlocking
+import fuookami.ospf.kotlin.core.solver.report.*
 import org.junit.jupiter.api.BeforeAll
+import fuookami.ospf.kotlin.core.solver.report.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.intermediate.Cell
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.DemandShadowPriceKey
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 
 class MaterialPackingApplicationIntegrationTest {
@@ -140,14 +162,14 @@ class MaterialPackingApplicationIntegrationTest {
             toLogModel: Boolean,
             registrationStatusCallBack: RegistrationStatusCallBack?,
             solvingStatusCallBack: SolvingStatusCallBack?
-        ): Ret<FeasibleSolverOutput<Flt64>> {
+        ): Ret<SolveReport<Flt64>> {
             val solution = List(metaModel.tokens.tokensInSolver.size) { milpValue }
             return Ok(
-                FeasibleSolverOutput(
-                    obj = Flt64(10.0),
-                    solution = solution,
-                    time = Duration.ZERO,
-                    possibleBestObj = Flt64(10.0),
+                SolverStatus.Feasible.toSolveReport(
+                    objective = Flt64(10.0),
+                    values = solution,
+                    solveTime = Duration.ZERO,
+                    bestBound = Flt64(10.0),
                     gap = Flt64.zero
                 )
             )
@@ -168,11 +190,11 @@ class MaterialPackingApplicationIntegrationTest {
                 }
             return Ok(
                 lpResultOf(
-                    result = FeasibleSolverOutput(
-                        obj = Flt64(5.0),
-                        solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
-                        time = Duration.ZERO,
-                        possibleBestObj = Flt64(5.0),
+                    result = SolverStatus.Feasible.toSolveReport(
+                        objective = Flt64(5.0),
+                        values = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
+                        solveTime = Duration.ZERO,
+                        bestBound = Flt64(5.0),
                         gap = Flt64.zero
                     ),
                     dualSolution = dual
@@ -338,7 +360,7 @@ class MaterialPackingApplicationIntegrationTest {
 
     @Suppress("UNCHECKED_CAST")
     private fun lpResultOf(
-        result: FeasibleSolverOutput<Flt64>,
+        result: SolveReport<Flt64>,
         dualSolution: Map<*, *>
     ): ColumnGenerationSolver.LPResult {
         val constructor = ColumnGenerationSolver.LPResult::class.java.declaredConstructors
@@ -350,7 +372,8 @@ class MaterialPackingApplicationIntegrationTest {
     private fun fakeConstraint(origin: fuookami.ospf.kotlin.core.model.mechanism.MathConstraint): Constraint<Flt64, Linear> {
         return object : Constraint<Flt64, Linear> {
             override val lhs: List<Cell<Flt64>> = emptyList()
-            override val sign: ConstraintRelation = ConstraintRelation.Equal
+            override val sign: fuookami.ospf.kotlin.core.model.basic.ConstraintRelation =
+                fuookami.ospf.kotlin.core.model.basic.ConstraintRelation.Equal
             override val rhs: Flt64 = Flt64.zero
             override val lazy: Boolean = false
             override val name: String = "fake-dual"

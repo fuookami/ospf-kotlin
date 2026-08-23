@@ -27,8 +27,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 蕴含函数：若 antecedent > 0 则 consequent > 0。
  * Implication function: `if antecedent > 0 then consequent > 0`.
  *
- * 对前件和后件均使用正数指示变量，
- * Uses positive-value indicators for both antecedent and consequent,
+ * 对前件和后件均使用正数指示变量， / Uses positive-value indicators for both antecedent and consequent,
  * 通过链接约束：indicator_antecedent <= indicator_consequent。
  * with a linking constraint: indicator_antecedent <= indicator_consequent.
  *

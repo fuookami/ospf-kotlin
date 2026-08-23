@@ -1,8 +1,7 @@
 /**
  * 功率单位 / Power units
  *
- * 用于测量能量转换速率的单位。
- * Units for measuring the rate of energy conversion.
+ * 用于测量能量转换速率的单位。 / Units for measuring the rate of energy conversion.
  *
  * 单位常量来源 / Unit constant sources:
  * - Watt: SI导出单位，定义为焦耳每秒 / SI derived unit, defined as joule per second
@@ -17,8 +16,7 @@ import fuookami.ospf.kotlin.quantities.dimension.Power
 /**
  * 瓦特 / Watt
  *
- * 功率的SI导出单位，定义为每秒转换一焦耳能量。
- * The SI derived unit of power, defined as one joule of energy converted per second.
+ * 功率的SI导出单位，定义为每秒转换一焦耳能量。 / The SI derived unit of power, defined as one joule of energy converted per second.
  *
  * 符号 / Symbol: W
  * 换算关系 / Conversion: 1 W = 1 J/s = 1 N·m/s = 1 kg·m²/s³
@@ -38,8 +36,7 @@ object Watt : DerivedPhysicalUnit(Newton * MeterPerSecond) {
 /**
  * 千瓦 / Kilowatt
  *
- * 一千瓦。
- * One thousand watts.
+ * 一千瓦。 / One thousand watts.
  *
  * 符号 / Symbol: kW
  * 换算关系 / Conversion: 1 kW = 10³ W = 1000 W
@@ -59,8 +56,7 @@ object Kilowatt : DerivedPhysicalUnit(Watt * Scale.kilo) {
 /**
  * 兆瓦 / Megawatt
  *
- * 一百万瓦。
- * One million watts.
+ * 一百万瓦。 / One million watts.
  *
  * 符号 / Symbol: MW
  * 换算关系 / Conversion: 1 MW = 10⁶ W = 1000000 W
@@ -80,8 +76,7 @@ object Megawatt : DerivedPhysicalUnit(Watt * Scale.mega) {
 /**
  * 毫瓦 / Milliwatt
  *
- * 千分之一瓦。
- * One thousandth of a watt.
+ * 千分之一瓦。 / One thousandth of a watt.
  *
  * 符号 / Symbol: mW
  * 换算关系 / Conversion: 1 mW = 10⁻³ W = 0.001 W
@@ -101,8 +96,7 @@ object Milliwatt : DerivedPhysicalUnit(Watt * Scale.milli) {
 /**
  * 焦耳每秒 / Joule per second
  *
- * 等价于瓦特。
- * Equivalent to watt.
+ * 等价于瓦特。 / Equivalent to watt.
  *
  * 符号 / Symbol: J/s
  * 换算关系 / Conversion: 1 J/s = 1 W
@@ -122,8 +116,7 @@ object JoulePerSecond : DerivedPhysicalUnit(Watt) {
 /**
  * 牛顿米每秒 / Newton meter per second
  *
- * 等价于瓦特。
- * Equivalent to watt.
+ * 等价于瓦特。 / Equivalent to watt.
  *
  * 符号 / Symbol: Nm/s
  * 换算关系 / Conversion: 1 Nm/s = 1 W
@@ -143,8 +136,7 @@ object NewtonMeterPerSecond : DerivedPhysicalUnit(Watt) {
 /**
  * 公制马力 / Horsepower (metric)
  *
- * 公制马力单位，主要用于欧洲。
- * Metric horsepower unit, primarily used in Europe.
+ * 公制马力单位，主要用于欧洲。 / Metric horsepower unit, primarily used in Europe.
  *
  * 符号 / Symbol: ps
  * 换算关系 / Conversion: 1 ps = 735 W
@@ -164,8 +156,7 @@ object Horsepower : DerivedPhysicalUnit(Watt * 735) {
 /**
  * 英制马力 / UK Horsepower
  *
- * 英制马力单位，定义为550英尺磅力每秒。
- * Imperial horsepower unit, defined as 550 foot-pound-force per second.
+ * 英制马力单位，定义为550英尺磅力每秒。 / Imperial horsepower unit, defined as 550 foot-pound-force per second.
  *
  * 符号 / Symbol: uk.ps
  * 换算关系 / Conversion: 1 hp = 550 ft·lbf/s ≈ 745.7 W

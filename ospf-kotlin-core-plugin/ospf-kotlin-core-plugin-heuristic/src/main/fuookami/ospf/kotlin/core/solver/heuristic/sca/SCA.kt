@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
 import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
 import fuookami.ospf.kotlin.core.solver.heuristic.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.nextFlt64
@@ -29,7 +30,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
 /** 正弦余弦算法策略接口 / Sine Cosine Algorithm policy interface */
 interface AbstractSCAPolicy<ObjValue, V> :
-    AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+    AbstractHeuristicPolicy where V : RealNumber<V>, V : NumberField<V> {
 
     /**
      * 计算控制参数 r1 / Calculate control parameter r1
@@ -89,9 +90,7 @@ interface AbstractSCAPolicy<ObjValue, V> :
 /**
  * Q-learning 状态
  *
- * 基于种群密度和距离的离散化状态，用于 Q-learning 控制参数选择。
- *
- * Q-learning state
+ * 基于种群密度和距离的离散化状态，用于 Q-learning 控制参数选择。 / Q-learning state
  *
  * Discretized state based on population density and distance, used for Q-learning
  * control parameter selection.
@@ -125,9 +124,7 @@ data class QLearningState(
 /**
  * 正弦余弦算法策略
  *
- * 实现正弦余弦算法的位置更新策略，结合 Q-learning 自适应调整控制参数 r1 和 r3 的范围。
- *
- * Sine Cosine Algorithm policy
+ * 实现正弦余弦算法的位置更新策略，结合 Q-learning 自适应调整控制参数 r1 和 r3 的范围。 / Sine Cosine Algorithm policy
  *
  * Implements position update strategy for SCA, combined with Q-learning for adaptive
  * adjustment of control parameter r1 and r3 ranges.
@@ -144,13 +141,13 @@ class SCAPolicy<ObjValue, V>(
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
-    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
+    val randomGenerator: Generator<Flt64> = Generator { Random.nextFlt64() },
     private val converter: IntoValue<V>
 ) : HeuristicPolicy(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
-), AbstractSCAPolicy<ObjValue, V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+), AbstractSCAPolicy<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun invoke(
             alpha: Flt64 = Flt64(0.1),
@@ -158,7 +155,7 @@ class SCAPolicy<ObjValue, V>(
             iterationLimit: UInt64 = UInt64.maximum,
             notBetterIterationLimit: UInt64 = UInt64.maximum,
             timeLimit: Duration = 30.minutes,
-            randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
+            randomGenerator: Generator<Flt64> = Generator { Random.nextFlt64() }
         ): SCAPolicy<Flt64, Flt64> {
             return SCAPolicy(
                 alpha = alpha,
@@ -311,8 +308,8 @@ class SCAPolicy<ObjValue, V>(
  * Cast population individuals to the concrete ObjValue/V type.
  * 将种群个体转型为具体的 ObjValue/V 类型。
  *
- * @param population the population from the policy update flow / 策略更新流程中的种群
- * @return the type-safe population list / 类型安全的种群列表
+ * @param population 策略更新流程中的种群 / the population from the policy update flow
+ * @return 类型安全的种群列表 / the type-safe population list
 */
     @Suppress("UNCHECKED_CAST")
     private fun targetPopulation(population: List<Individual<*, *>>): List<Individual<ObjValue, V>> {
@@ -325,8 +322,8 @@ class SCAPolicy<ObjValue, V>(
  * Cast a single individual to the concrete ObjValue/V type.
  * 将单个个体转型为具体的 ObjValue/V 类型。
  *
- * @param individual the individual from the same-origin population / 来自同源种群的单个个体
- * @return the type-safe individual / 类型安全的个体
+ * @param individual 来自同源种群的单个个体 / the individual from the same-origin population
+ * @return 类型安全的个体 / the type-safe individual
 */
     @Suppress("UNCHECKED_CAST")
     private fun targetIndividual(individual: Individual<*, *>): Individual<ObjValue, V> {
@@ -339,8 +336,8 @@ class SCAPolicy<ObjValue, V>(
  * Unwrap a token bound value to the concrete type V.
  * 将令牌边界值解包为具体类型 V。
  *
- * @param value the bound value from a token / 来自令牌的边界值
- * @return the value cast to type V / 转型为 V 类型的值
+ * @param value 来自令牌的边界值 / the bound value from a token
+ * @return 转型为 V 类型的值 / the value cast to type V
 */
     @Suppress("UNCHECKED_CAST")
     private fun unwrapBoundValue(value: Any?): V {
@@ -404,9 +401,7 @@ class SCAPolicy<ObjValue, V>(
  * 正弦余弦算法
  *
  * 实现基于正弦余弦函数的优化算法，使用正弦或余弦函数更新个体位置，
- * 结合 Q-learning 自适应调整搜索策略。
- *
- * Sine Cosine Algorithm
+ * 结合 Q-learning 自适应调整搜索策略。 / Sine Cosine Algorithm
  *
  * Implements optimization algorithm based on sine and cosine functions, using sine or cosine
  * function to update individual positions, combined with Q-learning for adaptive search strategy.
@@ -422,7 +417,7 @@ class SineCosineAlgorithm<Obj, ObjValue, V>(
     val populationAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,
     val policy: AbstractSCAPolicy<ObjValue, V>
-) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+) where V : RealNumber<V>, V : NumberField<V> {
 
     /**
      * 执行正弦余弦算法 / Execute Sine Cosine Algorithm

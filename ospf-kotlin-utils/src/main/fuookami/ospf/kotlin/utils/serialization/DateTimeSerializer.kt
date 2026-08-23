@@ -67,9 +67,7 @@ data object LocalDateTimeSerializer : KSerializer<LocalDateTime> {
 
 /**
  * Serializes LocalDate to "yyyy-MM" format string (year-month only). Sets day to 1 during deserialization.
- * LocalMonth 序列化器，用于将 LocalDate 序列化为 "yyyy-MM" 格式的字符串（仅年月），反序列化时将日设置为 1。
- *
- * BUG FIX: Original code using LocalDate.parse for "yyyy-MM" format would fail.
+ * LocalMonth 序列化器，用于将 LocalDate 序列化为 "yyyy-MM" 格式的字符串（仅年月），反序列化时将日设置为 1。 / BUG FIX: Original code using LocalDate.parse for "yyyy-MM" format would fail.
  * Should use YearMonth.parse then set day to 1.
  * 原始代码使用 LocalDate.parse 解析 "yyyy-MM" 格式会失败，应使用 YearMonth.parse 然后设置日为 1。
 */

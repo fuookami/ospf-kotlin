@@ -80,6 +80,224 @@ class RemoteSolverHttpClientTest {
     }
 
     @Test
+    fun probeCapabilitiesMapsProtocolAndModelTypes() {
+        val http = RecordingHttpHandler(
+            RemoteSolverHttpResponse(
+                statusCode = 200,
+                body =
+                """
+                {
+                  "code": "OK",
+                  "message": "success",
+                  "data": {
+                    "schemaVersion": "1.0",
+                    "protocolVersions": ["2.0"],
+                    "supportedModelTypes": ["CP", "LINEAR"],
+                    "supportsPortableCheckpoint": true,
+                    "supportsNativeCheckpoint": false
+                  }
+                }
+                """.trimIndent()
+            )
+        )
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http
+        )
+
+        val capabilities = client.probeCapabilities().valueOrFail()
+
+        assertEquals("1.0", capabilities.schemaVersion)
+        assertEquals(setOf("2.0"), capabilities.protocolVersions)
+        assertEquals(setOf("CP", "LINEAR"), capabilities.supportedModelTypes)
+        assertTrue(capabilities.supportsPortableCheckpoint)
+        assertFalse(capabilities.supportsNativeCheckpoint)
+        assertEquals("GET", http.lastRequest?.method)
+        assertEquals("http://localhost/api/v1/capabilities", http.lastRequest?.url)
+    }
+
+    @Test
+    fun canonicalCpV2FixtureDecodesWithExactObjectiveAndStatistics() {
+        val fixture = checkNotNull(javaClass.getResource("/fixtures/remote-cp-result-v2.json"))
+            .readText()
+        val solution = json.decodeFromString(SerializedSolution.serializer(), fixture)
+
+        assertEquals("2.0", solution.schemaVersion)
+        assertEquals(9_007_199_254_740_993L, solution.objectiveValueInt64)
+        assertEquals(9_007_199_254_740_993L, solution.variableValuesById["x"])
+        assertEquals(SerializedIntervalValue(1L, 2L, 3L, true), solution.intervalValues["job"])
+        assertEquals(RemoteTerminationReason.TIME_LIMIT, solution.terminationReason)
+        assertEquals("1.0", solution.fingerprintSchemas["model"])
+        assertEquals("0.5", solution.statistics["bestBound"])
+    }
+
+    /**
+     * 验证线性与二次共享的 v2 报告字段可由客户端读取。
+     * Verifies that the shared v2 linear/quadratic report fields are readable by the client.
+     */
+    @Test
+    fun canonicalLinearV2FixtureDecodesReportFields() {
+        val fixture = checkNotNull(javaClass.getResource("/fixtures/remote-linear-result-v2.json"))
+            .readText()
+        val solution = json.decodeFromString(SerializedSolution.serializer(), fixture)
+
+        assertEquals("2.0", solution.schemaVersion)
+        assertEquals(12.5, solution.objectiveValue?.toDouble())
+        assertEquals(0.2, solution.gap?.toDouble())
+        assertEquals(listOf(2.0, 3.0), solution.variableValues.map { it.toDouble() })
+        assertEquals(RemoteSolutionPresence.INCUMBENT, solution.solutionPresence)
+        assertEquals(RemoteProofStatus.CLAIMED, solution.proofStatus)
+        assertEquals(RemoteTerminationReason.TIME_LIMIT, solution.terminationReason)
+        assertEquals("2.0", solution.fingerprintSchemas["solver"])
+        assertEquals("10.5", solution.statistics["bestBound"])
+        assertEquals("run-linear-1", solution.runId)
+        assertEquals("attempt-linear-1", solution.attemptId)
+    }
+
+    @Test
+    fun cpStartRejectsMissingCapabilityBeforeUploadingPayload() = runBlocking {
+        val http = RecordingHttpHandler(
+            RemoteSolverHttpResponse(
+                statusCode = 200,
+                body =
+                """
+                {
+                  "code": "OK",
+                  "message": "success",
+                  "data": {
+                    "schemaVersion": "1.0",
+                    "protocolVersions": ["2.0"],
+                    "supportedModelTypes": ["LINEAR"],
+                    "supportsPortableCheckpoint": true,
+                    "supportsNativeCheckpoint": false
+                  }
+                }
+                """.trimIndent()
+            )
+        )
+        val storage = RecordingObjectStoragePort()
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http,
+            objectStoragePort = storage
+        )
+
+        val result = client.start(
+            payload = SolvePayload(
+                modelData = ModelData.raw(
+                    bytes = "{}".encodeToByteArray(),
+                    format = "ospf-cp-snapshot-json"
+                )
+            ),
+            taskId = TaskId.of("task-cp"),
+            sliceId = SliceId.of("slice-1"),
+            nodeId = NodeId.of("node-1"),
+            tenantId = TenantId.of("tenant-a")
+        )
+
+        assertTrue(result is Failed)
+        val failed = result as Failed<*, *, *>
+        assertEquals(ErrorCode.IllegalArgument, failed.code)
+        assertTrue(failed.error.message?.contains("does not advertise CP") == true)
+        assertTrue(storage.putPaths.isEmpty())
+        assertEquals("/api/v1/capabilities", http.lastRequest?.url?.substringAfter("http://localhost"))
+    }
+
+    @Test
+    fun cpStartRejectsLegacyServerWithoutCapabilityEndpoint() = runBlocking {
+        val http = RecordingHttpHandler(RemoteSolverHttpResponse(statusCode = 404, body = "{}"))
+        val storage = RecordingObjectStoragePort()
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http,
+            objectStoragePort = storage
+        )
+
+        val result = client.start(
+            payload = SolvePayload(
+                modelData = ModelData.raw(
+                    bytes = "{}".encodeToByteArray(),
+                    format = "ospf-cp-snapshot-json"
+                )
+            ),
+            taskId = TaskId.of("task-cp"),
+            sliceId = SliceId.of("slice-1"),
+            nodeId = NodeId.of("node-1"),
+            tenantId = TenantId.of("tenant-a")
+        )
+
+        assertTrue(result is Failed)
+        assertEquals(ErrorCode.ApplicationError, (result as Failed<*, *, *>).code)
+        assertTrue(storage.putPaths.isEmpty())
+    }
+
+    @Test
+    fun cpStartProbesCapabilityBeforeSubmittingTask() = runBlocking {
+        val http = QueueHttpHandler(
+            mutableListOf(
+                RemoteSolverHttpResponse(
+                    statusCode = 200,
+                    body =
+                    """
+                    {
+                      "code": "OK",
+                      "message": "success",
+                      "data": {
+                        "schemaVersion": "1.0",
+                        "protocolVersions": ["2.0"],
+                        "supportedModelTypes": ["CP"],
+                        "supportsPortableCheckpoint": true,
+                        "supportsNativeCheckpoint": false
+                      }
+                    }
+                    """.trimIndent()
+                ),
+                RemoteSolverHttpResponse(
+                    statusCode = 200,
+                    body =
+                    """
+                    {
+                      "code": "OK",
+                      "message": "success",
+                      "data": {
+                        "taskId": "task-cp",
+                        "accepted": true,
+                        "status": "ACCEPTED",
+                        "message": "accepted"
+                      }
+                    }
+                    """.trimIndent()
+                )
+            )
+        )
+        val storage = RecordingObjectStoragePort()
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http,
+            objectStoragePort = storage
+        )
+
+        val handle = client.start(
+            payload = SolvePayload(
+                modelData = ModelData.raw(
+                    bytes = "{}".encodeToByteArray(),
+                    format = "ospf-cp-snapshot-json"
+                )
+            ),
+            taskId = TaskId.of("task-cp"),
+            sliceId = SliceId.of("slice-1"),
+            nodeId = NodeId.of("node-1"),
+            tenantId = TenantId.of("tenant-a")
+        ).valueOrFail()
+
+        assertEquals(TaskId.of("task-cp"), handle.taskId)
+        assertEquals(2, http.requests.size)
+        assertEquals("/api/v1/capabilities", http.requests[0].url.substringAfter("http://localhost"))
+        assertEquals("/api/v1/tasks", http.requests[1].url.substringAfter("http://localhost"))
+        assertEquals(1, storage.putPaths.size)
+    }
+
+    @Test
     fun getMapsTaskView() {
         val http = RecordingHttpHandler(
             RemoteSolverHttpResponse(
@@ -194,7 +412,7 @@ class RemoteSolverHttpClientTest {
 
         val result = client.submit(RemoteTaskSubmitRequest(payloadRef = ObjectPath.of("payloads/1")))
 
-        assertTrue(result is Failed<*, *, *>)
+        assertTrue(result is Failed)
         val error = result as Failed<*, *, *>
         assertEquals(ErrorCode.IllegalArgument, error.code)
         assertTrue(error.message?.contains("payloadRef is required") == true)
@@ -226,7 +444,7 @@ class RemoteSolverHttpClientTest {
 
         val result = client.submit(RemoteTaskSubmitRequest(payloadRef = ObjectPath.of("payloads/1")))
 
-        assertTrue(result is Failed<*, *, *>)
+        assertTrue(result is Failed)
         val failed = result as Failed<*, *, *>
         assertEquals(ErrorCode.ApplicationError, failed.code)
 
@@ -316,6 +534,9 @@ class RemoteSolverHttpClientTest {
                 objectiveValue = Flt64(2.0),
                 gap = Flt64.zero,
                 variableValues = listOf(Flt64.one),
+                problemStatus = RemoteProblemStatus.FEASIBLE,
+                solutionPresence = RemoteSolutionPresence.OPTIMAL,
+                proofStatus = RemoteProofStatus.VERIFIED,
                 elapsed = 12.milliseconds,
                 solverStatus = "OPTIMAL"
             )
@@ -362,11 +583,55 @@ class RemoteSolverHttpClientTest {
         assertEquals(true, slice.completed)
         assertEquals(true, slice.feasible)
         assertEquals(Flt64(2.0), slice.objectiveValue)
-        assertEquals(ObjectPath.of("payloads/tenant-a/task-1/slice-1.json"), storage.putPaths.single())
+        assertEquals(RemoteSolutionPresence.OPTIMAL, slice.solutionPresence)
+        assertEquals(RemoteProofStatus.VERIFIED, slice.proofStatus)
+        assertEquals(ObjectRef.of(path = "results/latest"), slice.resultRef)
+        assertEquals(ObjectPath.of("tenant-a/payloads/task-1/slice-1.json"), storage.putPaths.single())
         assertEquals("POST", http.requests[0].method)
         assertEquals("GET", http.requests[1].method)
         val body = json.parseToJsonElement(http.requests[0].body ?: "").jsonObject
         assertEquals("request-slice-1", body.getValue("requestId").jsonPrimitive.content)
+    }
+
+    @Test
+    fun stoppedTaskDoesNotInheritCompletedArtifactProof() = runBlocking {
+        val storage = RecordingObjectStoragePort()
+        storage.objects[ObjectPath.of("results/stopped")] = json.encodeToString(
+            SerializedSolution(
+                feasible = true,
+                optimal = true,
+                objectiveValue = Flt64(3.0),
+                solutionPresence = RemoteSolutionPresence.OPTIMAL,
+                proofStatus = RemoteProofStatus.VERIFIED,
+                terminationReason = RemoteTerminationReason.COMPLETED
+            )
+        ).encodeToByteArray()
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = RecordingHttpHandler(
+                RemoteSolverHttpResponse(
+                    statusCode = 200,
+                    body = taskViewEnvelope("STOPPED", "results/stopped")
+                )
+            ),
+            objectStoragePort = storage
+        )
+
+        val result = client.fetchFinalResult(
+            ExecutionHandle(
+                handleId = HandleId.of("handle-stopped"),
+                taskId = TaskId.of("task-1"),
+                sliceId = SliceId.of("slice-1"),
+                nodeId = NodeId.of("node-1"),
+                startedAt = Instant.fromEpochMilliseconds(0L)
+            )
+        ).valueOrFail()
+
+        assertNotNull(result)
+        assertFalse(result!!.optimal)
+        assertEquals(RemoteProofStatus.NONE, result.proofStatus)
+        assertEquals(RemoteTerminationReason.CANCELLED, result.terminationReason)
+        assertEquals(RemoteSolutionPresence.INCUMBENT, result.solutionPresence)
     }
 
     @Test
@@ -388,7 +653,7 @@ class RemoteSolverHttpClientTest {
             )
         }
 
-        assertTrue(result is Failed<*, *, *>)
+        assertTrue(result is Failed)
         val error = result as Failed<*, *, *>
         assertEquals(ErrorCode.IllegalArgument, error.code)
         assertTrue(error.message?.contains("checkpoints/specific") == true)
@@ -407,7 +672,7 @@ class RemoteSolverHttpClientTest {
         """.trimIndent()
     }
 
-    private fun taskViewEnvelope(status: String): String {
+    private fun taskViewEnvelope(status: String, latestResultPath: String = "results/latest"): String {
         return """
             {
               "code": "OK",
@@ -418,7 +683,7 @@ class RemoteSolverHttpClientTest {
                 "status": "$status",
                 "currentNodeId": "node-1",
                 "latestCheckpointPath": "checkpoints/latest",
-                "latestResultPath": "results/latest",
+              "latestResultPath": "$latestResultPath",
                 "consumedCost": 1.5
               }
             }

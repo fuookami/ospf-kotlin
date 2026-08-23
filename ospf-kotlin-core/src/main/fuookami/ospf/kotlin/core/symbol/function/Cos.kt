@@ -17,19 +17,15 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 余弦函数符号 / Cosine function symbol
  *
- * 提供 [CosFunction]，使用分段线性插值近似余弦函数。
- *
- * Provides [CosFunction] for piecewise linear approximation of the cosine function.
+ * 提供 [CosFunction]，使用分段线性插值近似余弦函数。 / Provides [CosFunction] for piecewise linear approximation of the cosine function.
 */
 
 /**
- * 通过分段线性插值近似的余弦函数。
- * Cosine function approximated by piecewise linear interpolation.
+ * 通过分段线性插值近似的余弦函数。 / Cosine function approximated by piecewise linear interpolation.
  *
  * 这是 [UnivariateLinearPiecewiseFunction] 的薄包装。
  * This is a thin wrapper around [UnivariateLinearPiecewiseFunction].
- * 余弦函数 cos(v) 在关键点处采样用于 MIP 编码。
- * The cosine function cos(v) is sampled at strategic points for MIP encoding.
+ * 余弦函数 cos(v) 在关键点处采样用于 MIP 编码。 / The cosine function cos(v) is sampled at strategic points for MIP encoding.
  *
  * @property x 输入线性多项式 / the input linear polynomial
  * @property samplingPoints 预计算的 (x, cos(x)) 断点 / pre-computed (x, cos(x)) break points
@@ -107,8 +103,7 @@ class CosFunction<V>(
             CosFunction(x = x, samplingPoints = samplingPoints, converter = converter, name = name, displayName = displayName)
 
         /**
-         * 生成默认余弦采样点（-pi 到 pi 区间内 5 个关键点）。
-         * Generate default cosine sampling points (5 key points in the range [-pi, pi]).
+         * 生成默认余弦采样点（-pi 到 pi 区间内 5 个关键点）。 / Generate default cosine sampling points (5 key points in the range [-pi, pi]).
          *
          * @return 默认采样点列表 / default sampling point list
         */

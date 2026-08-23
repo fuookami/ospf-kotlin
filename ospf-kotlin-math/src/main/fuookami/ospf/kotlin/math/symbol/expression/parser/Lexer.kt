@@ -1,18 +1,14 @@
 /**
- * 词法分析器
- * Lexer
+ * 词法分析器 / Lexer
  *
- * 将表达式字符串解析为词法单元序列。
- * Parses expression strings into token sequences.
+ * 将表达式字符串解析为词法单元序列。 / Parses expression strings into token sequences.
 */
 package fuookami.ospf.kotlin.math.symbol.expression.parser
 
 /**
- * 词法分析模式
- * Lexing Mode
+ * 词法分析模式 / Lexing Mode
  *
- * 控制负号的处理方式：布尔模式下负号作为数字的一部分，标量模式下负号始终作为独立 token。
- * Controls how the minus sign is handled: in boolean mode it's part of a number,
+ * 控制负号的处理方式：布尔模式下负号作为数字的一部分，标量模式下负号始终作为独立 token。 / Controls how the minus sign is handled: in boolean mode it's part of a number,
  * in scalar mode it's always a separate token.
 */
 enum class LexMode {
@@ -23,25 +19,22 @@ enum class LexMode {
 }
 
 /**
- * 词法分析器
- * Lexer
+ * 词法分析器 / Lexer
  *
  * 支持的关键字：and, or, not, in, is, null, true, false, if, then, else, fi
  * Supported keywords: and, or, not, in, is, null, true, false, if, then, else, fi
  *
- * 支持的标识符：单个标识符或点分隔路径（如 a.b.c）
- * Supported identifiers: single identifiers or dot-separated paths (e.g., a.b.c)
+ * 支持的标识符：单个标识符或点分隔路径（如 a.b.c） / Supported identifiers: single identifiers or dot-separated paths (e.g., a.b.c)
  *
- * @property input the input string to tokenize / 待词法分析的输入字符串
- * @property lexMode the lexing mode / 词法分析模式
+ * @property input 待词法分析的输入字符串 / the input string to tokenize
+ * @property lexMode 词法分析模式 / the lexing mode
 */
 class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Boolean) {
     private var position = 0
     private var currentChar: Char? = input.getOrNull(position)
 
     /**
-     * 分析整个输入，返回词法单元列表
-     * Tokenize the entire input, returning a list of tokens
+     * 分析整个输入，返回词法单元列表 / Tokenize the entire input, returning a list of tokens
      *
      * @return 词法单元列表（包含 EOF） / List of tokens (including EOF)
     */
@@ -57,8 +50,7 @@ class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Bo
     }
 
     /**
-     * 获取下一个词法单元
-     * Get the next token
+     * 获取下一个词法单元 / Get the next token
      *
      * @return 下一个词法单元 / Next token
     */
@@ -211,8 +203,7 @@ class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Bo
     }
 
     /**
-     * 跳过空白字符
-     * Skip whitespace characters
+     * 跳过空白字符 / Skip whitespace characters
     */
     private fun skipWhitespace() {
         while (currentChar?.isWhitespace() == true) {
@@ -221,8 +212,7 @@ class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Bo
     }
 
     /**
-     * 向前移动一个字符
-     * Advance one character
+     * 向前移动一个字符 / Advance one character
     */
     private fun advance() {
         position++
@@ -230,22 +220,20 @@ class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Bo
     }
 
     /**
-     * 查看前方第n个字符，不移动位置
-     * Peek at the nth character ahead, without moving position
+     * 查看前方第n个字符，不移动位置 / Peek at the nth character ahead, without moving position
      *
-     * @param n the number of characters to look ahead / 向前查看的字符数
-     * @return the character at the specified offset, or null if out of bounds / 指定偏移量处的字符，越界则返回 null
+     * @param n 向前查看的字符数 / the number of characters to look ahead
+     * @return 指定偏移量处的字符，越界则返回 null / the character at the specified offset, or null if out of bounds
     */
     private fun peekChar(n: Int = 1): Char? {
         return input.getOrNull(position + n)
     }
 
     /**
-     * 读取字符串字面量
-     * Read string literal
+     * 读取字符串字面量 / Read string literal
      *
-     * @param startPos the starting position of the string literal / 字符串字面量的起始位置
-     * @return the string token / 字符串词法单元
+     * @param startPos 字符串字面量的起始位置 / the starting position of the string literal
+     * @return 字符串词法单元 / the string token
     */
     private fun readString(startPos: Int): Token {
         val quote = currentChar!!
@@ -279,11 +267,10 @@ class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Bo
     }
 
     /**
-     * 读取数字字面量
-     * Read number literal
+     * 读取数字字面量 / Read number literal
      *
-     * @param startPos the starting position of the number literal / 数字字面量的起始位置
-     * @return the number token / 数字词法单元
+     * @param startPos 数字字面量的起始位置 / the starting position of the number literal
+     * @return 数字词法单元 / the number token
     */
     private fun readNumber(startPos: Int): Token {
         val sb = StringBuilder()
@@ -328,11 +315,10 @@ class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Bo
     }
 
     /**
-     * 读取标识符或关键字
-     * Read identifier or keyword
+     * 读取标识符或关键字 / Read identifier or keyword
      *
-     * @param startPos the starting position of the identifier or keyword / 标识符或关键字的起始位置
-     * @return the identifier or keyword token / 标识符或关键字词法单元
+     * @param startPos 标识符或关键字的起始位置 / the starting position of the identifier or keyword
+     * @return 标识符或关键字词法单元 / the identifier or keyword token
     */
     private fun readIdentifierOrKeyword(startPos: Int): Token {
         val sb = StringBuilder()
@@ -382,16 +368,14 @@ class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Bo
 }
 
 /**
- * 扩展函数：字符串转词法单元列表
- * Extension function: String to token list
+ * 扩展函数：字符串转词法单元列表 / Extension function: String to token list
  *
  * @return 词法单元列表 / List of tokens
 */
 fun String.tokenize(): List<Token> = Lexer(this).tokenize()
 
 /**
- * 扩展函数：字符串转词法单元列表（标量模式）
- * Extension function: String to token list (scalar mode)
+ * 扩展函数：字符串转词法单元列表（标量模式） / Extension function: String to token list (scalar mode)
  *
  * @return 词法单元列表 / List of tokens
 */

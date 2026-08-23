@@ -296,8 +296,7 @@ class Bin<T, V> internal constructor(
     override fun copy() = Bin(type, units.map { it.copy() }, batchNo)
 
     /**
-     * 创建带新批次号的副本。
-     * Create a copy with a new batch number.
+     * 创建带新批次号的副本。 / Create a copy with a new batch number.
      *
      * @param newBatchNo 新批次号 / new batch number
      * @return 副本 / a copy
@@ -306,8 +305,7 @@ class Bin<T, V> internal constructor(
 }
 
 /**
- * 创建箱层装箱，隐藏底层 Bin 泛型构造。
- * Create a layer bin while hiding the underlying polymorphic Bin constructor.
+ * 创建箱层装箱，隐藏底层 Bin 泛型构造。 / Create a layer bin while hiding the underlying polymorphic Bin constructor.
  *
  * @param shape 箱型 / bin type
  * @param units 箱层放置列表 / bin-layer placements
@@ -327,8 +325,7 @@ fun layerBinOf(
 }
 
 /**
- * 创建货物装箱，隐藏底层 Bin 泛型构造。
- * Create an item bin while hiding the underlying polymorphic Bin constructor.
+ * 创建货物装箱，隐藏底层 Bin 泛型构造。 / Create an item bin while hiding the underlying polymorphic Bin constructor.
  *
  * @param shape 箱型 / bin type
  * @param units 货物放置列表 / item placements
@@ -348,8 +345,7 @@ fun itemBinOf(
 }
 
 /**
- * 创建组合块装箱，隐藏底层 Bin 泛型构造。
- * Create a block bin while hiding the underlying polymorphic Bin constructor.
+ * 创建组合块装箱，隐藏底层 Bin 泛型构造。 / Create a block bin while hiding the underlying polymorphic Bin constructor.
  *
  * @param shape 箱型 / bin type
  * @param units 组合块放置列表 / block placements
@@ -380,8 +376,7 @@ fun <V : FloatingNumber<V>> List<Bin<*, V>>.group(): Map<BinType<V>, UInt64> {
 }
 
 /**
- * 将装箱列表展开为货物映射。
- * Unpack a list of bins into an item map.
+ * 将装箱列表展开为货物映射。 / Unpack a list of bins into an item map.
  *
  * @return 货物与数量的映射 / item-to-quantity map
 */
@@ -396,8 +391,7 @@ fun List<Bin<*, FltX>>.unpack(): Map<Item, UInt64> {
 }
 
 /**
- * 比较两个装箱集合的装载效率。
- * Compare loading efficiency of two bin collections.
+ * 比较两个装箱集合的装载效率。 / Compare loading efficiency of two bin collections.
  *
  * @param rhs 右侧装箱集合 / the right-hand side bin collection
  * @return 比较结果 / comparison result
@@ -435,8 +429,7 @@ infix fun Collection<Bin<*, FltX>>.ord(rhs: Collection<Bin<*, FltX>>): Order {
 }
 
 /**
- * 将箱层装箱展开为货物装箱。
- * Dump a layer bin into an item bin.
+ * 将箱层装箱展开为货物装箱。 / Dump a layer bin into an item bin.
  *
  * @return 货物装箱 / item bin
 */

@@ -1,17 +1,14 @@
 /**
- * 二维轴置换
- * 2D Axis Permutation
+ * 二维轴置换 / 2D Axis Permutation
  *
- * 定义二维几何空间中的轴置换，为纯几何概念，支持宽高轴的交换与映射。
- * Defines axis permutation in 2D geometric space, a pure geometry concept supporting width/height axis swapping and mapping.
+ * 定义二维几何空间中的轴置换，为纯几何概念，支持宽高轴的交换与映射。 / Defines axis permutation in 2D geometric space, a pure geometry concept supporting width/height axis swapping and mapping.
 */
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 /**
- * 二维轴置换为纯几何概念；仅 apply(...) 与数量模型绑定。
- * 2D axis permutation is pure geometry; only apply(...) binds to quantity models.
+ * 二维轴置换为纯几何概念；仅 apply(...) 与数量模型绑定。 / 2D axis permutation is pure geometry; only apply(...) binds to quantity models.
  *
  * @property widthAxis 宽度对应的轴 / The axis corresponding to width
  * @property heightAxis 高度对应的轴 / The axis corresponding to height
@@ -29,8 +26,7 @@ data class AxisPermutation2(
     }
 
     /**
-     * 按轴置换矩形的宽度和高度
-     * Permute the width and height of a rectangle by axes
+     * 按轴置换矩形的宽度和高度 / Permute the width and height of a rectangle by axes
      *
      * @param V 数值类型 / The numeric type
      * @param rectangle 待置换的矩形 / The rectangle to permute
@@ -44,8 +40,7 @@ data class AxisPermutation2(
     }
 
     /**
-     * 对圆形应用轴置换（圆形无方向性，原样返回）
-     * Apply axis permutation to a circle (circle is direction-agnostic, returns as-is)
+     * 对圆形应用轴置换（圆形无方向性，原样返回） / Apply axis permutation to a circle (circle is direction-agnostic, returns as-is)
      *
      * @param V 数值类型 / The numeric type
      * @param circle 待置换的圆形 / The circle to permute

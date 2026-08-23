@@ -13,9 +13,7 @@ import fuookami.ospf.kotlin.framework.model.Pipeline
  * CSP1D 模型上下文接口 / CSP1D model context interface
  *
  * 定义模型注册的基本接口。domain context 实现此接口将建模逻辑注入 MetaModel，
- * 使变量、约束和目标的注册从 solver 硬编码中解耦。
- *
- * Define the basic interface for model registration. Domain contexts implement this interface
+ * 使变量、约束和目标的注册从 solver 硬编码中解耦。 / Define the basic interface for model registration. Domain contexts implement this interface
  * to inject modeling logic into MetaModel, decoupling variable/constraint/objective registration
  * from solver hard-coding.
  *
@@ -26,8 +24,7 @@ interface Csp1dModelContext<V : RealNumber<V>> {
     /**
      * 注册到元模型 / Register to meta model
      *
-     * 将变量、中间值、约束和目标注册到指定的元模型中。
-     * Register variables, intermediate values, constraints, and objectives to the specified meta model.
+     * 将变量、中间值、约束和目标注册到指定的元模型中。 / Register variables, intermediate values, constraints, and objectives to the specified meta model.
      *
      * @param model 元模型 / Meta model
      * @return 操作结果 / Operation result
@@ -46,8 +43,7 @@ interface Csp1dModelContext<V : RealNumber<V>> {
 /**
  * CSP1D 列生成上下文接口 / CSP1D column generation context interface
  *
- * 扩展 ModelContext，支持列生成所需的迭代操作：添加列、提取影子价格、移除列。
- * Extends ModelContext with iterative operations for column generation:
+ * 扩展 ModelContext，支持列生成所需的迭代操作：添加列、提取影子价格、移除列。 / Extends ModelContext with iterative operations for column generation:
  * addColumns, extractShadowPrice, removeColumns.
  *
  * @param V 数值类型 / Numeric value type
@@ -58,9 +54,7 @@ interface Csp1dIterativeContext<V : RealNumber<V>> : Csp1dModelContext<V> {
      * 添加列（新切割方案） / Add columns (new cutting plans)
      *
      * 在列生成迭代过程中，将新生成的切割方案注册为新的列变量，
-     * 并更新相关中间值和约束表达式。
-     *
-     * During column generation iteration, register newly generated cutting plans
+     * 并更新相关中间值和约束表达式。 / During column generation iteration, register newly generated cutting plans
      * as new column variables, and update related intermediate values and constraint expressions.
      *
      * @param iteration 当前迭代编号 / Current iteration number
@@ -99,9 +93,7 @@ interface Csp1dIterativeContext<V : RealNumber<V>> : Csp1dModelContext<V> {
  * CSP1D 扩展模型上下文接口 / CSP1D extra model context interface
  *
  * 组合基础上下文，允许下游项目在不修改核心代码的情况下注入额外建模逻辑。
- * 下游可通过此接口注册类似 same unit length、same width、宽差、材质兼容等业务约束。
- *
- * Composes base context, allowing downstream projects to inject additional modeling logic
+ * 下游可通过此接口注册类似 same unit length、same width、宽差、材质兼容等业务约束。 / Composes base context, allowing downstream projects to inject additional modeling logic
  * without modifying core code. Downstream can register business constraints such as
  * same unit length, same width, width difference, material compatibility via this interface.
  *
@@ -118,8 +110,7 @@ interface Csp1dExtraModelContext<V : RealNumber<V>> : Csp1dModelContext<V> {
 /**
  * CSP1D 扩展列生成上下文接口 / CSP1D extra iterative context interface
  *
- * 扩展 IterativeContext，允许下游项目在列生成迭代中注入额外逻辑。
- * Extends IterativeContext, allowing downstream projects to inject additional logic
+ * 扩展 IterativeContext，允许下游项目在列生成迭代中注入额外逻辑。 / Extends IterativeContext, allowing downstream projects to inject additional logic
  * during column generation iteration.
  *
  * @param V 数值类型 / Numeric value type
@@ -148,8 +139,7 @@ enum class Csp1dModelingMode {
 /**
  * CSP1D 扩展适用模式 / CSP1D extension applicable mode
  *
- * 扩展管线可注册到哪些求解阶段。默认 ALL 表示所有阶段均生效。
- * Extension pipelines can be registered to specific solve stages.
+ * 扩展管线可注册到哪些求解阶段。默认 ALL 表示所有阶段均生效。 / Extension pipelines can be registered to specific solve stages.
  * Default ALL means the extension applies to all stages.
 */
 enum class Csp1dExtensionMode {
@@ -183,9 +173,7 @@ enum class Csp1dExtensionMode {
  * CSP1D 建模扩展 / CSP1D modeling extension
  *
  * 承载可在求解各阶段注入的额外管线。下游通过此类型注册 same unit length、
- * same width、宽差、材质兼容等业务约束，而不修改 framework 核心代码。
- *
- * Carries additional pipelines that can be injected at various solve stages.
+ * same width、宽差、材质兼容等业务约束，而不修改 framework 核心代码。 / Carries additional pipelines that can be injected at various solve stages.
  * Downstream uses this type to register business constraints such as
  * same unit length, same width, width difference, material compatibility,
  * without modifying framework core code.
@@ -210,9 +198,7 @@ data class Csp1dModelingExtension<V : RealNumber<V>>(
      * 解析实际使用的管线 / Resolve the actual pipeline to use
      *
      * 如果有 contextAwarePipeline 且提供了 context，则用它生成管线；
-     * 否则回退到静态 pipeline。
-     *
-     * If contextAwarePipeline is present and context is provided, use it to generate the pipeline;
+     * 否则回退到静态 pipeline。 / If contextAwarePipeline is present and context is provided, use it to generate the pipeline;
      * otherwise fall back to the static pipeline.
      *
      * @param context 建模上下文 / Modeling context
@@ -232,9 +218,7 @@ data class Csp1dModelingExtension<V : RealNumber<V>>(
  *
  * 提供建模管线注册所需的完整领域信息。
  * 下游扩展管线可通过此接口访问产品/物料/设备/方案/聚合根等数据，
- * 无需闭包捕获。
- *
- * Provides complete domain information for modeling pipeline registration.
+ * 无需闭包捕获。 / Provides complete domain information for modeling pipeline registration.
  * Downstream extension pipelines can access product/material/machine/plan/aggregation
  * data through this interface without closure capture.
  *
@@ -312,9 +296,7 @@ interface Csp1dIncrementalPipeline<V : RealNumber<V>> : Pipeline<LinearMetaModel
  * CSP1D 方案判断上下文 / CSP1D plan judgment context
  *
  * 用于方案级约束判断（如 same unit length、same width）。
- * 提供同物料/同设备的方案索引集合，支持跨方案约束注册。
- *
- * Used for plan-level constraint judgment (e.g. same unit length, same width).
+ * 提供同物料/同设备的方案索引集合，支持跨方案约束注册。 / Used for plan-level constraint judgment (e.g. same unit length, same width).
  * Provides same-material/same-machine plan index sets for cross-plan constraint registration.
  *
  * @param V 数值类型 / Numeric value type
@@ -337,9 +319,7 @@ interface Csp1dPlanJudgmentContext<V : RealNumber<V>> : Csp1dDomainCalculationCo
  * CSP1D 目标策略接口 / CSP1D objective policy interface
  *
  * 允许下游注入额外目标项或修正基础目标系数。
- * 默认实现不修改任何目标。
- *
- * Allows downstream to inject additional objective terms or modify
+ * 默认实现不修改任何目标。 / Allows downstream to inject additional objective terms or modify
  * base objective coefficients. Default implementation does not modify any objective.
  *
  * @param V 数值类型 / Numeric value type
@@ -364,9 +344,7 @@ interface Csp1dObjectivePolicy<V : RealNumber<V>> {
  * CSP1D 生成策略接口 / CSP1D generation policy interface
  *
  * 允许下游注入候选生成过滤、排序和验收逻辑。
- * 默认实现不改变任何生成行为。
- *
- * Allows downstream to inject candidate generation filtering,
+ * 默认实现不改变任何生成行为。 / Allows downstream to inject candidate generation filtering,
  * sorting and acceptance logic. Default implementation does not
  * change any generation behavior.
  *
@@ -378,8 +356,7 @@ interface Csp1dGenerationStrategy<V : RealNumber<V>> {
     val name: String
 
     /**
-     * 判断候选方案是否应被接受 /
-     * Check if candidate plan should be accepted
+     * 判断候选方案是否应被接受 / / Check if candidate plan should be accepted
      *
      * @param candidate 候选方案 / Candidate plan
      * @param existingPlans 现有方案池 / Existing plan pool
@@ -400,8 +377,7 @@ interface Csp1dGenerationStrategy<V : RealNumber<V>> {
     fun canonicalKeyFor(candidate: CuttingPlan<V>): String? = null
 
     /**
-     * dominance 判断：是否接受新候选替代已有方案 /
-     * Dominance judgment: whether to accept new candidate over existing
+     * dominance 判断：是否接受新候选替代已有方案 / / Dominance judgment: whether to accept new candidate over existing
      *
      * 返回 true 表示新候选通过 dominance 判断应被接受。
      * 默认返回 true（不额外过滤 dominance）。
@@ -420,9 +396,7 @@ interface Csp1dGenerationStrategy<V : RealNumber<V>> {
  * CSP1D 定价策略接口 / CSP1D pricing policy interface
  *
  * 允许下游注入 reduced cost 成本修正、isImproving 判断和候选排序逻辑。
- * 默认实现不改变任何定价行为。
- *
- * Allows downstream to inject reduced cost cost modification,
+ * 默认实现不改变任何定价行为。 / Allows downstream to inject reduced cost cost modification,
  * isImproving judgment and candidate sorting logic.
  * Default implementation does not change any pricing behavior.
  *
@@ -458,9 +432,7 @@ interface Csp1dPricingPolicy<V : RealNumber<V>> {
      * Custom isImproving judgment
      *
      * 返回 null 表示使用默认判断（benefit > cost）。
-     * 返回 true/false 表示强制判定结果。
-     *
-     * Return null to use default judgment (benefit > cost).
+     * 返回 true/false 表示强制判定结果。 / Return null to use default judgment (benefit > cost).
      * Return true/false to force the judgment result.
      *
      * @param candidate 候选方案 / Candidate plan
@@ -475,9 +447,7 @@ interface Csp1dPricingPolicy<V : RealNumber<V>> {
  * CSP1D 流程上下文 / CSP1D flow context
  *
  * 为流程策略提供求解器状态上下文。下游通过此接口访问
- * 当前迭代号、方案池、迭代上限等信息，用于流程判断。
- *
- * Provides solver state context for flow policies. Downstream
+ * 当前迭代号、方案池、迭代上限等信息，用于流程判断。 / Provides solver state context for flow policies. Downstream
  * accesses current iteration, plan pool, iteration limit etc.
  * for flow control decisions.
  *
@@ -528,9 +498,7 @@ interface Csp1dFlowContext<V : RealNumber<V>> {
  *
  * 允许下游注入求解流程控制逻辑，如初始方案过滤、
  * 去重等价判断、终止条件、partial 接受、recovery fallback 等。
- * 默认实现保持当前硬编码行为。
- *
- * Allows downstream to inject solver flow control logic,
+ * 默认实现保持当前硬编码行为。 / Allows downstream to inject solver flow control logic,
  * such as initial plan filtering, dedup equivalence judgment,
  * termination conditions, partial acceptance, recovery fallback.
  * Default implementation preserves current hard-coded behavior.
@@ -543,8 +511,7 @@ interface Csp1dFlowPolicy<V : RealNumber<V>> {
     val name: String
 
     /**
-     * 过滤初始方案池 /
-     * Filter initial plan pool
+     * 过滤初始方案池 / / Filter initial plan pool
      *
      * @param plans 初始方案列表 / Initial plan list
      * @return 过滤后的方案列表 / Filtered plan list
@@ -554,8 +521,7 @@ interface Csp1dFlowPolicy<V : RealNumber<V>> {
     /**
      * 带上下文的初始方案过滤 / Context-aware initial plan filtering
      *
-     * 默认回退到无上下文版本。
-     * Default falls back to context-free version.
+     * 默认回退到无上下文版本。 / Default falls back to context-free version.
      *
      * @param context 流程上下文 / Flow context
      * @param plans 初始方案列表 / Initial plan list
@@ -565,8 +531,7 @@ interface Csp1dFlowPolicy<V : RealNumber<V>> {
         filterInitialPlans(plans)
 
     /**
-     * 判断两个方案是否等价（用于去重）/
-     * Check if two plans are equivalent (for deduplication)
+     * 判断两个方案是否等价（用于去重）/ / Check if two plans are equivalent (for deduplication)
      *
      * @param existing 已有方案 / Existing plan
      * @param candidate 候选方案 / Candidate plan
@@ -577,8 +542,7 @@ interface Csp1dFlowPolicy<V : RealNumber<V>> {
     /**
      * 带上下文的等价判断 / Context-aware equivalence check
      *
-     * 默认回退到无上下文版本。
-     * Default falls back to context-free version.
+     * 默认回退到无上下文版本。 / Default falls back to context-free version.
      *
      * @param context 流程上下文 / Flow context
      * @param existing 已有方案 / Existing plan
@@ -589,11 +553,9 @@ interface Csp1dFlowPolicy<V : RealNumber<V>> {
         isEquivalent(existing, candidate)
 
     /**
-     * 是否提前终止迭代（iteration limit 之外的业务停止条件）/
-     * Whether to stop iteration early (business stop condition beyond iteration limit)
+     * 是否提前终止迭代（iteration limit 之外的业务停止条件）/ / Whether to stop iteration early (business stop condition beyond iteration limit)
      *
-     * 默认不停止。下游可基于当前方案池大小、LP 目标趋势等判断提前终止。
-     * Default does not stop. Downstream may decide early termination based on
+     * 默认不停止。下游可基于当前方案池大小、LP 目标趋势等判断提前终止。 / Default does not stop. Downstream may decide early termination based on
      * current plan pool size, LP objective trend, etc.
      *
      * @param context 流程上下文 / Flow context
@@ -602,8 +564,7 @@ interface Csp1dFlowPolicy<V : RealNumber<V>> {
     fun shouldStopIteration(context: Csp1dFlowContext<V>): Boolean = false
 
     /**
-     * 自定义终止原因和消息 /
-     * Customize termination reason and message
+     * 自定义终止原因和消息 / / Customize termination reason and message
      *
      * 允许扩展 termination reason/message，但默认不变。
      * Allows extending termination reason/message, but default is unchanged.
@@ -794,9 +755,7 @@ interface Csp1dExtractionPolicy<V : RealNumber<V>> {
  *
  * 承载所有扩展策略的统一容器。下游通过此类型注入
  * 建模管线、领域策略、目标策略、生成策略、定价策略和流程策略。
- * 默认空实现不改变现有求解行为。
- *
- * Unified container for all extension policies. Downstream injects
+ * 默认空实现不改变现有求解行为。 / Unified container for all extension policies. Downstream injects
  * modeling pipelines, domain policies, objective policies,
  * generation policies, pricing policies and flow policies through this type.
  * Default empty implementation does not change existing solver behavior.

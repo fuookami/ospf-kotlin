@@ -11,8 +11,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 
 /**
- * 泛型需求键。
- * Quantity demand key.
+ * 泛型需求键。 / Quantity demand key.
 */
 sealed interface QuantityBpp3dDemandKey<V : FloatingNumber<V>> {
 
@@ -34,8 +33,7 @@ sealed interface QuantityBpp3dDemandKey<V : FloatingNumber<V>> {
 }
 
 /**
- * 泛型需求值。
- * Quantity demand value.
+ * 泛型需求值。 / Quantity demand value.
 */
 sealed interface QuantityBpp3dDemandValue<V : FloatingNumber<V>> {
 

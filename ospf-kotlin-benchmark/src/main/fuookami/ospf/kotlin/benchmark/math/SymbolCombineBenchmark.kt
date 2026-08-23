@@ -41,8 +41,7 @@ open class SymbolCombineBenchmark {
     lateinit var dataset: String
 
     /**
-     * 基准测试用符号实现
-     * Symbol implementation for benchmarking purposes
+     * 基准测试用符号实现 / Symbol implementation for benchmarking purposes
      *
      * @property displayName 可选的显示名称 / optional display name
     */
@@ -58,8 +57,7 @@ open class SymbolCombineBenchmark {
     private lateinit var quadraticPolynomial: QuadraticPolynomial<Flt64>
 
     /**
-     * 初始化基准测试数据，根据 [dataset] 参数生成不同规模的符号、单项式和多项式。
-     * Initializes benchmark data, generating symbols, monomials, and polynomials of varying sizes based on the [dataset] parameter.
+     * 初始化基准测试数据，根据 [dataset] 参数生成不同规模的符号、单项式和多项式。 / Initializes benchmark data, generating symbols, monomials, and polynomials of varying sizes based on the [dataset] parameter.
     */
     @Setup
     fun setup() {
@@ -100,8 +98,7 @@ open class SymbolCombineBenchmark {
     }
 
     /**
-     * 线性单项式可迭代对象合并基准
-     * Benchmark for combining linear monomial iterable
+     * 线性单项式可迭代对象合并基准 / Benchmark for combining linear monomial iterable
      *
      * @return 合并后单项式数量 / monomial count after combining
     */
@@ -111,8 +108,7 @@ open class SymbolCombineBenchmark {
     }
 
     /**
-     * 线性多项式泛型合并基准
-     * Benchmark for combining linear polynomial generically
+     * 线性多项式泛型合并基准 / Benchmark for combining linear polynomial generically
      *
      * @return 合并后单项式数量 / monomial count after combining
     */
@@ -122,8 +118,7 @@ open class SymbolCombineBenchmark {
     }
 
     /**
-     * 二次单项式可迭代对象合并基准
-     * Benchmark for combining quadratic monomial iterable
+     * 二次单项式可迭代对象合并基准 / Benchmark for combining quadratic monomial iterable
      *
      * @return 合并后单项式数量 / monomial count after combining
     */
@@ -133,8 +128,7 @@ open class SymbolCombineBenchmark {
     }
 
     /**
-     * 二次多项式泛型合并基准
-     * Benchmark for combining quadratic polynomial generically
+     * 二次多项式泛型合并基准 / Benchmark for combining quadratic polynomial generically
      *
      * @return 合并后单项式数量 / monomial count after combining
     */
@@ -144,8 +138,7 @@ open class SymbolCombineBenchmark {
     }
 
     /**
-     * 可变线性多项式累加后合并基准
-     * Benchmark for mutable linear polynomial accumulate-then-combine
+     * 可变线性多项式累加后合并基准 / Benchmark for mutable linear polynomial accumulate-then-combine
      *
      * @return 合并后单项式数量 / monomial count after combining
     */
@@ -160,8 +153,7 @@ open class SymbolCombineBenchmark {
     }
 
     /**
-     * 可变二次多项式累加后合并基准
-     * Benchmark for mutable quadratic polynomial accumulate-then-combine
+     * 可变二次多项式累加后合并基准 / Benchmark for mutable quadratic polynomial accumulate-then-combine
      *
      * @return 合并后单项式数量 / monomial count after combining
     */

@@ -1,9 +1,7 @@
 /**
- * 标量表达弌
- * Scalar Expression
+ * 标量表达弌 / Scalar Expression
  *
- * 定义标量值的表达弌AST，包括常量、引用、一元操作、二元操作、函数调用和自定义表达式。
- * Defines the expression AST for scalar values,
+ * 定义标量值的表达弌AST，包括常量、引用、一元操作、二元操作、函数调用和自定义表达式。 / Defines the expression AST for scalar values,
  * including constant, reference, unary, binary, function call, and custom expressions.
 */
 package fuookami.ospf.kotlin.math.symbol.expression
@@ -11,29 +9,24 @@ package fuookami.ospf.kotlin.math.symbol.expression
 import fuookami.ospf.kotlin.math.symbol.*
 
 /**
- * 标量表达弌
- * Scalar Expression
+ * 标量表达弌 / Scalar Expression
  *
- * 表示标量值的表达式，支持多种操作类型。
- * Represents an expression for scalar values, supporting various operation types.
+ * 表示标量值的表达式，支持多种操作类型。 / Represents an expression for scalar values, supporting various operation types.
 */
 sealed interface ScalarExpression<out T> {
 
     /**
-     * 表达式类型名秌
-     * Expression type name
+     * 表达式类型名秌 / Expression type name
     */
     val typeName: String
 
     /**
-     * 子表达式列表
-     * Child expressions list
+     * 子表达式列表 / Child expressions list
     */
     val children: List<ScalarExpression<T>>
 
     /**
-     * 判断表达式是否是常量
-     * Check if expression is constant
+     * 判断表达式是否是常量 / Check if expression is constant
      *
      * @return 如果表达式是常量则返回 true，否则返回 false / true if the expression is constant, false otherwise
     */
@@ -50,8 +43,7 @@ sealed interface ScalarExpression<out T> {
     }
 
     /**
-     * 判断表达式是否包含引甌
-     * Check if expression contains references
+     * 判断表达式是否包含引甌 / Check if expression contains references
      *
      * @return 如果表达式包含引用则返回 true，否则返回 false / true if the expression contains references, false otherwise
     */
@@ -68,8 +60,7 @@ sealed interface ScalarExpression<out T> {
     }
 
     /**
-     * 获取表达式中的所有引用路後
-     * Get all reference paths in the expression
+     * 获取表达式中的所有引用路後 / Get all reference paths in the expression
      *
      * @return 表达式中所有引用路径的集合 / Set of all reference paths in the expression
     */
@@ -80,8 +71,7 @@ sealed interface ScalarExpression<out T> {
     }
 
     /**
-     * 将引用路径收集到指定集合
-     * Collect reference paths into specified collection
+     * 将引用路径收集到指定集合 / Collect reference paths into specified collection
      *
      * @param refs 用于收集引用路径的可变集合 / Mutable set to collect reference paths into
     */
@@ -107,18 +97,14 @@ sealed interface ScalarExpression<out T> {
 }
 
 /**
- * 标量常量
- * Scalar Constant
+ * 标量常量 / Scalar Constant
  *
- * 表示常量值。
- * Represents a constant value.
+ * 表示常量值。 / Represents a constant value.
 */
 /**
- * 标量常量
- * Scalar Constant
+ * 标量常量 / Scalar Constant
  *
- * 表示常量值。
- * Represents a constant value.
+ * 表示常量值。 / Represents a constant value.
  *
  * @property value 常量值 / Constant value
 */
@@ -132,11 +118,9 @@ data class ScalarConstant<T>(
 }
 
 /**
- * 标量引用
- * Scalar Reference
+ * 标量引用 / Scalar Reference
  *
- * 表示对属性路径的引用。
- * Represents a reference to a property path.
+ * 表示对属性路径的引用。 / Represents a reference to a property path.
  *
  * @property path 属性路径 / Property path
  * @property symbol 路径符号，默认从 path 转换 / Path symbol, defaults to conversion from path
@@ -152,11 +136,9 @@ data class ScalarReference<T>(
 }
 
 /**
- * 标量符号引用
- * Scalar Symbol Reference
+ * 标量符号引用 / Scalar Symbol Reference
  *
- * 表示对符号的引用（非路径形式）。
- * Represents a reference to a symbol (non-path form).
+ * 表示对符号的引用（非路径形式）。 / Represents a reference to a symbol (non-path form).
  *
  * @property symbol 符号 / Symbol
 */
@@ -170,11 +152,9 @@ data class ScalarSymbolReference<T>(
 }
 
 /**
- * 标量一元操佌
- * Scalar Unary Operation
+ * 标量一元操佌 / Scalar Unary Operation
  *
- * 表示一元操作表达式，如负号。
- * Represents a unary operation expression, such as negation.
+ * 表示一元操作表达式，如负号。 / Represents a unary operation expression, such as negation.
  *
  * @property operator 一元操作符 / Unary operator
  * @property operand 操作数 / Operand
@@ -190,11 +170,9 @@ data class ScalarUnary<T>(
 }
 
 /**
- * 标量二元操作
- * Scalar Binary Operation
+ * 标量二元操作 / Scalar Binary Operation
  *
- * 表示二元操作表达式，如加法、减法。
- * Represents a binary operation expression, such as addition, subtraction.
+ * 表示二元操作表达式，如加法、减法。 / Represents a binary operation expression, such as addition, subtraction.
  *
  * @property operator 二元操作符 / Binary operator
  * @property left 左操作数 / Left operand
@@ -212,14 +190,12 @@ data class ScalarBinary<T>(
 }
 
 /**
- * 标量函数调用
- * Scalar Function Call
+ * 标量函数调用 / Scalar Function Call
  *
- * 表示函数调用表达式。
- * Represents a function call expression.
+ * 表示函数调用表达式。 / Represents a function call expression.
  *
  * @property name 函数名称 / Function name
- * @property arguments List of argument expressions for the function call / 函数调用的参数表达式列表
+ * @property arguments 函数调用的参数表达式列表 / List of argument expressions for the function call
 */
 data class ScalarFunction<T>(
     val name: String,
@@ -232,11 +208,9 @@ data class ScalarFunction<T>(
 }
 
 /**
- * 标量自定义表达式
- * Scalar Custom Expression
+ * 标量自定义表达式 / Scalar Custom Expression
  *
- * 表示自定义表达式，用于扩展。
- * Represents a custom expression for extension.
+ * 表示自定义表达式，用于扩展。 / Represents a custom expression for extension.
  *
  * @property value 自定义值 / Custom value
  * @property description 可选描述 / Optional description
@@ -252,8 +226,7 @@ data class ScalarCustom<T>(
 }
 
 /**
- * 标量条件表达式
- * Scalar Conditional Expression
+ * 标量条件表达式 / Scalar Conditional Expression
  *
  * 表示条件表达式（if/then/else 或三元 ?:），桥接 BooleanExpression（条件）到 ScalarExpression（分支）。
  * Represents a conditional expression (if/then/else or ternary ?:),
@@ -278,11 +251,9 @@ data class ScalarConditional<T>(
 }
 
 /**
- * 标量布尔包装表达式
- * Scalar Boolean Wrapper Expression
+ * 标量布尔包装表达式 / Scalar Boolean Wrapper Expression
  *
- * 将布尔表达式包装为标量值，用于公式返回布尔结果的场景（如 x > 0 && y > 0）。
- * Wraps a boolean expression as a scalar value, for formulas returning boolean results (e.g., x > 0 && y > 0).
+ * 将布尔表达式包装为标量值，用于公式返回布尔结果的场景（如 x > 0 && y > 0）。 / Wraps a boolean expression as a scalar value, for formulas returning boolean results (e.g., x > 0 && y > 0).
  *
  * @property expr 被包装的布尔表达式 / Wrapped boolean expression
 */
@@ -296,17 +267,14 @@ data class ScalarBoolean<T>(
 }
 
 /**
- * 标量表达式工厌
- * Scalar Expression Factory
+ * 标量表达式工厌 / Scalar Expression Factory
  *
- * 提供便捷的标量表达式构造方法。
- * Provides convenient scalar expression construction methods.
+ * 提供便捷的标量表达式构造方法。 / Provides convenient scalar expression construction methods.
 */
 object ScalarExpressionFactory {
 
     /**
-     * 创建常量表达弌
-     * Create constant expression
+     * 创建常量表达弌 / Create constant expression
      *
      * @param value 常量值 / Constant value
      * @return 标量表达式 / Scalar expression
@@ -314,8 +282,7 @@ object ScalarExpressionFactory {
     fun <T> constant(value: T): ScalarExpression<T> = ScalarConstant(value)
 
     /**
-     * 创建引用表达弌
-     * Create reference expression
+     * 创建引用表达弌 / Create reference expression
      *
      * @param path 属性路径 / Property path
      * @return 标量表达式 / Scalar expression
@@ -323,8 +290,7 @@ object ScalarExpressionFactory {
     fun <T> reference(path: PropertyPath): ScalarExpression<T> = ScalarReference(path)
 
     /**
-     * 创建引用表达弌
-     * Create reference expression
+     * 创建引用表达弌 / Create reference expression
      *
      * @param path 路径字符串 / Path string
      * @return 标量表达式 / Scalar expression
@@ -332,8 +298,7 @@ object ScalarExpressionFactory {
     fun <T> reference(path: String): ScalarExpression<T> = reference(PropertyPath.parse(path))
 
     /**
-     * 创建符号引用表达式
-     * Create symbol reference expression
+     * 创建符号引用表达式 / Create symbol reference expression
      *
      * @param symbol 符号 / Symbol
      * @return 标量表达式 / Scalar expression
@@ -341,8 +306,7 @@ object ScalarExpressionFactory {
     fun <T> reference(symbol: Symbol): ScalarExpression<T> = ScalarSymbolReference(symbol)
 
     /**
-     * 创建一元操作表达式
-     * Create unary operation expression
+     * 创建一元操作表达式 / Create unary operation expression
      *
      * @param operator 一元操作符 / Unary operator
      * @param operand 操作数 / Operand
@@ -352,8 +316,7 @@ object ScalarExpressionFactory {
         ScalarUnary(operator, operand)
 
     /**
-     * 创建二元操作表达弌
-     * Create binary operation expression
+     * 创建二元操作表达弌 / Create binary operation expression
      *
      * @param operator 二元操作符 / Binary operator
      * @param left 左操作数 / Left operand
@@ -367,8 +330,7 @@ object ScalarExpressionFactory {
     ): ScalarExpression<T> = ScalarBinary(operator, left, right)
 
     /**
-     * 创建函数调用表达弌
-     * Create function call expression
+     * 创建函数调用表达弌 / Create function call expression
      *
      * @param name 函数名 / Function name
      * @param arguments 参数列表 / Argument list
@@ -378,8 +340,7 @@ object ScalarExpressionFactory {
         ScalarFunction(name, arguments)
 
     /**
-     * 创建加法表达弌
-     * Create addition expression
+     * 创建加法表达弌 / Create addition expression
      *
      * @param left 左操作数 / Left operand
      * @param right 右操作数 / Right operand
@@ -389,8 +350,7 @@ object ScalarExpressionFactory {
         binary(BinaryOperator.Add, left, right)
 
     /**
-     * 创建减法表达弌
-     * Create subtraction expression
+     * 创建减法表达弌 / Create subtraction expression
      *
      * @param left 左操作数 / Left operand
      * @param right 右操作数 / Right operand
@@ -400,8 +360,7 @@ object ScalarExpressionFactory {
         binary(BinaryOperator.Subtract, left, right)
 
     /**
-     * 创建乘法表达弌
-     * Create multiplication expression
+     * 创建乘法表达弌 / Create multiplication expression
      *
      * @param left 左操作数 / Left operand
      * @param right 右操作数 / Right operand
@@ -411,8 +370,7 @@ object ScalarExpressionFactory {
         binary(BinaryOperator.Multiply, left, right)
 
     /**
-     * 创建除法表达弌
-     * Create division expression
+     * 创建除法表达弌 / Create division expression
      *
      * @param left 左操作数 / Left operand
      * @param right 右操作数 / Right operand
@@ -422,8 +380,7 @@ object ScalarExpressionFactory {
         binary(BinaryOperator.Divide, left, right)
 
     /**
-     * 创建条件表达式
-     * Create conditional expression
+     * 创建条件表达式 / Create conditional expression
      *
      * @param condition 条件布尔表达式 / Condition boolean expression
      * @param thenBranch 条件为真时的分支 / Branch when condition is true
@@ -437,8 +394,7 @@ object ScalarExpressionFactory {
     ): ScalarExpression<T> = ScalarConditional(condition, thenBranch, elseBranch)
 
     /**
-     * 创建布尔包装表达式
-     * Create boolean wrapper expression
+     * 创建布尔包装表达式 / Create boolean wrapper expression
      *
      * @param expr 布尔表达式 / Boolean expression
      * @return 布尔包装表达式 / Boolean wrapper expression
@@ -447,8 +403,7 @@ object ScalarExpressionFactory {
 }
 
 /**
- * 标准标量函数名称
- * Standard scalar function names
+ * 标准标量函数名称 / Standard scalar function names
 */
 object ScalarFunctionNames {
     const val Abs: String = "abs"
@@ -460,16 +415,14 @@ object ScalarFunctionNames {
 }
 
 /**
- * 标量函数注册表
- * Scalar function registry
+ * 标量函数注册表 / Scalar function registry
  *
  * @param R 注册表使用的中间表示类型 / Intermediate representation type used by registry
 */
 interface ScalarFunctionRegistry<R> {
 
     /**
-     * 将标量函数调用翻译为目标表示
-     * Translate scalar function call to target representation
+     * 将标量函数调用翻译为目标表示 / Translate scalar function call to target representation
      *
      * @param name 函数名 / Function name
      * @param arguments 参数列表 / Argument list
@@ -479,14 +432,12 @@ interface ScalarFunctionRegistry<R> {
 }
 
 /**
- * 标量函数求值器
- * Scalar function evaluator
+ * 标量函数求值器 / Scalar function evaluator
 */
 interface ScalarFunctionEvaluator {
 
     /**
-     * 求值标量函数
-     * Evaluate scalar function
+     * 求值标量函数 / Evaluate scalar function
      *
      * @param name 函数名 / Function name
      * @param arguments 参数列表 / Argument list

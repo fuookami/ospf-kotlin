@@ -41,7 +41,7 @@ open class TaskType(
 /**
  * eq.
  * eq。
- * @param type The task type to compare with / 要比较的任务类型
+ * @param type 要比较的任务类型 / The task type to compare with
 */
 
     infix fun eq(type: TaskType) = this.cls == type.cls
@@ -49,14 +49,14 @@ open class TaskType(
 /**
  * neq.
  * neq。
- * @param type The task type to compare with / 要比较的任务类型
+ * @param type 要比较的任务类型 / The task type to compare with
 */
     infix fun neq(type: TaskType) = this.cls != type.cls
 
 /**
  * eq.
  * eq。
- * @param cls The KClass to compare with / 要比较的KClass类型
+ * @param cls 要比较的KClass类型 / The KClass to compare with
 */
 
     infix fun eq(cls: KClass<*>) = this.cls == cls
@@ -64,7 +64,7 @@ open class TaskType(
 /**
  * neq.
  * neq。
- * @param cls The KClass to compare with / 要比较的KClass类型
+ * @param cls 要比较的KClass类型 / The KClass to compare with
 */
     infix fun neq(cls: KClass<*>) = this.cls != cls
 }
@@ -206,9 +206,9 @@ interface AbstractTask<out E : Executor, out A : AssignmentPolicy<E>> : Indexed,
 /**
  * duration.
  * duration。
- * @param executor The executor for which to calculate duration / 用于计算持续时间的执行者
- * @param time The reference start time for duration calculation, or null to use default / 用于持续时间计算的参考开始时间，为null时使用默认值
- * @return The task duration for the given executor and time / 给定执行者和时间下的任务持续时间
+ * @param executor 用于计算持续时间的执行者 / The executor for which to calculate duration
+ * @param time 用于持续时间计算的参考开始时间，为null时使用默认值 / The reference start time for duration calculation, or null to use default
+ * @return 给定执行者和时间下的任务持续时间 / The task duration for the given executor and time
 */
     fun duration(executor: @UnsafeVariance E, time: Instant? = null): Duration = duration!!
 
@@ -227,8 +227,8 @@ interface AbstractTask<out E : Executor, out A : AssignmentPolicy<E>> : Indexed,
 /**
  * earliestStartTime.
  * earliestStartTime。
- * @param executor The executor for which to calculate earliest start time / 用于计算最早开始时间的执行者
- * @return The earliest allowed start time for the given executor, or null if unrestricted / 给定执行者的最早允许开始时间，无限制时为null
+ * @param executor 用于计算最早开始时间的执行者 / The executor for which to calculate earliest start time
+ * @return 给定执行者的最早允许开始时间，无限制时为null / The earliest allowed start time for the given executor, or null if unrestricted
 */
     fun earliestStartTime(executor: @UnsafeVariance E): Instant? = null
 
@@ -238,17 +238,17 @@ interface AbstractTask<out E : Executor, out A : AssignmentPolicy<E>> : Indexed,
 /**
  * lastStartTime.
  * lastStartTime。
- * @param executor The executor for which to calculate latest start time / 用于计算最晚开始时间的执行者
- * @return The latest allowed start time for the given executor, or null if unrestricted / 给定执行者的最晚允许开始时间，无限制时为null
+ * @param executor 用于计算最晚开始时间的执行者 / The executor for which to calculate latest start time
+ * @return 给定执行者的最晚允许开始时间，无限制时为null / The latest allowed start time for the given executor, or null if unrestricted
 */
     fun lastStartTime(executor: @UnsafeVariance E): Instant? = null
 
 /**
  * connectionTime.
  * connectionTime。
- * @param prevTask The preceding task in the sequence, or null if this is the first / 前序任务，若为首个任务则为null
- * @param succTask The succeeding task in the sequence, or null if this is the last / 后续任务，若为末个任务则为null
- * @return The connection (transition) time between the two tasks, or null if not applicable / 两个任务之间的衔接（过渡）时间，不适用时为null
+ * @param prevTask 前序任务，若为首个任务则为null / The preceding task in the sequence, or null if this is the first
+ * @param succTask 后续任务，若为末个任务则为null / The succeeding task in the sequence, or null if this is the last
+ * @return 两个任务之间的衔接（过渡）时间，不适用时为null / The connection (transition) time between the two tasks, or null if not applicable
 */
     fun connectionTime(
         prevTask: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>?,
@@ -258,10 +258,10 @@ interface AbstractTask<out E : Executor, out A : AssignmentPolicy<E>> : Indexed,
 /**
  * connectionTime.
  * connectionTime。
- * @param executor The executor performing the transition / 执行衔接过渡的执行者
- * @param prevTask The preceding task in the sequence, or null if this is the first / 前序任务，若为首个任务则为null
- * @param succTask The succeeding task in the sequence, or null if this is the last / 后续任务，若为末个任务则为null
- * @return The connection (transition) time between the two tasks for the given executor / 给定执行者下两个任务之间的衔接（过渡）时间
+ * @param executor 执行衔接过渡的执行者 / The executor performing the transition
+ * @param prevTask 前序任务，若为首个任务则为null / The preceding task in the sequence, or null if this is the first
+ * @param succTask 后续任务，若为末个任务则为null / The succeeding task in the sequence, or null if this is the last
+ * @return 给定执行者下两个任务之间的衔接（过渡）时间 / The connection (transition) time between the two tasks for the given executor
 */
     fun connectionTime(
         executor: @UnsafeVariance E,
@@ -274,8 +274,8 @@ interface AbstractTask<out E : Executor, out A : AssignmentPolicy<E>> : Indexed,
 /**
  * scheduleEnabled.
  * scheduleEnabled。
- * @param timeWindow The time window to check scheduling eligibility against / 用于检查调度资格的时间窗口
- * @return Whether the task can be scheduled within the given time window / 任务是否可以在给定时间窗口内调度
+ * @param timeWindow 用于检查调度资格的时间窗口 / The time window to check scheduling eligibility against
+ * @return 任务是否可以在给定时间窗口内调度 / Whether the task can be scheduled within the given time window
 */
     fun scheduleEnabled(timeWindow: TimeRange): Boolean {
         return false
@@ -311,8 +311,8 @@ interface AbstractTask<out E : Executor, out A : AssignmentPolicy<E>> : Indexed,
 /**
  * scheduleNeeded.
  * scheduleNeeded。
- * @param timeWindow The time window to check scheduling necessity against / 用于检查调度必要性的时间窗口
- * @return Whether the task needs to be scheduled within the given time window / 任务是否需要在给定时间窗口内调度
+ * @param timeWindow 用于检查调度必要性的时间窗口 / The time window to check scheduling necessity against
+ * @return 任务是否需要在给定时间窗口内调度 / Whether the task needs to be scheduled within the given time window
 */
     fun scheduleNeeded(timeWindow: TimeRange): Boolean {
         return false
@@ -321,8 +321,8 @@ interface AbstractTask<out E : Executor, out A : AssignmentPolicy<E>> : Indexed,
 /**
  * assigningEnabled.
  * assigningEnabled。
- * @param policy The assignment policy to check eligibility for / 用于检查分配资格的分配策略
- * @return Whether the task can be assigned with the given policy / 任务是否可以使用给定策略进行分配
+ * @param policy 用于检查分配资格的分配策略 / The assignment policy to check eligibility for
+ * @return 任务是否可以使用给定策略进行分配 / Whether the task can be assigned with the given policy
 */
     fun assigningEnabled(policy: @UnsafeVariance A): Boolean {
         return false
@@ -331,8 +331,8 @@ interface AbstractTask<out E : Executor, out A : AssignmentPolicy<E>> : Indexed,
 /**
  * assign.
  * assign。
- * @param policy The assignment policy to apply / 要应用的分配策略
- * @return The newly assigned task, or failure if the policy is infeasible / 分配后的新任务，策略不可行时返回失败
+ * @param policy 要应用的分配策略 / The assignment policy to apply
+ * @return 分配后的新任务，策略不可行时返回失败 / The newly assigned task, or failure if the policy is infeasible
 */
     fun assign(policy: @UnsafeVariance A): Ret<AbstractTask<E, A>> {
         return Failed(GanttSchedulingSolvingError("infeasible policy"))

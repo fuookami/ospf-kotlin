@@ -45,8 +45,7 @@ class MybatisOrderByTranslator<T : Any>(
     }
 
     /**
-     * 应用单个排序项到 Wrapper
-     * Apply a single sort item to wrapper
+     * 应用单个排序项到 Wrapper / Apply a single sort item to wrapper
      *
      * @param wrapper MyBatis-Plus 查询 Wrapper / MyBatis-Plus query wrapper
      * @param item 排序项 / Sort item

@@ -37,8 +37,7 @@ private fun patternScalar(value: Number): FltX = FltX(value.toDouble())
 private fun patternScalar(value: ULong): FltX = FltX(value.toDouble())
 
 /**
- * 模式项信息，包含项及其数量。
- * Pattern item information, containing an item and its amount.
+ * 模式项信息，包含项及其数量。 / Pattern item information, containing an item and its amount.
 */
 private data class PatternItemInfo(
     val item: Item,
@@ -48,14 +47,12 @@ private data class PatternItemInfo(
 }
 
 /**
- * 抽象模式模型，定义模式放置和生成的接口与公共逻辑。
- * Abstract pattern model, defining the interface and common logic for pattern placement and generation.
+ * 抽象模式模型，定义模式放置和生成的接口与公共逻辑。 / Abstract pattern model, defining the interface and common logic for pattern placement and generation.
 */
 abstract class Pattern {
 
     /**
-     * 模式步骤，定义每个放置位置的朝向和下一位置提取器。
-     * Pattern step, defining the orientation for each placement position and the next point extractor.
+     * 模式步骤，定义每个放置位置的朝向和下一位置提取器。 / Pattern step, defining the orientation for each placement position and the next point extractor.
      *
      * @property lengthOrientation 长度方向 / Length orientation
      * @property nextPointExtractor 下一位置提取函数 / Next point extraction function
@@ -65,8 +62,7 @@ abstract class Pattern {
         val nextPointExtractor: ((projection: Projection<Item, FltX, Bottom>, placements: List<QuantityPlacement2<Item, FltX, Bottom>>) -> QuantityPoint2<FltX>)?
     ) {
         /**
-         * 生成放置项。
-         * Generate a placement.
+         * 生成放置项。 / Generate a placement.
          *
          * @param projection 投影 / Projection
          * @param placements 已有放置列表 / Existing placements
@@ -90,8 +86,7 @@ abstract class Pattern {
         }
 
         /**
-         * 生成多堆叠投影。
-         * Generate a multi-pile projection.
+         * 生成多堆叠投影。 / Generate a multi-pile projection.
          *
          * @param items 项列表 / List of items
          * @return 多堆叠投影结果 / Multi-pile projection result
@@ -124,8 +119,7 @@ abstract class Pattern {
         }
 
         /**
-         * 获取项的图案视图。
-         * Get the pattern view of an item.
+         * 获取项的图案视图。 / Get the pattern view of an item.
          *
          * @param item 项 / Item
          * @return 视图结果 / View result
@@ -156,8 +150,7 @@ abstract class Pattern {
     }
 
     /**
-     * 图案配置。
-     * Pattern configuration.
+     * 图案配置。 / Pattern configuration.
      *
      * @property withPiling 最大堆叠层数 / Maximum number of piling layers
      * @property withRemainder 是否允许剩余 / Whether to allow remainder
@@ -173,8 +166,7 @@ abstract class Pattern {
         }
 
         /**
-         * 创建新配置。
-         * Create a new configuration.
+         * 创建新配置。 / Create a new configuration.
          *
          * @param withPiling 最大堆叠层数 / Maximum number of piling layers
          * @param withRemainder 是否允许剩余 / Whether to allow remainder
@@ -191,8 +183,7 @@ abstract class Pattern {
         }
 
         /**
-         * 从构建器创建新配置。
-         * Create a new configuration from a builder.
+         * 从构建器创建新配置。 / Create a new configuration from a builder.
          *
          * @param builder 配置构建器 / Configuration builder
          * @return 新配置 / New configuration
@@ -206,8 +197,7 @@ abstract class Pattern {
     }
 
     /**
-     * 配置构建器。
-     * Configuration builder.
+     * 配置构建器。 / Configuration builder.
      *
      * @property withPiling 最大堆叠层数 / Maximum number of piling layers
      * @property withRemainder 是否允许剩余 / Whether to allow remainder
@@ -231,8 +221,7 @@ abstract class Pattern {
 
     companion object {
         /**
-         * 构建配置。
-         * Build a configuration.
+         * 构建配置。 / Build a configuration.
          *
          * @param builder 配置构建器 lambda / Configuration builder lambda
          * @return 配置构建器 / Configuration builder
@@ -429,8 +418,7 @@ abstract class Pattern {
     }
 
     /**
-     * 生成平面放置（第一个重载，启动协程）。
-     * Generate plane placements (first overload, launching coroutines).
+     * 生成平面放置（第一个重载，启动协程）。 / Generate plane placements (first overload, launching coroutines).
      *
      * @param originItems 原始项列表 / Original list of items
      * @param itemsGroup 按高度分组的项 / Items grouped by height
@@ -480,8 +468,7 @@ abstract class Pattern {
     }
 
     /**
-     * 生成平面放置（第二个重载，实际执行逻辑）。
-     * Generate plane placements (second overload, actual execution logic).
+     * 生成平面放置（第二个重载，实际执行逻辑）。 / Generate plane placements (second overload, actual execution logic).
      *
      * @param originItems 原始项列表 / Original list of items
      * @param itemsGroup 按高度分组的项 / Items grouped by height

@@ -1,13 +1,10 @@
 /**
- * 有理数模块
- * Rational Number Module
+ * 有理数模块 / Rational Number Module
  *
  * 本模块定义了有理数的类型系统，包括有符号有理数（Rtn8、Rtn16、Rtn32、Rtn64、RtnX）
  * 和无符号有理数（URtn8、URtn16、URtn32、URtn64、URtnX）。
  * 有理数以分子和分母的形式表示，在构造时自动进行约分化简。
- * 支持完整的算术运算、比较操作、类型转换以及各种数学函数。
- *
- * This module defines the rational number type system, including signed rational numbers (Rtn8, Rtn16, Rtn32, Rtn64, RtnX)
+ * 支持完整的算术运算、比较操作、类型转换以及各种数学函数。 / This module defines the rational number type system, including signed rational numbers (Rtn8, Rtn16, Rtn32, Rtn64, RtnX)
  * and unsigned rational numbers (URtn8, URtn16, URtn32, URtn64, URtnX).
  * Rational numbers are represented in numerator and denominator form, with automatic simplification during construction.
  * Supports full arithmetic operations, comparison operations, type conversions, and various mathematical functions.
@@ -27,11 +24,9 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 确保分母不为零
- * Ensure denominator is not zero
+ * 确保分母不为零 / Ensure denominator is not zero
  *
- * 检查分母是否为零，如果为零则抛出算术异常。
- * Checks if the denominator is zero, throws an arithmetic exception if it is.
+ * 检查分母是否为零，如果为零则抛出算术异常。 / Checks if the denominator is zero, throws an arithmetic exception if it is.
  *
  * @param den 分母值
  *            The denominator value
@@ -49,8 +44,8 @@ private fun <I> ensureNonZeroDenominator(den: I)
  * Checks if the denominator is zero.
  * 判断分母是否为零。
  *
- * @param den the denominator value to check / 待检查的分母值
- * @return true if the denominator is zero, false otherwise / 分母为零时返回 true，否则返回 false
+ * @param den 待检查的分母值 / the denominator value to check
+ * @return 分母为零时返回 true，否则返回 false / true if the denominator is zero, false otherwise
 */
 private fun <I> isZeroDenominator(den: I): Boolean
         where I : Integer<I>, I : NumberField<I> {
@@ -61,8 +56,8 @@ private fun <I> isZeroDenominator(den: I): Boolean
  * Builds a failure result for a zero denominator.
  * 构建分母为零的失败结果。
  *
- * @param den the zero denominator value / 为零的分母值
- * @return a failed result with an error message about zero denominator / 包含零分母错误信息的失败结果
+ * @param den 为零的分母值 / the zero denominator value
+ * @return 包含零分母错误信息的失败结果 / a failed result with an error message about zero denominator
 */
 private fun <Self> zeroDenominatorFailure(den: Any?): Ret<Self> {
     return Failed(
@@ -75,9 +70,9 @@ private fun <Self> zeroDenominatorFailure(den: Any?): Ret<Self> {
  * Constructs a rational number with zero-denominator validation.
  * 构造有理数，并进行分母为零的验证。
  *
- * @param den the denominator value to validate / 待验证的分母值
- * @param build the constructor lambda invoked when denominator is non-zero / 分母非零时调用的构造 lambda
- * @return the constructed rational number, or failure if denominator is zero / 构造的有理数，分母为零时返回失败
+ * @param den 待验证的分母值 / the denominator value to validate
+ * @param build 分母非零时调用的构造 lambda / the constructor lambda invoked when denominator is non-zero
+ * @return 构造的有理数，分母为零时返回失败 / the constructed rational number, or failure if denominator is zero
 */
 private inline fun <Self, I> rationalOf(
     den: I,
@@ -105,13 +100,10 @@ private fun <Self> Ret<Self>.orNull(): Self? {
 }
 
 /**
- * 有理数序列化器抽象类
- * Abstract Rational Serializer
+ * 有理数序列化器抽象类 / Abstract Rational Serializer
  *
  * 用于有理数类型的 Kotlin 序列化框架序列化器基类。
- * 使用 JSON 对象格式，包含分子（num）和分母（den）两个字段。
- *
- * Base class for rational number type serializers in the Kotlin serialization framework.
+ * 使用 JSON 对象格式，包含分子（num）和分母（den）两个字段。 / Base class for rational number type serializers in the Kotlin serialization framework.
  * Uses JSON object format with numerator (num) and denominator (den) fields.
  *
  * @param Self 有理数类型
@@ -168,14 +160,11 @@ abstract class RationalSerializer<Self, I>(
 }
 
 /**
- * 有理数抽象类
- * Abstract Rational Number
+ * 有理数抽象类 / Abstract Rational Number
  *
  * 有理数类型的抽象基类，以分子和分母的形式表示有理数。
  * 提供了有理数的通用操作，包括算术运算、比较操作、类型转换、
- * 对数、幂运算、三角函数等数学运算的默认实现。
- *
- * Abstract base class for rational number types, representing rational numbers in numerator and denominator form.
+ * 对数、幂运算、三角函数等数学运算的默认实现。 / Abstract base class for rational number types, representing rational numbers in numerator and denominator form.
  * Provides common operations for rational numbers, including default implementations for arithmetic operations,
  * comparison operations, type conversions, logarithm, power operations, trigonometric functions, and other mathematical operations.
  *
@@ -202,8 +191,7 @@ abstract class Rational<Self, I> protected constructor(
     override fun toString() = "($num / $den)"
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数 / The radix base
      * @return 指定进制的字符串表示 / The string representation in the specified radix
@@ -221,12 +209,10 @@ abstract class Rational<Self, I> protected constructor(
 
     /**
      * Returns the nullable reciprocal of this rational number.
-     * 返回此有理数的可空倒数。
-     *
-     * If the numerator is zero, returns null since zero has no reciprocal.
+     * 返回此有理数的可空倒数。 / If the numerator is zero, returns null since zero has no reciprocal.
      * 如果分子为零，返回 null，因为零没有倒数。
      *
-     * @return the reciprocal, or null if this rational is zero / 倒数，若此有理数为零则返回 null
+     * @return 倒数，若此有理数为零则返回 null / the reciprocal, or null if this rational is zero
     */
     fun reciprocalOrNull(): Self? = if (num eq integerConstants.zero) {
         null
@@ -236,12 +222,10 @@ abstract class Rational<Self, I> protected constructor(
 
     /**
      * Returns the safe reciprocal of this rational number as a result type.
-     * 以结果类型返回此有理数的安全倒数。
-     *
-     * If the numerator is zero, returns a failure with an error message.
+     * 以结果类型返回此有理数的安全倒数。 / If the numerator is zero, returns a failure with an error message.
      * 如果分子为零，返回包含错误信息的失败结果。
      *
-     * @return the reciprocal as a successful result, or failure if this rational is zero / 成功结果形式的倒数，若此有理数为零则返回失败
+     * @return 成功结果形式的倒数，若此有理数为零则返回失败 / the reciprocal as a successful result, or failure if this rational is zero
     */
     fun reciprocalSafe(): Ret<Self> {
         return reciprocalOrNull()?.let { ok(it) }
@@ -452,11 +436,9 @@ abstract class Rational<Self, I> protected constructor(
 }
 
 /**
- * 有理数常量抽象类
- * Abstract Rational Number Constants
+ * 有理数常量抽象类 / Abstract Rational Number Constants
  *
- * 有理数常量对象的抽象基类，提供常用的数值常量。
- * Abstract base class for rational number constants objects, providing common numeric constants.
+ * 有理数常量对象的抽象基类，提供常用的数值常量。 / Abstract base class for rational number constants objects, providing common numeric constants.
  *
  * @param Self 有理数类型
  *             The rational number type
@@ -485,24 +467,19 @@ abstract class RationalConstants<Self, I> protected constructor(
 }
 
 /**
- * Rtn8 序列化器
- * Rtn8 Serializer
+ * Rtn8 序列化器 / Rtn8 Serializer
  *
- * 用于 Rtn8 类型的 Kotlin 序列化框架序列化器。
- * Serializer for the Rtn8 type in the Kotlin serialization framework.
+ * 用于 Rtn8 类型的 Kotlin 序列化框架序列化器。 / Serializer for the Rtn8 type in the Kotlin serialization framework.
 */
 data object Rtn8Serializer : RationalSerializer<Rtn8, Int8>("Rtn8", Rtn8::of) {
     override val valueSerializer = Int8Serializer
 }
 
 /**
- * 基于 Int8 的有理数
- * Rational Number based on Int8
+ * 基于 Int8 的有理数 / Rational Number based on Int8
  *
  * 使用 8 位有符号整数作为分子和分母的有理数类型。
- * 在构造时自动进行约分化简，并确保符号规范化。
- *
- * A rational number type using 8-bit signed integers as numerator and denominator.
+ * 在构造时自动进行约分化简，并确保符号规范化。 / A rational number type using 8-bit signed integers as numerator and denominator.
  * Automatically simplifies during construction and ensures sign normalization.
  *
  * @property num 分子
@@ -526,9 +503,9 @@ data class Rtn8 internal constructor(
          * Safely constructs a rational number from the given numerator and denominator.
          * 安全地从给定的分子和分母构造有理数。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the construction result, returns failure if denominator is zero / 构造结果，分母为零时返回失败
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造结果，分母为零时返回失败 / the construction result, returns failure if denominator is zero
         */
         fun of(num: Int8, den: Int8): Ret<Rtn8> {
             return rationalOf(den) {
@@ -546,9 +523,9 @@ data class Rtn8 internal constructor(
          * Safely constructs a rational number, returns null if denominator is zero.
          * 安全构造有理数，分母为零时返回 null。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the constructed rational number, or null if denominator is zero / 构造的有理数，分母为零时返回 null
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造的有理数，分母为零时返回 null / the constructed rational number, or null if denominator is zero
         */
         fun ofOrNull(num: Int8, den: Int8): Rtn8? {
             return of(num, den).orNull()
@@ -558,9 +535,9 @@ data class Rtn8 internal constructor(
          * Constructs an Rtn8 rational number from the given numerator and denominator, throwing on zero denominator.
          * 从给定的分子和分母构造 Rtn8 有理数，分母为零时抛出异常。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the constructed Rtn8 rational number / 构造的 Rtn8 有理数
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造的 Rtn8 有理数 / the constructed Rtn8 rational number
         */
         operator fun invoke(num: Int8, den: Int8): Rtn8 {
             ensureNonZeroDenominator(den)
@@ -577,8 +554,7 @@ data class Rtn8 internal constructor(
     override val constants: RealNumberConstants<Rtn8> get() = Companion
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -588,8 +564,7 @@ data class Rtn8 internal constructor(
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -599,8 +574,7 @@ data class Rtn8 internal constructor(
     override operator fun plus(rhs: Rtn8) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
 
     /**
-     * 减法
-     * Subtraction
+     * 减法 / Subtraction
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -610,8 +584,7 @@ data class Rtn8 internal constructor(
     override operator fun minus(rhs: Rtn8) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -621,8 +594,7 @@ data class Rtn8 internal constructor(
     override operator fun times(rhs: Rtn8) = invoke(num * rhs.num, den * rhs.den)
 
     /**
-     * 除法
-     * Division
+     * 除法 / Division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -633,24 +605,19 @@ data class Rtn8 internal constructor(
 }
 
 /**
- * Rtn16 序列化器
- * Rtn16 Serializer
+ * Rtn16 序列化器 / Rtn16 Serializer
  *
- * 用于 Rtn16 类型的 Kotlin 序列化框架序列化器。
- * Serializer for the Rtn16 type in the Kotlin serialization framework.
+ * 用于 Rtn16 类型的 Kotlin 序列化框架序列化器。 / Serializer for the Rtn16 type in the Kotlin serialization framework.
 */
 data object Rtn16Serializer : RationalSerializer<Rtn16, Int16>("Rtn16", Rtn16::of) {
     override val valueSerializer = Int16Serializer
 }
 
 /**
- * 基于 Int16 的有理数
- * Rational Number based on Int16
+ * 基于 Int16 的有理数 / Rational Number based on Int16
  *
  * 使用 16 位有符号整数作为分子和分母的有理数类型。
- * 在构造时自动进行约分化简。
- *
- * A rational number type using 16-bit signed integers as numerator and denominator.
+ * 在构造时自动进行约分化简。 / A rational number type using 16-bit signed integers as numerator and denominator.
  * Automatically simplifies during construction.
  *
  * @property num 分子
@@ -674,9 +641,9 @@ data class Rtn16 internal constructor(
          * Safely constructs a rational number from the given numerator and denominator.
          * 安全地从给定的分子和分母构造有理数。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the construction result, returns failure if denominator is zero / 构造结果，分母为零时返回失败
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造结果，分母为零时返回失败 / the construction result, returns failure if denominator is zero
         */
         fun of(num: Int16, den: Int16): Ret<Rtn16> {
             return rationalOf(den) {
@@ -689,9 +656,9 @@ data class Rtn16 internal constructor(
          * Safely constructs a rational number, returns null if denominator is zero.
          * 安全构造有理数，分母为零时返回 null。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the constructed rational number, or null if denominator is zero / 构造的有理数，分母为零时返回 null
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造的有理数，分母为零时返回 null / the constructed rational number, or null if denominator is zero
         */
         fun ofOrNull(num: Int16, den: Int16): Rtn16? {
             return of(num, den).orNull()
@@ -701,9 +668,9 @@ data class Rtn16 internal constructor(
          * Constructs an Rtn16 rational number from the given numerator and denominator, throwing on zero denominator.
          * 从给定的分子和分母构造 Rtn16 有理数，分母为零时抛出异常。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the constructed Rtn16 rational number / 构造的 Rtn16 有理数
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造的 Rtn16 有理数 / the constructed Rtn16 rational number
         */
         operator fun invoke(num: Int16, den: Int16): Rtn16 {
             ensureNonZeroDenominator(den)
@@ -715,8 +682,7 @@ data class Rtn16 internal constructor(
     override val constants: RealNumberConstants<Rtn16> get() = Rtn16
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -726,8 +692,7 @@ data class Rtn16 internal constructor(
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -737,8 +702,7 @@ data class Rtn16 internal constructor(
     override operator fun plus(rhs: Rtn16) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
 
     /**
-     * 减法
-     * Subtraction
+     * 减法 / Subtraction
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -748,8 +712,7 @@ data class Rtn16 internal constructor(
     override operator fun minus(rhs: Rtn16) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -759,8 +722,7 @@ data class Rtn16 internal constructor(
     override operator fun times(rhs: Rtn16) = invoke(num * rhs.num, den * rhs.den)
 
     /**
-     * 除法
-     * Division
+     * 除法 / Division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -771,24 +733,19 @@ data class Rtn16 internal constructor(
 }
 
 /**
- * Rtn32 序列化器
- * Rtn32 Serializer
+ * Rtn32 序列化器 / Rtn32 Serializer
  *
- * 用于 Rtn32 类型的 Kotlin 序列化框架序列化器。
- * Serializer for the Rtn32 type in the Kotlin serialization framework.
+ * 用于 Rtn32 类型的 Kotlin 序列化框架序列化器。 / Serializer for the Rtn32 type in the Kotlin serialization framework.
 */
 data object Rtn32Serializer : RationalSerializer<Rtn32, Int32>("Rtn32", Rtn32::of) {
     override val valueSerializer = Int32Serializer
 }
 
 /**
- * 基于 Int32 的有理数
- * Rational Number based on Int32
+ * 基于 Int32 的有理数 / Rational Number based on Int32
  *
  * 使用 32 位有符号整数作为分子和分母的有理数类型。
- * 在构造时自动进行约分化简。这是常用的有理数类型。
- *
- * A rational number type using 32-bit signed integers as numerator and denominator.
+ * 在构造时自动进行约分化简。这是常用的有理数类型。 / A rational number type using 32-bit signed integers as numerator and denominator.
  * Automatically simplifies during construction. This is a commonly used rational number type.
  *
  * @property num 分子
@@ -812,9 +769,9 @@ data class Rtn32 internal constructor(
          * Safely constructs a rational number from the given numerator and denominator.
          * 安全地从给定的分子和分母构造有理数。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the construction result, returns failure if denominator is zero / 构造结果，分母为零时返回失败
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造结果，分母为零时返回失败 / the construction result, returns failure if denominator is zero
         */
         fun of(num: Int32, den: Int32): Ret<Rtn32> {
             return rationalOf(den) {
@@ -827,9 +784,9 @@ data class Rtn32 internal constructor(
          * Safely constructs a rational number, returns null if denominator is zero.
          * 安全构造有理数，分母为零时返回 null。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the constructed rational number, or null if denominator is zero / 构造的有理数，分母为零时返回 null
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造的有理数，分母为零时返回 null / the constructed rational number, or null if denominator is zero
         */
         fun ofOrNull(num: Int32, den: Int32): Rtn32? {
             return of(num, den).orNull()
@@ -839,9 +796,9 @@ data class Rtn32 internal constructor(
          * Constructs an Rtn32 rational number from the given numerator and denominator, throwing on zero denominator.
          * 从给定的分子和分母构造 Rtn32 有理数，分母为零时抛出异常。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the constructed Rtn32 rational number / 构造的 Rtn32 有理数
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造的 Rtn32 有理数 / the constructed Rtn32 rational number
         */
         operator fun invoke(num: Int32, den: Int32): Rtn32 {
             ensureNonZeroDenominator(den)
@@ -853,8 +810,7 @@ data class Rtn32 internal constructor(
     override val constants: RealNumberConstants<Rtn32> get() = Rtn32
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -864,8 +820,7 @@ data class Rtn32 internal constructor(
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -875,8 +830,7 @@ data class Rtn32 internal constructor(
     override operator fun plus(rhs: Rtn32) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
 
     /**
-     * 减法
-     * Subtraction
+     * 减法 / Subtraction
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -886,8 +840,7 @@ data class Rtn32 internal constructor(
     override operator fun minus(rhs: Rtn32) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -897,8 +850,7 @@ data class Rtn32 internal constructor(
     override operator fun times(rhs: Rtn32) = invoke(num * rhs.num, den * rhs.den)
 
     /**
-     * 除法
-     * Division
+     * 除法 / Division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -909,24 +861,19 @@ data class Rtn32 internal constructor(
 }
 
 /**
- * Rtn64 序列化器
- * Rtn64 Serializer
+ * Rtn64 序列化器 / Rtn64 Serializer
  *
- * 用于 Rtn64 类型的 Kotlin 序列化框架序列化器。
- * Serializer for the Rtn64 type in the Kotlin serialization framework.
+ * 用于 Rtn64 类型的 Kotlin 序列化框架序列化器。 / Serializer for the Rtn64 type in the Kotlin serialization framework.
 */
 data object Rtn64Serializer : RationalSerializer<Rtn64, Int64>("Rtn64", Rtn64::of) {
     override val valueSerializer = Int64Serializer
 }
 
 /**
- * 基于 Int64 的有理数
- * Rational Number based on Int64
+ * 基于 Int64 的有理数 / Rational Number based on Int64
  *
  * 使用 64 位有符号整数作为分子和分母的有理数类型。
- * 在构造时自动进行约分化简。适用于需要更大数值范围的情况。
- *
- * A rational number type using 64-bit signed integers as numerator and denominator.
+ * 在构造时自动进行约分化简。适用于需要更大数值范围的情况。 / A rational number type using 64-bit signed integers as numerator and denominator.
  * Automatically simplifies during construction. Suitable for cases requiring larger numerical range.
  *
  * @property num 分子
@@ -950,9 +897,9 @@ data class Rtn64 internal constructor(
          * Safely constructs a rational number from the given numerator and denominator.
          * 安全地从给定的分子和分母构造有理数。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the construction result, returns failure if denominator is zero / 构造结果，分母为零时返回失败
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造结果，分母为零时返回失败 / the construction result, returns failure if denominator is zero
         */
         fun of(num: Int64, den: Int64): Ret<Rtn64> {
             return rationalOf(den) {
@@ -965,9 +912,9 @@ data class Rtn64 internal constructor(
          * Safely constructs a rational number, returns null if denominator is zero.
          * 安全构造有理数，分母为零时返回 null。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the constructed rational number, or null if denominator is zero / 构造的有理数，分母为零时返回 null
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造的有理数，分母为零时返回 null / the constructed rational number, or null if denominator is zero
         */
         fun ofOrNull(num: Int64, den: Int64): Rtn64? {
             return of(num, den).orNull()
@@ -977,9 +924,9 @@ data class Rtn64 internal constructor(
          * Constructs an Rtn64 rational number from the given numerator and denominator, throwing on zero denominator.
          * 从给定的分子和分母构造 Rtn64 有理数，分母为零时抛出异常。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the constructed Rtn64 rational number / 构造的 Rtn64 有理数
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造的 Rtn64 有理数 / the constructed Rtn64 rational number
         */
         operator fun invoke(num: Int64, den: Int64): Rtn64 {
             ensureNonZeroDenominator(den)
@@ -996,8 +943,7 @@ data class Rtn64 internal constructor(
     override val constants: RealNumberConstants<Rtn64> get() = Rtn64
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -1007,8 +953,7 @@ data class Rtn64 internal constructor(
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1018,8 +963,7 @@ data class Rtn64 internal constructor(
     override operator fun plus(rhs: Rtn64) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
 
     /**
-     * 减法
-     * Subtraction
+     * 减法 / Subtraction
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1029,8 +973,7 @@ data class Rtn64 internal constructor(
     override operator fun minus(rhs: Rtn64) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1040,8 +983,7 @@ data class Rtn64 internal constructor(
     override operator fun times(rhs: Rtn64) = invoke(num * rhs.num, den * rhs.den)
 
     /**
-     * 除法
-     * Division
+     * 除法 / Division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1052,24 +994,19 @@ data class Rtn64 internal constructor(
 }
 
 /**
- * RtnX 序列化器
- * RtnX Serializer
+ * RtnX 序列化器 / RtnX Serializer
  *
- * 用于 RtnX（任意精度有理数）类型的 Kotlin 序列化框架序列化器。
- * Serializer for the RtnX (arbitrary precision rational number) type in the Kotlin serialization framework.
+ * 用于 RtnX（任意精度有理数）类型的 Kotlin 序列化框架序列化器。 / Serializer for the RtnX (arbitrary precision rational number) type in the Kotlin serialization framework.
 */
 data object RtnXSerializer : RationalSerializer<RtnX, IntX>("RtnX", RtnX::of) {
     override val valueSerializer = IntXSerializer
 }
 
 /**
- * 任意精度有理数
- * Arbitrary Precision Rational Number
+ * 任意精度有理数 / Arbitrary Precision Rational Number
  *
  * 使用任意精度有符号整数作为分子和分母的有理数类型。
- * 在构造时自动进行约分化简。适用于需要精确计算的场景。
- *
- * A rational number type using arbitrary precision signed integers as numerator and denominator.
+ * 在构造时自动进行约分化简。适用于需要精确计算的场景。 / A rational number type using arbitrary precision signed integers as numerator and denominator.
  * Automatically simplifies during construction. Suitable for scenarios requiring precise calculations.
  *
  * @property num 分子
@@ -1090,8 +1027,7 @@ data class RtnX internal constructor(
     */
     companion object : RationalConstants<RtnX, IntX>(RtnX::invoke, IntX), Flt64ValueConverter<RtnX> {
         /**
-         * 安全构造有理数
-         * Safely construct a rational number
+         * 安全构造有理数 / Safely construct a rational number
          *
          * @param num 分子（Kotlin Int）
          *            The numerator (Kotlin Int)
@@ -1105,8 +1041,7 @@ data class RtnX internal constructor(
         }
 
         /**
-         * 安全构造有理数，分母为零时返回 null
-         * Safely construct a rational number, returns null if denominator is zero
+         * 安全构造有理数，分母为零时返回 null / Safely construct a rational number, returns null if denominator is zero
          *
          * @param num 分子（Kotlin Int）
          *            The numerator (Kotlin Int)
@@ -1125,15 +1060,14 @@ data class RtnX internal constructor(
          *
          * @param num the numerator as a Kotlin Int / Kotlin Int 类型的分子
          * @param den the denominator as a Kotlin Int / Kotlin Int 类型的分母
-         * @return the constructed RtnX rational number / 构造的 RtnX 有理数
+         * @return 构造的 RtnX 有理数 / the constructed RtnX rational number
         */
         operator fun invoke(num: Int, den: Int): RtnX {
             return RtnX(IntX(num.toLong()), IntX(den.toLong()))
         }
 
         /**
-         * 安全构造有理数
-         * Safely construct a rational number
+         * 安全构造有理数 / Safely construct a rational number
          *
          * @param num 分子
          *            The numerator
@@ -1150,8 +1084,7 @@ data class RtnX internal constructor(
         }
 
         /**
-         * 安全构造有理数，分母为零时返回 null
-         * Safely construct a rational number, returns null if denominator is zero
+         * 安全构造有理数，分母为零时返回 null / Safely construct a rational number, returns null if denominator is zero
          *
          * @param num 分子
          *            The numerator
@@ -1168,9 +1101,9 @@ data class RtnX internal constructor(
          * Constructs an RtnX rational number from the given numerator and denominator, throwing on zero denominator.
          * 从给定的分子和分母构造 RtnX 有理数，分母为零时抛出异常。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the constructed RtnX rational number / 构造的 RtnX 有理数
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造的 RtnX 有理数 / the constructed RtnX rational number
         */
         operator fun invoke(num: IntX, den: IntX): RtnX {
             ensureNonZeroDenominator(den)
@@ -1190,8 +1123,7 @@ data class RtnX internal constructor(
     override val maxBound: RtnX? get() = null
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -1201,8 +1133,7 @@ data class RtnX internal constructor(
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1212,8 +1143,7 @@ data class RtnX internal constructor(
     override operator fun plus(rhs: RtnX) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
 
     /**
-     * 减法
-     * Subtraction
+     * 减法 / Subtraction
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1223,8 +1153,7 @@ data class RtnX internal constructor(
     override operator fun minus(rhs: RtnX) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1234,8 +1163,7 @@ data class RtnX internal constructor(
     override operator fun times(rhs: RtnX) = invoke(num * rhs.num, den * rhs.den)
 
     /**
-     * 除法
-     * Division
+     * 除法 / Division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1246,24 +1174,19 @@ data class RtnX internal constructor(
 }
 
 /**
- * URtn8 序列化器
- * URtn8 Serializer
+ * URtn8 序列化器 / URtn8 Serializer
  *
- * 用于 URtn8 类型的 Kotlin 序列化框架序列化器。
- * Serializer for the URtn8 type in the Kotlin serialization framework.
+ * 用于 URtn8 类型的 Kotlin 序列化框架序列化器。 / Serializer for the URtn8 type in the Kotlin serialization framework.
 */
 object URtn8Serializer : RationalSerializer<URtn8, UInt8>("URtn8", URtn8::of) {
     override val valueSerializer = UInt8Serializer
 }
 
 /**
- * 基于 UInt8 的无符号有理数
- * Unsigned Rational Number based on UInt8
+ * 基于 UInt8 的无符号有理数 / Unsigned Rational Number based on UInt8
  *
  * 使用 8 位无符号整数作为分子和分母的无符号有理数类型。
- * 在构造时自动进行约分化简。
- *
- * An unsigned rational number type using 8-bit unsigned integers as numerator and denominator.
+ * 在构造时自动进行约分化简。 / An unsigned rational number type using 8-bit unsigned integers as numerator and denominator.
  * Automatically simplifies during construction.
  *
  * @property num 分子
@@ -1284,8 +1207,7 @@ data class URtn8 internal constructor(
     */
     companion object : RationalConstants<URtn8, UInt8>(URtn8::invoke, UInt8) {
         /**
-         * 安全构造有理数
-         * Safely construct a rational number
+         * 安全构造有理数 / Safely construct a rational number
          *
          * @param num 分子
          *            The numerator
@@ -1302,8 +1224,7 @@ data class URtn8 internal constructor(
         }
 
         /**
-         * 安全构造有理数，分母为零时返回 null
-         * Safely construct a rational number, returns null if denominator is zero
+         * 安全构造有理数，分母为零时返回 null / Safely construct a rational number, returns null if denominator is zero
          *
          * @param num 分子
          *            The numerator
@@ -1320,9 +1241,9 @@ data class URtn8 internal constructor(
          * Constructs a URtn8 unsigned rational number from the given numerator and denominator, throwing on zero denominator.
          * 从给定的分子和分母构造 URtn8 无符号有理数，分母为零时抛出异常。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the constructed URtn8 rational number / 构造的 URtn8 有理数
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造的 URtn8 有理数 / the constructed URtn8 rational number
         */
         operator fun invoke(num: UInt8, den: UInt8): URtn8 {
             ensureNonZeroDenominator(den)
@@ -1334,8 +1255,7 @@ data class URtn8 internal constructor(
     override val constants: RealNumberConstants<URtn8> get() = URtn8
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -1345,8 +1265,7 @@ data class URtn8 internal constructor(
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1356,8 +1275,7 @@ data class URtn8 internal constructor(
     override operator fun plus(rhs: URtn8) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
 
     /**
-     * 减法
-     * Subtraction
+     * 减法 / Subtraction
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1367,8 +1285,7 @@ data class URtn8 internal constructor(
     override operator fun minus(rhs: URtn8) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1378,8 +1295,7 @@ data class URtn8 internal constructor(
     override operator fun times(rhs: URtn8) = invoke(num * rhs.num, den * rhs.den)
 
     /**
-     * 除法
-     * Division
+     * 除法 / Division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1390,24 +1306,19 @@ data class URtn8 internal constructor(
 }
 
 /**
- * URtn16 序列化器
- * URtn16 Serializer
+ * URtn16 序列化器 / URtn16 Serializer
  *
- * 用于 URtn16 类型的 Kotlin 序列化框架序列化器。
- * Serializer for the URtn16 type in the Kotlin serialization framework.
+ * 用于 URtn16 类型的 Kotlin 序列化框架序列化器。 / Serializer for the URtn16 type in the Kotlin serialization framework.
 */
 object URtn16Serializer : RationalSerializer<URtn16, UInt16>("URtn16", URtn16::of) {
     override val valueSerializer = UInt16Serializer
 }
 
 /**
- * 基于 UInt16 的无符号有理数
- * Unsigned Rational Number based on UInt16
+ * 基于 UInt16 的无符号有理数 / Unsigned Rational Number based on UInt16
  *
  * 使用 16 位无符号整数作为分子和分母的无符号有理数类型。
- * 在构造时自动进行约分化简。
- *
- * An unsigned rational number type using 16-bit unsigned integers as numerator and denominator.
+ * 在构造时自动进行约分化简。 / An unsigned rational number type using 16-bit unsigned integers as numerator and denominator.
  * Automatically simplifies during construction.
  *
  * @property num 分子
@@ -1428,8 +1339,7 @@ data class URtn16 internal constructor(
     */
     companion object : RationalConstants<URtn16, UInt16>(URtn16::invoke, UInt16) {
         /**
-         * 安全构造有理数
-         * Safely construct a rational number
+         * 安全构造有理数 / Safely construct a rational number
          *
          * @param num 分子
          *            The numerator
@@ -1446,8 +1356,7 @@ data class URtn16 internal constructor(
         }
 
         /**
-         * 安全构造有理数，分母为零时返回 null
-         * Safely construct a rational number, returns null if denominator is zero
+         * 安全构造有理数，分母为零时返回 null / Safely construct a rational number, returns null if denominator is zero
          *
          * @param num 分子
          *            The numerator
@@ -1464,9 +1373,9 @@ data class URtn16 internal constructor(
          * Constructs a URtn16 unsigned rational number from the given numerator and denominator, throwing on zero denominator.
          * 从给定的分子和分母构造 URtn16 无符号有理数，分母为零时抛出异常。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the constructed URtn16 rational number / 构造的 URtn16 有理数
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造的 URtn16 有理数 / the constructed URtn16 rational number
         */
         operator fun invoke(num: UInt16, den: UInt16): URtn16 {
             ensureNonZeroDenominator(den)
@@ -1478,8 +1387,7 @@ data class URtn16 internal constructor(
     override val constants: RealNumberConstants<URtn16> get() = URtn16
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -1489,8 +1397,7 @@ data class URtn16 internal constructor(
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1500,8 +1407,7 @@ data class URtn16 internal constructor(
     override operator fun plus(rhs: URtn16) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
 
     /**
-     * 减法
-     * Subtraction
+     * 减法 / Subtraction
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1511,8 +1417,7 @@ data class URtn16 internal constructor(
     override operator fun minus(rhs: URtn16) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1522,8 +1427,7 @@ data class URtn16 internal constructor(
     override operator fun times(rhs: URtn16) = invoke(num * rhs.num, den * rhs.den)
 
     /**
-     * 除法
-     * Division
+     * 除法 / Division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1534,24 +1438,19 @@ data class URtn16 internal constructor(
 }
 
 /**
- * URtn32 序列化器
- * URtn32 Serializer
+ * URtn32 序列化器 / URtn32 Serializer
  *
- * 用于 URtn32 类型的 Kotlin 序列化框架序列化器。
- * Serializer for the URtn32 type in the Kotlin serialization framework.
+ * 用于 URtn32 类型的 Kotlin 序列化框架序列化器。 / Serializer for the URtn32 type in the Kotlin serialization framework.
 */
 object URtn32Serializer : RationalSerializer<URtn32, UInt32>("URtn32", URtn32::of) {
     override val valueSerializer = UInt32Serializer
 }
 
 /**
- * 基于 UInt32 的无符号有理数
- * Unsigned Rational Number based on UInt32
+ * 基于 UInt32 的无符号有理数 / Unsigned Rational Number based on UInt32
  *
  * 使用 32 位无符号整数作为分子和分母的无符号有理数类型。
- * 在构造时自动进行约分化简。这是常用的无符号有理数类型。
- *
- * An unsigned rational number type using 32-bit unsigned integers as numerator and denominator.
+ * 在构造时自动进行约分化简。这是常用的无符号有理数类型。 / An unsigned rational number type using 32-bit unsigned integers as numerator and denominator.
  * Automatically simplifies during construction. This is a commonly used unsigned rational number type.
  *
  * @property num 分子
@@ -1572,8 +1471,7 @@ data class URtn32 internal constructor(
     */
     companion object : RationalConstants<URtn32, UInt32>(URtn32::invoke, UInt32) {
         /**
-         * 安全构造有理数
-         * Safely construct a rational number
+         * 安全构造有理数 / Safely construct a rational number
          *
          * @param num 分子
          *            The numerator
@@ -1590,8 +1488,7 @@ data class URtn32 internal constructor(
         }
 
         /**
-         * 安全构造有理数，分母为零时返回 null
-         * Safely construct a rational number, returns null if denominator is zero
+         * 安全构造有理数，分母为零时返回 null / Safely construct a rational number, returns null if denominator is zero
          *
          * @param num 分子
          *            The numerator
@@ -1608,9 +1505,9 @@ data class URtn32 internal constructor(
          * Constructs a URtn32 unsigned rational number from the given numerator and denominator, throwing on zero denominator.
          * 从给定的分子和分母构造 URtn32 无符号有理数，分母为零时抛出异常。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the constructed URtn32 rational number / 构造的 URtn32 有理数
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造的 URtn32 有理数 / the constructed URtn32 rational number
         */
         operator fun invoke(num: UInt32, den: UInt32): URtn32 {
             ensureNonZeroDenominator(den)
@@ -1622,8 +1519,7 @@ data class URtn32 internal constructor(
     override val constants: RealNumberConstants<URtn32> get() = URtn32
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -1633,8 +1529,7 @@ data class URtn32 internal constructor(
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1644,8 +1539,7 @@ data class URtn32 internal constructor(
     override operator fun plus(rhs: URtn32) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
 
     /**
-     * 减法
-     * Subtraction
+     * 减法 / Subtraction
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1655,8 +1549,7 @@ data class URtn32 internal constructor(
     override operator fun minus(rhs: URtn32) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1666,8 +1559,7 @@ data class URtn32 internal constructor(
     override operator fun times(rhs: URtn32) = invoke(num * rhs.num, den * rhs.den)
 
     /**
-     * 除法
-     * Division
+     * 除法 / Division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1678,24 +1570,19 @@ data class URtn32 internal constructor(
 }
 
 /**
- * URtn64 序列化器
- * URtn64 Serializer
+ * URtn64 序列化器 / URtn64 Serializer
  *
- * 用于 URtn64 类型的 Kotlin 序列化框架序列化器。
- * Serializer for the URtn64 type in the Kotlin serialization framework.
+ * 用于 URtn64 类型的 Kotlin 序列化框架序列化器。 / Serializer for the URtn64 type in the Kotlin serialization framework.
 */
 object URtn64Serializer : RationalSerializer<URtn64, UInt64>("URtn64", URtn64::of) {
     override val valueSerializer = UInt64Serializer
 }
 
 /**
- * 基于 UInt64 的无符号有理数
- * Unsigned Rational Number based on UInt64
+ * 基于 UInt64 的无符号有理数 / Unsigned Rational Number based on UInt64
  *
  * 使用 64 位无符号整数作为分子和分母的无符号有理数类型。
- * 在构造时自动进行约分化简。适用于需要更大数值范围的情况。
- *
- * An unsigned rational number type using 64-bit unsigned integers as numerator and denominator.
+ * 在构造时自动进行约分化简。适用于需要更大数值范围的情况。 / An unsigned rational number type using 64-bit unsigned integers as numerator and denominator.
  * Automatically simplifies during construction. Suitable for cases requiring larger numerical range.
  *
  * @property num 分子
@@ -1716,8 +1603,7 @@ data class URtn64 internal constructor(
     */
     companion object : RationalConstants<URtn64, UInt64>(URtn64::invoke, UInt64) {
         /**
-         * 安全构造有理数
-         * Safely construct a rational number
+         * 安全构造有理数 / Safely construct a rational number
          *
          * @param num 分子
          *            The numerator
@@ -1734,8 +1620,7 @@ data class URtn64 internal constructor(
         }
 
         /**
-         * 安全构造有理数，分母为零时返回 null
-         * Safely construct a rational number, returns null if denominator is zero
+         * 安全构造有理数，分母为零时返回 null / Safely construct a rational number, returns null if denominator is zero
          *
          * @param num 分子
          *            The numerator
@@ -1752,9 +1637,9 @@ data class URtn64 internal constructor(
          * Constructs a URtn64 unsigned rational number from the given numerator and denominator, throwing on zero denominator.
          * 从给定的分子和分母构造 URtn64 无符号有理数，分母为零时抛出异常。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the constructed URtn64 rational number / 构造的 URtn64 有理数
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造的 URtn64 有理数 / the constructed URtn64 rational number
         */
         operator fun invoke(num: UInt64, den: UInt64): URtn64 {
             ensureNonZeroDenominator(den)
@@ -1763,8 +1648,7 @@ data class URtn64 internal constructor(
         }
 
         /**
-         * 安全构造有理数
-         * Safely construct a rational number
+         * 安全构造有理数 / Safely construct a rational number
          *
          * @param num 分子（Kotlin Int）
          *            The numerator (Kotlin Int)
@@ -1778,8 +1662,7 @@ data class URtn64 internal constructor(
         }
 
         /**
-         * 安全构造有理数，分母为零时返回 null
-         * Safely construct a rational number, returns null if denominator is zero
+         * 安全构造有理数，分母为零时返回 null / Safely construct a rational number, returns null if denominator is zero
          *
          * @param num 分子（Kotlin Int）
          *            The numerator (Kotlin Int)
@@ -1798,7 +1681,7 @@ data class URtn64 internal constructor(
          *
          * @param num the numerator as a Kotlin Int / Kotlin Int 类型的分子
          * @param den the denominator as a Kotlin Int / Kotlin Int 类型的分母
-         * @return the constructed URtn64 rational number / 构造的 URtn64 有理数
+         * @return 构造的 URtn64 有理数 / the constructed URtn64 rational number
         */
         operator fun invoke(num: Int, den: Int): URtn64 {
             return this(UInt64(num), UInt64(den))
@@ -1808,8 +1691,7 @@ data class URtn64 internal constructor(
     override val constants: RealNumberConstants<URtn64> get() = URtn64
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -1819,8 +1701,7 @@ data class URtn64 internal constructor(
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1830,8 +1711,7 @@ data class URtn64 internal constructor(
     override operator fun plus(rhs: URtn64) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
 
     /**
-     * 减法
-     * Subtraction
+     * 减法 / Subtraction
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1841,8 +1721,7 @@ data class URtn64 internal constructor(
     override operator fun minus(rhs: URtn64) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1852,8 +1731,7 @@ data class URtn64 internal constructor(
     override operator fun times(rhs: URtn64) = invoke(num * rhs.num, den * rhs.den)
 
     /**
-     * 除法
-     * Division
+     * 除法 / Division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1867,21 +1745,17 @@ data class URtn64 internal constructor(
  * URtnX 序列化器
  * URtnX Serializer
  *
- * 用于 URtnX（任意精度无符号有理数）类型的 Kotlin 序列化框架序列化器。
- * Serializer for the URtnX (arbitrary precision unsigned rational number) type in the Kotlin serialization framework.
+ * 用于 URtnX（任意精度无符号有理数）类型的 Kotlin 序列化框架序列化器。 / Serializer for the URtnX (arbitrary precision unsigned rational number) type in the Kotlin serialization framework.
 */
 object URtnXSerializer : RationalSerializer<URtnX, UIntX>("URtnX", URtnX::of) {
     override val valueSerializer = UIntXSerializer
 }
 
 /**
- * 任意精度无符号有理数
- * Arbitrary Precision Unsigned Rational Number
+ * 任意精度无符号有理数 / Arbitrary Precision Unsigned Rational Number
  *
  * 使用任意精度无符号整数作为分子和分母的无符号有理数类型。
- * 在构造时自动进行约分化简。适用于需要精确计算的场景。
- *
- * An unsigned rational number type using arbitrary precision unsigned integers as numerator and denominator.
+ * 在构造时自动进行约分化简。适用于需要精确计算的场景。 / An unsigned rational number type using arbitrary precision unsigned integers as numerator and denominator.
  * Automatically simplifies during construction. Suitable for scenarios requiring precise calculations.
  *
  * @property num 分子
@@ -1902,8 +1776,7 @@ data class URtnX internal constructor(
     */
     companion object : RationalConstants<URtnX, UIntX>(URtnX::invoke, UIntX) {
         /**
-         * 安全构造有理数
-         * Safely construct a rational number
+         * 安全构造有理数 / Safely construct a rational number
          *
          * @param num 分子
          *            The numerator
@@ -1920,8 +1793,7 @@ data class URtnX internal constructor(
         }
 
         /**
-         * 安全构造有理数，分母为零时返回 null
-         * Safely construct a rational number, returns null if denominator is zero
+         * 安全构造有理数，分母为零时返回 null / Safely construct a rational number, returns null if denominator is zero
          *
          * @param num 分子
          *            The numerator
@@ -1938,9 +1810,9 @@ data class URtnX internal constructor(
          * Constructs a URtnX unsigned rational number from the given numerator and denominator, throwing on zero denominator.
          * 从给定的分子和分母构造 URtnX 无符号有理数，分母为零时抛出异常。
          *
-         * @param num the numerator / 分子
-         * @param den the denominator / 分母
-         * @return the constructed URtnX rational number / 构造的 URtnX 有理数
+         * @param num 分子 / the numerator
+         * @param den 分母 / the denominator
+         * @return 构造的 URtnX 有理数 / the constructed URtnX rational number
         */
         operator fun invoke(num: UIntX, den: UIntX): URtnX {
             ensureNonZeroDenominator(den)
@@ -1955,8 +1827,7 @@ data class URtnX internal constructor(
     override val maxBound: URtnX? get() = null
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -1966,8 +1837,7 @@ data class URtnX internal constructor(
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1977,8 +1847,7 @@ data class URtnX internal constructor(
     override operator fun plus(rhs: URtnX) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
 
     /**
-     * 减法
-     * Subtraction
+     * 减法 / Subtraction
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1988,8 +1857,7 @@ data class URtnX internal constructor(
     override operator fun minus(rhs: URtnX) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1999,8 +1867,7 @@ data class URtnX internal constructor(
     override operator fun times(rhs: URtnX) = invoke(num * rhs.num, den * rhs.den)
 
     /**
-     * 除法
-     * Division
+     * 除法 / Division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)

@@ -65,8 +65,7 @@ open class MultiArrayHotPathBenchmark {
     }
 
     /**
-     * 对稀疏分块数组执行获取和包含检查操作
-     * Performs get and contains operations on the sparse block multi-array
+     * 对稀疏分块数组执行获取和包含检查操作 / Performs get and contains operations on the sparse block multi-array
      *
      * @return 包含元素的累加和 / accumulated sum of contained elements
     */
@@ -82,8 +81,7 @@ open class MultiArrayHotPathBenchmark {
     }
 
     /**
-     * 对稀疏分块数组执行设置和移除操作
-     * Performs set and remove operations on the sparse block multi-array
+     * 对稀疏分块数组执行设置和移除操作 / Performs set and remove operations on the sparse block multi-array
      *
      * @return 被移除的元素数与数组当前大小之和 / sum of removed element count and current array size
     */
@@ -102,8 +100,7 @@ open class MultiArrayHotPathBenchmark {
     }
 
     /**
-     * 从列表按行主序创建可变多数组并访问中间元素
-     * Creates a mutable multi-array from a list in row-major order and accesses the middle element
+     * 从列表按行主序创建可变多数组并访问中间元素 / Creates a mutable multi-array from a list in row-major order and accesses the middle element
      *
      * @return 中间位置元素的值 / value at the middle position
     */
@@ -114,8 +111,7 @@ open class MultiArrayHotPathBenchmark {
     }
 
     /**
-     * 按列主序展平密集数组并返回列表大小
-     * Flattens the dense array in column-major order and returns the list size
+     * 按列主序展平密集数组并返回列表大小 / Flattens the dense array in column-major order and returns the list size
      *
      * @return 展平后列表的大小 / size of the flattened list
     */

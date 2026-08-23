@@ -1,8 +1,7 @@
 /**
  * 质量单位 / Mass units
  *
- * 用于测量物体质量的单位。
- * Units for measuring the mass of objects.
+ * 用于测量物体质量的单位。 / Units for measuring the mass of objects.
  *
  * 单位常量来源 / Unit constant sources:
  * - Kilogram: SI基本单位 / SI base unit
@@ -19,8 +18,7 @@ import fuookami.ospf.kotlin.quantities.dimension.Mass
 /**
  * 千克（基本单位）/ Kilogram (base unit)
  *
- * 质量的SI基本单位，定义为普朗克常数为6.62607015×10⁻³⁴ J·s时的质量单位。
- * The SI base unit of mass, defined by fixing the Planck constant to 6.62607015×10⁻³⁴ J·s.
+ * 质量的SI基本单位，定义为普朗克常数为6.62607015×10⁻³⁴ J·s时的质量单位。 / The SI base unit of mass, defined by fixing the Planck constant to 6.62607015×10⁻³⁴ J·s.
  *
  * 符号 / Symbol: kg
  * 换算关系 / Conversion: 1 kg = 1 kg（基本单位）/ 1 kg = 1 kg (base unit)
@@ -43,8 +41,7 @@ object Kilogram : PhysicalUnit() {
 /**
  * 微克 / Microgram
  *
- * 百万分之一克。
- * One millionth of a gram.
+ * 百万分之一克。 / One millionth of a gram.
  *
  * 符号 / Symbol: µg
  * 换算关系 / Conversion: 1 µg = 10⁻⁶ g = 10⁻⁹ kg
@@ -64,8 +61,7 @@ object Microgram : DerivedPhysicalUnit(Gram * Scale.micro) {
 /**
  * 毫克 / Milligram
  *
- * 千分之一克。
- * One thousandth of a gram.
+ * 千分之一克。 / One thousandth of a gram.
  *
  * 符号 / Symbol: mg
  * 换算关系 / Conversion: 1 mg = 10⁻³ g = 10⁻⁶ kg
@@ -85,8 +81,7 @@ object Milligram : DerivedPhysicalUnit(Gram * Scale.milli) {
 /**
  * 点 / Point
  *
- * 珠宝行业使用的质量单位。
- * Mass unit used in the jewelry industry.
+ * 珠宝行业使用的质量单位。 / Mass unit used in the jewelry industry.
  *
  * 符号 / Symbol: pt
  * 换算关系 / Conversion: 1 pt = 2 mg
@@ -106,8 +101,7 @@ object Point : DerivedPhysicalUnit(Milligram * 2) {
 /**
  * 克拉 / Carat
  *
- * 珠宝行业使用的质量单位，主要用于称量宝石。
- * Mass unit used in the jewelry industry, primarily for weighing gemstones.
+ * 珠宝行业使用的质量单位，主要用于称量宝石。 / Mass unit used in the jewelry industry, primarily for weighing gemstones.
  *
  * 符号 / Symbol: ct
  * 换算关系 / Conversion: 1 ct = 200 mg = 0.2 g
@@ -127,8 +121,7 @@ object Carat : DerivedPhysicalUnit(Point * Scale(10, 2)) {
 /**
  * 克 / Gram
  *
- * 千分之一千克。
- * One thousandth of a kilogram.
+ * 千分之一千克。 / One thousandth of a kilogram.
  *
  * 符号 / Symbol: g
  * 换算关系 / Conversion: 1 g = 10⁻³ kg
@@ -148,8 +141,7 @@ object Gram : DerivedPhysicalUnit(Kilogram / Scale.kilo) {
 /**
  * 百克 / Hectogram
  *
- * 一百克。
- * One hundred grams.
+ * 一百克。 / One hundred grams.
  *
  * 符号 / Symbol: hg
  * 换算关系 / Conversion: 1 hg = 100 g = 0.1 kg
@@ -169,8 +161,7 @@ object Hectogram : DerivedPhysicalUnit(Gram * Scale.hecto) {
 /**
  * 公担 / Kintal
  *
- * 一百千克。
- * One hundred kilograms.
+ * 一百千克。 / One hundred kilograms.
  *
  * 符号 / Symbol: q
  * 换算关系 / Conversion: 1 q = 100 kg
@@ -190,8 +181,7 @@ object Kintal : DerivedPhysicalUnit(Kilogram * Scale.hecto) {
 /**
  * 吨 / Ton
  *
- * 一千千克，也称为公吨。
- * One thousand kilograms, also known as metric ton.
+ * 一千千克，也称为公吨。 / One thousand kilograms, also known as metric ton.
  *
  * 符号 / Symbol: t
  * 换算关系 / Conversion: 1 t = 1000 kg
@@ -214,8 +204,7 @@ typealias Tonne = Ton
 /**
  * 磅 / Pound
  *
- * 英制质量单位。
- * Imperial mass unit.
+ * 英制质量单位。 / Imperial mass unit.
  *
  * 符号 / Symbol: lb
  * 换算关系 / Conversion: 1 lb = 453.59237 g（精确值）/ 1 lb = 453.59237 g (exact)
@@ -235,8 +224,7 @@ object Pound : DerivedPhysicalUnit(Gram * 453.59237) {
 /**
  * 格令 / Grain
  *
- * 英制质量单位，最古老的质量单位之一。
- * Imperial mass unit, one of the oldest mass units.
+ * 英制质量单位，最古老的质量单位之一。 / Imperial mass unit, one of the oldest mass units.
  *
  * 符号 / Symbol: gr
  * 换算关系 / Conversion: 1 gr = 1/7000 lb ≈ 64.79891 mg
@@ -256,8 +244,7 @@ object Gran : DerivedPhysicalUnit(Pound * Scale(7000, -1)) {
 /**
  * 长吨 / Long Ton
  *
- * 英制质量单位，主要用于英国。
- * Imperial mass unit, primarily used in the UK.
+ * 英制质量单位，主要用于英国。 / Imperial mass unit, primarily used in the UK.
  *
  * 符号 / Symbol: lt
  * 换算关系 / Conversion: 1 lt = 2240 lb ≈ 1016.047 kg
@@ -277,8 +264,7 @@ object LongTon : DerivedPhysicalUnit(Pound * 2240) {
 /**
  * 短吨 / Short Ton
  *
- * 英制质量单位，主要用于美国。
- * Imperial mass unit, primarily used in the US.
+ * 英制质量单位，主要用于美国。 / Imperial mass unit, primarily used in the US.
  *
  * 符号 / Symbol: st
  * 换算关系 / Conversion: 1 st = 2000 lb ≈ 907.185 kg
@@ -298,8 +284,7 @@ object ShortTon : DerivedPhysicalUnit(Pound * 2000) {
 /**
  * 英石 / Stone
  *
- * 英制质量单位，主要用于英国。
- * Imperial mass unit, primarily used in the UK.
+ * 英制质量单位，主要用于英国。 / Imperial mass unit, primarily used in the UK.
  *
  * 符号 / Symbol: st
  * 换算关系 / Conversion: 1 st = 14 lb ≈ 6.350 kg
@@ -319,8 +304,7 @@ object Stone : DerivedPhysicalUnit(Pound * 14) {
 /**
  * 盎司 / Ounce
  *
- * 英制质量单位。
- * Imperial mass unit.
+ * 英制质量单位。 / Imperial mass unit.
  *
  * 符号 / Symbol: oz
  * 换算关系 / Conversion: 1 oz = 1/16 lb ≈ 28.35 g
@@ -340,8 +324,7 @@ object Ounce : DerivedPhysicalUnit(Pound * Scale(2, -4)) {
 /**
  * 金衡盎司 / Troy Ounce
  *
- * 珠宝行业使用的质量单位，用于称量贵金属。
- * Mass unit used in the jewelry industry for weighing precious metals.
+ * 珠宝行业使用的质量单位，用于称量贵金属。 / Mass unit used in the jewelry industry for weighing precious metals.
  *
  * 符号 / Symbol: oz.tr
  * 换算关系 / Conversion: 1 oz.tr = 1/12 lb ≈ 37.80 g
@@ -361,8 +344,7 @@ object TroyOunce : DerivedPhysicalUnit(Pound * Scale(12, -1)) {
 /**
  * 打兰 / Dram
  *
- * 英制质量单位。
- * Imperial mass unit.
+ * 英制质量单位。 / Imperial mass unit.
  *
  * 符号 / Symbol: dr
  * 换算关系 / Conversion: 1 dr = 1/16 oz ≈ 1.77 g

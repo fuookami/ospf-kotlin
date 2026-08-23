@@ -5,7 +5,8 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -46,11 +47,11 @@ class ProduceOverQuantityMinimization<
 
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         if (products.isNotEmpty()) {
-            val cost = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
+            var cost = LinearPolynomial()
             for ((product, _) in products) {
                 val thresholdValue = threshold(product)
                 if (thresholdValue eq Flt64.zero) {
-                    cost += LinearMonomial(coefficient(product), produce.overQuantity[product])
+                    cost += coefficient(product) * produce.overQuantity[product]
                 } else {
                     val slack = produceSlack(
                         x = produce.overQuantity[product],
@@ -71,11 +72,11 @@ class ProduceOverQuantityMinimization<
                             return Fatal(result.errors)
                         }
                     }
-                    cost += LinearMonomial(coefficient(product), slack)
+                    cost += coefficient(product) * slack
                 }
             }
             when (val result = model.minimize(
-                polynomial = cost.toLinearPolynomial(),
+                polynomial = cost,
                 name = "produce over quantity"
             )) {
                 is Ok -> {}

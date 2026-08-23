@@ -1,8 +1,7 @@
 /**
  * 产能调度生产抽象基类 / Capacity scheduling produce abstract base class
  *
- * 本文件定义产能调度场景下产品产量管理的通用框架抽象基类。
- * This file defines the abstract base class for the common framework of product quantity management in capacity scheduling scenarios.
+ * 本文件定义产能调度场景下产品产量管理的通用框架抽象基类。 / This file defines the abstract base class for the common framework of product quantity management in capacity scheduling scenarios.
 */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
@@ -20,11 +19,9 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 
 /**
- * 产能调度场景的产品产量管理抽象基类
- * Abstract base class for produce management in Capacity Scheduling
+ * 产能调度场景的产品产量管理抽象基类 / Abstract base class for produce management in Capacity Scheduling
  *
- * 提供产能调度场景下产品产量计算的通用框架
- * Provides a common framework for product quantity calculation in capacity scheduling scenarios
+ * 提供产能调度场景下产品产量计算的通用框架 / Provides a common framework for product quantity calculation in capacity scheduling scenarios
 */
 abstract class CapacitySchedulingProduce<
         A : ProductionAction,
@@ -68,8 +65,7 @@ abstract class CapacitySchedulingProduce<
     }
 
     /**
-     * 注册变量到模型
-     * Register variables to model
+     * 注册变量到模型 / Register variables to model
      *
      * @param model 线性元模型 / Linear meta model
      * @return 成功与否 / Success or failure
@@ -77,8 +73,7 @@ abstract class CapacitySchedulingProduce<
     abstract fun register(model: LinearMetaModel<Flt64>): Try
 
     /**
-     * 将 quantity 变量添加到模型
-     * Add quantity variables to model
+     * 将 quantity 变量添加到模型 / Add quantity variables to model
      *
      * @param model 线性元模型 / Linear meta model
      * @return 成功与否 / Success or failure

@@ -1,6 +1,5 @@
 /**
- * 列生成算法。
- * Column generation algorithm.
+ * 列生成算法。 / Column generation algorithm.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
@@ -13,8 +12,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.*
 
 /**
- * 列生成配置。
- * Column generation configuration.
+ * 列生成配置。 / Column generation configuration.
  *
  * @property iterationLimit 最大迭代次数 / maximum iteration count
  * @property timeLimit 时间限制 / time limit
@@ -29,8 +27,7 @@ data class ColumnGenerationConfig(
 )
 
 /**
- * 列生成状态。
- * Column generation state.
+ * 列生成状态。 / Column generation state.
  *
  * @param V 数值类型 / numeric type
  * @property iteration 当前迭代 / current iteration
@@ -55,8 +52,7 @@ data class ColumnGenerationState<V>(
 )
 
 /**
- * 从货物列表抽取连续半径 solver 变量原型。
- * Extract continuous-radius solver variable prototypes from item list.
+ * 从货物列表抽取连续半径 solver 变量原型。 / Extract continuous-radius solver variable prototypes from item list.
  *
  * @param items 货物列表 / item list
  * @return 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
@@ -76,8 +72,7 @@ fun continuousRadiusSolverPrototypesFromItems(
 }
 
 /**
- * 从 info 映射中提取连续半径 solver 选出结果。
- * Extract continuous-radius solver-selected results from info map.
+ * 从 info 映射中提取连续半径 solver 选出结果。 / Extract continuous-radius solver-selected results from info map.
  *
  * @param info 信息映射 / info map
  * @return solver 选出半径映射 / solver-selected radius map
@@ -97,8 +92,7 @@ fun extractContinuousRadiusSolverResultsFromInfo(
 }
 
 /**
- * 列生成 LP 求解结果。
- * Column generation LP solve result.
+ * 列生成 LP 求解结果。 / Column generation LP solve result.
  *
  * @param V 数值类型 / numeric type
  * @property shadowPrices 影子价格 / shadow prices
@@ -114,8 +108,7 @@ data class ColumnGenerationLpResult<V>(
 )
 
 /**
- * 列生成最终 MILP 求解结果。
- * Column generation final MILP solve result.
+ * 列生成最终 MILP 求解结果。 / Column generation final MILP solve result.
  *
  * @param V 数值类型 / numeric type
  * @property columns 最终列集合 / final column set
@@ -134,8 +127,7 @@ data class ColumnGenerationFinalResult<V>(
 )
 
 /**
- * 列生成完整结果。
- * Column generation complete result.
+ * 列生成完整结果。 / Column generation complete result.
  *
  * @param V 数值类型 / numeric type
  * @property columns 最终列集合 / final column set
@@ -170,16 +162,14 @@ data class ColumnGenerationResult<V>(
 )
 
 /**
- * 列生成 RMP 求解器。
- * Column generation RMP solver.
+ * 列生成 RMP 求解器。 / Column generation RMP solver.
  *
  * @param V 数值类型 / numeric type
 */
 fun interface ColumnGenerationRmpSolver<V> {
 
     /**
-     * 求解 RMP。
-     * Solve RMP.
+     * 求解 RMP。 / Solve RMP.
      *
      * @param state 列生成状态 / column generation state
      * @return LP 求解结果 / LP solve result
@@ -188,16 +178,14 @@ fun interface ColumnGenerationRmpSolver<V> {
 }
 
 /**
- * 列生成最终 MILP 求解器。
- * Column generation final MILP solver.
+ * 列生成最终 MILP 求解器。 / Column generation final MILP solver.
  *
  * @param V 数值类型 / numeric type
 */
 fun interface ColumnGenerationFinalSolver<V> {
 
     /**
-     * 求解最终 MILP。
-     * Solve final MILP.
+     * 求解最终 MILP。 / Solve final MILP.
      *
      * @param state 列生成状态 / column generation state
      * @return 最终求解结果 / final solve result
@@ -206,16 +194,14 @@ fun interface ColumnGenerationFinalSolver<V> {
 }
 
 /**
- * 列生成解分析器。
- * Column generation solution analyzer.
+ * 列生成解分析器。 / Column generation solution analyzer.
  *
  * @param V 数值类型 / numeric type
 */
 fun interface ColumnGenerationSolutionAnalyzer<V> {
 
     /**
-     * 分析当前状态。
-     * Analyze current state.
+     * 分析当前状态。 / Analyze current state.
      *
      * @param state 列生成状态 / column generation state
      * @return 分析结果 / analysis result
@@ -262,16 +248,14 @@ fun interface ColumnGenerationFailureAnalyzer<V> {
 }
 
 /**
- * 列生成心跳回调。
- * Column generation heartbeat callback.
+ * 列生成心跳回调。 / Column generation heartbeat callback.
  *
  * @param V 数值类型 / numeric type
 */
 fun interface ColumnGenerationHeartbeat<V> {
 
     /**
-     * 心跳回调。
-     * Heartbeat callback.
+     * 心跳回调。 / Heartbeat callback.
      *
      * @param state 列生成状态 / column generation state
     */
@@ -279,16 +263,14 @@ fun interface ColumnGenerationHeartbeat<V> {
 }
 
 /**
- * 列生成层请求构建器。
- * Column generation layer request builder.
+ * 列生成层请求构建器。 / Column generation layer request builder.
  *
  * @param V 数值类型 / numeric type
 */
 fun interface ColumnGenerationLayerRequestBuilder<V> {
 
     /**
-     * 构建层生成请求。
-     * Build layer generation request.
+     * 构建层生成请求。 / Build layer generation request.
      *
      * @param state 列生成状态 / column generation state
      * @param items 货物列表 / item list
@@ -303,8 +285,7 @@ fun interface ColumnGenerationLayerRequestBuilder<V> {
 }
 
 /**
- * 列生成编排器，协调 RMP 求解、列生成和最终 MILP 求解。
- * Column generation orchestrator, coordinates RMP solving, column generation and final MILP solving.
+ * 列生成编排器，协调 RMP 求解、列生成和最终 MILP 求解。 / Column generation orchestrator, coordinates RMP solving, column generation and final MILP solving.
  *
  * @param V 数值类型 / numeric type
  * @property layerGenerator 层生成器 / layer generator
@@ -366,8 +347,7 @@ class ColumnGenerationAlgorithm<V>(
     }
 
     /**
-     * 执行列生成求解。
-     * Execute column generation solving.
+     * 执行列生成求解。 / Execute column generation solving.
      *
      * @param items 货物列表 / item list
      * @param config 列生成配置 / column generation config
@@ -593,8 +573,7 @@ class ColumnGenerationAlgorithm<V>(
 }
 
 /**
- * 使用量纲货物列表执行列生成求解。
- * Execute column generation solving with quantity item list.
+ * 使用量纲货物列表执行列生成求解。 / Execute column generation solving with quantity item list.
  *
  * @param T 量纲数值类型 / quantity numeric type
  * @param items 量纲货物列表 / quantity item list

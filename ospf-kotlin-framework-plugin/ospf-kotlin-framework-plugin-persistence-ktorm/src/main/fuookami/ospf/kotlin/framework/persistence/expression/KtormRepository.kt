@@ -2,8 +2,7 @@
  * Ktorm 仓储实现
  * Ktorm Repository Implementation
  *
- * 提供基于 Ktorm 的仓储实现。
- * Provides Ktorm-based repository implementation.
+ * 提供基于 Ktorm 的仓储实现。 / Provides Ktorm-based repository implementation.
 */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
@@ -15,17 +14,17 @@ import fuookami.ospf.kotlin.framework.persistence.expression.translator.*
 import fuookami.ospf.kotlin.math.symbol.expression.BooleanExpression
 
 /**
- * 列名解析器
- * Column Name Resolver
+ * 列名解析器 / Column Name Resolver
 */
-typealias ColumnNameResolver = (String) -> String?
+fun interface ColumnNameResolver {
+    operator fun invoke(path: String): String?
+}
 
 /**
  * Ktorm 仓储实现
  * Ktorm Repository Implementation
  *
- * 提供基于 Ktorm 的仓储基类实现。
- * Provides base repository implementation based on Ktorm.
+ * 提供基于 Ktorm 的仓储基类实现。 / Provides base repository implementation based on Ktorm.
  *
  * @param E 实体类型 / Entity type
  * @property database Ktorm 数据库实例 / Ktorm database instance
@@ -41,16 +40,21 @@ abstract class KtormRepository<E : Any>(
     protected val resolveColumn: KtormColumnResolver,
     protected val patternMatchPolicy: PatternMatchPolicy = DefaultPatternMatchPolicy,
     protected val nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto,
-    protected val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
+    protected val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse,
+    protected val targetConstantBinder: KtormTargetConstantBinder? = null
 ) : ExpressionRepository<E> {
 
-    private val booleanTranslator = KtormBooleanTranslator(resolveColumn, patternMatchPolicy, unsupportedPredicatePolicy)
+    private val booleanTranslator = KtormBooleanTranslator(
+        resolveColumn = resolveColumn,
+        patternMatchPolicy = patternMatchPolicy,
+        unsupportedPredicatePolicy = unsupportedPredicatePolicy,
+        targetConstantBinder = targetConstantBinder
+    )
     private val orderByTranslator = KtormOrderByTranslator(resolveColumn, nullsOrderSupport)
     private val updateTranslator = KtormUpdateTranslator(resolveColumn, table)
 
     /**
-     * 根据条件查询实体列表
-     * Find entity list by condition
+     * 根据条件查询实体列表 / Find entity list by condition
      *
      * @param where 查询条件 / Query condition
      * @return 实体列表 / Entity list
@@ -60,8 +64,7 @@ abstract class KtormRepository<E : Any>(
     }
 
     /**
-     * 根据条件查询实体列表（支持排序和分页）
-     * Find entity list by condition with sorting and pagination
+     * 根据条件查询实体列表（支持排序和分页） / Find entity list by condition with sorting and pagination
      *
      * @param where 查询条件 / Query condition
      * @param sortBy 排序条件（可选）/ Sort conditions (optional)
@@ -99,8 +102,7 @@ abstract class KtormRepository<E : Any>(
     }
 
     /**
-     * 统计满足条件的实体数量
-     * Count entities matching condition
+     * 统计满足条件的实体数量 / Count entities matching condition
      *
      * @param where 查询条件 / Query condition
      * @return 实体数量 / Entity count
@@ -114,8 +116,7 @@ abstract class KtormRepository<E : Any>(
     }
 
     /**
-     * 更新满足条件的实体
-     * Update entities matching condition
+     * 更新满足条件的实体 / Update entities matching condition
      *
      * @param where 更新条件 / Update condition
      * @param assignments 更新赋值列表 / Update assignment list
@@ -131,8 +132,7 @@ abstract class KtormRepository<E : Any>(
     }
 
     /**
-     * 删除满足条件的实体
-     * Delete entities matching condition
+     * 删除满足条件的实体 / Delete entities matching condition
      *
      * @param where 删除条件 / Delete condition
      * @return 受影响的行数 / Number of affected rows
@@ -145,11 +145,9 @@ abstract class KtormRepository<E : Any>(
     }
 
     /**
-     * 将行映射为实体
-     * Map row to entity
+     * 将行映射为实体 / Map row to entity
      *
-     * 子类需要实现此方法以进行实体映射。
-     * Subclasses must implement this method for entity mapping.
+     * 子类需要实现此方法以进行实体映射。 / Subclasses must implement this method for entity mapping.
      *
      * @param row 查询结果行 / Query result row
      * @return 映射后的实体，若无法映射则返回 null / Mapped entity, or null if mapping fails
@@ -158,13 +156,12 @@ abstract class KtormRepository<E : Any>(
 
     companion object {
         /**
-         * 从 Table 自动创建列解析器
-         * Create column resolver from Table
+         * 从 Table 自动创建列解析器 / Create column resolver from Table
          *
          * @param table Ktorm 表定义 / Ktorm table definition
          * @return 列解析器函数 / Column resolver function
         */
-        fun tableColumnResolver(table: Table<*>): KtormColumnResolver = { path: String ->
+        fun tableColumnResolver(table: Table<*>): KtormColumnResolver = KtormColumnResolver { path: String ->
             val columnName = path.substringAfterLast(".")
             table.columns.find { it.name == columnName } as? ColumnDeclaring<*>
         }

@@ -13,8 +13,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  * Flt64 LaTeX Formatting
  *
  * 提供 Flt64 多项式和不等式的 LaTeX 字符串转换。
- * 包含紧凑和简化两种格式化模式。
- * Provides LaTeX string conversion for Flt64 polynomials and inequalities.
+ * 包含紧凑和简化两种格式化模式。 / Provides LaTeX string conversion for Flt64 polynomials and inequalities.
  * Includes compact and simplified formatting modes.
 */
 
@@ -22,8 +21,8 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  * Formats a Flt64 as a decimal string with trailing zeros stripped.
  * 将 Flt64 格式化为去除尾随零的十进制字符串。
  *
- * @param value the Flt64 value to format / 待格式化的 Flt64 值
- * @return the formatted decimal string / 格式化后的十进制字符串
+ * @param value 待格式化的 Flt64 值 / the Flt64 value to format
+ * @return 格式化后的十进制字符串 / the formatted decimal string
 */
 private fun formatNumber(value: Flt64): String {
     val doubleValue = value.toDouble()
@@ -42,8 +41,7 @@ private val flt64LatexOps = LatexNumberOps<Flt64>(
 )
 
 /**
- * 将 Flt64 线性单项式转换为 LaTeX 字符串
- * Convert a Flt64 linear monomial to a LaTeX string
+ * 将 Flt64 线性单项式转换为 LaTeX 字符串 / Convert a Flt64 linear monomial to a LaTeX string
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
@@ -55,8 +53,7 @@ fun LinearMonomial<Flt64>.toLatex(
 }
 
 /**
- * 将 Flt64 二次单项式转换为 LaTeX 字符串
- * Convert a Flt64 quadratic monomial to a LaTeX string
+ * 将 Flt64 二次单项式转换为 LaTeX 字符串 / Convert a Flt64 quadratic monomial to a LaTeX string
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
@@ -68,8 +65,7 @@ fun QuadraticMonomial<Flt64>.toLatex(
 }
 
 /**
- * 将 Flt64 规范单项式转换为 LaTeX 字符串
- * Convert a Flt64 canonical monomial to a LaTeX string
+ * 将 Flt64 规范单项式转换为 LaTeX 字符串 / Convert a Flt64 canonical monomial to a LaTeX string
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
@@ -81,8 +77,7 @@ fun CanonicalMonomial<Flt64>.toLatex(
 }
 
 /**
- * 将 Flt64 线性多项式转换为 LaTeX 字符串
- * Convert a Flt64 linear polynomial to a LaTeX string
+ * 将 Flt64 线性多项式转换为 LaTeX 字符串 / Convert a Flt64 linear polynomial to a LaTeX string
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
@@ -94,8 +89,7 @@ fun LinearPolynomial<Flt64>.toLatex(
 }
 
 /**
- * 将 Flt64 二次多项式转换为 LaTeX 字符串
- * Convert a Flt64 quadratic polynomial to a LaTeX string
+ * 将 Flt64 二次多项式转换为 LaTeX 字符串 / Convert a Flt64 quadratic polynomial to a LaTeX string
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
@@ -107,8 +101,7 @@ fun QuadraticPolynomial<Flt64>.toLatex(
 }
 
 /**
- * 将 Flt64 规范多项式转换为 LaTeX 字符串
- * Convert a Flt64 canonical polynomial to a LaTeX string
+ * 将 Flt64 规范多项式转换为 LaTeX 字符串 / Convert a Flt64 canonical polynomial to a LaTeX string
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
@@ -137,8 +130,7 @@ private fun Comparison.latexSymbol(): String {
 }
 
 /**
- * 将 Flt64 线性不等式转换为 LaTeX 字符串
- * Convert a Flt64 linear inequality to a LaTeX string
+ * 将 Flt64 线性不等式转换为 LaTeX 字符串 / Convert a Flt64 linear inequality to a LaTeX string
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
@@ -150,8 +142,7 @@ fun LinearInequality<Flt64>.toLatex(
 }
 
 /**
- * 将 Flt64 二次不等式转换为 LaTeX 字符串
- * Convert a Flt64 quadratic inequality to a LaTeX string
+ * 将 Flt64 二次不等式转换为 LaTeX 字符串 / Convert a Flt64 quadratic inequality to a LaTeX string
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
@@ -163,8 +154,7 @@ fun QuadraticInequalityOf<Flt64>.toLatex(
 }
 
 /**
- * 将 Flt64 规范不等式转换为 LaTeX 字符串
- * Convert a Flt64 canonical inequality to a LaTeX string
+ * 将 Flt64 规范不等式转换为 LaTeX 字符串 / Convert a Flt64 canonical inequality to a LaTeX string
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
@@ -180,7 +170,7 @@ fun CanonicalInequality<Flt64>.toLatex(
  * Converts a Flt64 to a simplified LaTeX string, rendering integers without a decimal point.
  * 将 Flt64 转换为简化的 LaTeX 字符串，整数不带小数点。
  *
- * @return the simplified LaTeX string / 简化的 LaTeX 字符串
+ * @return 简化的 LaTeX 字符串 / the simplified LaTeX string
 */
 private fun Flt64.toLatexString(): String {
     val value = this.toDouble()
@@ -192,8 +182,7 @@ private fun Flt64.toLatexString(): String {
 }
 
 /**
- * 将 Flt64 线性单项式转换为简化的 LaTeX 字符串
- * Convert a Flt64 linear monomial to a simplified LaTeX string
+ * 将 Flt64 线性单项式转换为简化的 LaTeX 字符串 / Convert a Flt64 linear monomial to a simplified LaTeX string
  *
  * @return 简化的 LaTeX 字符串 / Simplified LaTeX string
 */
@@ -208,8 +197,7 @@ private fun LinearMonomial<Flt64>.toLatexStringSimple(): String {
 }
 
 /**
- * 将 Flt64 二次单项式转换为简化的 LaTeX 字符串
- * Convert a Flt64 quadratic monomial to a simplified LaTeX string
+ * 将 Flt64 二次单项式转换为简化的 LaTeX 字符串 / Convert a Flt64 quadratic monomial to a simplified LaTeX string
  *
  * @return 简化的 LaTeX 字符串 / Simplified LaTeX string
 */
@@ -244,8 +232,7 @@ private fun QuadraticMonomial<Flt64>.toLatexStringSimple(): String {
 }
 
 /**
- * 将 Flt64 规范单项式转换为简化的 LaTeX 字符串
- * Convert a Flt64 canonical monomial to a simplified LaTeX string
+ * 将 Flt64 规范单项式转换为简化的 LaTeX 字符串 / Convert a Flt64 canonical monomial to a simplified LaTeX string
  *
  * @return 简化的 LaTeX 字符串 / Simplified LaTeX string
 */
@@ -264,8 +251,7 @@ private fun CanonicalMonomial<Flt64>.toLatexStringSimple(): String {
 }
 
 /**
- * 将 Flt64 线性多项式转换为简化 LaTeX 字符串
- * Convert a Flt64 linear polynomial to a simplified LaTeX string
+ * 将 Flt64 线性多项式转换为简化 LaTeX 字符串 / Convert a Flt64 linear polynomial to a simplified LaTeX string
  *
  * @return LaTeX 字符串 / LaTeX string
 */
@@ -295,8 +281,7 @@ fun LinearPolynomial<Flt64>.toLatexString(): String {
 }
 
 /**
- * 将 Flt64 二次多项式转换为简化 LaTeX 字符串
- * Convert a Flt64 quadratic polynomial to a simplified LaTeX string
+ * 将 Flt64 二次多项式转换为简化 LaTeX 字符串 / Convert a Flt64 quadratic polynomial to a simplified LaTeX string
  *
  * @return LaTeX 字符串 / LaTeX string
 */
@@ -326,8 +311,7 @@ fun QuadraticPolynomial<Flt64>.toLatexString(): String {
 }
 
 /**
- * 将 Flt64 规范多项式转换为简化 LaTeX 字符串
- * Convert a Flt64 canonical polynomial to a simplified LaTeX string
+ * 将 Flt64 规范多项式转换为简化 LaTeX 字符串 / Convert a Flt64 canonical polynomial to a simplified LaTeX string
  *
  * @return LaTeX 字符串 / LaTeX string
 */

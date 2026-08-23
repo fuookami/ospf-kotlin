@@ -18,16 +18,16 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
  *
  * 持有批次生成和编译上下文，提供两者共享的输入。
  *
- * @property aircrafts all aircraft / 所有飞机
- * @property recoveryNeededAircrafts aircraft that need recovery / 需要恢复的飞机
- * @property recoveryNeededFlightTasks flight tasks that need recovery / 需要恢复的航班任务
- * @property timeWindow time window / 时间窗口
- * @property flows flow control list / 流量控制列表
- * @property links link map / 链接映射
- * @property bunchGenerationContext bunch generation context / 批次生成上下文
- * @property bunchCompilationContext bunch compilation context / 批次编译上下文
- * @property parameter column generation coefficient parameters / 列生成系数参数
- * @property freeAircraftSelectorConfiguration free aircraft selector configuration / 自由飞机选择器配置
+ * @property aircrafts 所有飞机 / all aircraft
+ * @property recoveryNeededAircrafts 需要恢复的飞机 / aircraft that need recovery
+ * @property recoveryNeededFlightTasks 需要恢复的航班任务 / flight tasks that need recovery
+ * @property timeWindow 时间窗口 / time window
+ * @property flows 流量控制列表 / flow control list
+ * @property links 链接映射 / link map
+ * @property bunchGenerationContext 批次生成上下文 / bunch generation context
+ * @property bunchCompilationContext 批次编译上下文 / bunch compilation context
+ * @property parameter 列生成系数参数 / column generation coefficient parameters
+ * @property freeAircraftSelectorConfiguration 自由飞机选择器配置 / free aircraft selector configuration
 */
 class BunchSelectionContext(
     val aircrafts: List<Aircraft>,
@@ -45,8 +45,8 @@ class BunchSelectionContext(
     /**
      * 初始化批次编译聚合。Initializes the bunch compilation aggregation.
      *
-     * @param originBunches original flight task bunches / 原始航班任务束
-     * @return initialization result / 初始化结果
+     * @param originBunches 原始航班任务束 / original flight task bunches
+     * @return 初始化结果 / initialization result
     */
     fun initCompilation(originBunches: List<FlightTaskBunch>): Try {
         val aggregation = fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.Aggregation(

@@ -1,9 +1,7 @@
 /**
- * 预定义物理量纲
- * Predefined Physical Dimensions
+ * 预定义物理量纲 / Predefined Physical Dimensions
  *
- * 定义常用的物理量纲，包括基本物理量、导出物理量、力学量、电磁学量、光学量和放射学量。
- * Defines commonly used physical dimensions, including base quantities, derived quantities, mechanical quantities, electromagnetic quantities, optical quantities, and radiological quantities.
+ * 定义常用的物理量纲，包括基本物理量、导出物理量、力学量、电磁学量、光学量和放射学量。 / Defines commonly used physical dimensions, including base quantities, derived quantities, mechanical quantities, electromagnetic quantities, optical quantities, and radiological quantities.
 */
 package fuookami.ospf.kotlin.quantities.dimension
 

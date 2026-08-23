@@ -16,8 +16,8 @@ import fuookami.ospf.kotlin.core.variable.*
  * Decision variables and intermediate symbols for assigning services to nodes in the network.
  * 用于将服务分配到网络中节点的决策变量和中间符号。
  *
- * @property nodes the list of network nodes / 网络节点列表
- * @property services the list of services / 服务列表
+ * @property nodes 网络节点列表 / the list of network nodes
+ * @property services 服务列表 / the list of services
 */
 class Assignment(
     private val nodes: List<Node>,
@@ -31,17 +31,17 @@ class Assignment(
      * Registers the decision variables and intermediate symbols into the linear meta model.
      * 将决策变量和中间符号注册到线性元模型中。
      *
-     * @param model the linear meta model / 线性元模型
-     * @return the registration result / 注册结果
+     * @param model 线性元模型 / the linear meta model
+     * @return 注册结果 / the registration result
     */
     fun register(model: LinearMetaModel<Flt64>): Try {
         if (!::x.isInitialized) {
             x = BinVariable2("x", Shape2(nodes.size, services.size))
             for (service in services) {
-                for (node in nodes.filter(normal)) {
+                for (node in nodes.filter { normal(it) }) {
                     x[node, service].name = "${x.name}_${node}_$service"
                 }
-                for (node in nodes.filter(client)) {
+                for (node in nodes.filter { client(it) }) {
                     val variable = x[node, service]
                     variable.name = "${x.name}_${node}_$service"
                     variable.range.eq(false)
@@ -70,7 +70,7 @@ class Assignment(
             serviceAssignment = flatMap(
                 "service_assignment",
                 services,
-                { s -> sumVars(nodes.filter(normal)) { n -> x[n, s] } },
+                { s -> sumVars(nodes.filter { normal(it) }) { n -> x[n, s] } },
                 { (_, s) -> "$s" }
             )
         }

@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
 import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
 import fuookami.ospf.kotlin.core.solver.heuristic.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.nextFlt64
@@ -31,7 +32,7 @@ typealias Universe<ObjValue, V> = SolutionWithFitness<ObjValue, V>
 
 /** 多元宇宙优化器策略接口 / Multi-Verse Optimizer policy interface */
 interface AbstractMVOPolicy<ObjValue, V> :
-    AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+    AbstractHeuristicPolicy where V : RealNumber<V>, V : NumberField<V> {
 
     /**
      * 计算虫洞存在概率（WEP）/ Calculate Wormhole Existence Probability (WEP)
@@ -86,9 +87,7 @@ interface AbstractMVOPolicy<ObjValue, V> :
  * 多元宇宙优化器策略
  *
  * 实现多元宇宙优化的虫洞存在概率、旅行距离率和白洞概率计算，
- * 使用白洞/虫洞穿越机制进行全局搜索。
- *
- * Multi-Verse Optimizer policy
+ * 使用白洞/虫洞穿越机制进行全局搜索。 / Multi-Verse Optimizer policy
  *
  * Implements Wormhole Existence Probability, Travelling Distance Rate, and white hole rate calculation
  * for MVO, using white hole/wormhole traversal mechanism for global search.
@@ -109,13 +108,13 @@ open class MVOPolicy<ObjValue, V>(
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
-    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
+    val randomGenerator: Generator<Flt64> = Generator { Random.nextFlt64() },
     private val converter: IntoValue<V>
 ) : HeuristicPolicy(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
-), AbstractMVOPolicy<ObjValue, V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+), AbstractMVOPolicy<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
 
     /**
      * 创建默认多元宇宙优化器策略 / Create default MVO policy
@@ -135,7 +134,7 @@ open class MVOPolicy<ObjValue, V>(
             iterationLimit: UInt64 = UInt64.maximum,
             notBetterIterationLimit: UInt64 = UInt64.maximum,
             timeLimit: Duration = 30.minutes,
-            randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
+            randomGenerator: Generator<Flt64> = Generator { Random.nextFlt64() }
         ): MVOPolicy<Flt64, Flt64> {
             return MVOPolicy(
                 minWEP = minWEP,
@@ -253,9 +252,7 @@ open class MVOPolicy<ObjValue, V>(
 /**
  * 多元宇宙优化器
  *
- * 实现基于多元宇宙理论的优化算法，使用白洞和虫洞穿越机制在解空间中搜索最优解。
- *
- * Multi-Verse Optimizer
+ * 实现基于多元宇宙理论的优化算法，使用白洞和虫洞穿越机制在解空间中搜索最优解。 / Multi-Verse Optimizer
  *
  * Implements optimization algorithm based on multi-verse theory, using white hole and wormhole
  * traversal mechanism to search for optimal solutions in the solution space.
@@ -271,7 +268,7 @@ class MultiVerseOptimizer<Obj, ObjValue, V>(
     val universeAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,
     val policy: AbstractMVOPolicy<ObjValue, V>
-) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+) where V : RealNumber<V>, V : NumberField<V> {
 
     /**
      * 执行多元宇宙优化算法 / Execute Multi-Verse Optimizer

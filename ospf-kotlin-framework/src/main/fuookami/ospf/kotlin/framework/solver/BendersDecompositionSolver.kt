@@ -4,8 +4,7 @@
  * Benders 分解求解器
  * Benders Decomposition Solver
  *
- * 定义线性和二次 Benders 分解求解器接口，支持主问题和子问题求解及值转换扩展。
- * Defines linear and quadratic Benders decomposition solver interfaces with master/sub problem solving
+ * 定义线性和二次 Benders 分解求解器接口，支持主问题和子问题求解及值转换扩展。 / Defines linear and quadratic Benders decomposition solver interfaces with master/sub problem solving
  * and value conversion extensions.
 */
 package fuookami.ospf.kotlin.framework.solver
@@ -15,8 +14,9 @@ import kotlin.time.Duration
 import kotlinx.coroutines.future.future
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.solver.output.convertTo
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.report.convertTo as convertSolveReport
+import fuookami.ospf.kotlin.core.solver.report.SolveReport
+import fuookami.ospf.kotlin.core.solver.toSolverStatus
 import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
@@ -31,8 +31,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 将线性不等式转换为目标数值类型
- * Convert linear inequality to target number type
+ * 将线性不等式转换为目标数值类型 / Convert linear inequality to target number type
  *
  * @param converter 值转换器 / Value converter
  * @param V 目标数值类型 / Target number type
@@ -52,8 +51,7 @@ private fun <V> LinearInequality<Flt64>.convertTo(converter: IntoValue<V>): Line
 }
 
 /**
- * 将二次不等式转换为目标数值类型
- * Convert quadratic inequality to target number type
+ * 将二次不等式转换为目标数值类型 / Convert quadratic inequality to target number type
  *
  * @param converter 值转换器 / Value converter
  * @param V 目标数值类型 / Target number type
@@ -73,39 +71,18 @@ private fun <V> QuadraticInequalityOf<Flt64>.convertTo(converter: IntoValue<V>):
 }
 
 /**
- * 将求解器输出转换为目标数值类型
- * Convert solver output to target number type
+ * 将求解器输出转换为目标数值类型 / Convert solver output to target number type
  *
  * @param converter 值转换器 / Value converter
  * @param V 目标数值类型 / Target number type
  * @return 转换后的求解器输出 / Solver output in target number type
 */
+@Suppress("UNCHECKED_CAST")
 private fun <V> SolverOutput.convertTo(converter: IntoValue<V>): SolverOutput
         where V : RealNumber<V>, V : NumberField<V> {
     return when (this) {
-        is FeasibleSolverOutput<*> -> {
-            val targetValues = solution.map { value ->
-                if (value is Flt64) {
-                    converter.intoValue(value)
-                } else {
-                    return this
-                }
-            }
-            FeasibleSolverOutput(
-                obj = obj,
-                solution = targetValues,
-                time = time,
-                possibleBestObj = possibleBestObj,
-                gap = gap,
-                iterations = iterations,
-                nodeCount = nodeCount,
-                bestBound = bestBound,
-                mipGap = mipGap,
-                solveTime = solveTime,
-                objValueOrNull = converter.intoValue(obj),
-                possibleBestObjValueOrNull = converter.intoValue(possibleBestObj),
-                bestBoundValueOrNull = bestBound?.let { converter.intoValue(it) }
-            )
+        is SolveReport<*> -> {
+            (this as SolveReport<Flt64>).convertSolveReport(converter)
         }
 
         else -> this
@@ -113,8 +90,7 @@ private fun <V> SolverOutput.convertTo(converter: IntoValue<V>): SolverOutput
 }
 
 /**
- * 线性 Benders 分解求解器接口
- * Linear Benders decomposition solver interface
+ * 线性 Benders 分解求解器接口 / Linear Benders decomposition solver interface
 */
 interface LinearBendersDecompositionSolver {
 
@@ -140,8 +116,7 @@ interface LinearBendersDecompositionSolver {
     ): Ret<SolverOutput>
 
     /**
-     * 使用选项求解线性 Benders 主问题（便捷重载）
-     * Solve linear Benders master problem with options (convenience overload)
+     * 使用选项求解线性 Benders 主问题（便捷重载） / Solve linear Benders master problem with options (convenience overload)
      *
      * @param metaModel 线性元模型 / Linear meta model
      * @param options 框架求解选项 / Framework solve options
@@ -161,8 +136,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 异步求解线性 Benders 主问题
-     * Asynchronously solve linear Benders master problem
+     * 异步求解线性 Benders 主问题 / Asynchronously solve linear Benders master problem
      *
      * @param name 模型名称 / Model name
      * @param metaModel 线性元模型 / Linear meta model
@@ -190,8 +164,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 使用选项异步求解线性 Benders 主问题
-     * Asynchronously solve linear Benders master problem with options
+     * 使用选项异步求解线性 Benders 主问题 / Asynchronously solve linear Benders master problem with options
      *
      * @param metaModel 线性元模型 / Linear meta model
      * @param options 框架求解选项 / Framework solve options
@@ -210,11 +183,9 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 线性子问题求解结果密封接口
-     * Sealed interface for linear sub problem solving result
+     * 线性子问题求解结果密封接口 / Sealed interface for linear sub problem solving result
      *
-     * 若提供了固定变量，则结果中包含割平面列表。
-     * If fixed variables are provided, the result contains cut list.
+     * 若提供了固定变量，则结果中包含割平面列表。 / If fixed variables are provided, the result contains cut list.
      *
      * @property cuts 割平面列表 / List of cuts generated by sub problem
     */
@@ -223,28 +194,26 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 线性可行子问题结果
-     * Linear feasible sub problem result
+     * 线性可行子问题结果 / Linear feasible sub problem result
      *
      * @property result 可行求解器输出 / Feasible solver output
      * @property dualSolution 对偶解 / Dual solution
      * @property cuts 割平面列表 / Cut list
     */
     data class LinearFeasibleResult(
-        val result: FeasibleSolverOutput<Flt64>,
+        val result: SolveReport<Flt64>,
         val dualSolution: Map<Constraint<Flt64, Linear>, Flt64>,
         override val cuts: List<LinearInequality<Flt64>>?
     ) : LinearSubResult {
-        val obj: Flt64 by result::obj
-        val solution: List<Flt64> by result::solution
-        val time: Duration by result::time
-        val possibleBestObj by result::possibleBestObj
-        val gap: Flt64 by result::gap
+        val obj: Flt64 get() = result.solution?.objective ?: Flt64.zero
+        val solution: List<Flt64> get() = result.values
+        val time: Duration get() = result.statistics.solveTime ?: Duration.ZERO
+        val possibleBestObj: Flt64 get() = result.statistics.bestBound ?: Flt64.zero
+        val gap: Flt64 get() = result.statistics.gap ?: Flt64.infinity
     }
 
     /**
-     * 线性不可行子问题结果
-     * Linear infeasible sub problem result
+     * 线性不可行子问题结果 / Linear infeasible sub problem result
      *
      * @property farkasDualSolution Farkas 对偶解 / Farkas dual solution
      * @property cuts 割平面列表 / Cut list
@@ -277,8 +246,7 @@ interface LinearBendersDecompositionSolver {
     ): Ret<LinearSubResult>
 
     /**
-     * 使用选项求解线性 Benders 子问题（便捷重载）
-     * Solve linear Benders sub problem with options (convenience overload)
+     * 使用选项求解线性 Benders 子问题（便捷重载） / Solve linear Benders sub problem with options (convenience overload)
      *
      * @param metaModel 线性元模型 / Linear meta model
      * @param objectVariable 目标变量 / Objective variable
@@ -304,8 +272,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 异步求解线性 Benders 子问题
-     * Asynchronously solve linear Benders sub problem
+     * 异步求解线性 Benders 子问题 / Asynchronously solve linear Benders sub problem
      *
      * @param name 模型名称 / Model name
      * @param metaModel 线性元模型 / Linear meta model
@@ -339,8 +306,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 使用选项异步求解线性 Benders 子问题
-     * Asynchronously solve linear Benders sub problem with options
+     * 使用选项异步求解线性 Benders 子问题 / Asynchronously solve linear Benders sub problem with options
      *
      * @param metaModel 线性元模型 / Linear meta model
      * @param objectVariable 目标变量 / Objective variable
@@ -365,8 +331,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 使用值转换器求解线性 Benders 主问题并转换输出值类型
-     * Solve linear Benders master problem with value converter and convert output type
+     * 使用值转换器求解线性 Benders 主问题并转换输出值类型 / Solve linear Benders master problem with value converter and convert output type
      *
      * @param name 模型名称 / Model name
      * @param metaModel 线性元模型（Flt64） / Linear meta model (Flt64)
@@ -399,8 +364,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 求解线性 Benders 主问题并使用元模型内置转换器转换输出值类型
-     * Solve linear Benders master problem and convert output using meta model's built-in converter
+     * 求解线性 Benders 主问题并使用元模型内置转换器转换输出值类型 / Solve linear Benders master problem and convert output using meta model's built-in converter
      *
      * @param name 模型名称 / Model name
      * @param metaModel 线性元模型（泛型数值类型） / Linear meta model (generic number type)
@@ -428,8 +392,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 使用选项和值转换器求解线性 Benders 主问题
-     * Solve linear Benders master problem with options and value converter
+     * 使用选项和值转换器求解线性 Benders 主问题 / Solve linear Benders master problem with options and value converter
      *
      * @param metaModel 线性元模型（Flt64） / Linear meta model (Flt64)
      * @param converter 值转换器 / Value converter
@@ -453,8 +416,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 使用选项求解线性 Benders 主问题并使用元模型内置转换器转换输出值类型
-     * Solve linear Benders master problem with options and convert using meta model's built-in converter
+     * 使用选项求解线性 Benders 主问题并使用元模型内置转换器转换输出值类型 / Solve linear Benders master problem with options and convert using meta model's built-in converter
      *
      * @param metaModel 线性元模型（泛型数值类型） / Linear meta model (generic number type)
      * @param options 框架求解选项 / Framework solve options
@@ -475,8 +437,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 异步使用值转换器求解线性 Benders 主问题
-     * Asynchronously solve linear Benders master problem with value converter
+     * 异步使用值转换器求解线性 Benders 主问题 / Asynchronously solve linear Benders master problem with value converter
      *
      * @param name 模型名称 / Model name
      * @param metaModel 线性元模型（Flt64） / Linear meta model (Flt64)
@@ -508,8 +469,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 使用选项异步使用值转换器求解线性 Benders 主问题
-     * Asynchronously solve linear Benders master problem with options and value converter
+     * 使用选项异步使用值转换器求解线性 Benders 主问题 / Asynchronously solve linear Benders master problem with options and value converter
      *
      * @param metaModel 线性元模型（Flt64） / Linear meta model (Flt64)
      * @param converter 值转换器 / Value converter
@@ -532,8 +492,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 异步求解线性 Benders 主问题并使用元模型内置转换器转换输出值类型
-     * Asynchronously solve linear Benders master problem and convert using meta model's built-in converter
+     * 异步求解线性 Benders 主问题并使用元模型内置转换器转换输出值类型 / Asynchronously solve linear Benders master problem and convert using meta model's built-in converter
      *
      * @param name 模型名称 / Model name
      * @param metaModel 线性元模型（泛型数值类型） / Linear meta model (generic number type)
@@ -562,8 +521,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 使用选项异步求解线性 Benders 主问题并使用元模型内置转换器转换输出值类型
-     * Asynchronously solve linear Benders master problem with options and convert using meta model's built-in converter
+     * 使用选项异步求解线性 Benders 主问题并使用元模型内置转换器转换输出值类型 / Asynchronously solve linear Benders master problem with options and convert using meta model's built-in converter
      *
      * @param metaModel 线性元模型（泛型数值类型） / Linear meta model (generic number type)
      * @param options 框架求解选项 / Framework solve options
@@ -583,8 +541,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 带值类型转换的线性子问题求解结果密封接口
-     * Sealed interface for linear sub problem solving result with value type conversion
+     * 带值类型转换的线性子问题求解结果密封接口 / Sealed interface for linear sub problem solving result with value type conversion
      *
      * @param V 目标数值类型 / Target number type
      * @property cuts 转换后的割平面列表 / Cut list in target number type
@@ -594,8 +551,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 带值类型转换的线性可行子问题结果
-     * Linear feasible sub problem result with value type conversion
+     * 带值类型转换的线性可行子问题结果 / Linear feasible sub problem result with value type conversion
      *
      * @param V 目标数值类型 / Target number type
      * @property result 转换后的可行求解器输出 / Feasible solver output in target number type
@@ -603,20 +559,19 @@ interface LinearBendersDecompositionSolver {
      * @property cuts 转换后的割平面列表 / Cut list in target number type
     */
     data class LinearFeasibleResultOf<V>(
-        val result: FeasibleSolverOutput<V>,
+        val result: SolveReport<V>,
         val dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>,
         override val cuts: List<LinearInequality<V>>?
     ) : LinearSubResultOf<V> where V : RealNumber<V>, V : NumberField<V> {
-        val obj: Flt64 by result::obj
-        val solution: List<V> by result::solution
-        val time: Duration by result::time
-        val possibleBestObj by result::possibleBestObj
-        val gap: Flt64 by result::gap
+        val obj: Flt64 get() = (result.solution?.objective as? Flt64) ?: Flt64.zero
+        val solution: List<V> get() = result.values
+        val time: Duration get() = result.statistics.solveTime ?: Duration.ZERO
+        val possibleBestObj: Flt64 get() = result.statistics.bestBound ?: Flt64.zero
+        val gap: Flt64 get() = result.statistics.gap ?: Flt64.infinity
     }
 
     /**
-     * 带值类型转换的线性不可行子问题结果
-     * Linear infeasible sub problem result with value type conversion
+     * 带值类型转换的线性不可行子问题结果 / Linear infeasible sub problem result with value type conversion
      *
      * @param V 目标数值类型 / Target number type
      * @property farkasDualSolution Farkas 对偶解 / Farkas dual solution
@@ -628,8 +583,7 @@ interface LinearBendersDecompositionSolver {
     ) : LinearSubResultOf<V> where V : RealNumber<V>, V : NumberField<V>
 
     /**
-     * 使用值转换器求解线性 Benders 子问题并转换输出值类型
-     * Solve linear Benders sub problem with value converter and convert output type
+     * 使用值转换器求解线性 Benders 子问题并转换输出值类型 / Solve linear Benders sub problem with value converter and convert output type
      *
      * @param name 模型名称 / Model name
      * @param metaModel 线性元模型（Flt64） / Linear meta model (Flt64)
@@ -666,7 +620,7 @@ interface LinearBendersDecompositionSolver {
                     is LinearFeasibleResult -> {
                         Ok(
                             LinearFeasibleResultOf(
-                                result = value.result.convertTo(converter),
+                                result = value.result.convertSolveReport(converter),
                                 dualSolution = value.dualSolution,
                                 cuts = value.cuts?.map { it.convertTo(converter) }
                             )
@@ -690,8 +644,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 求解线性 Benders 子问题并使用元模型内置转换器转换输出值类型
-     * Solve linear Benders sub problem and convert output using meta model's built-in converter
+     * 求解线性 Benders 子问题并使用元模型内置转换器转换输出值类型 / Solve linear Benders sub problem and convert output using meta model's built-in converter
      *
      * @param name 模型名称 / Model name
      * @param metaModel 线性元模型（泛型数值类型） / Linear meta model (generic number type)
@@ -725,8 +678,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 使用选项和值转换器求解线性 Benders 子问题
-     * Solve linear Benders sub problem with options and value converter
+     * 使用选项和值转换器求解线性 Benders 子问题 / Solve linear Benders sub problem with options and value converter
      *
      * @param metaModel 线性元模型（Flt64） / Linear meta model (Flt64)
      * @param objectVariable 目标变量 / Objective variable
@@ -756,8 +708,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 使用选项求解线性 Benders 子问题并使用元模型内置转换器转换输出值类型
-     * Solve linear Benders sub problem with options and convert using meta model's built-in converter
+     * 使用选项求解线性 Benders 子问题并使用元模型内置转换器转换输出值类型 / Solve linear Benders sub problem with options and convert using meta model's built-in converter
      *
      * @param metaModel 线性元模型（泛型数值类型） / Linear meta model (generic number type)
      * @param objectVariable 目标变量 / Objective variable
@@ -784,8 +735,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 异步使用值转换器求解线性 Benders 子问题
-     * Asynchronously solve linear Benders sub problem with value converter
+     * 异步使用值转换器求解线性 Benders 子问题 / Asynchronously solve linear Benders sub problem with value converter
      *
      * @param name 模型名称 / Model name
      * @param metaModel 线性元模型（Flt64） / Linear meta model (Flt64)
@@ -821,8 +771,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 使用选项异步使用值转换器求解线性 Benders 子问题
-     * Asynchronously solve linear Benders sub problem with options and value converter
+     * 使用选项异步使用值转换器求解线性 Benders 子问题 / Asynchronously solve linear Benders sub problem with options and value converter
      *
      * @param metaModel 线性元模型（Flt64） / Linear meta model (Flt64)
      * @param objectVariable 目标变量 / Objective variable
@@ -851,8 +800,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 异步求解线性 Benders 子问题并使用元模型内置转换器转换输出值类型
-     * Asynchronously solve linear Benders sub problem and convert using meta model's built-in converter
+     * 异步求解线性 Benders 子问题并使用元模型内置转换器转换输出值类型 / Asynchronously solve linear Benders sub problem and convert using meta model's built-in converter
      *
      * @param name 模型名称 / Model name
      * @param metaModel 线性元模型（泛型数值类型） / Linear meta model (generic number type)
@@ -887,8 +835,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     /**
-     * 使用选项异步求解线性 Benders 子问题并使用元模型内置转换器转换输出值类型
-     * Asynchronously solve linear Benders sub problem with options and convert using meta model's built-in converter
+     * 使用选项异步求解线性 Benders 子问题并使用元模型内置转换器转换输出值类型 / Asynchronously solve linear Benders sub problem with options and convert using meta model's built-in converter
      *
      * @param metaModel 线性元模型（泛型数值类型） / Linear meta model (generic number type)
      * @param objectVariable 目标变量 / Objective variable
@@ -915,14 +862,12 @@ interface LinearBendersDecompositionSolver {
 }
 
 /**
- * 二次 Benders 分解求解器接口
- * Quadratic Benders decomposition solver interface
+ * 二次 Benders 分解求解器接口 / Quadratic Benders decomposition solver interface
 */
 interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver {
 
     /**
-     * 求解二次 Benders 主问题
-     * Solve quadratic Benders master problem
+     * 求解二次 Benders 主问题 / Solve quadratic Benders master problem
      *
      * @param name 模型名称 / Model name
      * @param metaModel 二次元模型 / Quadratic meta model
@@ -940,8 +885,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     ): Ret<SolverOutput>
 
     /**
-     * 使用选项求解二次 Benders 主问题（便捷重载）
-     * Solve quadratic Benders master problem with options (convenience overload)
+     * 使用选项求解二次 Benders 主问题（便捷重载） / Solve quadratic Benders master problem with options (convenience overload)
      *
      * @param metaModel 二次元模型 / Quadratic meta model
      * @param options 框架求解选项 / Framework solve options
@@ -961,8 +905,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 异步求解二次 Benders 主问题
-     * Asynchronously solve quadratic Benders master problem
+     * 异步求解二次 Benders 主问题 / Asynchronously solve quadratic Benders master problem
      *
      * @param name 模型名称 / Model name
      * @param metaModel 二次元模型 / Quadratic meta model
@@ -990,8 +933,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 使用选项异步求解二次 Benders 主问题
-     * Asynchronously solve quadratic Benders master problem with options
+     * 使用选项异步求解二次 Benders 主问题 / Asynchronously solve quadratic Benders master problem with options
      *
      * @param metaModel 二次元模型 / Quadratic meta model
      * @param options 框架求解选项 / Framework solve options
@@ -1010,13 +952,11 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 子问题求解结果（如果提供了固定变量，则包含割平面）
-     * Sub Problem Solving Result (with cuts if fixed variables are provided)
+     * 子问题求解结果（如果提供了固定变量，则包含割平面） / Sub Problem Solving Result (with cuts if fixed variables are provided)
      *
      * @property linearCuts 子问题生成的线性割平面列表（如果提供了固定变量） / list of linear cuts generated by sub problem, if fixed variables are provided.
      * @property quadraticCuts 子问题生成的二次割平面列表（如果提供了固定变量） / list of quadratic cuts generated by sub problem, if fixed variables are provided.
-     * 否则，子问题模型中不应存在任何固定变量。换句话说，固定变量应被替换为其值。
-     * Otherwise, there should not be any fixed variables in the sub problem model. In other words, the fixed variables should be replaced with their values.
+     * 否则，子问题模型中不应存在任何固定变量。换句话说，固定变量应被替换为其值。 / Otherwise, there should not be any fixed variables in the sub problem model. In other words, the fixed variables should be replaced with their values.
     */
     sealed interface QuadraticSubResult {
         val linearCuts: List<LinearInequality<Flt64>>?
@@ -1024,8 +964,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 二次可行子问题结果
-     * Quadratic feasible sub problem result
+     * 二次可行子问题结果 / Quadratic feasible sub problem result
      *
      * @property result 可行求解器输出 / Feasible solver output
      * @property dualSolution 对偶解 / Dual solution
@@ -1033,21 +972,20 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @property quadraticCuts 二次割平面列表 / Quadratic cut list
     */
     data class QuadraticFeasibleResult(
-        val result: FeasibleSolverOutput<Flt64>,
+        val result: SolveReport<Flt64>,
         val dualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
         override val linearCuts: List<LinearInequality<Flt64>>?,
         override val quadraticCuts: List<QuadraticInequalityOf<Flt64>>?,
     ) : QuadraticSubResult {
-        val obj: Flt64 by result::obj
-        val solution: List<Flt64> by result::solution
-        val time: Duration by result::time
-        val possibleBestObj by result::possibleBestObj
-        val gap: Flt64 by result::gap
+        val obj: Flt64 get() = result.solution?.objective ?: Flt64.zero
+        val solution: List<Flt64> get() = result.values
+        val time: Duration get() = result.statistics.solveTime ?: Duration.ZERO
+        val possibleBestObj: Flt64 get() = result.statistics.bestBound ?: Flt64.zero
+        val gap: Flt64 get() = result.statistics.gap ?: Flt64.infinity
     }
 
     /**
-     * 二次不可行子问题结果
-     * Quadratic infeasible sub problem result
+     * 二次不可行子问题结果 / Quadratic infeasible sub problem result
      *
      * @property farkasDualSolution Farkas 对偶解 / Farkas dual solution
      * @property linearCuts 线性割平面列表 / Linear cut list
@@ -1060,8 +998,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     ) : QuadraticSubResult
 
     /**
-     * 求解二次 Benders 子问题
-     * Solve quadratic Benders sub problem
+     * 求解二次 Benders 子问题 / Solve quadratic Benders sub problem
      *
      * @param name 模型名称 / Model name
      * @param metaModel 二次元模型 / Quadratic meta model
@@ -1083,8 +1020,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     ): Ret<QuadraticSubResult>
 
     /**
-     * 使用选项求解二次 Benders 子问题（便捷重载）
-     * Solve quadratic Benders sub problem with options (convenience overload)
+     * 使用选项求解二次 Benders 子问题（便捷重载） / Solve quadratic Benders sub problem with options (convenience overload)
      *
      * @param metaModel 二次元模型 / Quadratic meta model
      * @param objectVariable 目标变量 / Objective variable
@@ -1110,8 +1046,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 异步求解二次 Benders 子问题
-     * Asynchronously solve quadratic Benders sub problem
+     * 异步求解二次 Benders 子问题 / Asynchronously solve quadratic Benders sub problem
      *
      * @param name 模型名称 / Model name
      * @param metaModel 二次元模型 / Quadratic meta model
@@ -1145,8 +1080,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 使用选项异步求解二次 Benders 子问题
-     * Asynchronously solve quadratic Benders sub problem with options
+     * 使用选项异步求解二次 Benders 子问题 / Asynchronously solve quadratic Benders sub problem with options
      *
      * @param metaModel 二次元模型 / Quadratic meta model
      * @param objectVariable 目标变量 / Objective variable
@@ -1171,8 +1105,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 使用值转换器求解二次 Benders 主问题并转换输出值类型
-     * Solve quadratic Benders master problem with value converter and convert output type
+     * 使用值转换器求解二次 Benders 主问题并转换输出值类型 / Solve quadratic Benders master problem with value converter and convert output type
      *
      * @param name 模型名称 / Model name
      * @param metaModel 二次元模型（Flt64） / Quadratic meta model (Flt64)
@@ -1205,8 +1138,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 求解二次 Benders 主问题并使用元模型内置转换器转换输出值类型
-     * Solve quadratic Benders master problem and convert output using meta model's built-in converter
+     * 求解二次 Benders 主问题并使用元模型内置转换器转换输出值类型 / Solve quadratic Benders master problem and convert output using meta model's built-in converter
      *
      * @param name 模型名称 / Model name
      * @param metaModel 二次元模型（泛型数值类型） / Quadratic meta model (generic number type)
@@ -1234,8 +1166,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 使用选项和值转换器求解二次 Benders 主问题
-     * Solve quadratic Benders master problem with options and value converter
+     * 使用选项和值转换器求解二次 Benders 主问题 / Solve quadratic Benders master problem with options and value converter
      *
      * @param metaModel 二次元模型（Flt64） / Quadratic meta model (Flt64)
      * @param converter 值转换器 / Value converter
@@ -1259,8 +1190,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 使用选项求解二次 Benders 主问题并使用元模型内置转换器转换输出值类型
-     * Solve quadratic Benders master problem with options and convert using meta model's built-in converter
+     * 使用选项求解二次 Benders 主问题并使用元模型内置转换器转换输出值类型 / Solve quadratic Benders master problem with options and convert using meta model's built-in converter
      *
      * @param metaModel 二次元模型（泛型数值类型） / Quadratic meta model (generic number type)
      * @param options 框架求解选项 / Framework solve options
@@ -1281,8 +1211,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 异步使用值转换器求解二次 Benders 主问题
-     * Asynchronously solve quadratic Benders master problem with value converter
+     * 异步使用值转换器求解二次 Benders 主问题 / Asynchronously solve quadratic Benders master problem with value converter
      *
      * @param name 模型名称 / Model name
      * @param metaModel 二次元模型（Flt64） / Quadratic meta model (Flt64)
@@ -1314,8 +1243,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 使用选项异步使用值转换器求解二次 Benders 主问题
-     * Asynchronously solve quadratic Benders master problem with options and value converter
+     * 使用选项异步使用值转换器求解二次 Benders 主问题 / Asynchronously solve quadratic Benders master problem with options and value converter
      *
      * @param metaModel 二次元模型（Flt64） / Quadratic meta model (Flt64)
      * @param converter 值转换器 / Value converter
@@ -1338,8 +1266,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 异步求解二次 Benders 主问题并使用元模型内置转换器转换输出值类型
-     * Asynchronously solve quadratic Benders master problem and convert using meta model's built-in converter
+     * 异步求解二次 Benders 主问题并使用元模型内置转换器转换输出值类型 / Asynchronously solve quadratic Benders master problem and convert using meta model's built-in converter
      *
      * @param name 模型名称 / Model name
      * @param metaModel 二次元模型（泛型数值类型） / Quadratic meta model (generic number type)
@@ -1368,8 +1295,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 使用选项异步求解二次 Benders 主问题并使用元模型内置转换器转换输出值类型
-     * Asynchronously solve quadratic Benders master problem with options and convert using meta model's built-in converter
+     * 使用选项异步求解二次 Benders 主问题并使用元模型内置转换器转换输出值类型 / Asynchronously solve quadratic Benders master problem with options and convert using meta model's built-in converter
      *
      * @param metaModel 二次元模型（泛型数值类型） / Quadratic meta model (generic number type)
      * @param options 框架求解选项 / Framework solve options
@@ -1389,8 +1315,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 带值类型转换的二次子问题求解结果密封接口
-     * Sealed interface for quadratic sub problem solving result with value type conversion
+     * 带值类型转换的二次子问题求解结果密封接口 / Sealed interface for quadratic sub problem solving result with value type conversion
      *
      * @param V 目标数值类型 / Target number type
      * @property linearCuts 转换后的线性割平面列表 / Linear cut list in target number type
@@ -1402,8 +1327,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 带值类型转换的二次可行子问题结果
-     * Quadratic feasible sub problem result with value type conversion
+     * 带值类型转换的二次可行子问题结果 / Quadratic feasible sub problem result with value type conversion
      *
      * @param V 目标数值类型 / Target number type
      * @property result 转换后的可行求解器输出 / Feasible solver output in target number type
@@ -1412,21 +1336,20 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @property quadraticCuts 转换后的二次割平面列表 / Quadratic cut list in target number type
     */
     data class QuadraticFeasibleResultOf<V>(
-        val result: FeasibleSolverOutput<V>,
+        val result: SolveReport<V>,
         val dualSolution: Map<Constraint<Flt64, Quadratic>, Flt64>,
         override val linearCuts: List<LinearInequality<V>>?,
         override val quadraticCuts: List<QuadraticInequalityOf<V>>?
     ) : QuadraticSubResultOf<V> where V : RealNumber<V>, V : NumberField<V> {
-        val obj: Flt64 by result::obj
-        val solution: List<V> by result::solution
-        val time: Duration by result::time
-        val possibleBestObj by result::possibleBestObj
-        val gap: Flt64 by result::gap
+        val obj: Flt64 get() = (result.solution?.objective as? Flt64) ?: Flt64.zero
+        val solution: List<V> get() = result.values
+        val time: Duration get() = result.statistics.solveTime ?: Duration.ZERO
+        val possibleBestObj: Flt64 get() = result.statistics.bestBound ?: Flt64.zero
+        val gap: Flt64 get() = result.statistics.gap ?: Flt64.infinity
     }
 
     /**
-     * 带值类型转换的二次不可行子问题结果
-     * Quadratic infeasible sub problem result with value type conversion
+     * 带值类型转换的二次不可行子问题结果 / Quadratic infeasible sub problem result with value type conversion
      *
      * @param V 目标数值类型 / Target number type
      * @property farkasDualSolution Farkas 对偶解 / Farkas dual solution
@@ -1440,8 +1363,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     ) : QuadraticSubResultOf<V> where V : RealNumber<V>, V : NumberField<V>
 
     /**
-     * 使用值转换器求解二次 Benders 子问题并转换输出值类型
-     * Solve quadratic Benders sub problem with value converter and convert output type
+     * 使用值转换器求解二次 Benders 子问题并转换输出值类型 / Solve quadratic Benders sub problem with value converter and convert output type
      *
      * @param name 模型名称 / Model name
      * @param metaModel 二次元模型（Flt64） / Quadratic meta model (Flt64)
@@ -1478,7 +1400,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
                     is QuadraticFeasibleResult -> {
                         Ok(
                             QuadraticFeasibleResultOf(
-                                result = value.result.convertTo(converter),
+                                result = value.result.convertSolveReport(converter),
                                 dualSolution = value.dualSolution,
                                 linearCuts = value.linearCuts?.map { it.convertTo(converter) },
                                 quadraticCuts = value.quadraticCuts?.map { it.convertTo(converter) }
@@ -1504,8 +1426,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 求解二次 Benders 子问题并使用元模型内置转换器转换输出值类型
-     * Solve quadratic Benders sub problem and convert output using meta model's built-in converter
+     * 求解二次 Benders 子问题并使用元模型内置转换器转换输出值类型 / Solve quadratic Benders sub problem and convert output using meta model's built-in converter
      *
      * @param name 模型名称 / Model name
      * @param metaModel 二次元模型（泛型数值类型） / Quadratic meta model (generic number type)
@@ -1539,8 +1460,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 使用选项和值转换器求解二次 Benders 子问题
-     * Solve quadratic Benders sub problem with options and value converter
+     * 使用选项和值转换器求解二次 Benders 子问题 / Solve quadratic Benders sub problem with options and value converter
      *
      * @param metaModel 二次元模型（Flt64） / Quadratic meta model (Flt64)
      * @param objectVariable 目标变量 / Objective variable
@@ -1570,8 +1490,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 使用选项求解二次 Benders 子问题并使用元模型内置转换器转换输出值类型
-     * Solve quadratic Benders sub problem with options and convert using meta model's built-in converter
+     * 使用选项求解二次 Benders 子问题并使用元模型内置转换器转换输出值类型 / Solve quadratic Benders sub problem with options and convert using meta model's built-in converter
      *
      * @param metaModel 二次元模型（泛型数值类型） / Quadratic meta model (generic number type)
      * @param objectVariable 目标变量 / Objective variable
@@ -1598,8 +1517,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 异步使用值转换器求解二次 Benders 子问题
-     * Asynchronously solve quadratic Benders sub problem with value converter
+     * 异步使用值转换器求解二次 Benders 子问题 / Asynchronously solve quadratic Benders sub problem with value converter
      *
      * @param name 模型名称 / Model name
      * @param metaModel 二次元模型（Flt64） / Quadratic meta model (Flt64)
@@ -1637,8 +1555,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 使用选项异步使用值转换器求解二次 Benders 子问题
-     * Asynchronously solve quadratic Benders sub problem with options and value converter
+     * 使用选项异步使用值转换器求解二次 Benders 子问题 / Asynchronously solve quadratic Benders sub problem with options and value converter
      *
      * @param metaModel 二次元模型（Flt64） / Quadratic meta model (Flt64)
      * @param objectVariable 目标变量 / Objective variable
@@ -1667,8 +1584,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 异步求解二次 Benders 子问题并使用元模型内置转换器转换输出值类型
-     * Asynchronously solve quadratic Benders sub problem and convert using meta model's built-in converter
+     * 异步求解二次 Benders 子问题并使用元模型内置转换器转换输出值类型 / Asynchronously solve quadratic Benders sub problem and convert using meta model's built-in converter
      *
      * @param name 模型名称 / Model name
      * @param metaModel 二次元模型（泛型数值类型） / Quadratic meta model (generic number type)
@@ -1703,8 +1619,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     /**
-     * 使用选项异步求解二次 Benders 子问题并使用元模型内置转换器转换输出值类型
-     * Asynchronously solve quadratic Benders sub problem with options and convert using meta model's built-in converter
+     * 使用选项异步求解二次 Benders 子问题并使用元模型内置转换器转换输出值类型 / Asynchronously solve quadratic Benders sub problem with options and convert using meta model's built-in converter
      *
      * @param metaModel 二次元模型（泛型数值类型） / Quadratic meta model (generic number type)
      * @param objectVariable 目标变量 / Objective variable

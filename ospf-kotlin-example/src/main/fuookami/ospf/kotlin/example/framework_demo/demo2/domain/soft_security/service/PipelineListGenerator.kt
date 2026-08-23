@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
  * Generates the pipeline of soft security constraints for model construction.
  * 生成用于模型构建的软安全约束管线。
  *
- * @property aggregation The aggregation containing soft security data / 包含软安全数据的聚合
+ * @property aggregation 包含软安全数据的聚合 / The aggregation containing soft security data
 */
 data class PipelineListGenerator(
     private val aggregation: Aggregation
@@ -28,6 +28,10 @@ data class PipelineListGenerator(
         stowageMode: StowageMode,
         parameter: Parameter
     ): Ret<PipelineList<AbstractLinearMetaModel<Flt64>>> {
+        if (!stowageMode.withSoftSecurity) {
+            return Ok(emptyList())
+        }
+
         val pipelines = ArrayList<Pipeline<AbstractLinearMetaModel<Flt64>>>()
 
         if (aggregation.ballast != null) {
@@ -35,9 +39,7 @@ data class PipelineListGenerator(
                 AdviceBallastWeightLimit(
                     aircraftModel = aggregation.aircraftModel,
                     ballast = aggregation.ballast,
-                    coefficient = {
-                        TODO("not implemented yet")
-                    }
+                    coefficient = { parameter.ballastWeight }
                 )
             )
         }
@@ -51,9 +53,7 @@ data class PipelineListGenerator(
                         EmptyHatedLimit(
                             positions = aggregation.positions,
                             load = aggregation.load,
-                            coefficient = {
-                                TODO("not implemented yet")
-                            }
+                            coefficient = { parameter.emptyHated }
                         )
                     )
                 }
@@ -79,7 +79,7 @@ data class PipelineListGenerator(
                         } else {
                             Flt64.zero
                         }
-                        TODO("not implemented yet")
+                        coefficient * parameter.besideDoorMainPosition
                     }
                 )
             )
@@ -89,15 +89,9 @@ data class PipelineListGenerator(
             DivideEmptyLoadingLimit(
                 adjacentPositions = aggregation.divideEmptyLoading.adjacentPositions,
                 divideEmptyLoading = aggregation.divideEmptyLoading,
-                emptyBetweenCargoCoefficient = { _, _ ->
-                    TODO("not implemented yet")
-                },
-                emptyCargoBetweenCargoCoefficient = { _, _ ->
-                    TODO("not implemented yet")
-                },
-                emptyBetweenEmptyCargoCoefficient = { _, _ ->
-                    TODO("not implemented yet")
-                }
+                emptyBetweenCargoCoefficient = { _, _ -> parameter.dividedEmpty },
+                emptyCargoBetweenCargoCoefficient = { _, _ -> parameter.dividedEmpty },
+                emptyBetweenEmptyCargoCoefficient = { _, _ -> parameter.dividedEmpty }
             )
         )
 

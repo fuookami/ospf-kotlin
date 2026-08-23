@@ -1,9 +1,7 @@
 /**
- * 持久化 API 控制器
- * Persistence API Controller
+ * 持久化 API 控制器 / Persistence API Controller
  *
- * 定义持久化层 API 控制器的通用接口。
- * Defines a common interface for persistence layer API controllers.
+ * 定义持久化层 API 控制器的通用接口。 / Defines a common interface for persistence layer API controllers.
 */
 package fuookami.ospf.kotlin.framework.persistence
 

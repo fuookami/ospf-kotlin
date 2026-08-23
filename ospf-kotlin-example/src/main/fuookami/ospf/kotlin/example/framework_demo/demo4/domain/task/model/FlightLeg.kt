@@ -22,9 +22,9 @@ enum class FlightType {
         /**
          * 根据出发和到达机场确定航班类型。Determines the flight type from departure and arrival airports.
          *
-         * @param dep The departure airport / 出发机场
-         * @param arr The arrival airport / 到达机场
-         * @return The determined flight type / 确定的航班类型
+         * @param dep 出发机场 / The departure airport
+         * @param arr 到达机场 / The arrival airport
+         * @return 确定的航班类型 / The determined flight type
         */
         operator fun invoke(dep: Airport, arr: Airport): FlightType {
             return invoke(dep.type, arr.type)
@@ -33,9 +33,9 @@ enum class FlightType {
         /**
          * 根据出发和到达机场类型确定航班类型。Determines the flight type from departure and arrival airport types.
          *
-         * @param dep The departure airport type / 出发机场类型
-         * @param arr The arrival airport type / 到达机场类型
-         * @return The determined flight type / 确定的航班类型
+         * @param dep 出发机场类型 / The departure airport type
+         * @param arr 到达机场类型 / The arrival airport type
+         * @return 确定的航班类型 / The determined flight type
         */
         operator fun invoke(dep: AirportType, arr: AirportType): FlightType {
             return when (AirportType.entries.find { it.ordinal == max(dep.ordinal, arr.ordinal) }!!) {
@@ -60,13 +60,13 @@ enum class FlightType {
 /**
  * 具有计划/估计/实际时间、飞机和航线信息的航段计划。A flight leg plan with scheduled/estimated/actual times, aircraft, and route information.
  *
- * @property no The flight number / 航班号
- * @property type The flight type / 航班类型
- * @property date The flight date / 航班日期
- * @property estimatedTime The estimated time range / 预计时间范围
- * @property actualTime The actual time range / 实际时间范围
- * @property outTime The out time / 推出时间
- * @property flightTaskStatus The set of flight task statuses / 航班任务状态集合
+ * @property no 航班号 / The flight number
+ * @property type 航班类型 / The flight type
+ * @property date 航班日期 / The flight date
+ * @property estimatedTime 预计时间范围 / The estimated time range
+ * @property actualTime 实际时间范围 / The actual time range
+ * @property outTime 推出时间 / The out time
+ * @property flightTaskStatus 航班任务状态集合 / The set of flight task statuses
 */
 class FlightLegPlan(
     actualId: String,
@@ -100,7 +100,7 @@ class FlightLegPlan(
     /**
      * 检查此航段是否有资格进行恢复（无实际时间或推出时间）。Checks whether this flight leg is eligible for recovery (no actual time or out time).
      *
-     * @return true if eligible for recovery, false otherwise / 如果有资格恢复则为true，否则为false
+     * @return 如果有资格恢复则为true，否则为false / true if eligible for recovery, false otherwise
     */
     fun recoveryEnabled(): Boolean {
         return actualTime == null && outTime == null
@@ -123,8 +123,8 @@ class FlightLeg internal constructor(
         /**
          * 从计划创建 [FlightLeg]。Creates a [FlightLeg] from a plan.
          *
-         * @param plan The flight leg plan / 航段计划
-         * @return The created flight leg / 创建的航段
+         * @param plan 航段计划 / The flight leg plan
+         * @return 创建的航段 / The created flight leg
         */
         operator fun invoke(plan: FlightLegPlan): FlightLeg {
             return FlightLeg(plan = plan)
@@ -133,9 +133,9 @@ class FlightLeg internal constructor(
         /**
          * 创建应用给定恢复策略的已恢复 [FlightLeg]。Creates a recovered [FlightLeg] applying the given recovery policy.
          *
-         * @param origin The original flight leg / 原始航段
-         * @param recoveryPolicy The recovery policy assignment / 恢复策略分配
-         * @return The recovered flight leg / 恢复后的航段
+         * @param origin 原始航段 / The original flight leg
+         * @param recoveryPolicy 恢复策略分配 / The recovery policy assignment
+         * @return 恢复后的航段 / The recovered flight leg
         */
         operator fun invoke(origin: FlightLeg, recoveryPolicy: FlightTaskAssignment): FlightLeg {
             val recoveryAircraft = if (recoveryPolicy.aircraft == null || recoveryPolicy.aircraft == origin.aircraft) {

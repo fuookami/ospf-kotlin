@@ -1,8 +1,7 @@
 /** 遗传算法种群相关类型定义 / Genetic algorithm population type definitions */
 package fuookami.ospf.kotlin.core.solver.heuristic.ga
 
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.solver.heuristic.SolutionWithFitness
 

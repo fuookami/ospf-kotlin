@@ -25,8 +25,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 private typealias ProductIntermediate<V> = IntermediateSymbol<out V>
 
 /**
- * 两个线性多项式的乘积：y = left * right。
- * Product of two linear polynomials: y = left * right.
+ * 两个线性多项式的乘积：y = left * right。 / Product of two linear polynomials: y = left * right.
  *
  * @property left 左侧线性多项式 / left linear polynomial
  * @property right 右侧线性多项式 / right linear polynomial
@@ -79,8 +78,7 @@ class ProductFunction<V>(
     }
 
     /**
-     * 从 token 表求值单个符号。
-     * Evaluate a single symbol from the token table.
+     * 从 token 表求值单个符号。 / Evaluate a single symbol from the token table.
      *
      * @param symbol 要求值的符号 / the symbol to evaluate
      * @param tokenTable token 表 / the token table
@@ -100,8 +98,7 @@ class ProductFunction<V>(
     }
 
     /**
-     * 从结果列表求值单个符号。
-     * Evaluate a single symbol from a results list.
+     * 从结果列表求值单个符号。 / Evaluate a single symbol from a results list.
      *
      * @param symbol 要求值的符号 / the symbol to evaluate
      * @param results 结果值列表 / list of result values
@@ -127,8 +124,7 @@ class ProductFunction<V>(
     }
 
     /**
-     * 从值映射求值单个符号。
-     * Evaluate a single symbol from a value map.
+     * 从值映射求值单个符号。 / Evaluate a single symbol from a value map.
      *
      * @param symbol 要求值的符号 / the symbol to evaluate
      * @param values 符号到值的映射 / symbol-to-value map
@@ -150,8 +146,7 @@ class ProductFunction<V>(
     }
 
     /**
-     * 求值线性多项式。
-     * Evaluate a linear polynomial.
+     * 求值线性多项式。 / Evaluate a linear polynomial.
      *
      * @param poly 要求值的线性多项式 / the linear polynomial to evaluate
      * @param tokenTable token 表 / the token table
@@ -172,8 +167,7 @@ class ProductFunction<V>(
     }
 
     /**
-     * 从结果列表求值线性多项式。
-     * Evaluate a linear polynomial from a results list.
+     * 从结果列表求值线性多项式。 / Evaluate a linear polynomial from a results list.
      *
      * @param poly 要求值的线性多项式 / the linear polynomial to evaluate
      * @param results 结果值列表 / list of result values
@@ -196,8 +190,7 @@ class ProductFunction<V>(
     }
 
     /**
-     * 从值映射求值线性多项式。
-     * Evaluate a linear polynomial from a value map.
+     * 从值映射求值线性多项式。 / Evaluate a linear polynomial from a value map.
      *
      * @param poly 要求值的线性多项式 / the linear polynomial to evaluate
      * @param values 符号到值的映射 / symbol-to-value map
@@ -220,8 +213,7 @@ class ProductFunction<V>(
     }
 
     /**
-     * 使用 Flt64 值预计算求解器结果。
-     * Pre-compute solver result with Flt64 values.
+     * 使用 Flt64 值预计算求解器结果。 / Pre-compute solver result with Flt64 values.
      *
      * @param values 符号到 Flt64 值的映射，可为 null / symbol-to-Flt64 value map, or null
      * @param tokenTable token 表 / the token table
@@ -246,8 +238,7 @@ class ProductFunction<V>(
     }
 
     /**
-     * 将 left * right 展开为 V 类型二次多项式。
-     * Expand left * right into a V-generic quadratic polynomial.
+     * 将 left * right 展开为 V 类型二次多项式。 / Expand left * right into a V-generic quadratic polynomial.
      *
      * @return 展开后的二次多项式 / the expanded quadratic polynomial
     */
@@ -322,8 +313,7 @@ class ProductFunction<V>(
     }
 
     /**
-     * 使用 Flt64 结果列表进行求解器求值。
-     * Evaluate solver with Flt64 results list.
+     * 使用 Flt64 结果列表进行求解器求值。 / Evaluate solver with Flt64 results list.
      *
      * @param results Flt64 结果值列表 / list of Flt64 result values
      * @param tokenTable token 表 / the token table
@@ -337,8 +327,7 @@ class ProductFunction<V>(
     }
 
     /**
-     * 使用 Flt64 值映射进行求解器求值。
-     * Evaluate solver with Flt64 value map.
+     * 使用 Flt64 值映射进行求解器求值。 / Evaluate solver with Flt64 value map.
      *
      * @param values 符号到 Flt64 值的映射 / symbol-to-Flt64 value map
      * @param tokenTable 可选的 token 表 / optional token table

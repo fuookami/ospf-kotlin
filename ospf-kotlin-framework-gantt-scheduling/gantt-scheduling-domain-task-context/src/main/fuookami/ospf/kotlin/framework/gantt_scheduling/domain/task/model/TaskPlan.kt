@@ -73,8 +73,8 @@ interface AbstractTaskPlan<out E : Executor> {
 /**
  * duration.
  * duration。
- * @param executor The executor for which to calculate duration / 用于计算持续时间的执行者
- * @return The task duration for the given executor / 给定执行者下的任务持续时间
+ * @param executor 用于计算持续时间的执行者 / The executor for which to calculate duration
+ * @return 给定执行者下的任务持续时间 / The task duration for the given executor
 */
     fun duration(executor: @UnsafeVariance E): Duration {
         return duration!!
@@ -126,8 +126,8 @@ interface AbstractTaskPlan<out E : Executor> {
 /**
  * earliestStartTime.
  * earliestStartTime。
- * @param executor The executor for which to calculate earliest start time / 用于计算最早开始时间的执行者
- * @return The earliest allowed start time for the given executor, or null if unrestricted / 给定执行者的最早允许开始时间，无限制时为null
+ * @param executor 用于计算最早开始时间的执行者 / The executor for which to calculate earliest start time
+ * @return 给定执行者的最早允许开始时间，无限制时为null / The earliest allowed start time for the given executor, or null if unrestricted
 */
     fun earliestStartTime(executor: @UnsafeVariance E): Instant? {
         return if (time != null && status.contains(TaskStatus.NotAdvance)) {
@@ -156,8 +156,8 @@ interface AbstractTaskPlan<out E : Executor> {
 /**
  * lastStartTime.
  * lastStartTime。
- * @param executor The executor for which to calculate latest start time / 用于计算最晚开始时间的执行者
- * @return The latest allowed start time for the given executor, or null if unrestricted / 给定执行者的最晚允许开始时间，无限制时为null
+ * @param executor 用于计算最晚开始时间的执行者 / The executor for which to calculate latest start time
+ * @return 给定执行者的最晚允许开始时间，无限制时为null / The latest allowed start time for the given executor, or null if unrestricted
 */
     fun lastStartTime(executor: @UnsafeVariance E): Instant? {
         return if (time != null && status.contains(TaskStatus.NotDelay)) {
@@ -174,8 +174,8 @@ interface AbstractTaskPlan<out E : Executor> {
 /**
  * earliestNormalStartTime.
  * earliestNormalStartTime。
- * @param executor The executor for which to calculate earliest normal start time / 用于计算最早正常开始时间的执行者
- * @return The earliest normal start time based on scheduled time or time window / 基于计划时间或时间窗口的最早正常开始时间
+ * @param executor 用于计算最早正常开始时间的执行者 / The executor for which to calculate earliest normal start time
+ * @return 基于计划时间或时间窗口的最早正常开始时间 / The earliest normal start time based on scheduled time or time window
 */
     fun earliestNormalStartTime(executor: @UnsafeVariance E): Instant {
         return if (scheduledTime != null) {
@@ -188,9 +188,9 @@ interface AbstractTaskPlan<out E : Executor> {
 /**
  * connectionTime.
  * connectionTime。
- * @param prevTask The preceding task in the sequence, or null if this is the first / 前序任务，若为首个任务则为null
- * @param succTask The succeeding task in the sequence, or null if this is the last / 后续任务，若为末个任务则为null
- * @return The connection (transition) time between the two tasks, or null if not applicable / 两个任务之间的衔接（过渡）时间，不适用时为null
+ * @param prevTask 前序任务，若为首个任务则为null / The preceding task in the sequence, or null if this is the first
+ * @param succTask 后续任务，若为末个任务则为null / The succeeding task in the sequence, or null if this is the last
+ * @return 两个任务之间的衔接（过渡）时间，不适用时为null / The connection (transition) time between the two tasks, or null if not applicable
 */
     fun connectionTime(
         prevTask: AbstractTask<@UnsafeVariance E, *>?,
@@ -202,10 +202,10 @@ interface AbstractTaskPlan<out E : Executor> {
 /**
  * connectionTime.
  * connectionTime。
- * @param executor The executor performing the transition / 执行衔接过渡的执行者
- * @param prevTask The preceding task in the sequence, or null if this is the first / 前序任务，若为首个任务则为null
- * @param succTask The succeeding task in the sequence, or null if this is the last / 后续任务，若为末个任务则为null
- * @return The connection (transition) time between the two tasks for the given executor / 给定执行者下两个任务之间的衔接（过渡）时间
+ * @param executor 执行衔接过渡的执行者 / The executor performing the transition
+ * @param prevTask 前序任务，若为首个任务则为null / The preceding task in the sequence, or null if this is the first
+ * @param succTask 后续任务，若为末个任务则为null / The succeeding task in the sequence, or null if this is the last
+ * @return 给定执行者下两个任务之间的衔接（过渡）时间 / The connection (transition) time between the two tasks for the given executor
 */
     fun connectionTime(
         executor: @UnsafeVariance E,

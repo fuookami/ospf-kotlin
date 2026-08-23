@@ -12,7 +12,11 @@ import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.solver.*
 import fuookami.ospf.kotlin.core.solver.config.GurobiSolverConfig
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.iis.IISConfig
+import fuookami.ospf.kotlin.core.solver.iis.InfeasibilityAnalyzer
+import fuookami.ospf.kotlin.core.solver.nativeElementName
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -28,19 +32,57 @@ class GurobiQuadraticSolver(
     private val callBack: GurobiQuadraticSolverCallBack? = null
 ) : QuadraticSolver {
     override val name = "gurobi"
+    override val descriptor = SolverDescriptor(
+        solverId = "gurobi",
+        backendName = "Gurobi",
+        backendVersion = gurobiNativeVersion(),
+        pluginVersion = GurobiQuadraticSolver::class.java.`package`.implementationVersion,
+        capabilities = SolverCapabilities(
+            modelTypes = setOf(SolverModelType.QP, SolverModelType.QCP),
+            nativeIIS = true,
+            warmStart = true,
+            solutionPool = true,
+            callback = true,
+            interrupt = true
+        )
+    )
+
+    override fun diagnosticAnalyzers(
+        config: IISConfig
+    ): List<InfeasibilityAnalyzer<QuadraticTetradModelView>> {
+        return listOf(
+            GurobiQuadraticNativeIISAnalyzer(this.config, config, callBack)
+        )
+    }
 
     override suspend fun invoke(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput<Flt64>> {
+    ): Ret<SolveReport<Flt64>> {
+        return invoke(model, solvingStatusCallBack, null)
+    }
+
+    override suspend fun invoke(
+        model: QuadraticTetradModelView,
+        solvingStatusCallBack: SolvingStatusCallBack?,
+        cancellationToken: CancellationToken?
+    ): Ret<SolveReport<Flt64>> {
+        when (val validation = model.identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         return GurobiQuadraticSolverImpl(
             config = config,
             callBack = callBack,
-            statusCallBack = solvingStatusCallBack
+            statusCallBack = solvingStatusCallBack,
+            cancellationToken = cancellationToken
         ).use { impl ->
             val result = impl(model)
             cleanupAfterSolverRun()
-            result
+            result.map { report ->
+                report.withQuadraticBackendMetadata(model, config, descriptor)
+            }
         }
     }
 
@@ -48,9 +90,18 @@ class GurobiQuadraticSolver(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
+    ): Ret<Pair<SolveReport<Flt64>, List<List<Flt64>>>> {
+        return invoke(model, solutionAmount, solvingStatusCallBack, null)
+    }
+
+    override suspend fun invoke(
+        model: QuadraticTetradModelView,
+        solutionAmount: UInt64,
+        solvingStatusCallBack: SolvingStatusCallBack?,
+        cancellationToken: CancellationToken?
+    ): Ret<Pair<SolveReport<Flt64>, List<List<Flt64>>>> {
         return if (solutionAmount leq UInt64.one) {
-            this(model).map { it to emptyList() }
+            this(model, solvingStatusCallBack, cancellationToken).map { it to emptyList() }
         } else {
             val results = ArrayList<List<Flt64>>()
             GurobiQuadraticSolverImpl(
@@ -75,11 +126,14 @@ class GurobiQuadraticSolver(
                         }
                         ok
                     },
-                statusCallBack = solvingStatusCallBack
+                statusCallBack = solvingStatusCallBack,
+                cancellationToken = cancellationToken
             ).use { impl ->
                 val result = impl(model).map { it to results }
                 cleanupAfterSolverRun()
-                result
+                result.map { (report, solutions) ->
+                    report.withQuadraticBackendMetadata(model, config, descriptor) to solutions
+                }
             }
         }
     }
@@ -89,11 +143,12 @@ class GurobiQuadraticSolver(
 private class GurobiQuadraticSolverImpl(
     private val config: SolverConfig,
     private val callBack: GurobiQuadraticSolverCallBack? = null,
-    private val statusCallBack: SolvingStatusCallBack? = null
+    private val statusCallBack: SolvingStatusCallBack? = null,
+    private val cancellationToken: CancellationToken? = null
 ) : GurobiSolver() {
     private lateinit var grbVars: List<GRBVar>
     private lateinit var grbConstraints: List<GRBQConstr>
-    private lateinit var output: FeasibleSolverOutput<Flt64>
+    private lateinit var output: SolveReport<Flt64>
 
     private var initialBestObj: Flt64? = null
     private var bestObj: Flt64? = null
@@ -101,8 +156,11 @@ private class GurobiQuadraticSolverImpl(
     private var bestSolution: List<Flt64>? = null
     private var bestTime: Duration = Duration.ZERO
 
-    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput<Flt64>> {
-        val gurobiConfig = config.extraConfig as? GurobiSolverConfig
+    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<SolveReport<Flt64>> {
+        if (cancellationToken?.isCancellationRequested == true) {
+            return Ok(cancelledSolveReport(cancellationToken.record?.reason))
+        }
+        val gurobiConfig = config.backendConfiguration as? GurobiSolverConfig
         val server = gurobiConfig?.server
         val password = gurobiConfig?.password
         val connectionTime = gurobiConfig?.connectionTime
@@ -127,7 +185,7 @@ private class GurobiQuadraticSolverImpl(
             { it.dump(model) },
             { it.configure(model) },
             GurobiQuadraticSolverImpl::solve,
-            GurobiQuadraticSolverImpl::analyzeStatus,
+            { it.analyzeStatus(cancellationToken) },
             GurobiQuadraticSolverImpl::analyzeSolution
         )
         for (process in processes) {
@@ -150,8 +208,8 @@ private class GurobiQuadraticSolverImpl(
  * Dump the quadratic model into Gurobi variables, constraints, and objective.
  * 将二次模型转储为 Gurobi 变量、约束和目标函数。
  *
- * @param model the quadratic model view to dump / 待转储的二次模型视图
- * @return success if model was dumped, or failure on modeling error / 转储成功返回成功，建模错误返回失败
+ * @param model 待转储的二次模型视图 / the quadratic model view to dump
+ * @return 转储成功返回成功，建模错误返回失败 / success if model was dumped, or failure on modeling error
 */
     private suspend fun dump(model: QuadraticTetradModelView): Try {
         return try {
@@ -166,12 +224,20 @@ private class GurobiQuadraticSolverImpl(
             for (col in model.variables.indices) {
                 variableTypes[col] = GurobiVariable(model.variables[col].type).toGurobiVar()
             }
+            val variableNames = Array(variableAmount) { col ->
+                nativeElementName(
+                    identityId = model.variables[col].id?.value,
+                    fallbackName = variableDumpingData.names[col],
+                    category = "variable",
+                    identityScope = model.variables[col].identityScope
+                )
+            }
             grbVars = grbModel.addVars(
                 variableDumpingData.lowerBounds,
                 variableDumpingData.upperBounds,
                 null,
                 variableTypes,
-                variableDumpingData.names,
+                variableNames,
                 0,
                 variableAmount
             ).toList()
@@ -216,7 +282,12 @@ private class GurobiQuadraticSolverImpl(
                                 it.second,
                                 GurobiConstraintSign(model.constraints.signs[it.first]).toGurobiConstraintSign(),
                                 model.constraints.rhs[it.first].toSolverDouble("quadratic.constraints.rhs[${it.first}]"),
-                                model.constraints.names[it.first]
+                                nativeElementName(
+                                    identityId = model.constraints.ids.getOrNull(it.first)?.value,
+                                    fallbackName = model.constraints.names[it.first],
+                                    category = "constraint",
+                                    identityScope = model.constraints.identityScopeAt(it.first)
+                                )
                             )
                         }
                         cleanupOnSolverMemoryPressure()
@@ -243,7 +314,12 @@ private class GurobiQuadraticSolverImpl(
                             lhs,
                             GurobiConstraintSign(model.constraints.signs[i]).toGurobiConstraintSign(),
                             model.constraints.rhs[i].toSolverDouble("quadratic.constraints.rhs[$i]"),
-                            model.constraints.names[i]
+                            nativeElementName(
+                                identityId = model.constraints.ids.getOrNull(i)?.value,
+                                fallbackName = model.constraints.names[i],
+                                category = "constraint",
+                                identityScope = model.constraints.identityScopeAt(i)
+                            )
                         )
                     }
                 }
@@ -309,18 +385,28 @@ private class GurobiQuadraticSolverImpl(
  * Configure Gurobi solver parameters for the quadratic model.
  * 为二次模型配置 Gurobi 求解器参数。
  *
- * @param model the quadratic model view to configure / 待配置的二次模型视图
- * @return success if configuration was applied, or failure on error / 配置成功返回成功，出错返回失败
+ * @param model 待配置的二次模型视图 / the quadratic model view to configure
+ * @return 配置成功返回成功，出错返回失败 / success if configuration was applied, or failure on error
 */
     private suspend fun configure(model: QuadraticTetradModelView): Try {
         return try {
+            when (val cancellation = registerCancellation(cancellationToken)) {
+                is Failed -> return cancellation
+                is Fatal -> return cancellation
+                else -> {}
+            }
             grbModel.set(GRB.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
             grbModel.set(GRB.DoubleParam.MIPGap, config.gap.toSolverDouble("quadratic.config.gap"))
             grbModel.set(GRB.IntParam.Threads, config.threadNum.toInt())
 
-            if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
+            if (config.notImprovementTime != null || callBack?.nativeCallback != null ||
+                statusCallBack != null || cancellationToken != null) {
                 grbModel.setCallback(object : GRBCallback() {
                     override fun callback() {
+                        if (cancellationToken?.isCancellationRequested == true) {
+                            abort()
+                            return
+                        }
                         callBack?.nativeCallback?.invoke(this)
 
                         if (where == GRB.CB_MIPSOL) {
@@ -346,7 +432,10 @@ private class GurobiQuadraticSolverImpl(
                                     bestObj = currentObj
                                     bestBound = currentBound
                                     bestTime = currentTime
-                                } else if (currentTime - bestTime >= notImprovementTime) {
+                                } else if (currentTime - bestTime >= notImprovementTime
+                                    && config.interruptibleTime?.let { currentTime >= it } ?: true
+                                    && config.interruptibleGap?.let { (currentObj - currentBound).abs() ls it } ?: true
+                                ) {
                                     abort()
                                 }
                             }
@@ -419,7 +508,7 @@ private class GurobiQuadraticSolverImpl(
  * Analyze the Gurobi solving result and extract the solution output.
  * 分析 Gurobi 求解结果并提取解输出。
  *
- * @return success if solution was extracted, or failure if solving failed / 成功时返回提取结果，求解失败时返回失败
+ * @return 成功时返回提取结果，求解失败时返回失败 / success if solution was extracted, or failure if solving failed
 */
     private suspend fun analyzeSolution(): Try {
         return try {
@@ -428,24 +517,30 @@ private class GurobiQuadraticSolverImpl(
                 for (grbVar in grbVars) {
                     results.add(Flt64(grbVar.get(GRB.DoubleAttr.X)))
                 }
-                output = FeasibleSolverOutput<Flt64>(
-                    obj = Flt64(grbModel.get(GRB.DoubleAttr.ObjVal)),
-                    solution = results,
-                    time = grbModel.get(GRB.DoubleAttr.Runtime).seconds,
-                    possibleBestObj = Flt64(
-                        if (grbModel.get(GRB.IntAttr.IsMIP) != 0) {
-                            grbModel.get(GRB.DoubleAttr.ObjBound)
-                        } else {
-                            grbModel.get(GRB.DoubleAttr.ObjVal)
-                        }
-                    ),
-                    gap = Flt64(
-                        if (grbModel.get(GRB.IntAttr.IsMIP) != 0) {
-                            grbModel.get(GRB.DoubleAttr.MIPGap)
-                        } else {
-                            0.0
-                        }
-                    )
+                val isMip = grbModel.get(GRB.IntAttr.IsMIP) != 0
+                val possibleBestObj = when {
+                    isMip -> Flt64(grbModel.get(GRB.DoubleAttr.ObjBound))
+                    status == SolverStatus.Optimal -> Flt64(grbModel.get(GRB.DoubleAttr.ObjVal))
+                    else -> try {
+                        Flt64(grbModel.get(GRB.DoubleAttr.ObjBound))
+                    } catch (_: Exception) {
+                        null
+                    }
+                }
+                val gap = when {
+                    isMip -> Flt64(grbModel.get(GRB.DoubleAttr.MIPGap))
+                    status == SolverStatus.Optimal -> Flt64.zero
+                    else -> null
+                }
+                output = status.toSolveReport(
+                    objective = Flt64(grbModel.get(GRB.DoubleAttr.ObjVal)),
+                    values = results,
+                    solveTime = grbModel.get(GRB.DoubleAttr.Runtime).seconds,
+                    bestBound = possibleBestObj,
+                    gap = gap,
+                    iterations = nativeIterationsOrNull(),
+                    nodes = nativeNodesOrNull(),
+                    terminationReason = terminationReason
                 )
                 when (val result = callBack?.execIfContain(
                     point = Point.AnalyzingSolution,
@@ -483,7 +578,18 @@ private class GurobiQuadraticSolverImpl(
 
                     else -> {}
                 }
-                failByStatus(status)
+                output = status.toSolveReport(
+                    solveTime = grbModel.get(GRB.DoubleAttr.Runtime).seconds,
+                    bestBound = try {
+                        Flt64(grbModel.get(GRB.DoubleAttr.ObjBound))
+                    } catch (_: Exception) {
+                        null
+                    },
+                    iterations = nativeIterationsOrNull(),
+                    nodes = nativeNodesOrNull(),
+                    terminationReason = terminationReason
+                )
+                ok
             }
         } catch (e: GRBException) {
             solverSolvingException(e.message)

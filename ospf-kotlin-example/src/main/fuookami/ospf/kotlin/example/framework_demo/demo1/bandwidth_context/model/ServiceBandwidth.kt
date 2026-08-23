@@ -15,9 +15,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
  * Intermediate symbols for per-service in-degree, out-degree, and out-flow at each node.
  * 每服务每个节点入度、出度和流出的中间符号。
  *
- * @property graph the network graph / 网络图
- * @property services the list of services / 服务列表
- * @property edgeBandwidth the edge bandwidth model / 边带宽模型
+ * @property graph 网络图 / the network graph
+ * @property services 服务列表 / the list of services
+ * @property edgeBandwidth 边带宽模型 / the edge bandwidth model
 */
 class ServiceBandwidth(
     private val graph: Graph,
@@ -32,20 +32,20 @@ class ServiceBandwidth(
      * Registers the per-service in-degree, out-degree, and out-flow intermediate symbols into the model.
      * 将每服务入度、出度和流出中间符号注册到模型中。
      *
-     * @param model the linear meta model / 线性元模型
-     * @return the registration result / 注册结果
+     * @param model 线性元模型 / the linear meta model
+     * @return 注册结果 / the registration result
     */
     fun register(model: LinearMetaModel<Flt64>): Try {
         val y = edgeBandwidth.y
         val to: (Node) -> Predicate<Edge> =
-            { fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.to(it) }
+            { node -> fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.to(node) }
 
         if (!::inDegree.isInitialized) {
             inDegree = flatMap(
                 "bandwidth_indegree_service",
                 graph.nodes,
                 services,
-                { n, s -> sumVars(graph.edges.filter(to(n))) { e -> y[e, s] } },
+                { n, s -> sumVars(graph.edges.filter { to(n)(it) }) { e -> y[e, s] } },
                 { (_, n), (_, s) -> "${n}_$s" }
             )
         }
@@ -58,7 +58,7 @@ class ServiceBandwidth(
                 services,
                 { n, s ->
                     if (n is NormalNode) {
-                        sumVars(graph.edges.filter(from(n))) { e -> y[e, s] }
+                        sumVars(graph.edges.filter { from(n)(it) }) { e -> y[e, s] }
                     } else {
                         LinearPolynomial()
                     }

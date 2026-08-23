@@ -28,10 +28,8 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 二次线性函数：将 QuadraticPolynomial 包装为二次中间符号。
  * Quadratic linear function: wraps a QuadraticPolynomial as a quadratic intermediate symbol.
- * 若多项式为纯线性，则不需要辅助变量或约束。
- * If the polynomial is purely linear, no helper variable or constraint is needed.
- * 若包含二次项，则创建辅助变量 y 并约束 y = polynomial。
- * If it contains quadratic terms, creates a helper variable y with constraint y = polynomial.
+ * 若多项式为纯线性，则不需要辅助变量或约束。 / If the polynomial is purely linear, no helper variable or constraint is needed.
+ * 若包含二次项，则创建辅助变量 y 并约束 y = polynomial。 / If it contains quadratic terms, creates a helper variable y with constraint y = polynomial.
  *
  * @property _polynomial 封装的二次多项式 / the wrapped quadratic polynomial
  * @property converter 值类型转换器 / value type converter
@@ -77,8 +75,7 @@ class QuadraticLinearFunction<V>(
     }
 
     /**
-     * 从 token 表求值单个符号。
-     * Evaluate a single symbol from the token table.
+     * 从 token 表求值单个符号。 / Evaluate a single symbol from the token table.
      *
      * @param symbol 要求值的符号 / the symbol to evaluate
      * @param tokenTable token 表 / the token table
@@ -98,8 +95,7 @@ class QuadraticLinearFunction<V>(
     }
 
     /**
-     * 从结果列表求值单个符号。
-     * Evaluate a single symbol from a results list.
+     * 从结果列表求值单个符号。 / Evaluate a single symbol from a results list.
      *
      * @param symbol 要求值的符号 / the symbol to evaluate
      * @param results 结果值列表 / list of result values
@@ -125,8 +121,7 @@ class QuadraticLinearFunction<V>(
     }
 
     /**
-     * 从值映射求值单个符号。
-     * Evaluate a single symbol from a value map.
+     * 从值映射求值单个符号。 / Evaluate a single symbol from a value map.
      *
      * @param symbol 要求值的符号 / the symbol to evaluate
      * @param values 符号到值的映射 / symbol-to-value map
@@ -148,8 +143,7 @@ class QuadraticLinearFunction<V>(
     }
 
     /**
-     * 求值二次多项式。
-     * Evaluate a quadratic polynomial.
+     * 求值二次多项式。 / Evaluate a quadratic polynomial.
      *
      * @param poly 要求值的二次多项式 / the quadratic polynomial to evaluate
      * @param resolve 符号解析函数 / symbol resolution function
@@ -173,8 +167,7 @@ class QuadraticLinearFunction<V>(
     }
 
     /**
-     * 使用 Flt64 值预计算求解器结果。
-     * Pre-compute solver result with Flt64 values.
+     * 使用 Flt64 值预计算求解器结果。 / Pre-compute solver result with Flt64 values.
      *
      * @param values 符号到 Flt64 值的映射，可为 null / symbol-to-Flt64 value map, may be null
      * @param tokenTable token 表 / the token table
@@ -196,8 +189,7 @@ class QuadraticLinearFunction<V>(
     override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
     /**
-     * 使用 Flt64 token 列表求值（始终返回 null）。
-     * Evaluate with Flt64 token list (always returns null).
+     * 使用 Flt64 token 列表求值（始终返回 null）。 / Evaluate with Flt64 token list (always returns null).
      *
      * @param tokenList Flt64 token 列表 / Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
@@ -206,8 +198,7 @@ class QuadraticLinearFunction<V>(
     internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
 
     /**
-     * 使用 Flt64 结果列表求值（始终返回 null）。
-     * Evaluate with Flt64 results list (always returns null).
+     * 使用 Flt64 结果列表求值（始终返回 null）。 / Evaluate with Flt64 results list (always returns null).
      *
      * @param results Flt64 结果值列表 / list of Flt64 result values
      * @param tokenList Flt64 token 列表 / Flt64 token list
@@ -217,8 +208,7 @@ class QuadraticLinearFunction<V>(
     internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
 
     /**
-     * 使用 Flt64 值映射求值（始终返回 null）。
-     * Evaluate with Flt64 value map (always returns null).
+     * 使用 Flt64 值映射求值（始终返回 null）。 / Evaluate with Flt64 value map (always returns null).
      *
      * @param values 符号到 Flt64 值的映射 / symbol-to-Flt64 value map
      * @param tokenList 可选的 Flt64 token 列表 / optional Flt64 token list
@@ -251,8 +241,7 @@ class QuadraticLinearFunction<V>(
     }
 
     /**
-     * 使用 Flt64 结果列表进行求解器求值。
-     * Evaluate solver with Flt64 results list.
+     * 使用 Flt64 结果列表进行求解器求值。 / Evaluate solver with Flt64 results list.
      *
      * @param results Flt64 结果值列表 / list of Flt64 result values
      * @param tokenTable token 表 / the token table
@@ -266,8 +255,7 @@ class QuadraticLinearFunction<V>(
     }
 
     /**
-     * 使用 Flt64 值映射进行求解器求值。
-     * Evaluate solver with Flt64 value map.
+     * 使用 Flt64 值映射进行求解器求值。 / Evaluate solver with Flt64 value map.
      *
      * @param values 符号到 Flt64 值的映射 / symbol-to-Flt64 value map
      * @param tokenTable 可选的 token 表 / optional token table
@@ -283,8 +271,7 @@ class QuadraticLinearFunction<V>(
     override fun toRawString(unfold: UInt64): String = displayName ?: name
 
     /**
-     * 将辅助变量 y 注册到 token 集合中（仅当为二次时）。
-     * Register helper variable y with the token collection (only if quadratic).
+     * 将辅助变量 y 注册到 token 集合中（仅当为二次时）。 / Register helper variable y with the token collection (only if quadratic).
     */
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
         if (!isLinear && y != null) {
@@ -298,8 +285,7 @@ class QuadraticLinearFunction<V>(
     }
 
     /**
-     * 注册二次等式约束 y = polynomial（仅当为二次时）。
-     * Register the quadratic equality constraint y = polynomial (only if quadratic).
+     * 注册二次等式约束 y = polynomial（仅当为二次时）。 / Register the quadratic equality constraint y = polynomial (only if quadratic).
     */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         if (!isLinear && y != null) {

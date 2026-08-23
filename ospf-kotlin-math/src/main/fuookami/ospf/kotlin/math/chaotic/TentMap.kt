@@ -1,11 +1,8 @@
 /**
- * 帐篷映射
- * Tent Map
+ * 帐篷映射 / Tent Map
  *
  * 帐篷映射是一个分段线性的一维混沌映射，因其图像形似帐篷而得名。
- * 该映射具有均匀的不变密度分布，常用于混沌理论研究和伪随机数生成。
- *
- * The tent map is a piecewise linear one-dimensional chaotic map, named for its tent-shaped graph.
+ * 该映射具有均匀的不变密度分布，常用于混沌理论研究和伪随机数生成。 / The tent map is a piecewise linear one-dimensional chaotic map, named for its tent-shaped graph.
  * This map has a uniform invariant density distribution, commonly used for chaos theory research and pseudo-random number generation.
 */
 package fuookami.ospf.kotlin.math.chaotic
@@ -17,8 +14,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 帐篷映射
- * Tent Map
+ * 帐篷映射 / Tent Map
  *
  * 公式 / Formula:
  * x_{n+1} = mu * x,         if x < 0.5
@@ -48,8 +44,7 @@ data class TentMap<V : FloatingNumber<V>>(
 }
 
 /**
- * 帐篷映射生成器
- * Tent Map Generator
+ * 帐篷映射生成器 / Tent Map Generator
 */
 data class TentMapGenerator(
     val tentMap: TentMap<Flt64> = TentMap(),

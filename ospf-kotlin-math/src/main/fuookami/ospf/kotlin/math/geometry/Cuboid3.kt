@@ -1,17 +1,14 @@
 /**
- * 三维长方体
- * 3D Cuboid
+ * 三维长方体 / 3D Cuboid
  *
- * 定义三维几何空间中的长方体形状，由宽、高、深三个维度定义。
- * Defines a cuboid shape in 3D geometric space, defined by width, height, and depth dimensions.
+ * 定义三维几何空间中的长方体形状，由宽、高、深三个维度定义。 / Defines a cuboid shape in 3D geometric space, defined by width, height, and depth dimensions.
 */
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 /**
- * 三维长方体形状，由宽、高、深定义。
- * 3D cuboid shape defined by width, height, and depth.
+ * 三维长方体形状，由宽、高、深定义。 / 3D cuboid shape defined by width, height, and depth.
  *
  * @param V 数值类型 / The numeric type
  * @property width 宽度（X 轴） / Width (X axis)
@@ -29,16 +26,14 @@ data class Cuboid3<V : FloatingNumber<V>>(
     val volume: V get() = width * height * depth
 
     /**
-     * 在原点处创建包围盒
-     * Create a bounding box at the origin
+     * 在原点处创建包围盒 / Create a bounding box at the origin
      *
      * @return 原点处的包围盒 / The bounding box at the origin
     */
     fun atOrigin(): Box3<V> = Box3.atOrigin(this)
 
     /**
-     * 在指定位置创建包围盒
-     * Create a bounding box at the specified position
+     * 在指定位置创建包围盒 / Create a bounding box at the specified position
      *
      * @param x X 坐标 / X coordinate
      * @param y Y 坐标 / Y coordinate
@@ -52,8 +47,7 @@ data class Cuboid3<V : FloatingNumber<V>>(
     ): Box3<V> = Box3(x = x, y = y, z = z, cuboid = this)
 
     /**
-     * 沿指定轴的尺寸
-     * Dimension along the specified axis
+     * 沿指定轴的尺寸 / Dimension along the specified axis
      *
      * @param axis 目标轴 / The target axis
      * @return 沿该轴的尺寸 / The dimension along the axis

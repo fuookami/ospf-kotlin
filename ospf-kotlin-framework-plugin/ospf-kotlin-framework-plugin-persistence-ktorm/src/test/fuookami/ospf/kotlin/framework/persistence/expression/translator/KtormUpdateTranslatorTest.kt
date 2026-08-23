@@ -17,6 +17,7 @@ import org.ktorm.dsl.where
 import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
+import org.ktorm.support.sqlite.SQLiteDialect
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
 import fuookami.ospf.kotlin.framework.persistence.expression.UpdateAssignments
 
@@ -29,7 +30,7 @@ class KtormUpdateTranslatorTest {
         val status = varchar("status")
     }
 
-    private val resolver: KtormColumnResolver = { path: String ->
+    private val resolver = KtormColumnResolver { path: String ->
         when (path.substringAfterLast(".")) {
             "id" -> Users.id
             "name" -> Users.name
@@ -41,7 +42,10 @@ class KtormUpdateTranslatorTest {
 
     private fun createDatabase(): Database {
         val dbFile = Files.createTempFile("ktorm-update-test", ".db").toFile().apply { deleteOnExit() }
-        val database = Database.connect("jdbc:sqlite:${dbFile.absolutePath}")
+        val database = Database.connect(
+            url = "jdbc:sqlite:${dbFile.absolutePath}",
+            dialect = SQLiteDialect()
+        )
         database.useConnection { conn ->
             conn.createStatement().use { stmt ->
                 stmt.execute("create table users(id integer primary key, name text, age integer, status text)")

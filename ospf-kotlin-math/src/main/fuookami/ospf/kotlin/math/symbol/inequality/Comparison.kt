@@ -1,9 +1,7 @@
 /**
- * 比较运算
- * Comparison Operations
+ * 比较运算 / Comparison Operations
  *
- * 定义不等式中的比较运算符枚举，包括小于、小于等于、等于、不等于、大于等于和大于。 * 提供运算符的符号表示、属性查询和反转操作。 * Defines the comparison operator enumeration for inequalities,
- * including less than, less than or equal, equal, not equal, greater than or equal, and greater than.
+ * 定义不等式中的比较运算符枚举，包括小于、小于等于、等于、不等于、大于等于和大于。 * 提供运算符的符号表示、属性查询和反转操作。 * Defines the comparison operator enumeration for inequalities, / including less than, less than or equal, equal, not equal, greater than or equal, and greater than.
  * Provides symbol representation, property queries, and reversal operations.
 */
 package fuookami.ospf.kotlin.math.symbol.inequality
@@ -68,8 +66,7 @@ enum class Comparison {
         get() = this == GT || this == GE
 
     /**
-     * 返回反转的比较运算符。
-     * Returns the reversed comparison operator.
+     * 返回反转的比较运算符。 / Returns the reversed comparison operator.
      *
      * @return 反转后的比较运算符 / The reversed comparison operator
     */

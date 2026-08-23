@@ -1,10 +1,8 @@
 /**
- * 积分运算
- * Integration Operations
+ * 积分运算 / Integration Operations
  *
  * 提供多项式积分的核心实现。
- * 支持一元线性、二次和规范多项式的积分计算，基二FloatingNumber 类型约束。
- * Provides core implementation for polynomial integration.
+ * 支持一元线性、二次和规范多项式的积分计算，基二FloatingNumber 类型约束。 / Provides core implementation for polynomial integration.
  * Supports univariate integration for linear, quadratic, and canonical polynomials,
  * based on FloatingNumber type constraints.
 */
@@ -22,8 +20,7 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 // ============================================================================
 
 /**
- * 一元线性单项式积分
- * Integrate a univariate linear monomial
+ * 一元线性单项式积分 / Integrate a univariate linear monomial
  *
  * ∌a * x) dx = a * x² / 2
  * ∌a) dx = a * x (彌symbol 丌null 或多项式中的常数題
@@ -52,8 +49,7 @@ fun <T> LinearMonomial<T>.integrateLinear(
 }
 
 /**
- * 一元线性多项式积分
- * Integrate a univariate linear polynomial
+ * 一元线性多项式积分 / Integrate a univariate linear polynomial
  *
  * ∌a₁x₌+ a₂x₌+ ... + b) dx = a₁x₁¹2 + a₂x₂x + ... + bx + C
  * 注意：多元多项式的积分需要指定积分变量，其他变量被视为常敌
@@ -121,8 +117,7 @@ fun <T> LinearPolynomial<T>.integrateLinear(
 }
 
 /**
- * 一元二次单项式积分
- * Integrate a univariate quadratic monomial
+ * 一元二次单项式积分 / Integrate a univariate quadratic monomial
  *
  * ∌a * x₌* x₌ dx 结果取决二x 是否等于 x₌戌x₂：
  * - 如果 x == x₌== x₌ ∌a * x²) dx = a * x³ / 3 (返回 CanonicalPolynomial)
@@ -221,8 +216,7 @@ fun <T> QuadraticMonomial<T>.integrateQuadratic(
 }
 
 /**
- * 一元二次多项式积分
- * Integrate a univariate quadratic polynomial
+ * 一元二次多项式积分 / Integrate a univariate quadratic polynomial
  *
  * @param symbol 积分变量 / Integration variable
  * @param integrationConstant 积分常数 C / Integration constant C
@@ -269,8 +263,7 @@ fun <T> QuadraticPolynomial<T>.integrateQuadratic(
 }
 
 /**
- * 一元规范单项式积分
- * Integrate a univariate canonical monomial
+ * 一元规范单项式积分 / Integrate a univariate canonical monomial
  *
  * ∌a * x^n) dx = a * x^(n+1) / (n+1)
  *
@@ -311,8 +304,7 @@ fun <T> CanonicalMonomial<T>.integrateCanonical(
 }
 
 /**
- * 一元规范多项式积分
- * Integrate a univariate canonical polynomial
+ * 一元规范多项式积分 / Integrate a univariate canonical polynomial
  *
  * @param symbol 积分变量 / Integration variable
  * @param integrationConstant 积分常数 C / Integration constant C

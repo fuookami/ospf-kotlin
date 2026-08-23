@@ -3,6 +3,8 @@
 /** 任务提前最早结束时间最小化 / Task advance earliest end time minimization */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -38,14 +40,13 @@ class TaskAdvanceEarliestEndTimeMinimization<
     private val timeWindow: TimeWindow<*>,
     tasks: List<T>,
     private val taskTime: TaskTime,
-    private val threshold: Extractor<Duration?, T> = { Duration.ZERO },
-    private val coefficient: Extractor<Flt64?, T> = { Flt64.one },
+    private val threshold: Extractor<Duration?, T> = Extractor { Duration.ZERO },
+    private val coefficient: Extractor<Flt64?, T> = Extractor { Flt64.one },
     override val name: String = "task_advance_earliest_end_time_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
 
     /**
-     * 通过 solver 时间窗口边界创建任务提前最早结束时间最小化 /
-     * Create task advance earliest end time minimization from a solver time-window boundary
+     * 通过 solver 时间窗口边界创建任务提前最早结束时间最小化 / / Create task advance earliest end time minimization from a solver time-window boundary
      *
      * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
      * @param tasks 任务列表 / List of tasks
@@ -58,8 +59,8 @@ class TaskAdvanceEarliestEndTimeMinimization<
         timeBoundary: SolverTimeWindowBoundary,
         tasks: List<T>,
         taskTime: TaskTime,
-        threshold: Extractor<Duration?, T> = { Duration.ZERO },
-        coefficient: Extractor<Flt64?, T> = { Flt64.one },
+        threshold: Extractor<Duration?, T> = Extractor { Duration.ZERO },
+        coefficient: Extractor<Flt64?, T> = Extractor { Flt64.one },
         name: String = "task_advance_earliest_end_time_minimization"
     ) : this(
         timeWindow = timeBoundary.source,
@@ -80,13 +81,13 @@ class TaskAdvanceEarliestEndTimeMinimization<
 
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         if (taskTime.advanceEarliestEndTimeEnabled) {
-            val cost = MutableLinearPolynomial<Flt64>(constant = Flt64.zero)
+            var cost = LinearPolynomial()
             for (task in tasks) {
                 val advanceTime = taskTime.advanceEarliestEndTime[task]
                 val thisThreshold = threshold(task)?.let { timeBoundary.valueOf(it) } ?: Flt64.zero
                 val thisCoefficient = coefficient(task) ?: Flt64.infinity
                 if (thisThreshold eq Flt64.zero) {
-                    cost += thisCoefficient * advanceTime.toLinearPolynomial()
+                    cost += thisCoefficient * advanceTime
                 } else {
                     val slack = thresholdSlack(
                         x = advanceTime,
@@ -114,7 +115,7 @@ class TaskAdvanceEarliestEndTimeMinimization<
             }
 
             when (val result = model.minimize(
-                polynomial = cost.toLinearPolynomial(),
+                polynomial = cost,
                 name = "task advance earliest end time"
             )) {
                 is Ok -> {}

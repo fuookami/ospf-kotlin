@@ -1,11 +1,8 @@
 /**
- * 集合扩展函数
- * Collection Extension Functions
+ * 集合扩展函数 / Collection Extension Functions
  *
  * 为 Iterable、Sequence 和 Map 提供求和与求平均值的扩展函数。
- * 这些扩展函数支持所有实现了 Arithmetic 接口的数值类型，确保类型安全的数值计算。
- *
- * Provides sum and average extension functions for Iterable, Sequence, and Map.
+ * 这些扩展函数支持所有实现了 Arithmetic 接口的数值类型，确保类型安全的数值计算。 / Provides sum and average extension functions for Iterable, Sequence, and Map.
  * These extensions support all numeric types implementing the Arithmetic interface, ensuring type-safe numerical computations.
  *
  * 主要功能 / Main features:
@@ -81,7 +78,7 @@ inline fun <reified T> Iterable<T?>.sumOrNull(): T? where T : Arithmetic<T>, T :
 */
 inline fun <T, U> Iterable<T>.sumOf(
     constants: ArithmeticConstants<U>,
-    crossinline extractor: Extractor<U, T>
+    extractor: Extractor<U, T>
 ): U where U : Arithmetic<U>, U : Plus<U, U> {
     var sum = constants.zero
     for (element in this) {
@@ -97,7 +94,7 @@ inline fun <T, U> Iterable<T>.sumOf(
  * @return 属性之和 / Sum of extracted properties
 */
 inline fun <T, reified U> Iterable<T>.sumOf(
-    crossinline extractor: Extractor<U, T>
+    extractor: Extractor<U, T>
 ): Ret<U> where U : Arithmetic<U>, U : Plus<U, U> {
     return resolveArithmeticConstantsSafe<U>("Collection").mapResolved { constants ->
         sumOf(constants, extractor)
@@ -113,7 +110,7 @@ inline fun <T, reified U> Iterable<T>.sumOf(
 */
 inline fun <T, U> Iterable<T>.sumOfOrNull(
     constants: ArithmeticConstants<U>,
-    crossinline extractor: Extractor<U?, T>
+    extractor: Extractor<U?, T>
 ): U? where U : Arithmetic<U>, U : Plus<U, U> {
     return this.sumOfOrNull(constants, extractor) { null }
 }
@@ -125,7 +122,7 @@ inline fun <T, U> Iterable<T>.sumOfOrNull(
  * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
 */
 inline fun <T, reified U> Iterable<T>.sumOfOrNull(
-    crossinline extractor: Extractor<U?, T>
+    extractor: Extractor<U?, T>
 ): U? where U : Arithmetic<U>, U : Plus<U, U> {
     val constants = resolveArithmeticConstantsOrNull<U>("Collection") ?: return null
     return this.sumOfOrNull(constants, extractor) { null }
@@ -141,7 +138,7 @@ inline fun <T, reified U> Iterable<T>.sumOfOrNull(
 */
 inline fun <T, U> Iterable<T>.sumOfOrNull(
     constants: ArithmeticConstants<U>,
-    crossinline extractor: Extractor<U?, T>,
+    extractor: Extractor<U?, T>,
     crossinline defaultValue: (T) -> U?
 ): U? where U : Arithmetic<U>, U : Plus<U, U> {
     var sum = constants.zero
@@ -163,7 +160,7 @@ inline fun <T, U> Iterable<T>.sumOfOrNull(
  * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
 */
 inline fun <T, reified U> Iterable<T>.sumOfOrNull(
-    crossinline extractor: Extractor<U?, T>,
+    extractor: Extractor<U?, T>,
     crossinline defaultValue: (T) -> U?
 ): U? where U : Arithmetic<U>, U : Plus<U, U> {
     val constants = resolveArithmeticConstantsOrNull<U>("Collection") ?: return null
@@ -221,7 +218,7 @@ inline fun <K, reified V> Map<K, V?>.sumOrNull(): V? where V : Arithmetic<V>, V 
 */
 inline fun <K, V, T> Map<K, V>.sumOf(
     constants: ArithmeticConstants<T>,
-    crossinline extractor: Extractor<T, Map.Entry<K, V>>
+    extractor: Extractor<T, Map.Entry<K, V>>
 ): T where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constants.zero
     for (element in this) {
@@ -237,7 +234,7 @@ inline fun <K, V, T> Map<K, V>.sumOf(
  * @return 属性之和 / Sum of extracted properties
 */
 inline fun <K, V, reified T> Map<K, V>.sumOf(
-    crossinline extractor: Extractor<T, Map.Entry<K, V>>
+    extractor: Extractor<T, Map.Entry<K, V>>
 ): Ret<T> where T : Arithmetic<T>, T : Plus<T, T> {
     return resolveArithmeticConstantsSafe<T>("Collection").mapResolved { constants ->
         sumOf(constants, extractor)
@@ -253,7 +250,7 @@ inline fun <K, V, reified T> Map<K, V>.sumOf(
 */
 inline fun <K, V, T> Map<K, V>.sumOfOrNull(
     constants: ArithmeticConstants<T>,
-    crossinline extractor: Extractor<T?, Map.Entry<K, V>>
+    extractor: Extractor<T?, Map.Entry<K, V>>
 ): T? where T : Arithmetic<T>, T : Plus<T, T> {
     return this.sumOfOrNull(constants, extractor) { null }
 }
@@ -265,7 +262,7 @@ inline fun <K, V, T> Map<K, V>.sumOfOrNull(
  * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
 */
 inline fun <K, V, reified T> Map<K, V>.sumOfOrNull(
-    crossinline extractor: Extractor<T?, Map.Entry<K, V>>
+    extractor: Extractor<T?, Map.Entry<K, V>>
 ): T? where T : Arithmetic<T>, T : Plus<T, T> {
     val constants = resolveArithmeticConstantsOrNull<T>("Collection") ?: return null
     return this.sumOfOrNull(constants, extractor) { null }
@@ -281,7 +278,7 @@ inline fun <K, V, reified T> Map<K, V>.sumOfOrNull(
 */
 inline fun <K, V, T> Map<K, V>.sumOfOrNull(
     constants: ArithmeticConstants<T>,
-    crossinline extractor: Extractor<T?, Map.Entry<K, V>>,
+    extractor: Extractor<T?, Map.Entry<K, V>>,
     crossinline defaultValue: (Map.Entry<K, V>) -> T?
 ): T? where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constants.zero
@@ -303,7 +300,7 @@ inline fun <K, V, T> Map<K, V>.sumOfOrNull(
  * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
 */
 inline fun <K, V, reified T> Map<K, V>.sumOfOrNull(
-    crossinline extractor: Extractor<T?, Map.Entry<K, V>>,
+    extractor: Extractor<T?, Map.Entry<K, V>>,
     crossinline defaultValue: (Map.Entry<K, V>) -> T?
 ): T? where T : Arithmetic<T>, T : Plus<T, T> {
     val constants = resolveArithmeticConstantsOrNull<T>("Collection") ?: return null
@@ -363,7 +360,7 @@ inline fun <reified T> Sequence<T?>.sumOrNull(): T? where T : Arithmetic<T>, T :
 */
 inline fun <T, U> Sequence<T>.sumOf(
     constants: ArithmeticConstants<U>,
-    crossinline extractor: Extractor<U, T>
+    extractor: Extractor<U, T>
 ): U where U : Arithmetic<U>, U : Plus<U, U> {
     var sum = constants.zero
     for (element in this) {
@@ -379,7 +376,7 @@ inline fun <T, U> Sequence<T>.sumOf(
  * @return 属性之和 / Sum of extracted properties
 */
 inline fun <T, reified U> Sequence<T>.sumOf(
-    crossinline extractor: Extractor<U, T>
+    extractor: Extractor<U, T>
 ): Ret<U> where U : Arithmetic<U>, U : Plus<U, U> {
     return resolveArithmeticConstantsSafe<U>("Collection").mapResolved { constants ->
         sumOf(constants, extractor)
@@ -395,7 +392,7 @@ inline fun <T, reified U> Sequence<T>.sumOf(
 */
 inline fun <T, U> Sequence<T>.sumOfOrNull(
     constants: ArithmeticConstants<U>,
-    crossinline extractor: Extractor<U?, T>
+    extractor: Extractor<U?, T>
 ): U? where U : Arithmetic<U>, U : Plus<U, U> {
     return this.sumOfOrNull(constants, extractor) { null }
 }
@@ -407,7 +404,7 @@ inline fun <T, U> Sequence<T>.sumOfOrNull(
  * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
 */
 inline fun <T, reified U> Sequence<T>.sumOfOrNull(
-    crossinline extractor: Extractor<U?, T>
+    extractor: Extractor<U?, T>
 ): U? where U : Arithmetic<U>, U : Plus<U, U> {
     val constants = resolveArithmeticConstantsOrNull<U>("Collection") ?: return null
     return this.sumOfOrNull(constants, extractor) { null }
@@ -423,7 +420,7 @@ inline fun <T, reified U> Sequence<T>.sumOfOrNull(
 */
 inline fun <T, U> Sequence<T>.sumOfOrNull(
     constants: ArithmeticConstants<U>,
-    crossinline extractor: Extractor<U?, T>,
+    extractor: Extractor<U?, T>,
     crossinline defaultValue: (T) -> U? = { null }
 ): U? where U : Arithmetic<U>, U : Plus<U, U> {
     var sum = constants.zero
@@ -445,7 +442,7 @@ inline fun <T, U> Sequence<T>.sumOfOrNull(
  * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
 */
 inline fun <T, reified U> Sequence<T>.sumOfOrNull(
-    crossinline extractor: Extractor<U?, T>,
+    extractor: Extractor<U?, T>,
     crossinline defaultValue: (T) -> U? = { null }
 ): U? where U : Arithmetic<U>, U : Plus<U, U> {
     val constants = resolveArithmeticConstantsOrNull<U>("Collection") ?: return null

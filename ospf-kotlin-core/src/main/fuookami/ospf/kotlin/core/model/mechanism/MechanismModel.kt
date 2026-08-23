@@ -1,6 +1,5 @@
 /**
- * 机制模型
- * Mechanism model
+ * 机制模型 / Mechanism model
 */
 package fuookami.ospf.kotlin.core.model.mechanism
 
@@ -9,6 +8,7 @@ import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.core.error.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.solver.report.ModelElementIdentityRegistry
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.token.*
@@ -27,11 +27,9 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 机制模型密封接口
- * Sealed interface for mechanism models
+ * 机制模型密封接口 / Sealed interface for mechanism models
  *
- * 机制模型是从元模型展开后的求解就绪模型，包含约束列表、目标函数和符号表。
- * A mechanism model is a solver-ready model unfolded from a meta model,
+ * 机制模型是从元模型展开后的求解就绪模型，包含约束列表、目标函数和符号表。 / A mechanism model is a solver-ready model unfolded from a meta model,
  * containing constraint list, objective function, and token table.
  *
  * @param V 数值类型 / The number type
@@ -39,12 +37,14 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property constraints 约束列表 / Constraint list
  * @property objectFunction 目标函数 / Objective function
  * @property tokens 符号表 / Token table
+ * @property identityRegistry 可选的稳定身份注册表 / Optional stable identity registry
 */
 sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
     val name: String
     val constraints: List<Constraint<V, *>>
     val objectFunction: Object
     val tokens: AbstractTokenTable<V>
+    val identityRegistry: ModelElementIdentityRegistry?
 
     override fun close() {
         tokens.close()
@@ -52,11 +52,9 @@ sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : 
 }
 
 /**
- * 线性机制模型抽象接口
- * Abstract linear mechanism model interface
+ * 线性机制模型抽象接口 / Abstract linear mechanism model interface
  *
- * 支持添加线性不等式约束。
- * Supports adding linear inequality constraints.
+ * 支持添加线性不等式约束。 / Supports adding linear inequality constraints.
  *
  * @param V 数值类型 / The number type
 */
@@ -78,8 +76,7 @@ interface AbstractLinearMechanismModel<V> : MechanismModel<V> where V : RealNumb
     ): Try
 
     /**
-     * 使用数学 LinearInequality 添加约束（简化来源参数）
-     * Add constraint using math LinearInequality (simplified from parameter)
+     * 使用数学 LinearInequality 添加约束（简化来源参数） / Add constraint using math LinearInequality (simplified from parameter)
      *
      * @param relation 线性不等式 / Linear inequality
      * @param name 约束名称 / Constraint name
@@ -100,11 +97,9 @@ interface AbstractLinearMechanismModel<V> : MechanismModel<V> where V : RealNumb
 }
 
 /**
- * 二次机制模型抽象接口
- * Abstract quadratic mechanism model interface
+ * 二次机制模型抽象接口 / Abstract quadratic mechanism model interface
  *
- * 扩展线性机制模型，支持添加二次不等式约束。
- * Extends linear mechanism model, supports adding quadratic inequality constraints.
+ * 扩展线性机制模型，支持添加二次不等式约束。 / Extends linear mechanism model, supports adding quadratic inequality constraints.
  *
  * @param V 数值类型 / The number type
 */
@@ -148,8 +143,7 @@ interface AbstractQuadraticMechanismModel<V> : AbstractLinearMechanismModel<V> w
 }
 
 /**
- * 单目标机制模型接口
- * Single-objective mechanism model interface
+ * 单目标机制模型接口 / Single-objective mechanism model interface
  *
  * @param V 数值类型 / The number type
  * @property objectFunction 单目标函数 / Single objective function
@@ -161,8 +155,7 @@ interface SingleObjectMechanismModel<V> : MechanismModel<V> where V : RealNumber
 /**
  * 校验按 ID 查找对偶值的映射 / Validate dual-by-id mapping
  *
- * 检测重复约束名称和不匹配的对偶值名称，并记录警告日志。
- * Detects duplicate constraint names and unmatched dual value names, logging warnings.
+ * 检测重复约束名称和不匹配的对偶值名称，并记录警告日志。 / Detects duplicate constraint names and unmatched dual value names, logging warnings.
  *
  * @param constraints 约束列表 / Constraint list
  * @param dualById 按约束名称索引的对偶值映射 / Dual value mapping indexed by constraint name
@@ -196,12 +189,10 @@ private fun validateDualById(
 }
 
 /**
- * 从线性元模型构建线性约束实现列表。
- * Build a list of linear constraint implementations from a linear meta model.
+ * 从线性元模型构建线性约束实现列表。 / Build a list of linear constraint implementations from a linear meta model.
  *
  * 遍历元模型中的所有关系约束，将其扁平化数据与符号表组合为 LinearConstraintImpl 实例。
- * 遇到第一个错误时立即返回失败。
- * Iterates over all relation constraints in the meta model, combining their flattened data
+ * 遇到第一个错误时立即返回失败。 / Iterates over all relation constraints in the meta model, combining their flattened data
  * with the token table to produce LinearConstraintImpl instances.
  * Returns failure immediately on the first error.
  *
@@ -238,12 +229,10 @@ private fun <V> buildConstraints(
 }
 
 /**
- * 从二次元模型构建二次约束实现列表。
- * Build a list of quadratic constraint implementations from a quadratic meta model.
+ * 从二次元模型构建二次约束实现列表。 / Build a list of quadratic constraint implementations from a quadratic meta model.
  *
  * 遍历元模型中的所有关系约束，将其扁平化数据与符号表组合为 QuadraticConstraintImpl 实例。
- * 遇到第一个错误时立即返回失败。
- * Iterates over all relation constraints in the meta model, combining their flattened data
+ * 遇到第一个错误时立即返回失败。 / Iterates over all relation constraints in the meta model, combining their flattened data
  * with the token table to produce QuadraticConstraintImpl instances.
  * Returns failure immediately on the first error.
  *
@@ -275,11 +264,9 @@ private fun <V> buildConstraints(
 }
 
 /**
- * 线性机制模型
- * Linear mechanism model
+ * 线性机制模型 / Linear mechanism model
  *
- * 从线性元模型展开后的求解就绪模型，包含线性约束和单目标函数。
- * A solver-ready model unfolded from a linear meta model, containing linear constraints and single objective.
+ * 从线性元模型展开后的求解就绪模型，包含线性约束和单目标函数。 / A solver-ready model unfolded from a linear meta model, containing linear constraints and single objective.
  *
  * @param V 数值类型 / The number type
  * @property parent 父元模型 / Parent meta model
@@ -296,6 +283,7 @@ class LinearMechanismModel<V>(
     override val tokens: AbstractTokenTable<V>
 ) : BasicMechanismModel<V>(name, tokens), AbstractLinearMechanismModel<V>, SingleObjectMechanismModel<V>
         where V : RealNumber<V>, V : NumberField<V> {
+    override val identityRegistry: ModelElementIdentityRegistry? get() = parent.identityRegistry
     private val logger = logger()
 
     /**
@@ -325,6 +313,12 @@ class LinearMechanismModel<V>(
             dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null
         ): Ret<LinearMechanismModel<V>> where V : RealNumber<V>, V : NumberField<V> {
             logger.info { "Creating LinearMechanismModel<V> for $metaModel" }
+
+            when (val identityValidation = metaModel.identityRegistry?.validate()) {
+                null, is Ok -> {}
+                is Failed -> return Failed(identityValidation.error)
+                is Fatal -> return Fatal(identityValidation.errors)
+            }
 
             logger.trace { "Unfolding tokens for $metaModel" }
             val tokens = when (val result = unfold(
@@ -426,11 +420,11 @@ class LinearMechanismModel<V>(
          * Asynchronously dumps the linear mechanism model parts (constraints and sub-objectives).
          * 异步转储线性机制模型部件（约束和子目标）。
          *
-         * @param metaModel The linear meta model / 线性元模型
-         * @param tokens The token table / 符号表
-         * @param scope Coroutine scope for async execution / 用于异步执行的协程作用域
-         * @param callBack Dumping status callback / 转储状态回调
-         * @return The constructed linear mechanism model, or error / 构建的线性机制模型，或错误
+         * @param metaModel 线性元模型 / The linear meta model
+         * @param tokens 符号表 / The token table
+         * @param scope 用于异步执行的协程作用域 / Coroutine scope for async execution
+         * @param callBack 转储状态回调 / Dumping status callback
+         * @return 构建的线性机制模型，或错误 / The constructed linear mechanism model, or error
         */
         private suspend fun <V> dumpAsync(
             metaModel: LinearMetaModel<V>,
@@ -472,11 +466,11 @@ class LinearMechanismModel<V>(
          * Unfolds a mutable token table into an immutable token table by registering symbols and fixed values.
          * 通过注册符号和固定值将可变符号表展开为不可变符号表。
          *
-         * @param tokens The mutable token table to unfold / 要展开的可变符号表
-         * @param fixedVariables Variables fixed in the sub-problem and their values / 子问题中固定的变量及其值
-         * @param toFlt64 Conversion function from V to Flt64 / 从 V 到 Flt64 的转换函数
-         * @param callBack Registration status callback / 注册状态回调
-         * @return The unfolded immutable token table, or error / 展开后的不可变符号表，或错误
+         * @param tokens 要展开的可变符号表 / The mutable token table to unfold
+         * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
+         * @param toFlt64 从 V 到 Flt64 的转换函数 / Conversion function from V to Flt64
+         * @param callBack 注册状态回调 / Registration status callback
+         * @return 展开后的不可变符号表，或错误 / The unfolded immutable token table, or error
         */
         private suspend fun <V> unfold(
             tokens: AbstractMutableTokenTable<V>,
@@ -559,8 +553,7 @@ class LinearMechanismModel<V>(
     /**
      * 生成最优性 cut / Generate optimality cut
      *
-     * 基于对偶解为 Benders 分解生成最优性割平面。
-     * Generates optimality cuts for Benders decomposition based on the dual solution.
+     * 基于对偶解为 Benders 分解生成最优性割平面。 / Generates optimality cuts for Benders decomposition based on the dual solution.
      *
      * @param objectVariable 目标变量（theta）/ The objective variable (theta) to project onto
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
@@ -586,8 +579,7 @@ class LinearMechanismModel<V>(
     /**
      * 生成可行性 cut / Generate feasibility cut
      *
-     * 基于 Farkas 对偶解为 Benders 分解生成可行性割平面。
-     * Generates feasibility cuts for Benders decomposition based on the Farkas dual solution.
+     * 基于 Farkas 对偶解为 Benders 分解生成可行性割平面。 / Generates feasibility cuts for Benders decomposition based on the Farkas dual solution.
      *
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
      * @param farkasDualSolution Farkas 对偶解，约束到对偶值的映射 / Farkas dual solution, mapping from constraint to dual value
@@ -610,8 +602,7 @@ class LinearMechanismModel<V>(
     /**
      * 将线性不等式 cut 转换为 Flt64 类型 / Convert a linear inequality cut to Flt64 type
      *
-     * 将线性不等式中的系数从 V 类型转换为 Flt64 类型。
-     * Converts the coefficients of a linear inequality from type V to Flt64.
+     * 将线性不等式中的系数从 V 类型转换为 Flt64 类型。 / Converts the coefficients of a linear inequality from type V to Flt64.
      *
      * @param cut 待转换的线性不等式 / The linear inequality to convert
      * @return Flt64 类型的线性不等式 / The linear inequality with Flt64 coefficients
@@ -692,8 +683,7 @@ class LinearMechanismModel<V>(
      * 生成 Flt64 最优性 cut / Generate Flt64 optimality cut
      *
      * 基于 Flt64 类型对偶解生成最优性割平面。对偶值从求解器原生 Flt64 类型转换后委托给 [generateOptimalCut]，
-     * 返回值也转换为 Flt64。
-     * Generates optimality cuts from Flt64 dual solution. Converts dual values from solver
+     * 返回值也转换为 Flt64。 / Generates optimality cuts from Flt64 dual solution. Converts dual values from solver
      * raw Flt64 type, delegates to [generateOptimalCut], and converts the result back to Flt64.
      *
      * @param objectVariable 目标变量（theta）/ The objective variable (theta) to project onto
@@ -727,8 +717,7 @@ class LinearMechanismModel<V>(
      * 生成 Flt64 可行性 cut / Generate Flt64 feasibility cut
      *
      * 基于 Flt64 类型 Farkas 对偶解生成可行性割平面。对偶值从求解器原生 Flt64 类型转换后委托给 [generateFeasibleCut]，
-     * 返回值也转换为 Flt64。
-     * Generates feasibility cuts from Flt64 Farkas dual solution. Converts dual values from
+     * 返回值也转换为 Flt64。 / Generates feasibility cuts from Flt64 Farkas dual solution. Converts dual values from
      * solver raw Flt64 type, delegates to [generateFeasibleCut], and converts the result back to Flt64.
      *
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
@@ -756,8 +745,7 @@ class LinearMechanismModel<V>(
     }
 
     /**
-     * 从求解器原始对偶输出生成最优 Benders cut。
-     * Generate optimal Benders cut from raw solver dual output.
+     * 从求解器原始对偶输出生成最优 Benders cut。 / Generate optimal Benders cut from raw solver dual output.
      *
      * 该求解器边界入口接收原始对偶值，并通过 [LinearTriadModelView.tidyDualSolution]
      * 映射回约束对象，随后委托给 [generateFlt64OptimalCut]。
@@ -771,8 +759,7 @@ class LinearMechanismModel<V>(
      * @param triadModel      the LinearTriadModel containing origin mapping
      * @return list of linear cuts
      *
-     * 求解器边界：dualValues 与返回值使用 Flt64，因为它们表示求解器原始输出。
-     * Solver boundary: dualValues and return type are Flt64 because they represent raw solver output.
+     * 求解器边界：dualValues 与返回值使用 Flt64，因为它们表示求解器原始输出。 / Solver boundary: dualValues and return type are Flt64 because they represent raw solver output.
     */
     internal fun generateOptimalCutFromOutput(
         objectVariable: AbstractVariableItem<*, *>,
@@ -799,8 +786,7 @@ class LinearMechanismModel<V>(
      * @param triadModel      the LinearTriadModel containing origin mapping
      * @return list of linear cuts
      *
-     * 求解器边界：farkasDualValues 与返回值使用 Flt64，因为它们表示求解器原始输出。
-     * Solver boundary: farkasDualValues and return type are Flt64 because they represent raw solver output.
+     * 求解器边界：farkasDualValues 与返回值使用 Flt64，因为它们表示求解器原始输出。 / Solver boundary: farkasDualValues and return type are Flt64 because they represent raw solver output.
     */
     internal fun generateFeasibleCutFromOutput(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -814,8 +800,7 @@ class LinearMechanismModel<V>(
     /**
      * 约束数量 / Number of constraints
      *
-     * 返回模型中当前存储的线性约束总数。
-     * Returns the total number of linear constraints currently stored in the model.
+     * 返回模型中当前存储的线性约束总数。 / Returns the total number of linear constraints currently stored in the model.
     */
     val numConstraints: Int get() = _constraints.size
 
@@ -829,11 +814,9 @@ class LinearMechanismModel<V>(
 }
 
 /**
- * 二次机制模型
- * Quadratic mechanism model
+ * 二次机制模型 / Quadratic mechanism model
  *
- * 从二次元模型展开后的求解就绪模型，包含二次约束和单目标函数。
- * A solver-ready model unfolded from a quadratic meta model, containing quadratic constraints and single objective.
+ * 从二次元模型展开后的求解就绪模型，包含二次约束和单目标函数。 / A solver-ready model unfolded from a quadratic meta model, containing quadratic constraints and single objective.
  *
  * @param V 数值类型 / The number type
  * @property parent 父元模型 / Parent meta model
@@ -850,6 +833,7 @@ class QuadraticMechanismModel<V>(
     override val tokens: AbstractTokenTable<V>
 ) : BasicMechanismModel<V>(name, tokens), AbstractQuadraticMechanismModel<V>, SingleObjectMechanismModel<V>
         where V : RealNumber<V>, V : NumberField<V> {
+    override val identityRegistry: ModelElementIdentityRegistry? get() = parent.identityRegistry
     private val logger = logger()
 
     /**
@@ -879,6 +863,12 @@ class QuadraticMechanismModel<V>(
             dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null
         ): Ret<QuadraticMechanismModel<V>> where V : RealNumber<V>, V : NumberField<V> {
             logger.info { "Creating QuadraticMechanismModel<V> for $metaModel" }
+
+            when (val identityValidation = metaModel.identityRegistry?.validate()) {
+                null, is Ok -> {}
+                is Failed -> return Failed(identityValidation.error)
+                is Fatal -> return Fatal(identityValidation.errors)
+            }
 
             logger.trace { "Unfolding tokens for $metaModel" }
             val tokens = when (val result = unfold(
@@ -981,11 +971,11 @@ class QuadraticMechanismModel<V>(
          * Asynchronously dumps the quadratic mechanism model parts (constraints and sub-objectives).
          * 异步转储二次机制模型部件（约束和子目标）。
          *
-         * @param metaModel The quadratic meta model / 二次元模型
-         * @param tokens The token table / 符号表
-         * @param scope Coroutine scope for async execution / 用于异步执行的协程作用域
-         * @param callBack Dumping status callback / 转储状态回调
-         * @return The constructed quadratic mechanism model, or error / 构建的二次机制模型，或错误
+         * @param metaModel 二次元模型 / The quadratic meta model
+         * @param tokens 符号表 / The token table
+         * @param scope 用于异步执行的协程作用域 / Coroutine scope for async execution
+         * @param callBack 转储状态回调 / Dumping status callback
+         * @return 构建的二次机制模型，或错误 / The constructed quadratic mechanism model, or error
         */
         private suspend fun <V> dumpAsync(
             metaModel: QuadraticMetaModel<V>,
@@ -1027,11 +1017,11 @@ class QuadraticMechanismModel<V>(
          * Unfolds a mutable token table into an immutable token table by registering symbols and fixed values.
          * 通过注册符号和固定值将可变符号表展开为不可变符号表。
          *
-         * @param tokens The mutable token table to unfold / 要展开的可变符号表
-         * @param fixedVariables Variables fixed in the sub-problem and their values / 子问题中固定的变量及其值
-         * @param toFlt64 Conversion function from V to Flt64 / 从 V 到 Flt64 的转换函数
-         * @param callBack Registration status callback / 注册状态回调
-         * @return The unfolded immutable token table, or error / 展开后的不可变符号表，或错误
+         * @param tokens 要展开的可变符号表 / The mutable token table to unfold
+         * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
+         * @param toFlt64 从 V 到 Flt64 的转换函数 / Conversion function from V to Flt64
+         * @param callBack 注册状态回调 / Registration status callback
+         * @return 展开后的不可变符号表，或错误 / The unfolded immutable token table, or error
         */
         private suspend fun <V> unfold(
             tokens: AbstractMutableTokenTable<V>,
@@ -1140,8 +1130,7 @@ class QuadraticMechanismModel<V>(
     /**
      * 生成最优性 cut / Generate optimality cut
      *
-     * 基于对偶解为 Benders 分解生成最优性割平面（线性或二次）。
-     * Generates optimality cuts (linear or quadratic) for Benders decomposition based on the dual solution.
+     * 基于对偶解为 Benders 分解生成最优性割平面（线性或二次）。 / Generates optimality cuts (linear or quadratic) for Benders decomposition based on the dual solution.
      *
      * @param objectVariable 目标变量（theta）/ The objective variable (theta) to project onto
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
@@ -1167,8 +1156,7 @@ class QuadraticMechanismModel<V>(
     /**
      * 生成可行性 cut / Generate feasibility cut
      *
-     * 基于 Farkas 对偶解为 Benders 分解生成可行性割平面（线性或二次）。
-     * Generates feasibility cuts (linear or quadratic) for Benders decomposition based on the Farkas dual solution.
+     * 基于 Farkas 对偶解为 Benders 分解生成可行性割平面（线性或二次）。 / Generates feasibility cuts (linear or quadratic) for Benders decomposition based on the Farkas dual solution.
      *
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
      * @param farkasDualSolution Farkas 对偶解，约束到对偶值的映射 / Farkas dual solution, mapping from constraint to dual value
@@ -1191,8 +1179,7 @@ class QuadraticMechanismModel<V>(
     /**
      * 将割平面转换为 Flt64 类型 / Convert a cut to Flt64 type
      *
-     * 将线性或二次不等式割平面中的系数从 V 类型转换为 Flt64 类型。
-     * Converts the coefficients of a linear or quadratic inequality cut from type V to Flt64.
+     * 将线性或二次不等式割平面中的系数从 V 类型转换为 Flt64 类型。 / Converts the coefficients of a linear or quadratic inequality cut from type V to Flt64.
      *
      * @param cut 待转换的割平面（线性或二次不等式）/ The cut to convert (linear or quadratic inequality)
      * @return Flt64 类型的割平面 / The cut with Flt64 coefficients
@@ -1296,8 +1283,7 @@ class QuadraticMechanismModel<V>(
      * 生成 Flt64 最优性 cut / Generate Flt64 optimality cut
      *
      * 基于 Flt64 类型对偶解生成最优性割平面。对偶值从求解器原生 Flt64 类型转换后委托给 [generateOptimalCut]，
-     * 返回值也转换为 Flt64。
-     * Generates optimality cuts from Flt64 dual solution. Converts dual values from solver
+     * 返回值也转换为 Flt64。 / Generates optimality cuts from Flt64 dual solution. Converts dual values from solver
      * raw Flt64 type, delegates to [generateOptimalCut], and converts the result back to Flt64.
      *
      * @param objectVariable 目标变量（theta）/ The objective variable (theta) to project onto
@@ -1331,8 +1317,7 @@ class QuadraticMechanismModel<V>(
      * 生成 Flt64 可行性 cut / Generate Flt64 feasibility cut
      *
      * 基于 Flt64 类型 Farkas 对偶解生成可行性割平面。对偶值从求解器原生 Flt64 类型转换后委托给 [generateFeasibleCut]，
-     * 返回值也转换为 Flt64。
-     * Generates feasibility cuts from Flt64 Farkas dual solution. Converts dual values from
+     * 返回值也转换为 Flt64。 / Generates feasibility cuts from Flt64 Farkas dual solution. Converts dual values from
      * solver raw Flt64 type, delegates to [generateFeasibleCut], and converts the result back to Flt64.
      *
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
@@ -1360,8 +1345,7 @@ class QuadraticMechanismModel<V>(
     }
 
     /**
-     * 从求解器原始对偶输出生成最优 Benders cut。
-     * Generate optimal Benders cut from raw solver dual output.
+     * 从求解器原始对偶输出生成最优 Benders cut。 / Generate optimal Benders cut from raw solver dual output.
      *
      * 该求解器边界入口接收原始对偶值，并通过 [QuadraticTetradModelView.tidyDualSolution]
      * 映射回约束对象，随后委托给 [generateFlt64OptimalCut]。
@@ -1376,8 +1360,7 @@ class QuadraticMechanismModel<V>(
      * @param tetradModel     the QuadraticTetradModel containing origin mapping
      * @return list of cuts (linear or quadratic inequalities)
      *
-     * 求解器边界：dualValues 与返回值使用 Flt64，因为它们表示求解器原始输出。
-     * Solver boundary: dualValues and return type are Flt64 because they represent raw solver output.
+     * 求解器边界：dualValues 与返回值使用 Flt64，因为它们表示求解器原始输出。 / Solver boundary: dualValues and return type are Flt64 because they represent raw solver output.
     */
     internal fun generateOptimalCutFromOutput(
         objective: Flt64,
@@ -1405,8 +1388,7 @@ class QuadraticMechanismModel<V>(
      * @param tetradModel       the QuadraticTetradModel containing origin mapping
      * @return list of cuts (linear or quadratic inequalities)
      *
-     * 求解器边界：farkasDualValues 与返回值使用 Flt64，因为它们表示求解器原始输出。
-     * Solver boundary: farkasDualValues and return type are Flt64 because they represent raw solver output.
+     * 求解器边界：farkasDualValues 与返回值使用 Flt64，因为它们表示求解器原始输出。 / Solver boundary: farkasDualValues and return type are Flt64 because they represent raw solver output.
     */
     internal fun generateFeasibleCutFromOutput(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -1420,8 +1402,7 @@ class QuadraticMechanismModel<V>(
     /**
      * 约束数量 / Number of constraints
      *
-     * 返回模型中当前存储的二次约束总数。
-     * Returns the total number of quadratic constraints currently stored in the model.
+     * 返回模型中当前存储的二次约束总数。 / Returns the total number of quadratic constraints currently stored in the model.
     */
     val numConstraints: Int get() = _constraints.size
 

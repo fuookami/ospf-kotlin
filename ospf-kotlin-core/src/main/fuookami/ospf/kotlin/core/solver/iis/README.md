@@ -40,5 +40,5 @@ Quadratic infeasible subsystem model view (`QuadraticTetradModelView`), identify
 
 ## Relationships with Other Packages
 
-- **solver/output** — IIS results are embedded in `LinearInfeasibleSolverOutput` and `QuadraticInfeasibleSolverOutput`
+- **solver/output** — IIS results are embedded in `LinearInfeasibleSolverOutput` and `QuadraticInfeasibleSolverOutput`; `iisAvailable` and `diagnostics` distinguish an unavailable IIS from the original-model snapshot retained after diagnostic failure
 - **model/intermediate** — IIS views reference `LinearTriadModelView` and `QuadraticTetradModelView`

@@ -11,9 +11,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * 提供单条记录级别的领域判断所需信息。
  * 用于 same unit length、same width、宽差、材质兼容等
- * 需要访问单条切割方案属性的扩展点。
- *
- * Provides information for domain-level judgment on individual records.
+ * 需要访问单条切割方案属性的扩展点。 / Provides information for domain-level judgment on individual records.
  * Used for same unit length, same width, width difference, material compatibility
  * extensions that need access to individual cutting plan properties.
  *
@@ -85,9 +83,7 @@ data class SimpleDomainCalculationContext<V : RealNumber<V>>(
  * CSP1D 领域策略接口 / CSP1D domain policy interface
  *
  * 允许下游注入领域计算/判断逻辑，如物料可行性、宽度判断、余料计算等。
- * 默认实现应保持现有行为。
- *
- * Allows downstream to inject domain calculation/judgment logic,
+ * 默认实现应保持现有行为。 / Allows downstream to inject domain calculation/judgment logic,
  * such as material feasibility, width judgment, rest material calculation.
  * Default implementation should preserve existing behavior.
  *
@@ -114,8 +110,7 @@ interface Csp1dDomainPolicy<V : RealNumber<V>> {
     val overridesWidthFeasibility: Boolean get() = false
 
     /**
-     * 判断切割方案在给定上下文中是否可行 /
-     * Check if cutting plan is feasible in the given context
+     * 判断切割方案在给定上下文中是否可行 / / Check if cutting plan is feasible in the given context
      *
      * @param context 领域计算上下文 / Domain calculation context
      * @return true 表示可行 / true if feasible
@@ -123,8 +118,7 @@ interface Csp1dDomainPolicy<V : RealNumber<V>> {
     fun isFeasible(context: Csp1dDomainCalculationContext<V>): Boolean = true
 
     /**
-     * 判断切割方案在给定上下文中宽度是否可切 /
-     * Check if cutting plan width is feasible in the given context
+     * 判断切割方案在给定上下文中宽度是否可切 / / Check if cutting plan width is feasible in the given context
      *
      * @param context 领域计算上下文 / Domain calculation context
      * @return true 表示可切 / true if cuttable
@@ -136,9 +130,7 @@ interface Csp1dDomainPolicy<V : RealNumber<V>> {
  * 默认 CSP1D 领域策略 / Default CSP1D domain policy
  *
  * 保持现有硬编码行为：所有方案都可行，所有宽度都可切。
- * 当 domainPolicies 为空列表时，行为与此策略等价。
- *
- * Preserves existing hard-coded behavior: all plans are feasible,
+ * 当 domainPolicies 为空列表时，行为与此策略等价。 / Preserves existing hard-coded behavior: all plans are feasible,
  * all widths are cuttable. When domainPolicies is an empty list,
  * behavior is equivalent to this policy.
  *
@@ -153,8 +145,7 @@ class DefaultCsp1dDomainPolicy<V : RealNumber<V>> : Csp1dDomainPolicy<V> {
 }
 
 /**
- * 判断一组领域策略是否全部认为方案可行 /
- * Check if all domain policies consider the plan feasible
+ * 判断一组领域策略是否全部认为方案可行 / / Check if all domain policies consider the plan feasible
  *
  * @param V 数值类型 / Numeric value type
  * @param policies 领域策略列表 / Domain policy list
@@ -169,8 +160,7 @@ fun <V : RealNumber<V>> allFeasible(
 }
 
 /**
- * 判断一组领域策略是否全部认为宽度可切 /
- * Check if all domain policies consider the width cuttable
+ * 判断一组领域策略是否全部认为宽度可切 / / Check if all domain policies consider the width cuttable
  *
  * @param V 数值类型 / Numeric value type
  * @param policies 领域策略列表 / Domain policy list

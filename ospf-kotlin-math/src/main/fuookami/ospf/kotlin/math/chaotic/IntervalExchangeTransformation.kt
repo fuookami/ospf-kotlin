@@ -1,6 +1,5 @@
 /**
- * 区间交换变换
- * Interval Exchange Transformation
+ * 区间交换变换 / Interval Exchange Transformation
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -11,8 +10,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 区间交换变换
- * Interval Exchange Transformation
+ * 区间交换变换 / Interval Exchange Transformation
  *
  * @property lambda 各子区间长度 / Lengths of subintervals
  * @property pi 置换 / Permutation
@@ -48,8 +46,8 @@ data class IntervalExchangeTransformation<V : FloatingNumber<V>>(val lambda: Lis
  * Interval exchange transformation generator that iteratively produces chaotic sequences.
  * 区间交换变换生成器，通过迭代产生混沌序列。
  *
- * @property map the interval exchange transformation instance / 区间交换变换实例
- * @property _x the internal state variable for iteration / 迭代用的内部状态变量
+ * @property map 区间交换变换实例 / the interval exchange transformation instance
+ * @property _x 迭代用的内部状态变量 / the internal state variable for iteration
 */
 data class IntervalExchangeTransformationGenerator(
     val map: IntervalExchangeTransformation<Flt64>,

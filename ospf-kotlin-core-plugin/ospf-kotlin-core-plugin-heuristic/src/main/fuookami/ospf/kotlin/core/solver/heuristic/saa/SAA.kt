@@ -8,6 +8,7 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.Duration.Companion.minutes
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.nextFlt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
@@ -34,7 +35,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 */
 /** 模拟退火算法策略接口 / Simulated Annealing Algorithm policy interface */
 interface AbstractSAAPolicy<ObjValue, V> :
-    AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+    AbstractHeuristicPolicy where V : RealNumber<V>, V : NumberField<V> {
 
     /** 马尔可夫链长度 / Markov chain length */
     val markovLength: UInt64
@@ -86,9 +87,7 @@ interface AbstractSAAPolicy<ObjValue, V> :
 /**
  * 模拟退火算法策略
  *
- * 实现模拟退火的解变换、接受准则和温度调度，支持自适应步长衰减。
- *
- * Simulated Annealing Algorithm policy
+ * 实现模拟退火的解变换、接受准则和温度调度，支持自适应步长衰减。 / Simulated Annealing Algorithm policy
  *
  * Implements solution transformation, acceptance criterion, and temperature scheduling
  * for simulated annealing, supporting adaptive step size decay.
@@ -114,13 +113,13 @@ open class SAAPolicy<ObjValue, V>(
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
-    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
+    val randomGenerator: Generator<Flt64> = Generator { Random.nextFlt64() },
     private val converter: IntoValue<V>
 ) : HeuristicPolicy(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
-), AbstractSAAPolicy<ObjValue, V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+), AbstractSAAPolicy<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun invoke(
             initialTemperature: Flt64 = Flt64(100.0),
@@ -132,7 +131,7 @@ open class SAAPolicy<ObjValue, V>(
             iterationLimit: UInt64 = UInt64.maximum,
             notBetterIterationLimit: UInt64 = UInt64.maximum,
             timeLimit: Duration = 30.minutes,
-            randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
+            randomGenerator: Generator<Flt64> = Generator { Random.nextFlt64() }
         ): SAAPolicy<Flt64, Flt64> {
             return SAAPolicy(
                 initialTemperature = initialTemperature,
@@ -219,9 +218,7 @@ open class SAAPolicy<ObjValue, V>(
 /**
  * 模拟退火算法
  *
- * 实现基于温度调度的模拟退火优化算法，通过 Metropolis 准则接受劣解以跳出局部最优。
- *
- * Simulated Annealing Algorithm
+ * 实现基于温度调度的模拟退火优化算法，通过 Metropolis 准则接受劣解以跳出局部最优。 / Simulated Annealing Algorithm
  *
  * Implements temperature-scheduling-based simulated annealing optimization algorithm,
  * accepting worse solutions via Metropolis criterion to escape local optima.
@@ -233,7 +230,7 @@ open class SAAPolicy<ObjValue, V>(
 */
 class SimulatedAnnealingAlgorithm<Obj, ObjValue, V>(
     val policy: AbstractSAAPolicy<ObjValue, V>
-) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun invoke(): SimulatedAnnealingAlgorithm<Flt64, Flt64, Flt64> {
             return SimulatedAnnealingAlgorithm(SAAPolicy())

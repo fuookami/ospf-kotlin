@@ -1,6 +1,5 @@
 /**
- * 远程求解执行端口
- * Remote solve execution port
+ * 远程求解执行端口 / Remote solve execution port
 */
 package fuookami.ospf.kotlin.framework.solver.remote.port
 
@@ -9,14 +8,12 @@ import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 求解器执行端口。
- * Solver execution port.
+ * 求解器执行端口。 / Solver execution port.
 */
 interface SolverExecutionPort {
 
     /**
-     * 启动新求解任务。
-     * Start a new solve task.
+     * 启动新求解任务。 / Start a new solve task.
      *
      * @param payload 求解载荷 / Solve payload
      * @param taskId 任务 ID / Task ID
@@ -34,8 +31,7 @@ interface SolverExecutionPort {
     ): Ret<ExecutionHandle>
 
     /**
-     * 从检查点恢复求解。
-     * Resume solve from checkpoint.
+     * 从检查点恢复求解。 / Resume solve from checkpoint.
      *
      * @param payload 求解载荷 / Solve payload
      * @param checkpoint 检查点引用 / Checkpoint reference
@@ -55,8 +51,7 @@ interface SolverExecutionPort {
     ): Ret<ExecutionHandle>
 
     /**
-     * 等待切片结束。
-     * Wait for slice end.
+     * 等待切片结束。 / Wait for slice end.
      *
      * @param handle 执行句柄 / Execution handle
      * @param quantum 时间片 / Quantum
@@ -65,8 +60,7 @@ interface SolverExecutionPort {
     suspend fun awaitSliceEnd(handle: ExecutionHandle, quantum: Duration): Ret<SliceResult>
 
     /**
-     * 导出检查点。
-     * Export checkpoint.
+     * 导出检查点。 / Export checkpoint.
      *
      * @param handle 执行句柄 / Execution handle
      * @return 检查点引用 / Checkpoint reference
@@ -74,8 +68,7 @@ interface SolverExecutionPort {
     suspend fun exportCheckpoint(handle: ExecutionHandle): Ret<ObjectRef?>
 
     /**
-     * 获取最终结果。
-     * Fetch final result.
+     * 获取最终结果。 / Fetch final result.
      *
      * @param handle 执行句柄 / Execution handle
      * @return 最终结果 / Final result
@@ -83,8 +76,7 @@ interface SolverExecutionPort {
     suspend fun fetchFinalResult(handle: ExecutionHandle): Ret<SolveResult?>
 
     /**
-     * 停止执行。
-     * Stop execution.
+     * 停止执行。 / Stop execution.
      *
      * @param handle 执行句柄 / Execution handle
      * @return 是否停止成功 / Whether stopped

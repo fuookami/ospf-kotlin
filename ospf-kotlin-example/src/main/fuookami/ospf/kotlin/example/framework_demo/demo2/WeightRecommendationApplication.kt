@@ -11,17 +11,24 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.ordinary.*
-import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.core.solver.gurobi.GurobiLinearBendersDecompositionSolver
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.core.variable.URealVar
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.payload_maximization.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.*
@@ -44,6 +51,30 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * 重量推荐应用程序入口。
 */
 class WeightRecommendationApplication {
+    /**
+     * Executes the weight recommendation application.
+     * 执行重量推荐应用。
+     *
+     * @param request 重量推荐请求 / Weight recommendation request.
+     * @param runningHeartBeatCallBack 运行心跳回调 / Running heartbeat callback.
+     * @param finnishHeartBeatCallBack 完成心跳回调 / Finish heartbeat callback.
+     * @param withRender 是否返回渲染结果 / Whether to return rendering output.
+     * @return 求解响应和可选渲染结果 / Solve response and optional rendering output.
+     */
+    suspend operator fun invoke(
+        request: RequestDTO,
+        runningHeartBeatCallBack: ((RunningHeartBeatDTO) -> Try)? = null,
+        finnishHeartBeatCallBack: ((FinnishHeartBeatDTO) -> Unit)? = null,
+        withRender: Boolean = false
+    ): Pair<ResponseDTO, RenderDTO?> {
+        val algorithm = WeightRecommendationAlgorithmImpl()
+        return algorithm(
+            request = request,
+            runningHeartBeatCallBack = runningHeartBeatCallBack,
+            finnishHeartBeatCallBack = finnishHeartBeatCallBack,
+            withRender = withRender
+        )
+    }
 
     /**
      * Container for Benders decomposition models.
@@ -51,14 +82,14 @@ class WeightRecommendationApplication {
      *
      * @property masterModel Master problem model. / Benders 主问题模型
      * @property subModel Sub problem model. / Benders 子问题模型
-     * @property objectVariable Object variable. / 目标变量
-     * @property fixedVariables Fixed variables map. / 固定变量映射
+     * @property objectVariable 目标变量 / Object variable.
+     * @property fixedVariables 固定变量映射 / Fixed variables map.
     */
     private data class BendersModels(
         val masterModel: LinearMetaModel<Flt64>,
         val subModel: LinearMetaModel<Flt64>,
-        val objectVariable: fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>,
-        val fixedVariables: Map<fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>, Flt64>
+        val objectVariable: AbstractVariableItem<*, *>,
+        val fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>
     )
 }
 
@@ -67,12 +98,13 @@ class WeightRecommendationApplication {
  * 重量推荐算法实现。
 */
 private class WeightRecommendationAlgorithmImpl {
-    lateinit var aircraftContext: AircraftContext
-    lateinit var stowageContext: StowageContext
-    lateinit var macContext: MacContext
-    lateinit var airworthinessSecurityContext: AirworthinessSecurityContext
-    lateinit var recommendedWeightEqualizationContext: RecommendedWeightEqualizationContext
-    lateinit var payloadMaximizationContext: PayloadMaximizationContext
+    private val aircraftContext = AircraftContext()
+    private val stowageContext = StowageContext()
+    private val macContext = MacContext()
+    private val airworthinessSecurityContext = AirworthinessSecurityContext()
+    private val expressEffectivenessContext = ExpressEffectivenessContext()
+    private val recommendedWeightEqualizationContext = RecommendedWeightEqualizationContext()
+    private val payloadMaximizationContext = PayloadMaximizationContext()
 
     suspend operator fun invoke(
         request: RequestDTO,
@@ -84,14 +116,22 @@ private class WeightRecommendationAlgorithmImpl {
         val parameter = request.parameter
         val notes = mutableListOf<String>()
 
-        when (val result = init(request)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+        if (!BendersStrategy.supportedAircraft(request.aircraftType)) {
+            return unsupportedAircraftResponse(
+                request = request,
+                path = "weight-recommendation",
+                pathName = "重量推荐"
+            )
+        }
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+        when (val result = init(request)) {
+            is Ok -> {}
+
+            is Failed -> {
                 return ResponseDTO(request, result.error) to null
             }
 
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Fatal -> {
                 return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
             }
         }
@@ -101,23 +141,20 @@ private class WeightRecommendationAlgorithmImpl {
             return ResponseDTO.noSolution("NoSolution", notes) to null
         }
 
-        if (!BendersStrategy.supportedAircraft(request.aircraftType)) {
-            notes.add("unsupported aircraft type for weight-recommendation path: ${request.aircraftType}")
-            return ResponseDTO.noSolution("UnsupportedAircraft", notes) to null
-        }
-
         val solveMode = BendersStrategy.resolveSolveMode(request, notes)
 
         val solution = when (solveMode) {
             is SolveMode.Benders -> {
+                notes.add("solver_path=benders")
                 when (val result = solveWithBendersAlgorithm(
                     request = request,
                     notes = notes
                 )) {
-                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> result.value!!
-                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                    is Ok -> result.value!!
+                    is Failed -> {
                         if (request.solvePolicy.bendersFallbackToMilp) {
                             notes.add("Benders failed, falling back to MILP")
+                            notes.add("solver_path=milp_fallback_after_benders")
                             Diagnostics.pushGroupedNote(
                                 notes, Diagnostics.LEVEL_DIAGNOSTIC, Diagnostics.GROUP_SOLVER,
                                 Diagnostics.CODE_BENDERS_FAILED, "benders failed, fallback to milp"
@@ -128,26 +165,35 @@ private class WeightRecommendationAlgorithmImpl {
                                 startTime = startTime,
                                 runningHeartBeatCallBack = runningHeartBeatCallBack
                             )) {
-                                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> milpResult.value!!
-                                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, milpResult.error) to null
-                                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, milpResult.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
+                                is Ok -> milpResult.value!!
+                                is Failed -> return solverFailureResponse(
+                                    request = request,
+                                    notes = notes,
+                                    error = milpResult.error
+                                )
+                                is Fatal -> return ResponseDTO(request, milpResult.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
                             }
                         } else {
                             return ResponseDTO.noSolution("BendersFailed", notes) to null
                         }
                     }
-                    is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                    is Fatal -> {
                         if (request.solvePolicy.bendersFallbackToMilp) {
                             notes.add("Benders fatal, falling back to MILP")
+                            notes.add("solver_path=milp_fallback_after_benders")
                             when (val milpResult = solveWithMILP(
                                 id = request.id,
                                 parameter = parameter,
                                 startTime = startTime,
                                 runningHeartBeatCallBack = runningHeartBeatCallBack
                             )) {
-                                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> milpResult.value!!
-                                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, milpResult.error) to null
-                                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, milpResult.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
+                                is Ok -> milpResult.value!!
+                                is Failed -> return solverFailureResponse(
+                                    request = request,
+                                    notes = notes,
+                                    error = milpResult.error
+                                )
+                                is Fatal -> return ResponseDTO(request, milpResult.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
                             }
                         } else {
                             return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
@@ -165,32 +211,38 @@ private class WeightRecommendationAlgorithmImpl {
                             startTime = startTime,
                             runningHeartBeatCallBack = runningHeartBeatCallBack
                         )) {
-                            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> result.value!!
-                            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, result.error) to null
-                            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
+                            is Ok -> result.value!!
+                            is Failed -> return solverFailureResponse(
+                                request = request,
+                                notes = notes,
+                                error = result.error
+                            )
+                            is Fatal -> return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
                         }
                     }
-                    AircraftType.B767 -> TODO("not implemented yet")
-                    AircraftType.B747 -> TODO("not implemented yet")
-                    null -> TODO("not implemented yet")
+                    AircraftType.B767, AircraftType.B747, null -> return unsupportedAircraftResponse(
+                        request = request,
+                        path = "weight-recommendation",
+                        pathName = "重量推荐"
+                    )
                 }
             }
         }
 
         val output = when (val result = stowageContext.analyze(solution, request)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                result.value!! to if (withRender) {
+            is Ok -> {
+                result.value!!.withSolverNotes(notes) to if (withRender) {
                     solution.render()
                 } else {
                     null
                 }
             }
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                 return ResponseDTO(request, result.error) to null
             }
 
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Fatal -> {
                 return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
             }
         }
@@ -212,35 +264,36 @@ private class WeightRecommendationAlgorithmImpl {
      * Initialize all domain contexts.
      * 初始化所有领域上下文。
      *
-     * @param request Request DTO. / 请求 DTO
-     * @return Initialization result. / 初始化结果
+     * @param request 请求 DTO / Request DTO.
+     * @return 初始化结果 / Initialization result.
     */
     private fun init(request: RequestDTO): Try {
         when (val result = aircraftContext.init(
             input = request
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
 
         when (val result = stowageContext.init(
             aircraftContext = aircraftContext,
-            input = request
+            input = request,
+            stowageMode = StowageMode.WeightRecommendation
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -250,13 +303,13 @@ private class WeightRecommendationAlgorithmImpl {
             stowageContext = stowageContext,
             input = request
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -267,15 +320,32 @@ private class WeightRecommendationAlgorithmImpl {
             macContext = macContext,
             input = request
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
+        }
+
+        when (val result = expressEffectivenessContext.init(
+            aircraftContext = aircraftContext,
+            stowageContext = stowageContext,
+            input = request,
+            stowageMode = StowageMode.WeightRecommendation
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = recommendedWeightEqualizationContext.init(
@@ -283,13 +353,13 @@ private class WeightRecommendationAlgorithmImpl {
             stowageContext = stowageContext,
             input = request
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -299,13 +369,13 @@ private class WeightRecommendationAlgorithmImpl {
             stowageContext = stowageContext,
             input = request
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -317,27 +387,27 @@ private class WeightRecommendationAlgorithmImpl {
      * Solve directly using MILP.
      * 使用 MILP 直接求解。
      *
-     * @param id Request ID. / 请求 ID
-     * @param parameter Solving parameter. / 求解参数
-     * @param startTime Start time. / 开始时间
-     * @param runningHeartBeatCallBack Running heartbeat callback. / 运行心跳回调
-     * @return Result containing the stowage solution. / 求解结果，包含配载方案
+     * @param id 请求 ID / Request ID.
+     * @param parameter 求解参数 / Solving parameter.
+     * @param startTime 开始时间 / Start time.
+     * @param runningHeartBeatCallBack 运行心跳回调 / Running heartbeat callback.
+     * @return 求解结果，包含配载方案 / Result containing the stowage solution.
     */
     private suspend fun solveWithMILP(
         id: String,
         parameter: Parameter,
         startTime: kotlin.time.Instant,
         runningHeartBeatCallBack: ((RunningHeartBeatDTO) -> Try)? = null
-    ): Ret<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution> {
+    ): Ret<Solution> {
         val model = LinearMetaModel<Flt64>(converter = flt64Converter)
         when (val result = register(parameter, model)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -412,50 +482,53 @@ private class WeightRecommendationAlgorithmImpl {
                 ok
             }
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Ok -> {
                 result.value!!
             }
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                 if (result.error.code == ErrorCode.ORModelInfeasible || result.error.code == ErrorCode.ORModelInfeasibleOrUnbounded) {
-                    TODO("not implemented yet")
+                    return Failed(Err(
+                        result.error.code,
+                        "重量推荐 MILP 无可行解：${result.error.message} / Weight-recommendation MILP has no feasible solution: ${result.error.message}"
+                    ))
                 } else {
                     return Failed(result.error)
                 }
             }
 
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Fatal -> {
                 return Fatal(result.errors)
             }
         }
 
         val solution = when (val result = stowageContext.analyze(
-            solution = modelSolution.solution,
+            solution = modelSolution.values,
             model = model
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Ok -> {
                 result.value!!
             }
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
 
-        return Ok<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution, ErrorCode, Error<ErrorCode>>(solution)
+        return Ok<Solution, ErrorCode, Error<ErrorCode>>(solution)
     }
 
     /**
      * Register constraints and variables from all domain contexts into the model.
      * 注册所有领域上下文的约束与变量到模型中。
      *
-     * @param parameter Solving parameter. / 求解参数
-     * @param model Linear meta model. / 线性元模型
-     * @return Registration result. / 注册结果
+     * @param parameter 求解参数 / Solving parameter.
+     * @param model 线性元模型 / Linear meta model.
+     * @return 注册结果 / Registration result.
     */
     private fun register(
         parameter: Parameter,
@@ -465,13 +538,13 @@ private class WeightRecommendationAlgorithmImpl {
             stowageMode = StowageMode.WeightRecommendation,
             model = model
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -480,13 +553,13 @@ private class WeightRecommendationAlgorithmImpl {
             stowageMode = StowageMode.WeightRecommendation,
             model = model
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -495,28 +568,45 @@ private class WeightRecommendationAlgorithmImpl {
             stowageMode = StowageMode.WeightRecommendation,
             model = model
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
 
-        when (val result = recommendedWeightEqualizationContext.register(
+        when (val result = expressEffectivenessContext.register(
             stowageMode = StowageMode.WeightRecommendation,
+            parameter = parameter,
             model = model
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+        }
+
+        when (val result = recommendedWeightEqualizationContext.register(
+            stowageMode = StowageMode.WeightRecommendation,
+            parameter = parameter,
+            model = model
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -526,13 +616,13 @@ private class WeightRecommendationAlgorithmImpl {
             parameter = parameter,
             model = model
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -544,15 +634,19 @@ private class WeightRecommendationAlgorithmImpl {
      * Solve using Benders decomposition algorithm.
      * 使用 Benders 分解算法求解。
      *
-     * @param request Request DTO. / 请求 DTO
-     * @param notes Solving notes list. / 求解备注列表
-     * @return Result containing the stowage solution. / 求解结果，包含配载方案
+     * @param request 请求 DTO / Request DTO.
+     * @param notes 求解备注列表 / Solving notes list.
+     * @return 求解结果，包含配载方案 / Result containing the stowage solution.
     */
     private suspend fun solveWithBendersAlgorithm(
         request: RequestDTO,
         notes: MutableList<String>
-    ): Ret<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution> {
-        val bendersModels = buildBendersModels()
+    ): Ret<Solution> {
+        val bendersModels = when (val result = buildBendersModels(request.parameter)) {
+            is Ok -> result.value!!
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
         val bendersConfig = BendersStrategy.tuneAdaptiveConfig(
             request.bendersAdaptive,
             request.cargos.size * request.positions.size
@@ -575,9 +669,9 @@ private class WeightRecommendationAlgorithmImpl {
             config = bendersConfig,
             notes = notes
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> result.value!!
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
+            is Ok -> result.value!!
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         // Quality guard check
@@ -629,8 +723,8 @@ private class WeightRecommendationAlgorithmImpl {
                     Diagnostics.CODE_BENDERS_QUALITY_ACTION,
                     "action=fallback_to_milp reason=$qualityReason"
                 )
-                return Failed(fuookami.ospf.kotlin.utils.error.Err(
-                    fuookami.ospf.kotlin.utils.error.ErrorCode.ApplicationError,
+                return Failed(Err(
+                    ErrorCode.ApplicationError,
                     "Benders quality insufficient: $qualityReason"
                 ))
             } else {
@@ -647,9 +741,9 @@ private class WeightRecommendationAlgorithmImpl {
             solution = solutionList,
             model = bendersModels.masterModel
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> Ok(result.value!!)
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> Failed(result.error)
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> Fatal(result.errors)
+            is Ok -> Ok(result.value!!)
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
         }
     }
 
@@ -659,7 +753,7 @@ private class WeightRecommendationAlgorithmImpl {
      *
      * @return Benders models container. / Benders 模型容器
     */
-    private fun buildBendersModels(): BendersModels {
+    private fun buildBendersModels(parameter: Parameter): Ret<BendersModels> {
         val masterModel = LinearMetaModel<Flt64>(
             name = "demo2_weight_recommendation_master",
             converter = flt64Converter
@@ -670,33 +764,76 @@ private class WeightRecommendationAlgorithmImpl {
         )
 
         // Master: stowage + mac + recommendedWeightEqualization + payloadMaximization
-        stowageContext.registerForBendersMP(masterModel)
-        macContext.registerForBendersMP(masterModel)
-        recommendedWeightEqualizationContext.registerForBendersMP(masterModel)
-        payloadMaximizationContext.registerForBendersMP(masterModel)
+        stowageContext.registerForBendersMP(StowageMode.WeightRecommendation, masterModel).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
+        macContext.registerForBendersMP(StowageMode.WeightRecommendation, masterModel).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
+        expressEffectivenessContext.registerForBendersMP(
+            stowageMode = StowageMode.WeightRecommendation,
+            parameter = parameter,
+            model = masterModel
+        ).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
+        recommendedWeightEqualizationContext.registerForBendersMP(
+            parameter = parameter,
+            model = masterModel
+        ).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
+        payloadMaximizationContext.registerForBendersMP(
+            stowageMode = StowageMode.WeightRecommendation,
+            parameter = parameter,
+            model = masterModel
+        ).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
 
         // Sub: stowage (shared variables) + airworthiness
-        stowageContext.registerForBendersSP(subModel, emptyList())
-        airworthinessSecurityContext.registerForBendersSP(subModel)
+        stowageContext.registerForBendersSP(StowageMode.WeightRecommendation, subModel, emptyList()).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
+        airworthinessSecurityContext.registerForBendersSP(StowageMode.WeightRecommendation, subModel).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
 
         // Create deviation variable z for weight recommendation objective
         val zVar = URealVar("wr_max_deviation")
-        masterModel.add(zVar)
+        masterModel.add(zVar).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
+        masterModel.minimize(
+            variable = zVar,
+            name = "benders_recourse_objective"
+        ).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
 
         val stowageAgg = stowageContext.aggregation
-        val fixedVariables = mutableMapOf<fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>, Flt64>()
+        val fixedVariables = mutableMapOf<AbstractVariableItem<*, *>, Flt64>()
         for (i in stowageAgg.items.indices) {
             for (j in stowageAgg.positions.indices) {
                 fixedVariables[stowageAgg.stowage.x[i, j]] = Flt64.zero
             }
         }
 
-        return BendersModels(
+        return Ok(BendersModels(
             masterModel = masterModel,
             subModel = subModel,
             objectVariable = zVar,
             fixedVariables = fixedVariables
-        )
+        ))
     }
 
     /**
@@ -705,14 +842,14 @@ private class WeightRecommendationAlgorithmImpl {
      *
      * @property masterModel Master problem model. / Benders 主问题模型
      * @property subModel Sub problem model. / Benders 子问题模型
-     * @property objectVariable Object variable. / 目标变量
-     * @property fixedVariables Fixed variables map. / 固定变量映射
+     * @property objectVariable 目标变量 / Object variable.
+     * @property fixedVariables 固定变量映射 / Fixed variables map.
     */
     private data class BendersModels(
         val masterModel: LinearMetaModel<Flt64>,
         val subModel: LinearMetaModel<Flt64>,
-        val objectVariable: fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>,
-        val fixedVariables: Map<fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>, Flt64>
+        val objectVariable: AbstractVariableItem<*, *>,
+        val fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>
     )
 }
 

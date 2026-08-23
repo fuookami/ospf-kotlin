@@ -1,11 +1,9 @@
 /**
- * 幂向量键
- * Power Vector Key
+ * 幂向量键 / Power Vector Key
  *
  * 提供规范单项式幂向量的优化键实现，用于高效的同类项合并。
  * 支持两种模式：稠密模式（卌IntArray）和稀疏模式（两个 IntArray），
- * 根据稀疏度自动选择最优模式。
- * Provides optimized key implementation for canonical monomial power vectors,
+ * 根据稀疏度自动选择最优模式。 / Provides optimized key implementation for canonical monomial power vectors,
  * used for efficient like-term combination.
  * Supports two modes: dense mode (single IntArray) and sparse mode (two IntArrays),
  * automatically selecting the optimal mode based on sparsity.
@@ -16,8 +14,7 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.algebra.number.Int32
 
 /**
- * 规范单项式幂向量的优化键
- * Optimized key for canonical monomial powers comparison.
+ * 规范单项式幂向量的优化键 / Optimized key for canonical monomial powers comparison.
  *
  * 根据稀疏度支持两种模式：
  * - 稠密模式：长度等于总符号数的单个 IntArray（适用于符号数较少的情况）
@@ -39,8 +36,7 @@ class PowerVectorKey private constructor(
 ) {
     companion object {
         /**
-         * 模式选择的稀疏度阈值
-         * Sparsity threshold for mode selection.
+         * 模式选择的稀疏度阈值 / Sparsity threshold for mode selection.
          *
          * 当 powers.size / totalSymbols < 阈值时使用稀疏模式。
          * When powers.size / totalSymbols < threshold, use sparse mode.
@@ -48,11 +44,9 @@ class PowerVectorKey private constructor(
         const val SPARSITY_THRESHOLD = 0.5
 
         /**
-         * 创建稠密模式键（单个 IntArray）
-         * Create dense mode key (single IntArray).
+         * 创建稠密模式键（单个 IntArray） / Create dense mode key (single IntArray).
          *
-         * 适用于稀疏度 >= 阈值或 totalSymbols 较小（<= 5）的情况。
-         * Use when sparsity >= threshold or totalSymbols is small (<= 5).
+         * 适用于稀疏度 >= 阈值或 totalSymbols 较小（<= 5）的情况。 / Use when sparsity >= threshold or totalSymbols is small (<= 5).
          *
          * @param vec 幂次数组 / Power array
          * @return 稠密模式的 PowerVectorKey / PowerVectorKey in dense mode
@@ -67,13 +61,10 @@ class PowerVectorKey private constructor(
         }
 
         /**
-         * 创建稀疏模式键（两个 IntArray）
-         * Create sparse mode key (two IntArrays).
+         * 创建稀疏模式键（两个 IntArray） / Create sparse mode key (two IntArrays).
          *
          * 适用于稀疏度 < 阈值且 totalSymbols > 5 的情况。
-         * 注意：indices 必须按升序排列以保证规范化。
-         *
-         * Use when sparsity < threshold and totalSymbols > 5.
+         * 注意：indices 必须按升序排列以保证规范化。 / Use when sparsity < threshold and totalSymbols > 5.
          * IMPORTANT: indices must be sorted ascending for normalization.
          *
          * @param indices 符号索引数组（升序） / Symbol index array (ascending)
@@ -96,8 +87,7 @@ class PowerVectorKey private constructor(
         }
 
         /**
-         * 根据稀疏度自动选择最优模式创建键
-         * Auto-select mode based on sparsity.
+         * 根据稀疏度自动选择最优模式创建键 / Auto-select mode based on sparsity.
          *
          * @param powers 符号到幂次的映射 / Map of symbol to power
          * @param symbolIndex 符号到顺序索引的映射 / Map of symbol to its index in the order
@@ -169,11 +159,9 @@ class PowerVectorKey private constructor(
     }
 
     /**
-     * 从键重建幂次映射
-     * Reconstruct powers map from key.
+     * 从键重建幂次映射 / Reconstruct powers map from key.
      *
-     * 需要 symbolList（索引到符号的映射）。
-     * Requires symbolList (index to symbol mapping).
+     * 需要 symbolList（索引到符号的映射）。 / Requires symbolList (index to symbol mapping).
      *
      * @param symbolList 索引到符号的映射列表 / Index to symbol mapping list
      * @return 符号到幂次的映射 / Map of symbol to power

@@ -1,9 +1,7 @@
 /**
- * 单位制
- * Unit system
+ * 单位制 / Unit system
  *
- * 定义不同单位制（如 SI、CGS、英制等）的标准单位和比例。
- * Defines standard units and scales for different unit systems (SI, CGS, Imperial, etc).
+ * 定义不同单位制（如 SI、CGS、英制等）的标准单位和比例。 / Defines standard units and scales for different unit systems (SI, CGS, Imperial, etc).
  *
  * 核心概念 / Core concepts:
  * - [UnitSystem]: 单位制接口 / Unit system interface
@@ -13,8 +11,7 @@
  * - [MKS]: 米-千克-秒单位制 / Meter-Kilogram-Second system
  * - [CGS]: 厘米-克-秒单位制 / Centimeter-Gram-Second system
  *
- * 单位制定义了基本单位，导出单位通过懒加载自动推导。
- * Unit systems define base units, derived units are lazily computed.
+ * 单位制定义了基本单位，导出单位通过懒加载自动推导。 / Unit systems define base units, derived units are lazily computed.
  *
  * 预定义单位制 / Predefined unit systems:
  * - SI: 国际单位制（米、千克、秒、安培、开尔文、摩尔、坎德拉）
@@ -29,56 +26,44 @@ import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.quantities.dimension.*
 
 /**
- * 单位制接口
- * Unit system interface
+ * 单位制接口 / Unit system interface
  *
- * 定义不同单位制（如 SI、CGS、英制等）的标准单位和比例。
- * Defines standard units and scales for different unit systems (SI, CGS, Imperial, etc).
+ * 定义不同单位制（如 SI、CGS、英制等）的标准单位和比例。 / Defines standard units and scales for different unit systems (SI, CGS, Imperial, etc).
  *
- * 单位制定义了基本单位，导出单位通过懒加载自动推导。
- * Unit systems define base units, derived units are lazily computed.
+ * 单位制定义了基本单位，导出单位通过懒加载自动推导。 / Unit systems define base units, derived units are lazily computed.
 */
 interface UnitSystem {
 
     /**
-     * 单位制名称
-     * Unit system name
+     * 单位制名称 / Unit system name
     */
     val name: String
 
     /**
-     * 基本单位映射
-     * Base units mapping
+     * 基本单位映射 / Base units mapping
      *
-     * 将基本量纲映射到对应的基本单位。
-     * Maps fundamental dimensions to their corresponding base units.
+     * 将基本量纲映射到对应的基本单位。 / Maps fundamental dimensions to their corresponding base units.
     */
     val baseUnits: Map<FundamentalQuantityDimension, PhysicalUnit>
 
     /**
-     * 用户指定的标准单位
-     * User-specified standard units
+     * 用户指定的标准单位 / User-specified standard units
      *
-     * 允许用户为特定量纲指定非默认的标准单位。
-     * Allows users to specify non-default standard units for specific dimensions.
+     * 允许用户为特定量纲指定非默认的标准单位。 / Allows users to specify non-default standard units for specific dimensions.
     */
     val standardUnits: MutableMap<DerivedQuantity, PhysicalUnit>
 
     /**
-     * 导出单位缓存
-     * Derived units cache
+     * 导出单位缓存 / Derived units cache
      *
-     * 缓存已推导的导出单位，避免重复计算。
-     * Caches derived units to avoid repeated computation.
+     * 缓存已推导的导出单位，避免重复计算。 / Caches derived units to avoid repeated computation.
     */
     val derivedCache: MutableMap<DerivedQuantity, PhysicalUnit>
 
     /**
-     * 获取指定量纲的标准单位
-     * Get standard unit for dimension
+     * 获取指定量纲的标准单位 / Get standard unit for dimension
      *
-     * 如果用户指定了标准单位，返回用户指定的；否则返回推导的默认单位。
-     * Returns user-specified standard unit if set, otherwise returns derived default unit.
+     * 如果用户指定了标准单位，返回用户指定的；否则返回推导的默认单位。 / Returns user-specified standard unit if set, otherwise returns derived default unit.
      *
      * @param quantity 量纲 / Dimension
      * @return 标准单位，如果不支持该量纲返回 null / Standard unit, or null if dimension is not supported
@@ -96,11 +81,9 @@ interface UnitSystem {
     }
 
     /**
-     * 设置指定量纲的标准单位
-     * Set standard unit for dimension
+     * 设置指定量纲的标准单位 / Set standard unit for dimension
      *
-     * 允许在单位制创建后动态修改标准单位。
-     * Allows dynamic modification of standard units after unit system creation.
+     * 允许在单位制创建后动态修改标准单位。 / Allows dynamic modification of standard units after unit system creation.
      *
      * @param quantity 量纲 / Dimension
      * @param unit 标准单位 / Standard unit
@@ -110,8 +93,7 @@ interface UnitSystem {
     }
 
     /**
-     * 移除指定量纲的标准单位（恢复使用默认推导单位）
-     * Remove standard unit for dimension (revert to default derived unit)
+     * 移除指定量纲的标准单位（恢复使用默认推导单位） / Remove standard unit for dimension (revert to default derived unit)
      *
      * @param quantity 量纲 / Dimension
      * @return 如果成功移除返回 true，如果不存在返回 false / Returns true if removed, false if not found
@@ -121,8 +103,7 @@ interface UnitSystem {
     }
 
     /**
-     * 获取指定量纲的单位（懒加载推导）
-     * Get unit for dimension (lazy derivation)
+     * 获取指定量纲的单位（懒加载推导） / Get unit for dimension (lazy derivation)
      *
      * @param quantity 量纲 / Dimension
      * @return 单位，如果不支持该量纲返回 null / Unit, or null if dimension is not supported
@@ -157,11 +138,9 @@ interface UnitSystem {
     }
 
     /**
-     * 推导指定量纲的单位
-     * Derive unit for dimension
+     * 推导指定量纲的单位 / Derive unit for dimension
      *
-     * 根据基本单位的组合推导出导出单位。
-     * Derives a unit from combinations of base units.
+     * 根据基本单位的组合推导出导出单位。 / Derives a unit from combinations of base units.
      *
      * @param quantity 量纲 / Dimension
      * @return 推导的单位，如果不支持返回 null / Derived unit, or null if not supported
@@ -215,8 +194,7 @@ interface UnitSystem {
     }
 
     /**
-     * 获取指定量纲相对于标准单位制的比例
-     * Get conversion scale to standard system for dimension
+     * 获取指定量纲相对于标准单位制的比例 / Get conversion scale to standard system for dimension
      *
      * @param quantity 量纲 / Dimension
      * @return 转换比例，如果不支持返回 null / Conversion scale, or null if not supported
@@ -227,8 +205,7 @@ interface UnitSystem {
     }
 
     /**
-     * 检查是否支持指定量纲
-     * Check if quantity is supported
+     * 检查是否支持指定量纲 / Check if quantity is supported
      *
      * @param quantity 量纲 / Dimension
      * @return 如果支持返回 true，否则返回 false / Returns true if supported, false otherwise
@@ -239,8 +216,7 @@ interface UnitSystem {
 }
 
 /**
- * 具体单位制实现
- * Concrete unit system implementation
+ * 具体单位制实现 / Concrete unit system implementation
  *
  * @param name 单位制名称 / Unit system name
  * @param baseUnits 基本单位映射 / Base units mapping
@@ -255,8 +231,7 @@ data class ConcreteUnitSystem(
 ) : UnitSystem
 
 /**
- * 单位制构建器
- * Unit system builder
+ * 单位制构建器 / Unit system builder
  *
  * 使用 UnitSystemBuilder 可以创建自定义单位制。
  * Use UnitSystemBuilder to create custom unit systems.
@@ -277,8 +252,7 @@ class UnitSystemBuilder {
     private val standardUnits: MutableMap<DerivedQuantity, PhysicalUnit>
 
     /**
-     * 创建新的单位制构建器
-     * Create new unit system builder
+     * 创建新的单位制构建器 / Create new unit system builder
      *
      * @param name 单位制名称 / Unit system name
     */
@@ -291,8 +265,7 @@ class UnitSystemBuilder {
     }
 
     /**
-     * 从原型单位制创建（继承其所有单位）
-     * Create from prototype unit system (inherit all units)
+     * 从原型单位制创建（继承其所有单位） / Create from prototype unit system (inherit all units)
      *
      * @param name 单位制名称 / Unit system name
      * @param prototype 原型单位制 / Prototype unit system
@@ -306,8 +279,7 @@ class UnitSystemBuilder {
     }
 
     /**
-     * 添加/替换基本单位
-     * Add/replace base unit
+     * 添加/替换基本单位 / Add/replace base unit
      *
      * @param dimension 基本量纲 / Fundamental dimension
      * @param unit 基本单位 / Base unit
@@ -319,8 +291,7 @@ class UnitSystemBuilder {
     }
 
     /**
-     * 添加/替换导出单位
-     * Add/replace derived unit
+     * 添加/替换导出单位 / Add/replace derived unit
      *
      * @param quantity 量纲 / Dimension
      * @param unit 导出单位 / Derived unit
@@ -332,11 +303,9 @@ class UnitSystemBuilder {
     }
 
     /**
-     * 设置指定量纲的标准单位
-     * Set standard unit for dimension
+     * 设置指定量纲的标准单位 / Set standard unit for dimension
      *
-     * 标准单位用于将物理量转换为该量纲的标准表示。
-     * Standard units are used to convert quantities to standard representation for that dimension.
+     * 标准单位用于将物理量转换为该量纲的标准表示。 / Standard units are used to convert quantities to standard representation for that dimension.
      *
      * @param quantity 量纲 / Dimension
      * @param unit 标准单位 / Standard unit
@@ -348,8 +317,7 @@ class UnitSystemBuilder {
     }
 
     /**
-     * 构建单位制
-     * Build unit system
+     * 构建单位制 / Build unit system
      *
      * @return 构建的单位制实例 / Built unit system instance
     */
@@ -369,8 +337,7 @@ class UnitSystemBuilder {
 // ============================================================================
 
 /**
- * SI 单位制（国际单位制）
- * SI unit system (International System of Units)
+ * SI 单位制（国际单位制） / SI unit system (International System of Units)
  *
  * 基本单位 / Base units:
  * - 长度: 米 (m) / Length: meter (m)
@@ -438,11 +405,9 @@ object SI : UnitSystem {
 // ============================================================================
 
 /**
- * MKS 单位制（米-千克-秒）
- * MKS unit system (meter-kilogram-second)
+ * MKS 单位制（米-千克-秒） / MKS unit system (meter-kilogram-second)
  *
- * 这是 SI 单位制的子集，只包含力学量纲。
- * This is a subset of SI, containing only mechanical dimensions.
+ * 这是 SI 单位制的子集，只包含力学量纲。 / This is a subset of SI, containing only mechanical dimensions.
  *
  * 基本单位 / Base units:
  * - 长度: 米 (m) / Length: meter (m)
@@ -472,11 +437,9 @@ object MKS : UnitSystem {
 // ============================================================================
 
 /**
- * CGS 单位制（厘米-克-秒）
- * CGS unit system (centimeter-gram-second)
+ * CGS 单位制（厘米-克-秒） / CGS unit system (centimeter-gram-second)
  *
- * 这是早期物理学常用的单位制，主要用于力学量纲。
- * This is a unit system commonly used in early physics, mainly for mechanical dimensions.
+ * 这是早期物理学常用的单位制，主要用于力学量纲。 / This is a unit system commonly used in early physics, mainly for mechanical dimensions.
  *
  * 基本单位 / Base units:
  * - 长度: 厘米 (cm) / Length: centimeter (cm)

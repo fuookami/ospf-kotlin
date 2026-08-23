@@ -227,8 +227,7 @@ class DFSGenerator<V : RealNumber<V>>(
     }
 
     /**
-     * 执行深度优先搜索，枚举所有可行的切割方案组合。
-     * Execute depth-first search to enumerate all feasible cutting plan combinations.
+     * 执行深度优先搜索，枚举所有可行的切割方案组合。 / Execute depth-first search to enumerate all feasible cutting plan combinations.
      *
      * @param material 当前原料 / the current material
      * @param widthIndex 宽度索引，包含所有产品宽度条目 / width index containing all product width entries
@@ -359,8 +358,7 @@ class DFSGenerator<V : RealNumber<V>>(
     }
 
     /**
-     * 从缓存模板中发射方案，无需重复 DFS 搜索。
-     * Emit plans from cached slice templates without re-running DFS search.
+     * 从缓存模板中发射方案，无需重复 DFS 搜索。 / Emit plans from cached slice templates without re-running DFS search.
      *
      * @param material 当前原料 / the current material
      * @param widthIndex 宽度索引 / the width index
@@ -395,8 +393,7 @@ class DFSGenerator<V : RealNumber<V>>(
     }
 
     /**
-     * 检查当前切片组合是否满足剪枝约束。
-     * Check whether the current slice combination satisfies pruning constraints.
+     * 检查当前切片组合是否满足剪枝约束。 / Check whether the current slice combination satisfies pruning constraints.
      *
      * @param slices 当前切片列表 / current slice list
      * @param totalWidth 当前总宽度 / current total width
@@ -416,8 +413,7 @@ class DFSGenerator<V : RealNumber<V>>(
     }
 
     /**
-     * 检查当前切片组合是否满足叶子节点约束。
-     * Check whether the current slice combination satisfies leaf constraints.
+     * 检查当前切片组合是否满足叶子节点约束。 / Check whether the current slice combination satisfies leaf constraints.
      *
      * @param slices 当前切片列表 / current slice list
      * @param totalWidth 当前总宽度 / current total width
@@ -437,8 +433,7 @@ class DFSGenerator<V : RealNumber<V>>(
     }
 
     /**
-     * 根据切片列表构建切割方案。
-     * Build a cutting plan from the slice list.
+     * 根据切片列表构建切割方案。 / Build a cutting plan from the slice list.
      *
      * @param material 当前原料 / the current material
      * @param slices 切片列表 / slice list

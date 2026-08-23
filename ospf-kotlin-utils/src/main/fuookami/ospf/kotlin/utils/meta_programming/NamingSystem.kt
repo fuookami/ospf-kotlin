@@ -1,22 +1,17 @@
 /**
- * 本文件定义命名系统枚举，支持 camelCase、snake_case 等不同命名约定。
- * This file defines naming system enumerations for different conventions (camelCase, snake_case, etc.).
+ * 本文件定义命名系统枚举，支持 camelCase、snake_case 等不同命名约定。 / This file defines naming system enumerations for different conventions (camelCase, snake_case, etc.).
 */
 package fuookami.ospf.kotlin.utils.meta_programming
 
 import java.util.*
 
 /**
- * 判断字符是否为字母或数字
- *
- * Check if a character is alphanumeric.
+ * 判断字符是否为字母或数字 / Check if a character is alphanumeric.
 */
 private val Char.isAlphaNumber: Boolean get() = isLowerCase() || isUpperCase() || isDigit()
 
 /**
- * 命名系统枚举
- *
- * Enumeration of naming systems for converting between different naming conventions.
+ * 命名系统枚举 / Enumeration of naming systems for converting between different naming conventions.
 */
 enum class NamingSystem {
     /**
@@ -26,9 +21,7 @@ enum class NamingSystem {
     */
     SnakeCase {
         /**
-         * 将蛇形命名转换为单词序列
-         *
-         * Convert snake_case name to word sequence.
+         * 将蛇形命名转换为单词序列 / Convert snake_case name to word sequence.
          *
          * @param name 蛇形命名的名称 / Snake case name
          * @param abbreviations 缩写集合 / Abbreviation set
@@ -44,9 +37,7 @@ enum class NamingSystem {
         }
 
         /**
-         * 将单词序列转换为蛇形命名
-         *
-         * Convert word sequence to snake_case name.
+         * 将单词序列转换为蛇形命名 / Convert word sequence to snake_case name.
          *
          * @param words 单词序列 / Word sequence
          * @param abbreviations 缩写集合 / Abbreviation set
@@ -64,9 +55,7 @@ enum class NamingSystem {
     */
     UpperSnakeCase {
         /**
-         * 将大写蛇形命名拆分为单词序列（委托给 SnakeCase）
-         *
-         * Split UPPER_SNAKE_CASE name to word sequence (delegates to SnakeCase).
+         * 将大写蛇形命名拆分为单词序列（委托给 SnakeCase） / Split UPPER_SNAKE_CASE name to word sequence (delegates to SnakeCase).
          *
          * @param name          大写蛇形命名的名称 / Upper snake case name
          * @param abbreviations 缩写集合 / Abbreviation set
@@ -77,9 +66,7 @@ enum class NamingSystem {
         }
 
         /**
-         * 将单词序列转换为大写蛇形命名
-         *
-         * Convert word sequence to UPPER_SNAKE_CASE name.
+         * 将单词序列转换为大写蛇形命名 / Convert word sequence to UPPER_SNAKE_CASE name.
          *
          * @param words         单词序列 / Word sequence
          * @param abbreviations 缩写集合 / Abbreviation set
@@ -97,9 +84,7 @@ enum class NamingSystem {
     */
     KebabCase {
         /**
-         * 将短横线命名拆分为单词序列
-         *
-         * Split kebab-case name to word sequence.
+         * 将短横线命名拆分为单词序列 / Split kebab-case name to word sequence.
          *
          * @param name          短横线命名的名称 / Kebab case name
          * @param abbreviations 缩写集合 / Abbreviation set
@@ -115,9 +100,7 @@ enum class NamingSystem {
         }
 
         /**
-         * 将单词序列转换为短横线命名
-         *
-         * Convert word sequence to kebab-case name.
+         * 将单词序列转换为短横线命名 / Convert word sequence to kebab-case name.
          *
          * @param words         单词序列 / Word sequence
          * @param abbreviations 缩写集合 / Abbreviation set
@@ -135,9 +118,7 @@ enum class NamingSystem {
     */
     CamelCase {
         /**
-         * 将骆驼命名拆分为单词序列
-         *
-         * Split camelCase name to word sequence.
+         * 将骆驼命名拆分为单词序列 / Split camelCase name to word sequence.
          *
          * @param name          骆驼命名的名称 / Camel case name
          * @param abbreviations 缩写集合 / Abbreviation set
@@ -230,9 +211,7 @@ enum class NamingSystem {
         }
 
         /**
-         * 将单词序列转换为骆驼命名
-         *
-         * Convert word sequence to camelCase name.
+         * 将单词序列转换为骆驼命名 / Convert word sequence to camelCase name.
          *
          * BUG FIX: 原始代码使用 joinToString() 默认逗号分隔。
          * FIX: Original code used joinToString() with default comma separator.
@@ -269,9 +248,7 @@ enum class NamingSystem {
     */
     PascalCase {
         /**
-         * 将帕斯卡命名拆分为单词序列（委托给 CamelCase）
-         *
-         * Split PascalCase name to word sequence (delegates to CamelCase).
+         * 将帕斯卡命名拆分为单词序列（委托给 CamelCase） / Split PascalCase name to word sequence (delegates to CamelCase).
          *
          * @param name          帕斯卡命名的名称 / Pascal case name
          * @param abbreviations 缩写集合 / Abbreviation set
@@ -282,9 +259,7 @@ enum class NamingSystem {
         }
 
         /**
-         * 将单词序列转换为帕斯卡命名
-         *
-         * Convert word sequence to PascalCase name.
+         * 将单词序列转换为帕斯卡命名 / Convert word sequence to PascalCase name.
          *
          * BUG FIX: 原始代码使用 joinToString { } 默认逗号分隔。
          * FIX: Original code used joinToString { } with default comma separator.
@@ -313,9 +288,7 @@ enum class NamingSystem {
     };
 
     /**
-     * 将给定的名称拆分为单词序列
-     *
-     * Split the given name to word sequence with this naming system.
+     * 将给定的名称拆分为单词序列 / Split the given name to word sequence with this naming system.
      *
      * @param name 给定的名称 / The given name
      * @param abbreviations 缩写集合 / Abbreviation set
@@ -324,9 +297,7 @@ enum class NamingSystem {
     abstract fun frontend(name: String, abbreviations: Set<String> = emptySet()): List<String>
 
     /**
-     * 将给定的单词序列合并为对应的命名格式
-     *
-     * Join the given word sequence to a name corresponding this naming system.
+     * 将给定的单词序列合并为对应的命名格式 / Join the given word sequence to a name corresponding this naming system.
      *
      * @param words 给定的单词序列 / The given word sequence
      * @param abbreviations 缩写集合 / Abbreviation set

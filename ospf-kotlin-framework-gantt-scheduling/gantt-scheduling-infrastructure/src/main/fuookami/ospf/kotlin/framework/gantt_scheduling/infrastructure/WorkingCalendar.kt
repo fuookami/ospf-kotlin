@@ -120,8 +120,8 @@ open class WorkingCalendar<V : RealNumber<V>>(
          * Checks if this actual time's time range equals the given time range.
          * 检查此实际时间的时间范围是否等于给定的时间范围
          *
-         * @param time The time range to compare / 要比较的时间范围
-         * @return True if the time ranges are equal / 若时间范围相等则为true
+         * @param time 要比较的时间范围 / The time range to compare
+         * @return 若时间范围相等则为true / True if the time ranges are equal
         */
         infix fun eq(time: TimeRange): Boolean {
             return this.time == time
@@ -367,15 +367,15 @@ open class WorkingCalendar<V : RealNumber<V>>(
          * Calculates the actual time range considering unavailable times, connection times, and break times.
          * 计算考虑不可用时间、连接时间和休息时间后的实际时间范围
          *
-         * @param time The target time range / 目标时间范围
-         * @param unavailableTimes The list of unavailable times / 不可用时间列表
-         * @param beforeConnectionTime The before connection time / 前置连接时间
-         * @param afterConnectionTime The after connection time / 后置连接时间
-         * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-         * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-         * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-         * @param breakTime The break time pair / 休息时间配对
-         * @return The actual time result / 实际时间结果
+         * @param time 目标时间范围 / The target time range
+         * @param unavailableTimes 不可用时间列表 / The list of unavailable times
+         * @param beforeConnectionTime 前置连接时间 / The before connection time
+         * @param afterConnectionTime 后置连接时间 / The after connection time
+         * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+         * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+         * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+         * @param breakTime 休息时间配对 / The break time pair
+         * @return 实际时间结果 / The actual time result
         */
         @JvmStatic
         @JvmName("staticActualTime")
@@ -599,16 +599,16 @@ open class WorkingCalendar<V : RealNumber<V>>(
          * Calculates the valid time ranges within the given time range, excluding unavailable times and accounting for connection and break times.
          * 计算给定时间范围内的有效时间范围，排除不可用时间并考虑连接时间和休息时间
          *
-         * @param time The target time range / 目标时间范围
-         * @param unavailableTimes The list of unavailable times / 不可用时间列表
-         * @param beforeConnectionTime The before connection time / 前置连接时间
-         * @param afterConnectionTime The after connection time / 后置连接时间
-         * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-         * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-         * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-         * @param maxDuration The maximum valid duration / 最大有效时长
-         * @param breakTime The break time pair / 休息时间配对
-         * @return The valid times result / 有效时间结果
+         * @param time 目标时间范围 / The target time range
+         * @param unavailableTimes 不可用时间列表 / The list of unavailable times
+         * @param beforeConnectionTime 前置连接时间 / The before connection time
+         * @param afterConnectionTime 后置连接时间 / The after connection time
+         * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+         * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+         * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+         * @param maxDuration 最大有效时长 / The maximum valid duration
+         * @param breakTime 休息时间配对 / The break time pair
+         * @return 有效时间结果 / The valid times result
         */
         @JvmStatic
         @JvmName("staticValidTime")
@@ -890,15 +890,15 @@ open class WorkingCalendar<V : RealNumber<V>>(
          * Calculates the valid time ranges in reverse order within the given time range, excluding unavailable times and accounting for connection and break times.
          * 以逆序计算给定时间范围内的有效时间范围，排除不可用时间并考虑连接时间和休息时间
          *
-         * @param time The target time range / 目标时间范围
-         * @param unavailableTimes The list of unavailable times / 不可用时间列表
-         * @param beforeConnectionTime The before connection time / 前置连接时间
-         * @param afterConnectionTime The after connection time / 后置连接时间
-         * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-         * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-         * @param maxDuration The maximum valid duration / 最大有效时长
-         * @param breakTime The break time pair / 休息时间配对
-         * @return The valid times result / 有效时间结果
+         * @param time 目标时间范围 / The target time range
+         * @param unavailableTimes 不可用时间列表 / The list of unavailable times
+         * @param beforeConnectionTime 前置连接时间 / The before connection time
+         * @param afterConnectionTime 后置连接时间 / The after connection time
+         * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+         * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+         * @param maxDuration 最大有效时长 / The maximum valid duration
+         * @param breakTime 休息时间配对 / The break time pair
+         * @return 有效时间结果 / The valid times result
         */
         @JvmStatic
         @JvmName("staticRValidTime")
@@ -1261,12 +1261,13 @@ open class WorkingCalendar<V : RealNumber<V>>(
     }
 }
 
-/**
- * 生产力条件类型别名 / Productivity condition type alias
+/** 生产力条件 / Productivity condition
  *
  * @param T 条件参数类型 / The condition parameter type
 */
-typealias ProductivityCondition<T> = (T) -> Boolean
+fun interface ProductivityCondition<T> {
+    operator fun invoke(value: T): Boolean
+}
 
 /**
  * 生产力，描述时间窗口内的生产能力 / Productivity describing production capacity within a time window
@@ -1302,16 +1303,16 @@ open class Productivity<Q, T, U>(
          * Creates a Productivity instance with both capacities and unit yields, without an explicit extractor.
          * 创建同时包含产能和单位产量的生产力实例，不使用显式提取器
          *
-         * @param Q The quantity type / 产量类型
-         * @param T The material type / 材料类型
-         * @param timeWindow The time window / 时间窗口
-         * @param weekDays The set of applicable weekdays / 生效的星期几集合
-         * @param monthDays The set of applicable month days / 生效的月份天数集合
-         * @param capacities Mapping from material to time required per unit / 材料到生产单位所需时间的映射
-         * @param unitYields Mapping from material to unit time production / 材料到单位时间产量的映射
-         * @param conditionCapacities The list of conditional capacities / 条件产能列表
-         * @param conditionUnitYields The list of conditional unit yields / 条件单位产量列表
-         * @return A new Productivity instance / 新的生产力实例
+         * @param Q 产量类型 / The quantity type
+         * @param T 材料类型 / The material type
+         * @param timeWindow 时间窗口 / The time window
+         * @param weekDays 生效的星期几集合 / The set of applicable weekdays
+         * @param monthDays 生效的月份天数集合 / The set of applicable month days
+         * @param capacities 材料到生产单位所需时间的映射 / Mapping from material to time required per unit
+         * @param unitYields 材料到单位时间产量的映射 / Mapping from material to unit time production
+         * @param conditionCapacities 条件产能列表 / The list of conditional capacities
+         * @param conditionUnitYields 条件单位产量列表 / The list of conditional unit yields
+         * @return 新的生产力实例 / A new Productivity instance
         */
         @JvmName("buildByCapacityAndUnitYieldWithoutExtractor")
         operator fun <Q, T> invoke(
@@ -1339,14 +1340,14 @@ open class Productivity<Q, T, U>(
          * Creates a Productivity instance with capacities only, without an explicit extractor.
          * 创建仅包含产能的生产力实例，不使用显式提取器
          *
-         * @param Q The quantity type / 产量类型
-         * @param T The material type / 材料类型
-         * @param timeWindow The time window / 时间窗口
-         * @param weekDays The set of applicable weekdays / 生效的星期几集合
-         * @param monthDays The set of applicable month days / 生效的月份天数集合
-         * @param capacities Mapping from material to time required per unit / 材料到生产单位所需时间的映射
-         * @param conditionCapacities The list of conditional capacities / 条件产能列表
-         * @return A new Productivity instance / 新的生产力实例
+         * @param Q 产量类型 / The quantity type
+         * @param T 材料类型 / The material type
+         * @param timeWindow 时间窗口 / The time window
+         * @param weekDays 生效的星期几集合 / The set of applicable weekdays
+         * @param monthDays 生效的月份天数集合 / The set of applicable month days
+         * @param capacities 材料到生产单位所需时间的映射 / Mapping from material to time required per unit
+         * @param conditionCapacities 条件产能列表 / The list of conditional capacities
+         * @return 新的生产力实例 / A new Productivity instance
         */
         @JvmName("buildByCapacityWithoutExtractor")
         operator fun <Q, T> invoke(
@@ -1372,16 +1373,16 @@ open class Productivity<Q, T, U>(
          * Creates a Productivity instance with capacities and an explicit extractor.
          * 创建包含产能和显式提取器的生产力实例
          *
-         * @param Q The quantity type / 产量类型
-         * @param T The material type / 材料类型
-         * @param U The key type / 键类型
-         * @param timeWindow The time window / 时间窗口
-         * @param extractor The key extractor / 键提取器
-         * @param weekDays The set of applicable weekdays / 生效的星期几集合
-         * @param monthDays The set of applicable month days / 生效的月份天数集合
-         * @param capacities Mapping from key to time required per unit / 键到生产单位所需时间的映射
-         * @param conditionCapacities The list of conditional capacities / 条件产能列表
-         * @return A new Productivity instance / 新的生产力实例
+         * @param Q 产量类型 / The quantity type
+         * @param T 材料类型 / The material type
+         * @param U 键类型 / The key type
+         * @param timeWindow 时间窗口 / The time window
+         * @param extractor 键提取器 / The key extractor
+         * @param weekDays 生效的星期几集合 / The set of applicable weekdays
+         * @param monthDays 生效的月份天数集合 / The set of applicable month days
+         * @param capacities 键到生产单位所需时间的映射 / Mapping from key to time required per unit
+         * @param conditionCapacities 条件产能列表 / The list of conditional capacities
+         * @return 新的生产力实例 / A new Productivity instance
         */
         @JvmName("buildByCapacityWithExtractor")
         operator fun <Q, T, U> invoke(
@@ -1408,14 +1409,14 @@ open class Productivity<Q, T, U>(
          * Creates a Productivity instance with unit yields only, without an explicit extractor.
          * 创建仅包含单位产量的生产力实例，不使用显式提取器
          *
-         * @param Q The quantity type / 产量类型
-         * @param T The material type / 材料类型
-         * @param timeWindow The time window / 时间窗口
-         * @param weekDays The set of applicable weekdays / 生效的星期几集合
-         * @param monthDays The set of applicable month days / 生效的月份天数集合
-         * @param unitYields Mapping from material to unit time production / 材料到单位时间产量的映射
-         * @param conditionUnitYields The list of conditional unit yields / 条件单位产量列表
-         * @return A new Productivity instance / 新的生产力实例
+         * @param Q 产量类型 / The quantity type
+         * @param T 材料类型 / The material type
+         * @param timeWindow 时间窗口 / The time window
+         * @param weekDays 生效的星期几集合 / The set of applicable weekdays
+         * @param monthDays 生效的月份天数集合 / The set of applicable month days
+         * @param unitYields 材料到单位时间产量的映射 / Mapping from material to unit time production
+         * @param conditionUnitYields 条件单位产量列表 / The list of conditional unit yields
+         * @return 新的生产力实例 / A new Productivity instance
         */
         @JvmName("buildByUnitYieldWithoutExtractor")
         operator fun <Q, T> invoke(
@@ -1441,16 +1442,16 @@ open class Productivity<Q, T, U>(
          * Creates a Productivity instance with unit yields and an explicit extractor.
          * 创建包含单位产量和显式提取器的生产力实例
          *
-         * @param Q The quantity type / 产量类型
-         * @param T The material type / 材料类型
-         * @param U The key type / 键类型
-         * @param timeWindow The time window / 时间窗口
-         * @param extractor The key extractor / 键提取器
-         * @param weekDays The set of applicable weekdays / 生效的星期几集合
-         * @param monthDays The set of applicable month days / 生效的月份天数集合
-         * @param unitYields Mapping from key to unit time production / 键到单位时间产量的映射
-         * @param conditionUnitYields The list of conditional unit yields / 条件单位产量列表
-         * @return A new Productivity instance / 新的生产力实例
+         * @param Q 产量类型 / The quantity type
+         * @param T 材料类型 / The material type
+         * @param U 键类型 / The key type
+         * @param timeWindow 时间窗口 / The time window
+         * @param extractor 键提取器 / The key extractor
+         * @param weekDays 生效的星期几集合 / The set of applicable weekdays
+         * @param monthDays 生效的月份天数集合 / The set of applicable month days
+         * @param unitYields 键到单位时间产量的映射 / Mapping from key to unit time production
+         * @param conditionUnitYields 条件单位产量列表 / The list of conditional unit yields
+         * @return 新的生产力实例 / A new Productivity instance
         */
         @JvmName("buildByUnitYieldWithExtractor")
         operator fun <Q, T, U> invoke(
@@ -1566,9 +1567,7 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
 
     /**
      * 在拆分时间窗时恢复同构建路径的具体 Productivity 子类型。
-     * 日历中的 productivity 实例由同一 P 类型构造路径产生，cast 仅恢复泛型擦除隐藏的具体类型。
-     *
-     * Restores the concrete Productivity subtype when splitting time windows.
+     * 日历中的 productivity 实例由同一 P 类型构造路径产生，cast 仅恢复泛型擦除隐藏的具体类型。 / Restores the concrete Productivity subtype when splitting time windows.
      * Productivity instances in this calendar are produced by the same P-generic construction path,
      * and this cast only restores the concrete type hidden by generic erasure.
      *
@@ -1585,8 +1584,8 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Converts a quantity value to a calendar floating-point value.
      * 将产量值转换为日历浮点数值
      *
-     * @param quantity The quantity value / 产量值
-     * @return The calendar floating-point value / 日历浮点数值
+     * @param quantity 产量值 / The quantity value
+     * @return 日历浮点数值 / The calendar floating-point value
     */
     private fun calendarValueOf(quantity: Q): Flt64 = quantity.toFlt64()
 
@@ -1594,8 +1593,8 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Converts a duration to a calendar floating-point value.
      * 将时长转换为日历浮点数值
      *
-     * @param duration The duration / 时长
-     * @return The calendar floating-point value / 日历浮点数值
+     * @param duration 时长 / The duration
+     * @return 日历浮点数值 / The calendar floating-point value
     */
     private fun calendarValueOf(duration: Duration): Flt64 = timeWindow.valueOf(duration).toFlt64()
 
@@ -1603,8 +1602,8 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Converts a calendar floating-point value to a duration.
      * 将日历浮点数值转换为时长
      *
-     * @param value The calendar floating-point value / 日历浮点数值
-     * @return The duration / 时长
+     * @param value 日历浮点数值 / The calendar floating-point value
+     * @return 时长 / The duration
     */
     private fun calendarDurationOf(value: Flt64): Duration {
         return timeWindow.durationOf(timeWindow.fromDouble(value.toDouble()))
@@ -1614,8 +1613,8 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Converts a calendar floating-point value to a ceiling duration.
      * 将日历浮点数值转换为向上取整的时长
      *
-     * @param value The calendar floating-point value / 日历浮点数值
-     * @return The ceiling duration / 向上取整的时长
+     * @param value 日历浮点数值 / The calendar floating-point value
+     * @return 向上取整的时长 / The ceiling duration
     */
     private fun calendarCeilDurationOf(value: Flt64): Duration {
         return timeWindow.ceil(calendarDurationOf(value))
@@ -1625,9 +1624,9 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Calculates the productivity rate for a given material from a productivity entry.
      * 从生产力条目计算给定材料的生产率
      *
-     * @param productivity The productivity entry / 生产力条目
-     * @param material The material / 材料
-     * @return The productivity rate, or null if neither unit yield nor capacity is available / 生产率，若无单位产量和产能则为null
+     * @param productivity 生产力条目 / The productivity entry
+     * @param material 材料 / The material
+     * @return 生产率，若无单位产量和产能则为null / The productivity rate, or null if neither unit yield nor capacity is available
     */
     private fun productivityRateOf(
         productivity: Productivity<Q, T, U>,
@@ -1708,16 +1707,16 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Finds the actual start time for producing the given material from the specified start time.
      * 从指定开始时间查找给定材料的实际开始时间
      *
-     * @param material The material to produce / 要生产的材料
-     * @param startTime The start time to search from / 搜索的起始时间
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual start time, or [Instant.DISTANT_FUTURE] if no productive time found / 实际开始时间，若未找到则为 [Instant.DISTANT_FUTURE]
+     * @param material 要生产的材料 / The material to produce
+     * @param startTime 搜索的起始时间 / The start time to search from
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际开始时间，若未找到则为 [Instant.DISTANT_FUTURE] / The actual start time, or [Instant.DISTANT_FUTURE] if no productive time found
     */
     fun actualStartTimeFrom(
         material: T,
@@ -1774,17 +1773,17 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Calculates the actual time from the given start time to produce the specified quantity of material.
      * 计算从给定开始时间生产指定数量材料的实际时间
      *
-     * @param material The material to produce / 要生产的材料
-     * @param startTime The start time / 开始时间
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result / 实际时间结果
+     * @param material 要生产的材料 / The material to produce
+     * @param startTime 开始时间 / The start time
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果 / The actual time result
     */
     fun actualTimeFrom(
         material: T,
@@ -1830,17 +1829,17 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Calculates the actual time from the given start time to produce the specified quantity of material, returning null if no productivity calendar is available.
      * 计算从给定开始时间生产指定数量材料的实际时间，若无生产力日历则返回null
      *
-     * @param material The material to produce / 要生产的材料
-     * @param startTime The start time / 开始时间
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result, or null if no productivity calendar is available / 实际时间结果，若无生产力日历则为null
+     * @param material 要生产的材料 / The material to produce
+     * @param startTime 开始时间 / The start time
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果，若无生产力日历则为null / The actual time result, or null if no productivity calendar is available
     */
     fun actualTimeFromOrNull(
         material: T,
@@ -1878,17 +1877,17 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Calculates the actual time from the given start time in parallel to produce the specified quantity of material.
      * 并行计算从给定开始时间生产指定数量材料的实际时间
      *
-     * @param material The material to produce / 要生产的材料
-     * @param startTime The start time / 开始时间
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result / 实际时间结果
+     * @param material 要生产的材料 / The material to produce
+     * @param startTime 开始时间 / The start time
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果 / The actual time result
     */
     suspend fun actualTimeFromParallelly(
         material: T,
@@ -1934,17 +1933,17 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Calculates the actual time from the given start time in parallel to produce the specified quantity of material, returning null if no productivity calendar is available.
      * 并行计算从给定开始时间生产指定数量材料的实际时间，若无生产力日历则返回null
      *
-     * @param material The material to produce / 要生产的材料
-     * @param startTime The start time / 开始时间
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result, or null if no productivity calendar is available / 实际时间结果，若无生产力日历则为null
+     * @param material 要生产的材料 / The material to produce
+     * @param startTime 开始时间 / The start time
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果，若无生产力日历则为null / The actual time result, or null if no productivity calendar is available
     */
     suspend fun actualTimeFromOrNullParallelly(
         material: T,
@@ -1982,16 +1981,16 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Calculates the actual time until the given end time to produce the specified quantity of material.
      * 计算截至给定结束时间生产指定数量材料的实际时间
      *
-     * @param material The material to produce / 要生产的材料
-     * @param endTime The end time / 结束时间
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result / 实际时间结果
+     * @param material 要生产的材料 / The material to produce
+     * @param endTime 结束时间 / The end time
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果 / The actual time result
     */
     fun actualTimeUntil(
         material: T,
@@ -2035,16 +2034,16 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Calculates the actual time until the given end time to produce the specified quantity of material, returning null if no productivity calendar is available.
      * 计算截至给定结束时间生产指定数量材料的实际时间，若无生产力日历则返回null
      *
-     * @param material The material to produce / 要生产的材料
-     * @param endTime The end time / 结束时间
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result, or null if no productivity calendar is available / 实际时间结果，若无生产力日历则为null
+     * @param material 要生产的材料 / The material to produce
+     * @param endTime 结束时间 / The end time
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果，若无生产力日历则为null / The actual time result, or null if no productivity calendar is available
     */
     fun actualTimeUntilOrNull(
         material: T,
@@ -2080,16 +2079,16 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Calculates the actual time until the given end time in parallel to produce the specified quantity of material.
      * 并行计算截至给定结束时间生产指定数量材料的实际时间
      *
-     * @param material The material to produce / 要生产的材料
-     * @param endTime The end time / 结束时间
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result / 实际时间结果
+     * @param material 要生产的材料 / The material to produce
+     * @param endTime 结束时间 / The end time
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果 / The actual time result
     */
     suspend fun actualTimeUntilParallelly(
         material: T,
@@ -2133,16 +2132,16 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Calculates the actual time until the given end time in parallel to produce the specified quantity of material, returning null if no productivity calendar is available.
      * 并行计算截至给定结束时间生产指定数量材料的实际时间，若无生产力日历则返回null
      *
-     * @param material The material to produce / 要生产的材料
-     * @param endTime The end time / 结束时间
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result, or null if no productivity calendar is available / 实际时间结果，若无生产力日历则为null
+     * @param material 要生产的材料 / The material to produce
+     * @param endTime 结束时间 / The end time
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果，若无生产力日历则为null / The actual time result, or null if no productivity calendar is available
     */
     suspend fun actualTimeUntilOrNullParallelly(
         material: T,
@@ -2178,16 +2177,16 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Calculates the actual quantity of material that can be produced within the given time range.
      * 计算在给定时间范围内可生产的材料实际产量
      *
-     * @param material The material to produce / 要生产的材料
-     * @param time The time range / 时间范围
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual quantity produced / 实际产量
+     * @param material 要生产的材料 / The material to produce
+     * @param time 时间范围 / The time range
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际产量 / The actual quantity produced
     */
     fun actualQuantity(
         material: T,
@@ -2223,16 +2222,16 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Calculates the actual quantity of material that can be produced within the given time range, returning null if no productivity calendar is available.
      * 计算在给定时间范围内可生产的材料实际产量，若无生产力日历则返回null
      *
-     * @param material The material to produce / 要生产的材料
-     * @param time The time range / 时间范围
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual quantity produced, or null if no productivity calendar is available / 实际产量，若无生产力日历则为null
+     * @param material 要生产的材料 / The material to produce
+     * @param time 时间范围 / The time range
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际产量，若无生产力日历则为null / The actual quantity produced, or null if no productivity calendar is available
     */
     fun actualQuantityOrNull(
         material: T,
@@ -2268,16 +2267,16 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Calculates the actual quantity of material that can be produced within the given time range in parallel.
      * 并行计算在给定时间范围内可生产的材料实际产量
      *
-     * @param material The material to produce / 要生产的材料
-     * @param time The time range / 时间范围
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual quantity produced / 实际产量
+     * @param material 要生产的材料 / The material to produce
+     * @param time 时间范围 / The time range
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际产量 / The actual quantity produced
     */
     suspend fun actualQuantityParallelly(
         material: T,
@@ -2313,16 +2312,16 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Calculates the actual quantity of material that can be produced within the given time range in parallel, returning null if no productivity calendar is available.
      * 并行计算在给定时间范围内可生产的材料实际产量，若无生产力日历则返回null
      *
-     * @param material The material to produce / 要生产的材料
-     * @param time The time range / 时间范围
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual quantity produced, or null if no productivity calendar is available / 实际产量，若无生产力日历则为null
+     * @param material 要生产的材料 / The material to produce
+     * @param time 时间范围 / The time range
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际产量，若无生产力日历则为null / The actual quantity produced, or null if no productivity calendar is available
     */
     suspend fun actualQuantityOrNullParallelly(
         material: T,
@@ -2358,18 +2357,18 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Internal computation of actual time from the given start time using the provided productivity calendar.
      * 使用提供的生产力日历从给定开始时间内部计算实际时间
      *
-     * @param material The material to produce / 要生产的材料
-     * @param startTime The start time / 开始时间
-     * @param productivityCalendar The productivity calendar list / 生产力日历列表
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes The list of unavailable times / 不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result / 实际时间结果
+     * @param material 要生产的材料 / The material to produce
+     * @param startTime 开始时间 / The start time
+     * @param productivityCalendar 生产力日历列表 / The productivity calendar list
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 不可用时间列表 / The list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果 / The actual time result
     */
     private fun actualTimeFrom(
         material: T,
@@ -2457,17 +2456,17 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Internal computation of actual time until the given end time using the provided productivity calendar.
      * 使用提供的生产力日历截至给定结束时间内部计算实际时间
      *
-     * @param material The material to produce / 要生产的材料
-     * @param endTime The end time / 结束时间
-     * @param productivityCalendar The productivity calendar list / 生产力日历列表
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes The list of unavailable times / 不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result / 实际时间结果
+     * @param material 要生产的材料 / The material to produce
+     * @param endTime 结束时间 / The end time
+     * @param productivityCalendar 生产力日历列表 / The productivity calendar list
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 不可用时间列表 / The list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果 / The actual time result
     */
     private fun actualTimeUntil(
         material: T,
@@ -2549,17 +2548,17 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
      * Internal computation of actual quantity using the provided productivity calendar.
      * 使用提供的生产力日历内部计算实际产量
      *
-     * @param material The material to produce / 要生产的材料
-     * @param time The time range / 时间范围
-     * @param productivityCalendar The productivity calendar list / 生产力日历列表
-     * @param unavailableTimes The list of unavailable times / 不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual quantity produced / 实际产量
+     * @param material 要生产的材料 / The material to produce
+     * @param time 时间范围 / The time range
+     * @param productivityCalendar 生产力日历列表 / The productivity calendar list
+     * @param unavailableTimes 不可用时间列表 / The list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际产量 / The actual quantity produced
     */
     private fun actualQuantity(
         material: T,
@@ -2607,7 +2606,7 @@ sealed class ProductivityCalendar<W, Q, P, T, U>(
  * 将 UInt64 值转换为日历浮点数值
  *
  * @receiver The UInt64 value / UInt64 值
- * @return The calendar floating-point value / 日历浮点数值
+ * @return 日历浮点数值 / The calendar floating-point value
 */
 private fun UInt64.calendarValueOf(): Flt64 = Flt64(toLong().toDouble())
 
@@ -2640,8 +2639,7 @@ open class DiscreteProductivityCalendar<W, P, T, U>(
 ) where W : RealNumber<W>, P : Productivity<UInt64, T, U> {
     companion object {
         /**
-         * 通过泛型时间窗口创建离散生产力日历，并集中转换到日历数值边界 /
-         * Create a discrete productivity calendar from a generic time window and centralize conversion to the calendar numeric boundary
+         * 通过泛型时间窗口创建离散生产力日历，并集中转换到日历数值边界 / / Create a discrete productivity calendar from a generic time window and centralize conversion to the calendar numeric boundary
          *
          * @param V 时间窗口数值类型 / The time-window numeric type
          * @param P 生产力类型 / The productivity type
@@ -2672,8 +2670,7 @@ open class DiscreteProductivityCalendar<W, P, T, U>(
 // ============================================================================
 
 /**
- * 基于物理量的生产力，描述时间窗口内的生产能力，产出数量携带单位 /
- * Quantity-based productivity describing production capacity within a time window,
+ * 基于物理量的生产力，描述时间窗口内的生产能力，产出数量携带单位 / / Quantity-based productivity describing production capacity within a time window,
  * with production quantities carrying physical units.
  *
  * @param V 数值类型 / The numeric value type
@@ -2703,16 +2700,16 @@ open class QuantityProductivity<V, T, U>(
          * Creates a QuantityProductivity instance with both capacities and unit yields, without an explicit extractor.
          * 创建同时包含产能和单位产量的物理量生产力实例，不使用显式提取器
          *
-         * @param V The numeric value type / 数值类型
-         * @param T The material type / 材料类型
-         * @param timeWindow The time window / 时间窗口
-         * @param weekDays The set of applicable weekdays / 生效的星期几集合
-         * @param monthDays The set of applicable month days / 生效的月份天数集合
-         * @param capacities Mapping from material to time required per unit / 材料到生产单位所需时间的映射
-         * @param unitYields Mapping from material to unit time production (with unit) / 材料到单位时间产量的映射（携带单位）
-         * @param conditionCapacities The list of conditional capacities / 条件产能列表
-         * @param conditionUnitYields The list of conditional unit yields (with unit) / 条件单位产量列表（携带单位）
-         * @return A new QuantityProductivity instance / 新的物理量生产力实例
+         * @param V 数值类型 / The numeric value type
+         * @param T 材料类型 / The material type
+         * @param timeWindow 时间窗口 / The time window
+         * @param weekDays 生效的星期几集合 / The set of applicable weekdays
+         * @param monthDays 生效的月份天数集合 / The set of applicable month days
+         * @param capacities 材料到生产单位所需时间的映射 / Mapping from material to time required per unit
+         * @param unitYields 材料到单位时间产量的映射（携带单位） / Mapping from material to unit time production (with unit)
+         * @param conditionCapacities 条件产能列表 / The list of conditional capacities
+         * @param conditionUnitYields 条件单位产量列表（携带单位） / The list of conditional unit yields (with unit)
+         * @return 新的物理量生产力实例 / A new QuantityProductivity instance
         */
         @JvmName("buildByCapacityAndUnitYieldWithoutExtractor")
         operator fun <V, T> invoke(
@@ -2740,14 +2737,14 @@ open class QuantityProductivity<V, T, U>(
          * Creates a QuantityProductivity instance with capacities only, without an explicit extractor.
          * 创建仅包含产能的物理量生产力实例，不使用显式提取器
          *
-         * @param V The numeric value type / 数值类型
-         * @param T The material type / 材料类型
-         * @param timeWindow The time window / 时间窗口
-         * @param weekDays The set of applicable weekdays / 生效的星期几集合
-         * @param monthDays The set of applicable month days / 生效的月份天数集合
-         * @param capacities Mapping from material to time required per unit / 材料到生产单位所需时间的映射
-         * @param conditionCapacities The list of conditional capacities / 条件产能列表
-         * @return A new QuantityProductivity instance / 新的物理量生产力实例
+         * @param V 数值类型 / The numeric value type
+         * @param T 材料类型 / The material type
+         * @param timeWindow 时间窗口 / The time window
+         * @param weekDays 生效的星期几集合 / The set of applicable weekdays
+         * @param monthDays 生效的月份天数集合 / The set of applicable month days
+         * @param capacities 材料到生产单位所需时间的映射 / Mapping from material to time required per unit
+         * @param conditionCapacities 条件产能列表 / The list of conditional capacities
+         * @return 新的物理量生产力实例 / A new QuantityProductivity instance
         */
         @JvmName("buildByCapacityWithoutExtractor")
         operator fun <V, T> invoke(
@@ -2773,16 +2770,16 @@ open class QuantityProductivity<V, T, U>(
          * Creates a QuantityProductivity instance with capacities and an explicit extractor.
          * 创建包含产能和显式提取器的物理量生产力实例
          *
-         * @param V The numeric value type / 数值类型
-         * @param T The material type / 材料类型
-         * @param U The key type / 键类型
-         * @param timeWindow The time window / 时间窗口
-         * @param extractor The key extractor / 键提取器
-         * @param weekDays The set of applicable weekdays / 生效的星期几集合
-         * @param monthDays The set of applicable month days / 生效的月份天数集合
-         * @param capacities Mapping from key to time required per unit / 键到生产单位所需时间的映射
-         * @param conditionCapacities The list of conditional capacities / 条件产能列表
-         * @return A new QuantityProductivity instance / 新的物理量生产力实例
+         * @param V 数值类型 / The numeric value type
+         * @param T 材料类型 / The material type
+         * @param U 键类型 / The key type
+         * @param timeWindow 时间窗口 / The time window
+         * @param extractor 键提取器 / The key extractor
+         * @param weekDays 生效的星期几集合 / The set of applicable weekdays
+         * @param monthDays 生效的月份天数集合 / The set of applicable month days
+         * @param capacities 键到生产单位所需时间的映射 / Mapping from key to time required per unit
+         * @param conditionCapacities 条件产能列表 / The list of conditional capacities
+         * @return 新的物理量生产力实例 / A new QuantityProductivity instance
         */
         @JvmName("buildByCapacityWithExtractor")
         operator fun <V, T, U> invoke(
@@ -2809,14 +2806,14 @@ open class QuantityProductivity<V, T, U>(
          * Creates a QuantityProductivity instance with unit yields only, without an explicit extractor.
          * 创建仅包含单位产量的物理量生产力实例，不使用显式提取器
          *
-         * @param V The numeric value type / 数值类型
-         * @param T The material type / 材料类型
-         * @param timeWindow The time window / 时间窗口
-         * @param weekDays The set of applicable weekdays / 生效的星期几集合
-         * @param monthDays The set of applicable month days / 生效的月份天数集合
-         * @param unitYields Mapping from material to unit time production (with unit) / 材料到单位时间产量的映射（携带单位）
-         * @param conditionUnitYields The list of conditional unit yields (with unit) / 条件单位产量列表（携带单位）
-         * @return A new QuantityProductivity instance / 新的物理量生产力实例
+         * @param V 数值类型 / The numeric value type
+         * @param T 材料类型 / The material type
+         * @param timeWindow 时间窗口 / The time window
+         * @param weekDays 生效的星期几集合 / The set of applicable weekdays
+         * @param monthDays 生效的月份天数集合 / The set of applicable month days
+         * @param unitYields 材料到单位时间产量的映射（携带单位） / Mapping from material to unit time production (with unit)
+         * @param conditionUnitYields 条件单位产量列表（携带单位） / The list of conditional unit yields (with unit)
+         * @return 新的物理量生产力实例 / A new QuantityProductivity instance
         */
         @JvmName("buildByUnitYieldWithoutExtractor")
         operator fun <V, T> invoke(
@@ -2842,16 +2839,16 @@ open class QuantityProductivity<V, T, U>(
          * Creates a QuantityProductivity instance with unit yields and an explicit extractor.
          * 创建包含单位产量和显式提取器的物理量生产力实例
          *
-         * @param V The numeric value type / 数值类型
-         * @param T The material type / 材料类型
-         * @param U The key type / 键类型
-         * @param timeWindow The time window / 时间窗口
-         * @param extractor The key extractor / 键提取器
-         * @param weekDays The set of applicable weekdays / 生效的星期几集合
-         * @param monthDays The set of applicable month days / 生效的月份天数集合
-         * @param unitYields Mapping from key to unit time production (with unit) / 键到单位时间产量的映射（携带单位）
-         * @param conditionUnitYields The list of conditional unit yields (with unit) / 条件单位产量列表（携带单位）
-         * @return A new QuantityProductivity instance / 新的物理量生产力实例
+         * @param V 数值类型 / The numeric value type
+         * @param T 材料类型 / The material type
+         * @param U 键类型 / The key type
+         * @param timeWindow 时间窗口 / The time window
+         * @param extractor 键提取器 / The key extractor
+         * @param weekDays 生效的星期几集合 / The set of applicable weekdays
+         * @param monthDays 生效的月份天数集合 / The set of applicable month days
+         * @param unitYields 键到单位时间产量的映射（携带单位） / Mapping from key to unit time production (with unit)
+         * @param conditionUnitYields 条件单位产量列表（携带单位） / The list of conditional unit yields (with unit)
+         * @return 新的物理量生产力实例 / A new QuantityProductivity instance
         */
         @JvmName("buildByUnitYieldWithExtractor")
         operator fun <V, T, U> invoke(
@@ -2941,8 +2938,7 @@ open class QuantityProductivity<V, T, U>(
 }
 
 /**
- * 基于物理量的生产力日历，结合工作日历和生产力信息 /
- * Quantity-based productivity calendar combining working calendar and productivity information.
+ * 基于物理量的生产力日历，结合工作日历和生产力信息 / / Quantity-based productivity calendar combining working calendar and productivity information.
  *
  * 与 [ProductivityCalendar] 的区别在于产出数量携带 [Quantity] 单位，
  * 支持物理量纲检查和单位转换。内部计算逻辑不变，仅在 API 边界包装/解包 [Quantity]。
@@ -2968,11 +2964,9 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
 ) : WorkingCalendar<W>(timeWindow) where W : RealNumber<W>, P : QuantityProductivity<V, T, U>, V : RealNumber<V>, V : PlusGroup<V>, V : TimesGroup<V> {
 
     /**
-     * 按材料解析产出数量的期望单位。
-     * Resolves the expected quantity unit for a material.
+     * 按材料解析产出数量的期望单位。 / Resolves the expected quantity unit for a material.
      *
-     * 只检查指定材料在候选生产力条目中的 unitYield；若没有显式 unitYield，则回退到日历级 quantityUnit。
-     * Checks only the material's unitYield in candidate productivity entries; falls back to calendar-level quantityUnit when absent.
+     * 只检查指定材料在候选生产力条目中的 unitYield；若没有显式 unitYield，则回退到日历级 quantityUnit。 / Checks only the material's unitYield in candidate productivity entries; falls back to calendar-level quantityUnit when absent.
      *
      * @param material 材料 / The material
      * @param productivityCalendar 候选生产力条目 / The candidate productivity entries
@@ -2993,8 +2987,7 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
     }
 
     /**
-     * 校验输入数量的单位是否与指定材料的产出单位一致。
-     * Validates that the input quantity's unit matches the material's production unit.
+     * 校验输入数量的单位是否与指定材料的产出单位一致。 / Validates that the input quantity's unit matches the material's production unit.
      *
      * @param material 材料 / The material
      * @param productivityCalendar 候选生产力条目 / The candidate productivity entries
@@ -3019,8 +3012,8 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
      * Converts a quantity value to a calendar floating-point value.
      * 将物理量值转换为日历浮点数值
      *
-     * @param quantity The quantity value / 物理量值
-     * @return The calendar floating-point value / 日历浮点数值
+     * @param quantity 物理量值 / The quantity value
+     * @return 日历浮点数值 / The calendar floating-point value
     */
     private fun calendarValueOf(quantity: Quantity<V>): Flt64 = quantity.value.toFlt64()
 
@@ -3028,8 +3021,8 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
      * Converts a numeric value to a calendar floating-point value.
      * 将数值转换为日历浮点数值
      *
-     * @param value The numeric value / 数值
-     * @return The calendar floating-point value / 日历浮点数值
+     * @param value 数值 / The numeric value
+     * @return 日历浮点数值 / The calendar floating-point value
     */
     private fun calendarValueOf(value: V): Flt64 = value.toFlt64()
 
@@ -3037,8 +3030,8 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
      * Converts a duration to a calendar floating-point value.
      * 将时长转换为日历浮点数值
      *
-     * @param duration The duration / 时长
-     * @return The calendar floating-point value / 日历浮点数值
+     * @param duration 时长 / The duration
+     * @return 日历浮点数值 / The calendar floating-point value
     */
     private fun calendarValueOf(duration: Duration): Flt64 = timeWindow.valueOf(duration).toFlt64()
 
@@ -3046,8 +3039,8 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
      * Converts a calendar floating-point value to a duration.
      * 将日历浮点数值转换为时长
      *
-     * @param value The calendar floating-point value / 日历浮点数值
-     * @return The duration / 时长
+     * @param value 日历浮点数值 / The calendar floating-point value
+     * @return 时长 / The duration
     */
     private fun calendarDurationOf(value: Flt64): Duration {
         return timeWindow.durationOf(timeWindow.fromDouble(value.toDouble()))
@@ -3057,8 +3050,8 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
      * Converts a calendar floating-point value to a ceiling duration.
      * 将日历浮点数值转换为向上取整的时长
      *
-     * @param value The calendar floating-point value / 日历浮点数值
-     * @return The ceiling duration / 向上取整的时长
+     * @param value 日历浮点数值 / The calendar floating-point value
+     * @return 向上取整的时长 / The ceiling duration
     */
     private fun calendarCeilDurationOf(value: Flt64): Duration {
         return timeWindow.ceil(calendarDurationOf(value))
@@ -3068,9 +3061,9 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
      * Calculates the productivity rate for a given material from a quantity-based productivity entry.
      * 从基于物理量的生产力条目计算给定材料的生产率
      *
-     * @param productivity The quantity-based productivity entry / 基于物理量的生产力条目
-     * @param material The material / 材料
-     * @return The productivity rate, or null if neither unit yield nor capacity is available / 生产率，若无单位产量和产能则为null
+     * @param productivity 基于物理量的生产力条目 / The quantity-based productivity entry
+     * @param material 材料 / The material
+     * @return 生产率，若无单位产量和产能则为null / The productivity rate, or null if neither unit yield nor capacity is available
     */
     private fun productivityRateOf(
         productivity: QuantityProductivity<V, T, U>,
@@ -3085,9 +3078,9 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
      * Rebuilds a productivity instance with a new time window, restoring the concrete subtype via cast.
      * 使用新时间窗口重建生产力实例，通过类型转换恢复具体子类型
      *
-     * @param source The source productivity instance / 源生产力实例
-     * @param timeWindow The new time window / 新的时间窗口
-     * @return The rebuilt productivity instance / 重建后的生产力实例
+     * @param source 源生产力实例 / The source productivity instance
+     * @param timeWindow 新的时间窗口 / The new time window
+     * @return 重建后的生产力实例 / The rebuilt productivity instance
     */
     @Suppress("UNCHECKED_CAST")
     private fun rebuiltProductivityOf(source: P, timeWindow: TimeRange): P {
@@ -3176,16 +3169,16 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
      * Finds the actual start time for producing the given material from the specified start time.
      * 从指定开始时间查找给定材料的实际开始时间
      *
-     * @param material The material to produce / 要生产的材料
-     * @param startTime The start time to search from / 搜索的起始时间
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual start time, or [Instant.DISTANT_FUTURE] if no productive time found / 实际开始时间，若未找到则为 [Instant.DISTANT_FUTURE]
+     * @param material 要生产的材料 / The material to produce
+     * @param startTime 搜索的起始时间 / The start time to search from
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际开始时间，若未找到则为 [Instant.DISTANT_FUTURE] / The actual start time, or [Instant.DISTANT_FUTURE] if no productive time found
     */
     fun actualStartTimeFrom(
         material: T,
@@ -3242,17 +3235,17 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
      * Calculates the actual time from the given start time to produce the specified quantity of material.
      * 计算从给定开始时间生产指定数量材料的实际时间
      *
-     * @param material The material to produce / 要生产的材料
-     * @param startTime The start time / 开始时间
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result / 实际时间结果
+     * @param material 要生产的材料 / The material to produce
+     * @param startTime 开始时间 / The start time
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果 / The actual time result
     */
     fun actualTimeFrom(
         material: T,
@@ -3292,17 +3285,17 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
      * Calculates the actual time from the given start time to produce the specified quantity of material, returning null if no productivity calendar is available.
      * 计算从给定开始时间生产指定数量材料的实际时间，若无生产力日历则返回null
      *
-     * @param material The material to produce / 要生产的材料
-     * @param startTime The start time / 开始时间
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result, or null if no productivity calendar is available / 实际时间结果，若无生产力日历则为null
+     * @param material 要生产的材料 / The material to produce
+     * @param startTime 开始时间 / The start time
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果，若无生产力日历则为null / The actual time result, or null if no productivity calendar is available
     */
     fun actualTimeFromOrNull(
         material: T,
@@ -3335,17 +3328,17 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
      * Calculates the actual time from the given start time in parallel to produce the specified quantity of material.
      * 并行计算从给定开始时间生产指定数量材料的实际时间
      *
-     * @param material The material to produce / 要生产的材料
-     * @param startTime The start time / 开始时间
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result / 实际时间结果
+     * @param material 要生产的材料 / The material to produce
+     * @param startTime 开始时间 / The start time
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果 / The actual time result
     */
     suspend fun actualTimeFromParallelly(
         material: T,
@@ -3383,17 +3376,17 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
      * Calculates the actual time from the given start time in parallel to produce the specified quantity of material, returning null if no productivity calendar is available.
      * 并行计算从给定开始时间生产指定数量材料的实际时间，若无生产力日历则返回null
      *
-     * @param material The material to produce / 要生产的材料
-     * @param startTime The start time / 开始时间
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param currentDuration The current consumed duration / 当前已消耗的持续时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result, or null if no productivity calendar is available / 实际时间结果，若无生产力日历则为null
+     * @param material 要生产的材料 / The material to produce
+     * @param startTime 开始时间 / The start time
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果，若无生产力日历则为null / The actual time result, or null if no productivity calendar is available
     */
     suspend fun actualTimeFromOrNullParallelly(
         material: T,
@@ -3426,16 +3419,16 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
      * Calculates the actual time until the given end time to produce the specified quantity of material.
      * 计算截至给定结束时间生产指定数量材料的实际时间
      *
-     * @param material The material to produce / 要生产的材料
-     * @param endTime The end time / 结束时间
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result / 实际时间结果
+     * @param material 要生产的材料 / The material to produce
+     * @param endTime 结束时间 / The end time
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果 / The actual time result
     */
     fun actualTimeUntil(
         material: T,
@@ -3472,16 +3465,16 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
      * Calculates the actual time until the given end time to produce the specified quantity of material, returning null if no productivity calendar is available.
      * 计算截至给定结束时间生产指定数量材料的实际时间，若无生产力日历则返回null
      *
-     * @param material The material to produce / 要生产的材料
-     * @param endTime The end time / 结束时间
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result, or null if no productivity calendar is available / 实际时间结果，若无生产力日历则为null
+     * @param material 要生产的材料 / The material to produce
+     * @param endTime 结束时间 / The end time
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果，若无生产力日历则为null / The actual time result, or null if no productivity calendar is available
     */
     fun actualTimeUntilOrNull(
         material: T,
@@ -3513,16 +3506,16 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
      * Calculates the actual time until the given end time in parallel to produce the specified quantity of material.
      * 并行计算截至给定结束时间生产指定数量材料的实际时间
      *
-     * @param material The material to produce / 要生产的材料
-     * @param endTime The end time / 结束时间
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result / 实际时间结果
+     * @param material 要生产的材料 / The material to produce
+     * @param endTime 结束时间 / The end time
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果 / The actual time result
     */
     suspend fun actualTimeUntilParallelly(
         material: T,
@@ -3559,16 +3552,16 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
      * Calculates the actual time until the given end time in parallel to produce the specified quantity of material, returning null if no productivity calendar is available.
      * 并行计算截至给定结束时间生产指定数量材料的实际时间，若无生产力日历则返回null
      *
-     * @param material The material to produce / 要生产的材料
-     * @param endTime The end time / 结束时间
-     * @param quantity The target quantity to produce / 目标产量
-     * @param unavailableTimes Additional list of unavailable times / 额外的不可用时间列表
-     * @param beforeConnectionTime The before connection time / 前置连接时间
-     * @param afterConnectionTime The after connection time / 后置连接时间
-     * @param beforeConditionalConnectionTime The conditional before connection time / 条件前置连接时间
-     * @param afterConditionalConnectionTime The conditional after connection time / 条件后置连接时间
-     * @param breakTime The break time pair / 休息时间配对
-     * @return The actual time result, or null if no productivity calendar is available / 实际时间结果，若无生产力日历则为null
+     * @param material 要生产的材料 / The material to produce
+     * @param endTime 结束时间 / The end time
+     * @param quantity 目标产量 / The target quantity to produce
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果，若无生产力日历则为null / The actual time result, or null if no productivity calendar is available
     */
     suspend fun actualTimeUntilOrNullParallelly(
         material: T,
@@ -3638,8 +3631,7 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
     }
 
     /**
-     * 计算实际产量，若无可用的生产力日历则返回null /
-     * Calculate the actual quantity, returning null if no productivity calendar is available
+     * 计算实际产量，若无可用的生产力日历则返回null / / Calculate the actual quantity, returning null if no productivity calendar is available
      *
      * @param material 材料 / The material
      * @param time 时间范围 / The time range
@@ -3719,8 +3711,7 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
     }
 
     /**
-     * 并行计算实际产量，若无可用的生产力日历则返回null /
-     * Calculate the actual quantity in parallel, returning null if no productivity calendar is available
+     * 并行计算实际产量，若无可用的生产力日历则返回null / / Calculate the actual quantity in parallel, returning null if no productivity calendar is available
      *
      * @param material 材料 / The material
      * @param time 时间范围 / The time range
@@ -3989,8 +3980,7 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
 }
 
 /**
- * 离散物理量生产力日历，使用 UInt64 作为产量数值类型 /
- * Discrete quantity-based productivity calendar using UInt64 as the quantity value type.
+ * 离散物理量生产力日历，使用 UInt64 作为产量数值类型 / / Discrete quantity-based productivity calendar using UInt64 as the quantity value type.
  *
  * @param P 生产力类型 / The productivity type
  * @param T 材料类型 / The material type
@@ -4015,8 +4005,7 @@ open class DiscreteQuantityProductivityCalendar<W, P, T, U>(
 ) where W : RealNumber<W>, P : QuantityProductivity<UInt64, T, U> {
     companion object {
         /**
-         * 通过泛型时间窗口创建离散物理量生产力日历，并集中转换到日历数值边界 /
-         * Create a discrete quantity productivity calendar from a generic time window and centralize conversion to the calendar numeric boundary
+         * 通过泛型时间窗口创建离散物理量生产力日历，并集中转换到日历数值边界 / / Create a discrete quantity productivity calendar from a generic time window and centralize conversion to the calendar numeric boundary
          *
          * @param V 时间窗口数值类型 / The time-window numeric type
          * @param P 生产力类型 / The productivity type
@@ -4045,8 +4034,7 @@ open class DiscreteQuantityProductivityCalendar<W, P, T, U>(
 }
 
 /**
- * 连续物理量生产力日历，产量数值类型由调用方提供 /
- * Continuous quantity-based productivity calendar with caller-provided quantity value type.
+ * 连续物理量生产力日历，产量数值类型由调用方提供 / / Continuous quantity-based productivity calendar with caller-provided quantity value type.
  *
  * @param V 产量数值类型 / The quantity value type
  * @param P 生产力类型 / The productivity type
@@ -4076,8 +4064,7 @@ open class ContinuousQuantityProductivityCalendar<W, V, P, T, U>(
 ) where W : RealNumber<W>, P : QuantityProductivity<V, T, U>, V : RealNumber<V>, V : PlusGroup<V>, V : TimesGroup<V> {
     companion object {
         /**
-         * 通过泛型时间窗口创建连续物理量生产力日历，并集中转换到日历数值边界 /
-         * Create a continuous quantity productivity calendar from a generic time window and centralize conversion to the calendar numeric boundary
+         * 通过泛型时间窗口创建连续物理量生产力日历，并集中转换到日历数值边界 / / Create a continuous quantity productivity calendar from a generic time window and centralize conversion to the calendar numeric boundary
          *
          * @param W 时间窗口数值类型 / The time-window numeric type
          * @param V 产量数值类型 / The quantity value type

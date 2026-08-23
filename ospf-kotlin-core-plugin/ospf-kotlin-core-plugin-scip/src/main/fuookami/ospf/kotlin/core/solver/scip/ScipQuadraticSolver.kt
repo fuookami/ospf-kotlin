@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.solver.*
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -24,8 +25,8 @@ import jscip.*
  *
  * SCIP 二次求解器
  *
- * @property config solver configuration / 求解器配置
- * @property callBack solver callback / 求解器回调
+ * @property config 求解器配置 / solver configuration
+ * @property callBack 求解器回调 / solver callback
 */
 class ScipQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -39,7 +40,7 @@ class ScipQuadraticSolver(
          *
          * 从 JAR 包中加载 SCIP 原生库
          *
-         * @return operation result / 操作结果
+         * @return 操作结果 / operation result
         */
         @JvmStatic
         fun loadLibraryInJar(): Try {
@@ -48,28 +49,64 @@ class ScipQuadraticSolver(
     }
 
     override val name = "scip"
+    override val descriptor = SolverDescriptor(
+        solverId = "scip",
+        backendName = "SCIP",
+        backendVersion = ScipSolver.runtimeVersion(),
+        pluginVersion = ScipQuadraticSolver::class.java.`package`.implementationVersion,
+        capabilities = SolverCapabilities(
+            modelTypes = setOf(SolverModelType.QP, SolverModelType.QCP),
+            callback = true,
+            interrupt = true
+        )
+    )
 
     override suspend operator fun invoke(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput<Flt64>> {
+    ): Ret<SolveReport<Flt64>> {
+        return invoke(model, solvingStatusCallBack, null)
+    }
+
+    override suspend fun invoke(
+        model: QuadraticTetradModelView,
+        solvingStatusCallBack: SolvingStatusCallBack?,
+        cancellationToken: CancellationToken?
+    ): Ret<SolveReport<Flt64>> {
+        when (val validation = model.identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         val impl = ScipQuadraticSolverImpl(
             config = config,
             callBack = callBack,
-            statusCallBack = solvingStatusCallBack
+            statusCallBack = solvingStatusCallBack,
+            cancellationToken = cancellationToken
         )
         val result = impl(model)
         cleanupAfterSolverRun()
-        return result
+        return result.map { report ->
+            report.withQuadraticBackendMetadata(model, config, descriptor)
+        }
     }
 
     override suspend fun invoke(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
+    ): Ret<Pair<SolveReport<Flt64>, List<List<Flt64>>>> {
+        return invoke(model, solutionAmount, solvingStatusCallBack, null)
+    }
+
+    override suspend fun invoke(
+        model: QuadraticTetradModelView,
+        solutionAmount: UInt64,
+        solvingStatusCallBack: SolvingStatusCallBack?,
+        cancellationToken: CancellationToken?
+    ): Ret<Pair<SolveReport<Flt64>, List<List<Flt64>>>> {
         return if (solutionAmount leq UInt64.one) {
-            this(model).map { it to emptyList() }
+            this(model, solvingStatusCallBack, cancellationToken).map { it to emptyList() }
         } else {
             val results = ArrayList<List<Flt64>>()
             val impl = ScipQuadraticSolverImpl(
@@ -103,7 +140,8 @@ class ScipQuadraticSolver(
                         }
                         ok
                     },
-                statusCallBack = solvingStatusCallBack
+                statusCallBack = solvingStatusCallBack,
+                cancellationToken = cancellationToken
             )
             val result = impl(model).map { it to results }
             cleanupAfterSolverRun()
@@ -117,15 +155,16 @@ class ScipQuadraticSolver(
  *
  * SCIP 二次求解器实现
  *
- * @property config solver configuration / 求解器配置
- * @property callBack solver callback / 求解器回调
- * @property statusCallBack solving status callback / 求解状态回调
+ * @property config 求解器配置 / solver configuration
+ * @property callBack 求解器回调 / solver callback
+ * @property statusCallBack 求解状态回调 / solving status callback
 */
 @OptIn(ExperimentalTime::class)
 private class ScipQuadraticSolverImpl(
     private val config: SolverConfig,
     private val callBack: ScipSolverCallBack? = null,
-    private val statusCallBack: SolvingStatusCallBack? = null
+    private val statusCallBack: SolvingStatusCallBack? = null,
+    private val cancellationToken: CancellationToken? = null
 ) : ScipSolver() {
     private var mip: Boolean = false
 
@@ -133,7 +172,7 @@ private class ScipQuadraticSolverImpl(
     private lateinit var scipConstraints: List<jscip.Constraint>
     private lateinit var scipQuadraticObjectiveVars: List<jscip.Variable>
     private lateinit var scipQuadraticObjectiveTransformers: List<jscip.Constraint>
-    private lateinit var output: FeasibleSolverOutput<Flt64>
+    private lateinit var output: SolveReport<Flt64>
     private var initialBestObj: Flt64? = null
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
@@ -155,15 +194,18 @@ private class ScipQuadraticSolverImpl(
         super.close()
     }
 
-    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput<Flt64>> {
+    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<SolveReport<Flt64>> {
+        if (cancellationToken?.isCancellationRequested == true) {
+            return Ok(cancelledSolveReport(cancellationToken.record?.reason))
+        }
         mip = model.containsNotBinaryInteger
-        val processes = arrayOf(
-            { it.init(model.name) },
-            { it.dump(model) },
-            { it.configure(model) },
-            { it.solve(config.threadNum) },
-            ScipQuadraticSolverImpl::analyzeStatus,
-            { it.analyzeSolution(model) }
+        val processes: Array<suspend (ScipQuadraticSolverImpl) -> Try> = arrayOf(
+            { solver -> solver.init(model.name) },
+            { solver -> solver.dump(model) },
+            { solver -> solver.configure(model) },
+            { solver -> solver.solve(config.threadNum) },
+            { solver -> solver.analyzeStatus(cancellationToken) },
+            { solver -> solver.analyzeSolution(model) }
         )
         for (process in processes) {
             when (val result = process(this)) {
@@ -186,8 +228,8 @@ private class ScipQuadraticSolverImpl(
      *
      * 将二次模型导出到 SCIP
      *
-     * @param model quadratic tetrad model view / 二次四元模型视图
-     * @return operation result / 操作结果
+     * @param model 二次四元模型视图 / quadratic tetrad model view
+     * @return 操作结果 / operation result
     */
     private suspend fun dump(model: QuadraticTetradModelView): Try {
         warnIgnoredConstraintPriority("scip", model.nonNullConstraintPriorityAmount())
@@ -200,7 +242,12 @@ private class ScipQuadraticSolverImpl(
         for (col in model.variables.indices) {
             vars.add(
                 scip.createVar(
-                    variableDumpingData.names[col],
+                    nativeElementName(
+                        identityId = model.variables[col].id?.value,
+                        fallbackName = variableDumpingData.names[col],
+                        category = "variable",
+                        identityScope = model.variables[col].identityScope
+                    ),
                     variableDumpingData.lowerBounds[col],
                     variableDumpingData.upperBounds[col],
                     0.0,
@@ -277,7 +324,12 @@ private class ScipQuadraticSolverImpl(
                         val (linerCoefficients, linearVars) = linearCells
                         val (quadraticCoefficients, quadraticVars1, quadraticVars2) = quadraticCells
                         val constraint = scip.createConsQuadratic(
-                            model.constraints.names[it.first],
+                            nativeElementName(
+                                identityId = model.constraints.ids.getOrNull(it.first)?.value,
+                                fallbackName = model.constraints.names[it.first],
+                                category = "constraint",
+                                identityScope = model.constraints.identityScopeAt(it.first)
+                            ),
                             quadraticVars1.toTypedArray(),
                             quadraticVars2.toTypedArray(),
                             quadraticCoefficients.toDoubleArray(),
@@ -326,7 +378,12 @@ private class ScipQuadraticSolverImpl(
                         }
                     }
                     val constraint = scip.createConsQuadratic(
-                        model.constraints.names[i],
+                        nativeElementName(
+                            identityId = model.constraints.ids.getOrNull(i)?.value,
+                            fallbackName = model.constraints.names[i],
+                            category = "constraint",
+                            identityScope = model.constraints.identityScopeAt(i)
+                        ),
                         quadraticVars1.toTypedArray(),
                         quadraticVars2.toTypedArray(),
                         quadraticCoefficients.toDoubleArray(),
@@ -410,15 +467,26 @@ private class ScipQuadraticSolverImpl(
      *
      * 配置 SCIP 求解器参数
      *
-     * @param model quadratic tetrad model view / 二次四元模型视图
-     * @return operation result / 操作结果
+     * @param model 二次四元模型视图 / quadratic tetrad model view
+     * @return 操作结果 / operation result
     */
     private suspend fun configure(model: QuadraticTetradModelView): Try {
+        when (val cancellation = registerCancellation(cancellationToken)) {
+            is Failed -> return cancellation
+            is Fatal -> return cancellation
+            else -> {}
+        }
         scip.setRealParam("limits/time", config.time.toDouble(DurationUnit.SECONDS))
         scip.setRealParam("limits/gap", config.gap.toSolverDouble("quadratic.config.gap"))
         scip.setIntParam("parallel/maxnthreads", config.threadNum.toInt())
+        when (val backendConfiguration = applyBackendConfiguration(config.backendConfiguration, config.threadNum.toInt())) {
+            is Failed -> return Failed(backendConfiguration.error)
+            is Fatal -> return Fatal(backendConfiguration.errors)
+            else -> Unit
+        }
 
-        if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
+        if (config.notImprovementTime != null || callBack?.nativeCallback != null ||
+            statusCallBack != null || cancellationToken != null) {
             object : EventHandler(
                 scip,
                 "solve-monitor-${UUID.randomUUID()}",
@@ -427,6 +495,10 @@ private class ScipQuadraticSolverImpl(
             ) {
                 override fun execute(event: Event) {
                     val solverModel = scip
+                    if (cancellationToken?.isCancellationRequested == true) {
+                        solverModel.interruptSolve()
+                        return
+                    }
                     try {
                         callBack?.nativeCallback?.invoke(this, solverModel, event)
                     } catch (_: Exception) {
@@ -458,7 +530,10 @@ private class ScipQuadraticSolverImpl(
                             bestObj = currentObj
                             bestBound = currentBound
                             bestTime = currentTime
-                        } else if (currentTime - bestTime >= notImprovementTime) {
+                        } else if (currentTime - bestTime >= notImprovementTime
+                            && config.interruptibleTime?.let { currentTime >= it } ?: true
+                            && config.interruptibleGap?.let { (currentObj - currentBound).abs() ls it } ?: true
+                        ) {
                             solverModel.interruptSolve()
                             return
                         }
@@ -471,7 +546,7 @@ private class ScipQuadraticSolverImpl(
                             scipVars.map { variable -> Flt64(solverModel.getSolVal(bestSolution, variable)) }
                         }
                         val callbackResult = it(
-                            fuookami.ospf.kotlin.core.solver.output.SolvingStatus(
+                            SolvingStatus(
                                 solver = "scip",
                                 solverConfig = config,
                                 intermediateModel = model,
@@ -520,8 +595,8 @@ private class ScipQuadraticSolverImpl(
      *
      * 分析求解结果并提取解
      *
-     * @param model quadratic tetrad model view / 二次四元模型视图
-     * @return operation result / 操作结果
+     * @param model 二次四元模型视图 / quadratic tetrad model view
+     * @return 操作结果 / operation result
     */
     private suspend fun analyzeSolution(model: QuadraticTetradModelView): Try {
         return if (status.succeeded) {
@@ -534,15 +609,18 @@ private class ScipQuadraticSolverImpl(
             val possibleBestObj = Flt64(scip.dualbound) + model.objective.constant
             val gap = if (mip) {
                 gap(obj, possibleBestObj)
-            } else {
+            } else if (status == SolverStatus.Optimal) {
                 Flt64.zero
+            } else {
+                null
             }
-            output = FeasibleSolverOutput<Flt64>(
-                obj = obj,
-                solution = results,
-                time = solvingTime!!,
-                possibleBestObj = possibleBestObj,
-                gap = gap
+            output = status.toSolveReport(
+                objective = obj,
+                values = results,
+                solveTime = solvingTime!!,
+                bestBound = possibleBestObj,
+                gap = gap,
+                terminationReason = terminationReason
             )
 
             when (val result = callBack?.execIfContain(
@@ -581,7 +659,12 @@ private class ScipQuadraticSolverImpl(
 
                 else -> {}
             }
-            failByStatus(status)
+            output = status.toSolveReport(
+                solveTime = solvingTime ?: kotlin.time.Duration.ZERO,
+                bestBound = Flt64(scip.dualbound),
+                terminationReason = terminationReason
+            )
+            ok
         }
     }
 }

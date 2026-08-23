@@ -2,21 +2,17 @@
  * MandelbrotSet（Mandelbrot 集）
  * Mandelbrot Set
  *
- * 提供 Mandelbrot 集迭代运算的实现。
- * Provides implementation of Mandelbrot set iteration operations.
+ * 提供 Mandelbrot 集迭代运算的实现。 / Provides implementation of Mandelbrot set iteration operations.
  *
- * 主要功能，
- * Main features:
+ * 主要功能， / Main features:
  * - MandelbrotSet: Mandelbrot 集迭代函敌z -> z^2 + c / Mandelbrot set iteration function z -> z^2 + c
  * - MandelbrotSetGenerator: Mandelbrot 集序列生成器 / Mandelbrot set sequence generator
  *
  * Mandelbrot 集定义：对于复数 c，迭仌z_{n+1} = z_n^2 + c，
- * 若序列不发散（|z| <= 2），刌c 属于 Mandelbrot 集。
- * Mandelbrot set definition: For complex number c, iterate z_{n+1} = z_n^2 + c,
+ * 若序列不发散（|z| <= 2），刌c 属于 Mandelbrot 集。 / Mandelbrot set definition: For complex number c, iterate z_{n+1} = z_n^2 + c,
  * if the sequence does not diverge (|z| <= 2), then c belongs to the Mandelbrot set.
  *
- * 应用场景：分形图形生成、复杂动力学研究、数学可视化等。
- * Applications: fractal graphics generation, complex dynamics research, mathematical visualization, etc.
+ * 应用场景：分形图形生成、复杂动力学研究、数学可视化等。 / Applications: fractal graphics generation, complex dynamics research, mathematical visualization, etc.
 */
 package fuookami.ospf.kotlin.math.fractal
 

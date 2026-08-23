@@ -69,9 +69,9 @@ implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plug
 
 ```kotlin
 val solver = GurobiLinearSolver(
-    config = SolverConfig(timeLimit = 60.seconds)
+    config = SolverConfig(time = 60.seconds)
 )
-val result: Ret<FeasibleSolverOutput<Flt64>> = solver(model)
+val result: Ret<SolveReport<Flt64>> = solver(model)
 ```
 
 ### With Callbacks
@@ -92,13 +92,20 @@ val solver = GurobiLinearSolver(
 ```kotlin
 val solver = GurobiLinearSolver(
     config = SolverConfig(
-        serverConfig = ServerConfig(
+        backendConfiguration = GurobiSolverConfig(
             server = "gurobi-server.example.com",
             password = "secret"
         )
     )
 )
 ```
+
+### SolveReport migration and follow-up scope
+
+`Ret<SolveReport<Flt64>>` is the primary result contract. Use `SolverConfig(time = ...)` and
+typed `backendConfiguration = GurobiSolverConfig(...)`; the old `timeLimit` and `serverConfig`
+constructors are not part of the 1.1.0 source line. Other plugin migration and capability gates
+are tracked in [`plans/solver_cp.md`](../../plans/solver_cp.md).
 
 ## Dependencies
 

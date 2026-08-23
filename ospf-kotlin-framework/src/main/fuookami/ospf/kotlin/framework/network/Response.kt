@@ -1,11 +1,9 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /**
- * 网络响应
- * Network Response
+ * 网络响应 / Network Response
  *
- * 提供基于 http4k 的 HTTP 响应发送和重试机制。
- * Provides HTTP response sending and retry mechanism based on http4k.
+ * 提供基于 http4k 的 HTTP 响应发送和重试机制。 / Provides HTTP response sending and retry mechanism based on http4k.
 */
 package fuookami.ospf.kotlin.framework.network
 
@@ -22,17 +20,14 @@ import org.http4k.core.*
 import org.http4k.filter.ClientFilters.CustomBasicAuth.withBasicAuth
 
 /**
- * 授权接口
- * Authorization interface
+ * 授权接口 / Authorization interface
  *
- * 用于在发送请求前注入认证信息。
- * Used to inject authentication info before sending request.
+ * 用于在发送请求前注入认证信息。 / Used to inject authentication info before sending request.
 */
 interface Authorization {
 
     /**
-     * 对请求应用授权
-     * Apply authorization to request
+     * 对请求应用授权 / Apply authorization to request
      *
      * @param request 原始请求 / Original request
      * @return 添加授权后的请求 / Request with authorization applied
@@ -41,8 +36,7 @@ interface Authorization {
 }
 
 /**
- * 基本认证
- * Basic authorization
+ * 基本认证 / Basic authorization
  *
  * @property username 用户名 / Username
  * @property password 密码 / Password
@@ -62,8 +56,7 @@ data class BasicAuthorization(
 }
 
 /**
- * 响应重试配置
- * Response retry configuration
+ * 响应重试配置 / Response retry configuration
  *
  * @property times 最大重试次数 / Maximum retry count
  * @property delay 重试间隔，默认 1 秒 / Retry delay, default 1 second
@@ -76,8 +69,7 @@ data class ResponseRetry(
 )
 
 /**
- * 发送 HTTP 响应（自动序列化）
- * Send HTTP response (auto serialization)
+ * 发送 HTTP 响应（自动序列化） / Send HTTP response (auto serialization)
  *
  * @param result 要发送的数据 / Data to send
  * @param url 目标 URL / Target URL
@@ -106,8 +98,7 @@ suspend inline fun <reified T : Any> response(
 }
 
 /**
- * 发送 HTTP 响应（自定义序列化）
- * Send HTTP response (custom serialization)
+ * 发送 HTTP 响应（自定义序列化） / Send HTTP response (custom serialization)
  *
  * @param result 要发送的数据 / Data to send
  * @param url 目标 URL / Target URL

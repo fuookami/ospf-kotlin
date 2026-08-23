@@ -1,10 +1,8 @@
 /**
- * 圆形与球体
- * Circle and Sphere
+ * 圆形与球体 / Circle and Sphere
  *
  * 定义几何空间中的圆形/球体数据结构，由圆心、方向和半径定义。
- * 支持面积、周长、包含检测、相交检测、外接圆计算等操作。
- * Defines circle/sphere data structure in geometric space, defined by center, direction, and radius.
+ * 支持面积、周长、包含检测、相交检测、外接圆计算等操作。 / Defines circle/sphere data structure in geometric space, defined by center, direction, and radius.
  * Supports area, circumference, containment detection, intersection detection, circumcircle computation, etc.
 */
 package fuookami.ospf.kotlin.math.geometry
@@ -14,8 +12,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 /**
- * 将向量转换为单位向量并保持类型
- * Convert a vector to a unit vector while preserving its type
+ * 将向量转换为单位向量并保持类型 / Convert a vector to a unit vector while preserving its type
  *
  * @param D 维度类型 / The dimension type
  * @param Va 数值类型 / The numeric type
@@ -31,8 +28,7 @@ private fun <D : Dimension, Va : FloatingNumber<Va>, Vec : Vector<D, Va>> unitAs
 }
 
 /**
- * 通用圆形/球体，由圆心、方向和半径定义。
- * General circle/sphere defined by center, direction, and radius.
+ * 通用圆形/球体，由圆心、方向和半径定义。 / General circle/sphere defined by center, direction, and radius.
  *
  * @param P 点类型 / The point type
  * @param Vec 向量类型 / The vector type
@@ -50,8 +46,7 @@ data class Circle<P : Point<D, Va>, Vec : Vector<D, Va>, D : Dimension, Va : Flo
     companion object {}
 
     /**
-     * 通过圆心和半径向量构造
-     * Construct from center and radius vector
+     * 通过圆心和半径向量构造 / Construct from center and radius vector
      *
      * @param center 圆心 / The center point
      * @param radiusVec 半径向量（方向和长度） / The radius vector (direction and length)
@@ -82,8 +77,8 @@ val Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.diameter: Flt64
  * Check whether a 2D point is inside the circle (inclusive).
  * 判断二维点是否在圆内（含边界）。
  *
- * @param point the point to check / 待检测的点
- * @return whether the point is inside the circle / 点是否在圆内
+ * @param point 待检测的点 / the point to check
+ * @return 点是否在圆内 / whether the point is inside the circle
 */
 @JvmName("containsPoint2D")
 infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.containsPoint(point: Point<Dim2, Flt64>): Boolean {
@@ -94,8 +89,7 @@ infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.containsP
 }
 
 /**
- * 判断二维点是否严格在圆内（不含边界）
- * Check whether a 2D point is strictly inside the circle (exclusive)
+ * 判断二维点是否严格在圆内（不含边界） / Check whether a 2D point is strictly inside the circle (exclusive)
  *
  * @param point 待检测的点 / The point to check
  * @return 点是否严格在圆内 / Whether the point is strictly inside the circle
@@ -108,8 +102,7 @@ infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.containsP
 }
 
 /**
- * 判断两个二维圆是否相交
- * Check whether two 2D circles intersect
+ * 判断两个二维圆是否相交 / Check whether two 2D circles intersect
  *
  * @param other 另一个圆 / The other circle
  * @return 是否相交 / Whether they intersect
@@ -122,8 +115,7 @@ infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.intersect
 }
 
 /**
- * 判断另一个圆是否完全在本圆内
- * Check whether another circle is entirely inside this circle
+ * 判断另一个圆是否完全在本圆内 / Check whether another circle is entirely inside this circle
  *
  * @param other 另一个圆 / The other circle
  * @return 另一个圆是否完全在本圆内 / Whether the other circle is entirely inside this circle
@@ -136,8 +128,7 @@ infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.containsC
 }
 
 /**
- * 判断点是否在圆的边界上
- * Check whether a point is on the circle's boundary
+ * 判断点是否在圆的边界上 / Check whether a point is on the circle's boundary
  *
  * @param point 待检测的点 / The point to check
  * @param epsilon 容差值，默认为 decimalPrecision / The tolerance value, defaults to decimalPrecision
@@ -151,8 +142,7 @@ fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.pointOnBoundary
 }
 
 /**
- * 判断两个圆是否相切
- * Check whether two circles are tangent
+ * 判断两个圆是否相切 / Check whether two circles are tangent
  *
  * @param other 另一个圆 / The other circle
  * @param epsilon 容差值，默认为 decimalPrecision / The tolerance value, defaults to decimalPrecision
@@ -172,8 +162,7 @@ fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.isTangent(other
 }
 
 /**
- * 计算两个圆的交点
- * Compute intersection points of two circles
+ * 计算两个圆的交点 / Compute intersection points of two circles
  *
  * @param other 另一个圆 / The other circle
  * @return 交点列表（0、1 或 2 个） / List of intersection points (0, 1, or 2)
@@ -236,8 +225,8 @@ val Circle<Point<Dim3, Flt64>, Vector<Dim3, Flt64>, Dim3, Flt64>.surfaceArea: Fl
  * Check whether a 3D point is inside the sphere (inclusive).
  * 判断三维点是否在球内（含边界）。
  *
- * @param point the point to check / 待检测的点
- * @return whether the point is inside the sphere / 点是否在球内
+ * @param point 待检测的点 / the point to check
+ * @return 点是否在球内 / whether the point is inside the sphere
 */
 @JvmName("containsPoint3D")
 infix fun Circle<Point<Dim3, Flt64>, Vector<Dim3, Flt64>, Dim3, Flt64>.containsPoint(point: Point<Dim3, Flt64>): Boolean {
@@ -249,8 +238,7 @@ infix fun Circle<Point<Dim3, Flt64>, Vector<Dim3, Flt64>, Dim3, Flt64>.containsP
 }
 
 /**
- * 计算三角形的外接圆
- * Compute the circumcircle of a triangle
+ * 计算三角形的外接圆 / Compute the circumcircle of a triangle
  *
  * @param triangle 三角形 / The triangle
  * @return 外接圆 / The circumcircle

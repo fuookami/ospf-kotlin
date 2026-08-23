@@ -1,6 +1,5 @@
 /**
- * 列生成装箱分析器。
- * Column generation packing analyzer.
+ * 列生成装箱分析器。 / Column generation packing analyzer.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
@@ -16,8 +15,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.*
 
 /**
- * 列生成装箱快照。
- * Column generation packing snapshot.
+ * 列生成装箱快照。 / Column generation packing snapshot.
  *
  * @property bins 箱子列表 / bin list
  * @property packingResult 装箱结果 / packing result
@@ -34,8 +32,7 @@ data class ColumnGenerationPackingSnapshot(
 )
 
 /**
- * 需求模式标签。
- * Demand mode tag.
+ * 需求模式标签。 / Demand mode tag.
  *
  * @param mode 需求模式 / demand mode
  * @return 模式对应的标签字符串 / tag string corresponding to the mode
@@ -52,8 +49,7 @@ private fun demandModeTag(mode: Bpp3dDemandMode): String {
 }
 
 /**
- * 为量纲已知坐标层构造分析用箱型。
- * Build an analysis bin type for quantity known-coordinate layers.
+ * 为量纲已知坐标层构造分析用箱型。 / Build an analysis bin type for quantity known-coordinate layers.
  *
  * @param layer 量纲层转换后的模型层 / model layer converted from a quantity layer
  * @param index 层序号 / layer index
@@ -72,8 +68,7 @@ private fun knownCoordinateBinType(layer: BinLayer, index: Int): BinType<FltX> {
 }
 
 /**
- * 列生成装箱分析器，在每次迭代后执行装箱分析。
- * Column generation packing analyzer, performs packing analysis after each iteration.
+ * 列生成装箱分析器，在每次迭代后执行装箱分析。 / Column generation packing analyzer, performs packing analysis after each iteration.
  *
  * @property packer 装箱器 / packer
  * @property rendererAdapter 渲染适配器 / renderer adapter
@@ -88,15 +83,13 @@ class ColumnGenerationPackingAnalyzer(
 ) : ColumnGenerationSolutionAnalyzer<FltX> {
 
     /**
-     * 最近一次分析的装箱快照。
-     * Latest packing snapshot from the most recent analysis.
+     * 最近一次分析的装箱快照。 / Latest packing snapshot from the most recent analysis.
     */
     var latest: ColumnGenerationPackingSnapshot? = null
         private set
 
     /**
-     * 分析当前列生成状态并生成装箱快照。
-     * Analyze current column generation state and generate packing snapshot.
+     * 分析当前列生成状态并生成装箱快照。 / Analyze current column generation state and generate packing snapshot.
      *
      * @param state 列生成状态 / column generation state
      * @return 分析结果 / analysis result
@@ -177,8 +170,7 @@ class ColumnGenerationPackingAnalyzer(
 }
 
 /**
- * 使用量纲层列表执行装箱分析。
- * Execute packing analysis with quantity layer list.
+ * 使用量纲层列表执行装箱分析。 / Execute packing analysis with quantity layer list.
  *
  * @param T 量纲数值类型 / quantity numeric type
  * @param iteration 迭代序号 / iteration number

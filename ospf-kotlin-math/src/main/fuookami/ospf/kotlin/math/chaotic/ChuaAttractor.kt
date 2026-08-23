@@ -1,12 +1,9 @@
 /**
- * 蔡氏吸引孌
- * Chua's Attractor
+ * 蔡氏吸引孌 / Chua's Attractor
  *
  * 蔡氏吸引子是甌Leon O. Chua 提出的著名混沌系统，是蔡氏电路的数学模型。
  * 该系统通过分段线性非线性函数产生混沌行为，是最早被实验观测到的混沌系统之一。
- * 常用于混沌电路研究、混沌加密和电子工程教学。
- *
- * Chua's attractor is a famous chaotic system proposed by Leon O. Chua, serving as the mathematical model for Chua's circuit.
+ * 常用于混沌电路研究、混沌加密和电子工程教学。 / Chua's attractor is a famous chaotic system proposed by Leon O. Chua, serving as the mathematical model for Chua's circuit.
  * This system generates chaotic behavior through piecewise linear nonlinear functions and is one of the first chaotic systems experimentally observed.
  * Commonly used for chaotic circuit research, chaos encryption, and electronic engineering education.
 */
@@ -20,8 +17,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 蔡氏吸引子
- * Chua's Attractor
+ * 蔡氏吸引子 / Chua's Attractor
  *
  * @property alpha 系统参数 alpha / System parameter alpha
  * @property beta 系统参数 beta / System parameter beta
@@ -62,8 +58,7 @@ data class ChuaAttractor<V : FloatingNumber<V>>(
 }
 
 /**
- * 蔡氏吸引子生成器
- * Chua's Attractor Generator
+ * 蔡氏吸引子生成器 / Chua's Attractor Generator
 */
 data class ChuaAttractorGenerator(
     val chuaAttractor: ChuaAttractor<Flt64> = ChuaAttractor(),

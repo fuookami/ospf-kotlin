@@ -12,8 +12,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 typealias IterationObjectiveQuantity<V> = Quantity<V>
 
 /**
- * 迭代状态快照，将 application 算法内部 Flt64 状态转换为对外泛型结果。
- * Iteration state snapshot converting application-internal Flt64 state to generic outward-facing results.
+ * 迭代状态快照，将 application 算法内部 Flt64 状态转换为对外泛型结果。 / Iteration state snapshot converting application-internal Flt64 state to generic outward-facing results.
  *
  * @param V 数值类型 / Numeric type
  * @property iteration 迭代次数 / Iteration count

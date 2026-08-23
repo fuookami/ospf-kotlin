@@ -19,9 +19,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 /**
  * 最小化乘客舱位变更加权和的管线。Pipeline minimizing the weighted sum of passenger class changes.
  *
- * @property passengers List of flight-passenger associations / 航班乘客关联列表
- * @property change Passenger change component / 乘客变更组件
- * @property coefficient Weight coefficient per passenger and class / 每位乘客和舱位的权重系数
+ * @property passengers 航班乘客关联列表 / List of flight-passenger associations
+ * @property change 乘客变更组件 / Passenger change component
+ * @property coefficient 每位乘客和舱位的权重系数 / Weight coefficient per passenger and class
 */
 class PassengerClassChangeMinimization(
     private val passengers: List<FlightPassenger>,
@@ -33,25 +33,17 @@ class PassengerClassChangeMinimization(
     /**
      * 向模型添加乘客舱位变更最小化目标。Adds the passenger class change minimization objective to the model.
      *
-     * @param model The linear meta model to add objective to / 要添加目标的线性元模型
-     * @return Registration result / 注册结果
+     * @param model 要添加目标的线性元模型 / The linear meta model to add objective to
+     * @return 注册结果 / Registration result
     */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
-        val poly = MutableLinearPolynomial()
-        for (passenger in passengers) {
-            for (cls in PassengerClass.entries) {
-                if (passenger.cls == cls) {
-                    continue
-                }
-
-                poly += LinearMonomial(
-                    coefficient(passenger, cls),
-                    change.passengerClassChange[passenger, cls]!!
-                )
+        val poly = sum(passengers.flatMap { passenger ->
+            PassengerClass.entries.filter { it != passenger.cls }.map { cls ->
+                coefficient(passenger, cls) * change.passengerClassChange[passenger, cls]!!
             }
-        }
+        })
         when (val result = model.minimize(
-            LinearExpressionSymbol(LinearPolynomial(poly.monomials, poly.constant)),
+            LinearExpressionSymbol(poly),
             name = "passenger class change"
         )) {
             is Ok -> {}

@@ -14,8 +14,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.leq
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 
 /**
- * 货物高度组合器，用于在装箱过程中匹配符合高度约束的货物组合。
- * Item height combinator for matching item combinations that satisfy height constraints during bin packing.
+ * 货物高度组合器，用于在装箱过程中匹配符合高度约束的货物组合。 / Item height combinator for matching item combinations that satisfy height constraints during bin packing.
 */
 data object ItemHeightCombinator {
     private val logger = logger()
@@ -23,8 +22,7 @@ data object ItemHeightCombinator {
     private val defaultThreeSumOffset = FltX(300.0)
 
     /**
-     * 二数求和：从高度列表中寻找两个高度，使其和接近但不超过目标高度。
-     * Two-sum: find two heights from the list whose sum is close to but does not exceed the target height.
+     * 二数求和：从高度列表中寻找两个高度，使其和接近但不超过目标高度。 / Two-sum: find two heights from the list whose sum is close to but does not exceed the target height.
      * @param height 目标高度 / target height
      * @param heights 候选高度列表 / list of candidate heights
      * @param offset 软约束偏移量 / soft constraint offset
@@ -56,8 +54,7 @@ data object ItemHeightCombinator {
     }
 
     /**
-     * 三数求和：从高度列表中寻找三个高度，使其和接近但不超过目标高度。
-     * Three-sum: find three heights from the list whose sum is close to but does not exceed the target height.
+     * 三数求和：从高度列表中寻找三个高度，使其和接近但不超过目标高度。 / Three-sum: find three heights from the list whose sum is close to but does not exceed the target height.
      * @param height 目标高度 / target height
      * @param heights 候选高度列表 / list of candidate heights
      * @param offset 软约束偏移量 / soft constraint offset
@@ -95,8 +92,7 @@ data object ItemHeightCombinator {
     }
 
     /**
-     * 获取两个货物的组合，满足高度和重量约束。
-     * Get a combination of two items satisfying height and weight constraints.
+     * 获取两个货物的组合，满足高度和重量约束。 / Get a combination of two items satisfying height and weight constraints.
      * @param itemsGroup 按高度分组的货物映射 / map of items grouped by height
      * @param itemsAmount 货物数量映射 / map of item amounts
      * @param heights 两个货物的目标高度 / target heights for the two items
@@ -179,8 +175,7 @@ data object ItemHeightCombinator {
     }
 
     /**
-     * 获取三个货物的组合，满足高度和重量约束。
-     * Get a combination of three items satisfying height and weight constraints.
+     * 获取三个货物的组合，满足高度和重量约束。 / Get a combination of three items satisfying height and weight constraints.
      * @param itemsGroup 按高度分组的货物映射 / map of items grouped by height
      * @param itemsAmount 货物数量映射 / map of item amounts
      * @param heights 三个货物的目标高度 / target heights for the three items
@@ -209,7 +204,7 @@ data object ItemHeightCombinator {
         itemsGroup: Map<FltX, List<T>>,
         itemsAmount: Map<Item, UInt64>,
         heights: Triple<FltX, FltX, FltX>,
-        mapper: (T) -> Item,
+        mapper: Extractor<Item, T>,
         restWeight: FltX = FltX.maximum,
         averageWeight: FltX? = null,
     ): List<Item>? {
@@ -348,7 +343,7 @@ data object ItemHeightCombinator {
         itemsGroup: Map<FltX, List<T>>,
         itemsAmount: Map<Item, UInt64>,
         height: FltX,
-        mapper: (T) -> Item,
+        mapper: Extractor<Item, T>,
         restWeight: FltX = FltX.maximum,
         averageWeight: FltX? = null,
         scope: CoroutineScope = bpp3dItemServiceAsyncScope
@@ -388,7 +383,7 @@ data object ItemHeightCombinator {
         itemsGroup: Map<FltX, List<T>>,
         itemsAmount: Map<Item, UInt64>,
         height: FltX,
-        mapper: (T) -> Item,
+        mapper: Extractor<Item, T>,
         restWeight: FltX = FltX.maximum,
         averageWeight: FltX? = null,
         scope: CoroutineScope = bpp3dItemServiceAsyncScope

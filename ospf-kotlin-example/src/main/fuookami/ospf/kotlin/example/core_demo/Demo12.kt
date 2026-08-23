@@ -29,8 +29,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 }
 
 /**
- * 投资组合：在风险和资金分配约束下最大化收益。
- * Investment portfolio: maximize yield subject to risk and fund allocation constraints.
+ * 投资组合：在风险和资金分配约束下最大化收益。 / Investment portfolio: maximize yield subject to risk and fund allocation constraints.
  *
  * @see https://fuookami.github.io/ospf/examples/example12.html
 */
@@ -80,8 +79,7 @@ data object Demo12 {
     )
 
     /**
-     * 按顺序运行所有子过程以构建、求解和分析模型。
-     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 按顺序运行所有子过程以构建、求解和分析模型。 / Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
     */
@@ -103,8 +101,7 @@ data object Demo12 {
     }
 
     /**
-     * 初始化产品投资金额的无符号整数变量。
-     * Initializes unsigned integer variables for product investment amounts.
+     * 初始化产品投资金额的无符号整数变量。 / Initializes unsigned integer variables for product investment amounts.
      *
      * @return 操作结果 / Operation result
     */
@@ -115,8 +112,7 @@ data object Demo12 {
     }
 
     /**
-     * 创建分配、保费、风险和收益表达式符号。
-     * Creates assignment, premium, risk, and yield expression symbols.
+     * 创建分配、保费、风险和收益表达式符号。 / Creates assignment, premium, risk, and yield expression symbols.
      *
      * @return 操作结果 / Operation result
     */
@@ -171,8 +167,7 @@ data object Demo12 {
     }
 
     /**
-     * 设置目标函数以最大化总收益。
-     * Sets the objective to maximize total yield.
+     * 设置目标函数以最大化总收益。 / Sets the objective to maximize total yield.
      *
      * @return 操作结果 / Operation result
     */
@@ -182,8 +177,7 @@ data object Demo12 {
     }
 
     /**
-     * 添加资金分配和风险限制约束。
-     * Adds fund allocation and risk limit constraints.
+     * 添加资金分配和风险限制约束。 / Adds fund allocation and risk limit constraints.
      *
      * @return 操作结果 / Operation result
     */
@@ -202,8 +196,7 @@ data object Demo12 {
     }
 
     /**
-     * 使用 SCIP 求解器求解线性模型。
-     * Solves the linear model using the SCIP solver.
+     * 使用 SCIP 求解器求解线性模型。 / Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
     */
@@ -211,7 +204,7 @@ data object Demo12 {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
             is Ok -> {
-                metaModel.tokens.setSolution(ret.value.solution)
+                metaModel.tokens.setSolution(ret.value.values)
             }
 
             is Failed -> {
@@ -226,8 +219,7 @@ data object Demo12 {
     }
 
     /**
-     * 从解中提取每个产品的投资金额。
-     * Extracts the investment amounts per product from the solution.
+     * 从解中提取每个产品的投资金额。 / Extracts the investment amounts per product from the solution.
      *
      * @return 操作结果 / Operation result
     */

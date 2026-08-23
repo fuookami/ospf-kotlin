@@ -1,9 +1,7 @@
 /**
- * 距离度量
- * Distance Metrics
+ * 距离度量 / Distance Metrics
  *
- * 定义几何空间中的距离度量策略，支持欧几里得、曼哈顿、闵可夫斯基和切比雪夫距离。
- * Defines distance metric strategies in geometric space, supporting Euclidean, Manhattan, Minkowski, and Chebyshev distances.
+ * 定义几何空间中的距离度量策略，支持欧几里得、曼哈顿、闵可夫斯基和切比雪夫距离。 / Defines distance metric strategies in geometric space, supporting Euclidean, Manhattan, Minkowski, and Chebyshev distances.
 */
 package fuookami.ospf.kotlin.math.geometry
 
@@ -11,8 +9,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.utils.functional.sumOf
 
 /**
- * 将距离计算结果转换为目标数值类型
- * Cast the distance calculation result to the target numeric type
+ * 将距离计算结果转换为目标数值类型 / Cast the distance calculation result to the target numeric type
  *
  * @param V 数值类型 / The numeric type
  * @param value 距离计算结果 / The distance calculation result
@@ -26,14 +23,12 @@ private fun <V : FloatingNumber<V>> castDistanceValue(value: Any?): V {
 }
 
 /**
- * 距离度量策略的密封接口，支持欧几里得、曼哈顿、闵可夫斯基和切比雪夫距离。
- * Sealed interface for distance metric strategies, supporting Euclidean, Manhattan, Minkowski, and Chebyshev distances.
+ * 距离度量策略的密封接口，支持欧几里得、曼哈顿、闵可夫斯基和切比雪夫距离。 / Sealed interface for distance metric strategies, supporting Euclidean, Manhattan, Minkowski, and Chebyshev distances.
 */
 sealed interface Distance {
 
     /**
-     * 计算两点之间的距离
-     * Compute the distance between two points
+     * 计算两点之间的距离 / Compute the distance between two points
      *
      * @param D 维度类型 / The dimension type
      * @param V 数值类型 / The numeric type
@@ -44,8 +39,7 @@ sealed interface Distance {
     operator fun <D : Dimension, V : FloatingNumber<V>> invoke(lhs: Point<D, V>, rhs: Point<D, V>): V
 
     /**
-     * 欧几里得距离，即两点间直线距离 sqrt(sum((a-b)^2))。
-     * Euclidean distance: straight-line distance sqrt(sum((a-b)^2)).
+     * 欧几里得距离，即两点间直线距离 sqrt(sum((a-b)^2))。 / Euclidean distance: straight-line distance sqrt(sum((a-b)^2)).
     */
     data object Euclidean : Distance {
         override operator fun <D : Dimension, V : FloatingNumber<V>> invoke(lhs: Point<D, V>, rhs: Point<D, V>): V {
@@ -55,8 +49,7 @@ sealed interface Distance {
     }
 
     /**
-     * 曼哈顿距离，即各坐标差的绝对值之和 sum(|a-b|)。
-     * Manhattan distance: sum of absolute differences along each axis, sum(|a-b|).
+     * 曼哈顿距离，即各坐标差的绝对值之和 sum(|a-b|)。 / Manhattan distance: sum of absolute differences along each axis, sum(|a-b|).
     */
     data object Manhattan : Distance {
         override operator fun <D : Dimension, V : FloatingNumber<V>> invoke(lhs: Point<D, V>, rhs: Point<D, V>): V {
@@ -66,8 +59,7 @@ sealed interface Distance {
     }
 
     /**
-     * 闵可夫斯基距离，曼哈顿和欧几里得距离的推广，p=1 为曼哈顿，p=2 为欧几里得。
-     * Minkowski distance: generalization of Manhattan and Euclidean; p=1 is Manhattan, p=2 is Euclidean.
+     * 闵可夫斯基距离，曼哈顿和欧几里得距离的推广，p=1 为曼哈顿，p=2 为欧几里得。 / Minkowski distance: generalization of Manhattan and Euclidean; p=1 is Manhattan, p=2 is Euclidean.
      *
      * @property p 距离阶数 / The order of the distance metric
     */
@@ -85,8 +77,7 @@ sealed interface Distance {
     }
 
     /**
-     * 切比雪夫距离，即各坐标差的绝对值的最大值 max(|a-b|)。
-     * Chebyshev distance: maximum of absolute differences along any axis, max(|a-b|).
+     * 切比雪夫距离，即各坐标差的绝对值的最大值 max(|a-b|)。 / Chebyshev distance: maximum of absolute differences along any axis, max(|a-b|).
     */
     data object Chebyshev : Distance {
         override operator fun <D : Dimension, V : FloatingNumber<V>> invoke(lhs: Point<D, V>, rhs: Point<D, V>): V {

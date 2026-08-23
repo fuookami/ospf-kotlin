@@ -1,6 +1,5 @@
 /**
- * 物品模型。
- * Item model.
+ * 物品模型。 / Item model.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
@@ -16,8 +15,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 /**
- * 优先级属性，根据提取器从实际物品中获取匹配的优先级值。
- * Priority attribute that extracts a priority value from an actual item via an extractor.
+ * 优先级属性，根据提取器从实际物品中获取匹配的优先级值。 / Priority attribute that extracts a priority value from an actual item via an extractor.
  *
  * @property key 属性键 / attribute key
  * @property value 优先级值 / priority value
@@ -29,8 +27,7 @@ data class PriorityAttribute(
 ) {
 
     /**
-     * 从实际物品中提取属性值。
-     * Extract the attribute value from an actual item.
+     * 从实际物品中提取属性值。 / Extract the attribute value from an actual item.
      *
      * @param item 实际物品 / actual item
      * @return 提取的属性值 / extracted attribute value
@@ -47,8 +44,7 @@ data class PriorityAttribute(
 }
 
 /**
- * 物品类型，由包装类型和朝向类别组成。
- * Item type composed of a package type and an orientation category.
+ * 物品类型，由包装类型和朝向类别组成。 / Item type composed of a package type and an orientation category.
  *
  * @property packageType 包装类型 / package type
  * @property orientation 朝向类别 / orientation category
@@ -75,8 +71,7 @@ open class ItemType(
 }
 
 /**
- * 物品模式，描述物品的形状、朝向和属性。
- * Item pattern describing the shape, orientation, and attributes of an item.
+ * 物品模式，描述物品的形状、朝向和属性。 / Item pattern describing the shape, orientation, and attributes of an item.
  *
  * @property shape 包装形状 / package shape
  * @property enabledOrientations 允许的朝向列表 / list of enabled orientations
@@ -151,8 +146,7 @@ private fun Container3Geometry<FltX>.asContainer3Shape(): AbstractContainer3Shap
 sealed interface ItemMergeUnit
 
 /**
- * 物品接口，定义三维装箱中的物品基本行为。
- * Item interface defining the basic behavior of items in 3D bin packing.
+ * 物品接口，定义三维装箱中的物品基本行为。 / Item interface defining the basic behavior of items in 3D bin packing.
 */
 interface Item : Cuboid<Item, FltX>, Indexed, ItemMergeUnit {
     override val self: Item
@@ -270,8 +264,7 @@ interface Item : Cuboid<Item, FltX>, Indexed, ItemMergeUnit {
         )
 
     /**
-     * 判断物品是否允许在指定的底部支撑上堆叠。
-     * Check whether this item can be stacked on the specified bottom support.
+     * 判断物品是否允许在指定的底部支撑上堆叠。 / Check whether this item can be stacked on the specified bottom support.
      *
      * @param bottomSupport 底部支撑 / bottom support
      * @return 是否允许堆叠 / whether stacking is allowed
@@ -284,8 +277,7 @@ interface Item : Cuboid<Item, FltX>, Indexed, ItemMergeUnit {
     }
 
     /**
-     * 判断物品是否允许堆叠在指定底部物品之上。
-     * Check whether this item can be stacked on the specified bottom item.
+     * 判断物品是否允许堆叠在指定底部物品之上。 / Check whether this item can be stacked on the specified bottom item.
      *
      * @param bottomItem 底部物品 / bottom item
      * @param layer 层数 / layer number
@@ -314,8 +306,7 @@ interface Item : Cuboid<Item, FltX>, Indexed, ItemMergeUnit {
 }
 
 /**
- * 实际物品，包含具体的包装信息和属性。
- * An actual item containing specific packaging information and attributes.
+ * 实际物品，包含具体的包装信息和属性。 / An actual item containing specific packaging information and attributes.
  *
  * @property id 物品 ID / item id
  * @property name 物品名称 / item name
@@ -409,8 +400,7 @@ open class ActualItem(
 }
 
 /**
- * 由多个 ActualItem 按数量及范围组成的模式化物品。
- * A patterned item composed of multiple ActualItems with counts and ranges.
+ * 由多个 ActualItem 按数量及范围组成的模式化物品。 / A patterned item composed of multiple ActualItems with counts and ranges.
  *
  * @property actualItems 实际物品列表（物品、数量、数量范围） / list of actual items (item, count, count range)
 */
@@ -584,8 +574,7 @@ open class PatternedItem(
 }
 
 /**
- * 物品视图，通过特定朝向观察一个物品。
- * Item view, observing an item through a specific orientation.
+ * 物品视图，通过特定朝向观察一个物品。 / Item view, observing an item through a specific orientation.
 */
 open class ItemView(
     unit: Item,
@@ -626,8 +615,7 @@ open class ItemView(
         }
 
     /**
-     * 判断该视图物品是否允许在指定的底部支撑上堆叠。
-     * Check whether this item view can be stacked on the specified bottom support.
+     * 判断该视图物品是否允许在指定的底部支撑上堆叠。 / Check whether this item view can be stacked on the specified bottom support.
      *
      * @param bottomSupport 底部支撑 / bottom support
      * @return 是否允许堆叠 / whether stacking is allowed
@@ -640,8 +628,7 @@ open class ItemView(
     }
 
     /**
-     * 判断该视图物品是否允许堆叠在指定底部物品之上。
-     * Check whether this item view can be stacked on the specified bottom item.
+     * 判断该视图物品是否允许堆叠在指定底部物品之上。 / Check whether this item view can be stacked on the specified bottom item.
      *
      * @param bottomItem 底部物品视图 / bottom item view
      * @param layer 层数 / layer number
@@ -686,8 +673,7 @@ open class ItemView(
 }
 
 /**
- * 解析放置级真实装载形状，优先使用 ItemView 携带的候选几何。
- * Resolve placement-level packing shape, preferring candidate geometry carried by ItemView.
+ * 解析放置级真实装载形状，优先使用 ItemView 携带的候选几何。 / Resolve placement-level packing shape, preferring candidate geometry carried by ItemView.
  *
  * @return 放置级装载形状 / placement-level packing shape
 */
@@ -787,8 +773,7 @@ val QuantityPlacement3<Item, FltX>.topFlat: Boolean
     }
 
 /**
- * 将放置转换为水平圆柱支撑几何体。
- * Convert a placement to a horizontal cylinder support geometry.
+ * 将放置转换为水平圆柱支撑几何体。 / Convert a placement to a horizontal cylinder support geometry.
  *
  * @return 水平圆柱支撑几何体 / horizontal cylinder support geometry
 */
@@ -809,8 +794,7 @@ private fun QuantityPlacement3<*, FltX>.toHorizontalCylinderSupportGeometry(): H
 }
 
 /**
- * 检查水平圆柱物品在底部物品上是否有足够的支撑覆盖。
- * Check whether a horizontal cylinder item has sufficient support coverage on bottom items.
+ * 检查水平圆柱物品在底部物品上是否有足够的支撑覆盖。 / Check whether a horizontal cylinder item has sufficient support coverage on bottom items.
  *
  * @param item 水平圆柱物品放置 / horizontal cylinder item placement
  * @param bottomItems 底部物品放置列表 / list of bottom item placements
@@ -834,8 +818,7 @@ private fun hasHorizontalCylinderStackingSupportCoverage(
 }
 
 /**
- * 判断物品在 Side 平面中是否允许堆叠在底部物品之上。
- * Check whether the item can be stacked on bottom items in the Side plane.
+ * 判断物品在 Side 平面中是否允许堆叠在底部物品之上。 / Check whether the item can be stacked on bottom items in the Side plane.
  *
  * @param bottomItems 底部物品列表 / list of bottom items
  * @param space 容器空间 / container space
@@ -902,8 +885,7 @@ suspend fun QuantityPlacement2<Item, FltX, Side>.enabledStackingOn(
 }
 
 /**
- * 判断物品在 Front 平面中是否允许堆叠在底部物品之上。
- * Check whether the item can be stacked on bottom items in the Front plane.
+ * 判断物品在 Front 平面中是否允许堆叠在底部物品之上。 / Check whether the item can be stacked on bottom items in the Front plane.
  *
  * @param bottomItems 底部物品列表 / list of bottom items
  * @param space 容器空间 / container space
@@ -970,8 +952,7 @@ suspend fun QuantityPlacement2<Item, FltX, Front>.enabledStackingOn(
 }
 
 /**
- * 判断物品在 3D 空间中是否允许堆叠在底部物品之上。
- * Check whether the item can be stacked on bottom items in 3D space.
+ * 判断物品在 3D 空间中是否允许堆叠在底部物品之上。 / Check whether the item can be stacked on bottom items in 3D space.
  *
  * @param bottomItems 底部物品列表 / list of bottom items
  * @param space 容器空间 / container space
@@ -1075,8 +1056,7 @@ fun Map<Item, UInt64>.flatten(): List<Item> {
 }
 
 /**
- * 将 Pair<Item, UInt64> 的可迭代对象扁平化为按数量重复的 Item 列表。
- * Flatten an Iterable of Pair<Item, UInt64> into a list of Items repeated by count.
+ * 将 Pair<Item, UInt64> 的可迭代对象扁平化为按数量重复的 Item 列表。 / Flatten an Iterable of Pair<Item, UInt64> into a list of Items repeated by count.
  *
  * @return 扁平化后的 Item 列表 / flattened list of Items
 */
@@ -1091,8 +1071,7 @@ fun Iterable<Pair<Item, UInt64>>.flatten(): List<Item> {
 }
 
 /**
- * 计算物品总数量。
- * Calculate total item count.
+ * 计算物品总数量。 / Calculate total item count.
  *
  * @return 物品总数量 / total item count
 */
@@ -1101,8 +1080,7 @@ fun Map<Item, UInt64>.totalCount(): UInt64 {
 }
 
 /**
- * 计算物品总数量。
- * Calculate total item count.
+ * 计算物品总数量。 / Calculate total item count.
  *
  * @return 物品总数量 / total item count
 */
@@ -1111,8 +1089,7 @@ fun Iterable<Pair<Item, UInt64>>.totalCount(): UInt64 {
 }
 
 /**
- * 将物品列表按其相等性分组并计数。
- * Group items by identity and count occurrences.
+ * 将物品列表按其相等性分组并计数。 / Group items by identity and count occurrences.
  *
  * @return 分组后的物品映射 / grouped item map
 */
@@ -1121,8 +1098,7 @@ fun List<Item>.group(): Map<Item, UInt64> {
 }
 
 /**
- * 将容器树扁平化为物品放置列表。
- * Flatten the container tree into a list of item placements.
+ * 将容器树扁平化为物品放置列表。 / Flatten the container tree into a list of item placements.
  *
  * @param offset 偏移量 / offset
  * @return 物品放置列表 / list of item placements
@@ -1132,8 +1108,7 @@ fun List<QuantityPlacement3<*, FltX>>.dump(offset: Point<Dim3, FltX>): List<Quan
 }
 
 /**
- * 将容器树扁平化为物品放置列表。
- * Flatten the container tree into a list of item placements.
+ * 将容器树扁平化为物品放置列表。 / Flatten the container tree into a list of item placements.
  *
  * @param offset 偏移量 / offset
  * @return 物品放置列表 / list of item placements
@@ -1164,8 +1139,7 @@ fun List<QuantityPlacement3<*, FltX>>.dump(offset: QuantityPoint3<FltX> = point3
 }
 
 /**
- * 将容器树扁平化为物品放置列表，使用绝对位置。
- * Flatten the container tree into a list of item placements using absolute positions.
+ * 将容器树扁平化为物品放置列表，使用绝对位置。 / Flatten the container tree into a list of item placements using absolute positions.
  *
  * @param offset 偏移量 / offset
  * @return 物品放置列表 / list of item placements
@@ -1175,8 +1149,7 @@ fun List<QuantityPlacement3<*, FltX>>.dumpAbsolutely(offset: Point<Dim3, FltX>):
 }
 
 /**
- * 将容器树扁平化为物品放置列表，使用绝对位置。
- * Flatten the container tree into a list of item placements using absolute positions.
+ * 将容器树扁平化为物品放置列表，使用绝对位置。 / Flatten the container tree into a list of item placements using absolute positions.
  *
  * @param offset 偏移量 / offset
  * @return 物品放置列表 / list of item placements

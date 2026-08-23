@@ -51,8 +51,7 @@ data class Material<V : RealNumber<V>>(
     }
 
     /**
-     * 判断切割方案是否满足物料非宽度基础约束（material id + machine id 匹配）/
-     * Check whether a cutting plan satisfies material non-width basic constraints (material id + machine id matching)
+     * 判断切割方案是否满足物料非宽度基础约束（material id + machine id 匹配）/ / Check whether a cutting plan satisfies material non-width basic constraints (material id + machine id matching)
      *
      * 用于 domain policy 完全替代宽度判断时，跳过 widthRange.canCut 检查。
      * Used when domain policy completely replaces width judgment, skipping widthRange.canCut check.
@@ -90,8 +89,7 @@ data class Material<V : RealNumber<V>>(
     }
 
     /**
-     * 判断切割方案是否满足物料非宽度和设备基础约束 /
-     * Check whether a cutting plan satisfies material non-width and machine basic constraints
+     * 判断切割方案是否满足物料非宽度和设备基础约束 / / Check whether a cutting plan satisfies material non-width and machine basic constraints
      *
      * 用于 domain policy 完全替代宽度判断时，跳过 widthRange.canCut 检查。
      * Used when domain policy completely replaces width judgment, skipping widthRange.canCut check.

@@ -1,8 +1,7 @@
 /**
  * 发光强度单位 / Luminous intensity units
  *
- * 用于测量光源发光强度的单位。
- * Units for measuring the luminous intensity of light sources.
+ * 用于测量光源发光强度的单位。 / Units for measuring the luminous intensity of light sources.
  *
  * 单位常量来源 / Unit constant sources:
  * - Candela: SI基本单位（国际单位制）/ Candela: SI base unit (International System of Units)
@@ -16,8 +15,7 @@ import fuookami.ospf.kotlin.quantities.dimension.LuminousIntensity
  * 坎德拉（基本单位）/ Candela (base unit)
  *
  * 发光强度的SI基本单位，定义为频率为540×10¹²Hz的单色辐射在给定方向上的发光强度，
- * 其辐射强度在该方向上为1/683瓦特每球面度。
- * The SI base unit of luminous intensity, defined as the luminous intensity in a given direction
+ * 其辐射强度在该方向上为1/683瓦特每球面度。 / The SI base unit of luminous intensity, defined as the luminous intensity in a given direction
  * of a source that emits monochromatic radiation of frequency 540×10¹²Hz with a radiant intensity
  * of 1/683 watt per steradian in that direction.
  *

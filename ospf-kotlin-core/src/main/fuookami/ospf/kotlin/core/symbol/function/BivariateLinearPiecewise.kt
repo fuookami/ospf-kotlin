@@ -26,8 +26,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 */
 
 /**
- * 双变量分段线性函数：使用三角形插值的两变量分段线性函数。
- * BivariateLinearPiecewiseFunction - Piecewise linear function of two variables using triangle interpolation.
+ * 双变量分段线性函数：使用三角形插值的两变量分段线性函数。 / BivariateLinearPiecewiseFunction - Piecewise linear function of two variables using triangle interpolation.
  *
  * 给定输入变量 x 和 y，以及一组顶点为 (x_i, y_i, z_i) 的三角形：
  * - 点 (x, y) 处的函数值 z 由包含该点的三角形插值得出
@@ -90,10 +89,8 @@ class BivariateLinearPiecewiseFunction<V>(
         get() = lambdaVars.flatMap { it.items } + zVars.items
 
     /**
-     * 结果多项式：lambda 加权的 z 坐标之和。
-     * Result polynomial: sum of z-coordinates weighted by lambdas.
-     * 对每个三角形 i，顶点 p1, p2, p3：
-     * For each triangle i, vertices p1, p2, p3:
+     * 结果多项式：lambda 加权的 z 坐标之和。 / Result polynomial: sum of z-coordinates weighted by lambdas.
+     * 对每个三角形 i，顶点 p1, p2, p3： / For each triangle i, vertices p1, p2, p3:
      * result = sum over all i,j of (triangle_i.vertex_j.z * lambda_i_j)
     */
     val result: LinearPolynomial<V> by lazy {
@@ -132,8 +129,7 @@ class BivariateLinearPiecewiseFunction<V>(
     }
 
     /**
-     * 计算点在三角形中的重心坐标。
-     * Calculate barycentric coordinates of a point within a triangle.
+     * 计算点在三角形中的重心坐标。 / Calculate barycentric coordinates of a point within a triangle.
      *
      * @param tri 目标三角形 / the target triangle
      * @param px 点的 x 坐标 / x-coordinate of the point

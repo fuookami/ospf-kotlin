@@ -24,8 +24,8 @@ import kotlin.time.Duration
 /**
  * Compute the next reduced cost cutoff by applying a 2/3 floor-based decay to the current maximum.
  * 通过对当前最大值应用基于向下取整的 2/3 衰减来计算下一个约简成本截断值。
- * @param maximumReducedCost Current maximum reduced cost threshold / 当前最大约简成本阈值
- * @return Next reduced cost cutoff value, at least 5.0 / 下一个约简成本截断值，至少为 5.0
+ * @param maximumReducedCost 当前最大约简成本阈值 / Current maximum reduced cost threshold
+ * @return 下一个约简成本截断值，至少为 5.0 / Next reduced cost cutoff value, at least 5.0
 */
 private fun nextReducedCostCutoff(maximumReducedCost: Flt64): Flt64 {
     val reducedCostCutoff = maximumReducedCost.floor().toInt64() * Int64(2L) / Int64(3L)
@@ -385,10 +385,10 @@ abstract class AbstractIterativeTaskCompilationAggregation<
 /**
  * Reset variable ranges for a new iteration, unlocking cancel variables and restoring binary ranges.
  * 重置变量范围以开始新一轮迭代，解锁取消变量并恢复二值范围。
- * @param iteration Current iteration index to flush variables up to / 要刷新变量至的当前迭代索引
- * @param tasks Original task list whose cancel variables need resetting / 需要重置取消变量的原始任务列表
- * @param lockCancelTasks Tasks whose cancel variables should remain locked / 取消变量应保持锁定的任务集合
- * @return Operation result / 操作结果
+ * @param iteration 要刷新变量至的当前迭代索引 / Current iteration index to flush variables up to
+ * @param tasks 需要重置取消变量的原始任务列表 / Original task list whose cancel variables need resetting
+ * @param lockCancelTasks 取消变量应保持锁定的任务集合 / Tasks whose cancel variables should remain locked
+ * @return 操作结果 / Operation result
 */
     fun flush(
         iteration: UInt64,
@@ -425,10 +425,10 @@ abstract class AbstractIterativeTaskCompilationAggregation<
 /**
  * Extract tasks from solved model tokens matching a given predicate on their result values.
  * 从已求解的模型令牌中提取结果值满足给定谓词的任务。
- * @param iteration Current iteration index / 当前迭代索引
- * @param model Linear meta model containing solved tokens / 包含已求解令牌的线性元模型
- * @param predicate Filter predicate applied to token result values / 应用于令牌结果值的过滤谓词
- * @return Set of iterative tasks matching the predicate / 匹配谓词的迭代任务集合
+ * @param iteration 当前迭代索引 / Current iteration index
+ * @param model 包含已求解令牌的线性元模型 / Linear meta model containing solved tokens
+ * @param predicate 应用于令牌结果值的过滤谓词 / Filter predicate applied to token result values
+ * @return 匹配谓词的迭代任务集合 / Set of iterative tasks matching the predicate
 */
     private fun extractTasks(
         iteration: UInt64,
@@ -509,8 +509,7 @@ open class IterativeTaskCompilationAggregationWithTime<
     )
 
     /**
-     * 通过 solver 时间窗口边界创建带时间的迭代任务编译聚合 /
-     * Create iterative task compilation aggregation with time from a solver time-window boundary
+     * 通过 solver 时间窗口边界创建带时间的迭代任务编译聚合 / / Create iterative task compilation aggregation with time from a solver time-window boundary
      *
      * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
      * @param tasks 任务列表 / List of tasks

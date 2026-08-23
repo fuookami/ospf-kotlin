@@ -1,6 +1,5 @@
 /**
- * 选择策略接口与实现
- * Selection strategy interface and implementations
+ * 选择策略接口与实现 / Selection strategy interface and implementations
 */
 package fuookami.ospf.kotlin.core.solver.heuristic
 
@@ -10,14 +9,12 @@ import fuookami.ospf.kotlin.math.ordinary.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 选择策略接口，定义从种群中选择个体的行为。
- * Selection strategy interface, defining behavior for selecting individuals from the population.
+ * 选择策略接口，定义从种群中选择个体的行为。 / Selection strategy interface, defining behavior for selecting individuals from the population.
 */
 interface Selection {
 
     /**
-     * 按权重选择一个个体索引。
-     * Select one individual index by weight.
+     * 按权重选择一个个体索引。 / Select one individual index by weight.
      *
      * @param iteration 当前迭代 / Current iteration
      * @param weights 权重列表 / Weight list
@@ -29,8 +26,7 @@ interface Selection {
     ): UInt64
 
     /**
-     * 按权重选择多个个体索引。
-     * Select multiple individual indices by weight.
+     * 按权重选择多个个体索引。 / Select multiple individual indices by weight.
      *
      * @param iteration 当前迭代 / Current iteration
      * @param weights 权重列表 / Weight list
@@ -45,8 +41,7 @@ interface Selection {
 }
 
 /**
- * 轮盘赌选择策略，按权重概率选择个体。
- * Roulette selection strategy, selecting individuals with probability proportional to weights.
+ * 轮盘赌选择策略，按权重概率选择个体。 / Roulette selection strategy, selecting individuals with probability proportional to weights.
  *
  * @property randomGenerator 随机数生成器 / Random number generator
 */
@@ -94,8 +89,7 @@ data class RouletteSelection(
 }
 
 /**
- * 排名选择策略，选择权重最高的个体。
- * Rank selection strategy, selecting individuals with the highest weights.
+ * 排名选择策略，选择权重最高的个体。 / Rank selection strategy, selecting individuals with the highest weights.
 */
 data object RankSelection : Selection {
     override operator fun invoke(
@@ -122,8 +116,7 @@ data object RankSelection : Selection {
 }
 
 /**
- * 锦标赛选择策略，将种群分组后选择每组精英。
- * Tournament selection strategy, dividing population into groups and selecting elites from each.
+ * 锦标赛选择策略，将种群分组后选择每组精英。 / Tournament selection strategy, dividing population into groups and selecting elites from each.
  *
  * @property eliteAmount 每组精英数量函数 / Elite amount per group function
  * @property groupMinAmount 每组最小数量函数 / Minimum group size function
@@ -134,8 +127,7 @@ data class TournamentSelection(
 ) : Selection {
     companion object {
         /**
-         * 以固定参数创建锦标赛选择策略。
-         * Create a tournament selection strategy with fixed parameters.
+         * 以固定参数创建锦标赛选择策略。 / Create a tournament selection strategy with fixed parameters.
          *
          * @param eliteAmount 每组精英数量 / Elite amount per group
          * @param groupMinAmount 每组最小数量 / Minimum group size
@@ -198,8 +190,7 @@ data class TournamentSelection(
 }
 
 /**
- * 随机通用选择策略，使用等间距指针进行选择。
- * Stochastic universal selection strategy, using equally spaced pointers for selection.
+ * 随机通用选择策略，使用等间距指针进行选择。 / Stochastic universal selection strategy, using equally spaced pointers for selection.
  *
  * @property randomGenerator 随机数生成器 / Random number generator
 */
@@ -240,8 +231,7 @@ data class StochasticUniversalSelection(
 }
 
 /**
- * 截断选择策略，按阈值截断后随机选择。
- * Truncation selection strategy, truncating by threshold then randomly selecting.
+ * 截断选择策略，按阈值截断后随机选择。 / Truncation selection strategy, truncating by threshold then randomly selecting.
  *
  * @property truncationThreshold 截断阈值函数 / Truncation threshold function
 */
@@ -250,8 +240,7 @@ data class TruncationSelection(
 ) : Selection {
     companion object {
         /**
-         * 以固定阈值创建截断选择策略。
-         * Create a truncation selection strategy with a fixed threshold.
+         * 以固定阈值创建截断选择策略。 / Create a truncation selection strategy with a fixed threshold.
          *
          * @param truncationThreshold 截断阈值 / Truncation threshold
          * @return 截断选择策略实例 / Truncation selection strategy instance
@@ -305,8 +294,7 @@ data class TruncationSelection(
 }
 
 /**
- * 玻尔兹曼选择策略，基于温度的退火选择。
- * Boltzmann selection strategy, annealing-based selection with temperature.
+ * 玻尔兹曼选择策略，基于温度的退火选择。 / Boltzmann selection strategy, annealing-based selection with temperature.
  *
  * @property temperature 温度函数 / Temperature function
  * @property randomGenerator 随机数生成器 / Random number generator
@@ -317,8 +305,7 @@ data class BoltzmannSelection(
 ) : Selection {
     companion object {
         /**
-         * 以温度衰减参数创建玻尔兹曼选择策略。
-         * Create a Boltzmann selection strategy with temperature decay parameters.
+         * 以温度衰减参数创建玻尔兹曼选择策略。 / Create a Boltzmann selection strategy with temperature decay parameters.
          *
          * @param initialTemperature 初始温度 / Initial temperature
          * @param decayRate 衰减率 / Decay rate
@@ -380,8 +367,7 @@ data class BoltzmannSelection(
 }
 
 /**
- * 局部选择策略基类，基于邻域进行选择。
- * Base class for local selection strategies, selecting based on neighborhood.
+ * 局部选择策略基类，基于邻域进行选择。 / Base class for local selection strategies, selecting based on neighborhood.
 */
 abstract class LocalSelection : Selection {
 
@@ -392,8 +378,7 @@ abstract class LocalSelection : Selection {
     protected abstract val randomGenerator: Generator<Flt64>
 
     /**
-     * 获取邻域内的个体索引集合。
-     * Get the set of individual indices within the neighborhood.
+     * 获取邻域内的个体索引集合。 / Get the set of individual indices within the neighborhood.
      *
      * @param weights 权重列表 / Weight list
      * @param amount 邻域大小 / Neighborhood size
@@ -434,8 +419,7 @@ abstract class LocalSelection : Selection {
 }
 
 /**
- * 环形局部选择策略，在环形邻域内进行选择。
- * Ring local selection strategy, selecting within a ring-shaped neighborhood.
+ * 环形局部选择策略，在环形邻域内进行选择。 / Ring local selection strategy, selecting within a ring-shaped neighborhood.
  *
  * @property neighborhoodSize 邻域大小函数 / Neighborhood size function
  * @property randomGenerator 随机数生成器 / Random number generator
@@ -446,8 +430,7 @@ data class RingLocalSelection(
 ) : LocalSelection() {
     companion object {
         /**
-         * 以固定邻域大小创建环形局部选择策略。
-         * Create a ring local selection strategy with a fixed neighborhood size.
+         * 以固定邻域大小创建环形局部选择策略。 / Create a ring local selection strategy with a fixed neighborhood size.
          *
          * @param neighborhoodSize 邻域大小 / Neighborhood size
          * @param randomGenerator 随机数生成器 / Random number generator
@@ -465,8 +448,7 @@ data class RingLocalSelection(
     }
 
     /**
-     * 获取环形邻域内的个体索引集合。
-     * Get the set of individual indices within the ring neighborhood.
+     * 获取环形邻域内的个体索引集合。 / Get the set of individual indices within the ring neighborhood.
      *
      * @param weights 权重列表 / Weight list
      * @param amount 邻域大小 / Neighborhood size

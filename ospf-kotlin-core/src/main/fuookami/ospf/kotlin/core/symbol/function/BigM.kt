@@ -21,9 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * Big-M 线性化工具 / Big-M linearization utilities
  *
- * 提供 Big-M 常量定义及非零指示约束、简单指示约束等线性化辅助函数。
- *
- * Provides Big-M constant definitions and linearization helper functions
+ * 提供 Big-M 常量定义及非零指示约束、简单指示约束等线性化辅助函数。 / Provides Big-M constant definitions and linearization helper functions
  * for nonzero indicator constraints and simple indicator constraints.
 */
 
@@ -40,8 +38,7 @@ const val NONZERO_TOLERANCE: Double = 1e-10
 val STRICT_BOUNDARY: Double = NONZERO_TOLERANCE * 16 + Math.pow(2.0, -52.0) * 16
 
 /**
- * 线性多项式的有限上下界。
- * Finite lower and upper bounds of a linear polynomial.
+ * 线性多项式的有限上下界。 / Finite lower and upper bounds of a linear polynomial.
  *
  * @property lower 下界 / lower bound
  * @property upper 上界 / upper bound
@@ -61,8 +58,7 @@ data class LinearPolynomialBounds<V>(
 }
 
 /**
- * 计算可迭代值中的最大值。
- * Compute the maximum value in an iterable of values.
+ * 计算可迭代值中的最大值。 / Compute the maximum value in an iterable of values.
  *
  * @param values 非空的可迭代值集合 / non-empty iterable of values
  * @return 最大值 / the maximum value
@@ -81,8 +77,7 @@ private fun maxOf(values: Iterable<Flt64>): Flt64 {
 }
 
 /**
- * 计算可迭代值中的最小值。
- * Compute the minimum value in an iterable of values.
+ * 计算可迭代值中的最小值。 / Compute the minimum value in an iterable of values.
  *
  * @param values 非空的可迭代值集合 / non-empty iterable of values
  * @return 最小值 / the minimum value
@@ -101,8 +96,7 @@ private fun minOf(values: Iterable<Flt64>): Flt64 {
 }
 
 /**
- * 获取符号的有限上下界。
- * Get the finite lower and upper bounds of a symbol.
+ * 获取符号的有限上下界。 / Get the finite lower and upper bounds of a symbol.
  *
  * @param symbol 待查询的符号 / the symbol to query
  * @return 符号的有限上下界对，若符号无有限范围则返回 null / pair of finite lower and upper bounds, or null if the symbol has no finite range
@@ -120,10 +114,8 @@ private fun symbolFiniteBounds(symbol: Symbol): Pair<Flt64, Flt64>? {
 }
 
 /**
- * 在给定 Symbol -> V 值映射下计算线性多项式的值。
- * Evaluate a linear polynomial given a map of Symbol -> V values.
- * 如果多项式中的任何符号不在映射中，则返回 null。
- * Returns null if any symbol in the polynomial is missing from the map.
+ * 在给定 Symbol -> V 值映射下计算线性多项式的值。 / Evaluate a linear polynomial given a map of Symbol -> V values.
+ * 如果多项式中的任何符号不在映射中，则返回 null。 / Returns null if any symbol in the polynomial is missing from the map.
 */
 fun <V> LinearPolynomial<V>.evaluateWith(values: Map<Symbol, V>): V? where V : RealNumber<V>, V : NumberField<V> {
     var result = constant
@@ -135,11 +127,9 @@ fun <V> LinearPolynomial<V>.evaluateWith(values: Map<Symbol, V>): V? where V : R
 }
 
 /**
- * 基于变量与中间符号的有限范围推导线性多项式上下界。
- * Infer finite bounds of a linear polynomial from variable and intermediate-symbol ranges.
+ * 基于变量与中间符号的有限范围推导线性多项式上下界。 / Infer finite bounds of a linear polynomial from variable and intermediate-symbol ranges.
  *
- * 若任一依赖符号缺少有限上下界，则返回 null。
- * Returns null if any dependency symbol lacks finite bounds.
+ * 若任一依赖符号缺少有限上下界，则返回 null。 / Returns null if any dependency symbol lacks finite bounds.
  *
  * @param converter 值类型转换器 / value type converter
  * @return 线性多项式上下界，或 null / linear polynomial bounds, or null
@@ -170,8 +160,7 @@ fun <V> LinearPolynomial<V>.finiteBounds(
 }
 
 /**
- * 基于变量与中间符号的有限范围推导二次多项式上下界。
- * Infer finite bounds of a quadratic polynomial from variable and intermediate-symbol ranges.
+ * 基于变量与中间符号的有限范围推导二次多项式上下界。 / Infer finite bounds of a quadratic polynomial from variable and intermediate-symbol ranges.
  *
  * @param converter 值类型转换器 / value type converter
  * @return 二次多项式上下界，或 null / quadratic polynomial bounds, or null
@@ -226,8 +215,7 @@ fun <V> QuadraticPolynomial<V>.finiteBounds(
 }
 
 /**
- * 将一个候选 Big-M 调整为至少 [BIG_M_MIN]。
- * Clamp a candidate Big-M to at least [BIG_M_MIN].
+ * 将一个候选 Big-M 调整为至少 [BIG_M_MIN]。 / Clamp a candidate Big-M to at least [BIG_M_MIN].
 */
 fun <V> ensurePositiveBigM(
     value: V,
@@ -245,8 +233,7 @@ private fun <V> relaxBigM(
 }
 
 /**
- * 线性多项式默认 Big-M：优先使用有限范围的最大绝对值。
- * Default Big-M for a linear polynomial: finite-range absolute maximum first.
+ * 线性多项式默认 Big-M：优先使用有限范围的最大绝对值。 / Default Big-M for a linear polynomial: finite-range absolute maximum first.
 */
 fun <V> LinearPolynomial<V>.defaultBigM(
     converter: IntoValue<V>,
@@ -256,8 +243,7 @@ fun <V> LinearPolynomial<V>.defaultBigM(
 }
 
 /**
- * 二次多项式默认 Big-M：优先使用有限范围的最大绝对值。
- * Default Big-M for a quadratic polynomial: finite-range absolute maximum first.
+ * 二次多项式默认 Big-M：优先使用有限范围的最大绝对值。 / Default Big-M for a quadratic polynomial: finite-range absolute maximum first.
 */
 fun <V> QuadraticPolynomial<V>.defaultBigM(
     converter: IntoValue<V>,
@@ -267,8 +253,7 @@ fun <V> QuadraticPolynomial<V>.defaultBigM(
 }
 
 /**
- * 多个线性多项式默认 Big-M：取各自有限范围最大绝对值的最大值。
- * Default Big-M for linear polynomials: max absolute bound across all inputs.
+ * 多个线性多项式默认 Big-M：取各自有限范围最大绝对值的最大值。 / Default Big-M for linear polynomials: max absolute bound across all inputs.
 */
 fun <V> Iterable<LinearPolynomial<V>>.defaultBigM(
     converter: IntoValue<V>,
@@ -287,8 +272,7 @@ fun <V> Iterable<LinearPolynomial<V>>.defaultBigM(
 }
 
 /**
- * 构建线性不等式两侧差值 lhs-rhs。
- * Build the lhs-rhs difference polynomial for a linear inequality.
+ * 构建线性不等式两侧差值 lhs-rhs。 / Build the lhs-rhs difference polynomial for a linear inequality.
 */
 fun <V> LinearInequality<V>.differencePolynomial(): LinearPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     return LinearPolynomial(
@@ -298,10 +282,8 @@ fun <V> LinearInequality<V>.differencePolynomial(): LinearPolynomial<V> where V 
 }
 
 /**
- * 将约束列表添加到模型中，失败时提前返回。
- * Add a list of constraints to the model, returning early on failure.
- * 成功时返回 null，失败时返回错误结果。
- * Returns null on success, or the error result on failure.
+ * 将约束列表添加到模型中，失败时提前返回。 / Add a list of constraints to the model, returning early on failure.
+ * 成功时返回 null，失败时返回错误结果。 / Returns null on success, or the error result on failure.
 */
 internal fun <V> addConstraints(model: AbstractLinearMetaModel<V>, constraints: List<LinearInequality<V>>): Try? where V : RealNumber<V>, V : NumberField<V> {
     for (c in constraints) {
@@ -315,10 +297,8 @@ internal fun <V> addConstraints(model: AbstractLinearMetaModel<V>, constraints: 
 }
 
 /**
- * 将 V 类型约束列表直接添加到 V 类型机制模型中。
- * Add a list of V-generic constraints directly to a V-generic MechanismModel.
- * 成功时返回 null，失败时返回错误结果。
- * Returns null on success, or the error result on failure.
+ * 将 V 类型约束列表直接添加到 V 类型机制模型中。 / Add a list of V-generic constraints directly to a V-generic MechanismModel.
+ * 成功时返回 null，失败时返回错误结果。 / Returns null on success, or the error result on failure.
 */
 internal fun <V> addConstraints(model: AbstractLinearMechanismModel<V>, constraints: List<LinearInequality<V>>): Try? where V : RealNumber<V>, V : NumberField<V> {
     for (c in constraints) {
@@ -332,10 +312,8 @@ internal fun <V> addConstraints(model: AbstractLinearMechanismModel<V>, constrai
 }
 
 /**
- * 将 V 类型二次约束列表直接添加到 V 类型二次机制模型中。
- * Add a list of V-generic quadratic constraints directly to a V-generic QuadraticMechanismModel.
- * 成功时返回 null，失败时返回错误结果。
- * Returns null on success, or the error result on failure.
+ * 将 V 类型二次约束列表直接添加到 V 类型二次机制模型中。 / Add a list of V-generic quadratic constraints directly to a V-generic QuadraticMechanismModel.
+ * 成功时返回 null，失败时返回错误结果。 / Returns null on success, or the error result on failure.
 */
 internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<V>, constraints: List<QuadraticInequalityOf<V>>): Try? where V : RealNumber<V>, V : NumberField<V> {
     for (c in constraints) {
@@ -349,18 +327,13 @@ internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<
 }
 
 /**
- * 为多项式构建 4 个非零指示约束。
- * Build the 4 nonzero-indicator constraints for a polynomial.
+ * 为多项式构建 4 个非零指示约束。 / Build the 4 nonzero-indicator constraints for a polynomial.
  *
- * 当 `indicator = 1` 时：多项式被约束为接近零（在容差范围内）。
- * When `indicator = 1`: polynomial is constrained to be near zero (within tolerance).
- * 当 `indicator = 0` 时：多项式可以非零（通过 Big-M 放松）。
- * When `indicator = 0`: polynomial can be nonzero (relaxed by Big-M).
- * `sideVar` 用于区分正负偏差以进行等式检查。
- * The `sideVar` distinguishes positive vs negative deviation for equality checks.
+ * 当 `indicator = 1` 时：多项式被约束为接近零（在容差范围内）。 / When `indicator = 1`: polynomial is constrained to be near zero (within tolerance).
+ * 当 `indicator = 0` 时：多项式可以非零（通过 Big-M 放松）。 / When `indicator = 0`: polynomial can be nonzero (relaxed by Big-M).
+ * `sideVar` 用于区分正负偏差以进行等式检查。 / The `sideVar` distinguishes positive vs negative deviation for equality checks.
  *
- * 这避免了 V -> Flt64 -> V 的往返转换，并在泛型路径中保持中间符号约束为 V 类型。
- * This avoids the V -> Flt64 -> V conversion round-trip and keeps
+ * 这避免了 V -> Flt64 -> V 的往返转换，并在泛型路径中保持中间符号约束为 V 类型。 / This avoids the V -> Flt64 -> V conversion round-trip and keeps
  * intermediate-symbol constraints parameterized as V inside generic paths.
 */
 fun <V> nonzeroIndicatorConstraints(
@@ -407,8 +380,7 @@ fun <V> nonzeroIndicatorConstraints(
 }
 
 /**
- * 为零值检测构建指示约束。
- * Build indicator constraints for detecting a zero polynomial value.
+ * 为零值检测构建指示约束。 / Build indicator constraints for detecting a zero polynomial value.
  *
  * 当 `indicator = 1` 时：poly 在容差范围内。
  * When `indicator = 1`: poly is within tolerance.
@@ -457,8 +429,7 @@ fun <V> zeroIndicatorConstraints(
 }
 
 /**
- * 为正数检测构建指示约束。
- * Build indicator constraints for detecting a positive polynomial value.
+ * 为正数检测构建指示约束。 / Build indicator constraints for detecting a positive polynomial value.
  *
  * 当 `indicator = 1` 时：poly >= tolerance。
  * When `indicator = 1`: poly >= tolerance.
@@ -492,8 +463,7 @@ fun <V> positiveIndicatorConstraints(
 }
 
 /**
- * 为非负检测构建指示约束。
- * Build indicator constraints for detecting a nonnegative polynomial value.
+ * 为非负检测构建指示约束。 / Build indicator constraints for detecting a nonnegative polynomial value.
  *
  * 当 `indicator = 1` 时：poly >= 0。
  * When `indicator = 1`: poly >= 0.
@@ -527,8 +497,7 @@ fun <V> nonnegativeIndicatorConstraints(
 }
 
 /**
- * 为简单不等式（LE 或 GE）构建指示约束。
- * Build indicator constraints for a simple inequality (LE or GE).
+ * 为简单不等式（LE 或 GE）构建指示约束。 / Build indicator constraints for a simple inequality (LE or GE).
  *
  * 对于 LE：当 indicator=1 时，强制 poly <= rhs。
  * For LE: when indicator=1, poly <= rhs is enforced.

@@ -31,7 +31,7 @@ abstract class MindOPTSolver : AutoCloseable {
     ): Try {
         return try {
             env = MDOEnv()
-            when (val callbackResult = executeCreatingEnvironmentCallback(env, callBack)) {
+            when (val callbackResult = executeCreatingEnvironmentCallback(env, callBack?.let { it::invoke })) {
                 is Failed -> return callbackResult
                 is Fatal -> return callbackResult
                 else -> {}

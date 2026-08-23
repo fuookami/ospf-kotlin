@@ -4,9 +4,7 @@
  *
  * Julia 集是复动力系统中与 Mandelbrot 集密切相关的分形集合。
  * 对于固定的复数 c，迭代 z_{n+1} = z_n^2 + c，若序列不发散则 z 属于 Julia 集。
- * 不同的 c 值产生不同形状的 Julia 集，常用于分形图形生成和复动力系统研究。
- *
- * The Julia set is a fractal set closely related to the Mandelbrot set in complex dynamics.
+ * 不同的 c 值产生不同形状的 Julia 集，常用于分形图形生成和复动力系统研究。 / The Julia set is a fractal set closely related to the Mandelbrot set in complex dynamics.
  * For a fixed complex c, iterate z_{n+1} = z_n^2 + c; if the sequence does not diverge, z belongs to the Julia set.
  * Different values of c produce different Julia set shapes, commonly used for fractal graphics generation and complex dynamics research.
 */
@@ -20,8 +18,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * Julia 集迭代函数
- * Julia Set iteration function
+ * Julia 集迭代函数 / Julia Set iteration function
  *
  * 公式 / Formula:
  * x_{n+1} = x^2 - y^2 + a
@@ -49,8 +46,7 @@ class JuliaSet<V : FloatingNumber<V>>(
 }
 
 /**
- * Julia 集序列生成器
- * Julia Set sequence generator
+ * Julia 集序列生成器 / Julia Set sequence generator
 */
 data class JuliaSetGenerator(
     val juliaSet: JuliaSet<Flt64> = JuliaSet(Flt64(-0.7), Flt64(0.27015)),
@@ -80,9 +76,7 @@ data class JuliaSetGenerator(
  * Multi Julia Set
  *
  * 多重 Julia 集是 Julia 集的推广，使用 z^n + c 替代 z^2 + c。
- * 通过改变指数 n，可以产生不同形状的分形图案。
- *
- * The Multi Julia set is a generalization of the Julia set, using z^n + c instead of z^2 + c.
+ * 通过改变指数 n，可以产生不同形状的分形图案。 / The Multi Julia set is a generalization of the Julia set, using z^n + c instead of z^2 + c.
  * By changing the exponent n, different fractal patterns can be produced.
  *
  * @property c 复数参数 c = (a, b) / Complex parameter c = (a, b)
@@ -118,8 +112,7 @@ class MultiJuliaSet(
 }
 
 /**
- * 多重 Julia 集序列生成器
- * Multi Julia Set sequence generator
+ * 多重 Julia 集序列生成器 / Multi Julia Set sequence generator
 */
 data class MultiJuliaSetGenerator(
     val multiJuliaSet: MultiJuliaSet = MultiJuliaSet(Flt64(-0.7), Flt64(0.27015)),

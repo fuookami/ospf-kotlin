@@ -27,8 +27,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 }
 
 /**
- * 车辆路径问题：在卡车容量约束下最小化从配送中心到经销商的配送距离。
- * Vehicle routing: minimize distribution distance from centers to dealers with truck capacity.
+ * 车辆路径问题：在卡车容量约束下最小化从配送中心到经销商的配送距离。 / Vehicle routing: minimize distribution distance from centers to dealers with truck capacity.
  *
  * @see https://fuookami.github.io/ospf/examples/example13.html
 */
@@ -114,8 +113,7 @@ data object Demo13 {
     )
 
     /**
-     * 按顺序运行所有子过程以构建、求解和分析模型。
-     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 按顺序运行所有子过程以构建、求解和分析模型。 / Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
     */
@@ -137,8 +135,7 @@ data object Demo13 {
     }
 
     /**
-     * 初始化发货量和卡车数量变量。
-     * Initializes shipment and truck count variables.
+     * 初始化发货量和卡车数量变量。 / Initializes shipment and truck count variables.
      *
      * @return 操作结果 / Operation result
     */
@@ -153,8 +150,7 @@ data object Demo13 {
     }
 
     /**
-     * 创建运输、接收和成本表达式符号。
-     * Creates transport, receive, and cost expression symbols.
+     * 创建运输、接收和成本表达式符号。 / Creates transport, receive, and cost expression symbols.
      *
      * @return 操作结果 / Operation result
     */
@@ -198,8 +194,7 @@ data object Demo13 {
     }
 
     /**
-     * 设置目标函数以最小化总配送距离。
-     * Sets the objective to minimize total distribution distance.
+     * 设置目标函数以最小化总配送距离。 / Sets the objective to minimize total distribution distance.
      *
      * @return 操作结果 / Operation result
     */
@@ -210,8 +205,7 @@ data object Demo13 {
     }
 
     /**
-     * 添加供应、需求和卡车容量约束。
-     * Adds supply, demand, and truck capacity constraints.
+     * 添加供应、需求和卡车容量约束。 / Adds supply, demand, and truck capacity constraints.
      *
      * @return 操作结果 / Operation result
     */
@@ -243,8 +237,7 @@ data object Demo13 {
     }
 
     /**
-     * 使用 SCIP 求解器求解线性模型。
-     * Solves the linear model using the SCIP solver.
+     * 使用 SCIP 求解器求解线性模型。 / Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
     */
@@ -252,7 +245,7 @@ data object Demo13 {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
             is Ok -> {
-                metaModel.tokens.setSolution(ret.value.solution)
+                metaModel.tokens.setSolution(ret.value.values)
             }
 
             is Failed -> {
@@ -268,8 +261,7 @@ data object Demo13 {
     }
 
     /**
-     * 从解中提取每个配送中心和经销商的发货量。
-     * Extracts the shipment quantities per distribution center and dealer.
+     * 从解中提取每个配送中心和经销商的发货量。 / Extracts the shipment quantities per distribution center and dealer.
      *
      * @return 操作结果 / Operation result
     */

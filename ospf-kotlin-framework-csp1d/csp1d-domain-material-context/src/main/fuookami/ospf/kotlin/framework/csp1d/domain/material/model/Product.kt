@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 
 /**
@@ -105,7 +106,7 @@ open class Product<V : RealNumber<V>>(
             unitWeight: FltX? = null,
             weight: FltX? = null,
             maxOverProduceLength: FltX? = null,
-            unit: fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+            unit: PhysicalUnit
         ): Product<FltX> {
             return Product(
                 id = id,
@@ -131,7 +132,7 @@ open class Product<V : RealNumber<V>>(
      * Computes the maximum width across all width dimensions.
      * 中文计算所有宽度维度中的最大宽度。
      *
-     * @return the maximum width quantity, or null if no widths exist / 最大宽度数量，若无宽度则返回null
+     * @return 最大宽度数量，若无宽度则返回null / the maximum width quantity, or null if no widths exist
     */
     fun maxWidth(): Quantity<V>? {
         return width.reduceOrNull { lhs, rhs ->

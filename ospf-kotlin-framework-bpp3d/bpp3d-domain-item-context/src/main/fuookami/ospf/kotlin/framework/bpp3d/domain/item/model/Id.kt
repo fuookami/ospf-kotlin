@@ -57,8 +57,8 @@ data class ItemIdImpl(
  *
  * 供测试构造 ActualItem 实例使用，避免直接暴露 [ItemIdImpl] 构造器。
  *
- * @param value raw string identifier to wrap / 待包装的原始字符串标识符
- * @return an [ItemId] instance wrapping the given string value / 包装给定字符串值的 [ItemId] 实例
+ * @param value 待包装的原始字符串标识符 / raw string identifier to wrap
+ * @return 包装给定字符串值的 [ItemId] 实例 / an [ItemId] instance wrapping the given string value
 */
 fun itemIdOf(value: String): ItemId = ItemIdImpl(value)
 
@@ -76,7 +76,7 @@ data class BinTypeIdImpl(
 /**
  * BinTypeId 工厂函数：由 String 裸值构造 [BinTypeId] / Factory constructing a [BinTypeId] from a raw String value
  *
- * @param value raw string identifier to wrap / 待包装的原始字符串标识符
- * @return a [BinTypeId] instance wrapping the given string value / 包装给定字符串值的 [BinTypeId] 实例
+ * @param value 待包装的原始字符串标识符 / raw string identifier to wrap
+ * @return 包装给定字符串值的 [BinTypeId] 实例 / a [BinTypeId] instance wrapping the given string value
 */
 fun binTypeIdOf(value: String): BinTypeId = BinTypeIdImpl(value)

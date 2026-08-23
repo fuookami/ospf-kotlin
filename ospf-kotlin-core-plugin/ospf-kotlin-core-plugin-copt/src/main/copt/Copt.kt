@@ -105,7 +105,7 @@ data object COPT {
     /**
      * 回调信息枚举 / Callback info enum
      *
-     * @property key the parameter key string / 参数键字符串
+     * @property key 参数键字符串 / the parameter key string
     */
     enum class CallBackInfo(val key: String) {
         /** 最优目标值 / Best objective value */
@@ -131,7 +131,7 @@ data object COPT {
     /**
      * 双精度参数枚举 / Double parameter enum
      *
-     * @property key the parameter key string / 参数键字符串
+     * @property key 参数键字符串 / the parameter key string
     */
     enum class DoubleParam(val key: String) {
         /** 时间限制 / Time limit */
@@ -163,7 +163,7 @@ data object COPT {
     /**
      * 整数参数枚举 / Integer parameter enum
      *
-     * @property key the parameter key string / 参数键字符串
+     * @property key 参数键字符串 / the parameter key string
     */
     enum class IntParam(val key: String) {
         /** 日志级别 / Logging level */
@@ -261,7 +261,7 @@ data object COPT {
     /**
      * 双精度属性枚举 / Double attribute enum
      *
-     * @property key the parameter key string / 参数键字符串
+     * @property key 参数键字符串 / the parameter key string
     */
     enum class DoubleAttr(val key: String) {
         /** 求解时间 / Solving time */
@@ -283,7 +283,7 @@ data object COPT {
     /**
      * 整数属性枚举 / Integer attribute enum
      *
-     * @property key the parameter key string / 参数键字符串
+     * @property key 参数键字符串 / the parameter key string
     */
     enum class IntAttr(val key: String) {
         /** 列数 / Number of columns */
@@ -369,7 +369,7 @@ data object COPT {
     /**
      * 双精度信息枚举 / Double info enum
      *
-     * @property key the parameter key string / 参数键字符串
+     * @property key 参数键字符串 / the parameter key string
     */
     enum class DoubleInfo(val key: String) {
         /** 目标系数 / Objective coefficient */
@@ -401,7 +401,7 @@ data object COPT {
     /**
      * 客户端配置枚举 / Client configuration enum
      *
-     * @property key the parameter key string / 参数键字符串
+     * @property key 参数键字符串 / the parameter key string
     */
     enum class Client(val key: String) {
         /** CA 文件 / CA file */

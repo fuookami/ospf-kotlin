@@ -216,8 +216,8 @@ class Csp1dWarmStartPlanPoolAdapter<V : RealNumber<V>>(
      * Extract warm-start plan usages compatible with the current problem from the previous solution.
      * 从上一轮解中提取与当前问题兼容的 warm start 方案使用量。
      *
-     * @param input warm start adapter input containing the previous solution and compatible cutting plans / 包含上一轮解和兼容切割方案的 warm start adapter 输入
-     * @return compatible cutting plan usages from the previous solution, or empty list if no previous solution exists / 上一轮解中兼容的切割方案使用量，若无上一轮解则返回空列表
+     * @param input 包含上一轮解和兼容切割方案的 warm start adapter 输入 / warm start adapter input containing the previous solution and compatible cutting plans
+     * @return 上一轮解中兼容的切割方案使用量，若无上一轮解则返回空列表 / compatible cutting plan usages from the previous solution, or empty list if no previous solution exists
     */
     private fun warmStartPlanUsages(input: Csp1dWarmStartAdapterInput<V>): List<CuttingPlanUsage<V>> {
         val previousSolution = input.warmStart.previousSolution ?: return emptyList()
@@ -611,8 +611,8 @@ private fun <V : RealNumber<V>> csp1dIsWarmStartCompatible(
  * Check whether the given warm start status requires a fallback to normal solve.
  * 判断给定的 warm start 状态是否需要退回普通求解。
  *
- * @param status warm start handling status to evaluate / 待评估的 warm start 处理状态
- * @return true if the status indicates warm start cannot be applied and fallback is needed / 若状态表明 warm start 无法应用且需要退回普通求解则返回 true
+ * @param status 待评估的 warm start 处理状态 / warm start handling status to evaluate
+ * @return 若状态表明 warm start 无法应用且需要退回普通求解则返回 true / true if the status indicates warm start cannot be applied and fallback is needed
 */
 private fun csp1dRequiresFallback(status: Csp1dWarmStartStatus): Boolean {
     return status == Csp1dWarmStartStatus.Invalid ||
@@ -640,9 +640,9 @@ private fun csp1dWarmStartMessage(status: Csp1dWarmStartStatus): String? {
  * Build a recovery trace for the case where fallback is disabled and warm start cannot be applied.
  * 构建禁用 fallback 且 warm start 无法应用时的恢复追踪。
  *
- * @param status warm start handling status that triggered the fallback-disabled path / 触发禁用 fallback 路径的 warm start 处理状态
- * @param planCount number of warm start plans that were available / 可用的 warm start 方案数量
- * @return recovery trace indicating fallback was disabled / 表明 fallback 已禁用的恢复追踪
+ * @param status 触发禁用 fallback 路径的 warm start 处理状态 / warm start handling status that triggered the fallback-disabled path
+ * @param planCount 可用的 warm start 方案数量 / number of warm start plans that were available
+ * @return 表明 fallback 已禁用的恢复追踪 / recovery trace indicating fallback was disabled
 */
 private fun csp1dFallbackDisabledTrace(
     status: Csp1dWarmStartStatus,
@@ -663,8 +663,8 @@ private fun csp1dFallbackDisabledTrace(
  * Generate a human-readable message for the fallback-disabled scenario.
  * 生成禁用 fallback 场景的可读消息。
  *
- * @param status warm start handling status that caused fallback to be required / 导致需要 fallback 的 warm start 处理状态
- * @return descriptive message explaining why fallback was disabled / 解释为何 fallback 被禁用的描述消息
+ * @param status 导致需要 fallback 的 warm start 处理状态 / warm start handling status that caused fallback to be required
+ * @return 解释为何 fallback 被禁用的描述消息 / descriptive message explaining why fallback was disabled
 */
 private fun csp1dFallbackDisabledMessage(status: Csp1dWarmStartStatus): String {
     return when (status) {

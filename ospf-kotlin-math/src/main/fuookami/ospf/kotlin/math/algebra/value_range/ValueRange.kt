@@ -1,9 +1,7 @@
 /**
- * 值范囌
- * Value Range
+ * 值范囌 / Value Range
  *
- * 定义值范围类，表示一个数值区间，支持集合操作（并集、交集、包含判断）和算术运算（加、减、乘、除）。
- * Defines value range class representing a numerical interval, with support for set operations (union, intersection, containment) and arithmetic operations (add, subtract, multiply, divide).
+ * 定义值范围类，表示一个数值区间，支持集合操作（并集、交集、包含判断）和算术运算（加、减、乘、除）。 / Defines value range class representing a numerical interval, with support for set operations (union, intersection, containment) and arithmetic operations (add, subtract, multiply, divide).
 */
 package fuookami.ospf.kotlin.math.algebra.value_range
 
@@ -22,11 +20,9 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 值范围序列化噌
- * Value Range Serializer
+ * 值范围序列化噌 / Value Range Serializer
  *
- * 用于尌ValueRange 序列化和反序列化丌JSON 格式，包含上下边界值和区间类型。
- * Used to serialize and deserialize ValueRange to/from JSON format, including lower and upper bound values and interval types.
+ * 用于尌ValueRange 序列化和反序列化丌JSON 格式，包含上下边界值和区间类型。 / Used to serialize and deserialize ValueRange to/from JSON format, including lower and upper bound values and interval types.
  *
  * @param T 数值类型，必须是实数和数域
  * @property valueSerializer 值包装器的序列化噌
@@ -36,8 +32,7 @@ open class ValueRangeSerializer<T>(
 ) : KSerializer<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
 
     /**
-     * 序列化描述符
-     * Serialization descriptor
+     * 序列化描述符 / Serialization descriptor
      *
      * 定义了四个字段：lowerBound、upperBound、lowerInterval、upperInterval。
      * Defines four fields: lowerBound, upperBound, lowerInterval, upperInterval.
@@ -50,8 +45,7 @@ open class ValueRangeSerializer<T>(
     }
 
     /**
-     * 序列化值范囌
-     * Serializes value range
+     * 序列化值范囌 / Serializes value range
      *
      * @param encoder JSON 编码噌
      * @param value 要序列化的值范囌
@@ -69,8 +63,7 @@ open class ValueRangeSerializer<T>(
     }
 
     /**
-     * 反序列化值范囌
-     * Deserializes value range
+     * 反序列化值范囌 / Deserializes value range
      *
      * @param decoder JSON 解码噌
      * @return 解析后的值范囌
@@ -110,29 +103,24 @@ open class ValueRangeSerializer<T>(
 }
 
 /**
- * Int64 类型值范围的序列化器
- * Serializer for Int64 typed value range
+ * Int64 类型值范围的序列化器 / Serializer for Int64 typed value range
 */
 data object ValueRangeInt64Serializer : ValueRangeSerializer<Int64>(ValueWrapperSerializer(Int64))
 
 /**
- * UInt64 类型值范围的序列化器
- * Serializer for UInt64 typed value range
+ * UInt64 类型值范围的序列化器 / Serializer for UInt64 typed value range
 */
 data object ValueRangeUInt64Serializer : ValueRangeSerializer<UInt64>(ValueWrapperSerializer(UInt64))
 
 /**
- * Flt64 类型值范围的序列化器
- * Serializer for Flt64 typed value range
+ * Flt64 类型值范围的序列化器 / Serializer for Flt64 typed value range
 */
 data object ValueRangeFlt64Serializer : ValueRangeSerializer<Flt64>(ValueWrapperSerializer(Flt64))
 
 /**
- * 值范囌
- * Value Range
+ * 值范囌 / Value Range
  *
- * 表示一个数值区间，包含下边界和上边界，每个边界都有对应的区间类型（开区间或闭区间）。
- * Represents a numerical interval, containing lower and upper bounds, each with corresponding interval type (open or closed).
+ * 表示一个数值区间，包含下边界和上边界，每个边界都有对应的区间类型（开区间或闭区间）。 / Represents a numerical interval, containing lower and upper bounds, each with corresponding interval type (open or closed).
  *
  * 支持的操作包括：
  * - 集合操作：并集、交集、包含判斌
@@ -159,11 +147,9 @@ data class ValueRange<T>(
         where T : RealNumber<T>, T : NumberField<T> {
     companion object {
         /**
-         * 判断区间是否为空
-         * Determines if interval is empty
+         * 判断区间是否为空 / Determines if interval is empty
          *
-         * 当下边界不满足边界条件或上边界不满足边界条件时，区间为空。
-         * Interval is empty when lower bound doesn't satisfy boundary condition or upper bound doesn't satisfy boundary condition.
+         * 当下边界不满足边界条件或上边界不满足边界条件时，区间为空。 / Interval is empty when lower bound doesn't satisfy boundary condition or upper bound doesn't satisfy boundary condition.
          *
          * @param lb 下边界倌
          * @param ub 上边界倌
@@ -189,8 +175,7 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建全范围值范围（从负无穷到正无穷，
-         * Creates full range value range (from negative infinity to positive infinity)
+         * 创建全范围值范围（从负无穷到正无穷， / Creates full range value range (from negative infinity to positive infinity)
          *
          * @param constants 数值常量对豌
          * @return 全范围的值范囌
@@ -206,8 +191,7 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建全范围值范围（自动解析常量，
-         * Creates full range value range (auto-resolves constants)
+         * 创建全范围值范围（自动解析常量， / Creates full range value range (auto-resolves constants)
          *
          * @return 全范围的值范围解析结果
          * @return The full value range resolution result
@@ -219,11 +203,9 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建单点值范围（自动解析常量，
-         * Creates single-point value range (auto-resolves constants)
+         * 创建单点值范围（自动解析常量， / Creates single-point value range (auto-resolves constants)
          *
-         * 上下边界相等且均为闭区间。
-         * Upper and lower bounds are equal and both are closed intervals.
+         * 上下边界相等且均为闭区间。 / Upper and lower bounds are equal and both are closed intervals.
          *
          * @param value 单点倌
          * @return 创建结果
@@ -237,8 +219,7 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建单点值范囌
-         * Creates single-point value range
+         * 创建单点值范囌 / Creates single-point value range
          *
          * @param value 单点倌
          * @param constants 数值常量对豌
@@ -258,8 +239,7 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建值范围（自动解析常量，
-         * Creates value range (auto-resolves constants)
+         * 创建值范围（自动解析常量， / Creates value range (auto-resolves constants)
          *
          * @param lb 下边界倌
          * @param ub 上边界倌
@@ -285,8 +265,7 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建值范囌
-         * Creates value range
+         * 创建值范囌 / Creates value range
          *
          * @param lb 下边界倌
          * @param ub 上边界倌
@@ -338,8 +317,7 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建从指定值到正无穷的值范围（自动解析常量，
-         * Creates value range from specified value to positive infinity (auto-resolves constants)
+         * 创建从指定值到正无穷的值范围（自动解析常量， / Creates value range from specified value to positive infinity (auto-resolves constants)
          *
          * @param lb 下边界倌
          * @param ub 正无穷标讌
@@ -362,8 +340,7 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建从指定值到正无穷的值范囌
-         * Creates value range from specified value to positive infinity
+         * 创建从指定值到正无穷的值范囌 / Creates value range from specified value to positive infinity
          *
          * @param lb 下边界倌
          * @param ub 正无穷标讌
@@ -400,8 +377,7 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建从负无穷到指定值的值范围（自动解析常量，
-         * Creates value range from negative infinity to specified value (auto-resolves constants)
+         * 创建从负无穷到指定值的值范围（自动解析常量， / Creates value range from negative infinity to specified value (auto-resolves constants)
          *
          * @param lb 负无穷标讌
          * @param ub 上边界倌
@@ -424,8 +400,7 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建从负无穷到指定值的值范囌
-         * Creates value range from negative infinity to specified value
+         * 创建从负无穷到指定值的值范囌 / Creates value range from negative infinity to specified value
          *
          * @param lb 负无穷标讌
          * @param ub 上边界倌
@@ -462,8 +437,7 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建大于等于指定值的值范围（自动解析常量，
-         * Creates value range greater than or equal to specified value (auto-resolves constants)
+         * 创建大于等于指定值的值范围（自动解析常量， / Creates value range greater than or equal to specified value (auto-resolves constants)
          *
          * @param lb 下边界倌
          * @param lbInterval 下边界区间类型，默认为闭区间
@@ -483,8 +457,7 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建大于指定值的值范围（自动解析常量，
-         * Creates value range greater than specified value (auto-resolves constants)
+         * 创建大于指定值的值范围（自动解析常量， / Creates value range greater than specified value (auto-resolves constants)
          *
          * @param lb 下边界倌
          * @return 创建结果
@@ -501,11 +474,9 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建大于指定值的值范囌
-         * Creates value range greater than specified value
+         * 创建大于指定值的值范囌 / Creates value range greater than specified value
          *
-         * 使用开区间下边界。
-         * Uses open interval for lower bound.
+         * 使用开区间下边界。 / Uses open interval for lower bound.
          *
          * @param lb 下边界倌
          * @param constants 数值常量对豌
@@ -523,8 +494,7 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建大于等于指定值的值范囌
-         * Creates value range greater than or equal to specified value
+         * 创建大于等于指定值的值范囌 / Creates value range greater than or equal to specified value
          *
          * @param lb 下边界倌
          * @param lbInterval 下边界区间类垌
@@ -559,8 +529,7 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建小于等于指定值的值范围（自动解析常量，
-         * Creates value range less than or equal to specified value (auto-resolves constants)
+         * 创建小于等于指定值的值范围（自动解析常量， / Creates value range less than or equal to specified value (auto-resolves constants)
          *
          * @param ub 上边界倌
          * @param lbInterval 上边界区间类型，默认为闭区间
@@ -580,8 +549,7 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建小于指定值的值范围（自动解析常量，
-         * Creates value range less than specified value (auto-resolves constants)
+         * 创建小于指定值的值范围（自动解析常量， / Creates value range less than specified value (auto-resolves constants)
          *
          * @param ub 上边界倌
          * @return 创建结果
@@ -598,11 +566,9 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建小于指定值的值范囌
-         * Creates value range less than specified value
+         * 创建小于指定值的值范囌 / Creates value range less than specified value
          *
-         * 使用开区间上边界。
-         * Uses open interval for upper bound.
+         * 使用开区间上边界。 / Uses open interval for upper bound.
          *
          * @param ub 上边界倌
          * @param constants 数值常量对豌
@@ -620,8 +586,7 @@ data class ValueRange<T>(
         }
 
         /**
-         * 创建小于等于指定值的值范囌
-         * Creates value range less than or equal to specified value
+         * 创建小于等于指定值的值范囌 / Creates value range less than or equal to specified value
          *
          * @param ub 上边界倌
          * @param lbInterval 上边界区间类垌
@@ -656,8 +621,7 @@ data class ValueRange<T>(
         }
 
         /**
-         * 从值包装器创建值范围（自动解析常量，
-         * Creates value range from value wrappers (auto-resolves constants)
+         * 从值包装器创建值范围（自动解析常量， / Creates value range from value wrappers (auto-resolves constants)
          *
          * @param lb 下边界值包装器
          * @param ub 上边界值包装器
@@ -683,8 +647,7 @@ data class ValueRange<T>(
         }
 
         /**
-         * 从值包装器创建值范囌
-         * Creates value range from value wrappers
+         * 从值包装器创建值范囌 / Creates value range from value wrappers
          *
          * @param lb 下边界值包装器
          * @param ub 上边界值包装器
@@ -720,11 +683,9 @@ data class ValueRange<T>(
     }
 
     /**
-     * 区间平均倌
-     * Interval mean value
+     * 区间平均倌 / Interval mean value
      *
-     * 计算上下边界的平均值。
-     * Calculates the average of upper and lower bounds.
+     * 计算上下边界的平均值。 / Calculates the average of upper and lower bounds.
     */
     val meanOrNull: ValueWrapper<T>? by lazy {
         val sum = lowerBound.value + upperBound.value ?: return@lazy null
@@ -732,8 +693,7 @@ data class ValueRange<T>(
     }
 
     /**
-     * 区间平均值计算结果
-     * Interval mean value result
+     * 区间平均值计算结果 / Interval mean value result
      *
      * @return 平均值结果，失败时返回错误 / The mean value result, or an error when unavailable
     */
@@ -745,19 +705,16 @@ data class ValueRange<T>(
             )
 
     /**
-     * 区间宽度
-     * Interval width
+     * 区间宽度 / Interval width
      *
-     * 计算上下边界的差值。
-     * Calculates the difference between upper and lower bounds.
+     * 计算上下边界的差值。 / Calculates the difference between upper and lower bounds.
     */
     val diffOrNull: ValueWrapper<T>? by lazy {
         upperBound.value - lowerBound.value
     }
 
     /**
-     * 区间宽度计算结果
-     * Interval width result
+     * 区间宽度计算结果 / Interval width result
      *
      * @return 宽度结果，失败时返回错误 / The width result, or an error when unavailable
     */
@@ -769,11 +726,9 @@ data class ValueRange<T>(
             )
 
     /**
-     * 区间相对精度
-     * Interval relative precision
+     * 区间相对精度 / Interval relative precision
      *
-     * 计算区间宽度与平均值的相对比例，用于精度控制。
-     * Calculates the relative ratio of interval width to mean value, used for precision control.
+     * 计算区间宽度与平均值的相对比例，用于精度控制。 / Calculates the relative ratio of interval width to mean value, used for precision control.
     */
     val gapOrNull: ValueWrapper<T>? by lazy {
         val diff = diffOrNull ?: return@lazy null
@@ -782,8 +737,7 @@ data class ValueRange<T>(
     }
 
     /**
-     * 区间相对精度计算结果
-     * Interval relative precision result
+     * 区间相对精度计算结果 / Interval relative precision result
      *
      * @return 相对精度结果，失败时返回错误 / The relative precision result, or an error when unavailable
     */
@@ -795,11 +749,9 @@ data class ValueRange<T>(
             )
 
     /**
-     * 是否为固定值（单点区间，
-     * Whether is a fixed value (single-point interval)
+     * 是否为固定值（单点区间， / Whether is a fixed value (single-point interval)
      *
-     * 当上下边界相等且均为闭区间时为固定值。
-     * When upper and lower bounds are equal and both are closed intervals, it's a fixed value.
+     * 当上下边界相等且均为闭区间时为固定值。 / When upper and lower bounds are equal and both are closed intervals, it's a fixed value.
     */
     val fixed: Boolean by lazy {
         if (lowerBound.interval != Interval.Closed || upperBound.interval != Interval.Closed) {
@@ -814,11 +766,9 @@ data class ValueRange<T>(
     }
 
     /**
-     * 固定倌
-     * Fixed value
+     * 固定倌 / Fixed value
      *
-     * 当区间为固定值时返回该值，否则返回 null。
-     * Returns the value when interval is fixed, otherwise returns null.
+     * 当区间为固定值时返回该值，否则返回 null。 / Returns the value when interval is fixed, otherwise returns null.
     */
     val fixedValue: T? by lazy {
         if (fixed) {
@@ -829,11 +779,9 @@ data class ValueRange<T>(
     }
 
     /**
-     * 计算与另一值范围的并集
-     * Computes union with another value range
+     * 计算与另一值范围的并集 / Computes union with another value range
      *
-     * 如果两个区间不相交，返回 null。
-     * If two intervals don't intersect, returns null.
+     * 如果两个区间不相交，返回 null。 / If two intervals don't intersect, returns null.
      *
      * @param rhs 另一个值范囌
      * @return 并集结果，或 null（不相交时）
@@ -877,8 +825,7 @@ data class ValueRange<T>(
     }
 
     /**
-     * 计算与另一值范围的交集
-     * Computes intersection with another value range
+     * 计算与另一值范围的交集 / Computes intersection with another value range
      *
      * @param rhs 另一个值范囌
      * @return 交集结果，或 null（不相交时）
@@ -930,8 +877,7 @@ data class ValueRange<T>(
     }
 
     /**
-     * 判断值是否在范围册
-     * Determines if value is within range
+     * 判断值是否在范围册 / Determines if value is within range
      *
      * @param value 要判断的倌
      * @return 是否在范围内
@@ -953,8 +899,7 @@ data class ValueRange<T>(
     }
 
     /**
-     * 判断另一值范围是否完全包含在本范围内
-     * Determines if another value range is fully contained in this range
+     * 判断另一值范围是否完全包含在本范围内 / Determines if another value range is fully contained in this range
      *
      * @param valueRange 要判断的值范囌
      * @return 是否完全包含
@@ -977,8 +922,7 @@ data class ValueRange<T>(
     }
 
     /**
-     * 复制值范囌
-     * Copies value range
+     * 复制值范囌 / Copies value range
      *
      * @return 新的值范围副朌
     */
@@ -991,8 +935,7 @@ data class ValueRange<T>(
     }
 
     /**
-     * 部分相等比较
-     * Partial equality comparison
+     * 部分相等比较 / Partial equality comparison
      *
      * @param rhs 另一个值范囌
      * @return 是否相等，或无法确定时返囌null
@@ -1018,11 +961,9 @@ data class ValueRange<T>(
     }
 
     /**
-     * 值范围与数值相劌
-     * Adds a number to value range
+     * 值范围与数值相劌 / Adds a number to value range
      *
-     * 整体平移区间。
-     * Translates the entire interval.
+     * 整体平移区间。 / Translates the entire interval.
      *
      * @param rhs 要添加的数倌
      * @return 新的值范囌
@@ -1038,11 +979,9 @@ data class ValueRange<T>(
     }
 
     /**
-     * 两个值范围相劌
-     * Adds two value ranges
+     * 两个值范围相劌 / Adds two value ranges
      *
-     * 计算两个区间皌Minkowski 和。
-     * Computes the Minkowski sum of two intervals.
+     * 计算两个区间皌Minkowski 和。 / Computes the Minkowski sum of two intervals.
      *
      * @param rhs 另一个值范囌
      * @return 新的值范囌
@@ -1058,11 +997,9 @@ data class ValueRange<T>(
     }
 
     /**
-     * 值范围与数值相凌
-     * Subtracts a number from value range
+     * 值范围与数值相凌 / Subtracts a number from value range
      *
-     * 整体平移区间（反向）。
-     * Translates the entire interval (reverse direction).
+     * 整体平移区间（反向）。 / Translates the entire interval (reverse direction).
      *
      * @param rhs 要减去的数倌
      * @return 新的值范囌
@@ -1078,11 +1015,9 @@ data class ValueRange<T>(
     }
 
     /**
-     * 两个值范围相凌
-     * Subtracts two value ranges
+     * 两个值范围相凌 / Subtracts two value ranges
      *
-     * 计算两个区间皌Minkowski 差。
-     * Computes the Minkowski difference of two intervals.
+     * 计算两个区间皌Minkowski 差。 / Computes the Minkowski difference of two intervals.
      *
      * @param rhs 另一个值范囌
      * @return 新的值范囌
@@ -1098,11 +1033,9 @@ data class ValueRange<T>(
     }
 
     /**
-     * 值范围与数值相乌
-     * Multiplies value range by a number
+     * 值范围与数值相乌 / Multiplies value range by a number
      *
-     * 当乘数为正数时，区间方向不变；当乘数为负数时，区间方向翻转。
-     * When multiplier is positive, interval direction unchanged; when multiplier is negative, interval direction reversed.
+     * 当乘数为正数时，区间方向不变；当乘数为负数时，区间方向翻转。 / When multiplier is positive, interval direction unchanged; when multiplier is negative, interval direction reversed.
      *
      * @param rhs 要乘的数倌
      * @return 新的值范围，戌null（乘零且边界为无穷时，
@@ -1148,11 +1081,9 @@ data class ValueRange<T>(
     }
 
     /**
-     * 两个值范围相乌
-     * Multiplies two value ranges
+     * 两个值范围相乌 / Multiplies two value ranges
      *
-     * 计算两个区间乘积的边界（取所有组合的极值）。
-     * Computes boundaries of product of two intervals (takes extrema of all combinations).
+     * 计算两个区间乘积的边界（取所有组合的极值）。 / Computes boundaries of product of two intervals (takes extrema of all combinations).
      *
      * @param rhs 另一个值范囌
      * @return 新的值范围，戌null（运算无效时，
@@ -1184,11 +1115,9 @@ data class ValueRange<T>(
     }
 
     /**
-     * 值范围除以数倌
-     * Divides value range by a number
+     * 值范围除以数倌 / Divides value range by a number
      *
-     * 除以零返囌null，其他情况转换为乘以倒数。
-     * Division by zero returns null, other cases converted to multiplication by reciprocal.
+     * 除以零返囌null，其他情况转换为乘以倒数。 / Division by zero returns null, other cases converted to multiplication by reciprocal.
      *
      * @param rhs 要除的数倌
      * @return 新的值范围，戌null（除零时，
@@ -1202,8 +1131,7 @@ data class ValueRange<T>(
     }
 
     /**
-     * 转换丌Flt64 类型的值范囌
-     * Converts to Flt64 typed value range
+     * 转换丌Flt64 类型的值范囌 / Converts to Flt64 typed value range
      *
      * @return Flt64 类型的新值范囌
     */
@@ -1214,8 +1142,7 @@ data class ValueRange<T>(
     )
 
     /**
-     * 相等判断
-     * Equality judgment
+     * 相等判断 / Equality judgment
      *
      * @param other 要比较的对象
      * @return 是否相等
@@ -1233,14 +1160,12 @@ data class ValueRange<T>(
     }
 
     /**
-     * 判断两个值范围的边界是否相同
-     * Determines if two value ranges have the same bounds
+     * 判断两个值范围的边界是否相同 / Determines if two value ranges have the same bounds
      *
-     * 比较上下边界的值和区间类型是否分别相等。
-     * Compares whether the values and interval types of upper and lower bounds are respectively equal.
+     * 比较上下边界的值和区间类型是否分别相等。 / Compares whether the values and interval types of upper and lower bounds are respectively equal.
      *
      * @param other 另一个值范围对象（已通过 javaClass 和 constants 校验）
-     * @return Whether the bounds are the same / 边界是否相同
+     * @return 边界是否相同 / Whether the bounds are the same
     */
     @Suppress("UNCHECKED_CAST")
     private fun hasSameBounds(other: Any): Boolean {
@@ -1251,8 +1176,7 @@ data class ValueRange<T>(
     }
 
     /**
-     * 计算哈希倌
-     * Computes hash value
+     * 计算哈希倌 / Computes hash value
      *
      * @return 哈希倌
     */
@@ -1264,8 +1188,7 @@ data class ValueRange<T>(
     }
 
     /**
-     * 获取字符串表礌
-     * Gets string representation
+     * 获取字符串表礌 / Gets string representation
      *
      * 格式丌[lower, upper] 戌(lower, upper) 等。
      * Format is [lower, upper] or (lower, upper) etc.
@@ -1276,8 +1199,7 @@ data class ValueRange<T>(
 }
 
 /**
- * 数值与值范围相劌
- * Adds a number to value range
+ * 数值与值范围相劌 / Adds a number to value range
  *
  * @param value 数倌
  * @param valueRange 值范囌
@@ -1288,8 +1210,7 @@ operator fun <T> T.plus(valueRange: ValueRange<T>): ValueRange<T>? where T : Rea
 }
 
 /**
- * 数值与值范围相乌
- * Multiplies a number with value range
+ * 数值与值范围相乌 / Multiplies a number with value range
  *
  * @param value 数倌
  * @param valueRange 值范囌
@@ -1300,11 +1221,9 @@ operator fun <T> T.times(valueRange: ValueRange<T>): ValueRange<T>? where T : Re
 }
 
 /**
- * 将数值强制约束在值范围内
- * Coerces number within value range
+ * 将数值强制约束在值范围内 / Coerces number within value range
  *
- * 如果数值超出范围，返回最近的边界值。
- * If number exceeds range, returns nearest boundary value.
+ * 如果数值超出范围，返回最近的边界值。 / If number exceeds range, returns nearest boundary value.
  *
  * @param value 数倌
  * @param valueRange 值范囌
@@ -1323,8 +1242,7 @@ fun <T> T.coerceIn(valueRange: ValueRange<T>): T where T : RealNumber<T>, T : Nu
 }
 
 /**
- * Flt32 类型值范围的取负操作
- * Negation operation for Flt32 typed value range
+ * Flt32 类型值范围的取负操作 / Negation operation for Flt32 typed value range
  *
  * @return 取负后的新值范囌
 */
@@ -1336,8 +1254,7 @@ operator fun ValueRange<Flt32>.unaryMinus() = ValueRange(
 )
 
 /**
- * Flt64 类型值范围的取负操作
- * Negation operation for Flt64 typed value range
+ * Flt64 类型值范围的取负操作 / Negation operation for Flt64 typed value range
  *
  * @return 取负后的新值范囌
 */
@@ -1349,8 +1266,7 @@ operator fun ValueRange<Flt64>.unaryMinus() = ValueRange(
 )
 
 /**
- * FltX 类型值范围的取负操作
- * Negation operation for FltX typed value range
+ * FltX 类型值范围的取负操作 / Negation operation for FltX typed value range
  *
  * @return 取负后的新值范囌
 */
@@ -1362,8 +1278,7 @@ operator fun ValueRange<FltX>.unaryMinus() = ValueRange(
 )
 
 /**
- * Int8 类型值范围的取负操作
- * Negation operation for Int8 typed value range
+ * Int8 类型值范围的取负操作 / Negation operation for Int8 typed value range
  *
  * @return 取负后的新值范囌
 */
@@ -1375,8 +1290,7 @@ operator fun ValueRange<Int8>.unaryMinus() = ValueRange(
 )
 
 /**
- * Int16 类型值范围的取负操作
- * Negation operation for Int16 typed value range
+ * Int16 类型值范围的取负操作 / Negation operation for Int16 typed value range
  *
  * @return 取负后的新值范囌
 */
@@ -1388,8 +1302,7 @@ operator fun ValueRange<Int16>.unaryMinus() = ValueRange(
 )
 
 /**
- * Int32 类型值范围的取负操作
- * Negation operation for Int32 typed value range
+ * Int32 类型值范围的取负操作 / Negation operation for Int32 typed value range
  *
  * @return 取负后的新值范囌
 */
@@ -1401,8 +1314,7 @@ operator fun ValueRange<Int32>.unaryMinus() = ValueRange(
 )
 
 /**
- * Int64 类型值范围的取负操作
- * Negation operation for Int64 typed value range
+ * Int64 类型值范围的取负操作 / Negation operation for Int64 typed value range
  *
  * @return 取负后的新值范囌
 */
@@ -1414,8 +1326,7 @@ operator fun ValueRange<Int64>.unaryMinus() = ValueRange(
 )
 
 /**
- * IntX 类型值范围的取负操作
- * Negation operation for IntX typed value range
+ * IntX 类型值范围的取负操作 / Negation operation for IntX typed value range
  *
  * @return 取负后的新值范囌
 */

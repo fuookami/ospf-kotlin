@@ -1,8 +1,7 @@
 /**
  * 生产管理模块 / Produce management module
  *
- * 本模块定义生产相关的接口和类，用于建模产品产量、需求约束及影子价格提取。
- * This module defines produce-related interfaces and classes for modeling product output, demand constraints, and shadow price extraction.
+ * 本模块定义生产相关的接口和类，用于建模产品产量、需求约束及影子价格提取。 / This module defines produce-related interfaces and classes for modeling product output, demand constraints, and shadow price extraction.
 */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
@@ -17,7 +16,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -262,8 +261,7 @@ abstract class AbstractProduce<
     /**
      * 提取影子价格 / Extract shadow prices
      *
-     * 从松弛变量提取影子价格（对偶变量）。
-     * Extracts shadow prices (dual variables) from slack variables.
+     * 从松弛变量提取影子价格（对偶变量）。 / Extracts shadow prices (dual variables) from slack variables.
      *
      * @param Map 影子价格表类型 / Shadow price map type
      * @param shadowPriceMap 影子价格表 / Shadow price map
@@ -441,7 +439,7 @@ class BunchSchedulingProduce<
             if (thisBunches.isNotEmpty()) {
                 quantity[product].flush()
                 for ((bunch, produceQuantity) in thisBunches) {
-                    quantity[product].asMutable() += LinearMonomial(produceQuantity.toSolverValue(), xi[bunch])
+                    quantity[product].asMutable() += produceQuantity.toSolverValue() * xi[bunch]
                 }
             }
         }

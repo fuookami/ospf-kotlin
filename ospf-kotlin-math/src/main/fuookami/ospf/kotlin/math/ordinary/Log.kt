@@ -1,6 +1,5 @@
 /**
- * 对数函数
- * Logarithm Functions
+ * 对数函数 / Logarithm Functions
  *
  * 为浮点数类型提供自然对数和任意底数对数的高精度计算。
  * 自然对数 ln(x)：泰勒级数展开，使用变捌y = (x-1)/(x+1) 优化收敛速度，
@@ -8,9 +7,7 @@
  * 对于 x > 2，使用公弌ln(x) = ln(m) + k * ln(2)，其丌m 圌[1, 2) 区间。
  * 任意底数对数 log(x, base)：使用换底公弌log(x, base) = ln(x) / ln(base)。
  * 边界情况：x <= 0 返回 NaN（对数未定义），base <= 0 返回 NaN。
- * 支持通过 digits 参数控制计算精度，precision 参数控制收敛阈值。
- *
- * Provides high-precision computation of natural logarithm and arbitrary-base logarithm for floating-point types.
+ * 支持通过 digits 参数控制计算精度，precision 参数控制收敛阈值。 / Provides high-precision computation of natural logarithm and arbitrary-base logarithm for floating-point types.
  * Natural logarithm ln(x): Taylor series expansion using transformation y = (x-1)/(x+1) for faster convergence,
  * formula: ln(x) = 2 * [y + y^3/3 + y^5/5 + ...], direct computation when x <= 2, decomposition for larger values.
  * For x > 2, uses formula ln(x) = ln(m) + k * ln(2) where m is in [1, 2) interval.
@@ -36,8 +33,7 @@ private fun <T : FloatingNumber<T>> normalizeFltXScale(value: T, digits: Int): T
 }
 
 /**
- * 计算自然对数 ln(x)，使用泰勒级数展开
- * Compute natural logarithm ln(x) using Taylor series expansion
+ * 计算自然对数 ln(x)，使用泰勒级数展开 / Compute natural logarithm ln(x) using Taylor series expansion
  *
  * @param x 真数 / Argument
  * @param constants 浮点数常量提供器 / Floating number constants provider
@@ -88,8 +84,7 @@ fun <T : FloatingNumber<T>> ln(
 }
 
 /**
- * 计算自然对数 ln(x)（自动解析常量）
- * Compute natural logarithm ln(x) (auto-resolve constants)
+ * 计算自然对数 ln(x)（自动解析常量） / Compute natural logarithm ln(x) (auto-resolve constants)
  *
  * @param x 真数 / Argument
  * @param digits 精度位数 / Number of precision digits
@@ -111,8 +106,7 @@ inline fun <reified T : FloatingNumber<T>> ln(
 }
 
 /**
- * 计算任意底数对数 log(x, base)，使用换底公式
- * Compute arbitrary-base logarithm log(x, base) using change-of-base formula
+ * 计算任意底数对数 log(x, base)，使用换底公式 / Compute arbitrary-base logarithm log(x, base) using change-of-base formula
  *
  * @param x 真数 / Argument
  * @param base 对数底数 / Logarithm base
@@ -146,8 +140,7 @@ fun <T : FloatingNumber<T>> log(
 }
 
 /**
- * 计算任意底数对数 log(x, base)（自动解析常量）
- * Compute arbitrary-base logarithm log(x, base) (auto-resolve constants)
+ * 计算任意底数对数 log(x, base)（自动解析常量） / Compute arbitrary-base logarithm log(x, base) (auto-resolve constants)
  *
  * @param x 真数 / Argument
  * @param base 对数底数 / Logarithm base

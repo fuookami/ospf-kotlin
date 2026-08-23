@@ -27,17 +27,15 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 /**
- * 使用实时 Gurobi 求解器的 demo4 分支定价端到端测试。
- * End-to-end test for demo4 Branch-and-Price with live Gurobi solver.
+ * 使用实时 Gurobi 求解器的 demo4 分支定价端到端测试。 / End-to-end test for demo4 Branch-and-Price with live Gurobi solver.
  *
- * 验证 B&P 算法可以求解最小场景，并返回覆盖全部航班任务的可行解。
- * Verifies that the B&P algorithm solves a minimal scenario and returns a feasible solution covering all flight tasks.
+ * 验证 B&P 算法可以求解最小场景，并返回覆盖全部航班任务的可行解。 / Verifies that the B&P algorithm solves a minimal scenario and returns a feasible solution covering all flight tasks.
  *
  * 此测试在 `demo4-gurobi-cg` 配置下受控，仅在使用 -Pdemo4-gurobi-cg 显式选择时运行。
  * This test is gated under the `demo4-gurobi-cg` profile and only runs
  * when explicitly selected with -Pdemo4-gurobi-cg.
  */
-class Demo4BranchAndPriceE2ETest {
+class Demo4BranchAndPriceE2EIntegration {
 
     @Test
     fun `branch-and-price algorithm solves minimal scenario`() = runBlocking {
@@ -60,8 +58,6 @@ class Demo4BranchAndPriceE2ETest {
 
         val aircraft1 = Aircraft(AircraftRegisterNumber("B0001"), minorType, capacity)
         val aircraft2 = Aircraft(AircraftRegisterNumber("B0002"), minorType, capacity)
-        aircraft1.setIndexed()
-        aircraft2.setIndexed()
 
         val aircrafts = listOf(aircraft1, aircraft2)
 
@@ -129,11 +125,11 @@ class Demo4BranchAndPriceE2ETest {
         // Bunch generation context
         val bunchGenContext = BunchGenerationContext()
         val lock = Lock()
-        val connectionTimeCalculator: ConnectionTimeCalculator = { _, _, _ -> 30.toDuration(DurationUnit.MINUTES) }
-        val minimumDepartureTimeCalculator: MinimumDepartureTimeCalculator = { arrivalTime, _, _, connectionTime -> arrivalTime + connectionTime }
-        val ruleChecker: RuleChecker = { _, _, _ -> true }
-        val costCalculator: CostCalculator = { _, _, _, _, _ -> e2eCost(1) }
-        val totalCostCalculator: TotalCostCalculator = { _, tasks -> e2eCost(tasks.size) }
+        val connectionTimeCalculator = ConnectionTimeCalculator { _, _, _ -> 30.toDuration(DurationUnit.MINUTES) }
+        val minimumDepartureTimeCalculator = MinimumDepartureTimeCalculator { arrivalTime, _, _, connectionTime -> arrivalTime + connectionTime }
+        val ruleChecker = RuleChecker { _, _, _ -> true }
+        val costCalculator = CostCalculator { _, _, _, _, _ -> e2eCost(1) }
+        val totalCostCalculator = TotalCostCalculator { _, tasks -> e2eCost(tasks.size) }
 
         val initResult = bunchGenContext.init(
             aircrafts = aircrafts,

@@ -1,6 +1,5 @@
 /**
- * 回调模型接口定义
- * Call-back model interface definitions
+ * 回调模型接口定义 / Call-back model interface definitions
 */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.model.callback
@@ -13,13 +12,11 @@ import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 /**
- * 回调模型接口
- * Call-back model interfaces
+ * 回调模型接口 / Call-back model interfaces
 */
 
 /**
- * 回调模型抽象接口，定义约束、目标函数和解比较的通用能力。
- * Abstract call-back model interface defining common capabilities for constraints, objective functions, and solution comparison.
+ * 回调模型抽象接口，定义约束、目标函数和解比较的通用能力。 / Abstract call-back model interface defining common capabilities for constraints, objective functions, and solution comparison.
  *
  * @param Obj          目标值类型 / The objective value type
  * @param ObjValue     目标聚合值类型 / The aggregated objective value type
@@ -41,8 +38,7 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
     val objectiveFunctions: List<Pair<Extractor<Obj?, Solution<SolutionValue>>, String>>
 
     /**
-     * 生成初始解列表，默认为空。
-     * Generate a list of initial solutions, empty by default.
+     * 生成初始解列表，默认为空。 / Generate a list of initial solutions, empty by default.
      *
      * @param initialSolutionAmount 初始解数量 / The number of initial solutions
      * @return 初始解列表 / The list of initial solutions
@@ -52,8 +48,7 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
     }
 
     /**
-     * 合并两个目标值。
-     * Combine two objective values.
+     * 合并两个目标值。 / Combine two objective values.
      *
      * @param lhs 左侧目标值 / The left-hand side objective value
      * @param rhs 右侧目标值 / The right-hand side objective value
@@ -62,16 +57,14 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
     fun operation(lhs: ObjValue, rhs: ObjValue): ObjValue
 
     /**
-     * 获取零目标值（单位元）。
-     * Get the zero objective value (identity element).
+     * 获取零目标值（单位元）。 / Get the zero objective value (identity element).
      *
      * @return 零目标值 / The zero objective value
     */
     fun objectiveValue(): ObjValue
 
     /**
-     * 将原始目标对象转换为目标聚合值。
-     * Convert a raw objective object into an aggregated objective value.
+     * 将原始目标对象转换为目标聚合值。 / Convert a raw objective object into an aggregated objective value.
      *
      * @param obj 原始目标对象 / The raw objective object
      * @return 聚合后的目标值 / The aggregated objective value
@@ -79,8 +72,7 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
     fun objectiveValue(obj: Obj): ObjValue
 
     /**
-     * 计算解的目标值，遍历所有目标函数并聚合。
-     * Compute the objective value of a solution by aggregating all objective functions.
+     * 计算解的目标值，遍历所有目标函数并聚合。 / Compute the objective value of a solution by aggregating all objective functions.
      *
      * @param solution 待计算的解 / The solution to evaluate
      * @return 聚合后的目标值，任一目标函数返回 null 时整体返回 null / The aggregated objective value, or null if any objective function returns null
@@ -95,8 +87,7 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
     }
 
     /**
-     * 比较两个非空目标值的优先级顺序。
-     * Compare the ordering of two non-null objective values.
+     * 比较两个非空目标值的优先级顺序。 / Compare the ordering of two non-null objective values.
      *
      * @param lhs 左侧目标值 / The left-hand side objective value
      * @param rhs 右侧目标值 / The right-hand side objective value
@@ -105,8 +96,7 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
     fun compareObjective(lhs: ObjValue, rhs: ObjValue): Order?
 
     /**
-     * 比较两个可空目标值的优先级顺序，null 视为最差。
-     * Compare the ordering of two nullable objective values, treating null as worst.
+     * 比较两个可空目标值的优先级顺序，null 视为最差。 / Compare the ordering of two nullable objective values, treating null as worst.
      *
      * @param lhs 左侧目标值（可为 null） / The left-hand side objective value (nullable)
      * @param rhs 右侧目标值（可为 null） / The right-hand side objective value (nullable)
@@ -127,8 +117,7 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
     }
 
     /**
-     * 检查解是否满足所有约束。
-     * Check whether a solution satisfies all constraints.
+     * 检查解是否满足所有约束。 / Check whether a solution satisfies all constraints.
      *
      * @param solution 待检查的解 / The solution to check
      * @return `true` 表示满足，`false` 表示违反，`null` 表示无法确定 / `true` if satisfied, `false` if violated, `null` if undetermined
@@ -136,8 +125,7 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
     fun constraintSatisfied(solution: Solution<SolutionValue>): Boolean?
 
     /**
-     * 刷新模型内部状态。
-     * Flush the internal state of the model.
+     * 刷新模型内部状态。 / Flush the internal state of the model.
     */
     fun flush()
 
@@ -147,8 +135,7 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
 }
 
 /**
- * 单目标回调模型接口，目标值和解值类型相同。
- * Single-objective call-back model interface where objective and solution value types are the same.
+ * 单目标回调模型接口，目标值和解值类型相同。 / Single-objective call-back model interface where objective and solution value types are the same.
  *
  * @param V 数值类型 / The numeric type
 */
@@ -191,33 +178,29 @@ interface CallBackModelInterface<V> : AbstractCallBackModelInterface<V, V, V> wh
     }
 
     /**
-     * 提供当前 V 类型的 IntoValue<V> 转换器。
-     * Provide the IntoValue<V> converter for this V type.
+     * 提供当前 V 类型的 IntoValue<V> 转换器。 / Provide the IntoValue<V> converter for this V type.
      *
-     * @return the value converter / 值转换器
+     * @return 值转换器 / the value converter
     */
     fun converter(): IntoValue<V>
 
     /**
-     * 提供当前 V 类型的负无穷值。
-     * Provide negative infinity for this V type.
+     * 提供当前 V 类型的负无穷值。 / Provide negative infinity for this V type.
      *
-     * @return negative infinity value / 负无穷值
+     * @return 负无穷值 / negative infinity value
     */
     fun negativeInfinity(): V
 
     /**
-     * 提供当前 V 类型的正无穷值。
-     * Provide positive infinity for this V type.
+     * 提供当前 V 类型的正无穷值。 / Provide positive infinity for this V type.
      *
-     * @return positive infinity value / 正无穷值
+     * @return 正无穷值 / positive infinity value
     */
     fun infinity(): V
 }
 
 /**
- * 多目标回调模型接口，支持多个优先级和权重的目标函数。
- * Multi-objective call-back model interface supporting multiple priority-weighted objective functions.
+ * 多目标回调模型接口，支持多个优先级和权重的目标函数。 / Multi-objective call-back model interface supporting multiple priority-weighted objective functions.
  *
  * @param V 数值类型 / The numeric type
 */
@@ -275,26 +258,23 @@ interface MultiObjectiveModelInterface<V> : AbstractCallBackModelInterface<List<
     }
 
     /**
-     * 提供当前 V 类型的 IntoValue<V> 转换器。
-     * Provide the IntoValue<V> converter for this V type.
+     * 提供当前 V 类型的 IntoValue<V> 转换器。 / Provide the IntoValue<V> converter for this V type.
      *
-     * @return the value converter / 值转换器
+     * @return 值转换器 / the value converter
     */
     fun converter(): IntoValue<V>
 
     /**
-     * 提供当前 V 类型的负无穷值。
-     * Provide negative infinity for this V type.
+     * 提供当前 V 类型的负无穷值。 / Provide negative infinity for this V type.
      *
-     * @return negative infinity value / 负无穷值
+     * @return 负无穷值 / negative infinity value
     */
     fun negativeInfinity(): V
 
     /**
-     * 提供当前 V 类型的正无穷值。
-     * Provide positive infinity for this V type.
+     * 提供当前 V 类型的正无穷值。 / Provide positive infinity for this V type.
      *
-     * @return positive infinity value / 正无穷值
+     * @return 正无穷值 / positive infinity value
     */
     fun infinity(): V
 }

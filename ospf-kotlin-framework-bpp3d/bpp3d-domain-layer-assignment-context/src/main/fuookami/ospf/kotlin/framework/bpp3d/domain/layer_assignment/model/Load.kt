@@ -36,10 +36,9 @@ enum class Bpp3dDemandDomain {
 private object DemandCountUnit : PhysicalUnit() {
 
     /**
-     * 获取需求域。
-     * Gets the demand domain.
+     * 获取需求域。 / Gets the demand domain.
      *
-     * @return the domain string / 域字符串
+     * @return 域字符串 / the domain string
     */
     @Suppress("unused")
     fun getDomain(): String = "Discrete"
@@ -51,11 +50,10 @@ private object DemandCountUnit : PhysicalUnit() {
 }
 
 /**
- * 解析需求域。
- * Parse the demand domain from a raw value.
+ * 解析需求域。 / Parse the demand domain from a raw value.
  *
- * @param raw the raw value to parse / 待解析的原始值
- * @return the parsed demand domain, or null if invalid / 解析后的需求域，无效时返回 null
+ * @param raw 待解析的原始值 / the raw value to parse
+ * @return 解析后的需求域，无效时返回 null / the parsed demand domain, or null if invalid
 */
 private fun parseDemandDomain(raw: Any?): Bpp3dDemandDomain? {
     val token = when (raw) {
@@ -71,10 +69,9 @@ private fun parseDemandDomain(raw: Any?): Bpp3dDemandDomain? {
 }
 
 /**
- * 通过反射调用目标对象的 getter 方法。
- * Invoke a getter method on the target object via reflection.
+ * 通过反射调用目标对象的 getter 方法。 / Invoke a getter method on the target object via reflection.
  *
- * @param target the target object / 目标对象
+ * @param target 目标对象 / the target object
  * @param methodName the getter method name / getter 方法名
  * @return the getter result, or null on failure / getter 结果，失败时返回 null
 */
@@ -90,12 +87,11 @@ private fun invokeGetter(target: Any?, methodName: String): Any? {
 }
 
 /**
- * 解析物理单位对应的需求域。
- * Resolve the demand domain from a physical unit.
+ * 解析物理单位对应的需求域。 / Resolve the demand domain from a physical unit.
  *
- * @param unit the physical unit / 物理单位
- * @param fallback the fallback domain / 回退域
- * @return the resolved demand domain / 解析后的需求域
+ * @param unit 物理单位 / the physical unit
+ * @param fallback 回退域 / the fallback domain
+ * @return 解析后的需求域 / the resolved demand domain
 */
 private fun resolveUnitDomain(unit: PhysicalUnit, fallback: Bpp3dDemandDomain): Bpp3dDemandDomain {
     parseDemandDomain(invokeGetter(unit, "getDomain"))?.let { return it }
@@ -105,7 +101,7 @@ private fun resolveUnitDomain(unit: PhysicalUnit, fallback: Bpp3dDemandDomain): 
 
 /** 返回默认需求单位 / Returns the default demand unit
  *
- * @return the default demand unit / 默认需求单位
+ * @return 默认需求单位 / the default demand unit
 */
 private fun defaultDemandUnit(): PhysicalUnit {
     return DemandCountUnit
@@ -173,8 +169,8 @@ data class Bpp3dDemandEntry<V : FloatingNumber<V>>(
  * defaultDemandValue.
  * defaultDemandValue。
  *
- * @param domain the demand domain / 需求域
- * @return the default demand value / 默认需求值
+ * @param domain 需求域 / the demand domain
+ * @return 默认需求值 / the default demand value
 */
 private fun defaultDemandValue(
     domain: Bpp3dDemandDomain = Bpp3dDemandDomain.Discrete
@@ -187,11 +183,10 @@ private fun defaultDemandValue(
 }
 
 /**
- * 将数量值转换为离散数量。
- * Convert a quantity value to a discrete amount.
+ * 将数量值转换为离散数量。 / Convert a quantity value to a discrete amount.
  *
- * @param value the quantity value to convert / 待转换的数量值
- * @return the discrete amount / 离散数量
+ * @param value 待转换的数量值 / the quantity value to convert
+ * @return 离散数量 / the discrete amount
 */
 private fun toDiscreteAmount(value: Quantity<FltX>): UInt64 {
     val rounded = ceil(value.value.toDouble()).toLong()
@@ -203,11 +198,10 @@ private fun toDiscreteAmount(value: Quantity<FltX>): UInt64 {
 }
 
 /**
- * 检查物理单位是否为离散需求单位。
- * Check whether the physical unit represents a discrete demand unit.
+ * 检查物理单位是否为离散需求单位。 / Check whether the physical unit represents a discrete demand unit.
  *
- * @param unit the physical unit to check / 待检查的物理单位
- * @return whether the unit represents a discrete demand / 是否为离散需求单位
+ * @param unit 待检查的物理单位 / the physical unit to check
+ * @return 是否为离散需求单位 / whether the unit represents a discrete demand
 */
 private fun isDiscreteDemandUnit(unit: PhysicalUnit): Boolean {
     return resolveUnitDomain(unit, Bpp3dDemandDomain.Continuous) == Bpp3dDemandDomain.Discrete
@@ -226,8 +220,7 @@ data class Bpp3dItemDemand<V : FloatingNumber<V>>(
 ) : ItemDemand<V>
 
 /**
- * 物料需求数据类。
- * Material demand data class.
+ * 物料需求数据类。 / Material demand data class.
  *
  * @param V 数值类型 / numeric type
 */
@@ -238,8 +231,7 @@ data class Bpp3dMaterialDemand<V : FloatingNumber<V>>(
 ) : MaterialDemand<V>
 
 /**
- * 校验并解析货物需求模式，返回 Ret 以替代抛出异常。
- * Validate and resolve item demand mode, returning Ret instead of throwing.
+ * 校验并解析货物需求模式，返回 Ret 以替代抛出异常。 / Validate and resolve item demand mode, returning Ret instead of throwing.
  *
  * @param mode 待校验的需求模式 / demand mode to validate
  * @return 成功时返回合法的货物需求模式，失败时返回错误 / valid item demand mode on success, error on failure
@@ -255,8 +247,7 @@ private fun resolveItemDemandMode(mode: Bpp3dDemandMode): Ret<Bpp3dDemandMode> {
 }
 
 /**
- * 校验并解析物料需求模式，返回 Ret 以替代抛出异常。
- * Validate and resolve material demand mode, returning Ret instead of throwing.
+ * 校验并解析物料需求模式，返回 Ret 以替代抛出异常。 / Validate and resolve material demand mode, returning Ret instead of throwing.
  *
  * @param mode 待校验的需求模式 / demand mode to validate
  * @return 成功时返回合法的物料需求模式，失败时返回错误 / valid material demand mode on success, error on failure
@@ -272,12 +263,11 @@ private fun resolveMaterialDemandMode(mode: Bpp3dDemandMode): Ret<Bpp3dDemandMod
 }
 
 /**
- * 从数量值提取需求值。
- * Extract the demand value from a quantity.
+ * 从数量值提取需求值。 / Extract the demand value from a quantity.
  *
- * @param quantity the quantity value / 数量值
- * @param demandValueAdapter the demand value adapter / 需求值适配器
- * @return the demand value in solver representation / 求解器表示的需求值
+ * @param quantity 数量值 / the quantity value
+ * @param demandValueAdapter 需求值适配器 / the demand value adapter
+ * @return 求解器表示的需求值 / the demand value in solver representation
 */
 private fun demandValueFromQuantity(
     quantity: Quantity<FltX>,
@@ -293,8 +283,8 @@ private fun demandValueFromQuantity(
 /**
  * 精确需求范围 / Exact demand range
  *
- * @param value the demand value / 需求值
- * @return the exact value range / 精确值范围
+ * @param value 需求值 / the demand value
+ * @return 精确值范围 / the exact value range
 */
 private fun exactDemandRange(value: FltX): ValueRange<FltX> {
     return ValueRange(
@@ -307,8 +297,7 @@ private fun exactDemandRange(value: FltX): ValueRange<FltX> {
 }
 
 /**
- * 从货物-数量对列表构建需求条目，直接映射为 Item 模式。
- * Build demand entries from item-quantity pairs, mapping directly to Item mode.
+ * 从货物-数量对列表构建需求条目，直接映射为 Item 模式。 / Build demand entries from item-quantity pairs, mapping directly to Item mode.
  *
  * @param items 货物与数量的配对列表 / list of item-quantity pairs
  * @param demandValueAdapter 需求值适配器 / demand value adapter
@@ -331,8 +320,7 @@ fun demandEntriesFromItemDemands(
 }
 
 /**
- * 从带标签的货物需求列表构建需求条目，校验需求模式合法性。
- * Build demand entries from labeled item demands, validating demand mode legality.
+ * 从带标签的货物需求列表构建需求条目，校验需求模式合法性。 / Build demand entries from labeled item demands, validating demand mode legality.
  *
  * @param items 带标签的货物需求列表 / list of labeled item demands
  * @param demandValueAdapter 需求值适配器 / demand value adapter
@@ -362,8 +350,7 @@ fun demandEntriesFromLabeledItemDemands(
 }
 
 /**
- * 从货物-数量对列表构建需求条目，直接映射为 Item 模式。
- * Build demand entries from item-amount pairs, mapping directly to Item mode.
+ * 从货物-数量对列表构建需求条目，直接映射为 Item 模式。 / Build demand entries from item-amount pairs, mapping directly to Item mode.
  *
  * @param items 货物与数量的配对列表 / list of item-amount pairs
  * @param demandValueAdapter 需求值适配器 / demand value adapter
@@ -386,8 +373,7 @@ fun demandEntriesFromItems(
 }
 
 /**
- * 从货物-数量-范围三元组列表构建需求条目。
- * Build demand entries from item-amount-range triple list.
+ * 从货物-数量-范围三元组列表构建需求条目。 / Build demand entries from item-amount-range triple list.
  *
  * @param items 货物、数量和范围的三元组列表 / list of item-amount-range triples
  * @param demandValueAdapter 需求值适配器 / demand value adapter
@@ -409,8 +395,7 @@ fun demandEntriesFromItemRanges(
 }
 
 /**
- * 从物料需求列表按 MaterialKey 构建需求条目，校验需求模式合法性。
- * Build demand entries from material demands by MaterialKey, validating demand mode legality.
+ * 从物料需求列表按 MaterialKey 构建需求条目，校验需求模式合法性。 / Build demand entries from material demands by MaterialKey, validating demand mode legality.
  *
  * @param materials 物料需求列表 / list of material demands
  * @param demandValueAdapter 需求值适配器 / demand value adapter
@@ -440,8 +425,7 @@ private fun demandEntriesFromMaterialDemandsByKey(
 }
 
 /**
- * 从物料-数量对列表构建需求条目，直接映射为 Material 模式。
- * Build demand entries from material-quantity pairs, mapping directly to Material mode.
+ * 从物料-数量对列表构建需求条目，直接映射为 Material 模式。 / Build demand entries from material-quantity pairs, mapping directly to Material mode.
  *
  * @param materials 物料与数量的配对列表 / list of material-quantity pairs
  * @param demandValueAdapter 需求值适配器 / demand value adapter
@@ -464,8 +448,7 @@ fun demandEntriesFromMaterialDemands(
 }
 
 /**
- * 从带标签的物料需求列表构建需求条目，校验需求模式合法性。
- * Build demand entries from labeled material demands, validating demand mode legality.
+ * 从带标签的物料需求列表构建需求条目，校验需求模式合法性。 / Build demand entries from labeled material demands, validating demand mode legality.
  *
  * @param materials 带标签的物料需求列表 / list of labeled material demands
  * @param demandValueAdapter 需求值适配器 / demand value adapter
@@ -482,8 +465,7 @@ fun demandEntriesFromLabeledMaterialDemands(
 }
 
 /**
- * 从物料键-数量对列表构建需求条目，直接使用数量适配器转换。
- * Build demand entries from material key-amount pairs, converting directly via amount adapter.
+ * 从物料键-数量对列表构建需求条目，直接使用数量适配器转换。 / Build demand entries from material key-amount pairs, converting directly via amount adapter.
  *
  * @param materials 物料键与数量的配对列表 / list of material key-amount pairs
  * @param demandValueAdapter 需求值适配器 / demand value adapter
@@ -506,8 +488,7 @@ private fun demandEntriesFromMaterialAmountsByKey(
 }
 
 /**
- * 从物料-数量对列表构建需求条目，直接映射为 Material 模式。
- * Build demand entries from material-amount pairs, mapping directly to Material mode.
+ * 从物料-数量对列表构建需求条目，直接映射为 Material 模式。 / Build demand entries from material-amount pairs, mapping directly to Material mode.
  *
  * @param materials 物料与数量的配对列表 / list of material-amount pairs
  * @param demandValueAdapter 需求值适配器 / demand value adapter
@@ -524,8 +505,7 @@ fun demandEntriesFromMaterialAmounts(
 }
 
 /**
- * 从物料键-重量对列表构建需求条目，直接映射为 Material 模式。
- * Build demand entries from material key-weight pairs, mapping directly to Material mode.
+ * 从物料键-重量对列表构建需求条目，直接映射为 Material 模式。 / Build demand entries from material key-weight pairs, mapping directly to Material mode.
  *
  * @param materials 物料键与重量的配对列表 / list of material key-weight pairs
  * @param demandValueAdapter 需求值适配器 / demand value adapter
@@ -548,8 +528,7 @@ private fun demandEntriesFromMaterialWeightsByKey(
 }
 
 /**
- * 从物料-重量对列表构建需求条目，直接映射为 Material 模式。
- * Build demand entries from material-weight pairs, mapping directly to Material mode.
+ * 从物料-重量对列表构建需求条目，直接映射为 Material 模式。 / Build demand entries from material-weight pairs, mapping directly to Material mode.
  *
  * @param materials 物料与重量的配对列表 / list of material-weight pairs
  * @param demandValueAdapter 需求值适配器 / demand value adapter
@@ -566,8 +545,7 @@ fun demandEntriesFromMaterialWeights(
 }
 
 /**
- * 负载接口，管理需求约束的符号表达。
- * Load interface, manages symbolic expressions for demand constraints.
+ * 负载接口，管理需求约束的符号表达。 / Load interface, manages symbolic expressions for demand constraints.
  *
  * @param V 数值类型 / numeric type
 */
@@ -596,19 +574,17 @@ interface Load<V : FloatingNumber<V>> {
 }
 
 /**
- * 抽象负载基类，提供超载和欠载符号的注册。
- * Abstract load base class, provides registration of over-load and less-load symbols.
+ * 抽象负载基类，提供超载和欠载符号的注册。 / Abstract load base class, provides registration of over-load and less-load symbols.
 */
 abstract class AbstractLoad : Load<FltX> {
     override lateinit var overLoad: LinearIntermediateSymbols1<FltX>
     override lateinit var lessLoad: LinearIntermediateSymbols1<FltX>
 
     /**
-     * 向元模型注册超载和欠载符号。
-     * Register over-load and less-load symbols into the meta model.
+     * 向元模型注册超载和欠载符号。 / Register over-load and less-load symbols into the meta model.
      *
-     * @param model the meta model to register into / 要注册的元模型
-     * @return the operation result / 操作结果
+     * @param model 要注册的元模型 / the meta model to register into
+     * @return 操作结果 / the operation result
     */
     open fun register(model: MetaModel<FltX>): Try {
         if (overEnabled && !::overLoad.isInitialized) {
@@ -654,8 +630,7 @@ abstract class AbstractLoad : Load<FltX> {
     }
 
     /**
-     * 计算层对需求的负载系数。
-     * Calculate load coefficient of layer for demand.
+     * 计算层对需求的负载系数。 / Calculate load coefficient of layer for demand.
      *
      * @param layer 层 / layer
      * @param demand 需求条目 / demand entry
@@ -676,8 +651,7 @@ abstract class AbstractLoad : Load<FltX> {
 }
 
 /**
- * 不精确负载，用于列生成 RMP 阶段。
- * Imprecise load, used for column generation RMP phase.
+ * 不精确负载，用于列生成 RMP 阶段。 / Imprecise load, used for column generation RMP phase.
  *
  * @property demandEntries 需求条目列表 / demand entry list
  * @property assignment 不精确赋值 / imprecise assignment
@@ -694,15 +668,14 @@ class ImpreciseLoad(
  ) : AbstractLoad() {
     companion object {
         /**
-         * 从货物-数量对列表创建不精确负载。
-         * Create an imprecise load from item-amount pairs.
+         * 从货物-数量对列表创建不精确负载。 / Create an imprecise load from item-amount pairs.
          *
-         * @param items the item-amount pairs / 货物-数量配对列表
-         * @param assignment the imprecise assignment / 不精确赋值
-         * @param overEnabled whether over-load is enabled / 是否启用超载
-         * @param lessEnabled whether less-load is enabled / 是否启用欠载
-         * @param demandValueAdapter the demand value adapter / 需求值适配器
-         * @return the imprecise load instance / 不精确负载实例
+         * @param items 货物-数量配对列表 / the item-amount pairs
+         * @param assignment 不精确赋值 / the imprecise assignment
+         * @param overEnabled 是否启用超载 / whether over-load is enabled
+         * @param lessEnabled 是否启用欠载 / whether less-load is enabled
+         * @param demandValueAdapter 需求值适配器 / the demand value adapter
+         * @return 不精确负载实例 / the imprecise load instance
         */
         fun fromItems(
             items: List<Pair<Item, UInt64>>,
@@ -721,15 +694,14 @@ class ImpreciseLoad(
         }
 
         /**
-         * 从货物-数量-范围三元组列表创建不精确负载。
-         * Create an imprecise load from item-amount-range triples.
+         * 从货物-数量-范围三元组列表创建不精确负载。 / Create an imprecise load from item-amount-range triples.
          *
-         * @param items the item-amount-range triples / 货物-数量-范围三元组列表
-         * @param assignment the imprecise assignment / 不精确赋值
-         * @param overEnabled whether over-load is enabled / 是否启用超载
-         * @param lessEnabled whether less-load is enabled / 是否启用欠载
-         * @param demandValueAdapter the demand value adapter / 需求值适配器
-         * @return the imprecise load instance / 不精确负载实例
+         * @param items 货物-数量-范围三元组列表 / the item-amount-range triples
+         * @param assignment 不精确赋值 / the imprecise assignment
+         * @param overEnabled 是否启用超载 / whether over-load is enabled
+         * @param lessEnabled 是否启用欠载 / whether less-load is enabled
+         * @param demandValueAdapter 需求值适配器 / the demand value adapter
+         * @return 不精确负载实例 / the imprecise load instance
         */
         fun fromItemRanges(
             items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,
@@ -770,13 +742,12 @@ class ImpreciseLoad(
     }
 
     /**
-     * 向模型添加新列。
-     * Add new columns to the model.
+     * 向模型添加新列。 / Add new columns to the model.
      *
-     * @param iteration the current iteration / 当前迭代
-     * @param newLayers the new layers to add / 要添加的新层列表
-     * @param model the abstract linear meta model / 抽象线性元模型
-     * @return the added layers on success, error on failure / 成功时返回添加的层列表，失败时返回错误
+     * @param iteration 当前迭代 / the current iteration
+     * @param newLayers 要添加的新层列表 / the new layers to add
+     * @param model 抽象线性元模型 / the abstract linear meta model
+     * @return 成功时返回添加的层列表，失败时返回错误 / the added layers on success, error on failure
     */
     suspend fun addColumns(
         iteration: UInt64,
@@ -803,8 +774,7 @@ class ImpreciseLoad(
 }
 
 /**
- * 精确负载，用于最终 MILP 求解阶段。
- * Precise load, used for final MILP solving phase.
+ * 精确负载，用于最终 MILP 求解阶段。 / Precise load, used for final MILP solving phase.
  *
  * @property demandEntries 需求条目列表 / demand entry list
  * @property layers 层列表 / layer list
@@ -823,16 +793,15 @@ class PreciseLoad(
  ) : AbstractLoad() {
     companion object {
         /**
-         * 从货物-数量对列表创建精确负载。
-         * Create a precise load from item-amount pairs.
+         * 从货物-数量对列表创建精确负载。 / Create a precise load from item-amount pairs.
          *
-         * @param items the item-amount pairs / 货物-数量配对列表
-         * @param layers the layer list / 层列表
-         * @param assignment the precise assignment / 精确赋值
-         * @param overEnabled whether over-load is enabled / 是否启用超载
-         * @param lessEnabled whether less-load is enabled / 是否启用欠载
-         * @param demandValueAdapter the demand value adapter / 需求值适配器
-         * @return the precise load instance / 精确负载实例
+         * @param items 货物-数量配对列表 / the item-amount pairs
+         * @param layers 层列表 / the layer list
+         * @param assignment 精确赋值 / the precise assignment
+         * @param overEnabled 是否启用超载 / whether over-load is enabled
+         * @param lessEnabled 是否启用欠载 / whether less-load is enabled
+         * @param demandValueAdapter 需求值适配器 / the demand value adapter
+         * @return 精确负载实例 / the precise load instance
         */
         fun fromItems(
             items: List<Pair<Item, UInt64>>,
@@ -853,16 +822,15 @@ class PreciseLoad(
         }
 
         /**
-         * 从货物-数量-范围三元组列表创建精确负载。
-         * Create a precise load from item-amount-range triples.
+         * 从货物-数量-范围三元组列表创建精确负载。 / Create a precise load from item-amount-range triples.
          *
-         * @param items the item-amount-range triples / 货物-数量-范围三元组列表
-         * @param layers the layer list / 层列表
-         * @param assignment the precise assignment / 精确赋值
-         * @param overEnabled whether over-load is enabled / 是否启用超载
-         * @param lessEnabled whether less-load is enabled / 是否启用欠载
-         * @param demandValueAdapter the demand value adapter / 需求值适配器
-         * @return the precise load instance / 精确负载实例
+         * @param items 货物-数量-范围三元组列表 / the item-amount-range triples
+         * @param layers 层列表 / the layer list
+         * @param assignment 精确赋值 / the precise assignment
+         * @param overEnabled 是否启用超载 / whether over-load is enabled
+         * @param lessEnabled 是否启用欠载 / whether less-load is enabled
+         * @param demandValueAdapter 需求值适配器 / the demand value adapter
+         * @return 精确负载实例 / the precise load instance
         */
         fun fromItemRanges(
             items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,

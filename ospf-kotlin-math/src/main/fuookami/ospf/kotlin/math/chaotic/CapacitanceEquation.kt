@@ -1,12 +1,9 @@
 /**
- * 电容方程
- * Capacitance Equation
+ * 电容方程 / Capacitance Equation
  *
  * 电容方程是描述电容电路中非线性动力学行为的混沌模型。
  * 该方程通过分段线性函数引入非线性，模拟电子电路中的混沌振荡现象。
- * 常用于非线性电路分析、混沌电路设计和电子系统动力学研究。
- *
- * The capacitance equation is a chaotic model describing nonlinear dynamical behavior in capacitive circuits.
+ * 常用于非线性电路分析、混沌电路设计和电子系统动力学研究。 / The capacitance equation is a chaotic model describing nonlinear dynamical behavior in capacitive circuits.
  * This equation introduces nonlinearity through piecewise linear functions, simulating chaotic oscillation phenomena in electronic circuits.
  * Commonly used for nonlinear circuit analysis, chaotic circuit design, and electronic system dynamics research.
 */
@@ -20,8 +17,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 电容方程
- * Capacitance Equation
+ * 电容方程 / Capacitance Equation
  *
  * @property a 系统参数 a / System parameter a
  * @property b 系统参数 b / System parameter b
@@ -68,8 +64,7 @@ data class CapacitanceEquation<V : FloatingNumber<V>>(
 }
 
 /**
- * 电容方程生成器
- * Capacitance Equation Generator
+ * 电容方程生成器 / Capacitance Equation Generator
 */
 data class CapacitanceEquationGenerator(
     val capacitanceEquation: CapacitanceEquation<Flt64> = CapacitanceEquation(),

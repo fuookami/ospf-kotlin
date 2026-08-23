@@ -1,6 +1,5 @@
 /**
- * 机制模型割平面构造支持
- * Mechanism model cut-construction support
+ * 机制模型割平面构造支持 / Mechanism model cut-construction support
 */
 package fuookami.ospf.kotlin.core.model.mechanism
 
@@ -15,8 +14,7 @@ import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
- * 有序变量对，用于 cut 构造中的二次项键。
- * Ordered variable pair used as quadratic term key in cut construction.
+ * 有序变量对，用于 cut 构造中的二次项键。 / Ordered variable pair used as quadratic term key in cut construction.
  *
  * @property first 第一个变量项 / First variable item
  * @property second 第二个变量项 / Second variable item
@@ -27,8 +25,7 @@ private data class OrderedVariablePair(
 ) {
     companion object {
         /**
-         * 根据变量标识符排序构造有序变量对。
-         * Construct an ordered variable pair by sorting on variable identifiers.
+         * 根据变量标识符排序构造有序变量对。 / Construct an ordered variable pair by sorting on variable identifiers.
          *
          * @param lhs 左侧变量项 / Left-hand side variable item
          * @param rhs 右侧变量项 / Right-hand side variable item
@@ -51,8 +48,7 @@ private data class OrderedVariablePair(
 }
 
 /**
- * 构造线性最优性 cut。
- * Build linear optimality cuts.
+ * 构造线性最优性 cut。 / Build linear optimality cuts.
  *
  * @param V 数值类型 / The number type
  * @param constraints 约束列表 / Constraint list
@@ -110,8 +106,7 @@ internal fun <V> buildLinearOptimalCut(
 }
 
 /**
- * 构造线性可行性 cut（Farkas）。
- * Build linear feasibility cuts (Farkas).
+ * 构造线性可行性 cut（Farkas）。 / Build linear feasibility cuts (Farkas).
  *
  * @param V 数值类型 / The number type
  * @param constraints 约束列表 / Constraint list
@@ -165,8 +160,7 @@ internal fun <V> buildLinearFeasibleCut(
 }
 
 /**
- * 构造二次最优性 cut；二次项为空时自动退化为线性 cut。
- * Build quadratic optimality cuts; degrades to linear cuts when no quadratic terms remain.
+ * 构造二次最优性 cut；二次项为空时自动退化为线性 cut。 / Build quadratic optimality cuts; degrades to linear cuts when no quadratic terms remain.
  *
  * @param V 数值类型 / The number type
  * @param constraints 约束列表 / Constraint list
@@ -268,8 +262,7 @@ internal fun <V> buildQuadraticOptimalCut(
 }
 
 /**
- * 构造二次可行性 cut（Farkas）；二次项为空时自动退化为线性 cut。
- * Build quadratic feasibility cuts (Farkas); degrades to linear cuts when no quadratic terms remain.
+ * 构造二次可行性 cut（Farkas）；二次项为空时自动退化为线性 cut。 / Build quadratic feasibility cuts (Farkas); degrades to linear cuts when no quadratic terms remain.
  *
  * @param V 数值类型 / The number type
  * @param constraints 约束列表 / Constraint list

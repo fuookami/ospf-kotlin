@@ -1,6 +1,5 @@
 /**
- * 达德拉斯吸引子
- * Dadras Attractor
+ * 达德拉斯吸引子 / Dadras Attractor
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 达德拉斯吸引子
- * Dadras Attractor
+ * 达德拉斯吸引子 / Dadras Attractor
  *
  * @property gamma 系统参数 gamma / System parameter gamma
  * @property epsilon 系统参数 epsilon / System parameter epsilon
@@ -45,8 +43,7 @@ data class DadrasAttractor<V : FloatingNumber<V>>(
 }
 
 /**
- * 达德拉斯吸引子生成器
- * Dadras Attractor Generator
+ * 达德拉斯吸引子生成器 / Dadras Attractor Generator
  *
  * @property attractor 达德拉斯吸引子实例 / Dadras attractor instance
 */

@@ -17,8 +17,8 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 批次生成配置。Configuration for bunch generation.
  *
- * @property withOrderChange Whether to allow order changes during bunch generation / 批次生成时是否允许顺序变更
- * @property maximumLabelPerNode Maximum number of labels retained per node / 每个节点保留的最大标签数
+ * @property withOrderChange 批次生成时是否允许顺序变更 / Whether to allow order changes during bunch generation
+ * @property maximumLabelPerNode 每个节点保留的最大标签数 / Maximum number of labels retained per node
  * @property maximumColumnGeneratedPerAircraft 每架飞机最大列生成数 / Maximum columns generated per aircraft
 */
 data class BunchGenerationConfiguration(
@@ -162,8 +162,8 @@ private data class Label(
      * Checks whether the given node has already been visited in this label's trace.
      * 检查给定节点是否已在此标签的轨迹中被访问过。
      *
-     * @param node The node to check / 要检查的节点
-     * @return Whether the node has been visited / 节点是否已被访问
+     * @param node 要检查的节点 / The node to check
+     * @return 节点是否已被访问 / Whether the node has been visited
     */
     fun visited(node: Node): Boolean {
         return when (node) {
@@ -181,11 +181,11 @@ private data class Label(
      * Generates a flight task bunch from this label by tracing back through predecessor labels.
      * 通过回溯前驱标签从此标签生成航班任务束。
      *
-     * @param iteration The current iteration index / 当前迭代索引
-     * @param aircraft The aircraft assigned to this bunch / 分配给此束的航空器
-     * @param aircraftUsability The aircraft usability context / 航空器可用性上下文
-     * @param totalCostCalculator The total cost calculator function / 总代价计算函数
-     * @return The generated flight task bunch, or null if total cost is unavailable / 生成的航班任务束，若总代价不可用则返回 null
+     * @param iteration 当前迭代索引 / The current iteration index
+     * @param aircraft 分配给此束的航空器 / The aircraft assigned to this bunch
+     * @param aircraftUsability 航空器可用性上下文 / The aircraft usability context
+     * @param totalCostCalculator 总代价计算函数 / The total cost calculator function
+     * @return 生成的航班任务束，若总代价不可用则返回 null / The generated flight task bunch, or null if total cost is unavailable
     */
     fun generateBunch(
         iteration: Int64,
@@ -210,15 +210,17 @@ private data class Label(
         }
         val totalCost = totalCostCalculator(aircraft, flightTasks)
         @Suppress("UNCHECKED_CAST")
-        return totalCost?.let { FlightTaskBunch(aircraft, flightTasks, iteration, it as Cost<FltX>) }
+        return totalCost
+            ?.takeIf { it.valid }
+            ?.let { FlightTaskBunch(aircraft, flightTasks, iteration, it as Cost<FltX>) }
     }
 
     /**
      * Lexicographic dominance comparison: returns true if this label dominates the right-hand side label.
      * 字典序支配比较：若此标签支配右侧标签则返回 true。
      *
-     * @param rhs The right-hand side label to compare against / 用于比较的右侧标签
-     * @return Whether this label dominates the rhs label / 此标签是否支配 rhs 标签
+     * @param rhs 用于比较的右侧标签 / The right-hand side label to compare against
+     * @return 此标签是否支配 rhs 标签 / Whether this label dominates the rhs label
     */
     infix fun ls(rhs: Label): Boolean {
         return (reducedCost - rhs.reducedCost) < Flt64.zero
@@ -232,14 +234,14 @@ private typealias LabelMap = MutableMap<Node, MutableList<Label>>
 /**
  * 使用标号设置算法生成航班任务束。Generates flight task bunches using Label Setting algorithm.
  *
- * @property aircraft The aircraft for which bunches are generated / 生成束的飞机
- * @property aircraftUsability The aircraft usability context / 飞机可用性上下文
- * @property graph The route graph for bunch generation / 批次生成的路线图
- * @property connectionTimeCalculator The connection time calculator between tasks / 任务间的连接时间计算器
- * @property minimumDepartureTimeCalculator The minimum departure time calculator / 最早出发时间计算器
- * @property costCalculator The incremental cost calculator / 增量代价计算器
- * @property totalCostCalculator The total cost calculator for a bunch / 束的总代价计算器
- * @property configuration The bunch generation configuration / 批次生成配置
+ * @property aircraft 生成束的飞机 / The aircraft for which bunches are generated
+ * @property aircraftUsability 飞机可用性上下文 / The aircraft usability context
+ * @property graph 批次生成的路线图 / The route graph for bunch generation
+ * @property connectionTimeCalculator 任务间的连接时间计算器 / The connection time calculator between tasks
+ * @property minimumDepartureTimeCalculator 最早出发时间计算器 / The minimum departure time calculator
+ * @property costCalculator 增量代价计算器 / The incremental cost calculator
+ * @property totalCostCalculator 束的总代价计算器 / The total cost calculator for a bunch
+ * @property configuration 批次生成配置 / The bunch generation configuration
 */
 class FlightTaskBunchGenerator(
     private val aircraft: Aircraft,
@@ -256,8 +258,8 @@ class FlightTaskBunchGenerator(
          * Sorts the graph nodes in topological order using Kahn's algorithm with time-based tie-breaking.
          * 使用 Kahn 算法按拓扑排序图节点，以时间为平局打破依据。
          *
-         * @param graph The directed acyclic graph to sort / 要排序的有向无环图
-         * @return The list of nodes in topological order / 按拓扑排序的节点列表
+         * @param graph 要排序的有向无环图 / The directed acyclic graph to sort
+         * @return 按拓扑排序的节点列表 / The list of nodes in topological order
         */
         private fun sortNodes(graph: Graph): List<Node> {
             val inDegree = HashMap<Node, UInt64>()
@@ -300,14 +302,20 @@ class FlightTaskBunchGenerator(
     private val enabledTime by aircraftUsability::enabledTime
     private val nodes = if (!configuration.withOrderChange) { sortNodes(graph) } else { emptyList() }
 
+    /** 最近一次 pricing 统计 / Diagnostics from the most recent pricing round. */
+    var diagnostics: PricingDiagnostics = PricingDiagnostics()
+        private set
+
     /**
      * 为给定的迭代和影子价格映射生成束。Generates bunches for the given iteration and shadow price map.
      *
-     * @param iteration The current iteration index / 当前迭代索引
-     * @param shadowPriceMap The shadow price map for dual values / 用于对偶值的影子价格映射
-     * @return The list of generated flight task bunches / 生成的航班任务束列表
+     * @param iteration 当前迭代索引 / The current iteration index
+     * @param shadowPriceMap 用于对偶值的影子价格映射 / The shadow price map for dual values
+     * @return 生成的航班任务束列表 / The list of generated flight task bunches
     */
     operator fun invoke(iteration: Int64, shadowPriceMap: ShadowPriceMap): Ret<List<FlightTaskBunch>> {
+        val currentDiagnostics = PricingDiagnostics()
+        diagnostics = currentDiagnostics
         val labels: LabelMap = HashMap()
         initRootLabel(labels, shadowPriceMap)
 
@@ -319,6 +327,10 @@ class FlightTaskBunchGenerator(
                 val prevLabel = labelDeque.first()
                 labelDeque.removeFirst()
                 val prevNode = prevLabel.node
+                if (prevNode is TaskNode && labels[prevNode]?.none { it === prevLabel } == true) {
+                    continue
+                }
+                currentDiagnostics.expandedLabelCount += 1
                 val edges = graph[prevNode].sortedBy { it.to.time }
 
                 for (edge in edges) {
@@ -328,13 +340,18 @@ class FlightTaskBunchGenerator(
                         if (prevNode !is RootNode) {
                             val builder = LabelBuilder(succNode, prevLabel)
                             builder.shadowPrice += shadowPriceMap(prevLabel.flightTask!!, null as FlightTask?)
-                            insertLabel(succLabels, Label(builder))
+                            insertLabel(succLabels, Label(builder), currentDiagnostics)
                         }
                     } else if (!prevLabel.visited(succNode)) {
+                        currentDiagnostics.candidateTaskCount += 1
                         val succLabel = generateFlightTaskLabel(prevLabel, succNode, shadowPriceMap)
                         if (succLabel != null) {
-                            insertLabel(succLabels, succLabel)
-                            labelDeque.add(succLabel)
+                            currentDiagnostics.feasibleExpansionCount += 1
+                            if (insertLabel(succLabels, succLabel, currentDiagnostics)) {
+                                labelDeque.add(succLabel)
+                            }
+                        } else {
+                            currentDiagnostics.infeasibleExpansionCount += 1
                         }
                     }
                 }
@@ -342,6 +359,7 @@ class FlightTaskBunchGenerator(
         } else {
             for (prevNode in nodes) {
                 for (prevLabel in getLabels(labels, prevNode)) {
+                    currentDiagnostics.expandedLabelCount += 1
                     for (edge in graph[prevNode]) {
                         val succNode = edge.to
                         val succLabels = getLabels(labels, succNode)
@@ -350,27 +368,37 @@ class FlightTaskBunchGenerator(
                             if (prevNode !is RootNode) {
                                 val builder = LabelBuilder(succNode, prevLabel)
                                 builder.shadowPrice += shadowPriceMap(prevLabel.flightTask!!, null as FlightTask?)
-                                insertLabel(succLabels, Label(builder))
+                                insertLabel(succLabels, Label(builder), currentDiagnostics)
                             }
                         } else if (!prevLabel.visited(succNode)) {
+                            currentDiagnostics.candidateTaskCount += 1
                             val succLabel = generateFlightTaskLabel(prevLabel, succNode, shadowPriceMap)
                             if (succLabel != null) {
-                                insertLabel(succLabels, succLabel)
+                                currentDiagnostics.feasibleExpansionCount += 1
+                                insertLabel(succLabels, succLabel, currentDiagnostics)
+                            } else {
+                                currentDiagnostics.infeasibleExpansionCount += 1
                             }
                         }
                     }
                 }
             }
         }
-        return Ok(selectBunches(iteration, labels[EndNode]!!))
+        val endLabels = labels[EndNode].orEmpty()
+        currentDiagnostics.noFeasiblePath = endLabels.isEmpty() && !currentDiagnostics.searchTruncatedByLabelLimit
+        currentDiagnostics.negativeReducedCostLabelCount = endLabels.count { it.isBetterBunch }
+        currentDiagnostics.noNegativeReducedCost = currentDiagnostics.negativeReducedCostLabelCount == 0
+        val bunches = selectBunches(iteration, endLabels, currentDiagnostics)
+        currentDiagnostics.generatedColumnCount = bunches.size
+        return Ok(bunches)
     }
 
     /**
      * Initializes the root label in the label map with the aircraft's enabled time and shadow price.
      * 使用航空器的启用时间和影子价格初始化标签映射中的根标签。
      *
-     * @param labels The mutable label map to initialize / 要初始化的可变标签映射
-     * @param shadowPriceMap The shadow price map for dual values / 用于对偶值的影子价格映射
+     * @param labels 要初始化的可变标签映射 / The mutable label map to initialize
+     * @param shadowPriceMap 用于对偶值的影子价格映射 / The shadow price map for dual values
     */
     private fun initRootLabel(labels: LabelMap, shadowPriceMap: ShadowPriceMap) {
         assert(labels.isEmpty())
@@ -384,9 +412,9 @@ class FlightTaskBunchGenerator(
      * Retrieves the list of labels for the given node, creating an empty list if none exists.
      * 获取给定节点的标签列表，若不存在则创建空列表。
      *
-     * @param labels The mutable label map / 可变标签映射
-     * @param node The node whose labels to retrieve / 要获取标签的节点
-     * @return The mutable list of labels for the node / 该节点的可变标签列表
+     * @param labels 可变标签映射 / The mutable label map
+     * @param node 要获取标签的节点 / The node whose labels to retrieve
+     * @return 该节点的可变标签列表 / The mutable list of labels for the node
     */
     private fun getLabels(labels: LabelMap, node: Node): MutableList<Label> {
         if (!labels.containsKey(node)) {
@@ -399,10 +427,10 @@ class FlightTaskBunchGenerator(
      * Generates a new label for the successor task node by computing departure time, recovery flight task, cost, and shadow price.
      * 通过计算出发时间、恢复航班任务、代价和影子价格，为后继任务节点生成新标签。
      *
-     * @param prevLabel The predecessor label / 前驱标签
-     * @param succNode The successor task node / 后继任务节点
-     * @param shadowPriceMap The shadow price map for dual values / 用于对偶值的影子价格映射
-     * @return The generated label, or null if the task is infeasible / 生成的标签，若任务不可行则返回 null
+     * @param prevLabel 前驱标签 / The predecessor label
+     * @param succNode 后继任务节点 / The successor task node
+     * @param shadowPriceMap 用于对偶值的影子价格映射 / The shadow price map for dual values
+     * @return 生成的标签，若任务不可行则返回 null / The generated label, or null if the task is infeasible
     */
     private fun generateFlightTaskLabel(prevLabel: Label, succNode: Node, shadowPriceMap: ShadowPriceMap): Label? {
         assert(succNode is TaskNode)
@@ -435,7 +463,7 @@ class FlightTaskBunchGenerator(
         } else {
             costCalculator(aircraft, prevLabel.flightTask!!, recoveryTask, flightHour, flightCycle)
         }
-        if (cost == null) {
+        if (cost == null || !cost.valid) {
             return null
         }
         val shadowPrice = if (prevLabel.node is RootNode) {
@@ -455,10 +483,10 @@ class FlightTaskBunchGenerator(
      * Generates a recovery flight task by applying aircraft assignment and route recovery to the successor task.
      * 通过对后继任务应用航空器分配和航线恢复来生成恢复航班任务。
      *
-     * @param dep The departure airport / 出发机场
-     * @param succTask The successor flight task / 后继航班任务
-     * @param time The time range for the recovery task / 恢复任务的时间范围
-     * @return The recovery flight task, or null if recovery is not enabled / 恢复航班任务，若恢复未启用则返回 null
+     * @param dep 出发机场 / The departure airport
+     * @param succTask 后继航班任务 / The successor flight task
+     * @param time 恢复任务的时间范围 / The time range for the recovery task
+     * @return 恢复航班任务，若恢复未启用则返回 null / The recovery flight task, or null if recovery is not enabled
     */
     private fun generateRecoveryFlightTask(dep: Airport, succTask: FlightTask, time: TimeRange): FlightTask? {
         val aircraft: Aircraft? = if (succTask.aircraft == null || succTask.aircraft != this.aircraft) {
@@ -488,34 +516,49 @@ class FlightTaskBunchGenerator(
      * Inserts a label into the label list, applying dominance pruning and capacity limits for task nodes.
      * 将标签插入标签列表，对任务节点应用支配剪枝和容量限制。
      *
-     * @param labels The mutable list of labels for the node / 该节点的可变标签列表
-     * @param label The label to insert / 要插入的标签
+     * @param labels 该节点的可变标签列表 / The mutable list of labels for the node
+     * @param label 要插入的标签 / The label to insert
     */
-    private fun insertLabel(labels: MutableList<Label>, label: Label) {
+    private fun insertLabel(
+        labels: MutableList<Label>,
+        label: Label,
+        diagnostics: PricingDiagnostics
+    ): Boolean {
         when (label.node) {
             is TaskNode -> {
                 if (labels.any { it ls label }) {
-                    return
+                    diagnostics.dominatedLabelCount += 1
+                    return false
                 }
-                labels.removeAll { label ls it }
-                if (labels.size > configuration.maximumLabelPerNode.toInt()) {
-                    for (i in configuration.maximumLabelPerNode.toInt() until labels.size) {
-                        labels.removeAt(i)
-                    }
+                val dominatedLabels = labels.filter { label ls it }
+                labels.removeAll(dominatedLabels.toSet())
+                diagnostics.dominatedLabelCount += dominatedLabels.size
+                val insertIndex = labels.indexOfFirst {
+                    (label.reducedCost - it.reducedCost) < Flt64.zero
+                }
+                if (insertIndex < 0) {
+                    labels.add(label)
+                } else {
+                    labels.add(insertIndex, label)
                 }
 
-                for (i in labels.indices) {
-                    if ((label.reducedCost - labels[i].reducedCost) < Flt64.zero) {
-                        labels.add(i, label)
-                        return
+                val maximumLabelPerNode = configuration.maximumLabelPerNode.toInt()
+                if (labels.size > maximumLabelPerNode) {
+                    diagnostics.labelLimitReachedCount += 1
+                    diagnostics.searchTruncatedByLabelLimit = true
+                    while (labels.size > maximumLabelPerNode) {
+                        labels.removeAt(labels.lastIndex)
                     }
                 }
-                labels.add(label)
+                return labels.any { it === label }
             }
             is EndNode -> {
                 labels.add(label)
+                return true
             }
-            else -> { }
+            else -> {
+                return false
+            }
         }
     }
 
@@ -523,19 +566,29 @@ class FlightTaskBunchGenerator(
      * Selects the best flight task bunches from end-node labels based on reduced cost, up to the configured maximum.
      * 根据缩减代价从终端节点标签中选择最优航班任务束，直到达到配置的最大数量。
      *
-     * @param iteration The current iteration index / 当前迭代索引
-     * @param labels The list of labels at the end node / 终端节点的标签列表
-     * @return The list of selected flight task bunches / 选中的航班任务束列表
+     * @param iteration 当前迭代索引 / The current iteration index
+     * @param labels 终端节点的标签列表 / The list of labels at the end node
+     * @return 选中的航班任务束列表 / The list of selected flight task bunches
     */
-    private fun selectBunches(iteration: Int64, labels: List<Label>): List<FlightTaskBunch> {
+    private fun selectBunches(
+        iteration: Int64,
+        labels: List<Label>,
+        diagnostics: PricingDiagnostics
+    ): List<FlightTaskBunch> {
         val bunches = ArrayList<FlightTaskBunch>()
+        val maximumColumnGeneratedPerAircraft = configuration.maximumColumnGeneratedPerAircraft.toInt()
+        if (maximumColumnGeneratedPerAircraft <= 0) {
+            return bunches
+        }
         val sortedLabels = labels.asIterable().filter { it.isBetterBunch }.sortedBy { it.reducedCost }
         for (label in sortedLabels) {
             val newBunch = label.generateBunch(iteration, aircraft, aircraftUsability, totalCostCalculator)
             if (newBunch != null) {
                 bunches.add(newBunch)
+            } else {
+                diagnostics.invalidColumnCount += 1
             }
-            if (bunches.size == configuration.maximumColumnGeneratedPerAircraft.toInt()) {
+            if (bunches.size >= maximumColumnGeneratedPerAircraft) {
                 break
             }
         }
@@ -546,9 +599,9 @@ class FlightTaskBunchGenerator(
      * Computes the minimum departure time for the successor task node considering connection time and aircraft usability.
      * 考虑连接时间和航空器可用性，计算后继任务节点的最早出发时间。
      *
-     * @param prevLabel The predecessor label / 前驱标签
-     * @param succNode The successor task node / 后继任务节点
-     * @return The minimum departure time instant / 最早出发时间时刻
+     * @param prevLabel 前驱标签 / The predecessor label
+     * @param succNode 后继任务节点 / The successor task node
+     * @return 最早出发时间时刻 / The minimum departure time instant
     */
     private fun getMinDepartureTime(prevLabel: Label, succNode: Node): Instant {
         assert(succNode is TaskNode)

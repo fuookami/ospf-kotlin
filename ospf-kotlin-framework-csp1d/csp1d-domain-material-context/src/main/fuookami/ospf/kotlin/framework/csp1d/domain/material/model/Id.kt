@@ -45,8 +45,7 @@ interface MachineId
 interface CuttingPlanId
 
 /**
- * CuttingPlanId 默认实现，用于拼接生成新方案 id 的场景 /
- * Default CuttingPlanId implementation for scenarios that generate new plan ids by concatenation
+ * CuttingPlanId 默认实现，用于拼接生成新方案 id 的场景 / / Default CuttingPlanId implementation for scenarios that generate new plan ids by concatenation
  *
  * @property value 字符串值 / String value
 */

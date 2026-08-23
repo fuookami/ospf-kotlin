@@ -1,18 +1,14 @@
 /**
- * 基础量纲定义
- * Fundamental Quantity Dimension Definitions
+ * 基础量纲定义 / Fundamental Quantity Dimension Definitions
  *
- * 定义物理量的基础量纲，包括国际单位制（SI）的基本量纲和辅助量纲。
- * Defines fundamental dimensions of physical quantities, including SI base dimensions and supplementary dimensions.
+ * 定义物理量的基础量纲，包括国际单位制（SI）的基本量纲和辅助量纲。 / Defines fundamental dimensions of physical quantities, including SI base dimensions and supplementary dimensions.
 */
 package fuookami.ospf.kotlin.quantities.dimension
 
 /**
- * 基础量纲接口
- * Fundamental quantity dimension interface
+ * 基础量纲接口 / Fundamental quantity dimension interface
  *
- * 支持标准量纲和自定义量纲。
- * Supports standard dimensions and custom dimensions.
+ * 支持标准量纲和自定义量纲。 / Supports standard dimensions and custom dimensions.
 */
 interface FundamentalQuantityDimension {
 
@@ -26,11 +22,9 @@ interface FundamentalQuantityDimension {
 }
 
 /**
- * 标准基础量纲枚举
- * Standard fundamental quantity dimension enumeration
+ * 标准基础量纲枚举 / Standard fundamental quantity dimension enumeration
  *
- * 包含国际单位制（SI）定义的七个基本量纲和两个辅助量纲，以及信息量纲。
- * Contains the seven SI base dimensions, two supplementary dimensions, and the information dimension.
+ * 包含国际单位制（SI）定义的七个基本量纲和两个辅助量纲，以及信息量纲。 / Contains the seven SI base dimensions, two supplementary dimensions, and the information dimension.
 */
 enum class StandardFundamentalQuantityDimension(
     /** 量纲符号 / Dimension symbol */
@@ -63,11 +57,9 @@ enum class StandardFundamentalQuantityDimension(
 }
 
 /**
- * 自定义基础量纲
- * Custom fundamental quantity dimension
+ * 自定义基础量纲 / Custom fundamental quantity dimension
  *
- * 用于支持用户定义的量纲类型。
- * Used to support user-defined dimension types.
+ * 用于支持用户定义的量纲类型。 / Used to support user-defined dimension types.
  *
  * @property symbol 量纲符号 / Dimension symbol
  * @property dimensionName 量纲名称 / Dimension name
@@ -125,8 +117,7 @@ val B = StandardFundamentalQuantityDimension.Information
 // In Dimensions.kt, these names are redefined as DerivedQuantity types
 
 /**
- * 创建自定义基础量纲
- * Creates a custom fundamental dimension
+ * 创建自定义基础量纲 / Creates a custom fundamental dimension
  *
  * @param symbol 量纲符号 / Dimension symbol
  * @param name 量纲名称 / Dimension name
@@ -137,11 +128,9 @@ fun CustomDimension(symbol: String, name: String): FundamentalQuantityDimension 
 }
 
 /**
- * 基础量纲值
- * Fundamental quantity value
+ * 基础量纲值 / Fundamental quantity value
  *
- * 表示量纲的幂次，用于构建导出量纲。
- * Represents the power of a dimension, used to build derived quantities.
+ * 表示量纲的幂次，用于构建导出量纲。 / Represents the power of a dimension, used to build derived quantities.
  *
  * @property dimension 基础量纲 / The fundamental dimension
  * @property index 幂次指数，默认为1 / The power exponent, defaults to 1
@@ -149,8 +138,7 @@ fun CustomDimension(symbol: String, name: String): FundamentalQuantityDimension 
 data class FundamentalQuantity(val dimension: FundamentalQuantityDimension, val index: Int = 1) {
 
     /**
-     * 两个基础量纲值相加（幂次相加）
-     * Adds two fundamental quantities (adds their powers)
+     * 两个基础量纲值相加（幂次相加） / Adds two fundamental quantities (adds their powers)
      *
      * @param rhs 右操作数 / The right operand
      * @return 相加后的基础量纲值 / The resulting fundamental quantity
@@ -164,8 +152,7 @@ data class FundamentalQuantity(val dimension: FundamentalQuantityDimension, val 
     }
 
     /**
-     * 两个基础量纲值相减（幂次相减）
-     * Subtracts two fundamental quantities (subtracts their powers)
+     * 两个基础量纲值相减（幂次相减） / Subtracts two fundamental quantities (subtracts their powers)
      *
      * @param rhs 右操作数 / The right operand
      * @return 相减后的基础量纲值 / The resulting fundamental quantity
@@ -179,8 +166,7 @@ data class FundamentalQuantity(val dimension: FundamentalQuantityDimension, val 
     }
 
     /**
-     * 取负（幂次取反）
-     * Negation operator (negates the power)
+     * 取负（幂次取反） / Negation operator (negates the power)
      *
      * @return 幂次取反后的基础量纲值 / The negated fundamental quantity
     */
@@ -192,8 +178,7 @@ data class FundamentalQuantity(val dimension: FundamentalQuantityDimension, val 
 }
 
 /**
- * 基础量纲与整数相乘，创建基础量纲值
- * Multiplies a dimension by an integer to create a fundamental quantity
+ * 基础量纲与整数相乘，创建基础量纲值 / Multiplies a dimension by an integer to create a fundamental quantity
  *
  * @param index 幂次指数 / The power exponent
  * @return 基础量纲值 / The fundamental quantity
@@ -201,8 +186,7 @@ data class FundamentalQuantity(val dimension: FundamentalQuantityDimension, val 
 operator fun FundamentalQuantityDimension.times(index: Int) = FundamentalQuantity(this, index)
 
 /**
- * 基础量纲值与整数相乘
- * Multiplies a fundamental quantity by an integer
+ * 基础量纲值与整数相乘 / Multiplies a fundamental quantity by an integer
  *
  * @param index 乘数 / The multiplier
  * @return 基础量纲值 / The fundamental quantity
@@ -210,8 +194,7 @@ operator fun FundamentalQuantityDimension.times(index: Int) = FundamentalQuantit
 operator fun FundamentalQuantity.times(index: Int) = FundamentalQuantity(dimension, index * this.index)
 
 /**
- * 基础量纲值除以整数
- * Divides a fundamental quantity by an integer
+ * 基础量纲值除以整数 / Divides a fundamental quantity by an integer
  *
  * @param index 除数 / The divisor
  * @return 基础量纲值 / The fundamental quantity

@@ -77,8 +77,8 @@ enum class CargoCode {
  * Cargo type combining a code and a type string, with cached factory methods.
  * 货物类型，结合代码和类型字符串，带有缓存的工厂方法。
  *
- * @property code the cargo code, or null if not a standard code / 货物代码，非标准代码时为 null
- * @property type the cargo type string / 货物类型字符串
+ * @property code 货物代码，非标准代码时为 null / the cargo code, or null if not a standard code
+ * @property type 货物类型字符串 / the cargo type string
 */
 data class CargoType(
     val code: CargoCode?,
@@ -121,9 +121,9 @@ enum class CargoPriorityCategory {
  * Cargo priority with a numeric priority value, category, and transfer flag.
  * 货物优先级，包含数值优先级、类别和中转标志。
  *
- * @property priority the numeric priority value / 数值优先级
- * @property category the priority category / 优先级类别
- * @property transfer whether this is a transfer cargo / 是否为中转货物
+ * @property priority 数值优先级 / the numeric priority value
+ * @property category 优先级类别 / the priority category
+ * @property transfer 是否为中转货物 / whether this is a transfer cargo
 */
 data class CargoPriority(
     val name: String,
@@ -135,8 +135,8 @@ data class CargoPriority(
 /**
  * Compares two cargo priorities by their numeric priority values to determine ordering.
  * 通过数值优先级比较两个货物优先级以确定排序。
- * @param rhs The right-hand side cargo priority to compare with / 要比较的右侧货物优先级
- * @return The ordering result (less, equal, or greater) based on priority values / 基于优先级值的排序结果（小于、等于或大于）
+ * @param rhs 要比较的右侧货物优先级 / The right-hand side cargo priority to compare with
+ * @return 基于优先级值的排序结果（小于、等于或大于） / The ordering result (less, equal, or greater) based on priority values
 */
 
 infix fun CargoPriority.ord(rhs: CargoPriority): Order {

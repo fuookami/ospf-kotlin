@@ -1,11 +1,9 @@
 /**
- * 线性多项式
- * Linear Polynomial
+ * 线性多项式 / Linear Polynomial
  *
  * 定义线性多项式的数据结构和运算。线性多项式是线性单项式的线性组合，
  * 形如 c₁x₁ + c₂x₂ + ... + cₙxₙ + b，其中 cᵢ 为系数，xᵢ 为符号变量，b 为常数项。
- * 在线性规划和混合整数规划中广泛使用。
- * Defines data structures and operations for linear polynomials.
+ * 在线性规划和混合整数规划中广泛使用。 / Defines data structures and operations for linear polynomials.
  * A linear polynomial is a linear combination of linear monomials,
  * in the form c₁x₁ + c₂x₂ + ... + cₙxₙ + b, where cᵢ are coefficients,
  * xᵢ are symbol variables, and b is the constant term.
@@ -22,13 +20,11 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 /**
- * 线性多项式
- * Linear Polynomial
+ * 线性多项式 / Linear Polynomial
  *
  * 表示线性多项式，形如 c₁x₁ + c₂x₂ + ... + cₙxₙ + b。
  * 线性多项式是线性单项式的线性组合加上一个常数项，
- * 在线性规划和混合整数规划中是最基本的表达式形式。
- * Represents a linear polynomial of the form c₁x₁ + c₂x₂ + ... + cₙxₙ + b.
+ * 在线性规划和混合整数规划中是最基本的表达式形式。 / Represents a linear polynomial of the form c₁x₁ + c₂x₂ + ... + cₙxₙ + b.
  * A linear polynomial is a linear combination of linear monomials plus a constant term,
  * being the most fundamental expression form in linear programming and mixed-integer programming.
  *
@@ -41,26 +37,22 @@ data class LinearPolynomial<T : Ring<T>>(
 ) : ToLinearPolynomial<T>, ToQuadraticPolynomial<T>, ToCanonicalPolynomial<T> {
 
     /**
-     * 表达式类型分类
-     * Expression type category
+     * 表达式类型分类 / Expression type category
      *
-     * 线性多项式始终属于线性类型。
-     * Linear polynomials always belong to the Linear category.
+     * 线性多项式始终属于线性类型。 / Linear polynomials always belong to the Linear category.
     */
     val category: Category
         get() = Linear
 
     /**
-     * 转换为线性多项式（自身）
-     * Converts to a linear polynomial (self)
+     * 转换为线性多项式（自身） / Converts to a linear polynomial (self)
      *
      * @return 自身 / Self
     */
     override fun toLinearPolynomial(): LinearPolynomial<T> = this
 
     /**
-     * 转换为二次多项式
-     * Converts to a quadratic polynomial
+     * 转换为二次多项式 / Converts to a quadratic polynomial
      *
      * @return 二次多项式 / Quadratic polynomial
     */
@@ -69,8 +61,7 @@ data class LinearPolynomial<T : Ring<T>>(
     }
 
     /**
-     * 转换为规范多项式
-     * Converts to a canonical polynomial
+     * 转换为规范多项式 / Converts to a canonical polynomial
      *
      * @return 规范多项式 / Canonical polynomial
     */
@@ -80,8 +71,7 @@ data class LinearPolynomial<T : Ring<T>>(
 }
 
 /**
- * 线性多项式的负运算符
- * Negation operator for linear polynomial
+ * 线性多项式的负运算符 / Negation operator for linear polynomial
  *
  * @receiver 线性多项式 / Linear polynomial
  * @return 所有项取负后的线性多项式 / Linear polynomial with all terms negated
@@ -94,8 +84,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.unaryMinus(): LinearPolynomial<T>
 }
 
 /**
- * 线性多项式之间的加法运算符
- * Addition operator between linear polynomials
+ * 线性多项式之间的加法运算符 / Addition operator between linear polynomials
  *
  * @receiver 左侧线性多项式 / Left-hand linear polynomial
  * @param rhs 右侧线性多项式 / Right-hand linear polynomial
@@ -106,8 +95,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.plus(rhs: LinearPolynomial<T>): L
 }
 
 /**
- * 线性多项式之间的减法运算符
- * Subtraction operator between linear polynomials
+ * 线性多项式之间的减法运算符 / Subtraction operator between linear polynomials
  *
  * @receiver 左侧线性多项式 / Left-hand linear polynomial
  * @param rhs 右侧线性多项式 / Right-hand linear polynomial
@@ -121,8 +109,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.minus(rhs: LinearPolynomial<T>): 
 }
 
 /**
- * 线性多项式与标量的乘法运算符
- * Multiplication operator for linear polynomial and scalar
+ * 线性多项式与标量的乘法运算符 / Multiplication operator for linear polynomial and scalar
  *
  * @receiver 线性多项式 / Linear polynomial
  * @param rhs 标量值 / Scalar value
@@ -136,8 +123,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.times(rhs: T): LinearPolynomial<T
 }
 
 /**
- * 标量与线性多项式的乘法运算符
- * Multiplication operator for scalar and linear polynomial
+ * 标量与线性多项式的乘法运算符 / Multiplication operator for scalar and linear polynomial
  *
  * @receiver 标量值 / Scalar value
  * @param rhs 线性多项式 / Linear polynomial
@@ -148,8 +134,7 @@ operator fun <T : Ring<T>> T.times(rhs: LinearPolynomial<T>): LinearPolynomial<T
 }
 
 /**
- * 线性多项式与标量的除法运算符
- * Division operator for linear polynomial and scalar
+ * 线性多项式与标量的除法运算符 / Division operator for linear polynomial and scalar
  *
  * @receiver 线性多项式 / Linear polynomial
  * @param rhs 标量值 / Scalar value
@@ -163,8 +148,7 @@ operator fun <T : Field<T>> LinearPolynomial<T>.div(rhs: T): LinearPolynomial<T>
 }
 
 /**
- * 线性多项式与标量的加法运算符
- * Addition operator for linear polynomial and scalar
+ * 线性多项式与标量的加法运算符 / Addition operator for linear polynomial and scalar
  *
  * @receiver 线性多项式 / Linear polynomial
  * @param rhs 标量值 / Scalar value
@@ -175,8 +159,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.plus(rhs: T): LinearPolynomial<T>
 }
 
 /**
- * 标量与线性多项式的加法运算符
- * Addition operator for scalar and linear polynomial
+ * 标量与线性多项式的加法运算符 / Addition operator for scalar and linear polynomial
  *
  * @receiver 标量值 / Scalar value
  * @param rhs 线性多项式 / Linear polynomial
@@ -187,8 +170,7 @@ operator fun <T : Ring<T>> T.plus(rhs: LinearPolynomial<T>): LinearPolynomial<T>
 }
 
 /**
- * 线性多项式与标量的减法运算符
- * Subtraction operator for linear polynomial and scalar
+ * 线性多项式与标量的减法运算符 / Subtraction operator for linear polynomial and scalar
  *
  * @receiver 线性多项式 / Linear polynomial
  * @param rhs 标量值 / Scalar value
@@ -199,8 +181,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.minus(rhs: T): LinearPolynomial<T
 }
 
 /**
- * 标量与线性多项式的减法运算符
- * Subtraction operator for scalar and linear polynomial
+ * 标量与线性多项式的减法运算符 / Subtraction operator for scalar and linear polynomial
  *
  * @receiver 标量值 / Scalar value
  * @param rhs 线性多项式 / Linear polynomial

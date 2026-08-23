@@ -1,7 +1,5 @@
 /**
- * 并行关联操作
- *
- * Parallel association operations for creating maps from iterables with concurrency control.
+ * 并行关联操作 / Parallel association operations for creating maps from iterables with concurrency control.
 */
 package fuookami.ospf.kotlin.utils.parallel
 
@@ -13,9 +11,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 // ============================================================================
 
 /**
- * 并行关联集合元素到 Map
- *
- * Associate collection elements to a Map in parallel.
+ * 并行关联集合元素到 Map / Associate collection elements to a Map in parallel.
  * 并发将集合元素关联到 Map。
  *
  * @param K 键类型 / Key type
@@ -33,9 +29,7 @@ suspend inline fun <K, V, T> Iterable<T>.associateParallelly(
 }
 
 /**
- * 并行关联集合元素到 Map（带错误处理）
- *
- * Associate collection elements to a Map in parallel with error handling.
+ * 并行关联集合元素到 Map（带错误处理） / Associate collection elements to a Map in parallel with error handling.
  * 并发将集合元素关联到 Map，支持错误处理。
  *
  * @param K 键类型 / Key type
@@ -53,9 +47,7 @@ suspend inline fun <K, V, T> Iterable<T>.tryAssociateToParallelly(
 }
 
 /**
- * 并行关联集合元素到 Map（带错误收集）
- *
- * Associate collection elements to a Map in parallel with error collection.
+ * 并行关联集合元素到 Map（带错误收集） / Associate collection elements to a Map in parallel with error collection.
  * 并发将集合元素关联到 Map，收集所有错误。
  *
  * @param K 键类型 / Key type
@@ -73,9 +65,7 @@ suspend inline fun <K, V, T> Iterable<T>.exTryAssociateToParallelly(
 }
 
 /**
- * 并行关联集合元素到目标 Map
- *
- * Associate collection elements to a destination Map in parallel.
+ * 并行关联集合元素到目标 Map / Associate collection elements to a destination Map in parallel.
  * 并发将集合元素关联到目标 Map。
  *
  * @param K 键类型 / Key type
@@ -101,9 +91,7 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.associateTo
 }
 
 /**
- * 并行关联集合元素到目标 Map（带错误处理）
- *
- * Associate collection elements to a destination Map in parallel with error handling.
+ * 并行关联集合元素到目标 Map（带错误处理） / Associate collection elements to a destination Map in parallel with error handling.
  * 并发将集合元素关联到目标 Map，支持错误处理。
  *
  * @param K 键类型 / Key type
@@ -135,9 +123,7 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.tryAssociat
 }
 
 /**
- * 并行关联集合元素到目标 Map（带错误收集）
- *
- * Associate collection elements to a destination Map in parallel with error collection.
+ * 并行关联集合元素到目标 Map（带错误收集） / Associate collection elements to a destination Map in parallel with error collection.
  * 并发将集合元素关联到目标 Map，收集所有错误。
  *
  * @param K 键类型 / Key type
@@ -180,9 +166,7 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.exTryAssoci
 // ============================================================================
 
 /**
- * 并行按键关联集合元素到 Map
- *
- * Associate collection elements to a Map by key in parallel.
+ * 并行按键关联集合元素到 Map / Associate collection elements to a Map by key in parallel.
  * 并发按键将集合元素关联到 Map。
  *
  * @param K 键类型 / Key type
@@ -199,9 +183,7 @@ suspend inline fun <K, T> Iterable<T>.associateByParallelly(
 }
 
 /**
- * 并行按键关联集合元素到 Map（带错误处理）
- *
- * Associate collection elements to a Map by key in parallel with error handling.
+ * 并行按键关联集合元素到 Map（带错误处理） / Associate collection elements to a Map by key in parallel with error handling.
  * 并发按键将集合元素关联到 Map，支持错误处理。
  *
  * @param K 键类型 / Key type
@@ -218,9 +200,7 @@ suspend inline fun <K, T> Iterable<T>.tryAssociateByToParallelly(
 }
 
 /**
- * 并行按键关联集合元素到 Map（带错误收集）
- *
- * Associate collection elements to a Map by key in parallel with error collection.
+ * 并行按键关联集合元素到 Map（带错误收集） / Associate collection elements to a Map by key in parallel with error collection.
  * 并发按键将集合元素关联到 Map，收集所有错误。
  *
  * @param K 键类型 / Key type
@@ -237,9 +217,7 @@ suspend inline fun <K, T> Iterable<T>.exTryAssociateByToParallelly(
 }
 
 /**
- * 并行按键关联集合元素到目标 Map
- *
- * Associate collection elements to a destination Map by key in parallel.
+ * 并行按键关联集合元素到目标 Map / Associate collection elements to a destination Map by key in parallel.
  * 并发按键将集合元素关联到目标 Map。
  *
  * @param K 键类型 / Key type
@@ -264,9 +242,7 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.associateByToP
 }
 
 /**
- * 并行按键关联集合元素到目标 Map（带错误处理）
- *
- * Associate collection elements to a destination Map by key in parallel with error handling.
+ * 并行按键关联集合元素到目标 Map（带错误处理） / Associate collection elements to a destination Map by key in parallel with error handling.
  * 并发按键将集合元素关联到目标 Map，支持错误处理。
  *
  * @param K 键类型 / Key type
@@ -303,9 +279,7 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.tryAssociateBy
 }
 
 /**
- * 并行按键关联集合元素到目标 Map（带错误收集）
- *
- * Associate collection elements to a destination Map by key in parallel with error collection.
+ * 并行按键关联集合元素到目标 Map（带错误收集） / Associate collection elements to a destination Map by key in parallel with error collection.
  * 并发按键将集合元素关联到目标 Map，收集所有错误。
  *
  * @param K 键类型 / Key type
@@ -353,9 +327,7 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.exTryAssociate
 // ============================================================================
 
 /**
- * 并行按值关联集合元素到 Map
- *
- * Associate collection elements to a Map with value in parallel.
+ * 并行按值关联集合元素到 Map / Associate collection elements to a Map with value in parallel.
  * 并发按值将集合元素关联到 Map。
  *
  * @param V 值类型 / Value type
@@ -372,9 +344,7 @@ suspend inline fun <V, T> Iterable<T>.associateWithParallelly(
 }
 
 /**
- * 并行按值关联集合元素到 Map（带错误处理）
- *
- * Associate collection elements to a Map with value in parallel with error handling.
+ * 并行按值关联集合元素到 Map（带错误处理） / Associate collection elements to a Map with value in parallel with error handling.
  * 并发按值将集合元素关联到 Map，支持错误处理。
  *
  * @param V 值类型 / Value type
@@ -391,9 +361,7 @@ suspend inline fun <V, T> Iterable<T>.tryAssociateWithToParallelly(
 }
 
 /**
- * 并行按值关联集合元素到 Map（带错误收集）
- *
- * Associate collection elements to a Map with value in parallel with error collection.
+ * 并行按值关联集合元素到 Map（带错误收集） / Associate collection elements to a Map with value in parallel with error collection.
  * 并发按值将集合元素关联到 Map，收集所有错误。
  *
  * @param V 值类型 / Value type
@@ -410,9 +378,7 @@ suspend inline fun <V, T> Iterable<T>.exTryAssociateWithToParallelly(
 }
 
 /**
- * 并行按值关联集合元素到目标 Map
- *
- * Associate collection elements to a destination Map with value in parallel.
+ * 并行按值关联集合元素到目标 Map / Associate collection elements to a destination Map with value in parallel.
  * 并发按值将集合元素关联到目标 Map。
  *
  * @param V 值类型 / Value type
@@ -437,9 +403,7 @@ suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.associateWithT
 }
 
 /**
- * 并行按值关联集合元素到目标 Map（带错误处理）
- *
- * Associate collection elements to a destination Map with value in parallel with error handling.
+ * 并行按值关联集合元素到目标 Map（带错误处理） / Associate collection elements to a destination Map with value in parallel with error handling.
  * 并发按值将集合元素关联到目标 Map，支持错误处理。
  *
  * @param V 值类型 / Value type
@@ -476,9 +440,7 @@ suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.tryAssociateWi
 }
 
 /**
- * 并行按值关联集合元素到目标 Map（带错误收集）
- *
- * Associate collection elements to a destination Map with value in parallel with error collection.
+ * 并行按值关联集合元素到目标 Map（带错误收集） / Associate collection elements to a destination Map with value in parallel with error collection.
  * 并发按值将集合元素关联到目标 Map，收集所有错误。
  *
  * @param V 值类型 / Value type

@@ -224,14 +224,14 @@ class NSumGenerator<V : RealNumber<V>>(
 /**
  * Depth-limited DFS search that enumerates multi-product slice combinations for a single material.
  * 深度受限 DFS 搜索，枚举单个物料的多产品切片组合。
- * @param material The raw material to generate cutting plans for / 待生成切割方案的原料
- * @param widthIndex Sorted index of demand entries by width for the current material / 当前物料按宽度排序的需求条目索引
- * @param machines Available machines for feasibility checking / 用于可行性检查的可用机器列表
- * @param planIndex Atomic counter for generating unique plan IDs / 用于生成唯一方案 ID 的原子计数器
- * @param collector Collects generated plans and enforces early-termination limits / 收集生成的方案并执行提前终止限制
- * @param quantityCache Cache for width arithmetic operations to avoid repeated computation / 宽度算术运算缓存，避免重复计算
- * @param templateRecorder Optional recorder that captures slice templates for reuse across materials / 可选的切片模板记录器，捕获模板以在物料间复用
- * @param widthCheck Optional callback to validate product width feasibility against material constraints / 可选回调，验证产品宽度相对于物料约束的可行性
+ * @param material 待生成切割方案的原料 / The raw material to generate cutting plans for
+ * @param widthIndex 当前物料按宽度排序的需求条目索引 / Sorted index of demand entries by width for the current material
+ * @param machines 用于可行性检查的可用机器列表 / Available machines for feasibility checking
+ * @param planIndex 用于生成唯一方案 ID 的原子计数器 / Atomic counter for generating unique plan IDs
+ * @param collector 收集生成的方案并执行提前终止限制 / Collects generated plans and enforces early-termination limits
+ * @param quantityCache 宽度算术运算缓存，避免重复计算 / Cache for width arithmetic operations to avoid repeated computation
+ * @param templateRecorder 可选的切片模板记录器，捕获模板以在物料间复用 / Optional recorder that captures slice templates for reuse across materials
+ * @param widthCheck 可选回调，验证产品宽度相对于物料约束的可行性 / Optional callback to validate product width feasibility against material constraints
 */
     private fun nSumSearch(
         material: Material<V>,
@@ -361,13 +361,13 @@ class NSumGenerator<V : RealNumber<V>>(
 /**
  * Emits cutting plans from pre-recorded slice templates for a single material.
  * 从预录的切片模板中为单个物料生成切割方案。
- * @param material The raw material to generate cutting plans for / 待生成切割方案的原料
- * @param widthIndex Sorted index of demand entries by width for the current material / 当前物料按宽度排序的需求条目索引
- * @param machines Available machines for feasibility checking / 用于可行性检查的可用机器列表
- * @param planIndex Atomic counter for generating unique plan IDs / 用于生成唯一方案 ID 的原子计数器
- * @param collector Collects generated plans and enforces early-termination limits / 收集生成的方案并执行提前终止限制
- * @param templates Pre-recorded slice combinations to replay as cutting plans / 预录的切片组合，作为切割方案回放
- * @param widthCheck Optional callback to validate product width feasibility against material constraints / 可选回调，验证产品宽度相对于物料约束的可行性
+ * @param material 待生成切割方案的原料 / The raw material to generate cutting plans for
+ * @param widthIndex 当前物料按宽度排序的需求条目索引 / Sorted index of demand entries by width for the current material
+ * @param machines 用于可行性检查的可用机器列表 / Available machines for feasibility checking
+ * @param planIndex 用于生成唯一方案 ID 的原子计数器 / Atomic counter for generating unique plan IDs
+ * @param collector 收集生成的方案并执行提前终止限制 / Collects generated plans and enforces early-termination limits
+ * @param templates 预录的切片组合，作为切割方案回放 / Pre-recorded slice combinations to replay as cutting plans
+ * @param widthCheck 可选回调，验证产品宽度相对于物料约束的可行性 / Optional callback to validate product width feasibility against material constraints
 */
     private fun emitTemplates(
         material: Material<V>,
@@ -396,11 +396,11 @@ class NSumGenerator<V : RealNumber<V>>(
 /**
  * Checks whether the given slices satisfy all pruning constraints (applied during DFS traversal).
  * 检查给定切片是否满足所有剪枝约束（在 DFS 遍历过程中应用）。
- * @param slices Current slice combination being evaluated / 当前正在评估的切片组合
- * @param totalWidth Accumulated width of the current slice combination / 当前切片组合的累计宽度
- * @param upperBound Upper bound of the material width / 物料宽度的上界
- * @param material The raw material being cut / 正在切割的原料
- * @return true if all pruning constraints are satisfied, false otherwise / 若所有剪枝约束均满足则返回 true，否则返回 false
+ * @param slices 当前正在评估的切片组合 / Current slice combination being evaluated
+ * @param totalWidth 当前切片组合的累计宽度 / Accumulated width of the current slice combination
+ * @param upperBound 物料宽度的上界 / Upper bound of the material width
+ * @param material 正在切割的原料 / The raw material being cut
+ * @return 若所有剪枝约束均满足则返回 true，否则返回 false / true if all pruning constraints are satisfied, false otherwise
 */
     private fun satisfiesPruningConstraints(
         slices: List<CuttingPlanSlice<V>>,
@@ -416,11 +416,11 @@ class NSumGenerator<V : RealNumber<V>>(
 /**
  * Checks whether the given slices satisfy all leaf constraints (applied at DFS leaf nodes).
  * 检查给定切片是否满足所有叶节点约束（在 DFS 叶节点处应用）。
- * @param slices Final slice combination at a leaf node / 叶节点处的最终切片组合
- * @param totalWidth Accumulated width of the slice combination / 切片组合的累计宽度
- * @param upperBound Upper bound of the material width / 物料宽度的上界
- * @param material The raw material being cut / 正在切割的原料
- * @return true if all leaf constraints are satisfied, false otherwise / 若所有叶节点约束均满足则返回 true，否则返回 false
+ * @param slices 叶节点处的最终切片组合 / Final slice combination at a leaf node
+ * @param totalWidth 切片组合的累计宽度 / Accumulated width of the slice combination
+ * @param upperBound 物料宽度的上界 / Upper bound of the material width
+ * @param material 正在切割的原料 / The raw material being cut
+ * @return 若所有叶节点约束均满足则返回 true，否则返回 false / true if all leaf constraints are satisfied, false otherwise
 */
     private fun satisfiesLeafConstraints(
         slices: List<CuttingPlanSlice<V>>,
@@ -436,11 +436,11 @@ class NSumGenerator<V : RealNumber<V>>(
 /**
  * Builds a CuttingPlan from the given slices, computing demand contributions.
  * 从给定切片构建切割方案，计算需求贡献量。
- * @param material The raw material for this cutting plan / 该切割方案对应的原料
- * @param slices Slice combination to include in the plan / 方案中包含的切片组合
- * @param widthIndex Width index used to resolve demand units for contribution calculation / 用于解析需求单位的宽度索引，以计算贡献量
- * @param planId Unique identifier for the generated cutting plan / 生成切割方案的唯一标识
- * @return The constructed CuttingPlan with computed demand contributions / 构建完成的切割方案，包含已计算的需求贡献量
+ * @param material 该切割方案对应的原料 / The raw material for this cutting plan
+ * @param slices 方案中包含的切片组合 / Slice combination to include in the plan
+ * @param widthIndex 用于解析需求单位的宽度索引，以计算贡献量 / Width index used to resolve demand units for contribution calculation
+ * @param planId 生成切割方案的唯一标识 / Unique identifier for the generated cutting plan
+ * @return 构建完成的切割方案，包含已计算的需求贡献量 / The constructed CuttingPlan with computed demand contributions
 */
     private fun buildPlan(
         material: Material<V>,

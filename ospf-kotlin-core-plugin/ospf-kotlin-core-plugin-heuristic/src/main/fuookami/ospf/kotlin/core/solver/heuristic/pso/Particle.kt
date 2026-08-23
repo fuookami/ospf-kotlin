@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.core.solver.heuristic.pso
 
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.ifNull
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.heuristic.*
@@ -23,7 +24,7 @@ data class Particle<ObjValue, V>(
     val currentBest: Particle<ObjValue, V>? = null,
     // converter must be provided explicitly; use Particle.Flt64 companion for V=Flt64 convenience / 转换器必须显式提供；V=Flt64 时可使用 Particle.Flt64 伴生对象
     private val converter: IntoValue<V>
-) : Individual<ObjValue, V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+) : Individual<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun invoke(
             fitness: Flt64,

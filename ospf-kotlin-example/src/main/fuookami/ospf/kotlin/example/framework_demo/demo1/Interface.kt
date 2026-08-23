@@ -72,7 +72,7 @@ const val data = """28 45 12
 */
 class SPP {
 
-    /** @return the execution result / 执行结果 */
+    /** @return 执行结果 / the execution result */
     suspend operator fun invoke(): Try {
         return when (val input = read(data)) {
             is Failed -> {
@@ -95,8 +95,8 @@ class SPP {
      * Parses raw string data into the input model.
      * 解析原始字符串数据为输入模型。
      *
-     * @param data raw test data string / 原始测试数据字符串
-     * @return the parsed input model / 解析后的输入模型
+     * @param data 原始测试数据字符串 / raw test data string
+     * @return 解析后的输入模型 / the parsed input model
     */
     private fun read(data: String): Ret<Input> {
         val lines = data.split("\n")

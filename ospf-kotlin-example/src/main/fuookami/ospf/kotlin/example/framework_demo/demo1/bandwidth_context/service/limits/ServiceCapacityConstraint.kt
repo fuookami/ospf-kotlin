@@ -18,10 +18,10 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
  * Constrains the out-flow at each normal node to the service capacity when the service is assigned.
  * 约束每个普通节点的流出到服务容量（当服务被分配时）。
  *
- * @property nodes the list of network nodes / 网络节点列表
- * @property services the list of services / 服务列表
- * @property assignment the service-to-node assignment model / 服务到节点的分配模型
- * @property serviceBandwidth the service bandwidth model / 服务带宽模型
+ * @property nodes 网络节点列表 / the list of network nodes
+ * @property services 服务列表 / the list of services
+ * @property assignment 服务到节点的分配模型 / the service-to-node assignment model
+ * @property serviceBandwidth 服务带宽模型 / the service bandwidth model
 */
 class ServiceCapacityConstraint(
     private val nodes: List<Node>,
@@ -33,7 +33,7 @@ class ServiceCapacityConstraint(
     override fun invoke(model: LinearMetaModel<Flt64>): Try {
         val x = assignment.x
         val outFlow = serviceBandwidth.outFlow
-        for (node in nodes.filter(normal)) {
+        for (node in nodes.filter { normal(it) }) {
             for (service in services) {
                 model.addConstraint(
                     service.capacity.toFlt64() * (UInt64.one - x[node, service]) + LinearPolynomial(outFlow[node, service]) leq service.capacity.toFlt64(),

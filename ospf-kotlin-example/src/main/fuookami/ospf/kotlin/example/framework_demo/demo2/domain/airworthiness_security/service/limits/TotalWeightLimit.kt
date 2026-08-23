@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
 import java.util.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -18,7 +19,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 /**
  * 约束每个飞行阶段的总飞机重量不超过最大允许值。Constrains the total aircraft weight for each flight phase to not exceed the maximum allowed.
  *
- * @property totalWeight The total weight estimation and limits per flight phase / 各飞行阶段的总重量估算与限制
+ * @property totalWeight 各飞行阶段的总重量估算与限制 / The total weight estimation and limits per flight phase
 */
 class TotalWeightLimit(
     private val totalWeight: TotalWeight,
@@ -26,17 +27,24 @@ class TotalWeightLimit(
 ) : Pipeline<AbstractLinearMetaModel<Flt64>> {
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (phase in FlightPhase.entries) {
-            when (val result = model.addConstraint(
-            relation = LinearPolynomial(totalWeight.estimateTotalWeight[phase]!!.value) leq totalWeight.maxTotalWeight[phase]!!.value,
-            name = "${name}_${phase.name.lowercase(Locale.getDefault())}"
-            )) {
-                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            val estimateTotalWeight = totalWeight.estimateTotalWeight[phase]
+                ?: return Failed(
+                    ErrorCode.ApplicationFailed,
+                    "总重表达式缺失：${phase.name} / Total weight expression is missing: ${phase.name}"
+                )
+            val maximumTotalWeight = totalWeight.maxTotalWeight[phase] ?: continue
 
-                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            when (val result = model.addConstraint(
+                relation = LinearPolynomial(estimateTotalWeight.value) leq maximumTotalWeight.value,
+                name = "${name}_${phase.name.lowercase(Locale.getDefault())}"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
             }

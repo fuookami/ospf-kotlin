@@ -10,8 +10,7 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 
 /**
- * 求解过程状态，包含求解器信息、目标值、间隙等实时数据。
- * Solving process status, containing solver information, objective value, gap, and other real-time data.
+ * 求解过程状态，包含求解器信息、目标值、间隙等实时数据。 / Solving process status, containing solver information, objective value, gap, and other real-time data.
  *
  * @property solver 求解器名称 / Solver name
  * @property solverIndex 求解器索引 / Solver index
@@ -53,5 +52,7 @@ data class SolvingStatus(
     val solveTime: Duration = time
 )
 
-/** 求解状态回调函数类型 / Solving status callback function type */
-typealias SolvingStatusCallBack = (SolvingStatus) -> Try
+/** 求解状态回调 / Solving status callback */
+fun interface SolvingStatusCallBack {
+    operator fun invoke(status: SolvingStatus): Try
+}

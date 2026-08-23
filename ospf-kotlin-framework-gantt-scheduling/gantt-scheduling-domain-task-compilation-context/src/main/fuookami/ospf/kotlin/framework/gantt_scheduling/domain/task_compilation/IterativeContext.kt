@@ -335,18 +335,18 @@ interface ExtractIterativeTaskCompilationContext<
 /**
  * Register extraction context into the meta model.
  * 将提取上下文注册到元模型中。
- * @param model Meta model to register extraction context into / 要注册提取上下文的元模型
- * @return Operation result / 操作结果
+ * @param model 要注册提取上下文的元模型 / Meta model to register extraction context into
+ * @return 操作结果 / Operation result
 */
     fun register(model: MetaModel<Flt64>): Try
 
 /**
  * Add new task columns for the given iteration.
  * 为给定迭代添加新的任务列。
- * @param iteration Current iteration index / 当前迭代索引
- * @param newTasks New tasks to add as columns / 要添加为新列的任务列表
- * @param model Linear meta model to add columns into / 要添加列的线性元模型
- * @return Operation result / 操作结果
+ * @param iteration 当前迭代索引 / Current iteration index
+ * @param newTasks 要添加为新列的任务列表 / New tasks to add as columns
+ * @param model 要添加列的线性元模型 / Linear meta model to add columns into
+ * @return 操作结果 / Operation result
 */
     fun addColumns(
         iteration: UInt64,
@@ -357,10 +357,10 @@ interface ExtractIterativeTaskCompilationContext<
 /**
  * Extract shadow prices from the dual solution and refresh pipelines.
  * 从对偶解中提取影子价格并刷新管道。
- * @param shadowPriceMap Shadow price map to populate / 要填充的影子价格映射
- * @param model Linear meta model containing dual solution / 包含对偶解的线性元模型
- * @param shadowPrices Dual solution from the solver / 来自求解器的对偶解
- * @return Operation result / 操作结果
+ * @param shadowPriceMap 要填充的影子价格映射 / Shadow price map to populate
+ * @param model 包含对偶解的线性元模型 / Linear meta model containing dual solution
+ * @param shadowPrices 来自求解器的对偶解 / Dual solution from the solver
+ * @return 操作结果 / Operation result
 */
     fun extractShadowPrice(
         shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
@@ -371,9 +371,9 @@ interface ExtractIterativeTaskCompilationContext<
 /**
  * Log the current iteration's solved result.
  * 记录当前迭代的求解结果。
- * @param iteration Current iteration index / 当前迭代索引
- * @param model Linear meta model containing solved tokens / 包含已求解令牌的线性元模型
- * @return Operation result / 操作结果
+ * @param iteration 当前迭代索引 / Current iteration index
+ * @param model 包含已求解令牌的线性元模型 / Linear meta model containing solved tokens
+ * @return 操作结果 / Operation result
 */
     fun logResult(iteration: UInt64, model: AbstractLinearMetaModel<Flt64>): Try {
         return ok

@@ -34,6 +34,16 @@ ospf-kotlin-core is the **core module** of the OSPF (Open Solver Platform Framew
 | `solver` | Solver abstraction — linear/quadratic solvers, heuristics, IIS diagnostics, output | [README](src/main/fuookami/ospf/kotlin/core/solver/README.md) |
 | `error` | Core error code definitions | — |
 
+## Constraint Programming
+
+The `model.constraint_programming` package provides integer-domain CP models, Boolean literals, intervals, global constraints, immutable snapshots, and a portable snapshot codec. The `solver.constraint_programming` package provides the solver/session SPI, a fake contract solver, SCIP integration, and an exact MIP-backed path. The MIP path supports the declared bounded subset, including optional intervals and variable duration; unsupported formulations return structured `Ret` errors.
+
+For Logic-Based Benders, use `LogicBasedBendersEngine` from `ospf-kotlin-framework`. The implementation keeps proof status separate from feasibility, requires globally valid cuts in `Exact` mode, and exposes structured conflict/IIS evidence through the solver report. See [the implementation plan](../plans/release.md) for capability boundaries and verification commands.
+
+CP model elements carry an explicit identity scope. Use `scope = "stable"` with a caller-owned `origin` when an ID must survive model rebuilds; the default `model-local` scope is only valid within the current model instance. Snapshot, remote result, diagnostic, and checkpoint codecs preserve these IDs and reject duplicate or incomplete identity metadata. The closed repository-wide stable-ID contract (`OSPF-SOL-013`) and its SCIP/Gurobi evidence are recorded in [the release plan](../plans/release.md); adapters for plugins that have not yet passed this contract are governed by [the solver CP plan](../plans/solver_cp.md).
+
+`ConstraintProgrammingCheckpointCodec` writes portable checkpoint v2 envelopes containing the snapshot fingerprint, solver/configuration provenance, validated incumbent, interval values, and audit fields. Restoring a checkpoint rebuilds from the snapshot and revalidates the incumbent; no SCIP/JNI search tree or native handle is persisted, so the capability is `RebuildFromSnapshot`, not `Native`.
+
 ## Four-Layer Model Architecture
 
 The core module implements a **four-layer model architecture**:

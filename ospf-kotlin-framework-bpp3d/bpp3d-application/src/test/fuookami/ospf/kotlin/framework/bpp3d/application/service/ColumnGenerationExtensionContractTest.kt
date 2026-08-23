@@ -1,21 +1,39 @@
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.core.solver.toSolveReport
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.test.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlinx.coroutines.runBlocking
+import fuookami.ospf.kotlin.core.solver.report.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.solver.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.*
 
 class ColumnGenerationExtensionContractTest {
@@ -140,7 +158,7 @@ private class EmptyColumnGenerationSolver : ColumnGenerationSolver {
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput<Flt64>> {
+    ): Ret<SolveReport<Flt64>> {
         return Ok(emptyOutput(metaModel))
     }
 
@@ -167,12 +185,12 @@ private class EmptyColumnGenerationSolver : ColumnGenerationSolver {
         }
     }
 
-    private fun emptyOutput(metaModel: LinearMetaModel<Flt64>): FeasibleSolverOutput<Flt64> {
-        return FeasibleSolverOutput(
-            obj = Flt64.zero,
-            solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
-            time = Duration.ZERO,
-            possibleBestObj = Flt64.zero,
+    private fun emptyOutput(metaModel: LinearMetaModel<Flt64>): SolveReport<Flt64> {
+        return SolverStatus.Feasible.toSolveReport(
+            objective = Flt64.zero,
+            values = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
+            solveTime = Duration.ZERO,
+            bestBound = Flt64.zero,
             gap = Flt64.zero
         )
     }

@@ -129,8 +129,8 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     data class Config<P : ProjectivePlane>(
         val withDisplacementX: Boolean = true,
         val withDisplacementY: Boolean = true,
-        val comparator: ThreeWayComparator<Projection<*, FltX, P>> = ::compareWithShapeAndWeight,
-        val positionComparator: ThreeWayComparator<QuantityPoint2<FltX>> = { lhs, rhs -> compareWithPosition(lhs, rhs) }
+        val comparator: ThreeWayComparator<Projection<*, FltX, P>> = ThreeWayComparator(::compareWithShapeAndWeight),
+        val positionComparator: ThreeWayComparator<QuantityPoint2<FltX>> = ThreeWayComparator { lhs, rhs -> compareWithPosition(lhs, rhs) }
     ) {
         val withDisplacement = withDisplacementX || withDisplacementY
 
@@ -146,8 +146,8 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                 return Config(
                     withDisplacementX = withDisplacementX ?: withDisplacement ?: true,
                     withDisplacementY = withDisplacementY ?: withDisplacement ?: true,
-                    comparator = comparator ?: ::compareWithShapeAndWeight,
-                    positionComparator = positionComparator ?: { lhs, rhs -> compareWithPosition(lhs, rhs, withManhattanDistance ?: true) }
+                    comparator = comparator ?: ThreeWayComparator(::compareWithShapeAndWeight),
+                    positionComparator = positionComparator ?: ThreeWayComparator { lhs, rhs -> compareWithPosition(lhs, rhs, withManhattanDistance ?: true) }
                 )
             }
         }
@@ -181,8 +181,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     }
 
     /**
-     * 执行自底向上左对齐算法的核心回溯逻辑。
-     * Core backtracking logic of the bottom-up left-justified algorithm.
+     * 执行自底向上左对齐算法的核心回溯逻辑。 / Core backtracking logic of the bottom-up left-justified algorithm.
      *
      * @param promise 用于发送找到的放置方案的通道
      * @param placements 当前放置方案的可变列表
@@ -280,8 +279,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     }
 
     /**
-     * 根据已放置的物料计算所有可行放置点（目标放置与固定放置相同）。
-     * Compute all feasible placement points where target and fixed placements are the same.
+     * 根据已放置的物料计算所有可行放置点（目标放置与固定放置相同）。 / Compute all feasible placement points where target and fixed placements are the same.
      *
      * @param placements 已放置的物料列表
      * @param reverse 是否按逆序（从远到近）排列结果
@@ -299,8 +297,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     }
 
     /**
-     * 根据已固定的放置计算所有可行放置点。
-     * Compute all feasible placement points based on fixed placements.
+     * 根据已固定的放置计算所有可行放置点。 / Compute all feasible placement points based on fixed placements.
      *
      * @param targetPlacements 用于生成候选点的放置列表
      * @param fixedPlacements 用于判断重叠和包含关系的已固定放置列表
@@ -362,8 +359,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     }
 
     /**
-     * 从候选点出发，沿 X 和 Y 轴方向递归搜索所有实际可行点。
-     * Recursively search all actual feasible points from a candidate point along X and Y axes.
+     * 从候选点出发，沿 X 和 Y 轴方向递归搜索所有实际可行点。 / Recursively search all actual feasible points from a candidate point along X and Y axes.
      *
      * @param point 起始候选点
      * @param placement 当前放置
@@ -407,8 +403,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     }
 
     /**
-     * 沿 X 轴方向寻找实际可行点（向原点方向滑动）。
-     * Find the actual feasible point along the X axis (sliding toward the origin).
+     * 沿 X 轴方向寻找实际可行点（向原点方向滑动）。 / Find the actual feasible point along the X axis (sliding toward the origin).
      *
      * @param point 当前候选点
      * @param placement 当前放置
@@ -446,8 +441,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     }
 
     /**
-     * 沿 Y 轴方向寻找实际可行点（向原点方向滑动）。
-     * Find the actual feasible point along the Y axis (sliding toward the origin).
+     * 沿 Y 轴方向寻找实际可行点（向原点方向滑动）。 / Find the actual feasible point along the Y axis (sliding toward the origin).
      *
      * @param point 当前候选点
      * @param placement 当前放置
@@ -485,8 +479,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     }
 
     /**
-     * 检查放置是否可行（不越界、不重叠、满足堆叠约束）。
-     * Check whether a placement is feasible (within bounds, no overlap, satisfying stacking constraints).
+     * 检查放置是否可行（不越界、不重叠、满足堆叠约束）。 / Check whether a placement is feasible (within bounds, no overlap, satisfying stacking constraints).
      *
      * @param placement 待检查的放置
      * @param fixedPlacements 已固定的放置列表

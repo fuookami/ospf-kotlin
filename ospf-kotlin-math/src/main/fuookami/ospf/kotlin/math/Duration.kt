@@ -5,16 +5,13 @@ import kotlin.time.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 
 /**
- * 时间时长
- * Time Duration
+ * 时间时长 / Time Duration
  *
- * 为各种数值类型提供时长转换扩展函数和运算符，支持从纳秒到天的各种时间单位。
- * Provides duration conversion extension functions and operators for various numeric types, supporting time units from nanoseconds to days.
+ * 为各种数值类型提供时长转换扩展函数和运算符，支持从纳秒到天的各种时间单位。 / Provides duration conversion extension functions and operators for various numeric types, supporting time units from nanoseconds to days.
 */
 
 /**
- * Int32 转时长
- * Convert Int32 to duration
+ * Int32 转时长 / Convert Int32 to duration
  *
  * @param unit 时间单位 / Time unit
  * @return 对应时长 / Corresponding duration
@@ -35,8 +32,7 @@ fun UInt32.toDuration(unit: DurationUnit): Duration {
 }
 
 /**
- * Int64 转时长
- * Convert Int64 to duration
+ * Int64 转时长 / Convert Int64 to duration
  *
  * @param unit 时间单位 / Time unit
  * @return 对应时长 / Corresponding duration
@@ -79,8 +75,7 @@ fun UIntX.toDuration(unit: DurationUnit): Duration {
 }
 
 /**
- * Flt32 转时长
- * Convert Flt32 to duration
+ * Flt32 转时长 / Convert Flt32 to duration
  *
  * @param unit 时间单位 / Time unit
  * @return 对应时长 / Corresponding duration
@@ -90,8 +85,7 @@ fun Flt32.toDuration(unit: DurationUnit): Duration {
 }
 
 /**
- * Flt64 转时长
- * Convert Flt64 to duration
+ * Flt64 转时长 / Convert Flt64 to duration
  *
  * @param unit 时间单位 / Time unit
  * @return 对应时长 / Corresponding duration
@@ -298,8 +292,7 @@ val Flt64.days get() = toDuration(DurationUnit.DAYS)
 val FltX.days get() = toDuration(DurationUnit.DAYS)
 
 /**
- * 从 Int32 创建纳秒时长
- * Create nanoseconds duration from Int32
+ * 从 Int32 创建纳秒时长 / Create nanoseconds duration from Int32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -307,8 +300,7 @@ val FltX.days get() = toDuration(DurationUnit.DAYS)
 fun Duration.Companion.nanoseconds(value: Int32) = value.toDuration(DurationUnit.NANOSECONDS)
 
 /**
- * 从 UInt32 创建纳秒时长
- * Create nanoseconds duration from UInt32
+ * 从 UInt32 创建纳秒时长 / Create nanoseconds duration from UInt32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -316,8 +308,7 @@ fun Duration.Companion.nanoseconds(value: Int32) = value.toDuration(DurationUnit
 fun Duration.Companion.nanoseconds(value: UInt32) = value.toDuration(DurationUnit.NANOSECONDS)
 
 /**
- * 从 Int64 创建纳秒时长
- * Create nanoseconds duration from Int64
+ * 从 Int64 创建纳秒时长 / Create nanoseconds duration from Int64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -325,8 +316,7 @@ fun Duration.Companion.nanoseconds(value: UInt32) = value.toDuration(DurationUni
 fun Duration.Companion.nanoseconds(value: Int64) = value.toDuration(DurationUnit.NANOSECONDS)
 
 /**
- * 从 UInt64 创建纳秒时长
- * Create nanoseconds duration from UInt64
+ * 从 UInt64 创建纳秒时长 / Create nanoseconds duration from UInt64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -334,8 +324,7 @@ fun Duration.Companion.nanoseconds(value: Int64) = value.toDuration(DurationUnit
 fun Duration.Companion.nanoseconds(value: UInt64) = value.toDuration(DurationUnit.NANOSECONDS)
 
 /**
- * 从 IntX 创建纳秒时长
- * Create nanoseconds duration from IntX
+ * 从 IntX 创建纳秒时长 / Create nanoseconds duration from IntX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -343,8 +332,7 @@ fun Duration.Companion.nanoseconds(value: UInt64) = value.toDuration(DurationUni
 fun Duration.Companion.nanoseconds(value: IntX) = value.toDuration(DurationUnit.NANOSECONDS)
 
 /**
- * 从 UIntX 创建纳秒时长
- * Create nanoseconds duration from UIntX
+ * 从 UIntX 创建纳秒时长 / Create nanoseconds duration from UIntX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -352,8 +340,7 @@ fun Duration.Companion.nanoseconds(value: IntX) = value.toDuration(DurationUnit.
 fun Duration.Companion.nanoseconds(value: UIntX) = value.toDuration(DurationUnit.NANOSECONDS)
 
 /**
- * 从 Flt32 创建纳秒时长
- * Create nanoseconds duration from Flt32
+ * 从 Flt32 创建纳秒时长 / Create nanoseconds duration from Flt32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -361,8 +348,7 @@ fun Duration.Companion.nanoseconds(value: UIntX) = value.toDuration(DurationUnit
 fun Duration.Companion.nanoseconds(value: Flt32) = value.toDuration(DurationUnit.NANOSECONDS)
 
 /**
- * 从 Flt64 创建纳秒时长
- * Create nanoseconds duration from Flt64
+ * 从 Flt64 创建纳秒时长 / Create nanoseconds duration from Flt64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -370,8 +356,7 @@ fun Duration.Companion.nanoseconds(value: Flt32) = value.toDuration(DurationUnit
 fun Duration.Companion.nanoseconds(value: Flt64) = value.toDuration(DurationUnit.NANOSECONDS)
 
 /**
- * 从 FltX 创建纳秒时长
- * Create nanoseconds duration from FltX
+ * 从 FltX 创建纳秒时长 / Create nanoseconds duration from FltX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -379,8 +364,7 @@ fun Duration.Companion.nanoseconds(value: Flt64) = value.toDuration(DurationUnit
 fun Duration.Companion.nanoseconds(value: FltX) = value.toDuration(DurationUnit.NANOSECONDS)
 
 /**
- * 从 Int32 创建微秒时长
- * Create microseconds duration from Int32
+ * 从 Int32 创建微秒时长 / Create microseconds duration from Int32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -388,8 +372,7 @@ fun Duration.Companion.nanoseconds(value: FltX) = value.toDuration(DurationUnit.
 fun Duration.Companion.microseconds(value: Int32) = value.toDuration(DurationUnit.MICROSECONDS)
 
 /**
- * 从 UInt32 创建微秒时长
- * Create microseconds duration from UInt32
+ * 从 UInt32 创建微秒时长 / Create microseconds duration from UInt32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -397,8 +380,7 @@ fun Duration.Companion.microseconds(value: Int32) = value.toDuration(DurationUni
 fun Duration.Companion.microseconds(value: UInt32) = value.toDuration(DurationUnit.MICROSECONDS)
 
 /**
- * 从 Int64 创建微秒时长
- * Create microseconds duration from Int64
+ * 从 Int64 创建微秒时长 / Create microseconds duration from Int64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -406,8 +388,7 @@ fun Duration.Companion.microseconds(value: UInt32) = value.toDuration(DurationUn
 fun Duration.Companion.microseconds(value: Int64) = value.toDuration(DurationUnit.MICROSECONDS)
 
 /**
- * 从 UInt64 创建微秒时长
- * Create microseconds duration from UInt64
+ * 从 UInt64 创建微秒时长 / Create microseconds duration from UInt64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -415,8 +396,7 @@ fun Duration.Companion.microseconds(value: Int64) = value.toDuration(DurationUni
 fun Duration.Companion.microseconds(value: UInt64) = value.toDuration(DurationUnit.MICROSECONDS)
 
 /**
- * 从 IntX 创建微秒时长
- * Create microseconds duration from IntX
+ * 从 IntX 创建微秒时长 / Create microseconds duration from IntX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -424,8 +404,7 @@ fun Duration.Companion.microseconds(value: UInt64) = value.toDuration(DurationUn
 fun Duration.Companion.microseconds(value: IntX) = value.toDuration(DurationUnit.MICROSECONDS)
 
 /**
- * 从 UIntX 创建微秒时长
- * Create microseconds duration from UIntX
+ * 从 UIntX 创建微秒时长 / Create microseconds duration from UIntX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -433,8 +412,7 @@ fun Duration.Companion.microseconds(value: IntX) = value.toDuration(DurationUnit
 fun Duration.Companion.microseconds(value: UIntX) = value.toDuration(DurationUnit.MICROSECONDS)
 
 /**
- * 从 Flt32 创建微秒时长
- * Create microseconds duration from Flt32
+ * 从 Flt32 创建微秒时长 / Create microseconds duration from Flt32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -442,8 +420,7 @@ fun Duration.Companion.microseconds(value: UIntX) = value.toDuration(DurationUni
 fun Duration.Companion.microseconds(value: Flt32) = value.toDuration(DurationUnit.MICROSECONDS)
 
 /**
- * 从 Flt64 创建微秒时长
- * Create microseconds duration from Flt64
+ * 从 Flt64 创建微秒时长 / Create microseconds duration from Flt64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -451,8 +428,7 @@ fun Duration.Companion.microseconds(value: Flt32) = value.toDuration(DurationUni
 fun Duration.Companion.microseconds(value: Flt64) = value.toDuration(DurationUnit.MICROSECONDS)
 
 /**
- * 从 FltX 创建微秒时长
- * Create microseconds duration from FltX
+ * 从 FltX 创建微秒时长 / Create microseconds duration from FltX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -460,8 +436,7 @@ fun Duration.Companion.microseconds(value: Flt64) = value.toDuration(DurationUni
 fun Duration.Companion.microseconds(value: FltX) = value.toDuration(DurationUnit.MICROSECONDS)
 
 /**
- * 从 Int32 创建毫秒时长
- * Create milliseconds duration from Int32
+ * 从 Int32 创建毫秒时长 / Create milliseconds duration from Int32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -469,8 +444,7 @@ fun Duration.Companion.microseconds(value: FltX) = value.toDuration(DurationUnit
 fun Duration.Companion.milliseconds(value: Int32) = value.toDuration(DurationUnit.MILLISECONDS)
 
 /**
- * 从 UInt32 创建毫秒时长
- * Create milliseconds duration from UInt32
+ * 从 UInt32 创建毫秒时长 / Create milliseconds duration from UInt32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -478,8 +452,7 @@ fun Duration.Companion.milliseconds(value: Int32) = value.toDuration(DurationUni
 fun Duration.Companion.milliseconds(value: UInt32) = value.toDuration(DurationUnit.MILLISECONDS)
 
 /**
- * 从 Int64 创建毫秒时长
- * Create milliseconds duration from Int64
+ * 从 Int64 创建毫秒时长 / Create milliseconds duration from Int64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -487,8 +460,7 @@ fun Duration.Companion.milliseconds(value: UInt32) = value.toDuration(DurationUn
 fun Duration.Companion.milliseconds(value: Int64) = value.toDuration(DurationUnit.MILLISECONDS)
 
 /**
- * 从 UInt64 创建毫秒时长
- * Create milliseconds duration from UInt64
+ * 从 UInt64 创建毫秒时长 / Create milliseconds duration from UInt64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -496,8 +468,7 @@ fun Duration.Companion.milliseconds(value: Int64) = value.toDuration(DurationUni
 fun Duration.Companion.milliseconds(value: UInt64) = value.toDuration(DurationUnit.MILLISECONDS)
 
 /**
- * 从 IntX 创建毫秒时长
- * Create milliseconds duration from IntX
+ * 从 IntX 创建毫秒时长 / Create milliseconds duration from IntX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -505,8 +476,7 @@ fun Duration.Companion.milliseconds(value: UInt64) = value.toDuration(DurationUn
 fun Duration.Companion.milliseconds(value: IntX) = value.toDuration(DurationUnit.MILLISECONDS)
 
 /**
- * 从 UIntX 创建毫秒时长
- * Create milliseconds duration from UIntX
+ * 从 UIntX 创建毫秒时长 / Create milliseconds duration from UIntX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -514,8 +484,7 @@ fun Duration.Companion.milliseconds(value: IntX) = value.toDuration(DurationUnit
 fun Duration.Companion.milliseconds(value: UIntX) = value.toDuration(DurationUnit.MILLISECONDS)
 
 /**
- * 从 Flt32 创建毫秒时长
- * Create milliseconds duration from Flt32
+ * 从 Flt32 创建毫秒时长 / Create milliseconds duration from Flt32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -523,8 +492,7 @@ fun Duration.Companion.milliseconds(value: UIntX) = value.toDuration(DurationUni
 fun Duration.Companion.milliseconds(value: Flt32) = value.toDuration(DurationUnit.MILLISECONDS)
 
 /**
- * 从 Flt64 创建毫秒时长
- * Create milliseconds duration from Flt64
+ * 从 Flt64 创建毫秒时长 / Create milliseconds duration from Flt64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -532,8 +500,7 @@ fun Duration.Companion.milliseconds(value: Flt32) = value.toDuration(DurationUni
 fun Duration.Companion.milliseconds(value: Flt64) = value.toDuration(DurationUnit.MILLISECONDS)
 
 /**
- * 从 FltX 创建毫秒时长
- * Create milliseconds duration from FltX
+ * 从 FltX 创建毫秒时长 / Create milliseconds duration from FltX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -541,8 +508,7 @@ fun Duration.Companion.milliseconds(value: Flt64) = value.toDuration(DurationUni
 fun Duration.Companion.milliseconds(value: FltX) = value.toDuration(DurationUnit.MILLISECONDS)
 
 /**
- * 从 Int32 创建秒时长
- * Create seconds duration from Int32
+ * 从 Int32 创建秒时长 / Create seconds duration from Int32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -550,8 +516,7 @@ fun Duration.Companion.milliseconds(value: FltX) = value.toDuration(DurationUnit
 fun Duration.Companion.seconds(value: Int32) = value.toDuration(DurationUnit.SECONDS)
 
 /**
- * 从 UInt32 创建秒时长
- * Create seconds duration from UInt32
+ * 从 UInt32 创建秒时长 / Create seconds duration from UInt32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -559,8 +524,7 @@ fun Duration.Companion.seconds(value: Int32) = value.toDuration(DurationUnit.SEC
 fun Duration.Companion.seconds(value: UInt32) = value.toDuration(DurationUnit.SECONDS)
 
 /**
- * 从 Int64 创建秒时长
- * Create seconds duration from Int64
+ * 从 Int64 创建秒时长 / Create seconds duration from Int64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -568,8 +532,7 @@ fun Duration.Companion.seconds(value: UInt32) = value.toDuration(DurationUnit.SE
 fun Duration.Companion.seconds(value: Int64) = value.toDuration(DurationUnit.SECONDS)
 
 /**
- * 从 UInt64 创建秒时长
- * Create seconds duration from UInt64
+ * 从 UInt64 创建秒时长 / Create seconds duration from UInt64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -577,8 +540,7 @@ fun Duration.Companion.seconds(value: Int64) = value.toDuration(DurationUnit.SEC
 fun Duration.Companion.seconds(value: UInt64) = value.toDuration(DurationUnit.SECONDS)
 
 /**
- * 从 IntX 创建秒时长
- * Create seconds duration from IntX
+ * 从 IntX 创建秒时长 / Create seconds duration from IntX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -586,8 +548,7 @@ fun Duration.Companion.seconds(value: UInt64) = value.toDuration(DurationUnit.SE
 fun Duration.Companion.seconds(value: IntX) = value.toDuration(DurationUnit.SECONDS)
 
 /**
- * 从 UIntX 创建秒时长
- * Create seconds duration from UIntX
+ * 从 UIntX 创建秒时长 / Create seconds duration from UIntX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -595,8 +556,7 @@ fun Duration.Companion.seconds(value: IntX) = value.toDuration(DurationUnit.SECO
 fun Duration.Companion.seconds(value: UIntX) = value.toDuration(DurationUnit.SECONDS)
 
 /**
- * 从 Flt32 创建秒时长
- * Create seconds duration from Flt32
+ * 从 Flt32 创建秒时长 / Create seconds duration from Flt32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -604,8 +564,7 @@ fun Duration.Companion.seconds(value: UIntX) = value.toDuration(DurationUnit.SEC
 fun Duration.Companion.seconds(value: Flt32) = value.toDuration(DurationUnit.SECONDS)
 
 /**
- * 从 Flt64 创建秒时长
- * Create seconds duration from Flt64
+ * 从 Flt64 创建秒时长 / Create seconds duration from Flt64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -613,8 +572,7 @@ fun Duration.Companion.seconds(value: Flt32) = value.toDuration(DurationUnit.SEC
 fun Duration.Companion.seconds(value: Flt64) = value.toDuration(DurationUnit.SECONDS)
 
 /**
- * 从 FltX 创建秒时长
- * Create seconds duration from FltX
+ * 从 FltX 创建秒时长 / Create seconds duration from FltX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -622,8 +580,7 @@ fun Duration.Companion.seconds(value: Flt64) = value.toDuration(DurationUnit.SEC
 fun Duration.Companion.seconds(value: FltX) = value.toDuration(DurationUnit.SECONDS)
 
 /**
- * 从 Int32 创建分钟时长
- * Create minutes duration from Int32
+ * 从 Int32 创建分钟时长 / Create minutes duration from Int32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -631,8 +588,7 @@ fun Duration.Companion.seconds(value: FltX) = value.toDuration(DurationUnit.SECO
 fun Duration.Companion.minutes(value: Int32) = value.toDuration(DurationUnit.MINUTES)
 
 /**
- * 从 UInt32 创建分钟时长
- * Create minutes duration from UInt32
+ * 从 UInt32 创建分钟时长 / Create minutes duration from UInt32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -640,8 +596,7 @@ fun Duration.Companion.minutes(value: Int32) = value.toDuration(DurationUnit.MIN
 fun Duration.Companion.minutes(value: UInt32) = value.toDuration(DurationUnit.MINUTES)
 
 /**
- * 从 Int64 创建分钟时长
- * Create minutes duration from Int64
+ * 从 Int64 创建分钟时长 / Create minutes duration from Int64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -649,8 +604,7 @@ fun Duration.Companion.minutes(value: UInt32) = value.toDuration(DurationUnit.MI
 fun Duration.Companion.minutes(value: Int64) = value.toDuration(DurationUnit.MINUTES)
 
 /**
- * 从 UInt64 创建分钟时长
- * Create minutes duration from UInt64
+ * 从 UInt64 创建分钟时长 / Create minutes duration from UInt64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -658,8 +612,7 @@ fun Duration.Companion.minutes(value: Int64) = value.toDuration(DurationUnit.MIN
 fun Duration.Companion.minutes(value: UInt64) = value.toDuration(DurationUnit.MINUTES)
 
 /**
- * 从 IntX 创建分钟时长
- * Create minutes duration from IntX
+ * 从 IntX 创建分钟时长 / Create minutes duration from IntX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -667,8 +620,7 @@ fun Duration.Companion.minutes(value: UInt64) = value.toDuration(DurationUnit.MI
 fun Duration.Companion.minutes(value: IntX) = value.toDuration(DurationUnit.MINUTES)
 
 /**
- * 从 UIntX 创建分钟时长
- * Create minutes duration from UIntX
+ * 从 UIntX 创建分钟时长 / Create minutes duration from UIntX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -676,8 +628,7 @@ fun Duration.Companion.minutes(value: IntX) = value.toDuration(DurationUnit.MINU
 fun Duration.Companion.minutes(value: UIntX) = value.toDuration(DurationUnit.MINUTES)
 
 /**
- * 从 Flt32 创建分钟时长
- * Create minutes duration from Flt32
+ * 从 Flt32 创建分钟时长 / Create minutes duration from Flt32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -685,8 +636,7 @@ fun Duration.Companion.minutes(value: UIntX) = value.toDuration(DurationUnit.MIN
 fun Duration.Companion.minutes(value: Flt32) = value.toDuration(DurationUnit.MINUTES)
 
 /**
- * 从 Flt64 创建分钟时长
- * Create minutes duration from Flt64
+ * 从 Flt64 创建分钟时长 / Create minutes duration from Flt64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -694,8 +644,7 @@ fun Duration.Companion.minutes(value: Flt32) = value.toDuration(DurationUnit.MIN
 fun Duration.Companion.minutes(value: Flt64) = value.toDuration(DurationUnit.MINUTES)
 
 /**
- * 从 FltX 创建分钟时长
- * Create minutes duration from FltX
+ * 从 FltX 创建分钟时长 / Create minutes duration from FltX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -703,8 +652,7 @@ fun Duration.Companion.minutes(value: Flt64) = value.toDuration(DurationUnit.MIN
 fun Duration.Companion.minutes(value: FltX) = value.toDuration(DurationUnit.MINUTES)
 
 /**
- * 从 Int32 创建小时时长
- * Create hours duration from Int32
+ * 从 Int32 创建小时时长 / Create hours duration from Int32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -712,8 +660,7 @@ fun Duration.Companion.minutes(value: FltX) = value.toDuration(DurationUnit.MINU
 fun Duration.Companion.hours(value: Int32) = value.toDuration(DurationUnit.HOURS)
 
 /**
- * 从 UInt32 创建小时时长
- * Create hours duration from UInt32
+ * 从 UInt32 创建小时时长 / Create hours duration from UInt32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -721,8 +668,7 @@ fun Duration.Companion.hours(value: Int32) = value.toDuration(DurationUnit.HOURS
 fun Duration.Companion.hours(value: UInt32) = value.toDuration(DurationUnit.HOURS)
 
 /**
- * 从 Int64 创建小时时长
- * Create hours duration from Int64
+ * 从 Int64 创建小时时长 / Create hours duration from Int64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -730,8 +676,7 @@ fun Duration.Companion.hours(value: UInt32) = value.toDuration(DurationUnit.HOUR
 fun Duration.Companion.hours(value: Int64) = value.toDuration(DurationUnit.HOURS)
 
 /**
- * 从 UInt64 创建小时时长
- * Create hours duration from UInt64
+ * 从 UInt64 创建小时时长 / Create hours duration from UInt64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -739,8 +684,7 @@ fun Duration.Companion.hours(value: Int64) = value.toDuration(DurationUnit.HOURS
 fun Duration.Companion.hours(value: UInt64) = value.toDuration(DurationUnit.HOURS)
 
 /**
- * 从 IntX 创建小时时长
- * Create hours duration from IntX
+ * 从 IntX 创建小时时长 / Create hours duration from IntX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -748,8 +692,7 @@ fun Duration.Companion.hours(value: UInt64) = value.toDuration(DurationUnit.HOUR
 fun Duration.Companion.hours(value: IntX) = value.toDuration(DurationUnit.HOURS)
 
 /**
- * 从 UIntX 创建小时时长
- * Create hours duration from UIntX
+ * 从 UIntX 创建小时时长 / Create hours duration from UIntX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -757,8 +700,7 @@ fun Duration.Companion.hours(value: IntX) = value.toDuration(DurationUnit.HOURS)
 fun Duration.Companion.hours(value: UIntX) = value.toDuration(DurationUnit.HOURS)
 
 /**
- * 从 Flt32 创建小时时长
- * Create hours duration from Flt32
+ * 从 Flt32 创建小时时长 / Create hours duration from Flt32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -766,8 +708,7 @@ fun Duration.Companion.hours(value: UIntX) = value.toDuration(DurationUnit.HOURS
 fun Duration.Companion.hours(value: Flt32) = value.toDuration(DurationUnit.HOURS)
 
 /**
- * 从 Flt64 创建小时时长
- * Create hours duration from Flt64
+ * 从 Flt64 创建小时时长 / Create hours duration from Flt64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -775,8 +716,7 @@ fun Duration.Companion.hours(value: Flt32) = value.toDuration(DurationUnit.HOURS
 fun Duration.Companion.hours(value: Flt64) = value.toDuration(DurationUnit.HOURS)
 
 /**
- * 从 FltX 创建小时时长
- * Create hours duration from FltX
+ * 从 FltX 创建小时时长 / Create hours duration from FltX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -784,8 +724,7 @@ fun Duration.Companion.hours(value: Flt64) = value.toDuration(DurationUnit.HOURS
 fun Duration.Companion.hours(value: FltX) = value.toDuration(DurationUnit.HOURS)
 
 /**
- * 从 Int32 创建天时长
- * Create days duration from Int32
+ * 从 Int32 创建天时长 / Create days duration from Int32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -793,8 +732,7 @@ fun Duration.Companion.hours(value: FltX) = value.toDuration(DurationUnit.HOURS)
 fun Duration.Companion.days(value: Int32) = value.toDuration(DurationUnit.DAYS)
 
 /**
- * 从 UInt32 创建天时长
- * Create days duration from UInt32
+ * 从 UInt32 创建天时长 / Create days duration from UInt32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -802,8 +740,7 @@ fun Duration.Companion.days(value: Int32) = value.toDuration(DurationUnit.DAYS)
 fun Duration.Companion.days(value: UInt32) = value.toDuration(DurationUnit.DAYS)
 
 /**
- * 从 Int64 创建天时长
- * Create days duration from Int64
+ * 从 Int64 创建天时长 / Create days duration from Int64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -811,8 +748,7 @@ fun Duration.Companion.days(value: UInt32) = value.toDuration(DurationUnit.DAYS)
 fun Duration.Companion.days(value: Int64) = value.toDuration(DurationUnit.DAYS)
 
 /**
- * 从 UInt64 创建天时长
- * Create days duration from UInt64
+ * 从 UInt64 创建天时长 / Create days duration from UInt64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -820,8 +756,7 @@ fun Duration.Companion.days(value: Int64) = value.toDuration(DurationUnit.DAYS)
 fun Duration.Companion.days(value: UInt64) = value.toDuration(DurationUnit.DAYS)
 
 /**
- * 从 IntX 创建天时长
- * Create days duration from IntX
+ * 从 IntX 创建天时长 / Create days duration from IntX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -829,8 +764,7 @@ fun Duration.Companion.days(value: UInt64) = value.toDuration(DurationUnit.DAYS)
 fun Duration.Companion.days(value: IntX) = value.toDuration(DurationUnit.DAYS)
 
 /**
- * 从 UIntX 创建天时长
- * Create days duration from UIntX
+ * 从 UIntX 创建天时长 / Create days duration from UIntX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -838,8 +772,7 @@ fun Duration.Companion.days(value: IntX) = value.toDuration(DurationUnit.DAYS)
 fun Duration.Companion.days(value: UIntX) = value.toDuration(DurationUnit.DAYS)
 
 /**
- * 从 Flt32 创建天时长
- * Create days duration from Flt32
+ * 从 Flt32 创建天时长 / Create days duration from Flt32
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -847,8 +780,7 @@ fun Duration.Companion.days(value: UIntX) = value.toDuration(DurationUnit.DAYS)
 fun Duration.Companion.days(value: Flt32) = value.toDuration(DurationUnit.DAYS)
 
 /**
- * 从 Flt64 创建天时长
- * Create days duration from Flt64
+ * 从 Flt64 创建天时长 / Create days duration from Flt64
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -856,8 +788,7 @@ fun Duration.Companion.days(value: Flt32) = value.toDuration(DurationUnit.DAYS)
 fun Duration.Companion.days(value: Flt64) = value.toDuration(DurationUnit.DAYS)
 
 /**
- * 从 FltX 创建天时长
- * Create days duration from FltX
+ * 从 FltX 创建天时长 / Create days duration from FltX
  *
  * @param value 数值 / Numeric value
  * @return 对应时长 / Corresponding duration
@@ -865,8 +796,7 @@ fun Duration.Companion.days(value: Flt64) = value.toDuration(DurationUnit.DAYS)
 fun Duration.Companion.days(value: FltX) = value.toDuration(DurationUnit.DAYS)
 
 /**
- * Int32 乘以时长
- * Int32 times duration
+ * Int32 乘以时长 / Int32 times duration
  *
  * @param duration 时长 / Duration
  * @return 结果时长 / Resulting duration
@@ -874,8 +804,7 @@ fun Duration.Companion.days(value: FltX) = value.toDuration(DurationUnit.DAYS)
 operator fun Int32.times(duration: Duration) = this.toFlt64().times(duration)
 
 /**
- * UInt32 乘以时长
- * UInt32 times duration
+ * UInt32 乘以时长 / UInt32 times duration
  *
  * @param duration 时长 / Duration
  * @return 结果时长 / Resulting duration
@@ -883,8 +812,7 @@ operator fun Int32.times(duration: Duration) = this.toFlt64().times(duration)
 operator fun UInt32.times(duration: Duration) = this.toFlt64().times(duration)
 
 /**
- * Int64 乘以时长
- * Int64 times duration
+ * Int64 乘以时长 / Int64 times duration
  *
  * @param duration 时长 / Duration
  * @return 结果时长 / Resulting duration
@@ -892,8 +820,7 @@ operator fun UInt32.times(duration: Duration) = this.toFlt64().times(duration)
 operator fun Int64.times(duration: Duration) = this.toFlt64().times(duration)
 
 /**
- * UInt64 乘以时长
- * UInt64 times duration
+ * UInt64 乘以时长 / UInt64 times duration
  *
  * @param duration 时长 / Duration
  * @return 结果时长 / Resulting duration
@@ -901,8 +828,7 @@ operator fun Int64.times(duration: Duration) = this.toFlt64().times(duration)
 operator fun UInt64.times(duration: Duration) = this.toFlt64().times(duration)
 
 /**
- * IntX 乘以时长
- * IntX times duration
+ * IntX 乘以时长 / IntX times duration
  *
  * @param duration 时长 / Duration
  * @return 结果时长 / Resulting duration
@@ -919,8 +845,7 @@ operator fun IntX.times(duration: Duration) = this.toFlt64().times(duration)
 operator fun UIntX.times(duration: Duration) = this.toFlt64().times(duration)
 
 /**
- * Flt32 乘以时长
- * Flt32 times duration
+ * Flt32 乘以时长 / Flt32 times duration
  *
  * @param duration 时长 / Duration
  * @return 结果时长 / Resulting duration
@@ -928,8 +853,7 @@ operator fun UIntX.times(duration: Duration) = this.toFlt64().times(duration)
 operator fun Flt32.times(duration: Duration) = this.toFlt64().times(duration)
 
 /**
- * Flt64 乘以时长
- * Flt64 times duration
+ * Flt64 乘以时长 / Flt64 times duration
  *
  * @param duration 时长 / Duration
  * @return 结果时长 / Resulting duration
@@ -937,8 +861,7 @@ operator fun Flt32.times(duration: Duration) = this.toFlt64().times(duration)
 operator fun Flt64.times(duration: Duration) = this.toDouble().times(duration)
 
 /**
- * FltX 乘以时长
- * FltX times duration
+ * FltX 乘以时长 / FltX times duration
  *
  * @param duration 时长 / Duration
  * @return 结果时长 / Resulting duration
@@ -946,8 +869,7 @@ operator fun Flt64.times(duration: Duration) = this.toDouble().times(duration)
 operator fun FltX.times(duration: Duration) = this.toFlt64().times(duration)
 
 /**
- * 时长除以 Int32
- * Duration div Int32
+ * 时长除以 Int32 / Duration div Int32
  *
  * @param value 除数 / Divisor
  * @return 结果时长 / Resulting duration
@@ -955,8 +877,7 @@ operator fun FltX.times(duration: Duration) = this.toFlt64().times(duration)
 operator fun Duration.div(value: Int32) = this.div(value.toFlt64())
 
 /**
- * 时长除以 UInt32
- * Duration div UInt32
+ * 时长除以 UInt32 / Duration div UInt32
  *
  * @param value 除数 / Divisor
  * @return 结果时长 / Resulting duration
@@ -964,8 +885,7 @@ operator fun Duration.div(value: Int32) = this.div(value.toFlt64())
 operator fun Duration.div(value: UInt32) = this.div(value.toFlt64())
 
 /**
- * 时长除以 Int64
- * Duration div Int64
+ * 时长除以 Int64 / Duration div Int64
  *
  * @param value 除数 / Divisor
  * @return 结果时长 / Resulting duration
@@ -973,8 +893,7 @@ operator fun Duration.div(value: UInt32) = this.div(value.toFlt64())
 operator fun Duration.div(value: Int64) = this.div(value.toFlt64())
 
 /**
- * 时长除以 UInt64
- * Duration div UInt64
+ * 时长除以 UInt64 / Duration div UInt64
  *
  * @param value 除数 / Divisor
  * @return 结果时长 / Resulting duration
@@ -982,8 +901,7 @@ operator fun Duration.div(value: Int64) = this.div(value.toFlt64())
 operator fun Duration.div(value: UInt64) = this.div(value.toFlt64())
 
 /**
- * 时长除以 IntX
- * Duration div IntX
+ * 时长除以 IntX / Duration div IntX
  *
  * @param value 除数 / Divisor
  * @return 结果时长 / Resulting duration
@@ -1000,8 +918,7 @@ operator fun Duration.div(value: IntX) = this.div(value.toFlt64())
 operator fun Duration.div(value: UIntX) = this.div(value.toFlt64())
 
 /**
- * 时长除以 Flt32
- * Duration div Flt32
+ * 时长除以 Flt32 / Duration div Flt32
  *
  * @param value 除数 / Divisor
  * @return 结果时长 / Resulting duration
@@ -1009,8 +926,7 @@ operator fun Duration.div(value: UIntX) = this.div(value.toFlt64())
 operator fun Duration.div(value: Flt32) = this.div(value.toFlt64())
 
 /**
- * 时长除以 Flt64
- * Duration div Flt64
+ * 时长除以 Flt64 / Duration div Flt64
  *
  * @param value 除数 / Divisor
  * @return 结果时长 / Resulting duration
@@ -1018,8 +934,7 @@ operator fun Duration.div(value: Flt32) = this.div(value.toFlt64())
 operator fun Duration.div(value: Flt64) = this.div(value.toDouble())
 
 /**
- * 时长除以 FltX
- * Duration div FltX
+ * 时长除以 FltX / Duration div FltX
  *
  * @param value 除数 / Divisor
  * @return 结果时长 / Resulting duration

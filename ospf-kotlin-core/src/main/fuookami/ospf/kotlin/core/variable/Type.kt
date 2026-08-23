@@ -1,6 +1,5 @@
 /**
- * 变量类型体系，定义二值、三值、整数、连续等变量类型及其分类接口。
- * Variable type system defining binary, ternary, integer, continuous variable types and their classification interfaces.
+ * 变量类型体系，定义二值、三值、整数、连续等变量类型及其分类接口。 / Variable type system defining binary, ternary, integer, continuous variable types and their classification interfaces.
 */
 package fuookami.ospf.kotlin.core.variable
 
@@ -10,11 +9,9 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 /**
- * 变量类型分类接口
- * Variable type kind interface
+ * 变量类型分类接口 / Variable type kind interface
  *
- * 提供二值/无符号/整数/连续等类型判断属性。
- * Provides binary/unsigned/integer/continuous type classification properties.
+ * 提供二值/无符号/整数/连续等类型判断属性。 / Provides binary/unsigned/integer/continuous type classification properties.
  *
  * @property isBinaryType 是否为二值类型 / Whether binary type
  * @property isUnsignedType 是否为无符号类型 / Whether unsigned type
@@ -49,11 +46,9 @@ sealed interface VariableTypeKind {
 }
 
 /**
- * 变量类型完整接口
- * Variable type interface
+ * 变量类型完整接口 / Variable type interface
  *
- * 扩展 VariableTypeKind 并附加名称、常量和值域边界。
- * Extends VariableTypeKind with name, constants, and value range bounds.
+ * 扩展 VariableTypeKind 并附加名称、常量和值域边界。 / Extends VariableTypeKind with name, constants, and value range bounds.
  *
  * @param T 数值类型 / The number type
  * @property name 类型全名 / Full type name
@@ -112,8 +107,7 @@ sealed interface UContinuesVariableType<T : FloatingNumber<T>> : VariableTypeInt
 }
 
 /**
- * 变量类型的密封基类。
- * Sealed base class for variable types.
+ * 变量类型的密封基类。 / Sealed base class for variable types.
  *
  * @property constants 数值类型常量 / Numeric type constants
 */

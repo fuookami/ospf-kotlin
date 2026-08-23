@@ -1,0 +1,45 @@
+{
+  "feasible": true,
+  "optimal": false,
+  "objectiveValue": 12.5,
+  "gap": 0.2,
+  "variableValues": [2.0, 3.0],
+  "variableValuesById": {},
+  "intervalValues": {},
+  "problemStatus": "FEASIBLE",
+  "solutionPresence": "INCUMBENT",
+  "proofStatus": "CLAIMED",
+  "terminationReason": "TIME_LIMIT",
+  "schemaVersion": "2.0",
+  "provenance": {
+    "solverId": "scip-linear",
+    "backend": "SCIP",
+    "backendVersion": "9.2.4",
+    "pluginVersion": "ospf-scip-1",
+    "threads": "4",
+    "randomSeed": "17",
+    "deterministic": "true"
+  },
+  "fingerprints": {
+    "model": "model-linear-sha",
+    "configuration": "config-linear-sha",
+    "solver": "solver-linear-sha"
+  },
+  "fingerprintSchemas": {
+    "model": "1.0",
+    "configuration": "1.0",
+    "solver": "2.0"
+  },
+  "elapsedMs": 23,
+  "solverStatus": "LIMIT",
+  "message": "time limit",
+  "statistics": {
+    "bestBound": "10.5",
+    "nodes": "42",
+    "iterations": "99"
+  },
+  "diagnostics": {},
+  "runId": "run-linear-1",
+  "attemptId": "attempt-linear-1",
+  "artifactDigest": "artifact-linear-sha"
+}

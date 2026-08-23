@@ -1,11 +1,9 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class, kotlinx.serialization.InternalSerializationApi::class)
 
 /**
- * 日志记录数据模型
- * Log Record Data Model
+ * 日志记录数据模型 / Log Record Data Model
  *
- * 提供日志记录的纯数据类定义和 PO 反序列化扩展函数。
- * Provides pure data class definitions and PO deserialization extension functions for log records.
+ * 提供日志记录的纯数据类定义和 PO 反序列化扩展函数。 / Provides pure data class definitions and PO deserialization extension functions for log records.
  *
  * ORM 特有的 Entity/Table/DAO/Saving 实现已迁移至 plugin-persistence-ktorm 模块。
  * ORM-specific Entity/Table/DAO/Saving implementations have been migrated to the plugin-persistence-ktorm module.
@@ -21,8 +19,7 @@ import fuookami.ospf.kotlin.framework.log.LogRecordPO
 import fuookami.ospf.kotlin.framework.log.LogRecordType
 
 /**
- * 字节数组日志记录持久化数据类
- * Byte array log record persistence data class
+ * 字节数组日志记录持久化数据类 / Byte array log record persistence data class
  *
  * @property app 应用名 / Application name
  * @property version 版本 / Version
@@ -70,8 +67,7 @@ data class LogRecordBytePO(
 }
 
 /**
- * 字符串日志记录持久化数据类
- * String log record persistence data class
+ * 字符串日志记录持久化数据类 / String log record persistence data class
  *
  * @property app 应用名 / Application name
  * @property version 版本 / Version

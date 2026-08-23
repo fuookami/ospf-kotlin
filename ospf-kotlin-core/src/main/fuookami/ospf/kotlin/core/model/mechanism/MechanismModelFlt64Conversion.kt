@@ -1,6 +1,5 @@
 /**
- * 机制模型 Flt64 转换
- * Mechanism model Flt64 conversion
+ * 机制模型 Flt64 转换 / Mechanism model Flt64 conversion
 */
 package fuookami.ospf.kotlin.core.model.mechanism
 
@@ -17,8 +16,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 在星投影线性函数符号上注册约束（不安全转换）。
- * Register constraints on a star-projected linear function symbol (unchecked cast).
+ * 在星投影线性函数符号上注册约束（不安全转换）。 / Register constraints on a star-projected linear function symbol (unchecked cast).
  *
  * 委托给 SolverBoundaryCasts，集中唯一的 UNCHECKED_CAST 位置。
  * Delegates to SolverBoundaryCasts as the single UNCHECKED_CAST location.
@@ -31,8 +29,7 @@ internal fun MathFunctionSymbolBase<*>.registerConstraintsUnchecked(model: Abstr
 }
 
 /**
- * 在星投影二次函数符号上注册约束（不安全转换）。
- * Register constraints on a star-projected quadratic function symbol (unchecked cast).
+ * 在星投影二次函数符号上注册约束（不安全转换）。 / Register constraints on a star-projected quadratic function symbol (unchecked cast).
  *
  * @param model 目标二次机制模型 / target quadratic mechanism model
  * @return 注册结果 / registration result
@@ -100,7 +97,8 @@ private fun <V> convertLinearSubObjectToFlt64(
         flattenData = flattenData,
         tokens = tokens,
         name = subObject.name,
-        converter = IntoValue.Identity
+        converter = IntoValue.Identity,
+        origin = subObject.origin
     )
 }
 
@@ -131,7 +129,8 @@ private fun <V> convertQuadraticSubObjectToFlt64(
         flattenData = flattenData,
         tokens = tokens,
         name = subObject.name,
-        converter = IntoValue.Identity
+        converter = IntoValue.Identity,
+        origin = subObject.origin
     )
 }
 
@@ -209,7 +208,8 @@ private fun <V> convertLinearMechanismModelToFlt64(model: LinearMechanismModel<V
         name = model.parent.name,
         objectCategory = model.parent.objectCategory,
         configuration = model.parent.configuration,
-        converter = IntoValue.Identity
+        converter = IntoValue.Identity,
+        identityRegistry = model.identityRegistry
     )
     val flt64Constraints = ArrayList<LinearConstraintImpl<Flt64>>()
     for (constraint in model.linearConstraints) {
@@ -237,7 +237,8 @@ private fun <V> convertQuadraticMechanismModelToFlt64(model: QuadraticMechanismM
         name = model.parent.name,
         objectCategory = model.parent.objectCategory,
         configuration = model.parent.configuration,
-        converter = IntoValue.Identity
+        converter = IntoValue.Identity,
+        identityRegistry = model.identityRegistry
     )
     val flt64Constraints = ArrayList<QuadraticConstraintImpl<Flt64>>()
     for (constraint in model.quadraticConstraints) {
@@ -286,8 +287,7 @@ internal fun <V> toFlt64FixedVariables(
  * 将类型化 MechanismModel<V> 转换为 Flt64 求解器边界模型。
  * Convert a generic MechanismModel<V> to the Flt64 solver-boundary model.
  *
- * 转换前会验证模型是具体机制模型子类，未知类型返回 Failed。
- * Validates concrete mechanism-model subclasses and returns Failed for unexpected types.
+ * 转换前会验证模型是具体机制模型子类，未知类型返回 Failed。 / Validates concrete mechanism-model subclasses and returns Failed for unexpected types.
 */
 internal fun <V> convertMechanismModelToFlt64(model: MechanismModel<V>): Ret<MechanismModel<Flt64>>
         where V : RealNumber<V>, V : NumberField<V> {

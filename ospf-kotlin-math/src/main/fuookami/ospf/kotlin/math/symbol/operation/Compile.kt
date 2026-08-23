@@ -8,18 +8,15 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
- * Flt64 编译快捷函数
- * Flt64 Compile Convenience Functions
+ * Flt64 编译快捷函数 / Flt64 Compile Convenience Functions
  *
  * 提供 Flt64 多项式的编译求值和梯度快捷函数。
- * 封装通用编译运算，自动填入 Flt64 的零值和一值。
- * Provides convenience compile-evaluation and gradient functions for Flt64 polynomials.
+ * 封装通用编译运算，自动填入 Flt64 的零值和一值。 / Provides convenience compile-evaluation and gradient functions for Flt64 polynomials.
  * Wraps generic compile operations with Flt64 zero/one constants.
 */
 
 /**
- * 编译线性多项式为求值函数
- * Compile a linear polynomial into an evaluation function
+ * 编译线性多项式为求值函数 / Compile a linear polynomial into an evaluation function
  *
  * @param order 符号顺序 / Symbol order
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
@@ -38,8 +35,7 @@ fun LinearPolynomial<Flt64>.compileEval(
 }
 
 /**
- * 编译二次多项式为求值函数
- * Compile a quadratic polynomial into an evaluation function
+ * 编译二次多项式为求值函数 / Compile a quadratic polynomial into an evaluation function
  *
  * @param order 符号顺序 / Symbol order
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
@@ -61,8 +57,7 @@ fun QuadraticPolynomial<Flt64>.compileEval(
 }
 
 /**
- * 编译规范多项式为求值函数
- * Compile a canonical polynomial into an evaluation function
+ * 编译规范多项式为求值函数 / Compile a canonical polynomial into an evaluation function
  *
  * @param order 符号顺序 / Symbol order
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
@@ -85,8 +80,7 @@ fun CanonicalPolynomial<Flt64>.compileEval(
 }
 
 /**
- * 编译线性多项式为梯度函数
- * Compile a linear polynomial's gradient function
+ * 编译线性多项式为梯度函数 / Compile a linear polynomial's gradient function
  *
  * @param order 符号顺序 / Symbol order
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
@@ -105,8 +99,7 @@ fun LinearPolynomial<Flt64>.compileGradient(
 }
 
 /**
- * 编译二次多项式为梯度函数
- * Compile a quadratic polynomial's gradient function
+ * 编译二次多项式为梯度函数 / Compile a quadratic polynomial's gradient function
  *
  * @param order 符号顺序 / Symbol order
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
@@ -128,8 +121,7 @@ fun QuadraticPolynomial<Flt64>.compileGradient(
 }
 
 /**
- * 编译规范多项式为梯度函数
- * Compile a canonical polynomial's gradient function
+ * 编译规范多项式为梯度函数 / Compile a canonical polynomial's gradient function
  *
  * @param order 符号顺序 / Symbol order
  * @param combineTerms 是否合并同类项 / Whether to combine like terms

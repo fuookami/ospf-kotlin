@@ -60,9 +60,10 @@ class LinearFunctionSolveTest {
             val solver = ScipLinearSolver()
             val result = runBlocking { solveLinearMetaModel(solver, model) }
             assertNotNull(result.value, "Solver should return a feasible solution")
-            assertTrue(result.value!!.obj eq Flt64.zero, "min |x| should be 0 when x can be 0")
+            val objective = result.value!!.solution?.objective ?: error("Solver returned no incumbent objective")
+            assertTrue(objective eq Flt64.zero, "min |x| should be 0 when x can be 0")
 
-            model.setSolution(result.value!!.solution)
+            model.setSolution(result.value!!.values)
             val xVal = model.tokens.find(x)?.result
             assertNotNull(xVal, "x should appear in solution")
             assertTrue(xVal!! eq Flt64.zero, "x should be 0 at optimal (|x| minimized)")
@@ -103,9 +104,10 @@ class LinearFunctionSolveTest {
             val solver = ScipLinearSolver()
             val result = runBlocking { solveLinearMetaModel(solver, model) }
             assertNotNull(result.value, "Solver should return a feasible solution")
-            assertTrue(result.value!!.obj ls Flt64(4.0), "positive slack should be less than upper bound")
+            val objective = result.value!!.solution?.objective ?: error("Solver returned no incumbent objective")
+            assertTrue(objective ls Flt64(4.0), "positive slack should be less than upper bound")
 
-            model.setSolution(result.value!!.solution)
+            model.setSolution(result.value!!.values)
             val xVal = model.tokens.find(x)?.result
             assertNotNull(xVal, "x should appear in solution")
             assertTrue(xVal!! geq Flt64(2.0), "x should be >= lb=2 when slack range constrains it")

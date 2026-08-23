@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -18,11 +19,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
  * Constrains items to only be placed at positions matching their priority appointment.
  * 约束项目只能放置在匹配其优先级预约的位置。
  *
- * @property items The list of cargo items / 货物项目列表
- * @property positions The list of stowage positions / 装载位置列表
- * @property appointment The item-to-position appointment mapping / 项目到位置的预约映射
- * @property priorityAppointment The priority appointment model / 优先级预约模型
- * @property stowage The stowage assignment matrix / 装载分配矩阵
+ * @property items 货物项目列表 / The list of cargo items
+ * @property positions 装载位置列表 / The list of stowage positions
+ * @property appointment 项目到位置的预约映射 / The item-to-position appointment mapping
+ * @property priorityAppointment 优先级预约模型 / The priority appointment model
+ * @property stowage 装载分配矩阵 / The stowage assignment matrix
 */
 class PriorityAppointmentLimit(
     private val items: List<Item>,
@@ -49,13 +50,13 @@ class PriorityAppointmentLimit(
                         relation = LinearPolynomial(stowage.stowage[i, j]) eq Flt64.zero,
                         name = "${name}_${item}_${position}"
                     )) {
-                        is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                        is Ok -> {}
 
-                        is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                        is Failed -> {
                             return Failed(result.error)
                         }
 
-                        is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                        is Fatal -> {
                             return Fatal(result.errors)
                         }
                     }

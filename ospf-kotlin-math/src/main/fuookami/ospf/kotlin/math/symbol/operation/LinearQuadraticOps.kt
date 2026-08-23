@@ -1,10 +1,8 @@
 /**
- * 线性二次运箌
- * Linear-Quadratic Operations
+ * 线性二次运箌 / Linear-Quadratic Operations
  *
  * 提供线性和二次多项式的核心运算操作。
- * 包括同类项合并、求值、有序求值和部分求值，基于 Ring 类型约束。
- * Provides core operation functions for linear and quadratic polynomials.
+ * 包括同类项合并、求值、有序求值和部分求值，基于 Ring 类型约束。 / Provides core operation functions for linear and quadratic polynomials.
  * Includes combining like terms, evaluation, ordered evaluation,
  * and partial evaluation, based on Ring type constraints.
 */
@@ -24,13 +22,11 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
  * Key for identifying quadratic terms during like-term combination.
- * 二次项合并时的项键。
- *
- * Normalizes symbol order so that (s1, s2) and (s2, s1) are treated as the same term.
+ * 二次项合并时的项键。 / Normalizes symbol order so that (s1, s2) and (s2, s1) are treated as the same term.
  * 规范化符号顺序，使 (s1, s2) 和 (s2, s1) 被视为同一项。
  *
- * @property symbol1 the first symbol / 第一个符号
- * @property symbol2 the second symbol (null for linear terms in quadratic form) / 第二个符号（二次形式中的线性项为 null）
+ * @property symbol1 第一个符号 / the first symbol
+ * @property symbol2 第二个符号（二次形式中的线性项为 null） / the second symbol (null for linear terms in quadratic form)
 */
 internal class QuadraticTermKey private constructor(
     val symbol1: Symbol,
@@ -48,10 +44,10 @@ internal class QuadraticTermKey private constructor(
  * Creates a normalized key for a quadratic term, ensuring consistent symbol ordering.
  * 为二次项创建规范化的键，确保符号顺序一致。
  *
- * @param symbol1 the first symbol / 第一个符号
- * @param symbol2 the second symbol (nullable) / 第二个符号（可为 null）
- * @param comparator the comparator for symbol ordering / 符号排序比较器
- * @return the normalized QuadraticTermKey / 规范化后的二次项键
+ * @param symbol1 第一个符号 / the first symbol
+ * @param symbol2 第二个符号（可为 null） / the second symbol (nullable)
+ * @param comparator 符号排序比较器 / the comparator for symbol ordering
+ * @return 规范化后的二次项键 / the normalized QuadraticTermKey
 */
 fun normalized(
             symbol1: Symbol,
@@ -72,9 +68,9 @@ fun normalized(
          * Computes a combined hash value for two symbols.
          * 计算两个符号的组合哈希值。
          *
-         * @param symbol1 the first symbol / 第一个符号
-         * @param symbol2 the second symbol (nullable) / 第二个符号（可为 null）
-         * @return the combined hash code / 组合哈希值
+         * @param symbol1 第一个符号 / the first symbol
+         * @param symbol2 第二个符号（可为 null） / the second symbol (nullable)
+         * @return 组合哈希值 / the combined hash code
         */
         private fun hashOf(symbol1: Symbol, symbol2: Symbol?): Int {
             var result = symbol1.hashCode()
@@ -100,9 +96,9 @@ fun normalized(
  * Combine like terms in a collection of linear monomials.
  * 合并线性单项式集合中的同类项。
  *
- * @param zero the zero value for the coefficient type / 系数类型的零值
- * @param isZero predicate to check if a value is zero / 判断值是否为零的谓词
- * @return the list of combined linear monomials / 合并后的线性单项式列表
+ * @param zero 系数类型的零值 / the zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / predicate to check if a value is zero
+ * @return 合并后的线性单项式列表 / the list of combined linear monomials
 */
 internal fun <T> Iterable<LinearMonomial<T>>.combineLinearMonomials(
     zero: T,
@@ -126,10 +122,10 @@ internal fun <T> Iterable<LinearMonomial<T>>.combineLinearMonomials(
  * Combine like terms in a collection of quadratic monomials.
  * 合并二次单项式集合中的同类项。
  *
- * @param zero the zero value for the coefficient type / 系数类型的零值
- * @param isZero predicate to check if a value is zero / 判断值是否为零的谓词
- * @param symbolComparator comparator for symbol ordering (optional) / 符号排序比较器（可选）
- * @return the list of combined quadratic monomials / 合并后的二次单项式列表
+ * @param zero 系数类型的零值 / the zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / predicate to check if a value is zero
+ * @param symbolComparator 符号排序比较器（可选） / comparator for symbol ordering (optional)
+ * @return 合并后的二次单项式列表 / the list of combined quadratic monomials
 */
 internal fun <T> Iterable<QuadraticMonomial<T>>.combineQuadraticMonomials(
     zero: T,
@@ -158,8 +154,7 @@ internal fun <T> Iterable<QuadraticMonomial<T>>.combineQuadraticMonomials(
 }
 
 /**
- * 构建有序符号到索引的映射
- * Build a mapping from ordered symbols to indices
+ * 构建有序符号到索引的映射 / Build a mapping from ordered symbols to indices
  *
  * @param order 符号顺序列表 / Ordered list of symbols
  * @param valuesSize 值列表大小，需与 order 大小一致 / Size of values list, must match order size
@@ -187,8 +182,7 @@ private fun buildOrderedSymbolIndex(order: List<Symbol>, valuesSize: Int): Ret<M
 // ============================================================================
 
 /**
- * 合并线性多项式中的同类项
- * Combine like terms in a linear polynomial.
+ * 合并线性多项式中的同类项 / Combine like terms in a linear polynomial.
  *
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
@@ -203,8 +197,7 @@ fun <T> LinearPolynomial<T>.combineLinearTerms(
 }
 
 /**
- * 使用给定值对线性多项式求值
- * Evaluate a linear polynomial with given values.
+ * 使用给定值对线性多项式求值 / Evaluate a linear polynomial with given values.
  *
  * @param values 符号到值的映射 / Map of symbol to value
  * @param onMissing 缺失符号的回调函数（可选） / Callback for missing symbols (optional)
@@ -225,8 +218,7 @@ fun <T> LinearPolynomial<T>.evaluateLinear(
 }
 
 /**
- * 使用有序符号和值对线性多项式求值
- * Evaluate a linear polynomial with ordered symbols and values.
+ * 使用有序符号和值对线性多项式求值 / Evaluate a linear polynomial with ordered symbols and values.
  *
  * @param order 符号顺序列表 / Ordered list of symbols
  * @param values 与符号顺序对应的值列表 / List of values corresponding to symbol order
@@ -251,11 +243,9 @@ fun <T> LinearPolynomial<T>.evaluateLinearOrdered(
 }
 
 /**
- * 对线性多项式进行部分求值
- * Partially evaluate a linear polynomial.
+ * 对线性多项式进行部分求值 / Partially evaluate a linear polynomial.
  *
- * 将已知符号的值代入，返回仅包含未知符号的线性多项式。
- * Substitutes known symbol values, returning a linear polynomial with only unknown symbols.
+ * 将已知符号的值代入，返回仅包含未知符号的线性多项式。 / Substitutes known symbol values, returning a linear polynomial with only unknown symbols.
  *
  * @param values 已知符号到值的映射 / Map of known symbol to value
  * @param zero 系数类型的零值 / Zero value for the coefficient type
@@ -288,8 +278,7 @@ fun <T> LinearPolynomial<T>.partialEvaluateLinear(
 // ============================================================================
 
 /**
- * 合并二次多项式中的同类项
- * Combine like terms in a quadratic polynomial.
+ * 合并二次多项式中的同类项 / Combine like terms in a quadratic polynomial.
  *
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
@@ -310,8 +299,7 @@ fun <T> QuadraticPolynomial<T>.combineQuadraticTerms(
 }
 
 /**
- * 使用给定值对二次多项式求值
- * Evaluate a quadratic polynomial with given values.
+ * 使用给定值对二次多项式求值 / Evaluate a quadratic polynomial with given values.
  *
  * @param values 符号到值的映射 / Map of symbol to value
  * @param onMissing 缺失符号的回调函数（可选） / Callback for missing symbols (optional)
@@ -335,8 +323,7 @@ fun <T> QuadraticPolynomial<T>.evaluateQuadratic(
 }
 
 /**
- * 使用有序符号和值对二次多项式求值
- * Evaluate a quadratic polynomial with ordered symbols and values.
+ * 使用有序符号和值对二次多项式求值 / Evaluate a quadratic polynomial with ordered symbols and values.
  *
  * @param order 符号顺序列表 / Ordered list of symbols
  * @param values 与符号顺序对应的值列表 / List of values corresponding to symbol order
@@ -367,11 +354,9 @@ fun <T> QuadraticPolynomial<T>.evaluateQuadraticOrdered(
 }
 
 /**
- * 对二次多项式进行部分求值
- * Partially evaluate a quadratic polynomial.
+ * 对二次多项式进行部分求值 / Partially evaluate a quadratic polynomial.
  *
- * 将已知符号的值代入，返回仅包含未知符号的二次多项式。
- * Substitutes known symbol values, returning a quadratic polynomial with only unknown symbols.
+ * 将已知符号的值代入，返回仅包含未知符号的二次多项式。 / Substitutes known symbol values, returning a quadratic polynomial with only unknown symbols.
  *
  * @param values 已知符号到值的映射 / Map of known symbol to value
  * @param zero 系数类型的零值 / Zero value for the coefficient type

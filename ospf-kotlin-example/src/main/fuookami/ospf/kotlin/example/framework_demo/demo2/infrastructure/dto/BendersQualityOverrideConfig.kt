@@ -6,20 +6,20 @@ import kotlinx.serialization.*
  * Configuration for overriding Benders decomposition quality parameters.
  * Benders分解质量参数覆盖配置。
  *
- * @property weakGapMultiplier multiplier applied to the weak convergence gap / 应用于弱收敛间隙的乘数
- * @property weakGapFloor floor value for the weak convergence gap / 弱收敛间隙的下限值
- * @property iterationPressurePercent percentage controlling iteration pressure / 控制迭代压力的百分比
- * @property cutDensityMinIterations minimum iterations before cut density is evaluated / 评估割平面密度前的最小迭代次数
- * @property cutDensityThreshold threshold for cut density evaluation / 割平面密度评估的阈值
- * @property trajectoryMinSnapshots minimum number of trajectory snapshots / 轨迹快照的最小数量
- * @property trajectoryStepMultiplier multiplier for trajectory step size / 轨迹步长的乘数
- * @property trajectoryStepFloor floor value for trajectory step size / 轨迹步长的下限值
- * @property timeGuardMinMs minimum time guard in milliseconds / 最小时间保护（毫秒）
- * @property scoreGapWeight weight of the gap score component / 间隙得分分量的权重
- * @property scoreTimeWeight weight of the time score component / 时间得分分量的权重
- * @property scoreIterationWeight weight of the iteration score component / 迭代得分分量的权重
- * @property scoreCutDensityWeight weight of the cut density score component / 割平面密度得分分量的权重
- * @property scoreTrajectoryWeight weight of the trajectory score component / 轨迹得分分量的权重
+ * @property weakGapMultiplier 应用于弱收敛间隙的乘数 / multiplier applied to the weak convergence gap
+ * @property weakGapFloor 弱收敛间隙的下限值 / floor value for the weak convergence gap
+ * @property iterationPressurePercent 控制迭代压力的百分比 / percentage controlling iteration pressure
+ * @property cutDensityMinIterations 评估割平面密度前的最小迭代次数 / minimum iterations before cut density is evaluated
+ * @property cutDensityThreshold 割平面密度评估的阈值 / threshold for cut density evaluation
+ * @property trajectoryMinSnapshots 轨迹快照的最小数量 / minimum number of trajectory snapshots
+ * @property trajectoryStepMultiplier 轨迹步长的乘数 / multiplier for trajectory step size
+ * @property trajectoryStepFloor 轨迹步长的下限值 / floor value for trajectory step size
+ * @property timeGuardMinMs 最小时间保护（毫秒） / minimum time guard in milliseconds
+ * @property scoreGapWeight 间隙得分分量的权重 / weight of the gap score component
+ * @property scoreTimeWeight 时间得分分量的权重 / weight of the time score component
+ * @property scoreIterationWeight 迭代得分分量的权重 / weight of the iteration score component
+ * @property scoreCutDensityWeight 割平面密度得分分量的权重 / weight of the cut density score component
+ * @property scoreTrajectoryWeight 轨迹得分分量的权重 / weight of the trajectory score component
 */
 @Serializable
 data class BendersQualityOverrideConfig(

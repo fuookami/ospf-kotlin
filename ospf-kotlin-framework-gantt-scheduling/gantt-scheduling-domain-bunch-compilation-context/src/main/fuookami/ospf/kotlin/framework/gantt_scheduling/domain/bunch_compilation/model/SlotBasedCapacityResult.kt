@@ -18,11 +18,9 @@ typealias SlotCostQuantity<V> = Quantity<V>
 typealias SlotQuantity<V> = Quantity<V>
 
 /**
- * 分时隙产能结果
- * Slot-based capacity result
+ * 分时隙产能结果 / Slot-based capacity result
  *
- * 存储单个时隙的产能分配结果和中间数值。
- * Stores capacity allocation results and intermediate values for a single time slot.
+ * 存储单个时隙的产能分配结果和中间数值。 / Stores capacity allocation results and intermediate values for a single time slot.
  *
  * @param A 生产动作类型 / Production action type
  * @param M 物料类型 / Material type
@@ -39,44 +37,37 @@ typealias SlotQuantity<V> = Quantity<V>
 data class SlotBasedCapacityResult<A : ProductionAction, M, R, V>(
 
     /**
-     * 所属时隙
-     * The time slot
+     * 所属时隙 / The time slot
     */
     val slot: TimeSlot,
 
     /**
-     * 时隙索引
-     * Slot index
+     * 时隙索引 / Slot index
     */
     val slotIndex: Int,
 
     /**
-     * 该时隙内的动作分配
-     * Action allocations in this slot
+     * 该时隙内的动作分配 / Action allocations in this slot
     */
     val actionAllocations: List<ActionAllocation<A>>,
 
     /**
-     * 该时隙的总成本物理量
-     * Total cost quantity for this slot
+     * 该时隙的总成本物理量 / Total cost quantity for this slot
     */
     val totalCostQuantityValue: SlotCostQuantity<V>,
 
     /**
-     * 该时隙的产品产量（按产品）
-     * Product production by product in this slot
+     * 该时隙的产品产量（按产品） / Product production by product in this slot
     */
     val produceQuantityByProduct: Map<M, SlotQuantity<V>>,
 
     /**
-     * 该时隙的原料消耗（按原料）
-     * Material consumption by material in this slot
+     * 该时隙的原料消耗（按原料） / Material consumption by material in this slot
     */
     val consumptionQuantityByMaterial: Map<M, SlotQuantity<V>>,
 
     /**
-     * 该时隙的资源使用量（按资源）
-     * Resource usage by resource in this slot
+     * 该时隙的资源使用量（按资源） / Resource usage by resource in this slot
     */
     val resourceUsageQuantityByResource: Map<R, SlotQuantity<V>>
 ) where V : RealNumber<V>, V : PlusGroup<V> {
@@ -117,11 +108,9 @@ fun <A : ProductionAction, M, R, V> SlotBasedCapacityResult<A, M, R, Flt64>.conv
 }
 
 /**
- * 产能中间值集合
- * Capacity intermediate values collection
+ * 产能中间值集合 / Capacity intermediate values collection
  *
- * 聚合所有时隙的产能结果，提供查询接口。
- * Aggregates capacity results for all slots, provides query interface.
+ * 聚合所有时隙的产能结果，提供查询接口。 / Aggregates capacity results for all slots, provides query interface.
  *
  * @param A 生产动作类型 / Production action type
  * @param M 物料类型 / Material type
@@ -131,61 +120,55 @@ fun <A : ProductionAction, M, R, V> SlotBasedCapacityResult<A, M, R, Flt64>.conv
 class CapacityIntermediateValues<A : ProductionAction, M, R, V>(
 
     /**
-     * 时隙列表
-     * List of time slots
+     * 时隙列表 / List of time slots
     */
     val slots: List<TimeSlot>,
 
     /**
-     * 各时隙的产能结果
-     * Capacity results by slot
+     * 各时隙的产能结果 / Capacity results by slot
     */
     val results: Map<TimeSlot, SlotBasedCapacityResult<A, M, R, V>>
 ) where V : RealNumber<V>, V : PlusGroup<V> {
 
     /**
-     * 获取指定时隙的产品产量物理量
-     * Get product production quantity for specified slot
+     * 获取指定时隙的产品产量物理量 / Get product production quantity for specified slot
      *
-     * @param slot The time slot / 时隙
-     * @param product The product / 产品
-     * @return Production quantity / 产量物理量
+     * @param slot 时隙 / The time slot
+     * @param product 产品 / The product
+     * @return 产量物理量 / Production quantity
     */
     fun produceQuantity(slot: TimeSlot, product: M): SlotQuantity<V>? {
         return results[slot]?.produceQuantityByProduct?.get(product)
     }
 
     /**
-     * 获取指定时隙的原料消耗物理量
-     * Get material consumption quantity for specified slot
+     * 获取指定时隙的原料消耗物理量 / Get material consumption quantity for specified slot
      *
-     * @param slot The time slot / 时隙
-     * @param material The material / 原料
-     * @return Consumption quantity / 消耗物理量
+     * @param slot 时隙 / The time slot
+     * @param material 原料 / The material
+     * @return 消耗物理量 / Consumption quantity
     */
     fun consumptionQuantity(slot: TimeSlot, material: M): SlotQuantity<V>? {
         return results[slot]?.consumptionQuantityByMaterial?.get(material)
     }
 
     /**
-     * 获取指定时隙的资源使用量物理量
-     * Get resource usage quantity for specified slot
+     * 获取指定时隙的资源使用量物理量 / Get resource usage quantity for specified slot
      *
-     * @param slot The time slot / 时隙
-     * @param resource The resource capacity / 资源容量
-     * @return Resource usage quantity / 资源使用量物理量
+     * @param slot 时隙 / The time slot
+     * @param resource 资源容量 / The resource capacity
+     * @return 资源使用量物理量 / Resource usage quantity
     */
     fun resourceUsageQuantity(slot: TimeSlot, resource: R): SlotQuantity<V>? {
         return results[slot]?.resourceUsageQuantityByResource?.get(resource)
     }
 
     /**
-     * 获取指定时隙的所有约束
-     * Get all constraints for specified slot
+     * 获取指定时隙的所有约束 / Get all constraints for specified slot
      *
-     * @param slot The time slot / 时隙
-     * @param tolerance Tolerance for constraint bounds / 约束边界的容差
-     * @return Slot constraints / 时隙约束
+     * @param slot 时隙 / The time slot
+     * @param tolerance 约束边界的容差 / Tolerance for constraint bounds
+     * @return 时隙约束 / Slot constraints
     */
     fun slotConstraints(slot: TimeSlot, tolerance: V? = null): SlotConstraints<M, R, V>? {
         val result = results[slot] ?: return null
@@ -213,11 +196,9 @@ fun <A : ProductionAction, M, R, V> CapacityIntermediateValues<A, M, R, Flt64>.c
 }
 
 /**
- * 时隙约束
- * Slot constraints
+ * 时隙约束 / Slot constraints
  *
- * 描述单个时隙的资源、产量、消耗约束边界。
- * Describes resource, produce, consumption constraint boundaries for a single slot.
+ * 描述单个时隙的资源、产量、消耗约束边界。 / Describes resource, produce, consumption constraint boundaries for a single slot.
  *
  * @param M 物料类型 / Material type
  * @param R 资源容量类型 / Resource capacity type
@@ -234,61 +215,52 @@ fun <A : ProductionAction, M, R, V> CapacityIntermediateValues<A, M, R, Flt64>.c
 data class SlotConstraints<M, R, V>(
 
     /**
-     * 所属时隙
-     * The time slot
+     * 所属时隙 / The time slot
     */
     val slot: TimeSlot,
 
     /**
-     * 时隙索引
-     * Slot index
+     * 时隙索引 / Slot index
     */
     val slotIndex: Int,
 
     /**
-     * 产品产量上限物理量
-     * Maximum production quantities by product
+     * 产品产量上限物理量 / Maximum production quantities by product
     */
     val maxProduceQuantity: Map<M, SlotQuantity<V>>,
 
     /**
-     * 产品产量下限物理量
-     * Minimum production quantities by product
+     * 产品产量下限物理量 / Minimum production quantities by product
     */
     val minProduceQuantity: Map<M, SlotQuantity<V>>,
 
     /**
-     * 原料消耗上限物理量
-     * Maximum consumption quantities by material
+     * 原料消耗上限物理量 / Maximum consumption quantities by material
     */
     val maxConsumptionQuantity: Map<M, SlotQuantity<V>>,
 
     /**
-     * 原料消耗下限物理量
-     * Minimum consumption quantities by material
+     * 原料消耗下限物理量 / Minimum consumption quantities by material
     */
     val minConsumptionQuantity: Map<M, SlotQuantity<V>>,
 
     /**
-     * 资源使用量上限物理量
-     * Maximum resource usage quantities by resource
+     * 资源使用量上限物理量 / Maximum resource usage quantities by resource
     */
     val maxResourceUsageQuantity: Map<R, SlotQuantity<V>>,
 
     /**
-     * 资源使用量下限物理量
-     * Minimum resource usage quantities by resource
+     * 资源使用量下限物理量 / Minimum resource usage quantities by resource
     */
     val minResourceUsageQuantity: Map<R, SlotQuantity<V>>
 ) where V : RealNumber<V>, V : PlusGroup<V> {
     companion object {
         /**
-         * 从产能结果创建约束
-         * Create constraints from capacity result
+         * 从产能结果创建约束 / Create constraints from capacity result
          *
-         * @param result The slot capacity result / 时隙产能结果
-         * @param tolerance Tolerance added to bounds / 添加到边界的容差
-         * @return Slot constraints / 时隙约束
+         * @param result 时隙产能结果 / The slot capacity result
+         * @param tolerance 添加到边界的容差 / Tolerance added to bounds
+         * @return 时隙约束 / Slot constraints
         */
         fun <A : ProductionAction, M, R, V> from(
             result: SlotBasedCapacityResult<A, M, R, V>,

@@ -1,6 +1,5 @@
 /**
- * 正弦平方映射
- * Sinusoidal Map
+ * 正弦平方映射 / Sinusoidal Map
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -23,8 +22,7 @@ data class SinusoidalMap<V : FloatingNumber<V>>(val mu: V) : Extractor<V, V> {
 }
 
 /**
- * 正弦平方映射生成器
- * Sinusoidal Map Generator
+ * 正弦平方映射生成器 / Sinusoidal Map Generator
  *
  * @property map 正弦平方映射实例 / Sinusoidal map instance
 */

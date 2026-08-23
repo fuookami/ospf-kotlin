@@ -1,0 +1,75 @@
+{
+  "name": "identity-linear",
+  "variables": [
+    {
+      "index": 0,
+      "name": "x",
+      "lowerBound": 0.0,
+      "upperBound": 10.0,
+      "type": "CONTINUOUS",
+      "identityId": "variable:x",
+      "identityScope": "STABLE",
+      "identityOriginKind": "demand",
+      "identityOriginKey": "x",
+      "identityProvenance": [
+        {
+          "kind": "demand",
+          "key": "x"
+        },
+        {
+          "kind": "source",
+          "key": "x"
+        }
+      ],
+      "identityNamespace": "fixture-model",
+      "identitySchemaVersion": "1.0"
+    }
+  ],
+  "constraints": [
+    {
+      "cells": [],
+      "sign": "LESS_EQUAL",
+      "rhs": 10.0,
+      "name": "capacity",
+      "identityId": "constraint:capacity",
+      "identityScope": "STABLE",
+      "identityOriginKind": "capacity",
+      "identityOriginKey": "machine-1",
+      "identityProvenance": [
+        {
+          "kind": "capacity",
+          "key": "machine-1"
+        },
+        {
+          "kind": "source",
+          "key": "machine-1"
+        }
+      ],
+      "identityNamespace": "fixture-model",
+      "identitySchemaVersion": "1.0"
+    }
+  ],
+  "objective": {
+    "category": "MINIMIZE",
+    "cells": [],
+    "constant": 0.0,
+    "identityId": "objective:cost",
+    "identityScope": "STABLE",
+    "identityOriginKind": "cost",
+    "identityOriginKey": "total",
+    "identityProvenance": [
+      {
+        "kind": "cost",
+        "key": "total"
+      },
+      {
+        "kind": "source",
+        "key": "total"
+      }
+    ],
+    "identityNamespace": "fixture-model",
+    "identitySchemaVersion": "1.0"
+  },
+  "identityNamespace": "fixture-model",
+  "identitySchemaVersion": "1.0"
+}

@@ -17,9 +17,7 @@ data object TaskSolutionAnalyzer {
      * 从任务束编译 solver 解中提取任务解 / Extract task solution from a bunch-compilation solver solution
      *
      * `model` 与 `solution` 保留 `Flt64`，因为这里直接读取 solver token 结果；
-     * 返回值已恢复为领域任务解。
-     *
-     * `model` and `solution` keep `Flt64` because this analyzer reads solver token results directly;
+     * 返回值已恢复为领域任务解。 / `model` and `solution` keep `Flt64` because this analyzer reads solver token results directly;
      * the returned value is restored to a domain task solution.
      *
      * @param B 任务束类型 / Task bunch type

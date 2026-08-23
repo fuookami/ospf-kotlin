@@ -18,8 +18,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 包装底面形状，包含宽度、深度、重量和包装类型。
- * Package bottom shape, including width, depth, weight and package type.
+ * 包装底面形状，包含宽度、深度、重量和包装类型。 / Package bottom shape, including width, depth, weight and package type.
  *
  * @param V 数值类型 / numeric type
 */
@@ -27,7 +26,7 @@ data class PackageBottomShape<V : FloatingNumber<V>>(
     val width: Quantity<V>,
     val depth: Quantity<V>,
     val weight: Quantity<V>,
-    val packageType: fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType,
+    val packageType: PackageType,
 ) : Eq<PackageBottomShape<V>> {
 
     /** 包装分类 / Package category */
@@ -37,8 +36,7 @@ data class PackageBottomShape<V : FloatingNumber<V>>(
     val area: Quantity<V> = width * depth
 
     /**
-     * 创建一个新的底面形状，支持选择性覆盖字段。
-     * Create a new bottom shape with optional field overrides.
+     * 创建一个新的底面形状，支持选择性覆盖字段。 / Create a new bottom shape with optional field overrides.
      *
      * @param width 新的宽度 / new width
      * @param depth 新的深度 / new depth
@@ -50,7 +48,7 @@ data class PackageBottomShape<V : FloatingNumber<V>>(
         width: Quantity<V>? = null,
         depth: Quantity<V>? = null,
         weight: Quantity<V>? = null,
-        packageType: fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType? = null
+        packageType: PackageType? = null
     ): PackageBottomShape<V> {
         return PackageBottomShape(
             width = width ?: this.width,
@@ -91,8 +89,7 @@ data class PackageBottomShape<V : FloatingNumber<V>>(
 }
 
 /**
- * 包装形状，包含宽度、高度、深度、重量、包装类型和形状规格。
- * Package shape, including width, height, depth, weight, package type and shape spec.
+ * 包装形状，包含宽度、高度、深度、重量、包装类型和形状规格。 / Package shape, including width, height, depth, weight, package type and shape spec.
  *
  * @param V 数值类型 / numeric type
 */
@@ -101,7 +98,7 @@ data class PackageShape<V : FloatingNumber<V>>(
     val height: Quantity<V>,
     val depth: Quantity<V>,
     val weight: Quantity<V>,
-    val packageType: fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType,
+    val packageType: PackageType,
     val shapeSpec: PackageShapeSpec = PackageShapeSpec.Cuboid
 ) : Eq<PackageShape<V>> {
 
@@ -120,8 +117,7 @@ data class PackageShape<V : FloatingNumber<V>>(
     val volume: Quantity<V> = width * height * depth
 
     /**
-     * 创建一个新的形状，支持选择性覆盖字段。
-     * Create a new shape with optional field overrides.
+     * 创建一个新的形状，支持选择性覆盖字段。 / Create a new shape with optional field overrides.
      *
      * @param width 新的宽度 / new width
      * @param height 新的高度 / new height
@@ -136,7 +132,7 @@ data class PackageShape<V : FloatingNumber<V>>(
         height: Quantity<V>? = null,
         depth: Quantity<V>? = null,
         weight: Quantity<V>? = null,
-        packageType: fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType? = null,
+        packageType: PackageType? = null,
         shapeSpec: PackageShapeSpec? = null
     ): PackageShape<V> {
         return PackageShape(
@@ -184,8 +180,7 @@ data class PackageShape<V : FloatingNumber<V>>(
 }
 
 /**
- * 包装形状规格，区分长方体和垂直圆柱。
- * Package shape spec, distinguishing cuboid and vertical cylinder.
+ * 包装形状规格，区分长方体和垂直圆柱。 / Package shape spec, distinguishing cuboid and vertical cylinder.
 */
 sealed interface PackageShapeSpec {
 
@@ -193,8 +188,7 @@ sealed interface PackageShapeSpec {
     data object Cuboid : PackageShapeSpec
 
     /**
-     * 垂直圆柱形状规格，支持连续半径选择。
-     * Vertical cylinder shape spec, supporting continuous radius selection.
+     * 垂直圆柱形状规格，支持连续半径选择。 / Vertical cylinder shape spec, supporting continuous radius selection.
      *
      * @property radius 圆柱半径 / cylinder radius
      * @property axis 圆柱轴向 / cylinder axis
@@ -220,8 +214,7 @@ sealed interface PackageShapeSpec {
         val diameterStep: Quantity<FltX>? = null
     ) : PackageShapeSpec {
         /**
-         * 解析后的候选半径列表。
-         * Resolved list of candidate radii.
+         * 解析后的候选半径列表。 / Resolved list of candidate radii.
         */
         val resolvedRadiusCandidates: List<Quantity<FltX>> = resolveVerticalCylinderRadiusCandidates(
             radius = radius,
@@ -288,8 +281,7 @@ private infix fun Quantity<FltX>.sameCylinderRadiusValue(rhs: Quantity<FltX>): B
 }
 
 /**
- * 转换为正物理量。
- * Convert to positive quantity.
+ * 转换为正物理量。 / Convert to positive quantity.
  *
  * @param unit 目标物理单位 / target physical unit
  * @param fieldName 字段名（用于错误消息） / field name (used in error messages)
@@ -308,8 +300,7 @@ private fun Quantity<FltX>.toPositiveQuantity(
 }
 
 /**
- * 从 Ret 结果中提取成功值，若为失败则抛出 require 异常。
- * Extract the success value from a Ret result; throws a require exception if it is a failure.
+ * 从 Ret 结果中提取成功值，若为失败则抛出 require 异常。 / Extract the success value from a Ret result; throws a require exception if it is a failure.
  *
  * @return 成功时的值 / the value on success
 */
@@ -326,8 +317,7 @@ private fun <T> Ret<T>.requireValue(): T {
 }
 
 /**
- * 将量转换到指定单位并要求为正值，转换或验证失败时抛出 require 异常。
- * Convert a quantity to the specified unit and require it to be positive; throws a require exception on conversion or validation failure.
+ * 将量转换到指定单位并要求为正值，转换或验证失败时抛出 require 异常。 / Convert a quantity to the specified unit and require it to be positive; throws a require exception on conversion or validation failure.
  *
  * @param unit 目标物理单位 / target physical unit
  * @param fieldName 字段名（用于错误消息） / field name (used in error messages)
@@ -444,8 +434,7 @@ private fun diameterIntervalRadiusCandidates(
 }
 
 /**
- * 解析垂直圆柱半径候选值。
- * Resolve vertical cylinder radius candidates.
+ * 解析垂直圆柱半径候选值。 / Resolve vertical cylinder radius candidates.
  *
  * @param radius 圆柱半径 / cylinder radius
  * @param radiusCandidates 候选半径列表 / candidate radius list
@@ -541,8 +530,7 @@ private fun PackageShape<FltX>.cylinderAxisLength(axis: Axis3): Quantity<FltX> {
 }
 
 /**
- * 将包装形状转换为装箱形状，圆柱形状返回 CylinderPackingShape3，长方体返回 null。
- * Convert the package shape to a packing shape; returns CylinderPackingShape3 for cylinders, null for cuboids.
+ * 将包装形状转换为装箱形状，圆柱形状返回 CylinderPackingShape3，长方体返回 null。 / Convert the package shape to a packing shape; returns CylinderPackingShape3 for cylinders, null for cuboids.
  *
  * @return 装箱形状，若为长方体则返回 null / packing shape, or null for cuboids
 */
@@ -569,8 +557,7 @@ fun PackageShape<FltX>.toPackingShapeOrNull(): PackingShape3<FltX>? {
 }
 
 /**
- * 装箱程序物料值，包含数量和重量。
- * Packing program material value, containing amount and weight.
+ * 装箱程序物料值，包含数量和重量。 / Packing program material value, containing amount and weight.
  *
  * @property amount 物料数量 / material amount
  * @property weight 物料重量 / material weight
@@ -585,8 +572,7 @@ data class PackingProgramMaterialValue(
 }
 
 /**
- * 将装箱程序重量转换为 FltX 物理量。
- * Convert packing program weight to FltX quantity.
+ * 将装箱程序重量转换为 FltX 物理量。 / Convert packing program weight to FltX quantity.
  *
  * @param value 待转换的重量物理量 / weight quantity to convert
  * @return 转换后的 FltX 物理量 / converted FltX quantity
@@ -600,8 +586,7 @@ private fun packingProgramWeightToFltXQuantity(value: Quantity<*>): Ret<Quantity
 }
 
 /**
- * 加上装箱程序重量。
- * Add packing program weight.
+ * 加上装箱程序重量。 / Add packing program weight.
  *
  * @param lhs 左操作数 / left operand
  * @param rhs 右操作数 / right operand
@@ -637,8 +622,7 @@ private fun plusPackingProgramWeight(
 }
 
 /**
- * 合并装箱程序材料值。
- * Merge packing program material value.
+ * 合并装箱程序材料值。 / Merge packing program material value.
  *
  * @param lhs 已有值，首次出现时可空 / existing value, nullable when first seen
  * @param rhs 待合并的值 / value to merge
@@ -665,8 +649,7 @@ private fun mergePackingProgramMaterialValue(
 }
 
 /**
- * 合并包装方案的物料贡献值。
- * Merge material contribution values for packing programs.
+ * 合并包装方案的物料贡献值。 / Merge material contribution values for packing programs.
  *
  * @param lhs 已有贡献值，首次出现时可空 / existing contribution, nullable when the material is first seen
  * @param rhs 待追加的贡献值 / contribution to append
@@ -722,8 +705,7 @@ private fun resolvePackingProgramDomain(unit: PhysicalUnit): PackingProgramMater
 }
 
 /**
- * 转换为离散数量。
- * Convert to discrete amount.
+ * 转换为离散数量。 / Convert to discrete amount.
  *
  * @param value 待转换的值 / value to convert
  * @return 离散数量 / discrete amount
@@ -742,8 +724,7 @@ private fun toDiscreteAmount(value: Any): UInt64 {
 }
 
 /**
- * 装箱程序数据，包含形状、模式和物料信息。
- * Packing program data, containing shape, pattern and material information.
+ * 装箱程序数据，包含形状、模式和物料信息。 / Packing program data, containing shape, pattern and material information.
  *
  * @param V 数值类型 / numeric type
 */
@@ -755,8 +736,7 @@ data class PackingProgram<V : FloatingNumber<V>>(
 ) {
     companion object {
         /**
-         * 创建外层包装程序。
-         * Create an outer packing program.
+         * 创建外层包装程序。 / Create an outer packing program.
          *
          * @param shape 外层包装形状 / outer package shape
          * @param packages 子包装程序列表 / list of sub packing programs
@@ -787,8 +767,7 @@ data class PackingProgram<V : FloatingNumber<V>>(
         }
 
         /**
-         * 创建内层包装程序，使用物料键到数量的映射。
-         * Create an inner packing program using a material key to amount map.
+         * 创建内层包装程序，使用物料键到数量的映射。 / Create an inner packing program using a material key to amount map.
          *
          * @param shape 内层包装形状 / inner package shape
          * @param materials 物料键到数量的映射 / material key to amount map
@@ -809,8 +788,7 @@ data class PackingProgram<V : FloatingNumber<V>>(
         }
 
         /**
-         * 创建内层包装程序，使用物料键到物料值的映射。
-         * Create an inner packing program using a material key to material value map.
+         * 创建内层包装程序，使用物料键到物料值的映射。 / Create an inner packing program using a material key to material value map.
          *
          * @param shape 内层包装形状 / inner package shape
          * @param materials 物料键到物料值的映射 / material key to material value map
@@ -827,8 +805,7 @@ data class PackingProgram<V : FloatingNumber<V>>(
         }
 
         /**
-         * 创建内层包装程序，使用物料键到物理量的映射，自动按域类型分配数量或重量。
-         * Create an inner packing program using a material key to quantity map, automatically assigning amount or weight by domain type.
+         * 创建内层包装程序，使用物料键到物理量的映射，自动按域类型分配数量或重量。 / Create an inner packing program using a material key to quantity map, automatically assigning amount or weight by domain type.
          *
          * @param shape 内层包装形状 / inner package shape
          * @param materials 物料键到物理量的映射 / material key to quantity map
@@ -856,8 +833,7 @@ data class PackingProgram<V : FloatingNumber<V>>(
     }
 
     /**
-     * 包装分类，根据子包装列表判断是内层还是外层包装。
-     * Package classification, determined by whether sub-packages exist.
+     * 包装分类，根据子包装列表判断是内层还是外层包装。 / Package classification, determined by whether sub-packages exist.
     */
     val classification = if (packages.isNullOrEmpty()) {
         PackageClassification.Inner
@@ -887,8 +863,7 @@ data class PackingProgram<V : FloatingNumber<V>>(
     val volume by shape::volume
 
     /**
-     * 获取非零的物料数量映射。
-     * Get the map of non-zero material amounts.
+     * 获取非零的物料数量映射。 / Get the map of non-zero material amounts.
      *
      * @return 物料键到数量的映射 / material key to amount map
     */
@@ -904,8 +879,7 @@ data class PackingProgram<V : FloatingNumber<V>>(
     }
 
     /**
-     * 获取物料物理量映射，支持通过物料目录计算重量。
-     * Get the material quantity map, supporting weight calculation via material catalog.
+     * 获取物料物理量映射，支持通过物料目录计算重量。 / Get the material quantity map, supporting weight calculation via material catalog.
      *
      * @param amountUnit 数量单位 / amount unit
      * @param materialCatalog 物料目录 / material catalog
@@ -933,8 +907,7 @@ data class PackingProgram<V : FloatingNumber<V>>(
     }
 
     /**
-     * 获取物料重量映射，支持通过物料目录计算重量。
-     * Get the material weight map, supporting weight calculation via material catalog.
+     * 获取物料重量映射，支持通过物料目录计算重量。 / Get the material weight map, supporting weight calculation via material catalog.
      *
      * @param materialCatalog 物料目录 / material catalog
      * @return 物料键到重量的映射 / material key to weight map
@@ -954,8 +927,7 @@ data class PackingProgram<V : FloatingNumber<V>>(
     }
 
     /**
-     * 获取指定物料的数量。
-     * Get the amount of a specific material.
+     * 获取指定物料的数量。 / Get the amount of a specific material.
      *
      * @param material 物料键 / material key
      * @return 物料数量 / material amount
@@ -965,8 +937,7 @@ data class PackingProgram<V : FloatingNumber<V>>(
     }
 
     /**
-     * 根据可用物料生成实际包装实例。
-     * Generate an actual package instance based on available materials.
+     * 根据可用物料生成实际包装实例。 / Generate an actual package instance based on available materials.
      *
      * @param materials 可用物料及其数量 / available materials and their amounts
      * @param pending 是否标记为待处理 / whether to mark as pending
@@ -1066,8 +1037,7 @@ data class PackingProgram<V : FloatingNumber<V>>(
 }
 
 /**
- * 包装实例，包含形状、物料、子包装和数量信息。
- * Package instance, containing shape, materials, sub-packages and amount information.
+ * 包装实例，包含形状、物料、子包装和数量信息。 / Package instance, containing shape, materials, sub-packages and amount information.
  *
  * @param V 数值类型 / numeric type
  * @property code 包装代码 / package code
@@ -1091,8 +1061,7 @@ open class Package<V : FloatingNumber<V>>(
 ) {
     companion object {
         /**
-         * 创建外层包装实例。
-         * Create an outer package instance.
+         * 创建外层包装实例。 / Create an outer package instance.
          *
          * @param code 包装代码 / package code
          * @param pattern 包装模式 / package pattern
@@ -1129,8 +1098,7 @@ open class Package<V : FloatingNumber<V>>(
         }
 
         /**
-         * 从装箱程序创建外层包装实例。
-         * Create an outer package instance from a packing program.
+         * 从装箱程序创建外层包装实例。 / Create an outer package instance from a packing program.
          *
          * @param code 包装代码 / package code
          * @param pattern 包装模式 / package pattern
@@ -1168,8 +1136,7 @@ open class Package<V : FloatingNumber<V>>(
         }
 
         /**
-         * 创建内层包装实例。
-         * Create an inner package instance.
+         * 创建内层包装实例。 / Create an inner package instance.
          *
          * @param code 包装代码 / package code
          * @param pattern 包装模式 / package pattern
@@ -1198,8 +1165,7 @@ open class Package<V : FloatingNumber<V>>(
         }
 
         /**
-         * 从装箱程序创建内层包装实例。
-         * Create an inner package instance from a packing program.
+         * 从装箱程序创建内层包装实例。 / Create an inner package instance from a packing program.
          *
          * @param code 包装代码 / package code
          * @param pattern 包装模式 / package pattern
@@ -1251,16 +1217,14 @@ open class Package<V : FloatingNumber<V>>(
     val volume by shape::volume
 
     /**
-     * 在装箱程序下，当前包装中每种物料还缺少的数量。
-     * The remaining amount needed for each material in this package under the packing program.
+     * 在装箱程序下，当前包装中每种物料还缺少的数量。 / The remaining amount needed for each material in this package under the packing program.
     */
     open val enabledHoldingAmount: Map<MaterialKey, UInt64>? by lazy {
         program?.let { enabledHoldingAmount(it) }
     }
 
     /**
-     * 计算在给定装箱程序下，当前包装中每种物料还缺少的数量。
-     * Calculate the remaining amount needed for each material in this package under the given packing program.
+     * 计算在给定装箱程序下，当前包装中每种物料还缺少的数量。 / Calculate the remaining amount needed for each material in this package under the given packing program.
      *
      * @param packingProgram 装箱程序 / packing program
      * @return 物料键到不足数量的映射，若模式不匹配则返回 null / map of material key to shortage amount, or null if pattern doesn't match
@@ -1284,8 +1248,7 @@ open class Package<V : FloatingNumber<V>>(
     }
 
     /**
-     * 检查当前包装在装箱程序下是否已满。
-     * Check if the current package is full under the packing program.
+     * 检查当前包装在装箱程序下是否已满。 / Check if the current package is full under the packing program.
     */
     open val full by lazy {
         program?.let {
@@ -1296,8 +1259,7 @@ open class Package<V : FloatingNumber<V>>(
     }
 
     /**
-     * 检查当前包装在给定装箱程序下是否已满（不缺物料）。
-     * Check if the current package is full under the given packing program (no material shortage).
+     * 检查当前包装在给定装箱程序下是否已满（不缺物料）。 / Check if the current package is full under the given packing program (no material shortage).
      *
      * @param packingProgram 装箱程序 / packing program
      * @return 如果已满返回 true / true if full
@@ -1309,8 +1271,7 @@ open class Package<V : FloatingNumber<V>>(
     }
 
     /**
-     * 检查包装中是否包含指定类型的物料。
-     * Check if the package contains materials of the specified type.
+     * 检查包装中是否包含指定类型的物料。 / Check if the package contains materials of the specified type.
      *
      * @param materialType 物料类型 / material type
      * @return 如果包含返回 true / true if contains

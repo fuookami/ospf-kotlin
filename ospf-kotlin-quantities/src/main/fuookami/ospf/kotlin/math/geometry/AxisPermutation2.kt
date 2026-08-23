@@ -1,17 +1,14 @@
 /**
- * 二维轴置换
- * 2D axis permutation
+ * 二维轴置换 / 2D axis permutation
  *
- * 定义二维坐标轴的置换操作，支持对矩形和包围盒进行轴交换。
- * Defines 2D axis permutation operations, supporting axis swapping for rectangles and bounding boxes.
+ * 定义二维坐标轴的置换操作，支持对矩形和包围盒进行轴交换。 / Defines 2D axis permutation operations, supporting axis swapping for rectangles and bounding boxes.
 */
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 /**
- * 二维轴置换为纯几何概念；仅 apply(...) 与数量模型绑定。
- * 2D axis permutation is pure geometry; only apply(...) binds to quantity models.
+ * 二维轴置换为纯几何概念；仅 apply(...) 与数量模型绑定。 / 2D axis permutation is pure geometry; only apply(...) binds to quantity models.
  *
  * @property widthAxis 宽度对应的轴 / Axis corresponding to width
  * @property heightAxis 高度对应的轴 / Axis corresponding to height
@@ -29,8 +26,7 @@ data class QuantityAxisPermutation2(
     }
 
     /**
-     * 对矩形应用轴置换
-     * Apply axis permutation to a rectangle
+     * 对矩形应用轴置换 / Apply axis permutation to a rectangle
      *
      * @param rectangle 待置换的矩形 / Rectangle to permute
      * @param V 数值类型 / Number type
@@ -44,8 +40,7 @@ data class QuantityAxisPermutation2(
     }
 
     /**
-     * 对圆形应用轴置换（圆形无变化）
-     * Apply axis permutation to a circle (no change for circles)
+     * 对圆形应用轴置换（圆形无变化） / Apply axis permutation to a circle (no change for circles)
      *
      * @param circle 待置换的圆形 / Circle to permute
      * @param V 数值类型 / Number type

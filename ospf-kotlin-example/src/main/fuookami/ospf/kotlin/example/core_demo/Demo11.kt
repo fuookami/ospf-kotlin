@@ -26,8 +26,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 }
 
 /**
- * 最大流问题：在容量网络中找到从源到汇的最大流。
- * Maximum flow problem: find the maximum flow from source to sink in a capacitated network.
+ * 最大流问题：在容量网络中找到从源到汇的最大流。 / Maximum flow problem: find the maximum flow from source to sink in a capacitated network.
  *
  * @see https://fuookami.github.io/ospf/examples/example11.html
 */
@@ -223,7 +222,7 @@ data object Demo11 {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
             is Ok -> {
-                metaModel.tokens.setSolution(ret.value.solution)
+                metaModel.tokens.setSolution(ret.value.values)
             }
 
             is Failed -> {

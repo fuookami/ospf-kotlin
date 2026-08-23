@@ -7,11 +7,9 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**
- * 列聚合（按迭代分组）
- * Column Aggregation (grouped by iteration)
+ * 列聚合（按迭代分组） / Column Aggregation (grouped by iteration)
  *
- * 管理产能列的聚合，支持按迭代分组和去重。
- * Manages aggregation of capacity columns with iteration grouping and deduplication.
+ * 管理产能列的聚合，支持按迭代分组和去重。 / Manages aggregation of capacity columns with iteration grouping and deduplication.
  *
  * @param E 执行器类型 / Executor type
  * @param A 生产动作类型 / Production action type
@@ -24,37 +22,32 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction, V : RealNumb
 ) {
 
     /**
-     * 按迭代分组的列
-     * Columns grouped by iteration
+     * 按迭代分组的列 / Columns grouped by iteration
     */
     val columnsIteration: List<List<CapacityColumn<E, A, V>>> by ::_columnsIteration
 
     /**
-     * 所有列（扁平化）
-     * All columns (flattened)
+     * 所有列（扁平化） / All columns (flattened)
     */
     val columns: List<CapacityColumn<E, A, V>> by ::_columns
 
     /**
-     * 已移除的列
-     * Removed columns
+     * 已移除的列 / Removed columns
     */
     val removedColumns: Set<CapacityColumn<E, A, V>> by ::_removedColumns
 
     /**
-     * 最新迭代的列
-     * Columns from last iteration
+     * 最新迭代的列 / Columns from last iteration
     */
     val lastIterationColumns: List<CapacityColumn<E, A, V>>
         get() = _columnsIteration.lastOrNull { it.isNotEmpty() } ?: emptyList()
 
     /**
-     * 添加新列
-     * Add new columns
+     * 添加新列 / Add new columns
      *
-     * @param iteration Iteration number / 迭代号
-     * @param newColumns New columns to add / 要添加的新列
-     * @return Unduplicated columns / 去重后的列
+     * @param iteration 迭代号 / Iteration number
+     * @param newColumns 要添加的新列 / New columns to add
+     * @return 去重后的列 / Unduplicated columns
     */
     suspend fun addColumns(
         iteration: UInt64,
@@ -109,10 +102,9 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction, V : RealNumb
     }
 
     /**
-     * 移除列
-     * Remove a column
+     * 移除列 / Remove a column
      *
-     * @param column Column to remove / 要移除的列
+     * @param column 要移除的列 / Column to remove
     */
     fun removeColumn(column: CapacityColumn<E, A, V>) {
         if (!_removedColumns.contains(column)) {
@@ -122,10 +114,9 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction, V : RealNumb
     }
 
     /**
-     * 批量移除列
-     * Remove multiple columns
+     * 批量移除列 / Remove multiple columns
      *
-     * @param columns Columns to remove / 要移除的列列表
+     * @param columns 要移除的列列表 / Columns to remove
     */
     fun removeColumns(columns: List<CapacityColumn<E, A, V>>) {
         for (column in columns) {
@@ -134,8 +125,7 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction, V : RealNumb
     }
 
     /**
-     * 清空所有列
-     * Clear all columns
+     * 清空所有列 / Clear all columns
     */
     fun clear() {
         _columnsIteration.clear()
@@ -144,11 +134,10 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction, V : RealNumb
     }
 
     /**
-     * 列相等比较
-     * Column equality comparison
+     * 列相等比较 / Column equality comparison
      *
-     * @param other Column to compare / 要比较的列
-     * @return Whether columns are not equal / 列是否不相等
+     * @param other 要比较的列 / Column to compare
+     * @return 列是否不相等 / Whether columns are not equal
     */
     private infix fun CapacityColumn<E, A, V>.neq(other: CapacityColumn<E, A, V>): Boolean {
         if (this.executor != other.executor) return true

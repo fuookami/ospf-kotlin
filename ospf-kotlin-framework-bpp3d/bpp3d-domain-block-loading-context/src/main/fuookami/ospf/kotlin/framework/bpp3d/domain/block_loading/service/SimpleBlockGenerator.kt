@@ -1,6 +1,5 @@
 /**
- * 简单块生成器。
- * Simple block generator.
+ * 简单块生成器。 / Simple block generator.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
@@ -35,10 +34,10 @@ class SimpleBlockGenerator(
 /**
  * new.
  * new。
- * @param mergeAsPatternBlock whether to merge as pattern block / 是否合并为模式块
- * @param withRotation whether to consider rotated orientations / 是否考虑旋转姿态
- * @param withRemainder whether to generate remainder blocks / 是否生成余数块
- * @return new Config with updated values / 更新后的新配置
+ * @param mergeAsPatternBlock 是否合并为模式块 / whether to merge as pattern block
+ * @param withRotation 是否考虑旋转姿态 / whether to consider rotated orientations
+ * @param withRemainder 是否生成余数块 / whether to generate remainder blocks
+ * @return 更新后的新配置 / new Config with updated values
 */
         fun new(
             mergeAsPatternBlock: Boolean? = null,
@@ -55,8 +54,8 @@ class SimpleBlockGenerator(
 /**
  * new.
  * new。
- * @param builder config builder / 配置构建器
- * @return new Config with updated values / 更新后的新配置
+ * @param builder 配置构建器 / config builder
+ * @return 更新后的新配置 / new Config with updated values
 */
         fun new(
             builder: ConfigBuilder
@@ -96,8 +95,8 @@ class SimpleBlockGenerator(
 /**
  * Builds config.
  * 构建Config。
- * @param builder config builder / 配置构建器
- * @return ConfigBuilder with applied values / 应用值后的配置构建器
+ * @param builder 配置构建器 / config builder
+ * @return 应用值后的配置构建器 / ConfigBuilder with applied values
 */
         fun buildConfig(builder: ConfigBuilder.() -> Unit): ConfigBuilder {
             val config = ConfigBuilder()
@@ -250,14 +249,14 @@ class SimpleBlockGenerator(
 /**
  * simpleBlocks.
  * simpleBlocks。
- * @param item item to evaluate / 待评估的货物
- * @param amount available item quantity / 可用货物数量
- * @param orientation item placement orientation / 货物放置姿态
+ * @param item 待评估的货物 / item to evaluate
+ * @param amount 可用货物数量 / available item quantity
+ * @param orientation 货物放置姿态 / item placement orientation
  * @param maxXAmount maximum item count along X / X 方向最大数量
  * @param maxYAmount maximum item count along Y / Y 方向最大数量
  * @param minZAmount minimum item count along Z / Z 方向最小数量
  * @param maxZAmount maximum item count along Z / Z 方向最大数量
- * @return list of generated blocks / 生成的块列表
+ * @return 生成的块列表 / list of generated blocks
 */
     private fun simpleBlocks(
         item: Item,
@@ -465,24 +464,24 @@ class SimpleBlockGenerator(
 /**
  * xUnit.
  * xUnit。
- * @param item item to evaluate / 待评估的货物
- * @param orientation item placement orientation / 货物放置姿态
+ * @param item 待评估的货物 / item to evaluate
+ * @param orientation 货物放置姿态 / item placement orientation
 */
     private fun xUnit(item: Item, orientation: Orientation) = orientation.width(item).unit
 
 /**
  * yUnit.
  * yUnit。
- * @param item item to evaluate / 待评估的货物
- * @param orientation item placement orientation / 货物放置姿态
+ * @param item 待评估的货物 / item to evaluate
+ * @param orientation 货物放置姿态 / item placement orientation
 */
     private fun yUnit(item: Item, orientation: Orientation) = orientation.height(item).unit
 
 /**
  * zUnit.
  * zUnit。
- * @param item item to evaluate / 待评估的货物
- * @param orientation item placement orientation / 货物放置姿态
+ * @param item 待评估的货物 / item to evaluate
+ * @param orientation 货物放置姿态 / item placement orientation
 */
     private fun zUnit(item: Item, orientation: Orientation) = orientation.depth(item).unit
 }

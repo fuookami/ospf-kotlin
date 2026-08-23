@@ -1,27 +1,51 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
+import fuookami.ospf.kotlin.core.solver.toSolveReport
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.test.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlinx.coroutines.runBlocking
+import fuookami.ospf.kotlin.core.solver.report.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.variable.URealVar
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.csp1d.application.model.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.model.Pipeline
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.solver.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
@@ -807,7 +831,7 @@ class Csp1dExtraPipelineTest {
             toLogModel: Boolean,
             registrationStatusCallBack: RegistrationStatusCallBack?,
             solvingStatusCallBack: SolvingStatusCallBack?
-        ): Ret<Flt64FeasibleSolverOutput> {
+        ): Ret<Flt64SolveReport> {
             captureConstraintNames(metaModel)
             return Ok(captureFakeFeasibleOutput(metaModel))
         }
@@ -837,14 +861,14 @@ class Csp1dExtraPipelineTest {
             }
         }
 
-        private fun captureFakeFeasibleOutput(metaModel: Flt64LinearMetaModel): Flt64FeasibleSolverOutput {
+        private fun captureFakeFeasibleOutput(metaModel: Flt64LinearMetaModel): Flt64SolveReport {
             val size = metaModel.tokens.tokensInSolver.size
             val solution: Solution<Flt64> = (0 until size).map { Flt64(1.0) }
-            return FeasibleSolverOutput(
-                obj = Flt64.zero,
-                solution = solution,
-                time = Duration.ZERO,
-                possibleBestObj = Flt64.zero,
+            return SolverStatus.Feasible.toSolveReport(
+                objective = Flt64.zero,
+                values = solution,
+                solveTime = Duration.ZERO,
+                bestBound = Flt64.zero,
                 gap = Flt64.zero
             )
         }
@@ -865,7 +889,7 @@ class Csp1dExtraPipelineTest {
             toLogModel: Boolean,
             registrationStatusCallBack: RegistrationStatusCallBack?,
             solvingStatusCallBack: SolvingStatusCallBack?
-        ): Ret<Flt64FeasibleSolverOutput> {
+        ): Ret<Flt64SolveReport> {
             captureConstraintNames(metaModel)
             return Failed(ErrorCode.ApplicationError, "forced final MILP failure for partial path test")
         }
@@ -895,14 +919,14 @@ class Csp1dExtraPipelineTest {
             }
         }
 
-        private fun captureFakeFeasibleOutput(metaModel: Flt64LinearMetaModel): Flt64FeasibleSolverOutput {
+        private fun captureFakeFeasibleOutput(metaModel: Flt64LinearMetaModel): Flt64SolveReport {
             val size = metaModel.tokens.tokensInSolver.size
             val solution: Solution<Flt64> = (0 until size).map { Flt64(1.0) }
-            return FeasibleSolverOutput(
-                obj = Flt64.zero,
-                solution = solution,
-                time = Duration.ZERO,
-                possibleBestObj = Flt64.zero,
+            return SolverStatus.Feasible.toSolveReport(
+                objective = Flt64.zero,
+                values = solution,
+                solveTime = Duration.ZERO,
+                bestBound = Flt64.zero,
                 gap = Flt64.zero
             )
         }

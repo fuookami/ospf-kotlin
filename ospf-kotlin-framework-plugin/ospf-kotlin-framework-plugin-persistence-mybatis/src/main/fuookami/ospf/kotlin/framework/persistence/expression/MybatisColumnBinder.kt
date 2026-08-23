@@ -2,8 +2,7 @@
  * MyBatis 列绑定器
  * MyBatis column binder
  *
- * 提供基于 MyBatis 的强类型列绑定能力。
- * Provides strong-typed column binding based on MyBatis.
+ * 提供基于 MyBatis 的强类型列绑定能力。 / Provides strong-typed column binding based on MyBatis.
  *
  * 使用方式 / Usage:
  * ```kotlin
@@ -24,8 +23,7 @@ import fuookami.ospf.kotlin.utils.meta_programming.NameTransfer
 import fuookami.ospf.kotlin.utils.meta_programming.NamingSystem
 
 /**
- * MyBatis 列名解析器函数类型
- * MyBatis column name resolver function type
+ * MyBatis 列名解析器函数类型 / MyBatis column name resolver function type
 */
 typealias MybatisColumnNameResolver = PersistenceFieldResolver<String>
 
@@ -42,8 +40,7 @@ class MybatisColumnBinder(
 ) : ColumnBinder<String> {
 
     /**
-     * 解析属性路径为后端列名
-     * Resolve property path to backend column name
+     * 解析属性路径为后端列名 / Resolve property path to backend column name
      *
      * @param path 属性路径 / Property path
      * @return 后端列名，无映射时回退到蛇形命名转换 / Backend column name, falls back to snake_case conversion when no mapping found
@@ -59,7 +56,7 @@ class MybatisColumnBinder(
  *
  * @return MyBatis 列名解析器 / MyBatis column name resolver
 */
-fun MybatisColumnBinder.asMybatisResolver(): MybatisColumnNameResolver = { path -> resolve(path) }
+fun MybatisColumnBinder.asMybatisResolver(): MybatisColumnNameResolver = MybatisColumnNameResolver { path -> resolve(path) }
 
 /**
  * 从 HasColumnMapping 创建 MybatisColumnNameResolver
@@ -74,7 +71,7 @@ fun MybatisColumnBinder.asMybatisResolver(): MybatisColumnNameResolver = { path 
 */
 fun HasColumnMapping.mybatisResolver(): MybatisColumnNameResolver {
     val binder = MybatisColumnBinder(columnMapping)
-    return { path -> binder.resolve(path) }
+    return MybatisColumnNameResolver { path -> binder.resolve(path) }
 }
 
 /**
@@ -86,5 +83,5 @@ fun HasColumnMapping.mybatisResolver(): MybatisColumnNameResolver {
 */
 fun mybatisResolver(columnMapping: Map<String, String>): MybatisColumnNameResolver {
     val binder = MybatisColumnBinder(columnMapping)
-    return { path -> binder.resolve(path) }
+    return MybatisColumnNameResolver { path -> binder.resolve(path) }
 }

@@ -1,6 +1,5 @@
 /**
- * 语义参数基础设施。
- * Semantic parameter infrastructure.
+ * 语义参数基础设施。 / Semantic parameter infrastructure.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
@@ -31,8 +30,8 @@ value class PackagePattern(private val code: String) {
 /**
  * belong.
  * belong。
- * @param ano another package pattern to check containment against / 用于判断包含关系的另一个包装模式
- * @return whether this pattern is a prefix of the other / 此模式是否为另一个模式的前缀
+ * @param ano 用于判断包含关系的另一个包装模式 / another package pattern to check containment against
+ * @return 此模式是否为另一个模式的前缀 / whether this pattern is a prefix of the other
 */
 
     infix fun belong(ano: PackagePattern): Boolean {
@@ -54,8 +53,8 @@ value class PackageCode(private val code: String) {
 /**
  * belong.
  * belong。
- * @param ano another package code to check containment against / 用于判断包含关系的另一个包装代码
- * @return whether this code is a prefix of the other / 此代码是否为另一个代码的前缀
+ * @param ano 用于判断包含关系的另一个包装代码 / another package code to check containment against
+ * @return 此代码是否为另一个代码的前缀 / whether this code is a prefix of the other
 */
 
     infix fun belong(ano: PackageCode): Boolean {

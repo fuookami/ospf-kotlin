@@ -1,6 +1,5 @@
 /**
- * 幂函敌
- * Power Functions
+ * 幂函敌 / Power Functions
  *
  * 为实数类型提供整数指数幂和浮点指数幂的高精度计算。
  * 整数指数幌pow(base, index)：使用快速幂算法（二分递归），
@@ -103,8 +102,7 @@ private tailrec fun <T : TimesGroup<T>> powNegImpl(
 }
 
 /**
- * 计算正整数指数幂，使用快速幂算法（不支持负指数）
- * Compute positive integer exponent power using fast power algorithm
+ * 计算正整数指数幂，使用快速幂算法（不支持负指数） / Compute positive integer exponent power using fast power algorithm
  *
  * @param base 底数 / Base
  * @param index 指数（正整数） / Exponent (positive integer)
@@ -130,8 +128,7 @@ fun <T> pow(
 }
 
 /**
- * 安全计算正整数指数幂，使用快速幂算法（不支持负指数）
- * Safely computes positive integer exponent power using fast power algorithm
+ * 安全计算正整数指数幂，使用快速幂算法（不支持负指数） / Safely computes positive integer exponent power using fast power algorithm
  *
  * @param base 底数 / Base
  * @param index 指数（正整数） / Exponent (positive integer)
@@ -161,8 +158,7 @@ fun <T> powSafe(
 }
 
 /**
- * 尝试计算正整数指数幂，负指数返回 null
- * Tries to compute positive integer exponent power; returns null for negative exponent
+ * 尝试计算正整数指数幂，负指数返回 null / Tries to compute positive integer exponent power; returns null for negative exponent
  *
  * @param base 底数 / Base
  * @param index 指数（正整数） / Exponent (positive integer)
@@ -194,8 +190,7 @@ fun <T> powOrNull(
 }
 
 /**
- * 计算整数指数幂（支持负指数），使用快速幂算法
- * Compute integer exponent power (supports negative), using fast power
+ * 计算整数指数幂（支持负指数），使用快速幂算法 / Compute integer exponent power (supports negative), using fast power
  *
  * @param base 底数 / Base
  * @param index 指数 / Exponent
@@ -233,8 +228,7 @@ fun <T> pow(
 }
 
 /**
- * 计算正整数指数幂（自动解析常量）
- * Compute positive integer exponent power (auto-resolve constants)
+ * 计算正整数指数幂（自动解析常量） / Compute positive integer exponent power (auto-resolve constants)
  *
  * @param base 底数 / Base
  * @param index 指数（正整数） / Exponent (positive integer)
@@ -260,8 +254,7 @@ inline fun <reified T> pow(
 }
 
 /**
- * 安全计算正整数指数幂（自动解析常量）
- * Safely computes positive integer exponent power (auto-resolve constants)
+ * 安全计算正整数指数幂（自动解析常量） / Safely computes positive integer exponent power (auto-resolve constants)
  *
  * @param base 底数 / Base
  * @param index 指数（正整数） / Exponent (positive integer)
@@ -287,8 +280,7 @@ inline fun <reified T> powSafe(
 }
 
 /**
- * 尝试计算正整数指数幂（自动解析常量）
- * Tries to compute positive integer exponent power (auto-resolve constants)
+ * 尝试计算正整数指数幂（自动解析常量） / Tries to compute positive integer exponent power (auto-resolve constants)
  *
  * @param base 底数 / Base
  * @param index 指数（正整数） / Exponent (positive integer)
@@ -313,8 +305,7 @@ inline fun <reified T> powOrNull(
 }
 
 /**
- * 计算整数指数幂（支持负指数，自动解析常量）
- * Compute integer exponent power (auto-resolve constants)
+ * 计算整数指数幂（支持负指数，自动解析常量） / Compute integer exponent power (auto-resolve constants)
  *
  * @param base 底数 / Base
  * @param index 指数 / Exponent
@@ -340,8 +331,7 @@ inline fun <reified T> pow(
 }
 
 /**
- * 计算浮点指数幂，通过 ln 和 exp 实现
- * Compute floating-point exponent power via ln and exp
+ * 计算浮点指数幂，通过 ln 和 exp 实现 / Compute floating-point exponent power via ln and exp
  *
  * @param base 底数 / Base
  * @param index 浮点指数 / Floating-point exponent
@@ -372,8 +362,7 @@ fun <T : FloatingNumber<T>> powf(
 }
 
 /**
- * 计算浮点指数幂（自动解析常量）
- * Compute floating-point exponent power (auto-resolve constants)
+ * 计算浮点指数幂（自动解析常量） / Compute floating-point exponent power (auto-resolve constants)
  *
  * @param base 底数 / Base
  * @param index 浮点指数 / Floating-point exponent
@@ -399,8 +388,7 @@ inline fun <reified T : FloatingNumber<T>> powf(
 }
 
 /**
- * 计算指数函数 exp(index)，使用泰勒级数展开
- * Compute exponential function exp(index) using Taylor series
+ * 计算指数函数 exp(index)，使用泰勒级数展开 / Compute exponential function exp(index) using Taylor series
  *
  * @param index 指数 / Exponent
  * @param constants 浮点数常量提供器 / Floating number constants provider
@@ -432,8 +420,7 @@ fun <T : FloatingNumber<T>> exp(
 }
 
 /**
- * 计算指数函数 exp(index)（自动解析常量）
- * Compute exponential function (auto-resolve constants)
+ * 计算指数函数 exp(index)（自动解析常量） / Compute exponential function (auto-resolve constants)
  *
  * @param index 指数 / Exponent
  * @param digits 精度位数 / Number of precision digits

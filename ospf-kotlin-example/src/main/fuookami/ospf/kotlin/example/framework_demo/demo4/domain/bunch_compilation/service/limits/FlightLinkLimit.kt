@@ -30,8 +30,8 @@ private data class FlightLinkShadowPriceKey(
 /**
  * 实现列生成航班链接约束和最小化的管线。Pipeline implementing flight link constraints and minimization for column generation.
  *
- * @property flightLink Flight link model / 航班连接模型
- * @property coefficient Penalty coefficient function / 惩罚系数函数
+ * @property flightLink 航班连接模型 / Flight link model
+ * @property coefficient 惩罚系数函数 / Penalty coefficient function
 */
 class FlightLinkLimit(
     private val flightLink: FlightLink,
@@ -42,8 +42,8 @@ class FlightLinkLimit(
     /**
      * 向模型添加航班连接约束和最小化目标。/ Adds flight link constraints and minimization objective to the model.
      *
-     * @param model Linear meta model / 线性元模型
-     * @return Invocation result / 调用结果
+     * @param model 线性元模型 / Linear meta model
+     * @return 调用结果 / Invocation result
     */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((k, _) in flightLink.links.withIndex()) {
@@ -64,13 +64,12 @@ class FlightLinkLimit(
             }
         }
 
-        val poly = MutableLinearPolynomial()
-        for ((k, link) in flightLink.links.withIndex()) {
-            poly += LinearMonomial(coefficient(link), flightLink.slack[k])
-        }
+        val poly = sum(flightLink.links.withIndex().map { (k, link) ->
+            coefficient(link) * flightLink.slack[k]
+        })
 
         when (val result = model.minimize(
-            LinearExpressionSymbol(LinearPolynomial(poly.monomials, poly.constant)),
+            LinearExpressionSymbol(poly),
             name = "link"
         )) {
             is Ok -> {}
@@ -90,10 +89,10 @@ class FlightLinkLimit(
     /**
      * 返回航班连接约束的影子价格提取器。/ Returns the shadow price extractor for flight link constraints.
      *
-     * @return Shadow price extractor / 影子价格提取器
+     * @return 影子价格提取器 / Shadow price extractor
     */
     override fun extractor(): ShadowPriceExtractor? {
-        return { map, args: ShadowPriceArguments ->
+        return ShadowPriceExtractor { map, args: ShadowPriceArguments ->
             when (args) {
                 is TaskShadowPriceArguments -> {
                     if (args.prevTask is FlightTask && args.task is FlightTask) {
@@ -120,10 +119,10 @@ class FlightLinkLimit(
     /**
      * 用求解模型的对偶值刷新影子价格映射。/ Refreshes the shadow price map with dual values from the solved model.
      *
-     * @param shadowPriceMap Shadow price map / 影子价格映射
-     * @param model Solved linear meta model / 已求解的线性元模型
-     * @param shadowPrices Dual solution values / 对偶解值
-     * @return Refresh result / 刷新结果
+     * @param shadowPriceMap 影子价格映射 / Shadow price map
+     * @param model 已求解的线性元模型 / Solved linear meta model
+     * @param shadowPrices 对偶解值 / Dual solution values
+     * @return 刷新结果 / Refresh result
     */
     override fun refresh(
         shadowPriceMap: ShadowPriceMap,

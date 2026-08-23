@@ -18,8 +18,8 @@ typealias ShadowPriceMap = GanttSchedulingShadowPriceMap<Aircraft, FlightTaskAss
 /** Looks up the shadow price for a specific aircraft.
  * 查找特定飞机的影子价格。
  *
- * @param aircraft The aircraft whose shadow price is looked up / 要查找影子价格的飞机
- * @return The shadow price value for the aircraft / 飞机的影子价格值
+ * @param aircraft 要查找影子价格的飞机 / The aircraft whose shadow price is looked up
+ * @return 飞机的影子价格值 / The shadow price value for the aircraft
 */
 operator fun ShadowPriceMap.invoke(
     aircraft: Aircraft,
@@ -30,8 +30,8 @@ operator fun ShadowPriceMap.invoke(
 /** Looks up the shadow price for a specific flight task.
  * 查找特定航班任务的影子价格。
  *
- * @param task The flight task whose shadow price is looked up / 要查找影子价格的航班任务
- * @return The shadow price value for the flight task / 航班任务的影子价格值
+ * @param task 要查找影子价格的航班任务 / The flight task whose shadow price is looked up
+ * @return 航班任务的影子价格值 / The shadow price value for the flight task
 */
 operator fun ShadowPriceMap.invoke(
     task: FlightTask
@@ -42,9 +42,9 @@ operator fun ShadowPriceMap.invoke(
 /** Looks up the shadow price for a task pair (previous and current).
  * 查找任务对（前一个和当前）的影子价格。
  *
- * @param prevTask The previous flight task, or null / 前一个航班任务，或 null
- * @param task The current flight task, or null / 当前航班任务，或 null
- * @return The shadow price value for the task pair / 任务对的影子价格值
+ * @param prevTask 前一个航班任务，或 null / The previous flight task, or null
+ * @param task 当前航班任务，或 null / The current flight task, or null
+ * @return 任务对的影子价格值 / The shadow price value for the task pair
 */
 operator fun ShadowPriceMap.invoke(
     prevTask: FlightTask?,
@@ -60,8 +60,8 @@ operator fun ShadowPriceMap.invoke(
 /** Computes the reduced cost of a bunch using shadow prices.
  * 使用影子价格计算批次的缩减成本。
  *
- * @param bunch The flight task bunch whose reduced cost is computed / 要计算缩减成本的航班任务束
- * @return The reduced cost value for the bunch / 批次的缩减成本值
+ * @param bunch 要计算缩减成本的航班任务束 / The flight task bunch whose reduced cost is computed
+ * @return 批次的缩减成本值 / The reduced cost value for the bunch
 */
 fun ShadowPriceMap.reducedCost(
     bunch: FlightTaskBunch

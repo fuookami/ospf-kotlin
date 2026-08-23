@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 
 @DisplayName("MybatisScalarTranslator Tests / MyBatis 标量翻译器测试")
 class MybatisScalarTranslatorTest {
-    private val resolver: MybatisColumnNameResolver = { path: String ->
+    private val resolver = MybatisColumnNameResolver { path: String ->
         when (path.substringAfterLast(".")) {
             "price" -> "price"
             "quantity" -> "quantity"
@@ -69,7 +69,7 @@ class MybatisScalarTranslatorTest {
         val result = failFastTranslator.translate(ScalarCustom<Int>("x"))
 
         assertTrue(result.failed)
-        assertTrue(result is Failed<*, *, *>)
+        assertTrue(result is Failed)
 
         val failed = result as Failed<*, *, *>
         val error = failed.error

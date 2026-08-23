@@ -1,6 +1,5 @@
 /**
- * 列生成标准执行器。
- * Column generation standard executors.
+ * 列生成标准执行器。 / Column generation standard executors.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
@@ -22,8 +21,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.*
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 
 /**
- * 列生成标准执行器配置。
- * Column generation standard executor configuration.
+ * 列生成标准执行器配置。 / Column generation standard executor configuration.
  *
  * @property rmpSolveNamePrefix RMP 求解名称前缀 / RMP solve name prefix
  * @property finalSolveNamePrefix 最终求解名称前缀 / final solve name prefix
@@ -138,8 +136,7 @@ fun interface ColumnGenerationFinalModelExtension {
 }
 
 /**
- * 列生成标准执行器，提供 RMP 求解器、最终 MILP 求解器和请求构建器。
- * Column generation standard executors, provides RMP solver, final MILP solver and request builder.
+ * 列生成标准执行器，提供 RMP 求解器、最终 MILP 求解器和请求构建器。 / Column generation standard executors, provides RMP solver, final MILP solver and request builder.
  *
  * @property solver 列生成求解器 / column generation solver
  * @property itemDemands 货物需求 / item demands
@@ -156,8 +153,7 @@ class ColumnGenerationStandardExecutors(
 ) {
     companion object {
         /**
-         * 从需求条目创建执行器。
-         * Create executor from demand entries.
+         * 从需求条目创建执行器。 / Create executor from demand entries.
          *
          * @param solver 列生成求解器 / column generation solver
          * @param itemDemands 货物需求 / item demands
@@ -183,8 +179,7 @@ class ColumnGenerationStandardExecutors(
         }
 
         /**
-         * 从量纲需求条目创建执行器。
-         * Create executor from quantity demand entries.
+         * 从量纲需求条目创建执行器。 / Create executor from quantity demand entries.
          *
          * @param T 量纲数值类型 / quantity numeric type
          * @param solver 列生成求解器 / column generation solver
@@ -220,8 +215,7 @@ class ColumnGenerationStandardExecutors(
     }
 
     /**
-     * 创建 RMP 求解器。
-     * Create RMP solver.
+     * 创建 RMP 求解器。 / Create RMP solver.
      *
      * @param modelExtensions RMP 建模扩展 / RMP model extensions
      * @param solutionExtensions RMP 对偶提取扩展 / RMP solution extensions
@@ -299,13 +293,13 @@ class ColumnGenerationStandardExecutors(
             }
             Ok(ColumnGenerationLpResult(
                 shadowPrices = shadowPrices,
-                objective = FltX(solved.obj.toDouble()),
+                objective = solved.result.solution?.objective ?: FltX.zero,
                 info = mapOf(
                     "solver" to solver.name,
                     "model" to artifacts.model.name,
-                    "lp_time_ms" to solved.time.inWholeMilliseconds.toString(),
-                    "lp_gap" to solved.gap.toString(),
-                    "lp_objective" to solved.obj.toString(),
+                    "lp_time_ms" to (solved.result.statistics.solveTime?.inWholeMilliseconds ?: 0L).toString(),
+                    "lp_gap" to (solved.result.statistics.gap ?: Flt64.zero).toString(),
+                    "lp_objective" to (solved.result.solution?.objective ?: FltX.zero).toString(),
                     "continuous_radius_solver_prototype_count" to state.continuousRadiusSolverPrototypes.size.toString(),
                     "continuous_radius_solver_prototype_variables" to state.continuousRadiusSolverPrototypes.joinToString("|") { it.variableName }
                 ) + extensionInfo + artifacts.continuousRadiusComponent.info()
@@ -319,8 +313,7 @@ class ColumnGenerationStandardExecutors(
     }
 
     /**
-     * 创建最终 MILP 求解器。
-     * Create final MILP solver.
+     * 创建最终 MILP 求解器。 / Create final MILP solver.
      *
      * @param modelExtensions 最终 MILP 建模扩展 / Final MILP model extensions
      * @return 最终 MILP 求解器 / final MILP solver
@@ -451,7 +444,7 @@ class ColumnGenerationStandardExecutors(
             if (milpResult is Failed) return@ColumnGenerationFinalSolver Failed(milpResult.error)
             if (milpResult is Fatal) return@ColumnGenerationFinalSolver Fatal(milpResult.errors)
             val solved = (milpResult as Ok).value
-            model.setSolution(normalizeScalarSolution(solved.solution).value!!)
+            model.setSolution(normalizeScalarSolution(solved.values).value!!)
             val selectedBins = when (val result = collectSelectedBins(model, bins, state.columns, assignment)) {
                 is Ok -> result.value
                 is Failed -> return@ColumnGenerationFinalSolver Failed(result.error)
@@ -471,13 +464,13 @@ class ColumnGenerationStandardExecutors(
             Ok(ColumnGenerationFinalResult(
                 columns = if (selectedColumns.isNotEmpty()) selectedColumns else state.columns,
                 bins = selectedBins,
-                objective = FltX(solved.obj.toDouble()),
+                objective = solved.solution?.objective ?: FltX.zero,
                 info = mapOf(
                     "solver" to solver.name,
                     "model" to model.name,
-                    "milp_time_ms" to solved.time.inWholeMilliseconds.toString(),
-                    "milp_gap" to solved.gap.toString(),
-                    "milp_objective" to solved.obj.toString(),
+                    "milp_time_ms" to (solved.statistics.solveTime?.inWholeMilliseconds ?: 0L).toString(),
+                    "milp_gap" to (solved.statistics.gap ?: Flt64.zero).toString(),
+                    "milp_objective" to (solved.solution?.objective ?: FltX.zero).toString(),
                     "selected_bin_count" to selectedBins.size.toString(),
                     "selected_layer_count" to selectedColumns.size.toString(),
                     "continuous_radius_solver_prototype_count" to state.continuousRadiusSolverPrototypes.size.toString(),
@@ -493,8 +486,7 @@ class ColumnGenerationStandardExecutors(
     }
 
     /**
-     * 创建层请求构建器。
-     * Create layer request builder.
+     * 创建层请求构建器。 / Create layer request builder.
      *
      * @return 层请求构建器 / layer request builder
     */
@@ -529,8 +521,7 @@ class ColumnGenerationStandardExecutors(
     }
 
     /**
-     * RMP 求解构件，包含线性元模型、货物需求约束和连续半径模型组件。
-     * RMP solving artifacts, containing the linear meta model, item demand constraint and continuous radius model component.
+     * RMP 求解构件，包含线性元模型、货物需求约束和连续半径模型组件。 / RMP solving artifacts, containing the linear meta model, item demand constraint and continuous radius model component.
      *
      * @property model 线性元模型 / linear meta model
      * @property demandConstraint 货物需求约束 / item demand constraint
@@ -545,8 +536,7 @@ class ColumnGenerationStandardExecutors(
     )
 
     /**
-     * 构建 RMP 所需的模型构件。
-     * Build the model artifacts required for RMP.
+     * 构建 RMP 所需的模型构件。 / Build the model artifacts required for RMP.
      *
      * @param state 列生成状态 / column generation state
      * @return RMP 构件 / RMP artifacts
@@ -642,8 +632,7 @@ class ColumnGenerationStandardExecutors(
     }
 
     /**
-     * 从求解结果中收集选中的列。
-     * Collect selected columns from the solve result.
+     * 从求解结果中收集选中的列。 / Collect selected columns from the solve result.
      *
      * @param model 线性元模型 / linear meta model
      * @param columns 层列列表 / layer column list
@@ -671,8 +660,7 @@ class ColumnGenerationStandardExecutors(
     }
 
     /**
-     * 从求解结果中收集选中的箱子。
-     * Collect selected bins from the solve result.
+     * 从求解结果中收集选中的箱子。 / Collect selected bins from the solve result.
      *
      * @param model 线性元模型 / linear meta model
      * @param bins 候选箱子列表 / candidate bin list
@@ -720,8 +708,7 @@ class ColumnGenerationStandardExecutors(
     }
 
     /**
-     * 当未提供最终箱子时，从列中生成回退最终箱子。
-     * Generate fallback final bins from columns when no final bins are provided.
+     * 当未提供最终箱子时，从列中生成回退最终箱子。 / Generate fallback final bins from columns when no final bins are provided.
      *
      * @param columns 层列列表 / layer column list
      * @return 回退最终箱子列表 / fallback final bin list
@@ -737,8 +724,7 @@ class ColumnGenerationStandardExecutors(
     }
 
     /**
-     * 从模型中提取变量对应的令牌值。
-     * Extract the token value for a variable from the model.
+     * 从模型中提取变量对应的令牌值。 / Extract the token value for a variable from the model.
      *
      * @param model 线性元模型 / linear meta model
      * @param variable 抽象变量项 / abstract variable item
@@ -753,8 +739,7 @@ class ColumnGenerationStandardExecutors(
     }
 
     /**
-     * 标准化标量解决方案。
-     * Normalize scalar solution.
+     * 标准化标量解决方案。 / Normalize scalar solution.
      *
      * @param values 原始解值列表 / raw solution value list
      * @return 标准化后的 FltX 列表 / normalized FltX list
@@ -770,8 +755,7 @@ class ColumnGenerationStandardExecutors(
     }
 
     /**
-     * 创建新的线性元模型。
-     * Create a new linear meta model.
+     * 创建新的线性元模型。 / Create a new linear meta model.
      *
      * @param name 模型名称 / model name
      * @return 线性元模型 / linear meta model

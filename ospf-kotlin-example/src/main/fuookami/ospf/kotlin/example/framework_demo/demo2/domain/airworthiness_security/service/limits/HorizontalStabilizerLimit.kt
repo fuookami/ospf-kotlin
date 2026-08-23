@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -14,8 +15,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 /**
  * 约束水平安定面配平在最小/最大边界内（在推荐模式下使用警告限制）。Constrains horizontal stabilizer trim within min/max bounds, using warning limits in recommendation mode.
  *
- * @property horizontalStabilizers The horizontal stabilizer trim data per key / 各键对应的水平安定面配平数据
- * @property stowageMode The stowage mode determining which limits to apply / 决定应用哪些限制的装载模式
+ * @property horizontalStabilizers 各键对应的水平安定面配平数据 / The horizontal stabilizer trim data per key
+ * @property stowageMode 决定应用哪些限制的装载模式 / The stowage mode determining which limits to apply
 */
 class HorizontalStabilizerLimit(
     private val horizontalStabilizers: Map<HorizontalStabilizer.Key, HorizontalStabilizer>,
@@ -24,66 +25,69 @@ class HorizontalStabilizerLimit(
 ) : Pipeline<AbstractLinearMetaModel<Flt64>> {
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((key, horizontalStabilizer) in horizontalStabilizers) {
-            if (stowageMode == StowageMode.WeightRecommendation && horizontalStabilizer.limit.warnMaxTrim != null) {
+            val maxTrim = if (stowageMode == StowageMode.WeightRecommendation) {
+                horizontalStabilizer.limit.warnMaxTrim ?: horizontalStabilizer.limit.maxTrim
+            } else {
+                horizontalStabilizer.limit.maxTrim
+            }
+            if (maxTrim != null) {
                 when (val result = model.addConstraint(
-                    horizontalStabilizer.trim leq horizontalStabilizer.limit.warnMaxTrim!!,
-                    name = "${name}_${key}_ub"
+                    horizontalStabilizer.trim leq maxTrim,
+                    name = if (stowageMode == StowageMode.WeightRecommendation &&
+                        horizontalStabilizer.limit.warnMaxTrim != null
+                    ) {
+                        "${name}_${key}_warn_ub"
+                    } else {
+                        "${name}_${key}_ub"
+                    }
                 )) {
-                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                    is Ok -> {}
 
-                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                    return Failed(result.error)
-                }
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                    return Fatal(result.errors)
-                }
-                }
-            } else if (horizontalStabilizer.limit.maxTrim != null) {
-                when (val result = model.addConstraint(
-                    horizontalStabilizer.trim leq horizontalStabilizer.limit.maxTrim!!,
-                    name = "${name}_${key}_ub"
-                )) {
-                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
-
-                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                    return Fatal(result.errors)
-                }
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
             }
 
-            if (stowageMode == StowageMode.WeightRecommendation && horizontalStabilizer.limit.warnMinTrim != null) {
+            if (stowageMode == StowageMode.WeightRecommendation) {
+                val warnMinTrim = horizontalStabilizer.limit.warnMinTrim
+                if (warnMinTrim != null) {
+                    when (val result = model.addConstraint(
+                        horizontalStabilizer.trim geq warnMinTrim,
+                        name = "${name}_${key}_warn_lb"
+                    )) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+
+                        is Fatal -> {
+                            return Fatal(result.errors)
+                        }
+                    }
+                }
+            }
+
+            val minTrim = horizontalStabilizer.limit.minTrim
+            if (minTrim != null) {
                 when (val result = model.addConstraint(
-                    horizontalStabilizer.trim leq horizontalStabilizer.limit.warnMinTrim!!,
+                    horizontalStabilizer.trim geq minTrim,
                     name = "${name}_${key}_lb"
                 )) {
-                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                    is Ok -> {}
 
-                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                    return Failed(result.error)
-                }
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                    return Fatal(result.errors)
-                }
-                }
-                when (val result = model.addConstraint(
-                    horizontalStabilizer.trim geq horizontalStabilizer.limit.minTrim!!,
-                    name = "${name}_${key}_lb"
-                )) {
-                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
-
-                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                    return Fatal(result.errors)
-                }
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
             }
         }

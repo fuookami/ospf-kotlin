@@ -1,12 +1,9 @@
 /**
- * 迭代产能编译决策对象（列生成主问题）
- * Iterative Capacity Compilation Decision Object (Column Generation Master Problem)
+ * 迭代产能编译决策对象（列生成主问题） / Iterative Capacity Compilation Decision Object (Column Generation Master Problem)
  *
- * 用于列生成迭代求解场景。
- * Used for column generation/iterative solving scenarios.
+ * 用于列生成迭代求解场景。 / Used for column generation/iterative solving scenarios.
  *
- * 变量结构：每台设备的二维整型变量
- * Variable structure: 2D integer variable per executor
+ * 变量结构：每台设备的二维整型变量 / Variable structure: 2D integer variable per executor
  * x[executor][iteration, columnIndex] -> amount
 */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
@@ -19,6 +16,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.core.symbol.*
@@ -28,14 +26,11 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**
- * 迭代产能编译决策对象（列生成主问题）
- * Iterative Capacity Compilation Decision Object (Column Generation Master Problem)
+ * 迭代产能编译决策对象（列生成主问题） / Iterative Capacity Compilation Decision Object (Column Generation Master Problem)
  *
- * 用于列生成迭代求解场景。
- * Used for column generation/iterative solving scenarios.
+ * 用于列生成迭代求解场景。 / Used for column generation/iterative solving scenarios.
  *
- * 变量结构：每台设备的二维整型变量
- * Variable structure: 2D integer variable per executor
+ * 变量结构：每台设备的二维整型变量 / Variable structure: 2D integer variable per executor
  * x[executor][iteration, columnIndex] -> amount
  *
  * @param E 执行器类型 / Executor type
@@ -44,26 +39,22 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : ProductionAction>(
 
     /**
-     * 执行器列表
-     * List of executors
+     * 执行器列表 / List of executors
     */
     override val executors: List<E>,
 
     /**
-     * 生产动作列表
-     * List of production actions
+     * 生产动作列表 / List of production actions
     */
     private val actions: List<A>,
 
     /**
-     * 时隙列表
-     * List of time slots
+     * 时隙列表 / List of time slots
     */
     private val slots: List<TimeSlot>,
 
     /**
-     * 时间窗口
-     * Time window
+     * 时间窗口 / Time window
     */
     private val timeWindow: TimeWindow<V>
 ) : Capacity<A> {
@@ -80,16 +71,14 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
     }
 
     /**
-     * 每台设备的列聚合（按迭代分组）
-     * Column aggregation per executor (grouped by iteration)
+     * 每台设备的列聚合（按迭代分组） / Column aggregation per executor (grouped by iteration)
     */
     internal val columnsByExecutor: Map<E, CapacityColumnAggregation<E, A, V>> =
         executors.associateWith { CapacityColumnAggregation() }
     private val executorByRef: Map<Executor, E> = executors.associateBy { it }
 
     /**
-     * 每台设备的二维整型变量
-     * 2D integer variables per executor
+     * 每台设备的二维整型变量 / 2D integer variables per executor
      * x[executor][iteration, columnIndexInIteration] -> amount
     */
     private val _x: MutableMap<E, UIntVariable2> = HashMap()
@@ -97,8 +86,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
         get() = _x.toMap()
 
     /**
-     * 当前有效产能列到真实决策变量的权威映射
-     * Authoritative mapping from active capacity columns to their actual decision variables
+     * 当前有效产能列到真实决策变量的权威映射 / Authoritative mapping from active capacity columns to their actual decision variables
      */
     val variableByColumn: Map<CapacityColumn<E, A, V>, CombinationVariableItem<UInt64, UInteger>>
         get() = buildMap {
@@ -119,8 +107,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
         }
 
     /**
-     * 执行器-时隙选列表达式
-     * Executor-slot column selection expressions
+     * 执行器-时隙选列表达式 / Executor-slot column selection expressions
      */
     val executorSlotCompilation: Map<Pair<E, TimeSlot>, LinearExpressionSymbol<Flt64>> = buildMap {
         for (executor in executors) {
@@ -137,8 +124,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
     }
 
     /**
-     * 成本表达式
-     * Cost expression
+     * 成本表达式 / Cost expression
     */
     private var _cost: LinearIntermediateSymbol<Flt64>? = null
     val cost: LinearIntermediateSymbol<Flt64>?
@@ -151,11 +137,10 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
         private set
 
     /**
-     * 注册到模型
-     * Register to model
+     * 注册到模型 / Register to model
      *
-     * @param model Linear meta model to register variables and symbols into / 要注册变量和符号的线性元模型
-     * @return Success or failure of the registration / 注册操作的成功或失败
+     * @param model 要注册变量和符号的线性元模型 / Linear meta model to register variables and symbols into
+     * @return 注册操作的成功或失败 / Success or failure of the registration
     */
     fun register(model: LinearMetaModel<Flt64>): Try {
         // Initialize variables for each executor
@@ -207,7 +192,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
                         }
                         // Sum over all columns for this action's slot
                         // 对该动作时隙的所有列求和
-                        val poly = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
+                        var poly = LinearPolynomial()
                         val columnAgg = if (executor != null) {
                             columnsByExecutor[executor]
                         } else {
@@ -220,13 +205,13 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
                                         val amount = column.amountFor(action)
                                         if (amount > UInt64.zero) {
                                             val coefficient = unitOperationTime.toSolverValue() * amount.toSolverFlt64()
-                                            poly += LinearMonomial(coefficient, executorVar[iterIdx, colIdx])
+                                            poly += coefficient * executorVar[iterIdx, colIdx]
                                         }
                                     }
                                 }
                             }
                         }
-                        poly.toLinearPolynomial()
+                        poly
                     } else {
                         LinearPolynomial(emptyList(), Flt64.zero)
                     }
@@ -249,12 +234,12 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
                 ctor = { executor, slot ->
                     val s = slots.indexOf(slot)
                     val executorActions = actions.filter { it.executor == executor }
-                    val poly = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
+                    var poly = LinearPolynomial()
                     for (action in executorActions) {
                         val a = actions.indexOf(action)
                         poly += operationTime[a, s].polynomial
                     }
-                    poly.toLinearPolynomial()
+                    poly
                 }
             )
         }
@@ -276,16 +261,14 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
     }
 
     /**
-     * 添加新列
-     * Add new columns
+     * 添加新列 / Add new columns
      *
-     * 将新生成的列添加到主问题中。
-     * Adds newly generated columns to the master problem.
+     * 将新生成的列添加到主问题中。 / Adds newly generated columns to the master problem.
      *
-     * @param iteration Current iteration number / 当前迭代号
-     * @param newColumns New columns to add / 要添加的新列
-     * @param model Linear meta model / 线性元模型
-     * @return Added columns (deduplicated) / 已添加的列（去重后）
+     * @param iteration 当前迭代号 / Current iteration number
+     * @param newColumns 要添加的新列 / New columns to add
+     * @param model 线性元模型 / Linear meta model
+     * @return 已添加的列（去重后） / Added columns (deduplicated)
     */
     suspend fun addColumns(
         iteration: UInt64,
@@ -381,12 +364,11 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
     }
 
     /**
-     * 定位列对应的决策变量位置
-     * Locate decision variable position for a column
+     * 定位列对应的决策变量位置 / Locate decision variable position for a column
      *
-     * @param iteration Iteration number in which the column was generated / 生成该列的迭代编号
-     * @param column Capacity column to locate / 要定位的产能列
-     * @return The 2D variable and column index pair, or null if not found / 二维变量与列索引对，未找到则返回 null
+     * @param iteration 生成该列的迭代编号 / Iteration number in which the column was generated
+     * @param column 要定位的产能列 / Capacity column to locate
+     * @return 二维变量与列索引对，未找到则返回 null / The 2D variable and column index pair, or null if not found
     */
     fun locateColumnDecision(
         iteration: UInt64,
@@ -407,11 +389,10 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
     }
 
     /**
-     * 计算列变量上界
-     * Calculate upper bound for a column decision variable
+     * 计算列变量上界 / Calculate upper bound for a column decision variable
      *
-     * @param column Capacity column whose upper bound is being calculated / 正在计算上界的产能列
-     * @return Maximum number of times this column can be selected / 该列可被选择的最大次数
+     * @param column 正在计算上界的产能列 / Capacity column whose upper bound is being calculated
+     * @return 该列可被选择的最大次数 / Maximum number of times this column can be selected
     */
     private fun columnUpperBound(column: CapacityColumn<E, A, V>): UInt64 {
         if (column.slotIndex !in slots.indices) {
@@ -451,7 +432,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
 /**
  * Rebuilds cost, operationTime, and capacity symbols after columns are added.
  * 在添加列后重建成本、操作时间和产能符号。
- * @return Success or failure of the symbol rebuild / 符号重建的成功或失败
+ * @return 符号重建的成功或失败 / Success or failure of the symbol rebuild
 */
     private fun rebuildSymbols(): Try {
         if (_cost == null || !::operationTime.isInitialized || !::capacity.isInitialized) {
@@ -487,7 +468,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
                             timeWindow.valueOf(timeWindow.interval)
                         }
                         val coefficient = unitOperationTime.toSolverValue() * amount.toSolverFlt64()
-                        operationTime[actionIndex, column.slotIndex].asMutable() += LinearMonomial(coefficient, variable)
+                        operationTime[actionIndex, column.slotIndex].asMutable() += coefficient * variable
                     }
                 }
             }
@@ -515,7 +496,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
             }
             for ((column, variable) in variableByColumn) {
                 if (column.executor == executor && column.slotIndex == slotIndex) {
-                    compilation.asMutable() += LinearMonomial(Flt64.one, variable)
+                    compilation.asMutable() += Flt64.one * variable
                 }
             }
         }
@@ -529,10 +510,8 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
                     if (iterIdx >= executorVar.shape[0] || colIdx >= executorVar.shape[1]) {
                         continue
                     }
-                    (_cost as LinearExpressionSymbol).asMutable() += LinearMonomial(
-                        column.columnCost.value.toSolverValue(),
-                        executorVar[iterIdx, colIdx]
-                    )
+                    (_cost as LinearExpressionSymbol).asMutable() +=
+                        column.columnCost.value.toSolverValue() * executorVar[iterIdx, colIdx]
                 }
             }
         }
@@ -541,8 +520,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
     }
 
     /**
-     * 解析解
-     * Extract solution from model
+     * 解析解 / Extract solution from model
     */
     override fun extractSolution(model: AbstractLinearMetaModel<Flt64>): Ret<CapacitySchedulingSolution<A>> {
         val actionAllocations = mutableListOf<ActionAllocation<A>>()

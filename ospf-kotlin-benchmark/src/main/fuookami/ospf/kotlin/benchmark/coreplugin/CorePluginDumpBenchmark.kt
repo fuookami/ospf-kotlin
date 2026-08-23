@@ -22,8 +22,7 @@ import java.util.concurrent.TimeUnit
  * core-plugin dump 数据准备热点基准（不调用真实 solver）
  * Core-plugin dump data preparation benchmark (without real solver calls)
  *
- * 衡量变量转储、目标系数收集、约束分块和稀疏行扫描等热点路径的性能。
- * Measures performance of hot paths including variable dumping, objective coefficient
+ * 衡量变量转储、目标系数收集、约束分块和稀疏行扫描等热点路径的性能。 / Measures performance of hot paths including variable dumping, objective coefficient
  * collection, constraint segmentation, and sparse row traversal.
  *
  * @property dataset 数据集规模标识（small/medium/large） / dataset size identifier (small/medium/large)
@@ -132,7 +131,7 @@ open class CorePluginDumpBenchmark {
      * 对应各 solver dump 的变量 lower/upper/name/initial 预处理。
      * Maps to variable lower/upper/name/initial preprocessing in solver dumps.
      *
-     * @return the result / 整数值
+     * @return 整数值 / the result
     */
     @Benchmark
     fun prepareVariableDumpingDataHotPath(): Int {
@@ -159,8 +158,7 @@ open class CorePluginDumpBenchmark {
     }
 
     /**
-     * 对应各 solver dump 的约束分块大小推导。
-     * Maps to constraint segment size derivation in solver dumps.
+     * 对应各 solver dump 的约束分块大小推导。 / Maps to constraint segment size derivation in solver dumps.
      *
      * @return 约束分块数量 / number of constraint segments
     */
@@ -206,8 +204,7 @@ open class CorePluginDumpBenchmark {
     }
 
     /**
-     * 变量转储数据快照，包含下界、上界、名称和初始结果
-     * Variable dumping data snapshot containing lower bounds, upper bounds, names, and initial results
+     * 变量转储数据快照，包含下界、上界、名称和初始结果 / Variable dumping data snapshot containing lower bounds, upper bounds, names, and initial results
      *
      * @property lowerBounds 变量下界数组 / array of variable lower bounds
      * @property upperBounds 变量上界数组 / array of variable upper bounds
@@ -254,8 +251,7 @@ open class CorePluginDumpBenchmark {
     }
 
     /**
-     * 复刻 solver dump 约束分块大小逻辑，保持同等复杂度。
-     * Mirrors solver dump constraint segment sizing logic with equivalent complexity.
+     * 复刻 solver dump 约束分块大小逻辑，保持同等复杂度。 / Mirrors solver dump constraint segment sizing logic with equivalent complexity.
      *
      * @param constraintSize 约束总数 / total number of constraints
      * @param availableProcessors 可用处理器数 / number of available processors
@@ -282,8 +278,7 @@ open class CorePluginDumpBenchmark {
     }
 
     /**
-     * 目标函数系数单元
-     * Objective function coefficient cell
+     * 目标函数系数单元 / Objective function coefficient cell
      *
      * @property colIndex 列索引 / column index
      * @property coefficient 系数值 / coefficient value

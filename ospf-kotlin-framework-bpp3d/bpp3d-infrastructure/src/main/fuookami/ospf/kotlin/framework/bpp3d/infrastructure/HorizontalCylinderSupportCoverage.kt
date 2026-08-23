@@ -1,6 +1,5 @@
 /**
- * 水平圆柱支撑覆盖区域。
- * Horizontal cylinder support coverage.
+ * 水平圆柱支撑覆盖区域。 / Horizontal cylinder support coverage.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
@@ -11,8 +10,7 @@ import fuookami.ospf.kotlin.math.geometry.Axis3
 const val HorizontalCylinderSupportCoverageTolerance: Double = 1e-7
 
 /**
- * 横向圆柱支撑覆盖使用的轴对齐几何盒。
- * Axis-aligned geometry box used by horizontal-cylinder support coverage.
+ * 横向圆柱支撑覆盖使用的轴对齐几何盒。 / Axis-aligned geometry box used by horizontal-cylinder support coverage.
  *
  * @property minX X 轴最小坐标 / minimum X coordinate
  * @property maxX X 轴最大坐标 / maximum X coordinate
@@ -33,8 +31,7 @@ data class HorizontalCylinderSupportGeometry(
 ) {
 
     /**
-     * 获取指定轴向最小坐标。
-     * Get minimum coordinate on the given axis.
+     * 获取指定轴向最小坐标。 / Get minimum coordinate on the given axis.
      *
      * @param axis 轴向 / axis
      * @return 最小坐标 / minimum coordinate
@@ -48,8 +45,7 @@ data class HorizontalCylinderSupportGeometry(
     }
 
     /**
-     * 获取指定轴向最大坐标。
-     * Get maximum coordinate on the given axis.
+     * 获取指定轴向最大坐标。 / Get maximum coordinate on the given axis.
      *
      * @param axis 轴向 / axis
      * @return 最大坐标 / maximum coordinate
@@ -63,8 +59,7 @@ data class HorizontalCylinderSupportGeometry(
     }
 
     /**
-     * 获取指定轴向中心坐标。
-     * Get center coordinate on the given axis.
+     * 获取指定轴向中心坐标。 / Get center coordinate on the given axis.
      *
      * @param axis 轴向 / axis
      * @return 中心坐标 / center coordinate
@@ -75,8 +70,7 @@ data class HorizontalCylinderSupportGeometry(
 }
 
 /**
- * 获取横向圆柱底部支撑线所在的径向轴。
- * Get the radial axis that contains the bottom support line of a horizontal cylinder.
+ * 获取横向圆柱底部支撑线所在的径向轴。 / Get the radial axis that contains the bottom support line of a horizontal cylinder.
  *
  * @param axis 圆柱轴向 / cylinder axis
  * @return 支撑线径向轴 / radial axis for the support line
@@ -90,8 +84,7 @@ fun horizontalCylinderSupportRadialAxis(axis: Axis3): Axis3 {
 }
 
 /**
- * 判断若干区间是否完整覆盖目标区间。
- * Return whether intervals fully cover the target span.
+ * 判断若干区间是否完整覆盖目标区间。 / Return whether intervals fully cover the target span.
  *
  * @param targetMin 目标最小坐标 / target minimum coordinate
  * @param targetMax 目标最大坐标 / target maximum coordinate
@@ -125,8 +118,7 @@ fun intervalsCoverSpan(
 }
 
 /**
- * 校验横向圆柱是否由贴地或长方体支撑区间完整覆盖。
- * Check whether a horizontal cylinder is on the floor or fully covered by cuboid support intervals.
+ * 校验横向圆柱是否由贴地或长方体支撑区间完整覆盖。 / Check whether a horizontal cylinder is on the floor or fully covered by cuboid support intervals.
  *
  * @param cylinder 横向圆柱几何 / horizontal cylinder geometry
  * @param axis 圆柱轴向 / cylinder axis

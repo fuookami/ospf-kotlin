@@ -1,14 +1,12 @@
 /**
- * 终态装箱几何契约。
- * Final packing geometry contract.
+ * 终态装箱几何契约。 / Final packing geometry contract.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import fuookami.ospf.kotlin.math.geometry.Axis3
 
 /**
- * 横向圆柱支撑不足错误信息。
- * Horizontal cylinder support violation message.
+ * 横向圆柱支撑不足错误信息。 / Horizontal cylinder support violation message.
  *
  * @param source 调用来源 / call source
  * @param binName 箱号 / bin name
@@ -26,8 +24,7 @@ internal fun unsupportedHorizontalCylinderSupportMessage(
 }
 
 /**
- * 越界放置错误信息。
- * Outside-bin placement violation message.
+ * 越界放置错误信息。 / Outside-bin placement violation message.
  *
  * @param source 调用来源 / call source
  * @param binName 箱号 / bin name
@@ -45,8 +42,7 @@ internal fun unsupportedOutsideBinGeometryMessage(
 }
 
 /**
- * 终态放置重叠错误信息。
- * Final placement overlap violation message.
+ * 终态放置重叠错误信息。 / Final placement overlap violation message.
  *
  * @param source 调用来源 / call source
  * @param binName 箱号 / bin name
@@ -68,8 +64,7 @@ internal fun unsupportedPlacementOverlapMessage(
 }
 
 /**
- * 单层圆柱轴向混用错误信息。
- * Single-layer cylinder axis mixing violation message.
+ * 单层圆柱轴向混用错误信息。 / Single-layer cylinder axis mixing violation message.
  *
  * @param source 调用来源 / call source
  * @param layerIndex 层序号 / layer index

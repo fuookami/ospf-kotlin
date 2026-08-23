@@ -18,10 +18,10 @@ enum class TrailerType {
  * Represents a trailer with its type, loading order, and associated cargo items.
  * 表示一个拖车，包含其类型、装载顺序和关联的货物项。
  *
- * @property type The type of the trailer. / 拖车类型
- * @property order The loading order of the trailer. / 拖车的装载顺序
- * @property name The name identifier of the trailer. / 拖车的名称标识
- * @property items The cargo items currently on the trailer. / 拖车上的货物项
+ * @property type 拖车类型 / The type of the trailer.
+ * @property order 拖车的装载顺序 / The loading order of the trailer.
+ * @property name 拖车的名称标识 / The name identifier of the trailer.
+ * @property items 拖车上的货物项 / The cargo items currently on the trailer.
 */
 data class Trailer(
     val type: TrailerType,

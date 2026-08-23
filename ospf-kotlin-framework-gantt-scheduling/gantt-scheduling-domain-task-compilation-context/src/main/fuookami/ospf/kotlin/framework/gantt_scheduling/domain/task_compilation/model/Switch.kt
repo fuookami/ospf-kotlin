@@ -20,8 +20,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 typealias SwitchTimeQuantity<V> = Quantity<V>
 
 /**
- * 捕获线性约束输入结果，失败时调用回调并返回 null。
- * Capture linear constraint input result, invoke callback on failure and return null.
+ * 捕获线性约束输入结果，失败时调用回调并返回 null。 / Capture linear constraint input result, invoke callback on failure and return null.
  *
  * @param result 约束输入结果 / Constraint input result
  * @param onFailure 失败时的回调函数 / Callback function on failure

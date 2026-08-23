@@ -2,20 +2,35 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.mosek
 
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import mosek.*
 
 /**
@@ -23,7 +38,7 @@ import mosek.*
  *
  * MOSEK 线性求解器
  *
- * @property callBack Solver callback / 求解器回调
+ * @property callBack 求解器回调 / Solver callback
 */
 class MosekLinearSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -34,7 +49,12 @@ class MosekLinearSolver(
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput<Flt64>> {
+    ): Ret<SolveReport<Flt64>> {
+        when (val validation = model.identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         return MosekLinearSolverImpl(
             config = config,
             callBack = callBack,
@@ -50,7 +70,12 @@ class MosekLinearSolver(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
+    ): Ret<Pair<SolveReport<Flt64>, List<List<Flt64>>>> {
+        when (val validation = model.identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
         } else {
@@ -80,22 +105,22 @@ class MosekLinearSolver(
  *
  * MOSEK 线性求解器内部实现
  *
- * @property config Solver configuration / 求解器配置
- * @property callBack Solver callback / 求解器回调
- * @property statusCallBack Solving status callback / 求解状态回调
+ * @property config 求解器配置 / Solver configuration
+ * @property callBack 求解器回调 / Solver callback
+ * @property statusCallBack 求解状态回调 / Solving status callback
 */
 class MosekLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: MosekSolverCallBack? = null,
     private val statusCallBack: SolvingStatusCallBack? = null
 ) : MosekSolver() {
-    private lateinit var output: FeasibleSolverOutput<Flt64>
+    private lateinit var output: SolveReport<Flt64>
 
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
 
-    suspend operator fun invoke(model: LinearTriadModelView): Ret<FeasibleSolverOutput<Flt64>> {
+    suspend operator fun invoke(model: LinearTriadModelView): Ret<SolveReport<Flt64>> {
         val processes = arrayOf(
             { it.init(model.name, callBack?.creatingEnvironmentFunction) },
             { it.dump(model) },
@@ -124,8 +149,8 @@ class MosekLinearSolverImpl(
  * Dump the linear model into MOSEK variables, constraints, and objective.
  * 将线性模型转储为 MOSEK 变量、约束和目标函数。
  *
- * @param model the linear model view to dump / 待转储的线性模型视图
- * @return success if model was dumped, or failure on modeling error / 转储成功返回成功，建模错误返回失败
+ * @param model 待转储的线性模型视图 / the linear model view to dump
+ * @return 转储成功返回成功，建模错误返回失败 / success if model was dumped, or failure on modeling error
 */
     private suspend fun dump(model: LinearTriadModelView): Try {
         return try {
@@ -309,7 +334,7 @@ class MosekLinearSolverImpl(
  * Configure MOSEK solver parameters for the linear model.
  * 为线性模型配置 MOSEK 求解器参数。
  *
- * @return failure since MOSEK linear configuration is not yet implemented / 因 MOSEK 线性配置尚未实现而返回失败
+ * @return 因 MOSEK 线性配置尚未实现而返回失败 / failure since MOSEK linear configuration is not yet implemented
 */
     private suspend fun configure(): Try {
         return Failed(
@@ -324,7 +349,7 @@ class MosekLinearSolverImpl(
  * Analyze the MOSEK solving result and extract the solution output.
  * 分析 MOSEK 求解结果并提取解输出。
  *
- * @return failure since MOSEK linear solution extraction is not yet implemented / 因 MOSEK 线性解提取尚未实现而返回失败
+ * @return 因 MOSEK 线性解提取尚未实现而返回失败 / failure since MOSEK linear solution extraction is not yet implemented
 */
     private suspend fun analyzeSolution(): Try {
         return Failed(

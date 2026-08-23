@@ -17,7 +17,7 @@ sealed class AircraftCapacity {
     /**
      * 将每个舱位映射到座位数的乘客容量。Passenger capacity mapping each class to a seat count.
      *
-     * @property capacity The mapping of passenger classes to seat counts / 乘客舱位到座位数的映射
+     * @property capacity 乘客舱位到座位数的映射 / The mapping of passenger classes to seat counts
     */
     class Passenger(
         private val capacity: Map<PassengerClass, UInt64>
@@ -29,7 +29,7 @@ sealed class AircraftCapacity {
         /**
          * Checks whether the aircraft can carry the given payload per class / 检查飞机是否能承载给定舱位的有效载荷
          *
-         * @param payload The payload per passenger class / 各舱位的有效载荷
+         * @param payload 各舱位的有效载荷 / The payload per passenger class
         */
         fun enabled(payload: Map<PassengerClass, UInt64>) = payload.asSequence().all { this[it.key] >= it.value }
 
@@ -39,7 +39,7 @@ sealed class AircraftCapacity {
     /**
      * 作为重量/体积值的货物容量。Cargo capacity as a weight/volume value.
      *
-     * @property capacity The cargo capacity value / 货物容量值
+     * @property capacity 货物容量值 / The cargo capacity value
     */
     class Cargo(
         val capacity: FltX
@@ -49,7 +49,7 @@ sealed class AircraftCapacity {
         /**
          * Checks whether the aircraft can carry the given payload weight / 检查飞机是否能承载给定重量的有效载荷
          *
-         * @param payload The payload weight to check / 要检查的有效载荷重量
+         * @param payload 要检查的有效载荷重量 / The payload weight to check
         */
         fun enabled(payload: FltX) = capacity geq payload
     }

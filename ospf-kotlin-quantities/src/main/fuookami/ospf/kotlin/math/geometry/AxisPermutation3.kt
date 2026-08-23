@@ -1,9 +1,7 @@
 /**
- * 三维轴置换
- * 3D axis permutation
+ * 三维轴置换 / 3D axis permutation
  *
- * 定义三维坐标轴的置换操作，支持对长方体和包围盒进行轴重排。
- * Defines 3D axis permutation operations, supporting axis rearrangement for cuboids and bounding boxes.
+ * 定义三维坐标轴的置换操作，支持对长方体和包围盒进行轴重排。 / Defines 3D axis permutation operations, supporting axis rearrangement for cuboids and bounding boxes.
 */
 package fuookami.ospf.kotlin.math.geometry
 
@@ -12,8 +10,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 三维轴置换为纯几何概念；apply/mapAxis 可被桥接层复用。
- * 3D axis permutation is pure geometry; apply/mapAxis are reusable by bridges.
+ * 三维轴置换为纯几何概念；apply/mapAxis 可被桥接层复用。 / 3D axis permutation is pure geometry; apply/mapAxis are reusable by bridges.
  *
  * @property widthAxis 宽度对应的轴 / Axis corresponding to width
  * @property heightAxis 高度对应的轴 / Axis corresponding to height
@@ -51,8 +48,7 @@ data class QuantityAxisPermutation3(
     }
 
     /**
-     * 对长方体应用轴置换
-     * Apply axis permutation to a cuboid
+     * 对长方体应用轴置换 / Apply axis permutation to a cuboid
      *
      * @param cuboid 待置换的长方体 / Cuboid to permute
      * @param V 数值类型 / Number type
@@ -67,8 +63,7 @@ data class QuantityAxisPermutation3(
     }
 
     /**
-     * 对圆柱体应用轴置换
-     * Apply axis permutation to a cylinder
+     * 对圆柱体应用轴置换 / Apply axis permutation to a cylinder
      *
      * @param cylinder 待置换的圆柱体 / Cylinder to permute
      * @param V 数值类型 / Number type
@@ -81,8 +76,7 @@ data class QuantityAxisPermutation3(
     }
 
     /**
-     * 将原始轴映射到置换后的轴
-     * Map an original axis to its permuted counterpart
+     * 将原始轴映射到置换后的轴 / Map an original axis to its permuted counterpart
      *
      * @param axis 原始轴 / Original axis
      * @return 置换后的轴结果 / Permuted axis result

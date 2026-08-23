@@ -27,8 +27,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 }
 
 /**
- * 分配优化：将产品分配给公司以最小化总成本。
- * Assignment optimization: assign products to companies minimizing total cost.
+ * 分配优化：将产品分配给公司以最小化总成本。 / Assignment optimization: assign products to companies minimizing total cost.
  *
  * @see https://fuookami.github.io/ospf/examples/example2.html
 */
@@ -206,7 +205,7 @@ data object Demo2 {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
             is Ok -> {
-                metaModel.tokens.setSolution(ret.value.solution)
+                metaModel.tokens.setSolution(ret.value.values)
             }
 
             is Failed -> {

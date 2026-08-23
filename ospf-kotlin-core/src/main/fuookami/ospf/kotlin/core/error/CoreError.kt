@@ -1,6 +1,5 @@
 /**
- * 核心错误类型体系，包含变量、模型和求解器错误的结构化定义。
- * Core error type system containing structured definitions for variable, model, and solver errors.
+ * 核心错误类型体系，包含变量、模型和求解器错误的结构化定义。 / Core error type system containing structured definitions for variable, model, and solver errors.
 */
 package fuookami.ospf.kotlin.core.error
 
@@ -9,8 +8,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 结构化核心错误接口，提供错误码、消息和转换方法。
- * Structured core error interface providing error code, message, and conversion methods.
+ * 结构化核心错误接口，提供错误码、消息和转换方法。 / Structured core error interface providing error code, message, and conversion methods.
 */
 interface StructuredCoreError {
     val errorCode: ErrorCode
@@ -31,8 +29,7 @@ interface StructuredCoreError {
 }
 
 /**
- * 核心错误的密封基类，聚合变量、模型和求解器错误。
- * Sealed base class for core errors, aggregating variable, model, and solver errors.
+ * 核心错误的密封基类，聚合变量、模型和求解器错误。 / Sealed base class for core errors, aggregating variable, model, and solver errors.
  *
  * @property errorCode 错误码 / Error code
  * @property message 错误消息 / Error message
@@ -85,8 +82,7 @@ sealed class CoreError(
 }
 
 /**
- * 变量相关错误的密封基类。
- * Sealed base class for variable-related errors.
+ * 变量相关错误的密封基类。 / Sealed base class for variable-related errors.
  *
  * @property errorCode 错误码 / Error code
  * @property message 错误消息 / Error message
@@ -150,8 +146,7 @@ sealed class VariableError(
 }
 
 /**
- * 模型相关错误的密封基类。
- * Sealed base class for model-related errors.
+ * 模型相关错误的密封基类。 / Sealed base class for model-related errors.
  *
  * @property errorCode 错误码 / Error code
  * @property message 错误消息 / Error message
@@ -211,8 +206,7 @@ sealed class ModelError(
 }
 
 /**
- * 求解器相关错误的密封基类。
- * Sealed base class for solver-related errors.
+ * 求解器相关错误的密封基类。 / Sealed base class for solver-related errors.
  *
  * @property errorCode 错误码 / Error code
  * @property message 错误消息 / Error message
@@ -352,8 +346,7 @@ fun SolverError.asCoreError(): CoreError = CoreError.Solver(this)
 // ============================================================================
 
 /**
- * 求解器未找到错误。
- * Solver not found error.
+ * 求解器未找到错误。 / Solver not found error.
  *
  * 替代重复的 `Failed(ErrorCode.SolverNotFound, "No solver valid.")` 构造。
  * Replaces repeated `Failed(ErrorCode.SolverNotFound, "No solver valid.")` constructions.
@@ -368,8 +361,7 @@ class SolverNotFoundError(
 )
 
 /**
- * 求解器环境丢失错误。
- * Solver environment lost error.
+ * 求解器环境丢失错误。 / Solver environment lost error.
  *
  * 替代重复的 `Failed(ErrorCode.OREngineEnvironmentLost, ...)` 构造。
  * Replaces repeated `Failed(ErrorCode.OREngineEnvironmentLost, ...)` constructions.
@@ -384,8 +376,7 @@ class SolverEnvironmentLostError(
 )
 
 /**
- * 求解器求解异常错误。
- * Solver solving exception error.
+ * 求解器求解异常错误。 / Solver solving exception error.
  *
  * 替代重复的 `Failed(ErrorCode.OREngineSolvingException, ...)` 构造。
  * Replaces repeated `Failed(ErrorCode.OREngineSolvingException, ...)` constructions.
@@ -400,8 +391,7 @@ class SolverSolvingError(
 )
 
 /**
- * 求解器建模异常错误。
- * Solver modeling exception error.
+ * 求解器建模异常错误。 / Solver modeling exception error.
  *
  * 替代重复的 `Failed(ErrorCode.OREngineModelingException, ...)` 构造。
  * Replaces repeated `Failed(ErrorCode.OREngineModelingException, ...)` constructions.
@@ -416,8 +406,7 @@ class SolverModelingError(
 )
 
 /**
- * 求解器终止错误。
- * Solver terminated error.
+ * 求解器终止错误。 / Solver terminated error.
  *
  * 替代重复的 `Failed(ErrorCode.OREngineTerminated)` 构造。
  * Replaces repeated `Failed(ErrorCode.OREngineTerminated)` constructions.

@@ -33,13 +33,10 @@ class Csp1dColumnGenerationRealSolverTest {
     private val solver = GurobiColumnGenerationSolver(SolverConfig())
 
     /**
-     * 小规模样例：1 产品 + 1 原料，roll 需求
-     * Small-scale example: 1 product + 1 material, roll demand
+     * 小规模样例：1 产品 + 1 原料，roll 需求 / Small-scale example: 1 product + 1 material, roll demand
      *
-     * 原料幅宽 [0.8, 2.0]，产品幅宽 0.5，需求 10 卷。
-     * Material width [0.8, 2.0], product width 0.5, demand 10 rolls.
-     * 初始方案应能覆盖，列生成应收敛（无负 reduced cost 新列或自然收敛）。
-     * Initial plans should cover, column generation should converge.
+     * 原料幅宽 [0.8, 2.0]，产品幅宽 0.5，需求 10 卷。 / Material width [0.8, 2.0], product width 0.5, demand 10 rolls.
+     * 初始方案应能覆盖，列生成应收敛（无负 reduced cost 新列或自然收敛）。 / Initial plans should cover, column generation should converge.
      */
     @Test
     fun columnGenerationConvergesWithRollDemand() = runBlocking {
@@ -126,13 +123,10 @@ class Csp1dColumnGenerationRealSolverTest {
     }
 
     /**
-     * 中等规模样例：3 产品 + 2 原料 + 1 设备，roll 需求
-     * Medium-scale example: 3 products + 2 materials + 1 machine, roll demand
+     * 中等规模样例：3 产品 + 2 原料 + 1 设备，roll 需求 / Medium-scale example: 3 products + 2 materials + 1 machine, roll demand
      *
-     * 不同产品幅宽，不同原料幅宽范围，设备产能约束。
-     * Different product widths, different material width ranges, machine capacity constraint.
-     * 列生成应能通过 pricing 发现更优方案。
-     * Column generation should discover better plans through pricing.
+     * 不同产品幅宽，不同原料幅宽范围，设备产能约束。 / Different product widths, different material width ranges, machine capacity constraint.
+     * 列生成应能通过 pricing 发现更优方案。 / Column generation should discover better plans through pricing.
      */
     @Test
     fun columnGenerationDiscoversNewPlansViaPricing() = runBlocking {
@@ -210,8 +204,7 @@ class Csp1dColumnGenerationRealSolverTest {
     }
 
     /**
-     * 验证 MILP 直接求解（不经过列生成）在真实 solver 上可行
-     * Verify MILP direct solve (without column generation) works on real solver
+     * 验证 MILP 直接求解（不经过列生成）在真实 solver 上可行 / Verify MILP direct solve (without column generation) works on real solver
      */
     @Test
     fun milpDirectSolveWorksOnRealSolver() = runBlocking {
@@ -850,8 +843,7 @@ class Csp1dColumnGenerationRealSolverTest {
     }
 
     /**
-     * 验证设备业务产能约束在真实 solver 上限制方案使用量并回填实际使用量 /
-     * Verify machine business capacity constrains plan usage and backfills actual usage on real solver
+     * 验证设备业务产能约束在真实 solver 上限制方案使用量并回填实际使用量 / / Verify machine business capacity constrains plan usage and backfills actual usage on real solver
      */
     @Test
     fun milpMachineCapacityConstraintLimitsUsageOnRealSolver() = runBlocking {
@@ -969,8 +961,7 @@ class Csp1dColumnGenerationRealSolverTest {
     }
 
     /**
-     * 验证 sheet 需求单位下的列生成收敛
-     * Verify column generation convergence with sheet demand unit
+     * 验证 sheet 需求单位下的列生成收敛 / Verify column generation convergence with sheet demand unit
      */
     @Test
     fun columnGenerationConvergesWithSheetDemand() = runBlocking {
@@ -1008,8 +999,7 @@ class Csp1dColumnGenerationRealSolverTest {
     }
 
     /**
-     * 验证 weight 需求单位下的列生成收敛
-     * Verify column generation convergence with weight demand unit
+     * 验证 weight 需求单位下的列生成收敛 / Verify column generation convergence with weight demand unit
      */
     @Test
     fun columnGenerationConvergesWithWeightDemand() = runBlocking {
@@ -1048,8 +1038,7 @@ class Csp1dColumnGenerationRealSolverTest {
     }
 
     /**
-     * 验证混合需求单位（roll + sheet）下的列生成收敛
-     * Verify column generation convergence with mixed demand units (roll + sheet)
+     * 验证混合需求单位（roll + sheet）下的列生成收敛 / Verify column generation convergence with mixed demand units (roll + sheet)
      */
     @Test
     fun columnGenerationConvergesWithMixedDemandUnits() = runBlocking {
@@ -1092,10 +1081,8 @@ class Csp1dColumnGenerationRealSolverTest {
     /**
      * 验证 LP 目标值单调性和收敛性 / Verify LP objective monotonicity and convergence
      *
-     * LP 松弛目标值应非递增（每轮加入新列后 LP 目标值不应上升）。
-     * LP relaxation objective should be non-increasing (adding columns should not increase LP objective).
-     * 若终止原因是 PricingConverged，最后一轮应无新列。
-     * If termination reason is PricingConverged, last iteration should have zero priced plans.
+     * LP 松弛目标值应非递增（每轮加入新列后 LP 目标值不应上升）。 / LP relaxation objective should be non-increasing (adding columns should not increase LP objective).
+     * 若终止原因是 PricingConverged，最后一轮应无新列。 / If termination reason is PricingConverged, last iteration should have zero priced plans.
      */
     @Test
     fun columnGenerationLpObjectiveIsNonIncreasing() = runBlocking {
@@ -1210,8 +1197,7 @@ class Csp1dColumnGenerationRealSolverTest {
     }
 
     /**
-     * 验证动态长度产品与固定长度产品混合建模时，两种需求均满足且 lengthResult 仅含动态产品
-     * Verify mixed dynamic-length and fixed-length products: both demands satisfied, lengthResult only contains dynamic products
+     * 验证动态长度产品与固定长度产品混合建模时，两种需求均满足且 lengthResult 仅含动态产品 / Verify mixed dynamic-length and fixed-length products: both demands satisfied, lengthResult only contains dynamic products
      */
     @Test
     fun milpWithMixedDynamicAndFixedLengthShouldSatisfyAllDemands() = runBlocking {
@@ -1292,12 +1278,10 @@ class Csp1dColumnGenerationRealSolverTest {
     // --- C5 yield/waste/length real solver end-to-end verification ---
 
     /**
-     * 验证 yield 建模在 Gurobi 真实 solver 上欠产/超产回填值与分析层口径一致
-     * Verify yield modeling under/over production backfill values match analysis layer on Gurobi
+     * 验证 yield 建模在 Gurobi 真实 solver 上欠产/超产回填值与分析层口径一致 / Verify yield modeling under/over production backfill values match analysis layer on Gurobi
      *
      * 场景：1 产品 + 1 原料 + roll 需求 10 卷，方案贡献不足以完全满足需求，应产生欠产；
-     *       方案贡献超过需求时，应产生超产。
-     * Scenario: 1 product + 1 material + roll demand 10, plan contribution insufficient => under-production;
+     * 方案贡献超过需求时，应产生超产。 / Scenario: 1 product + 1 material + roll demand 10, plan contribution insufficient => under-production;
      *           plan contribution exceeds demand => over-production.
      */
     @Test
@@ -1351,8 +1335,7 @@ class Csp1dColumnGenerationRealSolverTest {
     }
 
     /**
-     * 验证 yield 建模带超产上限约束在 Gurobi 真实 solver 上正确回填超产值
-     * Verify yield modeling with over-production upper bound constraint backfills correctly on Gurobi
+     * 验证 yield 建模带超产上限约束在 Gurobi 真实 solver 上正确回填超产值 / Verify yield modeling with over-production upper bound constraint backfills correctly on Gurobi
      */
     @Test
     fun milpWithYieldOverProductionUpperBoundShouldRespectBoundOnRealSolver() = runBlocking {
@@ -1396,8 +1379,7 @@ class Csp1dColumnGenerationRealSolverTest {
     }
 
     /**
-     * 验证 wasting 建模在 Gurobi 真实 solver 上余宽/物料成本回填值正确
-     * Verify waste modeling trim width and material cost backfill values are correct on Gurobi
+     * 验证 wasting 建模在 Gurobi 真实 solver 上余宽/物料成本回填值正确 / Verify waste modeling trim width and material cost backfill values are correct on Gurobi
      */
     @Test
     fun milpWithWasteConfigShouldProduceCorrectWasteResultOnRealSolver() = runBlocking {
@@ -1614,8 +1596,7 @@ class Csp1dColumnGenerationRealSolverTest {
     }
 
     /**
-     * 验证列生成 + yield 建模在 Gurobi 真实 solver 上端到端运行并回填正确
-     * Verify column generation + yield modeling end-to-end on Gurobi and backfill is correct
+     * 验证列生成 + yield 建模在 Gurobi 真实 solver 上端到端运行并回填正确 / Verify column generation + yield modeling end-to-end on Gurobi and backfill is correct
      */
     @Test
     fun columnGenerationWithYieldConfigShouldProduceCorrectYieldResultOnRealSolver() = runBlocking {
@@ -1670,8 +1651,7 @@ class Csp1dColumnGenerationRealSolverTest {
     }
 
     /**
-     * 验证列生成 + waste 建模在 Gurobi 真实 solver 上端到端运行并回填正确
-     * Verify column generation + waste modeling end-to-end on Gurobi and backfill is correct
+     * 验证列生成 + waste 建模在 Gurobi 真实 solver 上端到端运行并回填正确 / Verify column generation + waste modeling end-to-end on Gurobi and backfill is correct
      */
     @Test
     fun columnGenerationWithWasteConfigShouldProduceCorrectWasteResultOnRealSolver() = runBlocking {
@@ -1737,8 +1717,7 @@ class Csp1dColumnGenerationRealSolverTest {
     }
 
     /**
-     * 验证列生成 + length 建模在 Gurobi 真实 solver 上端到端运行并回填正确
-     * Verify column generation + length modeling end-to-end on Gurobi and backfill is correct
+     * 验证列生成 + length 建模在 Gurobi 真实 solver 上端到端运行并回填正确 / Verify column generation + length modeling end-to-end on Gurobi and backfill is correct
      */
     @Test
     fun columnGenerationWithLengthConfigShouldProduceCorrectLengthResultOnRealSolver() = runBlocking {
@@ -2146,8 +2125,7 @@ class Csp1dColumnGenerationRealSolverTest {
     // --- C5 length assignment modeling difference and unit consistency end-to-end verification ---
 
     /**
-     * 验证列生成中动态长度产品与固定长度产品在列生成各轮次的行为差异
-     * Verify behavioral difference between dynamic and fixed length products across column generation iterations
+     * 验证列生成中动态长度产品与固定长度产品在列生成各轮次的行为差异 / Verify behavioral difference between dynamic and fixed length products across column generation iterations
      *
      * 动态长度产品：assignedLength 变量在最终 MILP 中注册，LP 轮次不使用 lengthConfig
      * 固定长度产品：无 assignedLength 变量，lengthResult 不含固定产品

@@ -8,16 +8,14 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 
 /**
- * 泛型快捷运算
- * Quick Ops
+ * 泛型快捷运算 / Quick Ops
  *
- * 提供基于 Flt64ValueConverter 的泛型算术运算符重载，支持 Flt64/FltX/Rtn64/RtnX 四种数值类型。
- * Provides generic arithmetic operator overloads based on Flt64ValueConverter, supporting Flt64/FltX/Rtn64/RtnX numeric types.
+ * 提供基于 Flt64ValueConverter 的泛型算术运算符重载，支持 Flt64、FltX、Rtn64、RtnX、Int64、IntX、UInt64 和 UIntX。
+ * Provides generic arithmetic operator overloads based on Flt64ValueConverter, supporting Flt64, FltX, Rtn64, RtnX, Int64, IntX, UInt64, and UIntX.
 */
 
 /**
- * 泛型快捷运算
- * Quick Ops
+ * 泛型快捷运算 / Quick Ops
  *
  * 通过 Flt64ValueConverter 提供泛型算术运算符重载。
  * Provides generic arithmetic operator overloads via Flt64ValueConverter.

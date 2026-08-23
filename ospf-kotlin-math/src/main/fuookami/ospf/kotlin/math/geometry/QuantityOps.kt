@@ -11,16 +11,13 @@ import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
- * 几何数量运算
- * Geometry Quantity Operations
+ * 几何数量运算 / Geometry Quantity Operations
  *
- * 提供几何空间中浮点数的基本运算函数（加、减、乘、除、比较等）。
- * Provides basic arithmetic operation functions (add, subtract, multiply, divide, compare, etc.) for floating-point numbers in geometric space.
+ * 提供几何空间中浮点数的基本运算函数（加、减、乘、除、比较等）。 / Provides basic arithmetic operation functions (add, subtract, multiply, divide, compare, etc.) for floating-point numbers in geometric space.
 */
 
 /**
- * 浮点数加法
- * Floating-point addition
+ * 浮点数加法 / Floating-point addition
  *
  * @param V 数值类型 / The numeric type
  * @param lhs 左操作数 / The left operand
@@ -32,8 +29,7 @@ internal fun <V : FloatingNumber<V>> quantityPlus(lhs: V, rhs: V): V {
 }
 
 /**
- * 浮点数减法
- * Floating-point subtraction
+ * 浮点数减法 / Floating-point subtraction
  *
  * @param V 数值类型 / The numeric type
  * @param lhs 左操作数 / The left operand
@@ -45,8 +41,7 @@ internal fun <V : FloatingNumber<V>> quantityMinus(lhs: V, rhs: V): V {
 }
 
 /**
- * 浮点数比较，返回偏序结果
- * Floating-point comparison, returning partial order result
+ * 浮点数比较，返回偏序结果 / Floating-point comparison, returning partial order result
  *
  * @param V 数值类型 / The numeric type
  * @param lhs 左操作数 / The left operand
@@ -60,8 +55,7 @@ internal fun <V : FloatingNumber<V>> quantityOrdSafe(lhs: V, rhs: V, axis: Strin
 }
 
 /**
- * 浮点数取最大值
- * Floating-point maximum
+ * 浮点数取最大值 / Floating-point maximum
  *
  * @param V 数值类型 / The numeric type
  * @param lhs 左操作数 / The left operand
@@ -79,8 +73,7 @@ internal fun <V : FloatingNumber<V>> quantityMaxSafe(lhs: V, rhs: V, axis: Strin
 }
 
 /**
- * 浮点数取最大值
- * Floating-point maximum
+ * 浮点数取最大值 / Floating-point maximum
  *
  * @param V 数值类型 / The numeric type
  * @param lhs 左操作数 / The left operand
@@ -93,8 +86,7 @@ internal fun <V : FloatingNumber<V>> quantityMaxOrNull(lhs: V, rhs: V, axis: Str
 }
 
 /**
- * 浮点数取最大值
- * Floating-point maximum
+ * 浮点数取最大值 / Floating-point maximum
  *
  * @param V 数值类型 / The numeric type
  * @param lhs 左操作数 / The left operand
@@ -107,8 +99,7 @@ internal fun <V : FloatingNumber<V>> quantityMax(lhs: V, rhs: V, axis: String): 
 }
 
 /**
- * 浮点数取最小值
- * Floating-point minimum
+ * 浮点数取最小值 / Floating-point minimum
  *
  * @param V 数值类型 / The numeric type
  * @param lhs 左操作数 / The left operand
@@ -126,8 +117,7 @@ internal fun <V : FloatingNumber<V>> quantityMinSafe(lhs: V, rhs: V, axis: Strin
 }
 
 /**
- * 浮点数取最小值
- * Floating-point minimum
+ * 浮点数取最小值 / Floating-point minimum
  *
  * @param V 数值类型 / The numeric type
  * @param lhs 左操作数 / The left operand
@@ -140,8 +130,7 @@ internal fun <V : FloatingNumber<V>> quantityMinOrNull(lhs: V, rhs: V, axis: Str
 }
 
 /**
- * 浮点数取最小值
- * Floating-point minimum
+ * 浮点数取最小值 / Floating-point minimum
  *
  * @param V 数值类型 / The numeric type
  * @param lhs 左操作数 / The left operand
@@ -154,8 +143,7 @@ internal fun <V : FloatingNumber<V>> quantityMin(lhs: V, rhs: V, axis: String): 
 }
 
 /**
- * 浮点数钳制到指定范围
- * Clamp a floating-point value to the specified range
+ * 浮点数钳制到指定范围 / Clamp a floating-point value to the specified range
  *
  * @param V 数值类型 / The numeric type
  * @param value 待钳制的值 / The value to clamp
@@ -187,8 +175,7 @@ internal fun <V : FloatingNumber<V>> quantityClampSafe(
 }
 
 /**
- * 浮点数钳制到指定范围
- * Clamp a floating-point value to the specified range
+ * 浮点数钳制到指定范围 / Clamp a floating-point value to the specified range
  *
  * @param V 数值类型 / The numeric type
  * @param value 待钳制的值 / The value to clamp
@@ -207,8 +194,7 @@ internal fun <V : FloatingNumber<V>> quantityClampOrNull(
 }
 
 /**
- * 浮点数钳制到指定范围
- * Clamp a floating-point value to the specified range
+ * 浮点数钳制到指定范围 / Clamp a floating-point value to the specified range
  *
  * @param V 数值类型 / The numeric type
  * @param value 待钳制的值 / The value to clamp
@@ -227,8 +213,7 @@ internal fun <V : FloatingNumber<V>> quantityClamp(
 }
 
 /**
- * 判断浮点数是否在指定范围内
- * Check whether a floating-point value is within the specified range
+ * 判断浮点数是否在指定范围内 / Check whether a floating-point value is within the specified range
  *
  * @param V 数值类型 / The numeric type
  * @param value 待检测的值 / The value to check
@@ -271,8 +256,7 @@ internal fun <V : FloatingNumber<V>> quantityContainsInRangeSafe(
 }
 
 /**
- * 判断浮点数是否在指定范围内
- * Check whether a floating-point value is within the specified range
+ * 判断浮点数是否在指定范围内 / Check whether a floating-point value is within the specified range
  *
  * @param V 数值类型 / The numeric type
  * @param value 待检测的值 / The value to check
@@ -302,8 +286,7 @@ internal fun <V : FloatingNumber<V>> quantityContainsInRangeOrNull(
 }
 
 /**
- * 判断浮点数是否在指定范围内
- * Check whether a floating-point value is within the specified range
+ * 判断浮点数是否在指定范围内 / Check whether a floating-point value is within the specified range
  *
  * @param V 数值类型 / The numeric type
  * @param value 待检测的值 / The value to check
@@ -333,8 +316,7 @@ internal fun <V : FloatingNumber<V>> quantityContainsInRange(
 }
 
 /**
- * 获取与给定值同类型的零值
- * Get the zero value of the same type as the given value
+ * 获取与给定值同类型的零值 / Get the zero value of the same type as the given value
  *
  * @param V 数值类型 / The numeric type
  * @param value 参考值 / The reference value

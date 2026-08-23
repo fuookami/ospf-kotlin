@@ -1,10 +1,8 @@
 /**
- * 三角形
- * Triangle
+ * 三角形 / Triangle
  *
  * 定义几何空间中的三角形数据结构，由三个顶点构成。
- * 支持边长、周长、面积、重心、退化检测等操作。
- * Defines triangle data structure in geometric space, composed of three vertices.
+ * 支持边长、周长、面积、重心、退化检测等操作。 / Defines triangle data structure in geometric space, composed of three vertices.
  * Supports side length, perimeter, area, centroid, degeneracy detection, etc.
 */
 package fuookami.ospf.kotlin.math.geometry
@@ -13,12 +11,10 @@ import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
- * 三角形数据类
- * Triangle data class
+ * 三角形数据类 / Triangle data class
  *
  * 由三个顶点定义的三角形，支持任意维度和浮点数类型。
- * 提供边、周长、面积、重心、退化/非法检测等计算功能。
- * A triangle defined by three vertices, supporting arbitrary dimensions and floating-point types.
+ * 提供边、周长、面积、重心、退化/非法检测等计算功能。 / A triangle defined by three vertices, supporting arbitrary dimensions and floating-point types.
  * Provides functionality for edges, perimeter, area, centroid, degeneracy/illegal detection, etc.
  *
  * @param P 点类型 / Point type
@@ -60,8 +56,8 @@ class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
      * Cast a coordinate list to the point type.
      * 将坐标列表转换为点类型。
      *
-     * @param position the coordinate list / 坐标列表
-     * @return the casted point / 转换后的点
+     * @param position 坐标列表 / the coordinate list
+     * @return 转换后的点 / the casted point
     */
     @Suppress("UNCHECKED_CAST")
     private fun castPoint(position: List<V>): P {
@@ -74,8 +70,8 @@ class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
      * Cast the calculation result to the target numeric type.
      * 将计算结果转换为目标数值类型。
      *
-     * @param value the calculation result / 计算结果
-     * @return the casted numeric value / 转换后的数值
+     * @param value 计算结果 / the calculation result
+     * @return 转换后的数值 / the casted numeric value
     */
     @Suppress("UNCHECKED_CAST")
     private fun castValue(value: Any?): V {
@@ -122,8 +118,7 @@ class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
 }
 
 /**
- * 计算二维三角形面积（叉积法）
- * Compute 2D triangle area (cross product method)
+ * 计算二维三角形面积（叉积法） / Compute 2D triangle area (cross product method)
  *
  * @return 三角形面积 / The triangle area
 */
@@ -137,8 +132,7 @@ fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.area2D(): Flt64 {
 }
 
 /**
- * 判断二维点是否在三角形内（含边界）
- * Check whether a 2D point is inside the triangle (inclusive)
+ * 判断二维点是否在三角形内（含边界） / Check whether a 2D point is inside the triangle (inclusive)
  *
  * @param point 待检测的点 / The point to check
  * @return 点是否在三角形内 / Whether the point is inside the triangle
@@ -169,8 +163,7 @@ infix fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.containsPoint(point: Point<D
 }
 
 /**
- * 计算二维三角形的外接圆
- * Compute the circumcircle of a 2D triangle
+ * 计算二维三角形的外接圆 / Compute the circumcircle of a 2D triangle
  *
  * @return 外接圆 / The circumcircle
 */
@@ -179,8 +172,7 @@ fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.circumcircle(): Circle<Point<Dim2,
 }
 
 /**
- * 计算二维三角形的外心
- * Compute the circumcenter of a 2D triangle
+ * 计算二维三角形的外心 / Compute the circumcenter of a 2D triangle
  *
  * @return 外心点 / The circumcenter point
 */
@@ -190,8 +182,7 @@ fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.circumcenter(): Point<Dim2, Flt64>
 }
 
 /**
- * 计算二维三角形的内心
- * Compute the incenter of a 2D triangle
+ * 计算二维三角形的内心 / Compute the incenter of a 2D triangle
  *
  * @return 内心点 / The incenter point
 */
@@ -212,8 +203,7 @@ fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.incenter(): Point<Dim2, Flt64> {
 }
 
 /**
- * 计算三维三角形面积（叉积法）
- * Compute 3D triangle area (cross product method)
+ * 计算三维三角形面积（叉积法） / Compute 3D triangle area (cross product method)
  *
  * @return 三角形面积 / The triangle area
 */
@@ -225,8 +215,7 @@ fun Triangle<Point<Dim3, Flt64>, Dim3, Flt64>.area3D(): Flt64 {
 }
 
 /**
- * 计算三维三角形的法向量（单位向量），退化时返回 null
- * Compute the normal vector (unit) of a 3D triangle, returns null if degenerate
+ * 计算三维三角形的法向量（单位向量），退化时返回 null / Compute the normal vector (unit) of a 3D triangle, returns null if degenerate
  *
  * @return 法向量（退化时返回 null） / The normal vector (null if degenerate)
 */

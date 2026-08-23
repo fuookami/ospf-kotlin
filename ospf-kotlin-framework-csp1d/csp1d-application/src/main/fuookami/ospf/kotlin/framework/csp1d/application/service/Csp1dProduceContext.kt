@@ -25,6 +25,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.utils.error.*
@@ -136,7 +137,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     /**
      * Assembles and sets the objective function on the model.
      * 组装并设置模型的目标函数。
-     * @param model the linear meta-model to set the objective on / 设置目标函数的线性元模型
+     * @param model 设置目标函数的线性元模型 / the linear meta-model to set the objective on
     */
     private fun setObjective(model: LinearMetaModel<Flt64>) {
         val monomials = ArrayList<LinearMonomial<Flt64>>()
@@ -159,7 +160,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
             } else {
                 baseBatchCoefficient
             }
-            monomials.add(LinearMonomial(batchCoefficient, produce[index]!!))
+            monomials.add(batchCoefficient * produce[index]!!)
         }
 
         // LP 模式不加 yield/waste/length 目标项
@@ -176,7 +177,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     /**
      * 应用 warm start 初始解 / Apply warm start initial solution
      *
-     * @param model the linear meta-model to apply the warm start solution to / 应用 warm start 初始解的线性元模型
+     * @param model 应用 warm start 初始解的线性元模型 / the linear meta-model to apply the warm start solution to
     */
     private fun applyWarmStart(model: LinearMetaModel<Flt64>) {
         val usageByKey = warmStartUsageByKey()
@@ -197,7 +198,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     /**
      * Aggregates warm-start plan usages by their canonical key.
      * 按规范键聚合 warm-start 方案使用量。
-     * @return a map from cutting plan canonical key to its warm start usage amount / 切割方案规范键到 warm start 使用量的映射
+     * @return 切割方案规范键到 warm start 使用量的映射 / a map from cutting plan canonical key to its warm start usage amount
     */
     private fun warmStartUsageByKey(): Map<CuttingPlanCanonicalKey, UInt64> {
         val result = LinkedHashMap<CuttingPlanCanonicalKey, UInt64>()
@@ -246,8 +247,8 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     /**
      * 提取设备使用量 / Extract machine usages
      *
-     * @param selectedPlans the list of selected cutting plan usages / 已选中的切割方案使用量列表
-     * @return the list of machine capacity usages for each machine / 各设备的产能使用量列表
+     * @param selectedPlans 已选中的切割方案使用量列表 / the list of selected cutting plan usages
+     * @return 各设备的产能使用量列表 / the list of machine capacity usages for each machine
     */
     private fun extractMachineUsages(
         selectedPlans: List<CuttingPlanUsage<V>>
@@ -284,7 +285,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     /**
      * 提取 yield 建模结果 / Extract yield modeling result
      *
-     * @param model the solved linear meta-model to extract yield result from / 提取 yield 建模结果的已求解线性元模型
+     * @param model 提取 yield 建模结果的已求解线性元模型 / the solved linear meta-model to extract yield result from
      * @return the yield modeling result, or null if yield is not configured / yield 建模结果，若未配置 yield 则返回 null
     */
     fun extractYieldResult(model: AbstractLinearMetaModel<Flt64>): YieldModelingResult<V>? {
@@ -294,7 +295,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     /**
      * 提取 length 建模结果 / Extract length modeling result
      *
-     * @param model the solved linear meta-model to extract length result from / 提取 length 建模结果的已求解线性元模型
+     * @param model 提取 length 建模结果的已求解线性元模型 / the solved linear meta-model to extract length result from
      * @return the length assignment modeling result, or null if length is not configured / length 建模结果，若未配置 length 则返回 null
     */
     fun extractLengthResult(model: AbstractLinearMetaModel<Flt64>): LengthAssignmentModelingResult<V>? {
@@ -304,7 +305,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     /**
      * 提取 waste 建模结果 / Extract waste modeling result
      *
-     * @param model the solved linear meta-model to extract waste result from / 提取 waste 建模结果的已求解线性元模型
+     * @param model 提取 waste 建模结果的已求解线性元模型 / the solved linear meta-model to extract waste result from
      * @return the waste minimization result, or null if waste is not configured or has no penalty / waste 最小化结果，若未配置 waste 或无惩罚项则返回 null
     */
     fun extractWasteResult(model: AbstractLinearMetaModel<Flt64>): WasteMinimizationResult<V>? {
@@ -433,7 +434,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
                     baseBatchCoefficient
                 }
                 when (val result = model.minimize(
-                    LinearMonomial(batchCoefficient, latestBatch[planIndex]),
+                    batchCoefficient * latestBatch[planIndex],
                     name = "csp1d_objective_${iteration}_$planIndex"
                 )) {
                     is Ok -> {}
@@ -502,10 +503,10 @@ class Csp1dProduceContext<V : RealNumber<V>>(
      * Csp1dShadowPriceLifecycle.extractFromDualSolution(model, dualSolution) for the CGPipeline primary path.
      *
      * @param dualSolution the map from LP constraints to their dual values / LP 约束到对偶值的映射
-     * @return the shadow price map for pricing consumption / 供定价使用的影子价格映射
+     * @return 供定价使用的影子价格映射 / the shadow price map for pricing consumption
     */
     fun extractShadowPriceMap(
-        dualSolution: Map<fuookami.ospf.kotlin.core.model.mechanism.Constraint<Flt64, Linear>, Flt64>
+        dualSolution: Map<Constraint<Flt64, Linear>, Flt64>
     ): ShadowPriceMap<V> {
         val frameworkMap = Csp1dDefaultShadowPriceMap()
         // 无 model 时无法执行 CGPipeline refresh，直接从 constraint.origin.args 提取
@@ -514,7 +515,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         for ((constraint, dualValue) in dualSolution) {
             val args = constraint.origin?.args as? Csp1dShadowPriceKey ?: continue
             val vDual = (convertSolverValue(domainValueSample, dualValue) as Ok).value
-            frameworkMap.put(fuookami.ospf.kotlin.framework.model.ShadowPrice(args, dualValue))
+            frameworkMap.put(ShadowPrice(args, dualValue))
             val existingValue = prices[args]
             prices[args] = if (existingValue != null) existingValue + vDual else vDual
         }
@@ -524,9 +525,9 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     /**
      * Reads the solved batch count for a cutting plan at the given index.
      * 读取给定索引处切割方案的求解批次数量。
-     * @param model the solved linear meta-model to read the solution from / 读取求解结果的线性元模型
-     * @param index the index of the cutting plan variable in the produce aggregation / 切割方案变量在产出聚合中的索引
-     * @return the rounded non-negative batch count for the plan, or zero if unsolved / 方案的取整非负批次数量，未求解则为零
+     * @param model 读取求解结果的线性元模型 / the solved linear meta-model to read the solution from
+     * @param index 切割方案变量在产出聚合中的索引 / the index of the cutting plan variable in the produce aggregation
+     * @return 方案的取整非负批次数量，未求解则为零 / the rounded non-negative batch count for the plan, or zero if unsolved
     */
 
     // ===== 辅助方法 =====
@@ -543,9 +544,9 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     /**
      * Computes the rest material value for a cutting plan using the given measurement strategy.
      * 使用给定度量策略计算切割方案的余料价值。
-     * @param plan the cutting plan to compute rest material value for / 计算余料价值的切割方案
-     * @param measure the rest material measurement strategy / 余料度量策略
-     * @return the computed rest material value, or null if required data is missing / 计算得到的余料价值，缺少必要数据时返回 null
+     * @param plan 计算余料价值的切割方案 / the cutting plan to compute rest material value for
+     * @param measure 余料度量策略 / the rest material measurement strategy
+     * @return 计算得到的余料价值，缺少必要数据时返回 null / the computed rest material value, or null if required data is missing
     */
     private fun restMaterialValue(
         plan: CuttingPlan<V>,
@@ -564,9 +565,9 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     /**
      * Computes the width value used as an over-production area proxy for a product demand.
      * 计算产品需求中用作超产面积代理的宽度值。
-     * @param demand the product demand to compute over-production area width for / 计算超产面积宽度的产品需求
-     * @param measure the over-production area measurement strategy / 超产面积度量策略
-     * @return the width value for over-production area proxy, or null if unavailable / 超产面积代理的宽度值，不可用时返回 null
+     * @param demand 计算超产面积宽度的产品需求 / the product demand to compute over-production area width for
+     * @param measure 超产面积度量策略 / the over-production area measurement strategy
+     * @return 超产面积代理的宽度值，不可用时返回 null / the width value for over-production area proxy, or null if unavailable
     */
     private fun overProductionAreaWidthValue(
         demand: ProductDemand<V>,
@@ -679,7 +680,7 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
      *
      * @param extension 建模扩展 / Modeling extension
      *
-     * @return the builder itself for method chaining / 构建器自身，用于链式调用
+     * @return 构建器自身，用于链式调用 / the builder itself for method chaining
     */
     fun extension(extension: Csp1dModelingExtension<V>): Csp1dProduceContextBuilder<V> {
         _extensions.add(extension)
@@ -689,8 +690,7 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
     /**
      * 构建 Csp1dProduceContext 实例 / Build Csp1dProduceContext instance
      *
-     * 解析所有扩展管线，组装产出/yield/waste/length 聚合与约束管线，返回完整建模上下文。
-     * Resolves all extension pipelines, assembles produce/yield/waste/length aggregations with constraint pipelines, and returns the complete modeling context.
+     * 解析所有扩展管线，组装产出/yield/waste/length 聚合与约束管线，返回完整建模上下文。 / Resolves all extension pipelines, assembles produce/yield/waste/length aggregations with constraint pipelines, and returns the complete modeling context.
      *
      * @return CSP1D 产出模型上下文 / CSP1D produce model context
     */
@@ -852,8 +852,8 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
     /**
      * 从输入数据推导领域数值样本 / Derive a domain value sample from input data
      *
-     * @param input the produce input data to derive the sample from / 推导样本的产出输入数据
-     * @return a domain value sample for type conversion, or failure if no value can be derived / 用于类型转换的领域数值样本，无法推导时返回失败
+     * @param input 推导样本的产出输入数据 / the produce input data to derive the sample from
+     * @return 用于类型转换的领域数值样本，无法推导时返回失败 / a domain value sample for type conversion, or failure if no value can be derived
     */
     private fun resolveDomainValueSample(input: ProduceInput<V>): Ret<V> {
         // 优先从 demand 的 quantity 获取 / Prefer demand quantity

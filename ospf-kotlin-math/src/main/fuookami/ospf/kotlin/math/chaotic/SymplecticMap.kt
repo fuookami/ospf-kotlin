@@ -1,6 +1,5 @@
 /**
- * 辛映射
- * Symplectic Map
+ * 辛映射 / Symplectic Map
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 辛映射
- * Symplectic Map
+ * 辛映射 / Symplectic Map
  *
  * @property h 时间步长 / Time step size
 */
@@ -33,8 +31,7 @@ data class SymplecticMap<V : FloatingNumber<V>>(val h: V) : Extractor<Point<Dim2
 }
 
 /**
- * 辛映射生成器
- * Symplectic Map Generator
+ * 辛映射生成器 / Symplectic Map Generator
  *
  * @property map 辛映射实例 / Symplectic map instance
 */

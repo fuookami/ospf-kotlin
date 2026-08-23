@@ -21,7 +21,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 class MybatisBooleanTranslatorTest {
     data class TestEntity(val id: Long, val age: Int, val name: String?)
 
-    private val resolver: MybatisColumnNameResolver = { path: String ->
+    private val resolver = MybatisColumnNameResolver { path: String ->
         when (path.substringAfterLast(".")) {
             "id", "age", "status", "name", "a", "b", "c", "d", "x", "price", "quantity" -> path.substringAfterLast(".")
             "widthValue" -> "width_value"
@@ -334,7 +334,7 @@ class MybatisBooleanTranslatorTest {
 
             val result = failFastTranslator.translate(QueryWrapper(), BooleanCustom("x"))
             assertTrue(result.failed)
-            assertTrue(result is Failed<*, *, *>)
+            assertTrue(result is Failed)
 
             val failed = result as Failed<*, *, *>
             val error = failed.error
@@ -358,7 +358,7 @@ class MybatisBooleanTranslatorTest {
 
             val result = clientFilterTranslator.translate(QueryWrapper(), BooleanCustom("x"))
             assertTrue(result.failed)
-            assertTrue(result is Failed<*, *, *>)
+            assertTrue(result is Failed)
 
             val failed = result as Failed<*, *, *>
             val error = failed.error

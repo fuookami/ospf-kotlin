@@ -13,9 +13,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 /** Manages reversible flight task pairs for order change operations.
  * 管理用于顺序变更操作的可反转航班任务对。
  *
- * @property symmetricalPairs List of symmetrical reversible pairs / 对称可反转对列表
- * @property leftMapper Map from task key to reversible pairs where the task is the predecessor / 任务键到以该任务为前序的可反转对的映射
- * @property rightMapper Map from task key to reversible pairs where the task is the successor / 任务键到以该任务为后续的可反转对的映射
+ * @property symmetricalPairs 对称可反转对列表 / List of symmetrical reversible pairs
+ * @property leftMapper 任务键到以该任务为前序的可反转对的映射 / Map from task key to reversible pairs where the task is the predecessor
+ * @property rightMapper 任务键到以该任务为后续的可反转对的映射 / Map from task key to reversible pairs where the task is the successor
 */
 class FlightTaskReverse private constructor(
     private val symmetricalPairs: List<ReversiblePair> = ArrayList(),
@@ -27,9 +27,9 @@ class FlightTaskReverse private constructor(
      * A pair of tasks that can be reversed.
      * 可以反转的一对任务。
      *
-     * @property prevTask The predecessor task in the reversible pair / 可反转对中的前序任务
-     * @property succTask The successor task in the reversible pair / 可反转对中的后续任务
-     * @property symmetrical Whether the pair is symmetrical (can be reversed in both directions) / 该对是否对称（可以双向反转）
+     * @property prevTask 可反转对中的前序任务 / The predecessor task in the reversible pair
+     * @property succTask 可反转对中的后续任务 / The successor task in the reversible pair
+     * @property symmetrical 该对是否对称（可以双向反转） / Whether the pair is symmetrical (can be reversed in both directions)
     */
     data class ReversiblePair(
         val prevTask: FlightTask,
@@ -45,11 +45,11 @@ class FlightTaskReverse private constructor(
          * Creates a FlightTaskReverse from a list of task pairs.
          * 从任务对列表创建 FlightTaskReverse。
          *
-         * @param pairs List of flight task pairs to make reversible / 要设为可反转的航班任务对列表
-         * @param originBunches The original flight task bunches / 原始航班任务束列表
-         * @param lock The lock containing locked time information / 包含锁定时间信息的锁
-         * @param timeDifferenceLimit The maximum time difference allowed for reversal / 反转允许的最大时间差
-         * @return A new FlightTaskReverse instance / 新的 FlightTaskReverse 实例
+         * @param pairs 要设为可反转的航班任务对列表 / List of flight task pairs to make reversible
+         * @param originBunches 原始航班任务束列表 / The original flight task bunches
+         * @param lock 包含锁定时间信息的锁 / The lock containing locked time information
+         * @param timeDifferenceLimit 反转允许的最大时间差 / The maximum time difference allowed for reversal
+         * @return 新的 FlightTaskReverse 实例 / A new FlightTaskReverse instance
         */
         operator fun invoke(
             pairs: List<Pair<FlightTask, FlightTask>>,
@@ -93,11 +93,11 @@ class FlightTaskReverse private constructor(
          * Checks if two tasks can be reversed.
          * 检查两个任务是否可以反转。
          *
-         * @param prevFlightTask The predecessor flight task / 前序航班任务
-         * @param succFlightTask The successor flight task / 后续航班任务
-         * @param lock The lock containing locked time information / 包含锁定时间信息的锁
-         * @param timeDifferenceLimit The maximum time difference allowed for reversal / 反转允许的最大时间差
-         * @return true if the two tasks can be reversed / 如果两个任务可以反转则为 true
+         * @param prevFlightTask 前序航班任务 / The predecessor flight task
+         * @param succFlightTask 后续航班任务 / The successor flight task
+         * @param lock 包含锁定时间信息的锁 / The lock containing locked time information
+         * @param timeDifferenceLimit 反转允许的最大时间差 / The maximum time difference allowed for reversal
+         * @return 如果两个任务可以反转则为 true / true if the two tasks can be reversed
         */
         fun reverseEnabled(
             prevFlightTask: FlightTask,
@@ -154,11 +154,11 @@ class FlightTaskReverse private constructor(
          * Checks if two tasks are symmetrical (can be reversed in both directions).
          * 检查两个任务是否对称（可以在两个方向上反转）。
          *
-         * @param prevFlightTask The predecessor flight task / 前序航班任务
-         * @param succFlightTask The successor flight task / 后续航班任务
-         * @param lock The lock containing locked time information / 包含锁定时间信息的锁
-         * @param timeDifferenceLimit The maximum time difference allowed for reversal / 反转允许的最大时间差
-         * @return true if the two tasks are symmetrical / 如果两个任务对称则为 true
+         * @param prevFlightTask 前序航班任务 / The predecessor flight task
+         * @param succFlightTask 后续航班任务 / The successor flight task
+         * @param lock 包含锁定时间信息的锁 / The lock containing locked time information
+         * @param timeDifferenceLimit 反转允许的最大时间差 / The maximum time difference allowed for reversal
+         * @return 如果两个任务对称则为 true / true if the two tasks are symmetrical
         */
         fun symmetrical(
             prevFlightTask: FlightTask,
@@ -173,12 +173,12 @@ class FlightTaskReverse private constructor(
 /**
  * Checks whether two tasks are symmetrical considering their presence in the original bunches.
  * 考虑任务在原始束中的存在情况，检查两个任务是否对称。
- * @param originBunches The original flight task bunches to search within / 要搜索的原始航班任务束列表
- * @param prevFlightTask The predecessor flight task / 前序航班任务
- * @param succFlightTask The successor flight task / 后续航班任务
- * @param lock The lock containing locked time information / 包含锁定时间信息的锁
- * @param timeDifferenceLimit The maximum time difference allowed for reversal / 反转允许的最大时间差
- * @return true if both tasks appear in the same original bunch and the arrival airport of the predecessor matches the departure airport of the successor / 如果两个任务出现在同一原始束中且前序任务的到达机场与后续任务的出发机场匹配则为 true
+ * @param originBunches 要搜索的原始航班任务束列表 / The original flight task bunches to search within
+ * @param prevFlightTask 前序航班任务 / The predecessor flight task
+ * @param succFlightTask 后续航班任务 / The successor flight task
+ * @param lock 包含锁定时间信息的锁 / The lock containing locked time information
+ * @param timeDifferenceLimit 反转允许的最大时间差 / The maximum time difference allowed for reversal
+ * @return 如果两个任务出现在同一原始束中且前序任务的到达机场与后续任务的出发机场匹配则为 true / true if both tasks appear in the same original bunch and the arrival airport of the predecessor matches the departure airport of the successor
 */
         private fun symmetrical(
             originBunches: List<FlightTaskBunch>,
@@ -197,9 +197,9 @@ class FlightTaskReverse private constructor(
      * Checks if a pair of tasks can be reversed.
      * 检查一对任务是否可以反转。
      *
-     * @param prevFlightTask The predecessor flight task / 前序航班任务
-     * @param succFlightTask The successor flight task / 后续航班任务
-     * @return true if the pair can be reversed / 如果该对可以反转则为 true
+     * @param prevFlightTask 前序航班任务 / The predecessor flight task
+     * @param succFlightTask 后续航班任务 / The successor flight task
+     * @return 如果该对可以反转则为 true / true if the pair can be reversed
     */
     fun contains(prevFlightTask: FlightTask, succFlightTask: FlightTask): Boolean {
         return leftMapper[prevFlightTask.key]?.any { it.succTask == succFlightTask } ?: false
@@ -209,9 +209,9 @@ class FlightTaskReverse private constructor(
      * Checks if a pair of tasks are symmetrical.
      * 检查一对任务是否对称。
      *
-     * @param prevFlightTask The predecessor flight task / 前序航班任务
-     * @param succFlightTask The successor flight task / 后续航班任务
-     * @return true if the pair is symmetrical / 如果该对对称则为 true
+     * @param prevFlightTask 前序航班任务 / The predecessor flight task
+     * @param succFlightTask 后续航班任务 / The successor flight task
+     * @return 如果该对对称则为 true / true if the pair is symmetrical
     */
     fun symmetrical(prevFlightTask: FlightTask, succFlightTask: FlightTask): Boolean {
         return leftMapper[prevFlightTask.key]?.find { it.succTask == succFlightTask.originTask }?.symmetrical ?: false
@@ -221,8 +221,8 @@ class FlightTaskReverse private constructor(
      * Finds all reversible pairs where the given task is the predecessor.
      * 查找给定任务作为前序任务的所有可反转对。
      *
-     * @param flightTask The flight task to search as predecessor / 要作为前序任务搜索的航班任务
-     * @return List of reversible pairs where the task is the predecessor / 该任务作为前序任务的可反转对列表
+     * @param flightTask 要作为前序任务搜索的航班任务 / The flight task to search as predecessor
+     * @return 该任务作为前序任务的可反转对列表 / List of reversible pairs where the task is the predecessor
     */
     fun leftFind(flightTask: FlightTask): List<ReversiblePair> {
         return leftMapper[flightTask.key] ?: emptyList()
@@ -232,8 +232,8 @@ class FlightTaskReverse private constructor(
      * Finds all reversible pairs where the given task is the successor.
      * 查找给定任务作为后续任务的所有可反转对。
      *
-     * @param flightTask The flight task to search as successor / 要作为后续任务搜索的航班任务
-     * @return List of reversible pairs where the task is the successor / 该任务作为后续任务的可反转对列表
+     * @param flightTask 要作为后续任务搜索的航班任务 / The flight task to search as successor
+     * @return 该任务作为后续任务的可反转对列表 / List of reversible pairs where the task is the successor
     */
     fun rightFind(flightTask: FlightTask): List<ReversiblePair> {
         return rightMapper[flightTask.key] ?: emptyList()

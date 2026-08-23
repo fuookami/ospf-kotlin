@@ -12,12 +12,10 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 /**
- * Flt64 转换快捷函数
- * Flt64 Conversion Convenience Functions
+ * Flt64 转换快捷函数 / Flt64 Conversion Convenience Functions
  *
  * 提供 Flt64 多项式和不等式的类型转换快捷函数。
- * 包括 Ret 包装的降阶转换和不等式规范化操作。
- * Provides Flt64 polynomial and inequality type conversion convenience functions.
+ * 包括 Ret 包装的降阶转换和不等式规范化操作。 / Provides Flt64 polynomial and inequality type conversion convenience functions.
  * Includes Ret-wrapped demotion conversions and inequality normalization operations.
 */
 
@@ -34,8 +32,7 @@ private fun LinearPolynomial<Flt64>.minus(rhs: LinearPolynomial<Flt64>): LinearP
 }
 
 /**
- * 将 Flt64 规范多项式尝试转换为二次多项式
- * Try to convert a Flt64 canonical polynomial to a quadratic polynomial
+ * 将 Flt64 规范多项式尝试转换为二次多项式 / Try to convert a Flt64 canonical polynomial to a quadratic polynomial
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 二次多项式，若不可转换则返回 null / Quadratic polynomial, or null if not convertible
@@ -51,11 +48,9 @@ fun CanonicalPolynomial<Flt64>.toQuadraticPolynomialOrNull(
 }
 
 /**
- * 线性转换错误
- * Linear conversion error
+ * 线性转换错误 / Linear conversion error
  *
- * 表示降阶转换为线性多项式时的失败原因。
- * Represents the failure reason when demoting to a linear polynomial.
+ * 表示降阶转换为线性多项式时的失败原因。 / Represents the failure reason when demoting to a linear polynomial.
 */
 enum class TryToLinearError {
     /** Canonical monomial is not linear / 规范单项式不是线性的 */
@@ -73,11 +68,9 @@ enum class TryToLinearError {
 }
 
 /**
- * 二次转换错误
- * Quadratic conversion error
+ * 二次转换错误 / Quadratic conversion error
  *
- * 表示降阶转换为二次多项式时的失败原因。
- * Represents the failure reason when demoting to a quadratic polynomial.
+ * 表示降阶转换为二次多项式时的失败原因。 / Represents the failure reason when demoting to a quadratic polynomial.
 */
 enum class TryToQuadraticError {
     /** Canonical monomial is not quadratic / 规范单项式不是二次的 */
@@ -89,11 +82,9 @@ enum class TryToQuadraticError {
 }
 
 /**
- * 规范转换错误
- * Canonical conversion error
+ * 规范转换错误 / Canonical conversion error
  *
- * 表示转换为规范多项式时的失败原因。
- * Represents the failure reason when converting to a canonical polynomial.
+ * 表示转换为规范多项式时的失败原因。 / Represents the failure reason when converting to a canonical polynomial.
 */
 enum class TryToCanonicalError {
     /** Unsupported conversion / 不支持的转换 */
@@ -101,8 +92,7 @@ enum class TryToCanonicalError {
 }
 
 /**
- * 将 Flt64 规范单项式转换为线性单项式（Ret 包装）
- * Convert a Flt64 canonical monomial to a linear monomial (Ret-wrapped)
+ * 将 Flt64 规范单项式转换为线性单项式（Ret 包装） / Convert a Flt64 canonical monomial to a linear monomial (Ret-wrapped)
  *
  * @return 包含线性单项式的 Ret 结果 / Ret result containing linear monomial
 */
@@ -116,8 +106,7 @@ fun CanonicalMonomial<Flt64>.toLinearMonomialRet(): Ret<LinearMonomial<Flt64>> {
 }
 
 /**
- * 将 Flt64 规范单项式转换为二次单项式（Ret 包装）
- * Convert a Flt64 canonical monomial to a quadratic monomial (Ret-wrapped)
+ * 将 Flt64 规范单项式转换为二次单项式（Ret 包装） / Convert a Flt64 canonical monomial to a quadratic monomial (Ret-wrapped)
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 包含二次单项式的 Ret 结果 / Ret result containing quadratic monomial
@@ -134,8 +123,7 @@ fun CanonicalMonomial<Flt64>.toQuadraticMonomialRet(
 }
 
 /**
- * 将 Flt64 二次单项式转换为线性单项式（Ret 包装）
- * Convert a Flt64 quadratic monomial to a linear monomial (Ret-wrapped)
+ * 将 Flt64 二次单项式转换为线性单项式（Ret 包装） / Convert a Flt64 quadratic monomial to a linear monomial (Ret-wrapped)
  *
  * @return 包含线性单项式的 Ret 结果 / Ret result containing linear monomial
 */
@@ -149,8 +137,7 @@ fun QuadraticMonomial<Flt64>.toLinearMonomialRet(): Ret<LinearMonomial<Flt64>> {
 }
 
 /**
- * 将 Flt64 规范多项式转换为线性多项式（Ret 包装）
- * Convert a Flt64 canonical polynomial to a linear polynomial (Ret-wrapped)
+ * 将 Flt64 规范多项式转换为线性多项式（Ret 包装） / Convert a Flt64 canonical polynomial to a linear polynomial (Ret-wrapped)
  *
  * @return 包含线性多项式的 Ret 结果 / Ret result containing linear polynomial
 */
@@ -164,8 +151,7 @@ fun CanonicalPolynomial<Flt64>.toLinearPolynomialRet(): Ret<LinearPolynomial<Flt
 }
 
 /**
- * 将 Flt64 规范多项式转换为二次多项式（Ret 包装）
- * Convert a Flt64 canonical polynomial to a quadratic polynomial (Ret-wrapped)
+ * 将 Flt64 规范多项式转换为二次多项式（Ret 包装） / Convert a Flt64 canonical polynomial to a quadratic polynomial (Ret-wrapped)
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 包含二次多项式的 Ret 结果 / Ret result containing quadratic polynomial
@@ -182,8 +168,7 @@ fun CanonicalPolynomial<Flt64>.toQuadraticPolynomialRet(
 }
 
 /**
- * 将 Flt64 二次多项式转换为线性多项式（Ret 包装）
- * Convert a Flt64 quadratic polynomial to a linear polynomial (Ret-wrapped)
+ * 将 Flt64 二次多项式转换为线性多项式（Ret 包装） / Convert a Flt64 quadratic polynomial to a linear polynomial (Ret-wrapped)
  *
  * @return 包含线性多项式的 Ret 结果 / Ret result containing linear polynomial
 */
@@ -197,8 +182,7 @@ fun QuadraticPolynomial<Flt64>.toLinearPolynomialRet(): Ret<LinearPolynomial<Flt
 }
 
 /**
- * 将 Flt64 线性不等式升阶为二次不等式
- * Promote a Flt64 linear inequality to a quadratic inequality
+ * 将 Flt64 线性不等式升阶为二次不等式 / Promote a Flt64 linear inequality to a quadratic inequality
  *
  * @return 二次不等式 / Quadratic inequality
 */
@@ -211,8 +195,7 @@ fun LinearInequality<Flt64>.toQuadraticInequality(): QuadraticInequalityOf<Flt64
 }
 
 /**
- * 将 Flt64 线性不等式升阶为规范不等式
- * Promote a Flt64 linear inequality to a canonical inequality
+ * 将 Flt64 线性不等式升阶为规范不等式 / Promote a Flt64 linear inequality to a canonical inequality
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 规范不等式 / Canonical inequality
@@ -228,8 +211,7 @@ fun LinearInequality<Flt64>.toCanonicalInequality(
 }
 
 /**
- * 将 Flt64 二次不等式升阶为规范不等式
- * Promote a Flt64 quadratic inequality to a canonical inequality
+ * 将 Flt64 二次不等式升阶为规范不等式 / Promote a Flt64 quadratic inequality to a canonical inequality
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 规范不等式 / Canonical inequality
@@ -245,8 +227,7 @@ fun QuadraticInequalityOf<Flt64>.toCanonicalInequality(
 }
 
 /**
- * 将 Flt64 二次不等式尝试降阶为线性不等式
- * Try to demote a Flt64 quadratic inequality to a linear inequality
+ * 将 Flt64 二次不等式尝试降阶为线性不等式 / Try to demote a Flt64 quadratic inequality to a linear inequality
  *
  * @return 线性不等式，若不可转换则返回 null / Linear inequality, or null if not convertible
 */
@@ -257,8 +238,7 @@ fun QuadraticInequalityOf<Flt64>.toLinearInequalityOrNull(): LinearInequality<Fl
 }
 
 /**
- * 将 Flt64 二次不等式降阶为线性不等式（Ret 包装）
- * Demote a Flt64 quadratic inequality to a linear inequality (Ret-wrapped)
+ * 将 Flt64 二次不等式降阶为线性不等式（Ret 包装） / Demote a Flt64 quadratic inequality to a linear inequality (Ret-wrapped)
  *
  * @return 包含线性不等式的 Ret 结果 / Ret result containing linear inequality
 */
@@ -272,8 +252,7 @@ fun QuadraticInequalityOf<Flt64>.toLinearInequalityRet(): Ret<LinearInequality<F
 }
 
 /**
- * 将 Flt64 规范不等式尝试降阶为线性不等式
- * Try to demote a Flt64 canonical inequality to a linear inequality
+ * 将 Flt64 规范不等式尝试降阶为线性不等式 / Try to demote a Flt64 canonical inequality to a linear inequality
  *
  * @return 线性不等式，若不可转换则返回 null / Linear inequality, or null if not convertible
 */
@@ -284,8 +263,7 @@ fun CanonicalInequality<Flt64>.toLinearInequalityOrNull(): LinearInequality<Flt6
 }
 
 /**
- * 将 Flt64 规范不等式尝试降阶为二次不等式
- * Try to demote a Flt64 canonical inequality to a quadratic inequality
+ * 将 Flt64 规范不等式尝试降阶为二次不等式 / Try to demote a Flt64 canonical inequality to a quadratic inequality
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 二次不等式，若不可转换则返回 null / Quadratic inequality, or null if not convertible
@@ -299,8 +277,7 @@ fun CanonicalInequality<Flt64>.toQuadraticInequalityOrNull(
 }
 
 /**
- * 将 Flt64 规范不等式降阶为线性不等式（Ret 包装）
- * Demote a Flt64 canonical inequality to a linear inequality (Ret-wrapped)
+ * 将 Flt64 规范不等式降阶为线性不等式（Ret 包装） / Demote a Flt64 canonical inequality to a linear inequality (Ret-wrapped)
  *
  * @return 包含线性不等式的 Ret 结果 / Ret result containing linear inequality
 */
@@ -314,8 +291,7 @@ fun CanonicalInequality<Flt64>.toLinearInequalityRet(): Ret<LinearInequality<Flt
 }
 
 /**
- * 将 Flt64 规范不等式降阶为二次不等式（Ret 包装）
- * Demote a Flt64 canonical inequality to a quadratic inequality (Ret-wrapped)
+ * 将 Flt64 规范不等式降阶为二次不等式（Ret 包装） / Demote a Flt64 canonical inequality to a quadratic inequality (Ret-wrapped)
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 包含二次不等式的 Ret 结果 / Ret result containing quadratic inequality
@@ -332,8 +308,7 @@ fun CanonicalInequality<Flt64>.toQuadraticInequalityRet(
 }
 
 /**
- * 将 Flt64 线性不等式所有项移至左侧
- * Move all terms of a Flt64 linear inequality to the left-hand side
+ * 将 Flt64 线性不等式所有项移至左侧 / Move all terms of a Flt64 linear inequality to the left-hand side
  *
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 左侧归一化的不等式 / Normalized inequality with all terms on LHS
@@ -349,8 +324,7 @@ fun LinearInequality<Flt64>.moveAllToLhs(combineTerms: Boolean = true): LinearIn
 }
 
 /**
- * 将 Flt64 线性不等式规范化为小于等于形式
- * Normalize a Flt64 linear inequality to less-than-or-equal form
+ * 将 Flt64 线性不等式规范化为小于等于形式 / Normalize a Flt64 linear inequality to less-than-or-equal form
  *
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 规范化的不等式 / Normalized inequality
@@ -368,8 +342,7 @@ fun LinearInequality<Flt64>.normalizeToLessEqualForm(combineTerms: Boolean = tru
 }
 
 /**
- * 将 Flt64 规范不等式所有项移至左侧
- * Move all terms of a Flt64 canonical inequality to the left-hand side
+ * 将 Flt64 规范不等式所有项移至左侧 / Move all terms of a Flt64 canonical inequality to the left-hand side
  *
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @param symbolComparator 符号比较器 / Symbol comparator
@@ -394,8 +367,7 @@ fun CanonicalInequality<Flt64>.moveAllToLhs(
 }
 
 /**
- * 将 Flt64 规范不等式规范化为小于等于形式
- * Normalize a Flt64 canonical inequality to less-than-or-equal form
+ * 将 Flt64 规范不等式规范化为小于等于形式 / Normalize a Flt64 canonical inequality to less-than-or-equal form
  *
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @param symbolComparator 符号比较器 / Symbol comparator

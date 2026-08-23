@@ -1,8 +1,7 @@
 /**
  * 生产任务模型 / Production task model
  *
- * 本文件定义材料接口、产品类型、材料需求与储备、以及生产任务接口。
- * This file defines material interfaces, product types, material demand and reserves, and production task interface.
+ * 本文件定义材料接口、产品类型、材料需求与储备、以及生产任务接口。 / This file defines material interfaces, product types, material demand and reserves, and production task interface.
 */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
@@ -207,7 +206,7 @@ private fun <V : RealNumber<V>> List<V>.sumOrZero(zero: V): V {
 /**
  * Quantity.
  * Quantity。
- * @return Whether the quantity value is non-zero / 物理量值是否非零
+ * @return 物理量值是否非零 / Whether the quantity value is non-zero
 */
 private fun Quantity<*>.isNonZero(): Boolean {
     val realValue = value as? RealNumber<*> ?: return false

@@ -1,6 +1,5 @@
 /**
- * 容器基础设施。
- * Container infrastructure.
+ * 容器基础设施。 / Container infrastructure.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
@@ -67,8 +66,7 @@ private fun <V : FloatingNumber<V>> count3(units: List<QuantityPlacement3<*, V>>
 }
 
 /**
- * 抽象 2D 容器形状接口，提供二维容器的几何约束和空间计算。
- * Abstract 2D container shape interface providing geometric constraints and spatial calculations.
+ * 抽象 2D 容器形状接口，提供二维容器的几何约束和空间计算。 / Abstract 2D container shape interface providing geometric constraints and spatial calculations.
 */
 interface AbstractContainer2Shape<P : ProjectivePlane> : Container2Geometry<P, FltX> {
     override val length: Quantity<FltX>
@@ -88,16 +86,14 @@ interface AbstractContainer2Shape<P : ProjectivePlane> : Container2Geometry<P, F
     )
 
     /**
-     * 计算给定点偏移后的剩余空间。
-     * Calculate the remaining space after the given point offset.
+     * 计算给定点偏移后的剩余空间。 / Calculate the remaining space after the given point offset.
      * @param offset 偏移点 / the offset point
      * @return 剩余容器形状 / the remaining container shape
     */
     fun restSpace(offset: Point<Dim2, FltX>) = restSpace(point2FltX(offset))
 
     /**
-     * 计算给定向量偏移后的剩余空间。
-     * Calculate the remaining space after the given vector offset.
+     * 计算给定向量偏移后的剩余空间。 / Calculate the remaining space after the given vector offset.
      * @param offset 偏移向量 / the offset vector
      * @return 剩余容器形状 / the remaining container shape
     */
@@ -105,8 +101,7 @@ interface AbstractContainer2Shape<P : ProjectivePlane> : Container2Geometry<P, F
 }
 
 /**
- * 2D 容器形状的具体实现。
- * Concrete implementation of a 2D container shape.
+ * 2D 容器形状的具体实现。 / Concrete implementation of a 2D container shape.
 */
 class Container2Shape<P : ProjectivePlane>(
     override val length: Quantity<FltX> = FltX.maximum * Meter,
@@ -126,8 +121,7 @@ class Container2Shape<P : ProjectivePlane>(
 }
 
 /**
- * 2D 容器接口，表示具有平面的二维装箱容器。
- * 2D container interface representing a two-dimensional packing container with a plane.
+ * 2D 容器接口，表示具有平面的二维装箱容器。 / 2D container interface representing a two-dimensional packing container with a plane.
 */
 interface Container2<
         S : Container2<S, V, P>,
@@ -157,16 +151,14 @@ interface Container2<
     }
 
     /**
-     * 获取指定单元的数量。
-     * Get the amount of the specified unit.
+     * 获取指定单元的数量。 / Get the amount of the specified unit.
      * @param unit 要查询的单元 / the unit to query
      * @return 单元数量 / the amount of the unit
     */
     fun amount(unit: AbstractCuboid<V>) = amounts[unit] ?: UInt64.zero
 
     /**
-     * 计算满足谓词的单元总数。
-     * Calculate the total amount of units matching the predicate.
+     * 计算满足谓词的单元总数。 / Calculate the total amount of units matching the predicate.
      * @param predicate 谓词条件 / the predicate condition
      * @return 满足条件的单元总数 / total amount of matching units
     */
@@ -177,16 +169,14 @@ interface Container2<
             .fold(UInt64.zero) { acc, entry -> acc + entry.value }
 
     /**
-     * 检查是否包含指定单元。
-     * Check if the container contains the specified unit.
+     * 检查是否包含指定单元。 / Check if the container contains the specified unit.
      * @param unit 要检查的单元 / the unit to check
      * @return 是否包含该单元 / whether the unit is contained
     */
     fun contains(unit: AbstractCuboid<V>) = amounts[unit]?.let { it != UInt64.zero } ?: false
 
     /**
-     * 检查是否包含满足谓词的单元。
-     * Check if there is any unit matching the predicate.
+     * 检查是否包含满足谓词的单元。 / Check if there is any unit matching the predicate.
      * @param predicate 谓词条件 / the predicate condition
      * @return 是否包含匹配的单元 / whether any matching unit exists
     */
@@ -194,8 +184,7 @@ interface Container2<
 }
 
 /**
- * 抽象 3D 容器形状接口，提供三维容器的几何约束和空间计算。
- * Abstract 3D container shape interface providing geometric constraints and spatial calculations.
+ * 抽象 3D 容器形状接口，提供三维容器的几何约束和空间计算。 / Abstract 3D container shape interface providing geometric constraints and spatial calculations.
 */
 interface AbstractContainer3Shape : Container3Geometry<FltX> {
     override val width: Quantity<FltX>
@@ -219,8 +208,7 @@ interface AbstractContainer3Shape : Container3Geometry<FltX> {
     }
 
     /**
-     * 判断给定的包装形状在指定位置是否可被容器容纳。
-     * Determine whether the given packing shape can be accommodated at the specified position.
+     * 判断给定的包装形状在指定位置是否可被容器容纳。 / Determine whether the given packing shape can be accommodated at the specified position.
      * @param shape 包装形状 / the packing shape
      * @param position 放置位置 / the placement position
      * @return 是否可容纳 / whether it can be accommodated
@@ -276,8 +264,7 @@ interface AbstractContainer3Shape : Container3Geometry<FltX> {
     }
 
     /**
-     * 计算容器在给定方向和限制条件下最多能容纳的单元数量。
-     * Calculate the maximum amount of the given unit that can fit in the container under the given orientation and limits.
+     * 计算容器在给定方向和限制条件下最多能容纳的单元数量。 / Calculate the maximum amount of the given unit that can fit in the container under the given orientation and limits.
      * @param unit 要放置的单元 / the unit to place
      * @param orientation 放置方向 / the placement orientation
      * @param maxXAmount X 轴方向最大数量限制 / maximum amount limit on X axis
@@ -314,8 +301,7 @@ interface AbstractContainer3Shape : Container3Geometry<FltX> {
     )
 
     /**
-     * 计算给定带量向量偏移后的剩余空间。
-     * Calculate the remaining space after the given quantity vector offset.
+     * 计算给定带量向量偏移后的剩余空间。 / Calculate the remaining space after the given quantity vector offset.
      * @param offset 带量偏移向量 / the quantity offset vector
      * @return 剩余容器形状 / the remaining container shape
     */
@@ -326,16 +312,14 @@ interface AbstractContainer3Shape : Container3Geometry<FltX> {
     )
 
     /**
-     * 计算给定点偏移后的剩余空间。
-     * Calculate the remaining space after the given point offset.
+     * 计算给定点偏移后的剩余空间。 / Calculate the remaining space after the given point offset.
      * @param offset 偏移点 / the offset point
      * @return 剩余容器形状 / the remaining container shape
     */
     fun restSpace(offset: Point<Dim3, FltX>) = restSpace(point3FltX(offset))
 
     /**
-     * 计算给定向量偏移后的剩余空间。
-     * Calculate the remaining space after the given vector offset.
+     * 计算给定向量偏移后的剩余空间。 / Calculate the remaining space after the given vector offset.
      * @param offset 偏移向量 / the offset vector
      * @return 剩余容器形状 / the remaining container shape
     */
@@ -347,8 +331,7 @@ interface AbstractContainer3Shape : Container3Geometry<FltX> {
 }
 
 /**
- * 3D 容器形状的数据类，包含宽、高、深三个维度。
- * Data class for 3D container shape with width, height and depth dimensions.
+ * 3D 容器形状的数据类，包含宽、高、深三个维度。 / Data class for 3D container shape with width, height and depth dimensions.
 */
 data class Container3Shape(
     override val width: Quantity<FltX> = FltX.maximum * Meter,
@@ -379,8 +362,7 @@ data class Container3Shape(
 }
 
 /**
- * 3D 容器接口，表示具有体积的三维装箱容器。
- * 3D container interface representing a three-dimensional packing container with volume.
+ * 3D 容器接口，表示具有体积的三维装箱容器。 / 3D container interface representing a three-dimensional packing container with volume.
 */
 interface Container3<
         S : Container3<S, V>,
@@ -428,8 +410,7 @@ interface Container3<
     }
 
     /**
-     * 判断容器是否能够容纳指定方向和摆放的单元。
-     * Determine whether the container can accommodate the specified unit with the given orientation.
+     * 判断容器是否能够容纳指定方向和摆放的单元。 / Determine whether the container can accommodate the specified unit with the given orientation.
      * @param unit 要检查的单元 / the unit to check
      * @param orientation 放置方向 / the placement orientation
      * @return 是否可容纳 / whether it can be accommodated
@@ -437,8 +418,7 @@ interface Container3<
     fun enabled(unit: AbstractCuboid<V>, orientation: Orientation = Orientation.Upright) = shape.enabled(unit, orientation)
 
     /**
-     * 获取指定单元的数量。
-     * Get the amount of the specified unit.
+     * 获取指定单元的数量。 / Get the amount of the specified unit.
      * @param unit 要查询的单元 / the unit to query
      * @return 单元数量 / the amount of the unit
     */
@@ -448,8 +428,8 @@ interface Container3<
      * Calculate the total amount of units matching the predicate.
      * 计算满足谓词的单元总数。
      *
-     * @param predicate The predicate condition. / 谓词条件。
-     * @return Total amount of matching units. / 满足条件的单元总数。
+     * @param predicate 谓词条件。 / The predicate condition.
+     * @return 满足条件的单元总数。 / Total amount of matching units.
     */
     fun amount(predicate: Predicate<AbstractCuboid<V>>): UInt64 =
         amounts.entries
@@ -458,16 +438,14 @@ interface Container3<
             .fold(UInt64.zero) { acc, entry -> acc + entry.value }
 
     /**
-     * 检查是否包含指定单元。
-     * Check if the container contains the specified unit.
+     * 检查是否包含指定单元。 / Check if the container contains the specified unit.
      * @param unit 要检查的单元 / the unit to check
      * @return 是否包含该单元 / whether the unit is contained
     */
     fun contains(unit: AbstractCuboid<V>) = amounts[unit]?.let { it != UInt64.zero } ?: false
 
     /**
-     * 检查是否包含满足谓词的单元。
-     * Check if there is any unit matching the predicate.
+     * 检查是否包含满足谓词的单元。 / Check if there is any unit matching the predicate.
      * @param predicate 谓词条件 / the predicate condition
      * @return 是否包含匹配的单元 / whether any matching unit exists
     */
@@ -475,8 +453,7 @@ interface Container3<
 }
 
 /**
- * 3D 容器长方体单元，同时具备容器和长方体的特性。
- * 3D container cuboid unit that combines container and cuboid characteristics.
+ * 3D 容器长方体单元，同时具备容器和长方体的特性。 / 3D container cuboid unit that combines container and cuboid characteristics.
 */
 interface Container3CuboidUnit<S, V> : Container3<S, V>, Cuboid<S, V> where S : Container3<S, V>, S : Cuboid<S, V>, V : FloatingNumber<V> {
     override val self: S

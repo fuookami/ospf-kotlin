@@ -7,7 +7,15 @@ package fuookami.ospf.kotlin.core.solver.hexaly
 import com.hexaly.optimizer.HxExpression
 import com.hexaly.optimizer.HxModel
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.core.variable.BalancedTernary as BalancedTernaryType
+import fuookami.ospf.kotlin.core.variable.Binary as BinaryType
+import fuookami.ospf.kotlin.core.variable.Continuous as ContinuousType
+import fuookami.ospf.kotlin.core.variable.Integer as IntegerType
+import fuookami.ospf.kotlin.core.variable.Percentage as PercentageType
+import fuookami.ospf.kotlin.core.variable.Ternary as TernaryType
+import fuookami.ospf.kotlin.core.variable.UContinuous as UContinuousType
+import fuookami.ospf.kotlin.core.variable.UInteger as UIntegerType
+import fuookami.ospf.kotlin.core.variable.VariableType
 
 /**
  * Hexaly variable type sealed interface, maps internal variable types to Hexaly variable expressions
@@ -19,23 +27,23 @@ sealed interface HexalyVariable {
          * Create Hexaly variable from internal variable type
          * 从内部变量类型创建 Hexaly 变量
          *
-         * @param model Hexaly model / 中文 Hexaly 模型
-         * @param type internal variable type / 中文 内部变量类型
-         * @param lb variable lower bound / 中文 变量下界
-         * @param ub variable upper bound / 中文 变量上界
-         * @return Hexaly variable / 中文 Hexaly 变量
+         * @param model 中文 Hexaly 模型 / Hexaly model
+         * @param type 中文 内部变量类型 / internal variable type
+         * @param lb 中文 变量下界 / variable lower bound
+         * @param ub 中文 变量上界 / variable upper bound
+         * @return 中文 Hexaly 变量 / Hexaly variable
         */
         operator fun invoke(model: HxModel, type: VariableType<*>, lb: Flt64, ub: Flt64): HexalyVariable {
             return when (type) {
-                is fuookami.ospf.kotlin.core.variable.Binary -> {
+                is BinaryType -> {
                     Binary(model)
                 }
 
-                is Ternary, is BalancedTernary, is fuookami.ospf.kotlin.core.variable.Integer, is UInteger -> {
+                is TernaryType, is BalancedTernaryType, is IntegerType, is UIntegerType -> {
                     Integer(model, lb, ub)
                 }
 
-                is Percentage, is fuookami.ospf.kotlin.core.variable.Continuous, is UContinuous -> {
+                is PercentageType, is ContinuousType, is UContinuousType -> {
                     Continuous(model, lb, ub)
                 }
             }
@@ -46,7 +54,7 @@ sealed interface HexalyVariable {
      * Convert to Hexaly variable expression
      * 转换为 Hexaly 变量表达式
      *
-     * @return Hexaly variable expression / 中文 Hexaly 变量表达式
+     * @return 中文 Hexaly 变量表达式 / Hexaly variable expression
     */
     fun toHexalyVariable(): HxExpression
 
@@ -54,7 +62,7 @@ sealed interface HexalyVariable {
      * Binary variable
      * 二进制变量
      *
-     * @property model Hexaly model / 中文 Hexaly 模型
+     * @property model 中文 Hexaly 模型 / Hexaly model
     */
     class Binary(private val model: HxModel) : HexalyVariable {
         override fun toHexalyVariable(): HxExpression {
@@ -66,9 +74,9 @@ sealed interface HexalyVariable {
      * Integer variable
      * 整数变量
      *
-     * @property model Hexaly model / 中文 Hexaly 模型
-     * @property lb variable lower bound / 中文 变量下界
-     * @property ub variable upper bound / 中文 变量上界
+     * @property model 中文 Hexaly 模型 / Hexaly model
+     * @property lb 中文 变量下界 / variable lower bound
+     * @property ub 中文 变量上界 / variable upper bound
     */
     class Integer(private val model: HxModel, private val lb: Flt64, private val ub: Flt64) : HexalyVariable {
         override fun toHexalyVariable(): HxExpression {
@@ -80,9 +88,9 @@ sealed interface HexalyVariable {
      * Continuous variable
      * 连续变量
      *
-     * @property model Hexaly model / 中文 Hexaly 模型
-     * @property lb variable lower bound / 中文 变量下界
-     * @property ub variable upper bound / 中文 变量上界
+     * @property model 中文 Hexaly 模型 / Hexaly model
+     * @property lb 中文 变量下界 / variable lower bound
+     * @property ub 中文 变量上界 / variable upper bound
     */
     class Continuous(private val model: HxModel, private val lb: Flt64, private val ub: Flt64) : HexalyVariable {
         override fun toHexalyVariable(): HxExpression {

@@ -12,8 +12,7 @@ import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
 import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
 import fuookami.ospf.kotlin.core.solver.heuristic.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.nextFlt64
@@ -102,7 +101,7 @@ class GWOPolicy<ObjValue, V>(
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
-    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
+    val randomGenerator: Generator<Flt64> = Generator { Random.nextFlt64() },
     // converter must be provided explicitly; use GWOPolicy.Flt64 companion for V=Flt64 convenience / 转换器必须显式提供；V=Flt64 时可使用 GWOPolicy.Flt64 伴生对象
     private val converter: IntoValue<V>
 ) : HeuristicPolicy(
@@ -120,7 +119,7 @@ class GWOPolicy<ObjValue, V>(
             iterationLimit: UInt64 = UInt64.maximum,
             notBetterIterationLimit: UInt64 = UInt64.maximum,
             timeLimit: Duration = 30.minutes,
-            randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
+            randomGenerator: Generator<Flt64> = Generator { Random.nextFlt64() }
         ): GWOPolicy<Flt64, Flt64> {
             return GWOPolicy(
                 minA = minA,
@@ -162,7 +161,7 @@ class GWOPolicy<ObjValue, V>(
  * Perform a random walk around the wolf's current position.
  * 在狼的当前位置周围执行随机游走。
  *
- * @return the wolf after random walk, with updated solution and fitness / 随机游走后的狼，包含更新的解和适应度
+ * @return 随机游走后的狼，包含更新的解和适应度 / the wolf after random walk, with updated solution and fitness
 */
         fun Wolf<ObjValue, V>.randomWalk(): Wolf<ObjValue, V> {
             val newSolution = solution.mapIndexed { i, position ->
@@ -232,9 +231,7 @@ class GWOPolicy<ObjValue, V>(
 /**
  * 灰狼优化器
  *
- * 实现基于灰狼群体的优化算法，使用 alpha/beta/delta 领导层次和随机游走机制进行全局搜索。
- *
- * Grey Wolf Optimizer
+ * 实现基于灰狼群体的优化算法，使用 alpha/beta/delta 领导层次和随机游走机制进行全局搜索。 / Grey Wolf Optimizer
  *
  * Implements wolf-pack-based optimization algorithm, using alpha/beta/delta leadership hierarchy
  * and random walk mechanism for global search.

@@ -47,6 +47,15 @@ All plugins follow a unified interface contract defined in `ospf-kotlin-core`, e
 | `ospf-kotlin-core-plugin-lingo` | LINGO | :construction: | — | — | — | — |
 | `ospf-kotlin-core-plugin-optverse` | OPTVerse | :construction: | — | — | — | — |
 
+### CP and infeasibility capability matrix
+
+| Plugin | Native CP | Exact MIP-backed CP | Native IIS | LP Farkas |
+| --- | --- | --- | --- | --- |
+| SCIP | Integer logic, table, fixed-duration interval, no-overlap, cumulative | Via core lowerer when a linear solver is injected | — | Yes |
+| Gurobi | — | Yes, through `MipBackedConstraintProgrammingSolver` | Yes (LP/MIP/QP) | Yes (continuous LP) |
+
+Optional intervals and variable durations are exact on the MIP-backed path. SCIP native currently rejects those formulations with a structured unsupported result.
+
 ### Metaheuristic Algorithms
 
 | Module | Algorithm | Status | Description |

@@ -1,9 +1,7 @@
 /**
- * Ktorm 请求/响应记录持久化实现
- * Ktorm Request/Response Record Persistence Implementation
+ * Ktorm 请求/响应记录持久化实现 / Ktorm Request/Response Record Persistence Implementation
  *
- * 提供基于 Ktorm 的请求和响应记录 Entity、Table 定义及 DAO 操作。
- * Provides Ktorm-based request and response record Entity, Table definitions, and DAO operations.
+ * 提供基于 Ktorm 的请求和响应记录 Entity、Table 定义及 DAO 操作。 / Provides Ktorm-based request and response record Entity, Table definitions, and DAO operations.
 */
 package fuookami.ospf.kotlin.framework.persistence
 
@@ -175,8 +173,7 @@ fun <T : ResponseDTO<T>> ResponseRecord<T>.toKtormPO(serializer: (T) -> ByteArra
 }
 
 /**
- * Ktorm 请求记录数据访问对象
- * Ktorm request record data access object
+ * Ktorm 请求记录数据访问对象 / Ktorm request record data access object
 */
 data object KtormRequestRecordDB {
     fun <T : RequestDTO<T>> insert(
@@ -243,12 +240,12 @@ data object KtormRequestRecordDB {
 /**
  * Queries request records from the database with optional filters.
  * 使用可选过滤条件从数据库查询请求记录。
- * @param db The Ktorm database instance to query against / 要查询的 Ktorm 数据库实例
- * @param table The request record DAO table definition / 请求记录 DAO 表定义
- * @param id Optional request ID filter (LIKE match) / 可选的请求 ID 过滤条件（LIKE 匹配）
- * @param app Optional application name filter (LIKE match) / 可选的应用名称过滤条件（LIKE 匹配）
- * @param requester Optional requester name filter (LIKE match) / 可选的请求者名称过滤条件（LIKE 匹配）
- * @param time Optional time range filter (inclusive start, exclusive end) / 可选的时间范围过滤条件（含起始，不含结束）
+ * @param db 要查询的 Ktorm 数据库实例 / The Ktorm database instance to query against
+ * @param table 请求记录 DAO 表定义 / The request record DAO table definition
+ * @param id 可选的请求 ID 过滤条件（LIKE 匹配） / Optional request ID filter (LIKE match)
+ * @param app 可选的应用名称过滤条件（LIKE 匹配） / Optional application name filter (LIKE match)
+ * @param requester 可选的请求者名称过滤条件（LIKE 匹配） / Optional requester name filter (LIKE match)
+ * @param time 可选的时间范围过滤条件（含起始，不含结束） / Optional time range filter (inclusive start, exclusive end)
  * @return The Ktorm query result set / Ktorm 查询结果集
 */
     fun query(
@@ -277,8 +274,7 @@ data object KtormRequestRecordDB {
 }
 
 /**
- * Ktorm 响应记录数据访问对象
- * Ktorm response record data access object
+ * Ktorm 响应记录数据访问对象 / Ktorm response record data access object
 */
 data object KtormResponseRecordDB {
     fun <T : ResponseDTO<T>> insert(
@@ -349,13 +345,13 @@ data object KtormResponseRecordDB {
 /**
  * Queries response records from the database by joining request and response tables with optional filters.
  * 通过连接请求和响应表并使用可选过滤条件从数据库查询响应记录。
- * @param db The Ktorm database instance to query against / 要查询的 Ktorm 数据库实例
- * @param requestTable The request record DAO table definition for the join / 用于连接的请求记录 DAO 表定义
- * @param responseTable The response record DAO table definition for the join / 用于连接的响应记录 DAO 表定义
- * @param id Optional request ID filter (LIKE match) / 可选的请求 ID 过滤条件（LIKE 匹配）
- * @param app Optional application name filter (LIKE match) / 可选的应用名称过滤条件（LIKE 匹配）
- * @param requester Optional requester name filter (LIKE match) / 可选的请求者名称过滤条件（LIKE 匹配）
- * @param time Optional time range filter applied to both request and response times / 应用于请求和响应时间的可选时间范围过滤条件
+ * @param db 要查询的 Ktorm 数据库实例 / The Ktorm database instance to query against
+ * @param requestTable 用于连接的请求记录 DAO 表定义 / The request record DAO table definition for the join
+ * @param responseTable 用于连接的响应记录 DAO 表定义 / The response record DAO table definition for the join
+ * @param id 可选的请求 ID 过滤条件（LIKE 匹配） / Optional request ID filter (LIKE match)
+ * @param app 可选的应用名称过滤条件（LIKE 匹配） / Optional application name filter (LIKE match)
+ * @param requester 可选的请求者名称过滤条件（LIKE 匹配） / Optional requester name filter (LIKE match)
+ * @param time 应用于请求和响应时间的可选时间范围过滤条件 / Optional time range filter applied to both request and response times
  * @return The Ktorm query result set / Ktorm 查询结果集
 */
     fun query(

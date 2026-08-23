@@ -1,6 +1,5 @@
 /**
- * 交叉模式接口与实现
- * Crossover mode interface and implementations
+ * 交叉模式接口与实现 / Crossover mode interface and implementations
 */
 package fuookami.ospf.kotlin.core.solver.heuristic
 
@@ -11,11 +10,9 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.functional.Generator
 
 /**
- * 从范围中获取有限的父代数量，若无法确定则返回默认值 1。
- * Get a finite parent amount from the range, defaulting to 1 if undetermined.
+ * 从范围中获取有限的父代数量，若无法确定则返回默认值 1。 / Get a finite parent amount from the range, defaulting to 1 if undetermined.
  *
- * 优先使用固定值，其次使用下界，最终回退到 1。
- * Prefers the fixed value, then the lower bound, and falls back to 1.
+ * 优先使用固定值，其次使用下界，最终回退到 1。 / Prefers the fixed value, then the lower bound, and falls back to 1.
  *
  * @param range 父代数量的值范围 / The value range for parent amount
  * @return 父代数量 / The parent amount
@@ -27,11 +24,9 @@ private fun finiteParentAmountOrDefault(range: ValueRange<UInt64>): UInt64 {
 }
 
 /**
- * 在范围内随机生成父代数量，若范围或随机数不可用则返回 null。
- * Generate a random parent amount within the range, returning null if the range or random value is unavailable.
+ * 在范围内随机生成父代数量，若范围或随机数不可用则返回 null。 / Generate a random parent amount within the range, returning null if the range or random value is unavailable.
  *
- * 通过在下界与上界之间随机插值来计算父代数量。
- * Calculates the parent amount by interpolating randomly between the lower and upper bounds.
+ * 通过在下界与上界之间随机插值来计算父代数量。 / Calculates the parent amount by interpolating randomly between the lower and upper bounds.
  *
  * @param range 父代数量的值范围 / The value range for parent amount
  * @param randomGenerator 随机数生成器（产生 [0,1) 的 Flt64）/ Random number generator producing Flt64 in [0,1)
@@ -48,11 +43,9 @@ private fun randomParentAmountOrNull(
 }
 
 /**
- * 根据权重在范围内计算父代数量，若范围不可用则返回 null。
- * Calculate parent amount within the range based on a weight, returning null if the range is unavailable.
+ * 根据权重在范围内计算父代数量，若范围不可用则返回 null。 / Calculate parent amount within the range based on a weight, returning null if the range is unavailable.
  *
- * 通过权重在下界与上界之间进行线性插值来计算父代数量。
- * Calculates the parent amount by linearly interpolating between the lower and upper bounds using the weight.
+ * 通过权重在下界与上界之间进行线性插值来计算父代数量。 / Calculates the parent amount by linearly interpolating between the lower and upper bounds using the weight.
  *
  * @param range 父代数量的值范围 / The value range for parent amount
  * @param weight 插值权重，通常在 [0,1] 之间 / Interpolation weight, typically in [0,1]
@@ -68,8 +61,7 @@ private fun weightedParentAmountOrNull(
 }
 
 /**
- * 交叉模式接口，定义如何从种群中选择父代组合。
- * Crossover mode interface, defining how to select parent combinations from the population.
+ * 交叉模式接口，定义如何从种群中选择父代组合。 / Crossover mode interface, defining how to select parent combinations from the population.
  *
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
@@ -89,8 +81,7 @@ interface CrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     }
 
     /**
-     * 为种群中的每个个体选择父代组合。
-     * Select parent combinations for each individual in the population.
+     * 为种群中的每个个体选择父代组合。 / Select parent combinations for each individual in the population.
      *
      * @param T 个体类型 / Individual type
      * @param iteration 当前迭代 / Current iteration
@@ -110,8 +101,7 @@ interface CrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
 }
 
 /**
- * 单父代交叉模式，每个个体单独作为父代。
- * Single parent crossover mode, each individual acts as a parent independently.
+ * 单父代交叉模式，每个个体单独作为父代。 / Single parent crossover mode, each individual acts as a parent independently.
  *
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
@@ -129,8 +119,7 @@ class OneParentCrossMode<ObjValue, V> : CrossMode<ObjValue, V> where V : RealNum
 }
 
 /**
- * 双父代交叉模式，使用指定方法选择两个父代进行交叉。
- * Two-parent crossover mode, using specified method to select two parents for crossover.
+ * 双父代交叉模式，使用指定方法选择两个父代进行交叉。 / Two-parent crossover mode, using specified method to select two parents for crossover.
  *
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
@@ -191,8 +180,7 @@ class TwoParentCrossMode<ObjValue, V>(
 }
 
 /**
- * 多父代交叉模式，支持动态计算父代数量。
- * Multi-parent crossover mode with dynamic parent amount calculation.
+ * 多父代交叉模式，支持动态计算父代数量。 / Multi-parent crossover mode with dynamic parent amount calculation.
  *
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
@@ -205,8 +193,7 @@ class MultiParentCrossMode<ObjValue, V>(
 ) : CrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         /**
-         * 以随机父代数量计算器创建多父代交叉模式。
-         * Create a multi-parent crossover mode with random parent amount calculator.
+         * 以随机父代数量计算器创建多父代交叉模式。 / Create a multi-parent crossover mode with random parent amount calculator.
          *
          * @param ObjValue 目标值类型 / Objective value type
          * @param V 值类型 / Value type
@@ -310,14 +297,12 @@ class MultiParentCrossMode<ObjValue, V>(
 }
 
 /**
- * 自适应多父代交叉模式，根据权重动态调整父代数量。
- * Adaptive multi-parent crossover mode, dynamically adjusting parent count based on weights.
+ * 自适应多父代交叉模式，根据权重动态调整父代数量。 / Adaptive multi-parent crossover mode, dynamically adjusting parent count based on weights.
 */
 data object AdaptiveMultiParentCrossMode {
 
     /**
-     * 创建自适应多父代交叉模式。
-     * Create an adaptive multi-parent crossover mode.
+     * 创建自适应多父代交叉模式。 / Create an adaptive multi-parent crossover mode.
      *
      * @param ObjValue 目标值类型 / Objective value type
      * @param V 值类型 / Value type

@@ -1,6 +1,5 @@
 /**
- * Gurobi 委托列生成求解器。
- * Gurobi delegating column generation solver.
+ * Gurobi 委托列生成求解器。 / Gurobi delegating column generation solver.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 

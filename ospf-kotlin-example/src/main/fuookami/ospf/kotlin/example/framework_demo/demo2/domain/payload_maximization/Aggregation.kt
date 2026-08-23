@@ -8,8 +8,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
  * Aggregates aircraft model and payload data for payload maximization optimization.
  * 聚合飞机模型和载荷数据用于载荷最大化优化。
  *
- * @property aircraftModel The aircraft model used for payload maximization / 用于载荷最大化的飞机模型
- * @property payload The payload data to be maximized / 待最大化的载荷数据
+ * @property aircraftModel 用于载荷最大化的飞机模型 / The aircraft model used for payload maximization
+ * @property payload 待最大化的载荷数据 / The payload data to be maximized
 */
 class Aggregation(
     internal val aircraftModel: AircraftModel,

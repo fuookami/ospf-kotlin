@@ -162,11 +162,11 @@ open class TaskReverseBuilder<
 /**
  * Checks if a task pair is symmetrical within the context of origin bunches.
  * 在原始任务束上下文中检查任务对是否对称。
- * @param originBunches Original task bunches to check containment in / 要检查包含关系的原始任务束列表
- * @param prevTask Predecessor task in the pair / 任务对中的前驱任务
- * @param succTask Successor task in the pair / 任务对中的后继任务
- * @param timeLockedTasks Set of time-locked tasks / 时间锁定任务集合
- * @return Whether the task pair is symmetrical (both tasks in same bunch) / 任务对是否对称（两个任务在同一任务束中）
+ * @param originBunches 要检查包含关系的原始任务束列表 / Original task bunches to check containment in
+ * @param prevTask 任务对中的前驱任务 / Predecessor task in the pair
+ * @param succTask 任务对中的后继任务 / Successor task in the pair
+ * @param timeLockedTasks 时间锁定任务集合 / Set of time-locked tasks
+ * @return 任务对是否对称（两个任务在同一任务束中） / Whether the task pair is symmetrical (both tasks in same bunch)
 */
     protected open fun symmetrical(
         originBunches: List<@UnsafeVariance B>,

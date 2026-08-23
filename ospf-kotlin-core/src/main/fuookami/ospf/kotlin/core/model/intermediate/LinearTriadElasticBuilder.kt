@@ -1,11 +1,13 @@
 /**
- * 线性三元模型弹性构建器
- * Linear triad model elastic builder
+ * 线性三元模型弹性构建器 / Linear triad model elastic builder
 */
 package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.report.ModelElementScope
+import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.Binary
 import fuookami.ospf.kotlin.core.variable.Continuous
@@ -13,11 +15,9 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.operator.abs
 
 /**
- * 构建弹性模型
- * Build elastic model
+ * 构建弹性模型 / Build elastic model
  *
- * 为线性三元模型添加松弛变量，使其成为弹性模型。
- * Adds slack variables to the linear triad model to make it an elastic model.
+ * 为线性三元模型添加松弛变量，使其成为弹性模型。 / Adds slack variables to the linear triad model to make it an elastic model.
  *
  * @param minmaxSlack 是否添加最小最大松弛变量 / Whether to add minmax slack variable
  * @param minSlackAmount 最小松弛量约束（二元变量阈值，松弛量阈值）/ Minimum slack amount constraint (binary threshold, slack threshold)
@@ -206,6 +206,189 @@ internal fun LinearTriadModel.buildElasticModel(
     } else {
             null
     }
+
+    val derivedSlackVariables = slackVariables.mapIndexed { index, pair ->
+        val sourceConstraint = index < this.constraints.size
+        val sourceId = if (sourceConstraint) {
+            this.constraints.ids.getOrNull(index)?.value
+        } else {
+            this.variables.getOrNull(index - this.constraints.size)?.id?.value
+        }
+        val sourceScope = if (sourceConstraint) {
+            this.constraints.identityScopeAt(index)
+        } else {
+            this.variables[index - this.constraints.size].identityScope
+        }
+        val sourceOrigin = if (sourceConstraint) {
+            this.constraints.identityOriginAt(index)
+        } else {
+            this.variables[index - this.constraints.size].identityOrigin
+        }
+        val sourceProvenance = if (sourceConstraint) {
+            this.constraints.identityProvenanceOrOriginAt(index)
+        } else {
+            this.variables[index - this.constraints.size].identityProvenanceOrOrigin()
+        }
+        val namespace = if (sourceConstraint) {
+            this.constraints.identityNamespace
+        } else {
+            this.variables[index - this.constraints.size].identityNamespace ?: this.constraints.identityNamespace
+        }
+        val schemaVersion = if (sourceConstraint) {
+            this.constraints.identitySchemaVersion
+        } else {
+            this.variables[index - this.constraints.size].identitySchemaVersion ?: this.constraints.identitySchemaVersion
+        }
+        pair.first?.withDerivedIdentity(
+            role = if (sourceConstraint) "elastic-constraint-slack" else "elastic-bound-slack",
+            sourceId = sourceId,
+            sourceScope = sourceScope,
+            sourceOrigin = sourceOrigin,
+            sourceProvenance = sourceProvenance,
+            namespace = namespace,
+            schemaVersion = schemaVersion,
+            discriminator = derivedDiscriminator(sourceId, "lower", "$index:lower")
+        ) to pair.second?.withDerivedIdentity(
+            role = if (sourceConstraint) "elastic-constraint-slack" else "elastic-bound-slack",
+            sourceId = sourceId,
+            sourceScope = sourceScope,
+            sourceOrigin = sourceOrigin,
+            sourceProvenance = sourceProvenance,
+            namespace = namespace,
+            schemaVersion = schemaVersion,
+            discriminator = derivedDiscriminator(sourceId, "upper", "$index:upper")
+        )
+    }
+    val derivedSlackList = derivedSlackVariables.flatMap { it.toList().filterNotNull() }
+    val derivedSlackBinVariables = slackBinVariables.mapIndexed { index, (slack, bin) ->
+        val source = derivedSlackList[index]
+        val sourceId = source.id?.value
+        slack to bin.withDerivedIdentity(
+            role = "elastic-slack-binary",
+            sourceId = source.id?.value,
+            sourceScope = source.identityScope,
+            sourceOrigin = source.identityOrigin,
+            sourceProvenance = source.identityProvenanceOrOrigin(),
+            namespace = source.identityNamespace ?: this.constraints.identityNamespace,
+            schemaVersion = source.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+            discriminator = derivedDiscriminator(sourceId, "binary", index.toString())
+        )
+    }
+    val derivedMinmaxSlackVariable = minmaxSlackVariable?.withDerivedIdentity(
+        role = "elastic-minmax",
+        sourceId = null,
+        sourceScope = ModelElementScope.ModelLocal,
+        sourceOrigin = null,
+        namespace = this.constraints.identityNamespace,
+        schemaVersion = this.constraints.identitySchemaVersion,
+        discriminator = "0"
+    )
+    val constraintIdentities = ArrayList<DerivedIdentityMetadata>()
+    this.constraints.indices.forEach { index ->
+        constraintIdentities += derivedConstraintIdentity(
+            role = "elastic-constraint",
+            sourceId = this.constraints.ids.getOrNull(index)?.value,
+            sourceScope = this.constraints.identityScopeAt(index),
+            sourceOrigin = this.constraints.identityOriginAt(index),
+            sourceProvenance = this.constraints.identityProvenanceOrOriginAt(index),
+            namespace = this.constraints.identityNamespace,
+            schemaVersion = this.constraints.identitySchemaVersion,
+            discriminator = derivedDiscriminator(
+                this.constraints.ids.getOrNull(index)?.value,
+                "0",
+                index.toString()
+            )
+        )
+    }
+    this.variables.indices.forEach { index ->
+        val pair = derivedSlackVariables[this.constraints.size + index]
+        val source = this.variables[index]
+        val sourceId = source.id?.value
+        pair.first?.let {
+            constraintIdentities += derivedConstraintIdentity(
+                role = "elastic-lower-bound",
+                sourceId = source.id?.value,
+                sourceScope = source.identityScope,
+                sourceOrigin = source.identityOrigin,
+                sourceProvenance = source.identityProvenanceOrOrigin(),
+                namespace = source.identityNamespace ?: this.constraints.identityNamespace,
+                schemaVersion = source.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, "lower", "$index:lower")
+            )
+        }
+        pair.second?.let {
+            constraintIdentities += derivedConstraintIdentity(
+                role = "elastic-upper-bound",
+                sourceId = source.id?.value,
+                sourceScope = source.identityScope,
+                sourceOrigin = source.identityOrigin,
+                sourceProvenance = source.identityProvenanceOrOrigin(),
+                namespace = source.identityNamespace ?: this.constraints.identityNamespace,
+                schemaVersion = source.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, "upper", "$index:upper")
+            )
+        }
+    }
+    if (minSlackAmount != null) {
+        derivedSlackBinVariables.forEachIndexed { index, (_, bin) ->
+            constraintIdentities += derivedConstraintIdentity(
+                role = "elastic-slack-binary",
+                sourceId = bin.id?.value,
+                sourceScope = bin.identityScope,
+                sourceOrigin = bin.identityOrigin,
+                sourceProvenance = bin.identityProvenanceOrOrigin(),
+                namespace = bin.identityNamespace ?: this.constraints.identityNamespace,
+                schemaVersion = bin.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                discriminator = derivedDiscriminator(bin.id?.value, "lower", "$index:lower")
+            )
+            constraintIdentities += derivedConstraintIdentity(
+                role = "elastic-slack-binary",
+                sourceId = bin.id?.value,
+                sourceScope = bin.identityScope,
+                sourceOrigin = bin.identityOrigin,
+                sourceProvenance = bin.identityProvenanceOrOrigin(),
+                namespace = bin.identityNamespace ?: this.constraints.identityNamespace,
+                schemaVersion = bin.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                discriminator = derivedDiscriminator(bin.id?.value, "upper", "$index:upper")
+            )
+        }
+        constraintIdentities += derivedConstraintIdentity(
+            role = "elastic-slack-binary-total",
+            sourceId = null,
+            sourceScope = ModelElementScope.ModelLocal,
+            sourceOrigin = null,
+            namespace = this.constraints.identityNamespace,
+            schemaVersion = this.constraints.identitySchemaVersion
+        )
+    }
+    if (minmaxSlack) {
+        derivedSlackList.forEachIndexed { index, slack ->
+            val sourceId = slack.id?.value
+            constraintIdentities += derivedConstraintIdentity(
+                role = "elastic-slack-minmax",
+                sourceId = slack.id?.value,
+                sourceScope = slack.identityScope,
+                sourceOrigin = slack.identityOrigin,
+                sourceProvenance = slack.identityProvenanceOrOrigin(),
+                namespace = slack.identityNamespace ?: this.constraints.identityNamespace,
+                schemaVersion = slack.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, "0", index.toString())
+            )
+        }
+    }
+    val objectiveIdentity = derivedObjectiveIdentity(
+        role = "elastic-objective",
+        sourceId = this.objective.id?.value,
+        sourceScope = this.objective.identityScope,
+        sourceOrigin = this.objective.identityOrigin,
+        sourceProvenance = (
+            this.objective.identityProvenanceOrOrigin() +
+                this.constraints.indices.flatMap { this.constraints.identityProvenanceOrOriginAt(it) } +
+                this.variables.flatMap { it.identityProvenanceOrOrigin() }
+            ).distinct(),
+        namespace = this.objective.identityNamespace ?: this.constraints.identityNamespace,
+        schemaVersion = this.objective.identitySchemaVersion ?: this.constraints.identitySchemaVersion
+    )
 
     var rowIndex = this.variables.size
     val lhs = this.constraints.indices.map { i ->
@@ -531,6 +714,12 @@ internal fun LinearTriadModel.buildElasticModel(
             } else {
                 emptyList()
             },
+            ids = constraintIdentities.map { ConstraintId(it.id.value) },
+            identityNamespace = this.constraints.identityNamespace,
+            identitySchemaVersion = this.constraints.identitySchemaVersion,
+            identityScopes = constraintIdentities.map { it.scope },
+            identityOrigins = constraintIdentities.map { it.origin },
+            identityProvenance = constraintIdentities.map { it.provenance }
     )
 
     val objective = slackVariables.flatMap { (posSlack, negSlack) ->
@@ -568,12 +757,12 @@ internal fun LinearTriadModel.buildElasticModel(
                             _upperBound = Flt64.infinity
                         }
                     }
-                } + slackVariables.flatMap { it.toList().filterNotNull() }.sortedBy { it.index } + if (minSlackAmount != null) {
-                    slackBinVariables.map { it.second }
+                } + derivedSlackVariables.flatMap { it.toList().filterNotNull() }.sortedBy { it.index } + if (minSlackAmount != null) {
+                    derivedSlackBinVariables.map { it.second }
                 } else {
                     emptyList()
                 } + if (minmaxSlack) {
-                    listOf(minmaxSlackVariable!!)
+                    listOf(derivedMinmaxSlackVariable!!)
                 } else {
                     emptyList()
                 },
@@ -581,6 +770,15 @@ internal fun LinearTriadModel.buildElasticModel(
                 name = "$name-elastic"
             ),
             tokensInSolver = tokensInSolver,
-            objective = LinearObjective(ObjectCategory.Minimum, objective)
-    )
+            objective = LinearObjective(
+                category = ObjectCategory.Minimum,
+                objective = objective,
+                id = ObjectiveId(objectiveIdentity.id.value),
+                identityScope = objectiveIdentity.scope,
+                identityOrigin = objectiveIdentity.origin,
+                identityNamespace = this.objective.identityNamespace ?: this.constraints.identityNamespace,
+                identitySchemaVersion = this.objective.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                identityProvenance = objectiveIdentity.provenance
+            )
+    ).withDerivedIdentityValidation()
 }

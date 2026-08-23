@@ -20,8 +20,7 @@ import org.openjdk.jmh.annotations.State
 import java.util.concurrent.TimeUnit
 
 /**
- * core 热点路径基准
- * Core hot path benchmark
+ * core 热点路径基准 / Core hot path benchmark
  *
  * @property dataset 数据集规模标识（small/medium/large） / dataset size identifier (small/medium/large)
  * @property linearFlattenData 线性展平数据列表 / list of linear flatten data blocks
@@ -40,8 +39,7 @@ open class CoreHotPathBenchmark {
     private lateinit var sparseMatrix: SparseMatrix<Flt64>
 
     /**
-     * 初始化基准测试数据，根据 [dataset] 参数生成不同规模的线性/二次展平数据和稀疏矩阵。
-     * Initializes benchmark data, generating linear/quadratic flatten data and sparse matrix of varying sizes based on the [dataset] parameter.
+     * 初始化基准测试数据，根据 [dataset] 参数生成不同规模的线性/二次展平数据和稀疏矩阵。 / Initializes benchmark data, generating linear/quadratic flatten data and sparse matrix of varying sizes based on the [dataset] parameter.
     */
     @Setup
     fun setup() {
@@ -166,8 +164,7 @@ open class CoreHotPathBenchmark {
     }
 
     /**
-     * 比较两个符号的键顺序，先按名称字典序，再按身份哈希码。
-     * Compares the key order of two symbols: first by name lexicographically, then by identity hash code.
+     * 比较两个符号的键顺序，先按名称字典序，再按身份哈希码。 / Compares the key order of two symbols: first by name lexicographically, then by identity hash code.
      *
      * @param lhs 左侧符号 / left-hand side symbol
      * @param rhs 右侧符号 / right-hand side symbol

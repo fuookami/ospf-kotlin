@@ -99,7 +99,7 @@ demo4/
 
 2. **定价**（`FlightTaskBunchGenerator`）
    - Label Setting 算法
-   - 拓扑排序遍历图节点
+   - 无换序时按拓扑序遍历图节点，启用换序时使用标签队列 BFS
    - 沿出边扩展标签
    - 累加任务覆盖 shadow price
    - 支配剪枝（reduced cost、delay、aircraft change）
@@ -107,7 +107,7 @@ demo4/
 
 3. **输出**
    - 新 bunch 列
-   - 定价诊断（迭代数、cut 数、轨迹）
+   - 路线图构建诊断和最近一轮定价诊断（候选扩展、可行/不可行扩展、实际扩展标签、支配剪枝、标签上限、负 reduced cost 标签和生成列数）
 
 ### 关键概念
 
@@ -117,7 +117,7 @@ demo4/
 | `reduced cost` | 原始成本 - shadow price 扣减，负值表示有价值的列 |
 | `initial bunch` | 每架飞机的初始可行列，包含 locked task |
 | `generated bunch` | 通过 pricing 生成的新列 |
-| `dominance` | 同末端节点下，时间和成本均不劣的标签保留 |
+| `dominance` | 同一节点保留在成本、延误和飞机变更状态上均不劣的标签 |
 
 ### 与 bunch_compilation 和 bunch_selection 的边界
 
@@ -126,6 +126,20 @@ demo4/
 | `bunch_generation` | route graph、initial bunch、pricing | master 约束、fleet balance、solution 解析 |
 | `bunch_compilation` | master 约束注册、fleet balance、flight link | Label Setting、route graph、reduced cost |
 | `bunch_selection` | branch-and-price 编排、shadow price 提取、add columns | 具体 pricing 逻辑 |
+
+master 求解器将 shadow price 传入 `BunchGenerationContext.generateFlightTaskBunch`；上下文复用静态路线图，并向调用方暴露最近一轮的 `routeGraphDiagnostics` 和 `pricingDiagnostics`。
+
+## Kotlin、FSRA 与 Rust 对照
+
+| Kotlin 职责 | FSRA 参考 | Rust 参考 | 有意保留的差异 |
+| --- | --- | --- | --- |
+| `bunch_generation/BunchGenerationContext.kt`、`AggregationInitializer.kt` | `fsra-domain-bunch-generation-context` 聚合与初始化 | `ospf-rust-example/src/framework` 的 bunch-generation 上下文 | Kotlin 保留对象上下文和 `Try`/`Ret` 错误流，不逐字复制 Rust 的所有权和 trait 边界。 |
+| `RouteGraphGenerator.kt`、`FlightTaskReverse.kt` | FSRA 路线图和换序任务服务 | Rust 路线图和换序任务服务 | Kotlin 使用 `Graph`、`Node`、`Edge` 领域对象，并记录路线图诊断。 |
+| `FlightTaskBunchGenerator.kt` | FSRA pricing 和 Label Setting 逻辑 | Rust pricing 子问题 | Kotlin 在多轮 pricing 间复用静态图，并通过上下文暴露标签诊断。 |
+| `bunch_compilation` | FSRA master/bunch compilation 上下文 | Rust master 模型和列编译 | 两者都负责 master 约束；pricing 和图遍历仍归属 `bunch_generation`。 |
+| `bunch_selection/BranchAndPriceAlgorithm.kt` | FSRA branch-and-price 编排 | Rust branch-and-price 编排 | Kotlin 将迭代机制委托给通用框架算法。 |
+
+参考仓库已在本地可访问：Rust 位于 `E:/workspace/ospf/ospf-rust`，FSRA 位于 `E:/workspace/fsra-proof`。已对照 `fsra-domain-bunch-generation-context` 中的 Cost 有效性保护（`cost == null || !cost.valid`）和 Label Setting 行为；Kotlin 仍按上表保留 `Try`/`Ret` 边界和静态图复用。
 
 ## 泛型数量示例
 
@@ -166,5 +180,5 @@ fun main() {
 ## 本地验证
 
 ```powershell
-mvn -B -ntp -pl ospf-kotlin-example -Pcore-demo-only test
+mvn -B -ntp -pl ospf-kotlin-example -Pdemo4-only test
 ```

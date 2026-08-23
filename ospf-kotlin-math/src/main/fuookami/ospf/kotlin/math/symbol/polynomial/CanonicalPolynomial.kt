@@ -1,10 +1,8 @@
 /**
- * 规范多项式
- * Canonical Polynomial
+ * 规范多项式 / Canonical Polynomial
  *
  * 定义规范多项式的数据结构和运算。规范多项式是规范单项式的线性组合，
- * 支持任意次数的多项式表达式。是最通用的多项式表示形式。
- * Defines data structures and operations for canonical polynomials.
+ * 支持任意次数的多项式表达式。是最通用的多项式表示形式。 / Defines data structures and operations for canonical polynomials.
  * A canonical polynomial is a linear combination of canonical monomials,
  * supporting polynomial expressions of any degree.
  * It is the most general form of polynomial representation.
@@ -19,12 +17,10 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 /**
- * 规范多项式
- * Canonical Polynomial
+ * 规范多项式 / Canonical Polynomial
  *
  * 表示规范多项式，是规范单项式的线性组合加上一个常数项。
- * 规范多项式支持任意次数的多项式表达式，是最通用的多项式表示形式。
- * Represents a canonical polynomial, a linear combination of canonical monomials plus a constant term.
+ * 规范多项式支持任意次数的多项式表达式，是最通用的多项式表示形式。 / Represents a canonical polynomial, a linear combination of canonical monomials plus a constant term.
  * Canonical polynomials support polynomial expressions of any degree,
  * being the most general form of polynomial representation.
  *
@@ -37,8 +33,7 @@ data class CanonicalPolynomial<T : Ring<T>>(
 ) : ToCanonicalPolynomial<T>, TryToLinearPolynomial<T>, TryToQuadraticPolynomial<T> {
 
     /**
-     * 表达式类型分类
-     * Expression type category
+     * 表达式类型分类 / Expression type category
      *
      * 根据单项式的最高次数返回对应的分类：
      * - 0 或 1：Linear
@@ -57,19 +52,16 @@ data class CanonicalPolynomial<T : Ring<T>>(
         }
 
     /**
-     * 转换为规范多项式（自身）
-     * Converts to a canonical polynomial (self)
+     * 转换为规范多项式（自身） / Converts to a canonical polynomial (self)
      *
      * @return 自身 / Self
     */
     override fun toCanonicalPolynomial(): CanonicalPolynomial<T> = this
 
     /**
-     * 尝试转换为线性多项式
-     * Tries to convert to a linear polynomial
+     * 尝试转换为线性多项式 / Tries to convert to a linear polynomial
      *
-     * 若所有单项式的次数不超过 1，返回对应的线性多项式；否则返回 null。
-     * Returns the corresponding linear polynomial if all monomials have degree at most 1; otherwise returns null.
+     * 若所有单项式的次数不超过 1，返回对应的线性多项式；否则返回 null。 / Returns the corresponding linear polynomial if all monomials have degree at most 1; otherwise returns null.
      *
      * @return 线性多项式或 null / Linear polynomial or null
     */
@@ -91,11 +83,9 @@ data class CanonicalPolynomial<T : Ring<T>>(
     }
 
     /**
-     * 尝试转换为二次多项式
-     * Tries to convert to a quadratic polynomial
+     * 尝试转换为二次多项式 / Tries to convert to a quadratic polynomial
      *
-     * 若所有单项式的次数不超过 2，返回对应的二次多项式；否则返回 null。
-     * Returns the corresponding quadratic polynomial if all monomials have degree at most 2; otherwise returns null.
+     * 若所有单项式的次数不超过 2，返回对应的二次多项式；否则返回 null。 / Returns the corresponding quadratic polynomial if all monomials have degree at most 2; otherwise returns null.
      *
      * @return 二次多项式或 null / Quadratic polynomial or null
     */
@@ -117,8 +107,7 @@ data class CanonicalPolynomial<T : Ring<T>>(
 }
 
 /**
- * 规范多项式的负运算符
- * Negation operator for canonical polynomial
+ * 规范多项式的负运算符 / Negation operator for canonical polynomial
  *
  * @receiver 规范多项式 / Canonical polynomial
  * @return 所有项取负后的规范多项式 / Canonical polynomial with all terms negated
@@ -128,8 +117,7 @@ operator fun <T : Ring<T>> CanonicalPolynomial<T>.unaryMinus(): CanonicalPolynom
 }
 
 /**
- * 规范多项式与规范单项式的加法运算符
- * Addition operator between canonical polynomial and canonical monomial
+ * 规范多项式与规范单项式的加法运算符 / Addition operator between canonical polynomial and canonical monomial
  *
  * @receiver 规范多项式 / Canonical polynomial
  * @param rhs 规范单项式 / Canonical monomial
@@ -140,8 +128,7 @@ operator fun <T : Ring<T>> CanonicalPolynomial<T>.plus(rhs: CanonicalMonomial<T>
 }
 
 /**
- * 规范单项式与规范多项式的加法运算符
- * Addition operator between canonical monomial and canonical polynomial
+ * 规范单项式与规范多项式的加法运算符 / Addition operator between canonical monomial and canonical polynomial
  *
  * @receiver 规范单项式 / Canonical monomial
  * @param rhs 规范多项式 / Canonical polynomial
@@ -152,8 +139,7 @@ operator fun <T : Ring<T>> CanonicalMonomial<T>.plus(rhs: CanonicalPolynomial<T>
 }
 
 /**
- * 规范多项式与规范单项式的减法运算符
- * Subtraction operator between canonical polynomial and canonical monomial
+ * 规范多项式与规范单项式的减法运算符 / Subtraction operator between canonical polynomial and canonical monomial
  *
  * @receiver 规范多项式 / Canonical polynomial
  * @param rhs 规范单项式 / Canonical monomial
@@ -164,8 +150,7 @@ operator fun <T : Ring<T>> CanonicalPolynomial<T>.minus(rhs: CanonicalMonomial<T
 }
 
 /**
- * 规范单项式与规范多项式的减法运算符
- * Subtraction operator between canonical monomial and canonical polynomial
+ * 规范单项式与规范多项式的减法运算符 / Subtraction operator between canonical monomial and canonical polynomial
  *
  * @receiver 规范单项式 / Canonical monomial
  * @param rhs 规范多项式 / Canonical polynomial
@@ -176,8 +161,7 @@ operator fun <T : Ring<T>> CanonicalMonomial<T>.minus(rhs: CanonicalPolynomial<T
 }
 
 /**
- * 规范多项式之间的加法运算符
- * Addition operator between canonical polynomials
+ * 规范多项式之间的加法运算符 / Addition operator between canonical polynomials
  *
  * @receiver 左侧规范多项式 / Left-hand canonical polynomial
  * @param rhs 右侧规范多项式 / Right-hand canonical polynomial
@@ -188,8 +172,7 @@ operator fun <T : Ring<T>> CanonicalPolynomial<T>.plus(rhs: CanonicalPolynomial<
 }
 
 /**
- * 规范多项式之间的减法运算符
- * Subtraction operator between canonical polynomials
+ * 规范多项式之间的减法运算符 / Subtraction operator between canonical polynomials
  *
  * @receiver 左侧规范多项式 / Left-hand canonical polynomial
  * @param rhs 右侧规范多项式 / Right-hand canonical polynomial
@@ -200,8 +183,7 @@ operator fun <T : Ring<T>> CanonicalPolynomial<T>.minus(rhs: CanonicalPolynomial
 }
 
 /**
- * 规范多项式与标量的乘法运算符
- * Multiplication operator for canonical polynomial and scalar
+ * 规范多项式与标量的乘法运算符 / Multiplication operator for canonical polynomial and scalar
  *
  * @receiver 规范多项式 / Canonical polynomial
  * @param rhs 标量值 / Scalar value
@@ -212,8 +194,7 @@ operator fun <T : Ring<T>> CanonicalPolynomial<T>.times(rhs: T): CanonicalPolyno
 }
 
 /**
- * 标量与规范多项式的乘法运算符
- * Multiplication operator for scalar and canonical polynomial
+ * 标量与规范多项式的乘法运算符 / Multiplication operator for scalar and canonical polynomial
  *
  * @receiver 标量值 / Scalar value
  * @param rhs 规范多项式 / Canonical polynomial
@@ -224,8 +205,7 @@ operator fun <T : Ring<T>> T.times(rhs: CanonicalPolynomial<T>): CanonicalPolyno
 }
 
 /**
- * 规范多项式与标量的除法运算符
- * Division operator for canonical polynomial and scalar
+ * 规范多项式与标量的除法运算符 / Division operator for canonical polynomial and scalar
  *
  * @receiver 规范多项式 / Canonical polynomial
  * @param rhs 标量值 / Scalar value
@@ -236,8 +216,7 @@ operator fun <T : Field<T>> CanonicalPolynomial<T>.div(rhs: T): CanonicalPolynom
 }
 
 /**
- * 规范多项式与标量的加法运算符
- * Addition operator for canonical polynomial and scalar
+ * 规范多项式与标量的加法运算符 / Addition operator for canonical polynomial and scalar
  *
  * @receiver 规范多项式 / Canonical polynomial
  * @param rhs 标量值 / Scalar value
@@ -248,8 +227,7 @@ operator fun <T : Ring<T>> CanonicalPolynomial<T>.plus(rhs: T): CanonicalPolynom
 }
 
 /**
- * 标量与规范多项式的加法运算符
- * Addition operator for scalar and canonical polynomial
+ * 标量与规范多项式的加法运算符 / Addition operator for scalar and canonical polynomial
  *
  * @receiver 标量值 / Scalar value
  * @param rhs 规范多项式 / Canonical polynomial
@@ -260,8 +238,7 @@ operator fun <T : Ring<T>> T.plus(rhs: CanonicalPolynomial<T>): CanonicalPolynom
 }
 
 /**
- * 规范多项式与标量的减法运算符
- * Subtraction operator for canonical polynomial and scalar
+ * 规范多项式与标量的减法运算符 / Subtraction operator for canonical polynomial and scalar
  *
  * @receiver 规范多项式 / Canonical polynomial
  * @param rhs 标量值 / Scalar value
@@ -272,8 +249,7 @@ operator fun <T : Ring<T>> CanonicalPolynomial<T>.minus(rhs: T): CanonicalPolyno
 }
 
 /**
- * 标量与规范多项式的减法运算符
- * Subtraction operator for scalar and canonical polynomial
+ * 标量与规范多项式的减法运算符 / Subtraction operator for scalar and canonical polynomial
  *
  * @receiver 标量值 / Scalar value
  * @param rhs 规范多项式 / Canonical polynomial

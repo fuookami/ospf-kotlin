@@ -152,13 +152,13 @@ class NSameGenerator<V : RealNumber<V>>(
 /**
  * Generates cutting plans for a single material by iterating over all demands and product widths.
  * 遍历所有需求和产品宽度，为单个物料生成切割方案。
- * @param material the raw material to generate cutting plans for / 待生成切割方案的原料
- * @param demands the list of product demands to satisfy / 需满足的产品需求列表
- * @param machines the list of machines for feasibility checking / 用于可行性检查的机器列表
- * @param planIndex atomic counter for generating unique plan IDs / 用于生成唯一方案ID的原子计数器
- * @param collector collects and prunes generated cutting plans / 收集并剪枝已生成的切割方案
- * @param quantityCache cache for quantity arithmetic operations / 数量算术运算的缓存
- * @param widthCheck optional custom width feasibility check function / 可选的自定义宽度可行性检查函数
+ * @param material 待生成切割方案的原料 / the raw material to generate cutting plans for
+ * @param demands 需满足的产品需求列表 / the list of product demands to satisfy
+ * @param machines 用于可行性检查的机器列表 / the list of machines for feasibility checking
+ * @param planIndex 用于生成唯一方案ID的原子计数器 / atomic counter for generating unique plan IDs
+ * @param collector 收集并剪枝已生成的切割方案 / collects and prunes generated cutting plans
+ * @param quantityCache 数量算术运算的缓存 / cache for quantity arithmetic operations
+ * @param widthCheck 可选的自定义宽度可行性检查函数 / optional custom width feasibility check function
 */
     private fun generateMaterial(
         material: Material<V>,
@@ -252,11 +252,11 @@ class NSameGenerator<V : RealNumber<V>>(
 /**
  * Computes the maximum number of times a product width can repeat within the material's width bound and knife count constraint.
  * 计算产品宽度在物料宽度上限和刀数约束下可重复的最大次数。
- * @param productWidth the width of the product to repeat / 待重复的产品宽度
- * @param material the raw material providing the width bound / 提供宽度上限的原料
- * @param product the product being cut / 正在切割的产品
- * @param quantityCache cache for width arithmetic operations / 宽度算术运算的缓存
- * @return the maximum repeat count, or zero if infeasible / 最大重复次数，不可行时返回零
+ * @param productWidth 待重复的产品宽度 / the width of the product to repeat
+ * @param material 提供宽度上限的原料 / the raw material providing the width bound
+ * @param product 正在切割的产品 / the product being cut
+ * @param quantityCache 宽度算术运算的缓存 / cache for width arithmetic operations
+ * @return 最大重复次数，不可行时返回零 / the maximum repeat count, or zero if infeasible
 */
     private fun computeMaxAmount(
         productWidth: Quantity<V>,
@@ -290,11 +290,11 @@ class NSameGenerator<V : RealNumber<V>>(
 /**
  * Checks whether a set of slices satisfies all configured cutting plan constraints.
  * 检查一组切片是否满足所有已配置的切割方案约束。
- * @param slices the cutting plan slices to validate / 待验证的切割方案切片
- * @param totalWidth the total width consumed by the slices / 切片消耗的总宽度
- * @param upperBound the material's upper width bound / 物料的宽度上限
- * @param material the raw material being cut / 正在切割的原料
- * @return true if all constraints are satisfied, false otherwise / 所有约束均满足时返回true，否则返回false
+ * @param slices 待验证的切割方案切片 / the cutting plan slices to validate
+ * @param totalWidth 切片消耗的总宽度 / the total width consumed by the slices
+ * @param upperBound 物料的宽度上限 / the material's upper width bound
+ * @param material 正在切割的原料 / the raw material being cut
+ * @return 所有约束均满足时返回true，否则返回false / true if all constraints are satisfied, false otherwise
 */
     private fun satisfiesConstraints(
         slices: List<CuttingPlanSlice<V>>,

@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -17,10 +18,10 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
  * Ensures must-ship cargos are assigned to exactly one position.
  * 确保必须发货的货物恰好分配到一个位置。
  *
- * @property items The list of cargo items. / 货物项列表
- * @property positions The list of stowage positions. / 配载位置列表
- * @property stowage The stowage assignment model. / 配载分配模型
- * @property mustShipIndices Indices of items that must be shipped. / 必须发货的货物项索引列表
+ * @property items 货物项列表 / The list of cargo items.
+ * @property positions 配载位置列表 / The list of stowage positions.
+ * @property stowage 配载分配模型 / The stowage assignment model.
+ * @property mustShipIndices 必须发货的货物项索引列表 / Indices of items that must be shipped.
 */
 class MustShipLimit(
     private val items: List<Item>,
@@ -39,9 +40,9 @@ class MustShipLimit(
                 relation = lhs eq rhs,
                 name = "${name}_${items[c]}"
             )) {
-                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
-                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
         }
 

@@ -15,8 +15,8 @@ object FeasibilityDiagnostics {
      * Appends core feasibility diagnostic notes for the given request, checking envelope ranges, payload bounds, and cargo-position compatibility.
      * 为给定请求追加核心可行性诊断信息，检查包络范围、业载边界和货物-舱位兼容性。
      *
-     * @param request The request DTO containing problem input data. / 包含问题输入数据的请求 DTO
-     * @param notes Mutable list for collecting diagnostic notes. / 收集诊断信息的可变列表
+     * @param request 包含问题输入数据的请求 DTO / The request DTO containing problem input data.
+     * @param notes 收集诊断信息的可变列表 / Mutable list for collecting diagnostic notes.
     */
     fun appendCoreFeasibilityDiagnostics(request: RequestDTO, notes: MutableList<String>) {
         val totalCapacity = request.positions.sumOf { it.maxWeight }
@@ -74,10 +74,10 @@ object FeasibilityDiagnostics {
      * Appends critical constraint notes by evaluating the solution against capacity, payload, envelope, lateral imbalance, and redundancy constraints.
      * 通过评估解与容量、业载、包络、横向不平衡和余度约束的关系，追加关键约束诊断信息。
      *
-     * @param request The request DTO containing problem input data. / 包含问题输入数据的请求 DTO
-     * @param xIdx Index mapping from cargo-position pairs to solution variable indices. / 从货物-舱位对到解变量索引的映射
-     * @param solution The solution variable values as a double array. / 解变量值数组
-     * @param notes Mutable list for collecting diagnostic notes. / 收集诊断信息的可变列表
+     * @param request 包含问题输入数据的请求 DTO / The request DTO containing problem input data.
+     * @param xIdx 从货物-舱位对到解变量索引的映射 / Index mapping from cargo-position pairs to solution variable indices.
+     * @param solution 解变量值数组 / The solution variable values as a double array.
+     * @param notes 收集诊断信息的可变列表 / Mutable list for collecting diagnostic notes.
     */
     fun appendCriticalConstraintNotes(
         request: RequestDTO,

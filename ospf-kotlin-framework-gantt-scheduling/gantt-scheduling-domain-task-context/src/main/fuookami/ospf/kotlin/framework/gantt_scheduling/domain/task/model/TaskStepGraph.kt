@@ -46,9 +46,9 @@ abstract class TaskStep<
     /**
      * duration.
      * duration。
-     * @param step The step plan for which to calculate duration / 用于计算持续时间的步骤计划
-     * @param executor The executor performing the step / 执行该步骤的执行者
-     * @return The duration of the step for the given executor / 给定执行者下该步骤的持续时间
+     * @param step 用于计算持续时间的步骤计划 / The step plan for which to calculate duration
+     * @param executor 执行该步骤的执行者 / The executor performing the step
+     * @return 给定执行者下该步骤的持续时间 / The duration of the step for the given executor
     */
     abstract fun duration(step: @UnsafeVariance S, executor: @UnsafeVariance E): Duration
 
@@ -179,9 +179,9 @@ data class TaskStepGraphBuilder<
     /**
      * TaskStep.
      * TaskStep。
-     * @param steps The list of steps that serve as start steps / 作为起始步骤的步骤列表
-     * @param relation The step relation (And/Or) for the start steps / 起始步骤之间的关系类型（与/或）
-     * @return Success or failure of setting start steps / 设置起始步骤的成功或失败结果
+     * @param steps 作为起始步骤的步骤列表 / The list of steps that serve as start steps
+     * @param relation 起始步骤之间的关系类型（与/或） / The step relation (And/Or) for the start steps
+     * @return 设置起始步骤的成功或失败结果 / Success or failure of setting start steps
     */
     fun TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>.start(
         steps: List<TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>>,
@@ -195,13 +195,12 @@ data class TaskStepGraphBuilder<
     }
 
     /**
-     * 添加从当前步骤到目标步骤列表的前向边。
-     * Add a forward edge from the current step to target steps.
+     * 添加从当前步骤到目标步骤列表的前向边。 / Add a forward edge from the current step to target steps.
      *
-     * @param from The source step from which the forward edge originates / 前向边起始的源步骤
-     * @param to The list of target steps that the forward edge points to / 前向边指向的目标步骤列表
-     * @param relation The step relation (And/Or) for the forward edge / 前向边的步骤关系类型（与/或）
-     * @return Success or failure of adding the forward edge / 添加前向边的成功或失败结果
+     * @param from 前向边起始的源步骤 / The source step from which the forward edge originates
+     * @param to 前向边指向的目标步骤列表 / The list of target steps that the forward edge points to
+     * @param relation 前向边的步骤关系类型（与/或） / The step relation (And/Or) for the forward edge
+     * @return 添加前向边的成功或失败结果 / Success or failure of adding the forward edge
     */
     fun TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>.forward(
         from: TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>,
@@ -217,13 +216,12 @@ data class TaskStepGraphBuilder<
     }
 
     /**
-     * 添加从源步骤列表到当前步骤的后向边。
-     * Add a backward edge from source steps to the current step.
+     * 添加从源步骤列表到当前步骤的后向边。 / Add a backward edge from source steps to the current step.
      *
-     * @param from The list of source steps that the backward edge originates from / 后向边起始的源步骤列表
-     * @param to The target step that the backward edge points to / 后向边指向的目标步骤
-     * @param relation The step relation (And/Or) for the backward edge / 后向边的步骤关系类型（与/或）
-     * @return Success or failure of adding the backward edge / 添加后向边的成功或失败结果
+     * @param from 后向边起始的源步骤列表 / The list of source steps that the backward edge originates from
+     * @param to 后向边指向的目标步骤 / The target step that the backward edge points to
+     * @param relation 后向边的步骤关系类型（与/或） / The step relation (And/Or) for the backward edge
+     * @return 添加后向边的成功或失败结果 / Success or failure of adding the backward edge
     */
     fun TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>.backward(
         from: List<TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>>,

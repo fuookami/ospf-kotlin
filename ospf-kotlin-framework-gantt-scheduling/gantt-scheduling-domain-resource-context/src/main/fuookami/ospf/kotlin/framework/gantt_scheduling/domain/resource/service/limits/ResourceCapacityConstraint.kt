@@ -50,7 +50,7 @@ class ResourceCapacityConstraint<
         V
         >(
     private val usage: ResourceUsage<S, R, C, V>,
-    private val quantity: Extractor<ValueRange<V>, S> = { it.resourceCapacity.quantityRangeValue.value },
+    private val quantity: Extractor<ValueRange<V>, S> = Extractor { it.resourceCapacity.quantityRangeValue.value },
     private val withSlack: Boolean = true,
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "${usage.name}_resource_capacity"
@@ -191,7 +191,7 @@ class ResourceCapacityConstraint<
      * @return 影子价格提取函数 / Shadow price extractor function
     */
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
-        return { map, args ->
+        return AbstractGanttSchedulingShadowPriceExtractor { map, args ->
             shadowPriceExtractor?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
                     usage.timeSlots.sumOf(Flt64) {

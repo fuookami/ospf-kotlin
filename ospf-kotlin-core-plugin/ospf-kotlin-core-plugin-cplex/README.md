@@ -65,7 +65,7 @@ implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plug
 val solver = CplexLinearSolver(
     config = SolverConfig(timeLimit = 60.seconds)
 )
-val result: Ret<FeasibleSolverOutput<Flt64>> = solver(model)
+val result: Ret<SolveReport<Flt64>> = solver(model)
 ```
 
 ### With Callbacks

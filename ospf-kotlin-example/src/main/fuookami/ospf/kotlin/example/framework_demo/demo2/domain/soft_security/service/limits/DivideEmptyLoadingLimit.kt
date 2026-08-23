@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -18,11 +19,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
  * Minimizes empty loading patterns between adjacent positions with configurable coefficients.
  * 使用可配置系数最小化相邻位置之间的空载模式。
  *
- * @property adjacentPositions The list of adjacent position pairs / 相邻位置对列表
- * @property divideEmptyLoading The divide-empty-loading model with intermediate symbols / 带有中间符号的空载分割模型
- * @property emptyBetweenCargoCoefficient Coefficient function for empty-between-cargo penalties / 货物之间空位惩罚的系数函数
- * @property emptyCargoBetweenCargoCoefficient Coefficient function for empty-cargo-between-cargo penalties / 货物之间空货惩罚的系数函数
- * @property emptyBetweenEmptyCargoCoefficient Coefficient function for empty-between-empty-cargo penalties / 空货之间空位惩罚的系数函数
+ * @property adjacentPositions 相邻位置对列表 / The list of adjacent position pairs
+ * @property divideEmptyLoading 带有中间符号的空载分割模型 / The divide-empty-loading model with intermediate symbols
+ * @property emptyBetweenCargoCoefficient 货物之间空位惩罚的系数函数 / Coefficient function for empty-between-cargo penalties
+ * @property emptyCargoBetweenCargoCoefficient 货物之间空货惩罚的系数函数 / Coefficient function for empty-cargo-between-cargo penalties
+ * @property emptyBetweenEmptyCargoCoefficient 空货之间空位惩罚的系数函数 / Coefficient function for empty-between-empty-cargo penalties
 */
 class DivideEmptyLoadingLimit(
     private val adjacentPositions: List<PositionPair>,
@@ -39,13 +40,13 @@ class DivideEmptyLoadingLimit(
             }),
             "empty between cargo"
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -56,13 +57,13 @@ class DivideEmptyLoadingLimit(
             }),
             "empty cargo between cargo"
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -72,13 +73,13 @@ class DivideEmptyLoadingLimit(
                 emptyBetweenEmptyCargoCoefficient(position1, position2) * divideEmptyLoading.emptyBetweenEmptyCargo[p]
             })
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }

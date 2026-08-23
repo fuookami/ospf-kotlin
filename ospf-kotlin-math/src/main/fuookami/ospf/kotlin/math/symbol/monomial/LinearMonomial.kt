@@ -1,10 +1,8 @@
 /**
- * 线性单项式
- * Linear Monomial
+ * 线性单项式 / Linear Monomial
  *
  * 定义线性单项式的数据结构和运算。线性单项式形如 c*x，
- * 其中 c 为系数，x 为符号变量。是构建线性多项式的基本单元。
- * Defines data structures and operations for linear monomials.
+ * 其中 c 为系数，x 为符号变量。是构建线性多项式的基本单元。 / Defines data structures and operations for linear monomials.
  * A linear monomial has the form c*x, where c is the coefficient
  * and x is the symbol variable. It is the basic building block for linear polynomials.
 */
@@ -19,12 +17,10 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.operator.*
 
 /**
- * 线性单项式
- * Linear Monomial
+ * 线性单项式 / Linear Monomial
  *
  * 表示线性单项式，形如 c*x，其中 c 为系数，x 为符号变量。
- * 线性单项式是构建线性多项式的基本单元，表示一个线性项。
- * Represents a linear monomial of the form c*x, where c is the coefficient
+ * 线性单项式是构建线性多项式的基本单元，表示一个线性项。 / Represents a linear monomial of the form c*x, where c is the coefficient
  * and x is the symbol variable. Linear monomials are the basic building blocks
  * for linear polynomials, representing a single linear term.
  *
@@ -48,11 +44,9 @@ data class LinearMonomial<T : Ring<T>>(
 }
 
 /**
- * 获取零值
- * Gets zero value
+ * 获取零值 / Gets zero value
  *
- * 通过减法运算获取指定值的零值。
- * Obtains the zero value of the specified type through subtraction.
+ * 通过减法运算获取指定值的零值。 / Obtains the zero value of the specified type through subtraction.
  *
  * @param value 参考值 / Reference value
  * @return 零值 / Zero value
@@ -62,8 +56,7 @@ private fun <T : Ring<T>> zeroOf(value: T): T {
 }
 
 /**
- * 线性单项式的负运算符
- * Negation operator for linear monomial
+ * 线性单项式的负运算符 / Negation operator for linear monomial
  *
  * @receiver 线性单项式 / Linear monomial
  * @return 系数取负后的线性单项式 / Linear monomial with negated coefficient
@@ -73,8 +66,7 @@ operator fun <T : Ring<T>> LinearMonomial<T>.unaryMinus(): LinearMonomial<T> {
 }
 
 /**
- * 线性单项式与标量的乘法运算符
- * Multiplication operator for linear monomial and scalar
+ * 线性单项式与标量的乘法运算符 / Multiplication operator for linear monomial and scalar
  *
  * @receiver 线性单项式 / Linear monomial
  * @param rhs 标量值 / Scalar value
@@ -85,8 +77,7 @@ operator fun <T : Ring<T>> LinearMonomial<T>.times(rhs: T): LinearMonomial<T> {
 }
 
 /**
- * 线性单项式与标量的除法运算符
- * Division operator for linear monomial and scalar
+ * 线性单项式与标量的除法运算符 / Division operator for linear monomial and scalar
  *
  * @receiver 线性单项式 / Linear monomial
  * @param rhs 标量值 / Scalar value
@@ -97,11 +88,9 @@ operator fun <T : Field<T>> LinearMonomial<T>.div(rhs: T): LinearMonomial<T> {
 }
 
 /**
- * 线性单项式之间的乘法运算符
- * Multiplication operator between linear monomials
+ * 线性单项式之间的乘法运算符 / Multiplication operator between linear monomials
  *
- * 两个线性单项式相乘，结果为二次单项式。
- * Multiplication of two linear monomials results in a quadratic monomial.
+ * 两个线性单项式相乘，结果为二次单项式。 / Multiplication of two linear monomials results in a quadratic monomial.
  *
  * @receiver 左侧线性单项式 / Left-hand linear monomial
  * @param rhs 右侧线性单项式 / Right-hand linear monomial
@@ -112,11 +101,9 @@ operator fun <T : Ring<T>> LinearMonomial<T>.times(rhs: LinearMonomial<T>): Quad
 }
 
 /**
- * 线性单项式与线性多项式的乘法运算符
- * Multiplication operator between linear monomial and linear polynomial
+ * 线性单项式与线性多项式的乘法运算符 / Multiplication operator between linear monomial and linear polynomial
  *
- * 线性单项式与线性多项式相乘，结果为二次多项式。
- * Multiplication of linear monomial and linear polynomial results in a quadratic polynomial.
+ * 线性单项式与线性多项式相乘，结果为二次多项式。 / Multiplication of linear monomial and linear polynomial results in a quadratic polynomial.
  *
  * @receiver 线性单项式 / Linear monomial
  * @param rhs 线性多项式 / Linear polynomial
@@ -129,8 +116,7 @@ operator fun <T : Ring<T>> LinearMonomial<T>.times(rhs: LinearPolynomial<T>): Qu
 }
 
 /**
- * 线性多项式与线性单项式的乘法运算符
- * Multiplication operator between linear polynomial and linear monomial
+ * 线性多项式与线性单项式的乘法运算符 / Multiplication operator between linear polynomial and linear monomial
  *
  * @receiver 线性多项式 / Linear polynomial
  * @param rhs 线性单项式 / Linear monomial
@@ -143,8 +129,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.times(rhs: LinearMonomial<T>): Qu
 }
 
 /**
- * 线性单项式之间的加法运算符
- * Addition operator between linear monomials
+ * 线性单项式之间的加法运算符 / Addition operator between linear monomials
  *
  * @receiver 左侧线性单项式 / Left-hand linear monomial
  * @param rhs 右侧线性单项式 / Right-hand linear monomial
@@ -155,8 +140,7 @@ operator fun <T : Ring<T>> LinearMonomial<T>.plus(rhs: LinearMonomial<T>): Linea
 }
 
 /**
- * 线性单项式与线性多项式的加法运算符
- * Addition operator between linear monomial and linear polynomial
+ * 线性单项式与线性多项式的加法运算符 / Addition operator between linear monomial and linear polynomial
  *
  * @receiver 线性单项式 / Linear monomial
  * @param rhs 线性多项式 / Linear polynomial
@@ -167,8 +151,7 @@ operator fun <T : Ring<T>> LinearMonomial<T>.plus(rhs: LinearPolynomial<T>): Lin
 }
 
 /**
- * 线性多项式与线性单项式的加法运算符
- * Addition operator between linear polynomial and linear monomial
+ * 线性多项式与线性单项式的加法运算符 / Addition operator between linear polynomial and linear monomial
  *
  * @receiver 线性多项式 / Linear polynomial
  * @param rhs 线性单项式 / Linear monomial
@@ -179,8 +162,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.plus(rhs: LinearMonomial<T>): Lin
 }
 
 /**
- * 线性单项式之间的减法运算符
- * Subtraction operator between linear monomials
+ * 线性单项式之间的减法运算符 / Subtraction operator between linear monomials
  *
  * @receiver 左侧线性单项式 / Left-hand linear monomial
  * @param rhs 右侧线性单项式 / Right-hand linear monomial
@@ -191,8 +173,7 @@ operator fun <T : Ring<T>> LinearMonomial<T>.minus(rhs: LinearMonomial<T>): Line
 }
 
 /**
- * 线性单项式与线性多项式的减法运算符
- * Subtraction operator between linear monomial and linear polynomial
+ * 线性单项式与线性多项式的减法运算符 / Subtraction operator between linear monomial and linear polynomial
  *
  * @receiver 线性单项式 / Linear monomial
  * @param rhs 线性多项式 / Linear polynomial
@@ -203,8 +184,7 @@ operator fun <T : Ring<T>> LinearMonomial<T>.minus(rhs: LinearPolynomial<T>): Li
 }
 
 /**
- * 线性多项式与线性单项式的减法运算符
- * Subtraction operator between linear polynomial and linear monomial
+ * 线性多项式与线性单项式的减法运算符 / Subtraction operator between linear polynomial and linear monomial
  *
  * @receiver 线性多项式 / Linear polynomial
  * @param rhs 线性单项式 / Linear monomial
@@ -215,8 +195,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.minus(rhs: LinearMonomial<T>): Li
 }
 
 /**
- * 线性单项式与标量的加法运算符
- * Addition operator between linear monomial and scalar
+ * 线性单项式与标量的加法运算符 / Addition operator between linear monomial and scalar
  *
  * @receiver 线性单项式 / Linear monomial
  * @param rhs 标量值 / Scalar value
@@ -227,8 +206,7 @@ operator fun <T : Ring<T>> LinearMonomial<T>.plus(rhs: T): LinearPolynomial<T> {
 }
 
 /**
- * 标量与线性单项式的加法运算符
- * Addition operator between scalar and linear monomial
+ * 标量与线性单项式的加法运算符 / Addition operator between scalar and linear monomial
  *
  * @receiver 标量值 / Scalar value
  * @param rhs 线性单项式 / Linear monomial
@@ -239,8 +217,7 @@ operator fun <T : Ring<T>> T.plus(rhs: LinearMonomial<T>): LinearPolynomial<T> {
 }
 
 /**
- * 线性单项式与标量的减法运算符
- * Subtraction operator between linear monomial and scalar
+ * 线性单项式与标量的减法运算符 / Subtraction operator between linear monomial and scalar
  *
  * @receiver 线性单项式 / Linear monomial
  * @param rhs 标量值 / Scalar value
@@ -251,8 +228,7 @@ operator fun <T : Ring<T>> LinearMonomial<T>.minus(rhs: T): LinearPolynomial<T> 
 }
 
 /**
- * 标量与线性单项式的减法运算符
- * Subtraction operator between scalar and linear monomial
+ * 标量与线性单项式的减法运算符 / Subtraction operator between scalar and linear monomial
  *
  * @receiver 标量值 / Scalar value
  * @param rhs 线性单项式 / Linear monomial
@@ -263,11 +239,9 @@ operator fun <T : Ring<T>> T.minus(rhs: LinearMonomial<T>): LinearPolynomial<T> 
 }
 
 /**
- * 线性单项式的绝对值
- * Absolute value of linear monomial
+ * 线性单项式的绝对值 / Absolute value of linear monomial
  *
- * 返回系数取绝对值后的线性单项式。
- * Returns the linear monomial with the coefficient's absolute value.
+ * 返回系数取绝对值后的线性单项式。 / Returns the linear monomial with the coefficient's absolute value.
  *
  * @receiver 线性单项式 / Linear monomial
  * @return 系数取绝对值后的线性单项式 / Linear monomial with absolute coefficient
@@ -277,11 +251,9 @@ fun <T> LinearMonomial<T>.abs(): LinearMonomial<T> where T : NumberField<T>, T :
 }
 
 /**
- * 线性单项式的倒数
- * Reciprocal of linear monomial
+ * 线性单项式的倒数 / Reciprocal of linear monomial
  *
- * 返回规范单项式形式的倒数，幂次为-1。
- * Returns the reciprocal in canonical monomial form, with power of -1.
+ * 返回规范单项式形式的倒数，幂次为-1。 / Returns the reciprocal in canonical monomial form, with power of -1.
  *
  * @receiver 线性单项式 / Linear monomial
  * @return 规范单项式形式的倒数 / Reciprocal in canonical monomial form
@@ -291,8 +263,7 @@ fun <T> LinearMonomial<T>.reciprocal(): CanonicalMonomial<T> where T : Field<T>,
 }
 
 /**
- * 标量与线性单项式的乘法运算符
- * Multiplication operator between scalar and linear monomial
+ * 标量与线性单项式的乘法运算符 / Multiplication operator between scalar and linear monomial
  *
  * @receiver 标量值 / Scalar value
  * @param rhs 线性单项式 / Linear monomial

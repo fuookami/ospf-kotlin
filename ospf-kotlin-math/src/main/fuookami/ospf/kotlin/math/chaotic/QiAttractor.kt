@@ -1,6 +1,5 @@
 /**
- * Qi 吸引子（四维超混沌）
- * Qi Attractor (4D Hyperchaotic)
+ * Qi 吸引子（四维超混沌） / Qi Attractor (4D Hyperchaotic)
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * Qi 吸引子（四维超混沌）
- * Qi Attractor (4D Hyperchaotic)
+ * Qi 吸引子（四维超混沌） / Qi Attractor (4D Hyperchaotic)
  *
  * @property alpha 系统参数 alpha / System parameter alpha
  * @property beta 系统参数 beta / System parameter beta
@@ -51,7 +49,7 @@ data class QiAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val del
  * Qi 吸引子生成器，通过迭代产生超混沌序列。
  *
  * @property attractor the Qi attractor instance / Qi 吸引子实例
- * @property _x the internal state variable for iteration / 迭代用的内部状态变量
+ * @property _x 迭代用的内部状态变量 / the internal state variable for iteration
 */
 data class QiAttractorGenerator(
     val attractor: QiAttractor<Flt64> = QiAttractor(),

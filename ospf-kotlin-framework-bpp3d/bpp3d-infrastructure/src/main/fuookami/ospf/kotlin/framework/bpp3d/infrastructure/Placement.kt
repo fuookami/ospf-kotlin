@@ -1,6 +1,5 @@
 /**
- * 放置基础设施。
- * Placement infrastructure.
+ * 放置基础设施。 / Placement infrastructure.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
@@ -18,13 +17,13 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 /** Check if a value is within the specified range bounds.
  * 检查值是否在指定范围内。
  *
- * @param V the floating number type / 浮点数类型
- * @param value the value to check / 要检查的值
- * @param lb the lower bound / 下界
- * @param ub the upper bound / 上界
- * @param withLowerBound whether to include the lower bound / 是否包含下界
- * @param withUpperBound whether to include the upper bound / 是否包含上界
- * @return whether the value is within the range / 值是否在范围内
+ * @param V 浮点数类型 / the floating number type
+ * @param value 要检查的值 / the value to check
+ * @param lb 下界 / the lower bound
+ * @param ub 上界 / the upper bound
+ * @param withLowerBound 是否包含下界 / whether to include the lower bound
+ * @param withUpperBound 是否包含上界 / whether to include the upper bound
+ * @return 值是否在范围内 / whether the value is within the range
 */
 private fun <V : FloatingNumber<V>> containsInRange(
     value: Quantity<V>,
@@ -59,11 +58,11 @@ private fun <V : FloatingNumber<V>> containsInRange(
 /** A 2D quantity-based placement with projection and position.
  * 基于量的二维放置，包含投影和位置。
  *
- * @param T the cuboid type / 长方体类型
- * @param V the floating number type / 浮点数类型
- * @param P the projective plane type / 投影平面类型
- * @property projection the projection from 3D to 2D / 从三维到二维的投影
- * @property position the 2D position / 二维位置
+ * @param T 长方体类型 / the cuboid type
+ * @param V 浮点数类型 / the floating number type
+ * @param P 投影平面类型 / the projective plane type
+ * @property projection 从三维到二维的投影 / the projection from 3D to 2D
+ * @property position 二维位置 / the 2D position
 */
 data class QuantityPlacement2<
         T : Cuboid<T, V>,
@@ -77,8 +76,8 @@ data class QuantityPlacement2<
     /** Secondary constructor from a FltX-based point.
      * 基于 FltX 点的辅助构造函数。
      *
-     * @param projection the projection / 投影
-     * @param position the 2D point with FltX values / 基于 FltX 的二维点
+     * @param projection 投影 / the projection
+     * @param position 基于 FltX 的二维点 / the 2D point with FltX values
     */
     @Suppress("UNCHECKED_CAST")
     constructor(
@@ -89,8 +88,8 @@ data class QuantityPlacement2<
     /** Secondary constructor from a 3D placement and a projective plane.
      * 从三维放置和投影平面构造的辅助构造函数。
      *
-     * @param placement3 the 3D placement / 三维放置
-     * @param plane the projective plane / 投影平面
+     * @param placement3 三维放置 / the 3D placement
+     * @param plane 投影平面 / the projective plane
     */
     constructor(placement3: QuantityPlacement3<T, V>, plane: P) : this(
         projection = PlaneProjection(placement3.view, plane),
@@ -160,7 +159,7 @@ data class QuantityPlacement2<
     /** Convert this placement to a 2D geometry placement.
      * 将此放置转换为二维几何放置。
      *
-     * @return the 2D geometry placement / 二维几何放置
+     * @return 二维几何放置 / the 2D geometry placement
     */
     private fun toGeometryPlacement(): GeometryPlacement2<V> {
         return GeometryPlacement2(
@@ -176,11 +175,11 @@ data class QuantityPlacement2<
     /** Check if a 2D point is contained within this placement.
      * 检查二维点是否包含在此放置内。
      *
-     * @param point the point to check / 要检查的点
-     * @param withLowerBound whether to include the lower bound / 是否包含下界
-     * @param withUpperBound whether to include the upper bound / 是否包含上界
-     * @param withBorder whether to include the border / 是否包含边界
-     * @return whether the point is contained / 点是否被包含
+     * @param point 要检查的点 / the point to check
+     * @param withLowerBound 是否包含下界 / whether to include the lower bound
+     * @param withUpperBound 是否包含上界 / whether to include the upper bound
+     * @param withBorder 是否包含边界 / whether to include the border
+     * @return 点是否被包含 / whether the point is contained
     */
     fun contains(
         point: QuantityPoint2<V>,
@@ -200,8 +199,8 @@ data class QuantityPlacement2<
     /** Check if overlapped with another 2D placement.
      * 检查是否与另一个二维放置重叠。
      *
-     * @param rhs the other placement / 另一个放置
-     * @return whether the two placements overlap / 两个放置是否重叠
+     * @param rhs 另一个放置 / the other placement
+     * @return 两个放置是否重叠 / whether the two placements overlap
     */
     fun overlapped(rhs: QuantityPlacement2<*, V, P>): Ret<Boolean> {
         return toGeometryPlacement().overlapped(rhs.toGeometryPlacement())
@@ -210,8 +209,8 @@ data class QuantityPlacement2<
     /** Compute the intersection with another 2D placement.
      * 计算与另一个二维放置的交集。
      *
-     * @param rhs the other placement / 另一个放置
-     * @return the intersection rectangle, or null if no intersection / 交集矩形，若无交集则返回 null
+     * @param rhs 另一个放置 / the other placement
+     * @return 交集矩形，若无交集则返回 null / the intersection rectangle, or null if no intersection
     */
     fun intersect(rhs: QuantityPlacement2<*, V, P>): Ret<GeometryRectangle2<V>?> {
         val intersection = when (val result = toGeometryPlacement().intersect(rhs.toGeometryPlacement())) {
@@ -228,7 +227,7 @@ data class QuantityPlacement2<
     /** Convert this 2D placement back to a list of 3D placements.
      * 将此二维放置转换回三维放置列表。
      *
-     * @return the list of 3D placements / 三维放置列表
+     * @return 三维放置列表 / the list of 3D placements
     */
     fun toPlacement3(): List<QuantityPlacement3<T, V>> {
         return projection.toPlacement3At(position)
@@ -237,7 +236,7 @@ data class QuantityPlacement2<
     /** Create a copy of this 2D placement.
      * 创建此二维放置的副本。
      *
-     * @return a new QuantityPlacement2 with copied projection and position / 具有复制的投影和位置的新 QuantityPlacement2
+     * @return 具有复制的投影和位置的新 QuantityPlacement2 / a new QuantityPlacement2 with copied projection and position
     */
     override fun copy() = QuantityPlacement2(projection.copy(), position)
 }
@@ -245,10 +244,10 @@ data class QuantityPlacement2<
 /** A 3D quantity-based placement with cuboid view and position.
  * 基于量的三维放置，包含长方体视图和位置。
  *
- * @param T the cuboid type / 长方体类型
- * @param V the floating number type / 浮点数类型
- * @property view the cuboid view / 长方体视图
- * @property position the 3D position / 三维位置
+ * @param T 长方体类型 / the cuboid type
+ * @param V 浮点数类型 / the floating number type
+ * @property view 长方体视图 / the cuboid view
+ * @property position 三维位置 / the 3D position
 */
 data class QuantityPlacement3<
         T : Cuboid<T, V>,
@@ -261,8 +260,8 @@ data class QuantityPlacement3<
     /** Secondary constructor from a FltX-based point.
      * 基于 FltX 点的辅助构造函数。
      *
-     * @param view the cuboid view / 长方体视图
-     * @param position the 3D point with FltX values / 基于 FltX 的三维点
+     * @param view 长方体视图 / the cuboid view
+     * @param position 基于 FltX 的三维点 / the 3D point with FltX values
     */
     @Suppress("UNCHECKED_CAST")
     constructor(
@@ -407,7 +406,7 @@ data class QuantityPlacement3<
     /** Convert this placement to a 3D geometry placement using absolute coordinates.
      * 使用绝对坐标将此放置转换为三维几何放置。
      *
-     * @return the 3D geometry placement / 三维几何放置
+     * @return 三维几何放置 / the 3D geometry placement
     */
     private fun toGeometryPlacement(): GeometryPlacement3<V> {
         return GeometryPlacement3(
@@ -437,11 +436,11 @@ data class QuantityPlacement3<
     /** Check if a 3D point is contained within this placement.
      * 检查三维点是否包含在此放置内。
      *
-     * @param point the point to check / 要检查的点
-     * @param withLowerBound whether to include the lower bound / 是否包含下界
-     * @param withUpperBound whether to include the upper bound / 是否包含上界
-     * @param withBorder whether to include the border / 是否包含边界
-     * @return whether the point is contained / 点是否被包含
+     * @param point 要检查的点 / the point to check
+     * @param withLowerBound 是否包含下界 / whether to include the lower bound
+     * @param withUpperBound 是否包含上界 / whether to include the upper bound
+     * @param withBorder 是否包含边界 / whether to include the border
+     * @return 点是否被包含 / whether the point is contained
     */
     fun contains(
         point: QuantityPoint3<V>,
@@ -462,8 +461,8 @@ data class QuantityPlacement3<
     /** Check if overlapped with another 3D placement.
      * 检查是否与另一个三维放置重叠。
      *
-     * @param rhs the other placement / 另一个放置
-     * @return whether the two placements overlap / 两个放置是否重叠
+     * @param rhs 另一个放置 / the other placement
+     * @return 两个放置是否重叠 / whether the two placements overlap
     */
     infix fun overlapped(rhs: QuantityPlacement3<*, V>): Ret<Boolean> {
         return toGeometryPlacement().overlapped(rhs.toGeometryPlacement())
@@ -472,15 +471,15 @@ data class QuantityPlacement3<
     /** Create a copy of this 3D placement.
      * 创建此三维放置的副本。
      *
-     * @return a new QuantityPlacement3 with copied view and position / 具有复制的视图和位置的新 QuantityPlacement3
+     * @return 具有复制的视图和位置的新 QuantityPlacement3 / a new QuantityPlacement3 with copied view and position
     */
     override fun copy() = QuantityPlacement3(view.copy(), position)
 
     /** Compare this placement with another by z, then y, then x order.
      * 按 z、y、x 顺序比较此放置与另一个放置。
      *
-     * @param rhs the other placement to compare / 要比较的另一个放置
-     * @return the comparison order / 比较结果
+     * @param rhs 要比较的另一个放置 / the other placement to compare
+     * @return 比较结果 / the comparison order
     */
     override fun partialOrd(rhs: QuantityPlacement3<T, V>): Order {
         when (val value = quantityOrd(z, rhs.z, "z")) {
@@ -503,7 +502,7 @@ data class QuantityPlacement3<
     /** Compute the hash code based on view and position.
      * 基于视图和位置计算哈希码。
      *
-     * @return the hash code value / 哈希码值
+     * @return 哈希码值 / the hash code value
     */
     override fun hashCode(): Int {
         return view.hashCode() or position.hashCode()
@@ -512,8 +511,8 @@ data class QuantityPlacement3<
     /** Check equality with another object based on view and position.
      * 基于视图和位置检查与另一个对象的相等性。
      *
-     * @param other the object to compare / 要比较的对象
-     * @return whether the objects are equal / 对象是否相等
+     * @param other 要比较的对象 / the object to compare
+     * @return 对象是否相等 / whether the objects are equal
     */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -531,8 +530,8 @@ data class QuantityPlacement3<
 /** A 3D shape-based placement with position and packing shape.
  * 基于形状的三维放置，包含位置和包装形状。
  *
- * @property shape the packing shape / 包装形状
- * @property position the 3D position / 三维位置
+ * @property shape 包装形状 / the packing shape
+ * @property position 三维位置 / the 3D position
 */
 data class ShapePlacement3(
     val shape: PackingShape3<FltX>,
@@ -542,9 +541,9 @@ data class ShapePlacement3(
     /** A circle footprint defined by center coordinates and radius.
      * 由中心坐标和半径定义的圆形底面。
      *
-     * @property centerX the x-coordinate of the center / 中心的 x 坐标
-     * @property centerZ the z-coordinate of the center / 中心的 z 坐标
-     * @property radius the radius / 半径
+     * @property centerX 中心的 x 坐标 / the x-coordinate of the center
+     * @property centerZ 中心的 z 坐标 / the z-coordinate of the center
+     * @property radius 半径 / the radius
     */
     private data class CircleFootprint(
         val centerX: Quantity<FltX>,
@@ -555,10 +554,10 @@ data class ShapePlacement3(
     /** A rectangle footprint defined by min and max coordinates.
      * 由最小和最大坐标定义的矩形底面。
      *
-     * @property minX the minimum x-coordinate / 最小 x 坐标
-     * @property maxX the maximum x-coordinate / 最大 x 坐标
-     * @property minZ the minimum z-coordinate / 最小 z 坐标
-     * @property maxZ the maximum z-coordinate / 最大 z 坐标
+     * @property minX 最小 x 坐标 / the minimum x-coordinate
+     * @property maxX 最大 x 坐标 / the maximum x-coordinate
+     * @property minZ 最小 z 坐标 / the minimum z-coordinate
+     * @property maxZ 最大 z 坐标 / the maximum z-coordinate
     */
     private data class RectangleFootprint(
         val minX: Quantity<FltX>,
@@ -615,7 +614,7 @@ data class ShapePlacement3(
     /** Convert this shape placement to a circle footprint, if applicable.
      * 将此形状放置转换为圆形底面（如适用）。
      *
-     * @return the circle footprint, or null if not circular / 圆形底面，若非圆形则返回 null
+     * @return 圆形底面，若非圆形则返回 null / the circle footprint, or null if not circular
     */
     private fun toCircleFootprint(): CircleFootprint? {
         val footprint = shape.footprint()
@@ -633,7 +632,7 @@ data class ShapePlacement3(
     /** Convert this shape placement to a rectangle footprint, if applicable.
      * 将此形状放置转换为矩形底面（如适用）。
      *
-     * @return the rectangle footprint, or null if not rectangular / 矩形底面，若非矩形则返回 null
+     * @return 矩形底面，若非矩形则返回 null / the rectangle footprint, or null if not rectangular
     */
     private fun toRectangleFootprint(): RectangleFootprint? {
         val footprint = shape.footprint()
@@ -652,8 +651,8 @@ data class ShapePlacement3(
     /** Create a zero-area quantity with the given unit.
      * 使用给定单位创建零面积量。
      *
-     * @param unit the unit quantity / 单位量
-     * @return a zero-area quantity / 零面积量
+     * @param unit 单位量 / the unit quantity
+     * @return 零面积量 / a zero-area quantity
     */
     private fun zeroArea(unit: Quantity<FltX>): Quantity<FltX> {
         return unit * unit * FltX.zero
@@ -662,9 +661,9 @@ data class ShapePlacement3(
     /** Compute the overlap area between two rectangle footprints.
      * 计算两个矩形底面的重叠面积。
      *
-     * @param lhs the first rectangle footprint / 第一个矩形底面
-     * @param rhs the second rectangle footprint / 第二个矩形底面
-     * @return the overlap area / 重叠面积
+     * @param lhs 第一个矩形底面 / the first rectangle footprint
+     * @param rhs 第二个矩形底面 / the second rectangle footprint
+     * @return 重叠面积 / the overlap area
     */
     private fun rectangleRectangleOverlapArea(
         lhs: RectangleFootprint,
@@ -681,9 +680,9 @@ data class ShapePlacement3(
     /** Compute the overlap area between two circle footprints.
      * 计算两个圆形底面的重叠面积。
      *
-     * @param lhs the first circle footprint / 第一个圆形底面
-     * @param rhs the second circle footprint / 第二个圆形底面
-     * @return the overlap area / 重叠面积
+     * @param lhs 第一个圆形底面 / the first circle footprint
+     * @param rhs 第二个圆形底面 / the second circle footprint
+     * @return 重叠面积 / the overlap area
     */
     private fun circleCircleOverlapArea(
         lhs: CircleFootprint,
@@ -714,9 +713,9 @@ data class ShapePlacement3(
     /** Compute the overlap area between a circle and a rectangle footprint.
      * 计算圆形与矩形底面的重叠面积。
      *
-     * @param circle the circle footprint / 圆形底面
-     * @param rectangle the rectangle footprint / 矩形底面
-     * @return the overlap area / 重叠面积
+     * @param circle 圆形底面 / the circle footprint
+     * @param rectangle 矩形底面 / the rectangle footprint
+     * @return 重叠面积 / the overlap area
     */
     private fun circleRectangleOverlapArea(
         circle: CircleFootprint,
@@ -747,7 +746,7 @@ data class ShapePlacement3(
          * 计算圆在给定 x 坐标处的垂直长度。
          *
          * @param xValue the x-coordinate / x 坐标
-         * @return the vertical length / 垂直长度
+         * @return 垂直长度 / the vertical length
         */
         fun verticalLengthAt(xValue: Double): Double {
             val dx = xValue - centerX
@@ -764,9 +763,9 @@ data class ShapePlacement3(
         /** Compute the Simpson's rule approximation for the integral over [lb, ub].
          * 计算 [lb, ub] 区间上的辛普森法则近似积分。
          *
-         * @param lb the lower bound of integration / 积分下界
-         * @param ub the upper bound of integration / 积分上界
-         * @return the Simpson's rule approximation / 辛普森法则近似值
+         * @param lb 积分下界 / the lower bound of integration
+         * @param ub 积分上界 / the upper bound of integration
+         * @return 辛普森法则近似值 / the Simpson's rule approximation
         */
         fun simpson(lb: Double, ub: Double): Double {
             val mid = (lb + ub) / 2.0
@@ -776,12 +775,12 @@ data class ShapePlacement3(
         /** Compute the adaptive Simpson's rule approximation with error control.
          * 计算带误差控制的自适应辛普森法则近似积分。
          *
-         * @param lb the lower bound of integration / 积分下界
-         * @param ub the upper bound of integration / 积分上界
-         * @param whole the whole interval Simpson value / 整个区间的辛普森值
-         * @param epsilon the error tolerance / 误差容限
-         * @param depth the remaining recursion depth / 剩余递归深度
-         * @return the adaptive Simpson's rule approximation / 自适应辛普森法则近似值
+         * @param lb 积分下界 / the lower bound of integration
+         * @param ub 积分上界 / the upper bound of integration
+         * @param whole 整个区间的辛普森值 / the whole interval Simpson value
+         * @param epsilon 误差容限 / the error tolerance
+         * @param depth 剩余递归深度 / the remaining recursion depth
+         * @return 自适应辛普森法则近似值 / the adaptive Simpson's rule approximation
         */
         fun adaptiveSimpson(lb: Double, ub: Double, whole: Double, epsilon: Double, depth: Int): Double {
             val mid = (lb + ub) / 2.0
@@ -810,8 +809,8 @@ data class ShapePlacement3(
     /** Compute the overlap area of footprints between this and another shape placement.
      * 计算此形状放置与另一个形状放置的底面重叠面积。
      *
-     * @param rhs the other shape placement / 另一个形状放置
-     * @return the overlap area / 重叠面积
+     * @param rhs 另一个形状放置 / the other shape placement
+     * @return 重叠面积 / the overlap area
     */
     fun footprintOverlapArea(rhs: ShapePlacement3): Quantity<FltX> {
         val lhsCircle = toCircleFootprint()
@@ -849,8 +848,8 @@ data class ShapePlacement3(
     /** Check if vertically overlapped with another shape placement.
      * 检查是否与另一个形状放置在垂直方向上重叠。
      *
-     * @param rhs the other shape placement / 另一个形状放置
-     * @return whether the two placements overlap vertically / 两个放置在垂直方向上是否重叠
+     * @param rhs 另一个形状放置 / the other shape placement
+     * @return 两个放置在垂直方向上是否重叠 / whether the two placements overlap vertically
     */
     private fun verticalOverlapped(rhs: ShapePlacement3): Boolean {
         return (maxY gr rhs.y) == true && (y ls rhs.maxY) == true
@@ -859,11 +858,11 @@ data class ShapePlacement3(
     /** Check if a 3D point is contained within this shape placement.
      * 检查三维点是否包含在此形状放置内。
      *
-     * @param point the point to check / 要检查的点
-     * @param withLowerBound whether to include the lower bound / 是否包含下界
-     * @param withUpperBound whether to include the upper bound / 是否包含上界
-     * @param withBorder whether to include the border / 是否包含边界
-     * @return whether the point is contained / 点是否被包含
+     * @param point 要检查的点 / the point to check
+     * @param withLowerBound 是否包含下界 / whether to include the lower bound
+     * @param withUpperBound 是否包含上界 / whether to include the upper bound
+     * @param withBorder 是否包含边界 / whether to include the border
+     * @return 点是否被包含 / whether the point is contained
     */
     fun contains(
         point: QuantityPoint3<FltX>,
@@ -897,8 +896,8 @@ data class ShapePlacement3(
     /** Check if overlapped with another shape placement.
      * 检查是否与另一个形状放置重叠。
      *
-     * @param rhs the other shape placement / 另一个形状放置
-     * @return whether the two placements overlap / 两个放置是否重叠
+     * @param rhs 另一个形状放置 / the other shape placement
+     * @return 两个放置是否重叠 / whether the two placements overlap
     */
     infix fun overlapped(rhs: ShapePlacement3): Ret<Boolean> {
         if (!verticalOverlapped(rhs)) {
@@ -915,7 +914,7 @@ data class ShapePlacement3(
     /** Create a copy of this shape placement.
      * 创建此形状放置的副本。
      *
-     * @return a new ShapePlacement3 with the same shape and position / 具有相同形状和位置的新 ShapePlacement3
+     * @return 具有相同形状和位置的新 ShapePlacement3 / a new ShapePlacement3 with the same shape and position
     */
     override fun copy(): ShapePlacement3 {
         return ShapePlacement3(
@@ -932,8 +931,7 @@ typealias Placement2<T, V, P> = QuantityPlacement2<T, V, P>
 typealias Placement3<T, V> = QuantityPlacement3<T, V>
 
 /**
- * 将三维放置转换为形状放置，使用默认形状解析器。
- * Convert 3D placement to shape placement using default shape resolver.
+ * 将三维放置转换为形状放置，使用默认形状解析器。 / Convert 3D placement to shape placement using default shape resolver.
  *
  * @return 形状放置 / shape placement
 */
@@ -944,8 +942,7 @@ fun QuantityPlacement3<*, FltX>.asShapePlacement3(): ShapePlacement3 {
 }
 
 /**
- * 将三维放置转换为形状放置，使用自定义形状解析器。
- * Convert 3D placement to shape placement using custom shape resolver.
+ * 将三维放置转换为形状放置，使用自定义形状解析器。 / Convert 3D placement to shape placement using custom shape resolver.
  *
  * @param shapeResolver 形状解析器 / shape resolver
  * @return 形状放置 / shape placement
@@ -960,8 +957,7 @@ fun QuantityPlacement3<*, FltX>.asShapePlacement3(
 }
 
 /**
- * 获取顶层放置列表，即没有被其他放置覆盖的放置。
- * Get top placements, i.e., placements not covered by other placements.
+ * 获取顶层放置列表，即没有被其他放置覆盖的放置。 / Get top placements, i.e., placements not covered by other placements.
  *
  * @param placements 放置列表 / placement list
  * @return 顶层放置列表 / top placement list
@@ -998,8 +994,7 @@ fun topPlacements(placements: List<QuantityPlacement3<*, FltX>>): List<QuantityP
 }
 
 /**
- * 获取底层放置列表，即没有放置在其下方的放置。
- * Get bottom placements, i.e., placements with no placement below them.
+ * 获取底层放置列表，即没有放置在其下方的放置。 / Get bottom placements, i.e., placements with no placement below them.
  *
  * @param placements 放置列表 / placement list
  * @return 底层放置列表 / bottom placement list

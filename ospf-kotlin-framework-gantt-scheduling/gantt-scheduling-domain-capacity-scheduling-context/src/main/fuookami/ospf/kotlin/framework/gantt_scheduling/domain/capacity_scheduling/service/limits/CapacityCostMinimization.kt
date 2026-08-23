@@ -1,10 +1,8 @@
 
 /**
- * 产能成本最小化目标
- * Capacity Cost Minimization Objective
+ * 产能成本最小化目标 / Capacity Cost Minimization Objective
  *
- * 最小化产能调度的总成本。
- * Minimizes total cost of capacity scheduling.
+ * 最小化产能调度的总成本。 / Minimizes total cost of capacity scheduling.
  *
  * 成本 = sum(action.unitCost * x[action, slot])
  * Cost = sum(action.unitCost * x[action, slot])
@@ -20,11 +18,9 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
 
 /**
- * 产能成本最小化目标
- * Capacity Cost Minimization Objective
+ * 产能成本最小化目标 / Capacity Cost Minimization Objective
  *
- * 最小化产能调度的总成本。
- * Minimizes total cost of capacity scheduling.
+ * 最小化产能调度的总成本。 / Minimizes total cost of capacity scheduling.
  *
  * 成本 = sum(action.unitCost * x[action, slot])
  * Cost = sum(action.unitCost * x[action, slot])
@@ -35,44 +31,37 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
 class CapacityCostMinimization<V : RealNumber<V>, A : ProductionAction>(
 
     /**
-     * 产能编译对象
-     * Capacity compilation object
+     * 产能编译对象 / Capacity compilation object
     */
     private val capacity: Capacity<A>,
 
     /**
-     * 生产动作列表
-     * List of production actions
+     * 生产动作列表 / List of production actions
     */
     private val actions: List<A>,
 
     /**
-     * 时隙列表
-     * List of time slots
+     * 时隙列表 / List of time slots
     */
     private val slots: List<TimeSlot>,
 
     /**
-     * 时间窗口
-     * Time window
+     * 时间窗口 / Time window
     */
     private val timeWindow: TimeWindow<V>,
 
     /**
-     * 目标名称
-     * Objective name
+     * 目标名称 / Objective name
     */
     val name: String = "capacity_cost_minimization"
 ) {
 
     /**
-     * 应用目标到模型
-     * Apply objective to model
+     * 应用目标到模型 / Apply objective to model
      *
-     * 设置最小化成本目标函数。
-     * Sets up the minimization cost objective function.
+     * 设置最小化成本目标函数。 / Sets up the minimization cost objective function.
      *
-     * @param model Linear meta model / 线性元模型
+     * @param model 线性元模型 / Linear meta model
      * @return Try result / Try 结果
     */
     operator fun invoke(model: LinearMetaModel<Flt64>): Try {

@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
  * Generates the pipeline of loading effectiveness constraints based on stowage mode and parameters.
  * 基于装载模式和参数生成装车效能约束的管线。
  *
- * @property aggregation The loading effectiveness aggregation containing domain models. / 包含域模型的装车效能聚合
+ * @property aggregation 包含域模型的装车效能聚合 / The loading effectiveness aggregation containing domain models.
 */
 class PipelineListGenerator(
     private val aggregation: Aggregation
@@ -25,9 +25,9 @@ class PipelineListGenerator(
      * Generates the list of constraint pipelines based on stowage mode and parameters.
      * 基于装载模式和参数生成约束管线列表。
      *
-     * @param stowageMode The stowage mode determining which pipelines to include. / 决定包含哪些管线的装载模式
-     * @param parameter The parameter configuration for pipeline generation. / 管线生成的参数配置
-     * @return The list of constraint pipelines, or an error. / 约束管线列表或错误
+     * @param stowageMode 决定包含哪些管线的装载模式 / The stowage mode determining which pipelines to include.
+     * @param parameter 管线生成的参数配置 / The parameter configuration for pipeline generation.
+     * @return 约束管线列表或错误 / The list of constraint pipelines, or an error.
     */
     operator fun invoke(
         stowageMode: StowageMode,
@@ -41,9 +41,7 @@ class PipelineListGenerator(
                     ItemAheadLoadLimit(
                         items = aggregation.items,
                         stowage = aggregation.stowage,
-                        coefficient = {
-                            TODO("not implemented yet")
-                        }
+                        coefficient = { Flt64.one }
                     )
                 )
 
@@ -51,9 +49,7 @@ class PipelineListGenerator(
                     ItemReserveLimit(
                         items = aggregation.items,
                         stowage = aggregation.stowage,
-                        coefficient = {
-                            TODO("not implemented yet")
-                        }
+                        coefficient = { Flt64.one }
                     )
                 )
             }
@@ -66,9 +62,7 @@ class PipelineListGenerator(
                 ItemReweighNeededLimit(
                     items = aggregation.items,
                     stowage = aggregation.stowage,
-                    coefficient = {
-                        TODO("not implemented yet")
-                    }
+                    coefficient = { Flt64.one }
                 )
             )
         }
@@ -78,9 +72,7 @@ class PipelineListGenerator(
                 adjacentPositions = aggregation.adjacentPositions,
                 sources = aggregation.sources,
                 loading = aggregation.transferAdjacentLoading,
-                coefficient = { _, _, _ ->
-                    TODO("not implemented yet")
-                }
+                coefficient = { _, _, _ -> parameter.sameFlowTransferIn }
             )
         )
 
@@ -89,9 +81,7 @@ class PipelineListGenerator(
                 adjacentPositions = aggregation.adjacentPositions,
                 destinations = aggregation.destinations,
                 loading = aggregation.transferAdjacentLoading,
-                coefficient = { _, _, _ ->
-                    TODO("not implemented yet")
-                }
+                coefficient = { _, _, _ -> parameter.sameFlowTransferOut }
             )
         )
 
@@ -100,9 +90,7 @@ class PipelineListGenerator(
                 AdviceLoadAmountLimit(
                     positions = aggregation.positions,
                     loading = aggregation.adviceLoading,
-                    coefficient = {
-                        TODO("not implemented yet")
-                    }
+                    coefficient = { parameter.adviceLoadAmount }
                 )
             )
 
@@ -110,9 +98,7 @@ class PipelineListGenerator(
                 AdviceLoadWeightLimit(
                     positions = aggregation.positions,
                     loading = aggregation.adviceLoading,
-                    coefficient = {
-                        TODO("not implemented yet")
-                    }
+                    coefficient = { parameter.adviceLoadWeight }
                 )
             )
         }
@@ -123,9 +109,7 @@ class PipelineListGenerator(
                     orderedItems = aggregation.sequentialLoading.orderedItems,
                     orderedPositions = aggregation.orderedPositions,
                     loading = aggregation.sequentialLoading,
-                    coefficient = { _, _ ->
-                        TODO("not implemented yet")
-                    }
+                    coefficient = { _, _ -> parameter.itemOrder }
                 )
             )
         }
@@ -136,9 +120,7 @@ class PipelineListGenerator(
                     adjacentPositions = aggregation.adjacentPositions,
                     orderedTrailers = aggregation.trailerLoading.orderedTrailers,
                     loading = aggregation.trailerLoading,
-                    coefficient = { _, _ ->
-                        TODO("not implemented yet")
-                    }
+                    coefficient = { _, _ -> parameter.trailerChange }
                 )
             )
 
@@ -147,9 +129,7 @@ class PipelineListGenerator(
                     orderedItemsInTrailers = aggregation.trailerLoading.orderedItemsInTrailers,
                     adjacentPositions = aggregation.adjacentPositions,
                     loading = aggregation.trailerLoading,
-                    coefficient = { _, _ ->
-                        TODO("not implemented yet")
-                    }
+                    coefficient = { _, _ -> parameter.trailerCircling }
                 )
             )
         }
@@ -158,11 +138,12 @@ class PipelineListGenerator(
             PriorityOrderLimit(
                 items = aggregation.items,
                 positions = aggregation.positions,
-                stowage = aggregation.stowage
+                stowage = aggregation.stowage,
+                bigM = aggregation.bigM
             )
         )
 
-        if (aggregation.cargosBySource.isNotEmpty()) {
+        if (stowageMode != StowageMode.Predistribution && aggregation.cargosBySource.isNotEmpty()) {
             pipelines.add(
                 SourceEarlyLimit(
                     items = aggregation.items,

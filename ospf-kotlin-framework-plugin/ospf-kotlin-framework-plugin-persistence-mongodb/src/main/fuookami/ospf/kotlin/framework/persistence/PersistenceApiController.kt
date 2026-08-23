@@ -2,8 +2,7 @@
  * MongoDB 持久化 API 控制器
  * MongoDB persistence API controller
  *
- * 提供 API 请求和响应的异步持久化记录功能。
- * Provides asynchronous persistence recording of API requests and responses.
+ * 提供 API 请求和响应的异步持久化记录功能。 / Provides asynchronous persistence recording of API requests and responses.
 */
 package fuookami.ospf.kotlin.framework.persistence
 
@@ -23,8 +22,7 @@ private fun <T : Any> serializerOf(value: T): KSerializer<T> {
  * MongoDB 持久化 API 控制器接口
  * MongoDB persistence API controller interface
  *
- * 实现此接口的控制器可自动将 API 请求和响应持久化到 MongoDB。
- * Controllers implementing this interface can automatically persist API requests and responses to MongoDB.
+ * 实现此接口的控制器可自动将 API 请求和响应持久化到 MongoDB。 / Controllers implementing this interface can automatically persist API requests and responses to MongoDB.
 */
 interface MongoPersistenceApiController {
 
@@ -35,8 +33,7 @@ interface MongoPersistenceApiController {
     val mongoClient: MongoDatabase?
 
     /**
-     * 持久化 API 实现（同步响应）
-     * Persistence API implementation (synchronous response)
+     * 持久化 API 实现（同步响应） / Persistence API implementation (synchronous response)
      *
      * @param Req 请求类型 / Request type
      * @param Rep 响应类型 / Response type
@@ -83,8 +80,7 @@ interface MongoPersistenceApiController {
     }
 
     /**
-     * 持久化 API 实现（异步响应 + 同步响应）
-     * Persistence API implementation (async response + sync response)
+     * 持久化 API 实现（异步响应 + 同步响应） / Persistence API implementation (async response + sync response)
      *
      * @param Req 请求类型 / Request type
      * @param Rep 异步响应类型 / Async response type

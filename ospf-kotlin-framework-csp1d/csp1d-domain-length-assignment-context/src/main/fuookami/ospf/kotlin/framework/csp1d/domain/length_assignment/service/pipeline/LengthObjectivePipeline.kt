@@ -3,7 +3,8 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.service.pi
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.LengthAggregation
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
@@ -12,9 +13,7 @@ import fuookami.ospf.kotlin.framework.model.Pipeline
 
 /**
  * Length assignment objective pipeline.
- * 长度分配目标管线
- *
- * Add length-related penalty terms to the objective function:
+ * 长度分配目标管线 / Add length-related penalty terms to the objective function:
  * - Total length penalty: sum(totalLengthPenalty * assigned_length_i)
  * - Over-length penalty: sum(overLengthPenalty * over_length_i)
  * - Batch minimization penalty: extra weight on Σx_j
@@ -24,10 +23,10 @@ import fuookami.ospf.kotlin.framework.model.Pipeline
  * - 超长惩罚: sum(overLengthPenalty * over_length_i)
  * - 批次最小惩罚: 对 Σx_j 施加额外加权
  *
- * @param V Numeric value type / 数值类型
- * @property produce Produce aggregation / 产出聚合
- * @property length Length assignment aggregation / 长度分配聚合
- * @property config Length assignment modeling configuration / 长度分配建模配置
+ * @param V 数值类型 / Numeric value type
+ * @property produce 产出聚合 / Produce aggregation
+ * @property length 长度分配聚合 / Length assignment aggregation
+ * @property config 长度分配建模配置 / Length assignment modeling configuration
 */
 class LengthObjectivePipeline<V : RealNumber<V>>(
     private val produce: ProduceAggregation<V>,
@@ -46,7 +45,7 @@ class LengthObjectivePipeline<V : RealNumber<V>>(
      * Generate objective monomials.
      * 生成目标项单项式
      *
-     * @return List of linear monomials representing objective penalty terms / 表示目标惩罚项的线性单项式列表
+     * @return 表示目标惩罚项的线性单项式列表 / List of linear monomials representing objective penalty terms
     */
     fun objectiveMonomials(): List<LinearMonomial<Flt64>> {
         val monomials = ArrayList<LinearMonomial<Flt64>>()
@@ -56,7 +55,7 @@ class LengthObjectivePipeline<V : RealNumber<V>>(
         if (totalLengthPenalty != null) {
             for ((demandIndex, demand) in length.demands.withIndex()) {
                 val assignedVar = length.assignedLength.getOrNull(demandIndex) ?: continue
-                monomials.add(LinearMonomial(totalLengthPenalty.toFlt64(), assignedVar))
+                monomials.add(totalLengthPenalty.toFlt64() * assignedVar)
             }
         }
 
@@ -65,7 +64,7 @@ class LengthObjectivePipeline<V : RealNumber<V>>(
             for ((demandIndex, demand) in length.demands.withIndex()) {
                 val overVar = length.overLength.getOrNull(demandIndex) ?: continue
                 val penalty = config.overLengthPenalty[demand.product.id] ?: continue
-                monomials.add(LinearMonomial(penalty.toFlt64(), overVar))
+                monomials.add(penalty.toFlt64() * overVar)
             }
         }
 
@@ -74,9 +73,7 @@ class LengthObjectivePipeline<V : RealNumber<V>>(
 
     /**
      * Get batch coefficient for the objective function.
-     * 获取目标函数的批次系数
-     *
-     * When batchMinPenalty is present, extra weight is applied to Σx_j.
+     * 获取目标函数的批次系数 / When batchMinPenalty is present, extra weight is applied to Σx_j.
      * 当 batchMinPenalty 非空时，对 Σx_j 施加额外加权。
      *
      * @return Batch coefficient for Σx_j / Σx_j 的批次系数

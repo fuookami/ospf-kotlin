@@ -63,7 +63,7 @@ class ScaledBpp3dSolverValueAdapter(
  * Converts this FltX to a solver-internal numeric representation.
  * 将此 FltX 转换为求解器内部数值表示。
  *
- * @return solver-internal FltX value with reduced precision for solver consumption / 供求解器使用的降低精度的 FltX 值
+ * @return 供求解器使用的降低精度的 FltX 值 / solver-internal FltX value with reduced precision for solver consumption
 */
     private fun FltX.toSolverNumber(): FltX = FltX(this.toDouble())
 

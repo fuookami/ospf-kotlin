@@ -14,9 +14,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 /**
  * 跟踪列生成公式的乘客舱位和航班变更变量。Tracks passenger class and flight change variables for the column generation formulation.
  *
- * @property flights List of flight tasks / 航班任务列表
- * @property passengers List of flight-passenger associations / 航班乘客关联列表
- * @property withFlightChange Whether flight change variables are enabled / 是否启用航班变更变量
+ * @property flights 航班任务列表 / List of flight tasks
+ * @property passengers 航班乘客关联列表 / List of flight-passenger associations
+ * @property withFlightChange 是否启用航班变更变量 / Whether flight change variables are enabled
 */
 class PassengerChange(
     private val flights: List<FlightTask>,
@@ -41,8 +41,8 @@ class PassengerChange(
     /**
      * 将舱位变更及可选的航班变更变量注册到模型中。Registers class change and optionally flight change variables with the model.
      *
-     * @param model The linear meta model to register with / 要注册的线性元模型
-     * @return Registration result / 注册结果
+     * @param model 要注册的线性元模型 / The linear meta model to register with
+     * @return 注册结果 / Registration result
     */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (!::passengerClassChange.isInitialized) {

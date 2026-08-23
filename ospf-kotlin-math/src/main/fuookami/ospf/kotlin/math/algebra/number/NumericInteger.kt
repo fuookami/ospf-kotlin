@@ -1,8 +1,6 @@
 /**
  * Numeric Signed Integer Module
- * 数值有符号整数模块
- *
- * This module defines signed integer types with numeric semantics, including NInt8, NInt16, NInt32, NInt64, and NIntX.
+ * 数值有符号整数模块 / This module defines signed integer types with numeric semantics, including NInt8, NInt16, NInt32, NInt64, and NIntX.
  * Unlike regular signed integers, division operations of these types return rational number results instead of integer results,
  * thus providing more precise numerical calculations. Suitable for scenarios requiring precise numerical calculations.
  *
@@ -23,9 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.orderOf
 
 /**
  * Numeric Signed Integer Interface
- * 数值有符号整数接口
- *
- * Provides common implementation for numeric signed integer types, including default implementations
+ * 数值有符号整数接口 / Provides common implementation for numeric signed integer types, including default implementations
  * for increment/decrement, logarithm, power operations, trigonometric functions, and other mathematical operations.
  * Note: Division operation returns rational number result.
  *
@@ -69,8 +65,7 @@ interface NumericInteger<Self, I>
     override fun cbrt() = pow(Flt64.three.reciprocal())
 
     /**
-     * 以指定基数计算对数
-     * Calculate logarithm with specified base
+     * 以指定基数计算对数 / Calculate logarithm with specified base
      *
      * @param base 对数基数
      *             The logarithm base
@@ -86,8 +81,7 @@ interface NumericInteger<Self, I>
     }
 
     /**
-     * 计算浮点数次幂
-     * Calculate floating-point power
+     * 计算浮点数次幂 / Calculate floating-point power
      *
      * @param index 指数
      *              The exponent
@@ -185,11 +179,9 @@ interface NumericInteger<Self, I>
 }
 
 /**
- * 数值有符号整数常量抽象类
- * Abstract Numeric Signed Integer Constants
+ * 数值有符号整数常量抽象类 / Abstract Numeric Signed Integer Constants
  *
- * 提供数值有符号整数类型的常用数值常量。
- * Provides common numeric constants for numeric signed integer types.
+ * 提供数值有符号整数类型的常用数值常量。 / Provides common numeric constants for numeric signed integer types.
  *
  * @param Self 数值有符号整数类型
  *             The numeric signed integer type
@@ -215,11 +207,9 @@ abstract class NumericIntegerConstants<Self, I>(
 }
 
 /**
- * NInt8 序列化器
- * NInt8 Serializer
+ * NInt8 序列化器 / NInt8 Serializer
  *
- * 用于 NInt8 类型的 Kotlin 序列化框架序列化器。
- * Serializer for the NInt8 type in the Kotlin serialization framework.
+ * 用于 NInt8 类型的 Kotlin 序列化框架序列化器。 / Serializer for the NInt8 type in the Kotlin serialization framework.
 */
 data object NInt8Serializer : KSerializer<NInt8> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt8", PrimitiveKind.INT)
@@ -234,13 +224,10 @@ data object NInt8Serializer : KSerializer<NInt8> {
 }
 
 /**
- * 基于 Int8 的数值有符号整数
- * Numeric Signed Integer based on Int8
+ * 基于 Int8 的数值有符号整数 / Numeric Signed Integer based on Int8
  *
  * 使用 Int8 作为底层类型的数值有符号整数。
- * 除法运算返回 Rtn8 结果，提供精确的数值计算。
- *
- * A numeric signed integer using Int8 as the underlying type.
+ * 除法运算返回 Rtn8 结果，提供精确的数值计算。 / A numeric signed integer using Int8 as the underlying type.
  * Division operation returns Rtn8 result, providing precise numerical calculations.
  *
  * @property value 底层的 Int8 值
@@ -251,11 +238,9 @@ data object NInt8Serializer : KSerializer<NInt8> {
 value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8> {
 
     /**
-     * NInt8 常量对象
-     * NInt8 Constants Object
+     * NInt8 常量对象 / NInt8 Constants Object
      *
-     * 提供常用的数值常量。
-     * Provides common numeric constants.
+     * 提供常用的数值常量。 / Provides common numeric constants.
     */
     companion object : NumericIntegerConstants<NInt8, Int8>(NInt8::invoke, Int8) {
         operator fun invoke(value: Int8) = NInt8(value)
@@ -270,8 +255,7 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
     override fun toString() = value.toString()
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -281,8 +265,7 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
     fun toString(radix: Int) = value.toString(radix)
 
     /**
-     * 偏序比较
-     * Partial order comparison
+     * 偏序比较 / Partial order comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -292,8 +275,7 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
     override fun partialOrd(rhs: NInt8) = orderOf(value.compareTo(rhs.value))
 
     /**
-     * 相等性比较
-     * Equality comparison
+     * 相等性比较 / Equality comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -312,8 +294,7 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
     override fun abs() = NInt8(value.abs())
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -323,8 +304,7 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
     override operator fun plus(rhs: NInt8) = NInt8(value + rhs.value)
 
     /**
-     * 减法
-     * Subtraction
+     * 减法 / Subtraction
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -334,8 +314,7 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
     override operator fun minus(rhs: NInt8) = NInt8(value - rhs.value)
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -345,8 +324,7 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
     override operator fun times(rhs: NInt8) = NInt8(value * rhs.value)
 
     /**
-     * 除法（返回有理数）
-     * Division (returns rational number)
+     * 除法（返回有理数） / Division (returns rational number)
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -356,8 +334,7 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
     override operator fun div(rhs: NInt8) = Rtn8(value, rhs.value)
 
     /**
-     * 取余
-     * Remainder
+     * 取余 / Remainder
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -367,8 +344,7 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
     override operator fun rem(rhs: NInt8) = NInt8(value % rhs.value)
 
     /**
-     * 整数除法
-     * Integer division
+     * 整数除法 / Integer division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -429,11 +405,9 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
 }
 
 /**
- * NInt16 序列化器
- * NInt16 Serializer
+ * NInt16 序列化器 / NInt16 Serializer
  *
- * 用于 NInt16 类型的 Kotlin 序列化框架序列化器。
- * Serializer for the NInt16 type in the Kotlin serialization framework.
+ * 用于 NInt16 类型的 Kotlin 序列化框架序列化器。 / Serializer for the NInt16 type in the Kotlin serialization framework.
 */
 data object NInt16Serializer : KSerializer<NInt16> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt16", PrimitiveKind.INT)
@@ -448,13 +422,10 @@ data object NInt16Serializer : KSerializer<NInt16> {
 }
 
 /**
- * 基于 Int16 的数值有符号整数
- * Numeric Signed Integer based on Int16
+ * 基于 Int16 的数值有符号整数 / Numeric Signed Integer based on Int16
  *
  * 使用 Int16 作为底层类型的数值有符号整数。
- * 除法运算返回 Rtn16 结果，提供精确的数值计算。
- *
- * A numeric signed integer using Int16 as the underlying type.
+ * 除法运算返回 Rtn16 结果，提供精确的数值计算。 / A numeric signed integer using Int16 as the underlying type.
  * Division operation returns Rtn16 result, providing precise numerical calculations.
  *
  * @property value 底层的 Int16 值
@@ -465,11 +436,9 @@ data object NInt16Serializer : KSerializer<NInt16> {
 value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<NInt16> {
 
     /**
-     * NInt16 常量对象
-     * NInt16 Constants Object
+     * NInt16 常量对象 / NInt16 Constants Object
      *
-     * 提供常用的数值常量。
-     * Provides common numeric constants.
+     * 提供常用的数值常量。 / Provides common numeric constants.
     */
     companion object : NumericIntegerConstants<NInt16, Int16>(NInt16::invoke, Int16) {
         operator fun invoke(value: Int16) = NInt16(value)
@@ -484,8 +453,7 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
     override fun toString() = value.toString()
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -495,8 +463,7 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
     fun toString(radix: Int) = value.toString(radix)
 
     /**
-     * 偏序比较
-     * Partial order comparison
+     * 偏序比较 / Partial order comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -506,8 +473,7 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
     override fun partialOrd(rhs: NInt16) = orderOf(value.compareTo(rhs.value))
 
     /**
-     * 相等性比较
-     * Equality comparison
+     * 相等性比较 / Equality comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -526,8 +492,7 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
     override fun abs() = NInt16(value.abs())
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -537,8 +502,7 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
     override operator fun plus(rhs: NInt16) = NInt16(value + rhs.value)
 
     /**
-     * 减法
-     * Subtraction
+     * 减法 / Subtraction
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -548,8 +512,7 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
     override operator fun minus(rhs: NInt16) = NInt16(value - rhs.value)
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -559,8 +522,7 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
     override operator fun times(rhs: NInt16) = NInt16(value * rhs.value)
 
     /**
-     * 除法（返回有理数）
-     * Division (returns rational number)
+     * 除法（返回有理数） / Division (returns rational number)
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -570,8 +532,7 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
     override operator fun div(rhs: NInt16) = Rtn16(value, rhs.value)
 
     /**
-     * 取余
-     * Remainder
+     * 取余 / Remainder
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -581,8 +542,7 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
     override operator fun rem(rhs: NInt16) = NInt16(value % rhs.value)
 
     /**
-     * 整数除法
-     * Integer division
+     * 整数除法 / Integer division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -643,11 +603,9 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
 }
 
 /**
- * NInt32 序列化器
- * NInt32 Serializer
+ * NInt32 序列化器 / NInt32 Serializer
  *
- * 用于 NInt32 类型的 Kotlin 序列化框架序列化器。
- * Serializer for the NInt32 type in the Kotlin serialization framework.
+ * 用于 NInt32 类型的 Kotlin 序列化框架序列化器。 / Serializer for the NInt32 type in the Kotlin serialization framework.
 */
 data object NInt32Serializer : KSerializer<NInt32> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt32", PrimitiveKind.INT)
@@ -662,14 +620,11 @@ data object NInt32Serializer : KSerializer<NInt32> {
 }
 
 /**
- * 基于 Int32 的数值有符号整数
- * Numeric Signed Integer based on Int32
+ * 基于 Int32 的数值有符号整数 / Numeric Signed Integer based on Int32
  *
  * 使用 Int32 作为底层类型的数值有符号整数。
  * 除法运算返回 Rtn32 结果，提供精确的数值计算。
- * 这是常用的数值有符号整数类型。
- *
- * A numeric signed integer using Int32 as the underlying type.
+ * 这是常用的数值有符号整数类型。 / A numeric signed integer using Int32 as the underlying type.
  * Division operation returns Rtn32 result, providing precise numerical calculations.
  * This is a commonly used numeric signed integer type.
  *
@@ -681,11 +636,9 @@ data object NInt32Serializer : KSerializer<NInt32> {
 value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<NInt32> {
 
     /**
-     * NInt32 常量对象
-     * NInt32 Constants Object
+     * NInt32 常量对象 / NInt32 Constants Object
      *
-     * 提供常用的数值常量。
-     * Provides common numeric constants.
+     * 提供常用的数值常量。 / Provides common numeric constants.
     */
     companion object : NumericIntegerConstants<NInt32, Int32>(NInt32::invoke, Int32) {
         operator fun invoke(value: Int32) = NInt32(value)
@@ -700,8 +653,7 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
     override fun toString() = value.toString()
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -711,8 +663,7 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
     fun toString(radix: Int) = value.toString(radix)
 
     /**
-     * 偏序比较
-     * Partial order comparison
+     * 偏序比较 / Partial order comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -722,8 +673,7 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
     override fun partialOrd(rhs: NInt32) = orderOf(value.compareTo(rhs.value))
 
     /**
-     * 相等性比较
-     * Equality comparison
+     * 相等性比较 / Equality comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -742,8 +692,7 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
     override fun abs() = NInt32(value.abs())
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -753,8 +702,7 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
     override operator fun plus(rhs: NInt32) = NInt32(value + rhs.value)
 
     /**
-     * 减法
-     * Subtraction
+     * 减法 / Subtraction
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -764,8 +712,7 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
     override operator fun minus(rhs: NInt32) = NInt32(value - rhs.value)
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -775,8 +722,7 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
     override operator fun times(rhs: NInt32) = NInt32(value * rhs.value)
 
     /**
-     * 除法（返回有理数）
-     * Division (returns rational number)
+     * 除法（返回有理数） / Division (returns rational number)
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -786,8 +732,7 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
     override operator fun div(rhs: NInt32) = Rtn32(value, rhs.value)
 
     /**
-     * 取余
-     * Remainder
+     * 取余 / Remainder
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -797,8 +742,7 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
     override operator fun rem(rhs: NInt32) = NInt32(value % rhs.value)
 
     /**
-     * 整数除法
-     * Integer division
+     * 整数除法 / Integer division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -859,11 +803,9 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
 }
 
 /**
- * NInt64 序列化器
- * NInt64 Serializer
+ * NInt64 序列化器 / NInt64 Serializer
  *
- * 用于 NInt64 类型的 Kotlin 序列化框架序列化器。
- * Serializer for the NInt64 type in the Kotlin serialization framework.
+ * 用于 NInt64 类型的 Kotlin 序列化框架序列化器。 / Serializer for the NInt64 type in the Kotlin serialization framework.
 */
 data object NInt64Serializer : KSerializer<NInt64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt64", PrimitiveKind.LONG)
@@ -878,14 +820,11 @@ data object NInt64Serializer : KSerializer<NInt64> {
 }
 
 /**
- * 基于 Int64 的数值有符号整数
- * Numeric Signed Integer based on Int64
+ * 基于 Int64 的数值有符号整数 / Numeric Signed Integer based on Int64
  *
  * 使用 Int64 作为底层类型的数值有符号整数。
  * 除法运算返回 Rtn64 结果，提供精确的数值计算。
- * 适用于需要更大数值范围的情况。
- *
- * A numeric signed integer using Int64 as the underlying type.
+ * 适用于需要更大数值范围的情况。 / A numeric signed integer using Int64 as the underlying type.
  * Division operation returns Rtn64 result, providing precise numerical calculations.
  * Suitable for cases requiring larger numerical range.
  *
@@ -897,11 +836,9 @@ data object NInt64Serializer : KSerializer<NInt64> {
 value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<NInt64> {
 
     /**
-     * NInt64 常量对象
-     * NInt64 Constants Object
+     * NInt64 常量对象 / NInt64 Constants Object
      *
-     * 提供常用的数值常量。
-     * Provides common numeric constants.
+     * 提供常用的数值常量。 / Provides common numeric constants.
     */
     companion object : NumericIntegerConstants<NInt64, Int64>(NInt64::invoke, Int64) {
         operator fun invoke(value: Int64) = NInt64(value)
@@ -916,8 +853,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
     override fun toString() = value.toString()
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -927,8 +863,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
     fun toString(radix: Int) = value.toString(radix)
 
     /**
-     * 偏序比较
-     * Partial order comparison
+     * 偏序比较 / Partial order comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -938,8 +873,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
     override fun partialOrd(rhs: NInt64) = orderOf(value.compareTo(rhs.value))
 
     /**
-     * 相等性比较
-     * Equality comparison
+     * 相等性比较 / Equality comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -958,8 +892,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
     override fun abs() = NInt64(value.abs())
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -969,8 +902,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
     override operator fun plus(rhs: NInt64) = NInt64(value + rhs.value)
 
     /**
-     * 减法
-     * Subtraction
+     * 减法 / Subtraction
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -980,8 +912,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
     override operator fun minus(rhs: NInt64) = NInt64(value - rhs.value)
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -991,8 +922,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
     override operator fun times(rhs: NInt64) = NInt64(value * rhs.value)
 
     /**
-     * 除法（返回有理数）
-     * Division (returns rational number)
+     * 除法（返回有理数） / Division (returns rational number)
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1002,8 +932,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
     override operator fun div(rhs: NInt64) = Rtn64(value, rhs.value)
 
     /**
-     * 取余
-     * Remainder
+     * 取余 / Remainder
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1013,8 +942,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
     override operator fun rem(rhs: NInt64) = NInt64(value % rhs.value)
 
     /**
-     * 整数除法
-     * Integer division
+     * 整数除法 / Integer division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1079,9 +1007,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
  * NIntX Serializer
  *
  * 用于 NIntX（任意精度数值有符号整数）类型的 Kotlin 序列化框架序列化器。
- * 使用字符串格式进行序列化和反序列化。
- *
- * Serializer for the NIntX (arbitrary precision numeric signed integer) type in the Kotlin serialization framework.
+ * 使用字符串格式进行序列化和反序列化。 / Serializer for the NIntX (arbitrary precision numeric signed integer) type in the Kotlin serialization framework.
  * Uses string format for serialization and deserialization.
 */
 data object NIntXSerializer : KSerializer<NIntX> {
@@ -1097,14 +1023,11 @@ data object NIntXSerializer : KSerializer<NIntX> {
 }
 
 /**
- * 任意精度数值有符号整数
- * Arbitrary Precision Numeric Signed Integer
+ * 任意精度数值有符号整数 / Arbitrary Precision Numeric Signed Integer
  *
  * 使用 IntX 作为底层类型的任意精度数值有符号整数。
  * 除法运算返回 RtnX 结果，提供精确的数值计算。
- * 适用于需要极大数值或精确计算的场景。
- *
- * An arbitrary precision numeric signed integer using IntX as the underlying type.
+ * 适用于需要极大数值或精确计算的场景。 / An arbitrary precision numeric signed integer using IntX as the underlying type.
  * Division operation returns RtnX result, providing precise numerical calculations.
  * Suitable for scenarios requiring extremely large numbers or precise calculations.
  *
@@ -1119,8 +1042,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
      * NIntX 常量对象
      * NIntX Constants Object
      *
-     * 提供常用的数值常量。
-     * Provides common numeric constants.
+     * 提供常用的数值常量。 / Provides common numeric constants.
     */
     companion object : NumericIntegerConstants<NIntX, IntX>(NIntX::invoke, IntX) {
         operator fun invoke(value: IntX) = NIntX(value)
@@ -1135,8 +1057,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
     override fun toString() = value.toString()
 
     /**
-     * 以指定进制转换为字符串
-     * Convert to string with specified radix
+     * 以指定进制转换为字符串 / Convert to string with specified radix
      *
      * @param radix 进制基数
      *              The radix base
@@ -1146,8 +1067,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
     fun toString(radix: Int) = value.toString(radix)
 
     /**
-     * 偏序比较
-     * Partial order comparison
+     * 偏序比较 / Partial order comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -1157,8 +1077,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
     override fun partialOrd(rhs: NIntX) = orderOf(value.compareTo(rhs.value))
 
     /**
-     * 相等性比较
-     * Equality comparison
+     * 相等性比较 / Equality comparison
      *
      * @param rhs 要比较的右侧值
      *            The right-hand side value to compare
@@ -1177,8 +1096,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
     override fun abs() = NIntX(value.abs())
 
     /**
-     * 加法
-     * Addition
+     * 加法 / Addition
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1188,8 +1106,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
     override operator fun plus(rhs: NIntX) = NIntX(value + rhs.value)
 
     /**
-     * 减法
-     * Subtraction
+     * 减法 / Subtraction
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1199,8 +1116,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
     override operator fun minus(rhs: NIntX) = NIntX(value - rhs.value)
 
     /**
-     * 乘法
-     * Multiplication
+     * 乘法 / Multiplication
      *
      * @param rhs 右侧操作数
      *            The right-hand side operand
@@ -1210,8 +1126,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
     override operator fun times(rhs: NIntX) = NIntX(value * rhs.value)
 
     /**
-     * 除法（返回有理数）
-     * Division (returns rational number)
+     * 除法（返回有理数） / Division (returns rational number)
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1221,8 +1136,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
     override operator fun div(rhs: NIntX) = RtnX(value, rhs.value)
 
     /**
-     * 取余
-     * Remainder
+     * 取余 / Remainder
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1232,8 +1146,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
     override operator fun rem(rhs: NIntX) = NIntX(value % rhs.value)
 
     /**
-     * 整数除法
-     * Integer division
+     * 整数除法 / Integer division
      *
      * @param rhs 右侧操作数（除数）
      *            The right-hand side operand (divisor)
@@ -1243,8 +1156,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
     override fun intDiv(rhs: NIntX) = NIntX(value / rhs.value)
 
     /**
-     * 以指定基数计算对数
-     * Calculate logarithm with specified base
+     * 以指定基数计算对数 / Calculate logarithm with specified base
      *
      * @param base 对数基数
      *             The logarithm base
@@ -1277,8 +1189,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
     }
 
     /**
-     * 计算浮点数次幂
-     * Calculate floating-point power
+     * 计算浮点数次幂 / Calculate floating-point power
      *
      * @param index 指数
      *              The exponent

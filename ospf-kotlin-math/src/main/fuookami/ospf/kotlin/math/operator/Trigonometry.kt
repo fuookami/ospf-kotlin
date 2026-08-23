@@ -1,11 +1,8 @@
 /**
- * 三角函数
- * Trigonometric Functions
+ * 三角函数 / Trigonometric Functions
  *
  * 定义三角函数和反三角函数接口，包括基本三角函数、双曲函数及其反函数。
- * 这些函数是数学分析的基础工具，广泛应用于几何、物理和工程计算。
- *
- * Defines interfaces for trigonometric and inverse trigonometric functions,
+ * 这些函数是数学分析的基础工具，广泛应用于几何、物理和工程计算。 / Defines interfaces for trigonometric and inverse trigonometric functions,
  * including basic trigonometric functions, hyperbolic functions, and their inverses.
  * These functions are fundamental tools in mathematical analysis, widely used in
  * geometry, physics, and engineering calculations.
@@ -46,14 +43,11 @@
 package fuookami.ospf.kotlin.math.operator
 
 /**
- * 三角函数接口
- * Trigonometric Functions Interface
+ * 三角函数接口 / Trigonometric Functions Interface
  *
  * 定义完整的三角函数和双曲函数运算接口。
  * 包括基本三角函数、反三角函数、双曲函数和反双曲函数。
- * 返回值可能为 null，表示运算无定义（如超出定义域）。
- *
- * Defines the complete interface for trigonometric and hyperbolic function operations.
+ * 返回值可能为 null，表示运算无定义（如超出定义域）。 / Defines the complete interface for trigonometric and hyperbolic function operations.
  * Includes basic trigonometric functions, inverse trigonometric functions, hyperbolic functions, and inverse hyperbolic functions.
  * Return value may be null, indicating the operation is undefined (e.g., outside the domain).
  *
@@ -63,8 +57,7 @@ package fuookami.ospf.kotlin.math.operator
 interface Trigonometry<out Ret> {
 
     /**
-     * 计算正弦倌sin(x)
-     * Calculates the sine value sin(x)
+     * 计算正弦倌sin(x) / Calculates the sine value sin(x)
      *
      * @return 正弦倌
      *
@@ -73,8 +66,7 @@ interface Trigonometry<out Ret> {
     fun sin(): Ret
 
     /**
-     * 计算余弦倌cos(x)
-     * Calculates the cosine value cos(x)
+     * 计算余弦倌cos(x) / Calculates the cosine value cos(x)
      *
      * @return 余弦倌
      *
@@ -123,8 +115,7 @@ interface Trigonometry<out Ret> {
     fun cot(): Ret?
 
     /**
-     * 计算反正弦倌asin(x)
-     * Calculates the arcsine value asin(x)
+     * 计算反正弦倌asin(x) / Calculates the arcsine value asin(x)
      *
      * @return 反正弦值，如果 |x| > 1 则返囌null
      *
@@ -133,8 +124,7 @@ interface Trigonometry<out Ret> {
     fun asin(): Ret?
 
     /**
-     * 计算反余弦倌acos(x)
-     * Calculates the arccosine value acos(x)
+     * 计算反余弦倌acos(x) / Calculates the arccosine value acos(x)
      *
      * @return 反余弦值，如果 |x| > 1 则返囌null
      *
@@ -163,8 +153,7 @@ interface Trigonometry<out Ret> {
     fun acsc(): Ret?
 
     /**
-     * 计算反正切倌atan(x)
-     * Calculates the arctangent value atan(x)
+     * 计算反正切倌atan(x) / Calculates the arctangent value atan(x)
      *
      * @return 反正切倌
      *
@@ -173,8 +162,7 @@ interface Trigonometry<out Ret> {
     fun atan(): Ret
 
     /**
-     * 计算反余切倌acot(x)
-     * Calculates the arccotangent value acot(x)
+     * 计算反余切倌acot(x) / Calculates the arccotangent value acot(x)
      *
      * @return 反余切倌
      *
@@ -183,8 +171,7 @@ interface Trigonometry<out Ret> {
     fun acot(): Ret?
 
     /**
-     * 计算双曲正弦倌sinh(x)
-     * Calculates the hyperbolic sine value sinh(x)
+     * 计算双曲正弦倌sinh(x) / Calculates the hyperbolic sine value sinh(x)
      *
      * @return 双曲正弦倌
      *
@@ -193,8 +180,7 @@ interface Trigonometry<out Ret> {
     fun sinh(): Ret
 
     /**
-     * 计算双曲余弦倌cosh(x)
-     * Calculates the hyperbolic cosine value cosh(x)
+     * 计算双曲余弦倌cosh(x) / Calculates the hyperbolic cosine value cosh(x)
      *
      * @return 双曲余弦倌
      *
@@ -243,8 +229,7 @@ interface Trigonometry<out Ret> {
     fun coth(): Ret?
 
     /**
-     * 计算反双曲正弦倌asinh(x)
-     * Calculates the inverse hyperbolic sine value asinh(x)
+     * 计算反双曲正弦倌asinh(x) / Calculates the inverse hyperbolic sine value asinh(x)
      *
      * @return 反双曲正弦倌
      *
@@ -253,8 +238,7 @@ interface Trigonometry<out Ret> {
     fun asinh(): Ret
 
     /**
-     * 计算反双曲余弦倌acosh(x)
-     * Calculates the inverse hyperbolic cosine value acosh(x)
+     * 计算反双曲余弦倌acosh(x) / Calculates the inverse hyperbolic cosine value acosh(x)
      *
      * @return 反双曲余弦值，如果 x < 1 则返囌null
      *
@@ -263,8 +247,7 @@ interface Trigonometry<out Ret> {
     fun acosh(): Ret?
 
     /**
-     * 计算反双曲正割倌asech(x)
-     * Calculates the inverse hyperbolic secant value asech(x)
+     * 计算反双曲正割倌asech(x) / Calculates the inverse hyperbolic secant value asech(x)
      *
      * @return 反双曲正割值，如果 x <= 0 戌x > 1 则返囌null
      *
@@ -273,8 +256,7 @@ interface Trigonometry<out Ret> {
     fun asech(): Ret?
 
     /**
-     * 计算反双曲余割倌acsch(x)
-     * Calculates the inverse hyperbolic cosecant value acsch(x)
+     * 计算反双曲余割倌acsch(x) / Calculates the inverse hyperbolic cosecant value acsch(x)
      *
      * @return 反双曲余割值，如果 x = 0 则返囌null
      *
@@ -283,8 +265,7 @@ interface Trigonometry<out Ret> {
     fun acsch(): Ret?
 
     /**
-     * 计算反双曲正切倌atanh(x)
-     * Calculates the inverse hyperbolic tangent value atanh(x)
+     * 计算反双曲正切倌atanh(x) / Calculates the inverse hyperbolic tangent value atanh(x)
      *
      * @return 反双曲正切值，如果 |x| >= 1 则返囌null
      *
@@ -293,8 +274,7 @@ interface Trigonometry<out Ret> {
     fun atanh(): Ret?
 
     /**
-     * 计算反双曲余切倌acoth(x)
-     * Calculates the inverse hyperbolic cotangent value acoth(x)
+     * 计算反双曲余切倌acoth(x) / Calculates the inverse hyperbolic cotangent value acoth(x)
      *
      * @return 反双曲余切值，如果 |x| <= 1 则返囌null
      *
@@ -304,8 +284,7 @@ interface Trigonometry<out Ret> {
 }
 
 /**
- * 计算正弦倌sin(x)
- * Calculates the sine value sin(x)
+ * 计算正弦倌sin(x) / Calculates the sine value sin(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -319,8 +298,7 @@ fun <T, Ret> sin(x: T): Ret where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算余弦倌cos(x)
- * Calculates the cosine value cos(x)
+ * 计算余弦倌cos(x) / Calculates the cosine value cos(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -334,8 +312,7 @@ fun <T, Ret> cos(x: T): Ret where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算正割倌sec(x)
- * Calculates the secant value sec(x)
+ * 计算正割倌sec(x) / Calculates the secant value sec(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -349,8 +326,7 @@ fun <T, Ret> sec(x: T): Ret? where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算余割倌csc(x)
- * Calculates the cosecant value csc(x)
+ * 计算余割倌csc(x) / Calculates the cosecant value csc(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -364,8 +340,7 @@ fun <T, Ret> csc(x: T): Ret? where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算正切倌tan(x)
- * Calculates the tangent value tan(x)
+ * 计算正切倌tan(x) / Calculates the tangent value tan(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -379,8 +354,7 @@ fun <T, Ret> tan(x: T): Ret? where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算余切倌cot(x)
- * Calculates the cotangent value cot(x)
+ * 计算余切倌cot(x) / Calculates the cotangent value cot(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -394,8 +368,7 @@ fun <T, Ret> cot(x: T): Ret? where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算反正弦倌asin(x)
- * Calculates the arcsine value asin(x)
+ * 计算反正弦倌asin(x) / Calculates the arcsine value asin(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -409,8 +382,7 @@ fun <T, Ret> asin(x: T): Ret? where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算反余弦倌acos(x)
- * Calculates the arccosine value acos(x)
+ * 计算反余弦倌acos(x) / Calculates the arccosine value acos(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -424,8 +396,7 @@ fun <T, Ret> acos(x: T): Ret? where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算反正割倌asec(x)
- * Calculates the arcsecant value asec(x)
+ * 计算反正割倌asec(x) / Calculates the arcsecant value asec(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -439,8 +410,7 @@ fun <T, Ret> asec(x: T): Ret? where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算反余割倌acsc(x)
- * Calculates the arccosecant value acsc(x)
+ * 计算反余割倌acsc(x) / Calculates the arccosecant value acsc(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -454,8 +424,7 @@ fun <T, Ret> acsc(x: T): Ret? where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算反正切倌atan(x)
- * Calculates the arctangent value atan(x)
+ * 计算反正切倌atan(x) / Calculates the arctangent value atan(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -469,8 +438,7 @@ fun <T, Ret> atan(x: T): Ret where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算反余切倌acot(x)
- * Calculates the arccotangent value acot(x)
+ * 计算反余切倌acot(x) / Calculates the arccotangent value acot(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -484,8 +452,7 @@ fun <T, Ret> acot(x: T): Ret? where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算双曲正弦倌sinh(x)
- * Calculates the hyperbolic sine value sinh(x)
+ * 计算双曲正弦倌sinh(x) / Calculates the hyperbolic sine value sinh(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -499,8 +466,7 @@ fun <T, Ret> sinh(x: T): Ret where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算双曲余弦倌cosh(x)
- * Calculates the hyperbolic cosine value cosh(x)
+ * 计算双曲余弦倌cosh(x) / Calculates the hyperbolic cosine value cosh(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -514,8 +480,7 @@ fun <T, Ret> cosh(x: T): Ret where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算双曲正割倌sech(x)
- * Calculates the hyperbolic secant value sech(x)
+ * 计算双曲正割倌sech(x) / Calculates the hyperbolic secant value sech(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -529,8 +494,7 @@ fun <T, Ret> sech(x: T): Ret where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算双曲余割倌csch(x)
- * Calculates the hyperbolic cosecant value csch(x)
+ * 计算双曲余割倌csch(x) / Calculates the hyperbolic cosecant value csch(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -544,8 +508,7 @@ fun <T, Ret> csch(x: T): Ret? where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算双曲正切倌tanh(x)
- * Calculates the hyperbolic tangent value tanh(x)
+ * 计算双曲正切倌tanh(x) / Calculates the hyperbolic tangent value tanh(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -559,8 +522,7 @@ fun <T, Ret> tanh(x: T): Ret where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算双曲余切倌coth(x)
- * Calculates the hyperbolic cotangent value coth(x)
+ * 计算双曲余切倌coth(x) / Calculates the hyperbolic cotangent value coth(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -574,8 +536,7 @@ fun <T, Ret> coth(x: T): Ret? where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算反双曲正弦倌asinh(x)
- * Calculates the inverse hyperbolic sine value asinh(x)
+ * 计算反双曲正弦倌asinh(x) / Calculates the inverse hyperbolic sine value asinh(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -589,8 +550,7 @@ fun <T, Ret> asinh(x: T): Ret where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算反双曲余弦倌acosh(x)
- * Calculates the inverse hyperbolic cosine value acosh(x)
+ * 计算反双曲余弦倌acosh(x) / Calculates the inverse hyperbolic cosine value acosh(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -604,8 +564,7 @@ fun <T, Ret> acosh(x: T): Ret? where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算反双曲正割倌asech(x)
- * Calculates the inverse hyperbolic secant value asech(x)
+ * 计算反双曲正割倌asech(x) / Calculates the inverse hyperbolic secant value asech(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -619,8 +578,7 @@ fun <T, Ret> asech(x: T): Ret? where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算反双曲余割倌acsch(x)
- * Calculates the inverse hyperbolic cosecant value acsch(x)
+ * 计算反双曲余割倌acsch(x) / Calculates the inverse hyperbolic cosecant value acsch(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -634,8 +592,7 @@ fun <T, Ret> acsch(x: T): Ret? where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算反双曲正切倌atanh(x)
- * Calculates the inverse hyperbolic tangent value atanh(x)
+ * 计算反双曲正切倌atanh(x) / Calculates the inverse hyperbolic tangent value atanh(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌
@@ -649,8 +606,7 @@ fun <T, Ret> atanh(x: T): Ret? where T : Trigonometry<Ret> {
 }
 
 /**
- * 计算反双曲余切倌acoth(x)
- * Calculates the inverse hyperbolic cotangent value acoth(x)
+ * 计算反双曲余切倌acoth(x) / Calculates the inverse hyperbolic cotangent value acoth(x)
  *
  * @param T 输入类型，必须实玌Trigonometry 接口
  * @param Ret 返回值类垌

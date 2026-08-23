@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generatio
 
 import kotlin.time.*
 import kotlin.time.Duration.Companion.hours
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -14,8 +15,34 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
+/**
+ * Injectable aggregation initialization boundary for the bunch-generation context.
+ * 批次生成上下文可注入的聚合初始化边界。
+ */
+fun interface AggregationInitializerProvider {
+    /**
+     * Initializes the bunch-generation aggregation.
+     * 初始化批次生成聚合。
+     */
+    operator fun invoke(
+        aircrafts: List<Aircraft>,
+        aircraftUsability: Map<Aircraft, AircraftUsability>,
+        flightTasks: List<FlightTask>,
+        originBunches: List<FlightTaskBunch>,
+        lock: Lock,
+        flightTaskFeasibilityJudger: FlightTaskFeasibilityJudger,
+        initialFlightTaskBunchGenerator: InitialFlightTaskBunchGenerator,
+        withOrderChange: Boolean
+    ): Ret<Aggregation>
+}
+
 /** 使用图、可反转对和初始批次初始化批次生成聚合。Initializes the bunch generation aggregation with graphs, reverse pairs, and initial bunches. */
 class AggregationInitializer {
+    private data class GraphGenerationResult(
+        val graphs: Map<Aircraft, Graph>,
+        val diagnostics: Map<Aircraft, RouteGraphDiagnostics>
+    )
+
     companion object {
         val config = FlightTaskFeasibilityJudger.Config(
             checkEnabledTime = false,
@@ -26,15 +53,15 @@ class AggregationInitializer {
     /**
      * 初始化批次生成的聚合。Initializes the aggregation for bunch generation.
      *
-     * @param aircrafts list of aircraft / 飞机列表
-     * @param aircraftUsability aircraft usability map / 飞机可用性映射
-     * @param flightTasks list of flight tasks / 航班任务列表
-     * @param originBunches original flight task bunches / 原始航班任务束
-     * @param lock lock constraints / 锁定约束
-     * @param flightTaskFeasibilityJudger flight task feasibility judger / 航班任务可行性判断器
-     * @param initialFlightTaskBunchGenerator initial flight task bunch generator / 初始航班任务束生成器
-     * @param withOrderChange whether order change is enabled / 是否启用换序
-     * @return the initialized aggregation / 初始化后的聚合
+     * @param aircrafts 飞机列表 / list of aircraft
+     * @param aircraftUsability 飞机可用性映射 / aircraft usability map
+     * @param flightTasks 航班任务列表 / list of flight tasks
+     * @param originBunches 原始航班任务束 / original flight task bunches
+     * @param lock 锁定约束 / lock constraints
+     * @param flightTaskFeasibilityJudger 航班任务可行性判断器 / flight task feasibility judger
+     * @param initialFlightTaskBunchGenerator 初始航班任务束生成器 / initial flight task bunch generator
+     * @param withOrderChange 是否启用换序 / whether order change is enabled
+     * @return 初始化后的聚合 / the initialized aggregation
     */
     operator fun invoke(
         aircrafts: List<Aircraft>,
@@ -60,7 +87,7 @@ class AggregationInitializer {
             flightTaskFeasibilityJudger(aircraft, prevFlightTask, succFlightTask, config)
         }
 
-        val graphs = when (val ret = generateGraphSingleThread(aircrafts, aircraftUsability, flightTaskGroups, graphGenerator)) {
+        val graphGeneration = when (val ret = generateGraphSingleThread(aircrafts, aircraftUsability, flightTaskGroups, graphGenerator)) {
             is Ok -> ret.value
             is Failed -> return Failed(ret.error)
             is Fatal -> return Fatal(ret.errors)
@@ -74,9 +101,10 @@ class AggregationInitializer {
 
         return Ok(
             Aggregation(
-                graphs = graphs,
+                graphs = graphGeneration.graphs,
                 reverse = reverse,
-                initialFlightBunches = initialFlightBunches
+                initialFlightBunches = initialFlightBunches,
+                routeGraphDiagnostics = graphGeneration.diagnostics
             )
         )
     }
@@ -84,8 +112,8 @@ class AggregationInitializer {
     /**
      * Groups flight tasks by departure airport. / 按出发机场对航班任务分组。
      *
-     * @param flightTasks list of flight tasks to group / 要分组的航班任务列表
-     * @return flight tasks grouped by departure airport / 按出发机场分组的航班任务
+     * @param flightTasks 要分组的航班任务列表 / list of flight tasks to group
+     * @return 按出发机场分组的航班任务 / flight tasks grouped by departure airport
     */
     private fun groupFlightTasks(flightTasks: List<FlightTask>): Map<Airport, List<FlightTask>> {
         val flightTaskGroups = HashMap<Airport, MutableList<FlightTask>>()
@@ -111,11 +139,11 @@ class AggregationInitializer {
     /**
      * Initializes reverse-enabled flight pairs. / 初始化可反转航班对。
      *
-     * @param flightTasks list of flight tasks / 航班任务列表
-     * @param originBunches original flight task bunches / 原始航班任务束
-     * @param lock lock constraints / 锁定约束
-     * @param withOrderChange whether order change is enabled / 是否启用换序
-     * @return the flight task reverse object / 航班任务反转对象
+     * @param flightTasks 航班任务列表 / list of flight tasks
+     * @param originBunches 原始航班任务束 / original flight task bunches
+     * @param lock 锁定约束 / lock constraints
+     * @param withOrderChange 是否启用换序 / whether order change is enabled
+     * @return 航班任务反转对象 / the flight task reverse object
     */
     private fun initReverseEnabledFlight(
         flightTasks: List<FlightTask>,
@@ -158,23 +186,30 @@ class AggregationInitializer {
     /**
      * Generates route graphs for all aircraft in a single thread. / 单线程生成所有飞机的路线图。
      *
-     * @param aircrafts list of aircraft / 飞机列表
-     * @param aircraftUsability aircraft usability map / 飞机可用性映射
-     * @param flightTaskGroups flight tasks grouped by departure airport / 按出发机场分组的航班任务
-     * @param graphGenerator route graph generator / 路线图生成器
-     * @return route graphs keyed by aircraft / 按飞机索引的路线图
+     * @param aircrafts 飞机列表 / list of aircraft
+     * @param aircraftUsability 飞机可用性映射 / aircraft usability map
+     * @param flightTaskGroups 按出发机场分组的航班任务 / flight tasks grouped by departure airport
+     * @param graphGenerator 路线图生成器 / route graph generator
+     * @return 按飞机索引的路线图 / route graphs keyed by aircraft
     */
     private fun generateGraphSingleThread(
         aircrafts: List<Aircraft>,
         aircraftUsability: Map<Aircraft, AircraftUsability>,
         flightTaskGroups: Map<Airport, List<FlightTask>>,
         graphGenerator: RouteGraphGenerator
-    ): Ret<Map<Aircraft, Graph>> {
+    ): Ret<GraphGenerationResult> {
         val graphs = HashMap<Aircraft, Graph>()
+        val diagnostics = HashMap<Aircraft, RouteGraphDiagnostics>()
         for (aircraft in aircrafts) {
-            when (val ret = graphGenerator(aircraft, aircraftUsability[aircraft]!!, flightTaskGroups)) {
+            val usability = aircraftUsability[aircraft]
+                ?: return Failed(
+                    ErrorCode.IllegalArgument,
+                    "路线图初始化失败：缺少飞机可用性 / Route graph initialization failed: aircraft usability is missing"
+                )
+            when (val ret = graphGenerator(aircraft, usability, flightTaskGroups)) {
                 is Ok -> {
                     graphs[aircraft] = ret.value
+                    diagnostics[aircraft] = graphGenerator.diagnostics
                 }
 
                 is Failed -> {
@@ -186,18 +221,18 @@ class AggregationInitializer {
                 }
             }
         }
-        return Ok(graphs)
+        return Ok(GraphGenerationResult(graphs = graphs, diagnostics = diagnostics))
     }
 
     /**
      * Generates initial flight task bunches for all aircraft. / 为所有飞机生成初始航班任务束。
      *
-     * @param aircrafts list of aircraft / 飞机列表
-     * @param aircraftUsability aircraft usability map / 飞机可用性映射
-     * @param flightTasks list of flight tasks / 航班任务列表
-     * @param originBunches original flight task bunches / 原始航班任务束
-     * @param generator initial flight task bunch generator / 初始航班任务束生成器
-     * @return the generated initial flight task bunches / 生成的初始航班任务束
+     * @param aircrafts 飞机列表 / list of aircraft
+     * @param aircraftUsability 飞机可用性映射 / aircraft usability map
+     * @param flightTasks 航班任务列表 / list of flight tasks
+     * @param originBunches 原始航班任务束 / original flight task bunches
+     * @param generator 初始航班任务束生成器 / initial flight task bunch generator
+     * @return 生成的初始航班任务束 / the generated initial flight task bunches
     */
     private fun generateInitialFlightTaskBunches(
         aircrafts: List<Aircraft>,
@@ -215,8 +250,13 @@ class AggregationInitializer {
             }
 
             val aircraft = bunch.aircraft
+            val usability = aircraftUsability[aircraft]
+                ?: return Failed(
+                    ErrorCode.IllegalArgument,
+                    "初始批次初始化失败：缺少飞机可用性 / Initial bunch initialization failed: aircraft usability is missing"
+                )
             val lockedFlightTasks = flightTasks.filter { isLocked(it, bunch.aircraft) }.sortedBy { it.time?.start }
-            val newBunch = generator(aircraft, aircraftUsability[bunch.aircraft]!!, lockedFlightTasks, bunch) ?: continue
+            val newBunch = generator(aircraft, usability, lockedFlightTasks, bunch) ?: continue
             generatedAircraft.add(bunch.aircraft)
             bunches.add(newBunch)
         }
@@ -226,8 +266,13 @@ class AggregationInitializer {
                 continue
             }
 
+            val usability = aircraftUsability[aircraft]
+                ?: return Failed(
+                    ErrorCode.IllegalArgument,
+                    "初始批次初始化失败：缺少飞机可用性 / Initial bunch initialization failed: aircraft usability is missing"
+                )
             val lockedFlightTasks = flightTasks.filter { isLocked(it, aircraft) }.sortedBy { it.time?.start }
-            val newBunch = generator.emptyBunch(aircraft, aircraftUsability[aircraft]!!, lockedFlightTasks)
+            val newBunch = generator.emptyBunch(aircraft, usability, lockedFlightTasks)
             if (newBunch != null) {
                 bunches.add(newBunch)
             }
@@ -239,9 +284,9 @@ class AggregationInitializer {
     /**
      * Checks if a flight task is locked to a specific aircraft. / 检查航班任务是否锁定到指定飞机。
      *
-     * @param flightTask the flight task to check / 要检查的航班任务
-     * @param aircraft the aircraft to check against / 要对照检查的飞机
-     * @return true if the flight task is locked to the aircraft / 航班任务是否锁定到该飞机
+     * @param flightTask 要检查的航班任务 / the flight task to check
+     * @param aircraft 要对照检查的飞机 / the aircraft to check against
+     * @return 航班任务是否锁定到该飞机 / true if the flight task is locked to the aircraft
     */
     private fun isLocked(flightTask: FlightTask, aircraft: Aircraft): Boolean {
         return !flightTask.cancelEnabled && !flightTask.aircraftChangeEnabled && flightTask.aircraft == aircraft

@@ -1,12 +1,10 @@
 /**
- * 谓词 schema 生成注解
- * Predicate schema generation annotations
+ * 谓词 schema 生成注解 / Predicate schema generation annotations
 */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
 /**
- * 列命名策略
- * Column naming strategy
+ * 列命名策略 / Column naming strategy
  *
  * 控制 KSP 生成 columnMapping 时如何从 Kotlin 属性名推导后端列名。
  * Controls how KSP derives backend column names from Kotlin property names when generating columnMapping.
@@ -26,8 +24,7 @@ enum class ColumnNamingStrategy {
 }
 
 /**
- * 标记实体用于生成谓词 schema
- * Marks an entity for predicate schema generation
+ * 标记实体用于生成谓词 schema / Marks an entity for predicate schema generation
  *
  * @param schemaName 生成的 schema 类名，默认为 ${EntityName}Schema / Generated schema class name, defaults to ${EntityName}Schema
  * @param generateResolver 是否生成 resolver 字段 / Whether to generate resolver field
@@ -44,8 +41,7 @@ annotation class PredicateEntity(
 )
 
 /**
- * 标记属性对应的后端字段名
- * Marks the backend field name for a property
+ * 标记属性对应的后端字段名 / Marks the backend field name for a property
 */
 @Target(AnnotationTarget.PROPERTY)
 @Retention(AnnotationRetention.SOURCE)

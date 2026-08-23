@@ -1,9 +1,7 @@
 /**
- * MongoDB 数据库客户端管理
- * MongoDB database client management
+ * MongoDB 数据库客户端管理 / MongoDB database client management
  *
- * 提供 MongoDB 客户端的初始化、管理和扩展函数。
- * Provides MongoDB client initialization, management, and extension functions.
+ * 提供 MongoDB 客户端的初始化、管理和扩展函数。 / Provides MongoDB client initialization, management, and extension functions.
 */
 package fuookami.ospf.kotlin.framework.persistence
 
@@ -83,8 +81,7 @@ data class MongoDBConfig(
 ) {
 
     /**
-     * 获取客户端键
-     * Get client key
+     * 获取客户端键 / Get client key
     */
     val key get() = MongoClientKey(name = name, database = database)
 }
@@ -93,21 +90,18 @@ data class MongoDBConfig(
  * MongoDB 客户端管理器
  * MongoDB client manager
  *
- * 管理多个 MongoDB 客户端实例，按名称和数据库索引。
- * Manages multiple MongoDB client instances, indexed by name and database.
+ * 管理多个 MongoDB 客户端实例，按名称和数据库索引。 / Manages multiple MongoDB client instances, indexed by name and database.
 */
 object MongoDB {
 
     /**
-     * 已注册的 MongoDB 客户端映射
-     * Registered MongoDB client mapping
+     * 已注册的 MongoDB 客户端映射 / Registered MongoDB client mapping
     */
     @get:Synchronized
     private val clients: MutableMap<MongoClientKey, MongoClient> = HashMap()
 
     /**
-     * 初始化并获取 MongoDB 客户端
-     * Initialize and get MongoDB client
+     * 初始化并获取 MongoDB 客户端 / Initialize and get MongoDB client
      *
      * @param builder 配置构建器 lambda / Configuration builder lambda
      * @return MongoDB 客户端实例，初始化失败时返回 null / MongoDB client instance, or null if initialization fails
@@ -120,8 +114,7 @@ object MongoDB {
     }
 
     /**
-     * 获取或创建 MongoDB 客户端
-     * Get or create MongoDB client
+     * 获取或创建 MongoDB 客户端 / Get or create MongoDB client
      *
      * @param config MongoDB 配置 / MongoDB configuration
      * @return MongoDB 客户端实例，创建失败时返回 null / MongoDB client instance, or null if creation fails
@@ -157,8 +150,7 @@ object MongoDB {
     }
 
     /**
-     * 按键获取已注册的 MongoDB 客户端
-     * Get registered MongoDB client by key
+     * 按键获取已注册的 MongoDB 客户端 / Get registered MongoDB client by key
      *
      * @param key 客户端键（为 null 时返回第一个）/ Client key (returns first if null)
      * @return MongoDB 客户端实例，未找到时返回 null / MongoDB client instance, or null if not found
@@ -174,8 +166,7 @@ object MongoDB {
     }
 
     /**
-     * 按名称获取已注册的 MongoDB 客户端
-     * Get registered MongoDB client by name
+     * 按名称获取已注册的 MongoDB 客户端 / Get registered MongoDB client by name
      *
      * @param name 客户端名称 / Client name
      * @param dataBase 数据库名称（可选）/ Database name (optional)
@@ -192,8 +183,7 @@ object MongoDB {
     }
 
     /**
-     * 按数据库名称获取已注册的 MongoDB 客户端
-     * Get registered MongoDB client by database name
+     * 按数据库名称获取已注册的 MongoDB 客户端 / Get registered MongoDB client by database name
      *
      * @param dataBase 数据库名称 / Database name
      * @return MongoDB 客户端实例，未找到时返回 null / MongoDB client instance, or null if not found
@@ -205,8 +195,7 @@ object MongoDB {
 }
 
 /**
- * 向集合中插入数据（使用默认序列化器）
- * Insert data into collection (using default serializer)
+ * 向集合中插入数据（使用默认序列化器） / Insert data into collection (using default serializer)
  *
  * @param T 数据类型 / Data type
  * @param collection 集合名称 / Collection name
@@ -222,8 +211,7 @@ inline fun <reified T : Any> MongoDatabase.insert(collection: String, data: T) {
 }
 
 /**
- * 向集合中插入数据（使用指定序列化器）
- * Insert data into collection (using specified serializer)
+ * 向集合中插入数据（使用指定序列化器） / Insert data into collection (using specified serializer)
  *
  * @param T 数据类型 / Data type
  * @param collection 集合名称 / Collection name
@@ -242,8 +230,7 @@ fun <T> MongoDatabase.insert(collection: String, serializer: KSerializer<T>, dat
 }
 
 /**
- * 向集合中插入数据（使用自定义序列化函数）
- * Insert data into collection (using custom serialization function)
+ * 向集合中插入数据（使用自定义序列化函数） / Insert data into collection (using custom serialization function)
  *
  * @param T 数据类型 / Data type
  * @param collection 集合名称 / Collection name
@@ -257,8 +244,7 @@ fun <T> MongoDatabase.insert(collection: String, serializer: (T) -> String, data
 }
 
 /**
- * 从集合中查询数据（使用默认反序列化器）
- * Query data from collection (using default deserializer)
+ * 从集合中查询数据（使用默认反序列化器） / Query data from collection (using default deserializer)
  *
  * @param T 数据类型 / Data type
  * @param collectionName 集合名称 / Collection name
@@ -275,8 +261,7 @@ inline fun <reified T : Any> MongoDatabase.get(collectionName: String, query: Ma
 }
 
 /**
- * 从集合中查询数据（使用指定反序列化器）
- * Query data from collection (using specified deserializer)
+ * 从集合中查询数据（使用指定反序列化器） / Query data from collection (using specified deserializer)
  *
  * @param T 数据类型 / Data type
  * @param collectionName 集合名称 / Collection name
@@ -296,8 +281,7 @@ fun <T> MongoDatabase.get(collectionName: String, deserializer: KSerializer<T>, 
 }
 
 /**
- * 从集合中查询数据（使用自定义反序列化函数）
- * Query data from collection (using custom deserialization function)
+ * 从集合中查询数据（使用自定义反序列化函数） / Query data from collection (using custom deserialization function)
  *
  * @param T 数据类型 / Data type
  * @param collectionName 集合名称 / Collection name

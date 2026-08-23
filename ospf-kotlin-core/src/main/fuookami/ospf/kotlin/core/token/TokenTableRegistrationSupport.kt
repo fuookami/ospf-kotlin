@@ -1,6 +1,5 @@
 /**
- * Token 注册与缓存预热支持（含并发路径）。
- * Token registration and cache warm-up support (including concurrent path).
+ * Token 注册与缓存预热支持（含并发路径）。 / Token registration and cache warm-up support (including concurrent path).
  *
  * 负责符号依赖分层注册、aux token 准备与 flatten/range/value 缓存写入。
  * Handles layered registration by symbol dependencies, auxiliary-token preparation, and flatten/range/value cache writes.
@@ -18,14 +17,11 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 
 /**
- * Token 注册与缓存预热支持（含并发路径）。
- * Token registration and cache warm-up support (including concurrent path).
+ * Token 注册与缓存预热支持（含并发路径）。 / Token registration and cache warm-up support (including concurrent path).
  *
- * 说明：该文件负责符号依赖分层注册、aux token 准备与 flatten/range/value 缓存写入。
- * Note: this file handles layered registration by symbol dependencies, auxiliary-token preparation, and flatten/range/value cache writes.
+ * 说明：该文件负责符号依赖分层注册、aux token 准备与 flatten/range/value 缓存写入。 / Note: this file handles layered registration by symbol dependencies, auxiliary-token preparation, and flatten/range/value cache writes.
  *
- * 非目标：不承担函数约束建模与求解流程控制，这些职责在 MetaModel/MechanismModel 与 solver 侧完成。
- * Non-goal: function-constraint modeling and solve-flow orchestration are out of scope and handled by MetaModel/MechanismModel and solver side.
+ * 非目标：不承担函数约束建模与求解流程控制，这些职责在 MetaModel/MechanismModel 与 solver 侧完成。 / Non-goal: function-constraint modeling and solve-flow orchestration are out of scope and handled by MetaModel/MechanismModel and solver side.
 */
 
 /**
@@ -55,8 +51,7 @@ private fun IntermediateSymbol<*>.prepareStar(
 }
 
 /**
- * 将中间符号的展开和范围数据写入缓存上下文。
- * Write flatten and range data for an intermediate symbol into cache contexts.
+ * 将中间符号的展开和范围数据写入缓存上下文。 / Write flatten and range data for an intermediate symbol into cache contexts.
  *
  * @param symbol 中间符号 / Intermediate symbol
 */
@@ -75,8 +70,7 @@ private fun AbstractTokenTable<Flt64>.cacheSymbolContext(symbol: IntermediateSym
 }
 
 /**
- * 批量将中间符号的展开和范围数据写入缓存上下文。
- * Batch write flatten and range data for intermediate symbols into cache contexts.
+ * 批量将中间符号的展开和范围数据写入缓存上下文。 / Batch write flatten and range data for intermediate symbols into cache contexts.
  *
  * @param symbols 中间符号集合 / Intermediate symbol collection
 */

@@ -28,8 +28,8 @@ typealias CapacityPreSolveSolver = suspend (AbstractLinearMetaModel<Flt64>) -> R
  * The pre-solve pipeline expects solver errors to use ErrorCode; if not,
  * it degrades to Unknown while preserving original error details.
  *
- * @param error Solver error to normalize / 要规范化的求解器错误
- * @return Error normalized to ErrorCode type / 规范化为 ErrorCode 类型的错误
+ * @param error 要规范化的求解器错误 / Solver error to normalize
+ * @return 规范化为 ErrorCode 类型的错误 / Error normalized to ErrorCode type
 */
 private fun errorCodeErrorOf(error: Error<*>): Error<ErrorCode> {
     val code = error.code as? ErrorCode
@@ -51,22 +51,20 @@ private fun errorCodeErrorOf(error: Error<*>): Error<ErrorCode> {
 /**
  * Normalizes a list of wildcard errors to ErrorCode errors.
  * 将通配符错误列表规范化为 ErrorCode 错误列表。
- * @param errors List of errors to normalize / 要规范化的错误列表
- * @return List of errors normalized to ErrorCode type / 规范化为 ErrorCode 类型的错误列表
+ * @param errors 要规范化的错误列表 / List of errors to normalize
+ * @return 规范化为 ErrorCode 类型的错误列表 / List of errors normalized to ErrorCode type
 */
 private fun errorCodeErrorsOf(errors: List<Error<*>>): List<Error<ErrorCode>> {
     return errors.map(::errorCodeErrorOf)
 }
 
 /**
- * 分时隙产能预求解服务
- * Slot-based capacity pre-solving service
+ * 分时隙产能预求解服务 / Slot-based capacity pre-solving service
  *
  * 负责求解 capacity scheduling 问题并提取中间值。
  * Responsible for solving capacity scheduling problem and extracting intermediate values.
  *
- * 中间值用于给 bunch 生成器提供时隙约束。
- * Intermediate values are used to provide slot constraints to bunch generators.
+ * 中间值用于给 bunch 生成器提供时隙约束。 / Intermediate values are used to provide slot constraints to bunch generators.
  *
  * @param V 业务数值类型 / Business numeric type
  * @param E 执行器类型 / Executor type
@@ -88,76 +86,64 @@ private fun errorCodeErrorsOf(errors: List<Error<*>>): List<Error<ErrorCode>> {
 class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
 
     /**
-     * 生产动作列表
-     * List of production actions
+     * 生产动作列表 / List of production actions
     */
     private val actions: List<A>,
 
     /**
-     * 执行器列表
-     * List of executors
+     * 执行器列表 / List of executors
     */
     private val executors: List<E>,
 
     /**
-     * 时隙列表
-     * List of time slots
+     * 时隙列表 / List of time slots
     */
     private val slots: List<TimeSlot>,
 
     /**
-     * 时间窗口
-     * Time window
+     * 时间窗口 / Time window
     */
     private val timeWindow: TimeWindow<V>,
 
     /**
-     * 产品列表及其需求量
-     * Products with their demand quantities
+     * 产品列表及其需求量 / Products with their demand quantities
     */
     private val products: List<Pair<M, Quantity<V>>> = emptyList(),
 
     /**
-     * 资源容量列表
-     * List of resource capacities
+     * 资源容量列表 / List of resource capacities
     */
     private val resourceCapacities: List<R> = emptyList(),
 
     /**
-     * 是否使用列生成
-     * Whether to use column generation
+     * 是否使用列生成 / Whether to use column generation
     */
     private val useColumnGeneration: Boolean = false,
 
     /**
-     * 计算动作单位操作时间的产品产量
-     * Calculate product produce per unit operation time for action
+     * 计算动作单位操作时间的产品产量 / Calculate product produce per unit operation time for action
     */
     private val unitProduceOfAction: ((A, M) -> V)? = null,
 
     /**
-     * 计算动作单位操作时间的原料消耗
-     * Calculate material consumption per unit operation time for action
+     * 计算动作单位操作时间的原料消耗 / Calculate material consumption per unit operation time for action
     */
     private val unitConsumptionOfAction: ((A, M) -> V)? = null,
 
     /**
-     * 计算动作在时隙内单位操作时间的资源使用量
-     * Calculate resource usage per unit operation time for action in slot
+     * 计算动作在时隙内单位操作时间的资源使用量 / Calculate resource usage per unit operation time for action in slot
     */
     private val unitResourceUsageOfAction: ((A, R, TimeSlot) -> V)? = null,
 
     /**
-     * 原料列表
-     * Material list
+     * 原料列表 / Material list
     */
     private val materials: List<M> = emptyList()
 ) where V : RealNumber<V>, V : PlusGroup<V> {
     private val solverTimeWindow = timeWindow.toFlt64Boundary()
 
     /**
-     * 产能编译对象
-     * Capacity compilation object
+     * 产能编译对象 / Capacity compilation object
     */
     private val capacityCompilation: CapacityCompilation<Flt64, A>? = if (!useColumnGeneration) {
         CapacityCompilation(
@@ -188,10 +174,9 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
         }
 
     /**
-     * 注册到模型
-     * Register to model
+     * 注册到模型 / Register to model
      *
-     * @param model Linear meta model / 线性元模型
+     * @param model 线性元模型 / Linear meta model
      * @return Try result / Try 结果
     */
     fun register(model: LinearMetaModel<Flt64>): Try {
@@ -203,13 +188,12 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
     }
 
     /**
-     * 在列生成模式下添加预求解列
-     * Add pre-solving columns in column-generation mode
+     * 在列生成模式下添加预求解列 / Add pre-solving columns in column-generation mode
      *
-     * @param iteration Iteration number / 迭代编号
-     * @param columns Columns to add / 待添加列
-     * @param model Linear meta model / 线性元模型
-     * @return Added columns / 实际添加的列
+     * @param iteration 迭代编号 / Iteration number
+     * @param columns 待添加列 / Columns to add
+     * @param model 线性元模型 / Linear meta model
+     * @return 实际添加的列 / Added columns
     */
     suspend fun addColumns(
         iteration: UInt64,
@@ -229,13 +213,12 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
     }
 
     /**
-     * 执行预求解
-     * Execute pre-solving
+     * 执行预求解 / Execute pre-solving
      *
-     * @param model Linear meta model / 线性元模型
-     * @param solver Solver / 求解器
-     * @param initialColumnsByIteration Initial columns grouped by iteration / 按迭代分组的初始列
-     * @return Intermediate values / 中间值
+     * @param model 线性元模型 / Linear meta model
+     * @param solver 求解器 / Solver
+     * @param initialColumnsByIteration 按迭代分组的初始列 / Initial columns grouped by iteration
+     * @return 中间值 / Intermediate values
     */
     suspend fun solve(
         model: AbstractLinearMetaModel<Flt64>,
@@ -256,9 +239,9 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
         // Solve the model
         // 求解模型
         when (val result = solver(model)) {
-            is Ok<*, *, *> -> {}
-            is Failed<*, *, *> -> return Failed(errorCodeErrorOf(result.error))
-            is Fatal<*, *, *> -> return Fatal(errorCodeErrorsOf(result.errors))
+            is Ok -> {}
+            is Failed -> return Failed(errorCodeErrorOf(result.error))
+            is Fatal -> return Fatal(errorCodeErrorsOf(result.errors))
         }
 
         // Extract intermediate values
@@ -267,14 +250,12 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
     }
 
     /**
-     * 提取中间值
-     * Extract intermediate values
+     * 提取中间值 / Extract intermediate values
      *
-     * 从已求解的模型中提取每个时隙的产能、产量、资源使用中间值。
-     * Extract capacity, produce, resource usage intermediate values for each slot from solved model.
+     * 从已求解的模型中提取每个时隙的产能、产量、资源使用中间值。 / Extract capacity, produce, resource usage intermediate values for each slot from solved model.
      *
-     * @param model Solved linear meta model / 已求解的线性元模型
-     * @return Intermediate values / 中间值
+     * @param model 已求解的线性元模型 / Solved linear meta model
+     * @return 中间值 / Intermediate values
     */
     fun extractIntermediateValues(
         model: AbstractLinearMetaModel<Flt64>

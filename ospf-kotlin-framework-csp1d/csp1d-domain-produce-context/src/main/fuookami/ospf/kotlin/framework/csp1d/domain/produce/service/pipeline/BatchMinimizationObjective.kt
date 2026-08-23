@@ -2,7 +2,8 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.produce.service.pipeline
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceAggregation
@@ -28,12 +29,10 @@ class BatchMinimizationObjective(
     override val name: String = "batch_minimization"
 
     override fun invoke(model: LinearMetaModel<Flt64>): Try {
-        val objective = LinearPolynomial(
-            monomials = (0 until produce.planCount).map { index ->
-                LinearMonomial(batchCoefficient, produce[index]!!)
-            },
-            constant = Flt64.zero
-        )
+        var objective = LinearPolynomial()
+        for (index in 0 until produce.planCount) {
+            objective += batchCoefficient * produce[index]!!
+        }
         return when (val result = model.minimize(polynomial = objective, name = "batch_minimization")) {
             is Ok -> ok
             is Failed -> Failed(result.error)

@@ -1,6 +1,5 @@
 /**
- * 达芬方程
- * Duffing Equation
+ * 达芬方程 / Duffing Equation
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 达芬方程
- * Duffing Equation
+ * 达芬方程 / Duffing Equation
  *
  * @property alpha 系统参数 alpha / System parameter alpha
  * @property beta 系统参数 beta / System parameter beta
@@ -53,8 +51,7 @@ data class DuffingEquation<V : FloatingNumber<V>>(
 }
 
 /**
- * 达芬方程生成器
- * Duffing Equation generator
+ * 达芬方程生成器 / Duffing Equation generator
  *
  * @property attractor 达芬方程吸引子 / Duffing equation attractor
 */

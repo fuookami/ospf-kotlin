@@ -12,6 +12,8 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
+import fuookami.ospf.kotlin.framework.solver.FrameworkSolveOptions
+import fuookami.ospf.kotlin.core.solver.progress.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -86,9 +88,7 @@ data class Csp1dColumnGenerationTrace(
  * CSP1D 列生成求解器 / CSP1D column generation solver
  *
  * 实现列生成主循环：初始方案生成 -> LP 松弛求解 -> pricing 定价 -> 加列迭代 -> 最终 MILP 整数求解。
- * 支持 flow policy 自定义终止/去重/早停逻辑、warm start 初始方案注入、以及多种 pricing 生成器。
- *
- * Implements the column generation main loop: initial plan generation -> LP relaxation solve -> pricing -> column addition iteration -> final MILP integer solve.
+ * 支持 flow policy 自定义终止/去重/早停逻辑、warm start 初始方案注入、以及多种 pricing 生成器。 / Implements the column generation main loop: initial plan generation -> LP relaxation solve -> pricing -> column addition iteration -> final MILP integer solve.
  * Supports flow policy custom termination/deduplication/early-stop logic, warm start initial plan injection, and multiple pricing generators.
  *
  * @param V 数值类型 / Numeric value type
@@ -135,19 +135,20 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
     */
     suspend fun solve(
         problem: Csp1dProblem<V>,
-        solveConfig: Csp1dSolveConfig<V>? = null
+        solveConfig: Csp1dSolveConfig<V>? = null,
+        progressContext: SolverProgressContext? = null
     ): Csp1dSolution<V> {
         return solveWithTrace(
             problem = problem,
-            solveConfig = solveConfig
+            solveConfig = solveConfig,
+            progressContext = progressContext
         ).solution
     }
 
     /**
      * 带追踪信息的列生成求解 / Column generation solve with trace
      *
-     * 返回完整列生成结果，包含迭代记录、终止原因、pricing 统计等追踪信息。
-     * Returns complete column generation result including iteration records, termination reason, pricing statistics and other trace information.
+     * 返回完整列生成结果，包含迭代记录、终止原因、pricing 统计等追踪信息。 / Returns complete column generation result including iteration records, termination reason, pricing statistics and other trace information.
      *
      * @param problem 问题定义 / Problem definition
      * @param solveConfig 显式求解配置，优先级高于 problem.solveConfig / Explicit solve config, higher priority than problem.solveConfig
@@ -155,8 +156,10 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
     */
     suspend fun solveWithTrace(
         problem: Csp1dProblem<V>,
-        solveConfig: Csp1dSolveConfig<V>? = null
+        solveConfig: Csp1dSolveConfig<V>? = null,
+        progressContext: SolverProgressContext? = null
     ): Csp1dColumnGenerationResult<V> {
+        progressContext?.throwIfCancelled()
         val resolvedConfig = resolveSolveConfig(
             problem = problem,
             solveConfig = solveConfig
@@ -185,8 +188,22 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
             flowPolicies = resolvedConfig.extensionSet.flowPolicies,
             widthFeasibilityCheck = widthCheck
         )
+        progressContext?.throwIfCancelled()
         val initialPlans = initialPlanPool.plans
         val initialCount = initialPlans.size
+        reportProgress(
+            context = progressContext,
+            stage = SolverStages.ColumnGeneration,
+            subStage = SolverSubStage(
+                key = "initial_columns",
+                defaultTemplate = "初始列生成（{count} 列）",
+                messageKey = "i18n.ospf.substage.initial_columns",
+                args = mapOf("count" to initialCount.toString())
+            ),
+            progressInStage = 0,
+            overallProgress = 15,
+            diagnostics = mapOf("initialPlans" to initialCount.toString())
+        )
 
         if (initialPlans.isEmpty()) {
             val failureMessage = "No initial cutting plans generated"
@@ -327,12 +344,41 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         }
 
         if (lpMaster != null) {
+            reportProgress(
+                context = progressContext,
+                stage = SolverStages.ModelBuilding,
+                subStage = SolverSubStage(
+                    key = "lp_master_ready",
+                    defaultTemplate = "LP 主问题已就绪",
+                    messageKey = "i18n.ospf.substage.lp_master_ready"
+                ),
+                progressInStage = 100,
+                overallProgress = 20,
+                diagnostics = mapOf("model" to lpMaster.model.name)
+            )
+        }
+
+        if (lpMaster != null) {
             for (iteration in 0 until iterationLimitIndexBound) {
+                progressContext?.throwIfCancelled()
                 val iterationNumber = Int64(iteration.toLong())
                 val planCountBefore = currentPlans.size
+                val iterationStart = rangedProgress(
+                    start = 20,
+                    end = 75,
+                    index = iteration,
+                    total = iterationLimitIndexBound
+                )
+                val iterationEnd = rangedProgress(
+                    start = 20,
+                    end = 75,
+                    index = iteration + 1,
+                    total = iterationLimitIndexBound
+                )
                 val lpResult = solveLpMaster(
                     master = lpMaster,
-                    iteration = iterationNumber
+                    iteration = iterationNumber,
+                    progressContext = progressContext?.phase(iterationStart, iterationEnd)
                 )
                 if (lpResult == null) {
                     pricedPlanCounts.add(UInt64.zero)
@@ -372,8 +418,26 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
 
                 hasValidLpResult = true
 
-                val lpObjective = lpResult.lpOutput.result.obj
+                val lpObjective = lpResult.lpOutput.result.solution?.objective
+                    ?: Flt64.zero
                 val shadowPrices = lpResult.shadowPrices
+
+                reportProgress(
+                    context = progressContext,
+                    stage = SolverStages.ColumnGeneration,
+                    subStage = SolverSubStage(
+                        key = "pricing_iteration",
+                        defaultTemplate = "定价迭代 {iter}",
+                        messageKey = "i18n.ospf.substage.pricing_iteration",
+                        args = mapOf("iter" to iterationNumber.toString())
+                    ),
+                    progressInStage = 40,
+                    overallProgress = iterationStart + ((iterationEnd - iterationStart) * 40 / 100),
+                    diagnostics = mapOf(
+                        "iteration" to iterationNumber.toString(),
+                        "planCount" to currentPlans.size.toString()
+                    )
+                )
 
                 val pricingCandidateFilters = resolvedConfig.extensionSet.generationStrategies.map { strategy ->
                     { candidate: CuttingPlan<V>, existing: List<CuttingPlan<V>> -> strategy.acceptCandidate(candidate, existing) }
@@ -567,6 +631,24 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                     )
                 )
 
+                reportProgress(
+                    context = progressContext,
+                    stage = SolverStages.ColumnGeneration,
+                    subStage = SolverSubStage(
+                        key = "pricing_iteration",
+                        defaultTemplate = "定价迭代 {iter}",
+                        messageKey = "i18n.ospf.substage.pricing_iteration",
+                        args = mapOf("iter" to iterationNumber.toString())
+                    ),
+                    progressInStage = 100,
+                    overallProgress = iterationEnd,
+                    diagnostics = mapOf(
+                        "iteration" to iterationNumber.toString(),
+                        "addedPlans" to modelAddedPlans.size.toString(),
+                        "planCount" to currentPlans.size.toString()
+                    )
+                )
+
                 if (iteration == iterationLimitIndexBound - 1) {
                     terminationReason = Csp1dTerminationReason.IterationLimitReached
                     // Apply flow policy selectTermination
@@ -618,8 +700,10 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         val finalMilp = solveFinalMilp(
             problem = problem,
             cuttingPlans = currentPlans,
-            solveConfig = resolvedConfig
+            solveConfig = resolvedConfig,
+            progressContext = progressContext?.phase(75, 99)
         )
+        progressContext?.throwIfCancelled()
         val produce = finalMilp.milpResult?.produce ?: emptyProduce(problem)
         val baseSolution = analyzer.analyze(
             problem = problem,
@@ -929,11 +1013,15 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
 */
     private suspend fun solveLpMaster(
         master: LpMaster<V>,
-        iteration: Int64
+        iteration: Int64,
+        progressContext: SolverProgressContext?
     ): Csp1dMilpSolver.LpResult<V>? {
         val lpResult = when (val result = solver.solveLP(
-            name = "csp1d-produce-lp-${iteration}",
-            metaModel = master.model
+            metaModel = master.model,
+            options = FrameworkSolveOptions(
+                name = "csp1d-produce-lp-${iteration}",
+                progressContext = progressContext
+            )
         )) {
             is Ok -> result.value
             is Failed -> return null
@@ -990,7 +1078,8 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
     private suspend fun solveFinalMilp(
         problem: Csp1dProblem<V>,
         cuttingPlans: List<CuttingPlan<V>>,
-        solveConfig: Csp1dSolveConfig<V>
+        solveConfig: Csp1dSolveConfig<V>,
+        progressContext: SolverProgressContext?
     ): FinalMilpSolveResult<V> {
         val solveResult = Csp1dMilpSolver(solver).solve(
             input = ProduceInput(
@@ -1005,7 +1094,8 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
             lengthConfig = solveConfig.lengthConfig,
             extensions = solveConfig.allExtensions,
             objectivePolicies = solveConfig.extensionSet.objectivePolicies,
-            isFinalMilp = true
+            isFinalMilp = true,
+            progressContext = progressContext
         )
         val result = when (solveResult) {
             is Ok -> solveResult.value
@@ -1102,9 +1192,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
 
     /**
      * 将 selectTerminationByPolicies 返回的 customReason 映射回 Csp1dTerminationReason。
-     * 若 customReason 与某个枚举名匹配则使用该值，否则保留默认。
-     *
-     * Map customReason from selectTerminationByPolicies back to Csp1dTerminationReason.
+     * 若 customReason 与某个枚举名匹配则使用该值，否则保留默认。 / Map customReason from selectTerminationByPolicies back to Csp1dTerminationReason.
      * If customReason matches an enum name, use that value; otherwise keep the default.
      *
      * @param customReason 自定义终止原因 / Custom termination reason
@@ -1120,6 +1208,45 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         } catch (_: IllegalArgumentException) {
             defaultReason
         }
+    }
+
+    private fun SolverProgressContext.phase(start: Int, end: Int): SolverProgressContext {
+        val parent = this
+        return SolverProgressContext(
+            reporter = ProgressReporter { snapshot ->
+                parent.report(
+                    snapshot.copy(
+                        overallProgress = start +
+                            snapshot.progressInStage.coerceIn(0, 100) * (end - start) / 100
+                    )
+                )
+            },
+            locale = locale
+        )
+    }
+
+    private fun reportProgress(
+        context: SolverProgressContext?,
+        stage: SolverStage,
+        subStage: SolverSubStage,
+        progressInStage: Int,
+        overallProgress: Int,
+        diagnostics: Map<String, String>
+    ) {
+        context?.report(
+            SolverProgressSnapshot(
+                stage = stage,
+                subStage = subStage,
+                progressInStage = progressInStage,
+                overallProgress = overallProgress,
+                diagnostics = diagnostics
+            )
+        )
+    }
+
+    private fun rangedProgress(start: Int, end: Int, index: Int, total: Int): Int {
+        if (total <= 0) return end
+        return start + ((end - start) * index / total).coerceIn(0, end - start)
     }
 }
 

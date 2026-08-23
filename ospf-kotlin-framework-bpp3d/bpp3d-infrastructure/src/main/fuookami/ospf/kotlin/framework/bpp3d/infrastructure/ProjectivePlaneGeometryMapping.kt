@@ -1,6 +1,5 @@
 /**
- * 射影平面几何映射占位。
- * Projective plane geometry mapping placeholder.
+ * 射影平面几何映射占位。 / Projective plane geometry mapping placeholder.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 

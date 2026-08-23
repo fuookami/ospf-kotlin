@@ -1,6 +1,5 @@
 /**
- * MyBatis 布尔表达式翻译器
- * MyBatis Boolean Expression Translator
+ * MyBatis 布尔表达式翻译器 / MyBatis Boolean Expression Translator
  *
  * 将 BooleanExpression 翻译为 MyBatis-Plus Wrapper 条件。
  * Translates BooleanExpression to MyBatis-Plus Wrapper conditions.
@@ -17,14 +16,12 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
 
 /**
- * 列名解析器
- * Column Name Resolver
+ * 列名解析器 / Column Name Resolver
 */
 typealias MybatisColumnNameResolver = PersistenceFieldResolver<String>
 
 /**
- * MyBatis 布尔表达式翻译器
- * MyBatis Boolean Expression Translator
+ * MyBatis 布尔表达式翻译器 / MyBatis Boolean Expression Translator
  *
  * 将 math.symbol.expression.BooleanExpression 翻译为 MyBatis-Plus 查询条件。
  * Translates math.symbol.expression.BooleanExpression to MyBatis-Plus query conditions.
@@ -64,8 +61,7 @@ class MybatisBooleanTranslator<T : Any>(
     }
 
     /**
-     * 内部翻译分发，根据表达式类型路由到具体翻译方法
-     * Internal translation dispatch, routes to specific translation methods by expression type
+     * 内部翻译分发，根据表达式类型路由到具体翻译方法 / Internal translation dispatch, routes to specific translation methods by expression type
      *
      * @param wrapper MyBatis-Plus 条件 Wrapper / MyBatis-Plus condition wrapper
      * @param expr 布尔表达式 / Boolean expression
@@ -86,8 +82,7 @@ class MybatisBooleanTranslator<T : Any>(
     }
 
     /**
-     * 翻译常量布尔表达式
-     * Translate constant boolean expression
+     * 翻译常量布尔表达式 / Translate constant boolean expression
      *
      * @param wrapper MyBatis-Plus 条件 Wrapper / MyBatis-Plus condition wrapper
      * @param expr 常量布尔表达式 / Constant boolean expression
@@ -133,8 +128,7 @@ class MybatisBooleanTranslator<T : Any>(
     }
 
     /**
-     * 翻译比较表达式为 MyBatis-Plus 比较条件
-     * Translate comparison expression to MyBatis-Plus comparison condition
+     * 翻译比较表达式为 MyBatis-Plus 比较条件 / Translate comparison expression to MyBatis-Plus comparison condition
      *
      * @param wrapper MyBatis-Plus 条件 Wrapper / MyBatis-Plus condition wrapper
      * @param expr 比较表达式 / Comparison expression
@@ -273,8 +267,7 @@ class MybatisBooleanTranslator<T : Any>(
     }
 
     /**
-     * 翻译 AND 逻辑表达式，依次应用各操作数条件
-     * Translate AND logical expression, applies each operand condition sequentially
+     * 翻译 AND 逻辑表达式，依次应用各操作数条件 / Translate AND logical expression, applies each operand condition sequentially
      *
      * @param wrapper MyBatis-Plus 条件 Wrapper / MyBatis-Plus condition wrapper
      * @param expr AND 表达式 / AND expression
@@ -289,8 +282,7 @@ class MybatisBooleanTranslator<T : Any>(
     }
 
     /**
-     * 翻译 OR 逻辑表达式，使用嵌套 and 块实现 OR 组合
-     * Translate OR logical expression, uses nested and block to implement OR combination
+     * 翻译 OR 逻辑表达式，使用嵌套 and 块实现 OR 组合 / Translate OR logical expression, uses nested and block to implement OR combination
      *
      * @param wrapper MyBatis-Plus 条件 Wrapper / MyBatis-Plus condition wrapper
      * @param expr OR 表达式 / OR expression

@@ -1,10 +1,8 @@
 /**
- * 微分运算
- * Differentiation Operations
+ * 微分运算 / Differentiation Operations
  *
  * 提供多项式微分的核心实现。
- * 支持线性、二次和规范多项式的导数和梯度计算，基于 Ring 类型约束。
- * Provides core implementation for polynomial differentiation.
+ * 支持线性、二次和规范多项式的导数和梯度计算，基于 Ring 类型约束。 / Provides core implementation for polynomial differentiation.
  * Supports derivative and gradient computation for linear, quadratic,
  * and canonical polynomials, based on Ring type constraints.
 */
@@ -23,8 +21,7 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 // ============================================================================
 
 /**
- * 按带符号整数缩放值，支持负倍数
- * Scale a value by a signed integer, supporting negative amounts
+ * 按带符号整数缩放值，支持负倍数 / Scale a value by a signed integer, supporting negative amounts
  *
  * @param value 要缩放的值 / Value to scale
  * @param amount 缩放倍数（可为负） / Scale amount (may be negative)
@@ -51,8 +48,7 @@ private fun <T> scaleByIntWithSign(
 }
 
 /**
- * 线性单项式对指定符号求导
- * Derivative of a linear monomial.
+ * 线性单项式对指定符号求导 / Derivative of a linear monomial.
  *
  * @param symbol 求导变量 / The variable to differentiate with respect to
  * @param zero 系数类型的零值 / Zero value for the coefficient type
@@ -70,8 +66,7 @@ fun <T> LinearMonomial<T>.derivativeLinear(
 }
 
 /**
- * 线性多项式对指定符号求导
- * Derivative of a linear polynomial.
+ * 线性多项式对指定符号求导 / Derivative of a linear polynomial.
  *
  * @param symbol 求导变量 / The variable to differentiate with respect to
  * @param zero 系数类型的零值 / Zero value for the coefficient type
@@ -89,8 +84,7 @@ fun <T> LinearPolynomial<T>.derivativeLinear(
 }
 
 /**
- * 线性多项式的梯度
- * Gradient of a linear polynomial.
+ * 线性多项式的梯度 / Gradient of a linear polynomial.
  *
  * @param order 符号顺序列表 / Ordered list of symbols
  * @param zero 系数类型的零值 / Zero value for the coefficient type
@@ -104,8 +98,7 @@ fun <T> LinearPolynomial<T>.gradientLinear(
 }
 
 /**
- * 二次单项式对指定符号求导
- * Derivative of a quadratic monomial.
+ * 二次单项式对指定符号求导 / Derivative of a quadratic monomial.
  *
  * @param symbol 求导变量 / The variable to differentiate with respect to
  * @param zero 系数类型的零值 / Zero value for the coefficient type
@@ -156,8 +149,7 @@ fun <T> QuadraticMonomial<T>.derivativeQuadratic(
 }
 
 /**
- * 二次多项式对指定符号求导
- * Derivative of a quadratic polynomial.
+ * 二次多项式对指定符号求导 / Derivative of a quadratic polynomial.
  *
  * @param symbol 求导变量 / The variable to differentiate with respect to
  * @param zero 系数类型的零值 / Zero value for the coefficient type
@@ -195,8 +187,7 @@ fun <T> QuadraticPolynomial<T>.derivativeQuadratic(
 }
 
 /**
- * 二次多项式的梯度
- * Gradient of a quadratic polynomial.
+ * 二次多项式的梯度 / Gradient of a quadratic polynomial.
  *
  * @param order 符号顺序列表 / Ordered list of symbols
  * @param zero 系数类型的零值 / Zero value for the coefficient type
@@ -214,8 +205,7 @@ fun <T> QuadraticPolynomial<T>.gradientQuadratic(
 }
 
 /**
- * 规范单项式对指定符号求导
- * Derivative of a canonical monomial.
+ * 规范单项式对指定符号求导 / Derivative of a canonical monomial.
  *
  * @param symbol 求导变量 / The variable to differentiate with respect to
  * @param zero 系数类型的零值 / Zero value for the coefficient type
@@ -261,8 +251,7 @@ fun <T> CanonicalMonomial<T>.derivativeCanonical(
 }
 
 /**
- * 规范多项式对指定符号求导
- * Derivative of a canonical polynomial.
+ * 规范多项式对指定符号求导 / Derivative of a canonical polynomial.
  *
  * @param symbol 求导变量 / The variable to differentiate with respect to
  * @param zero 系数类型的零值 / Zero value for the coefficient type
@@ -302,8 +291,7 @@ fun <T> CanonicalPolynomial<T>.derivativeCanonical(
 }
 
 /**
- * 规范多项式的梯度
- * Gradient of a canonical polynomial.
+ * 规范多项式的梯度 / Gradient of a canonical polynomial.
  *
  * @param order 符号顺序列表 / Ordered list of symbols
  * @param zero 系数类型的零值 / Zero value for the coefficient type

@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.model
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.*
@@ -26,12 +27,12 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * Models the divide-empty-loading pattern for adjacent positions to minimize empty cargo gaps.
  * 对相邻位置之间的空载分割模式建模以最小化空载间隙。
  *
- * @property positions The list of stowage positions / 装载位置列表
- * @property adjacentPositions The list of adjacent position pairs / 相邻位置对列表
- * @property load The load distribution data / 载荷分布数据
- * @property emptyBetweenCargo Intermediate symbols for empty slots between cargo / 货物之间空位的中间符号
- * @property emptyCargoBetweenCargo Intermediate symbols for empty cargo between cargo / 货物之间空货的中间符号
- * @property emptyBetweenEmptyCargo Intermediate symbols for empty slots between empty cargo / 空货之间空位的中间符号
+ * @property positions 装载位置列表 / The list of stowage positions
+ * @property adjacentPositions 相邻位置对列表 / The list of adjacent position pairs
+ * @property load 载荷分布数据 / The load distribution data
+ * @property emptyBetweenCargo 货物之间空位的中间符号 / Intermediate symbols for empty slots between cargo
+ * @property emptyCargoBetweenCargo 货物之间空货的中间符号 / Intermediate symbols for empty cargo between cargo
+ * @property emptyBetweenEmptyCargo 空货之间空位的中间符号 / Intermediate symbols for empty slots between empty cargo
 */
 class DivideEmptyLoading(
     private val positions: List<Position>,
@@ -43,7 +44,19 @@ class DivideEmptyLoading(
             positions: List<Position>,
             load: Load
         ): DivideEmptyLoading {
-            TODO("not implemented yet")
+            val adjacentPositions = positions
+                .groupBy { it.location.location }
+                .values
+                .flatMap { positionsInDeck ->
+                    positionsInDeck
+                        .sortedBy { it.loadingOrder.order }
+                        .zipWithNext()
+                }
+            return DivideEmptyLoading(
+                positions = positions,
+                adjacentPositions = adjacentPositions,
+                load = load
+            )
         }
     }
 
@@ -55,8 +68,8 @@ class DivideEmptyLoading(
      * Registers divide-empty-loading intermediate symbols into the optimization model.
      * 将空载分割中间符号注册到优化模型中。
      *
-     * @param model The linear meta model to register into / 要注册到的线性元模型
-     * @return Success or failure result / 成功或失败结果
+     * @param model 要注册到的线性元模型 / The linear meta model to register into
+     * @return 成功或失败结果 / Success or failure result
     */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
@@ -78,7 +91,8 @@ class DivideEmptyLoading(
                 } else if (position2.status.stowageNeeded || position2.status.adjustmentNeeded) {
                     LinearFunctionSymbolAdapter(
                         delegate = IfFunction(
-                            condition = LinearPolynomial(loadAmount1) - (LinearPolynomial(loadAmount2) + Flt64.one),
+                            condition = LinearPolynomial(loadAmount1) - (LinearPolynomial(loadAmount2) + Flt64.one)
+                                + Flt64(NONZERO_TOLERANCE),
                             converter = flt64Converter,
                             name = "empty_between_cargo_${position1}_${position2}"
                         ),
@@ -99,13 +113,13 @@ class DivideEmptyLoading(
             }
         }
         when (val result = model.add(emptyBetweenCargo)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -130,7 +144,8 @@ class DivideEmptyLoading(
                 } else if (position2.status.stowageNeeded || position2.status.adjustmentNeeded) {
                     LinearFunctionSymbolAdapter(
                         delegate = IfFunction(
-                            condition = (LinearPolynomial(loadAmount1) + LinearPolynomial(loadAmount2)) - Flt64.two,
+                            condition = (LinearPolynomial(loadAmount1) + LinearPolynomial(loadAmount2))
+                                - Flt64.two + Flt64(NONZERO_TOLERANCE),
                             converter = flt64Converter,
                             name = "empty_cargo_between_cargo_${position1}_${position2}"
                         ),
@@ -151,13 +166,13 @@ class DivideEmptyLoading(
             }
         }
         when (val result = model.add(emptyCargoBetweenCargo)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -180,7 +195,8 @@ class DivideEmptyLoading(
                 } else if (position2.status.stowageNeeded || position2.status.adjustmentNeeded) {
                     LinearFunctionSymbolAdapter(
                         delegate = IfFunction(
-                            condition = LinearPolynomial(loadAmount1) - (LinearPolynomial(loadAmount2) + Flt64.one),
+                            condition = LinearPolynomial(loadAmount1) - (LinearPolynomial(loadAmount2) + Flt64.one)
+                                + Flt64(NONZERO_TOLERANCE),
                             converter = flt64Converter,
                             name = "empty_between_empty_cargo_${position1}_${position2}"
                         ),
@@ -201,13 +217,13 @@ class DivideEmptyLoading(
             }
         }
         when (val result = model.add(emptyBetweenEmptyCargo)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -215,4 +231,3 @@ class DivideEmptyLoading(
         return ok
     }
 }
-

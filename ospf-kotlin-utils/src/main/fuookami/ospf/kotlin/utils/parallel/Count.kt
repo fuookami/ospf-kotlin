@@ -1,16 +1,12 @@
 /**
- * 并行计数操作
- *
- * Parallel counting operations with concurrency control.
+ * 并行计数操作 / Parallel counting operations with concurrency control.
 */
 package fuookami.ospf.kotlin.utils.parallel
 
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 并行计数满足条件的元素
- *
- * Count elements that satisfy the predicate in parallel with concurrency control.
+ * 并行计数满足条件的元素 / Count elements that satisfy the predicate in parallel with concurrency control.
  *
  * @param T 元素类型 / Element type
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
@@ -27,9 +23,7 @@ suspend inline fun <T> Iterable<T>.countParallelly(
 }
 
 /**
- * 并行计数满足条件的元素（带错误处理）
- *
- * Count elements that satisfy the predicate in parallel with error handling.
+ * 并行计数满足条件的元素（带错误处理） / Count elements that satisfy the predicate in parallel with error handling.
  * 并发计数满足条件的元素，支持错误处理。
  *
  * @param T 元素类型 / Element type
@@ -51,9 +45,7 @@ suspend inline fun <T> Iterable<T>.tryCountParallelly(
 }
 
 /**
- * 并行计数满足条件的元素（带错误收集）
- *
- * Count elements that satisfy the predicate in parallel with error collection.
+ * 并行计数满足条件的元素（带错误收集） / Count elements that satisfy the predicate in parallel with error collection.
  * 并发计数满足条件的元素，收集所有错误。
  *
  * @param T 元素类型 / Element type

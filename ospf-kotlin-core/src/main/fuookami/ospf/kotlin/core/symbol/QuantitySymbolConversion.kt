@@ -1,9 +1,7 @@
 /**
  * 量纲符号转换工具 / Quantity symbol conversion utilities
  *
- * 提供带有物理单位的符号量纲转换扩展函数。
- *
- * Provides extension functions for converting symbol quantities with physical units.
+ * 提供带有物理单位的符号量纲转换扩展函数。 / Provides extension functions for converting symbol quantities with physical units.
 */
 package fuookami.ospf.kotlin.core.symbol
 

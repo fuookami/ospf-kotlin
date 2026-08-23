@@ -30,8 +30,7 @@ data class SinusMap<V : FloatingNumber<V>>(val c23: V, val c2: V) : Extractor<V,
 }
 
 /**
- * Sinus 映射生成器
- * Sinus Map Generator
+ * Sinus 映射生成器 / Sinus Map Generator
 */
 data class SinusMapGenerator(
     val map: SinusMap<Flt64> = SinusMap(),

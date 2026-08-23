@@ -1,7 +1,5 @@
 /**
- * CSV 序列化工具
- *
- * CSV serialization utilities for Kotlin.
+ * CSV 序列化工具 / CSV serialization utilities for Kotlin.
  * 提供 CSV 文件的读取和写入功能，基于 kotlinx.serialization。
  *
  * Provides CSV file reading and writing capabilities based on kotlinx.serialization.
@@ -14,13 +12,10 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.*
 
 /**
- * 从 CSV 文件读取数据
- *
- * Reads data from a CSV file.
+ * 从 CSV 文件读取数据 / Reads data from a CSV file.
  * 从 CSV 文件读取数据列表，自动推断类型。
  *
- * CSV 格式要求：
- * CSV format requirements:
+ * CSV 格式要求： / CSV format requirements:
  * - 第一行为表头 / First row is header
  * - 忽略未知列 / Ignores unknown columns
  * - 支持 CRLF 和 LF 换行 / Supports CRLF and LF line endings
@@ -35,13 +30,10 @@ inline fun <reified T : Any> readFromCSV(path: String): List<T> {
 }
 
 /**
- * 从 CSV 文件读取数据（使用序列化器）
- *
- * Reads data from a CSV file using a serializer.
+ * 从 CSV 文件读取数据（使用序列化器） / Reads data from a CSV file using a serializer.
  * 从 CSV 文件读取数据列表，使用指定的序列化器。
  *
- * CSV 格式要求：
- * CSV format requirements:
+ * CSV 格式要求： / CSV format requirements:
  * - 第一行为表头 / First row is header
  * - 忽略未知列 / Ignores unknown columns
  * - 支持 CRLF 和 LF 换行 / Supports CRLF and LF line endings
@@ -65,13 +57,10 @@ fun <T> readFromCSV(serializer: KSerializer<T>, path: String): List<T> {
 }
 
 /**
- * 从输入流读取 CSV 数据
- *
- * Reads CSV data from an input stream.
+ * 从输入流读取 CSV 数据 / Reads CSV data from an input stream.
  * 从输入流读取 CSV 数据列表，自动推断类型。
  *
- * CSV 格式要求：
- * CSV format requirements:
+ * CSV 格式要求： / CSV format requirements:
  * - 第一行为表头 / First row is header
  * - 忽略未知列 / Ignores unknown columns
  * - 支持 CRLF 和 LF 换行 / Supports CRLF and LF line endings
@@ -86,13 +75,10 @@ inline fun <reified T : Any> readFromCSV(stream: InputStream): List<T> {
 }
 
 /**
- * 从输入流读取 CSV 数据（使用序列化器）
- *
- * Reads CSV data from an input stream using a serializer.
+ * 从输入流读取 CSV 数据（使用序列化器） / Reads CSV data from an input stream using a serializer.
  * 从输入流读取 CSV 数据列表，使用指定的序列化器。
  *
- * CSV 格式要求：
- * CSV format requirements:
+ * CSV 格式要求： / CSV format requirements:
  * - 第一行为表头 / First row is header
  * - 忽略未知列 / Ignores unknown columns
  * - 支持 CRLF 和 LF 换行 / Supports CRLF and LF line endings
@@ -115,13 +101,10 @@ fun <T> readFromCSV(serializer: KSerializer<T>, stream: InputStream): List<T> {
 }
 
 /**
- * 将数据列表写入 CSV 文件
- *
- * Writes a data list to a CSV file.
+ * 将数据列表写入 CSV 文件 / Writes a data list to a CSV file.
  * 将数据列表写入 CSV 文件，自动推断类型。
  *
- * CSV 格式：
- * CSV format:
+ * CSV 格式： / CSV format:
  * - 第一行为表头 / First row is header
  * - 忽略未知列 / Ignores unknown columns
  *
@@ -139,13 +122,10 @@ inline fun <reified T : Any> writeCSVToFile(path: String, value: List<T>) {
 }
 
 /**
- * 将数据列表写入 CSV 文件（使用序列化器）
- *
- * Writes a data list to a CSV file using a serializer.
+ * 将数据列表写入 CSV 文件（使用序列化器） / Writes a data list to a CSV file using a serializer.
  * 将数据列表写入 CSV 文件，使用指定的序列化器。
  *
- * CSV 格式：
- * CSV format:
+ * CSV 格式： / CSV format:
  * - 第一行为表头 / First row is header
  * - 忽略未知列 / Ignores unknown columns
  *

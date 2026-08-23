@@ -1,23 +1,18 @@
 /**
- * 带宽单位
- * Bandwidth units
+ * 带宽单位 / Bandwidth units
  *
- * 提供带宽度纲的单位定义，包括比特每秒、千比特每秒、兆比特每秒等。
- * Provides unit definitions for bandwidth dimension, including bit per second, kilobit per second, megabit per second, etc.
+ * 提供带宽度纲的单位定义，包括比特每秒、千比特每秒、兆比特每秒等。 / Provides unit definitions for bandwidth dimension, including bit per second, kilobit per second, megabit per second, etc.
 */
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.quantities.dimension.Bandwidth
 
 /**
- * 比特每秒
- * Bit per second
+ * 比特每秒 / Bit per second
  *
- * 带宽基本单位。
- * Base unit for bandwidth.
+ * 带宽基本单位。 / Base unit for bandwidth.
  *
- * 定义：1 bit/s = 1 比特 / 秒
- * Definition: 1 bit/s = 1 bit / second
+ * 定义：1 bit/s = 1 比特 / 秒 / Definition: 1 bit/s = 1 bit / second
 */
 object BitPerSecond : DerivedPhysicalUnit(Bit / Second) {
     override val name = "bit per second"
@@ -27,8 +22,7 @@ object BitPerSecond : DerivedPhysicalUnit(Bit / Second) {
 }
 
 /**
- * 千比特每秒
- * Kilobit per second
+ * 千比特每秒 / Kilobit per second
  *
  * 定义：1 kbit/s = 10³ bit/s
  * Definition: 1 kbit/s = 10³ bit/s
@@ -41,8 +35,7 @@ object KilobitPerSecond : DerivedPhysicalUnit(Kilobit / Second) {
 }
 
 /**
- * 兆比特每秒
- * Megabit per second
+ * 兆比特每秒 / Megabit per second
  *
  * 定义：1 Mbit/s = 10⁶ bit/s
  * Definition: 1 Mbit/s = 10⁶ bit/s
@@ -55,8 +48,7 @@ object MegabitPerSecond : DerivedPhysicalUnit(Megabit / Second) {
 }
 
 /**
- * 吉比特每秒
- * Gigabit per second
+ * 吉比特每秒 / Gigabit per second
  *
  * 定义：1 Gbit/s = 10⁹ bit/s
  * Definition: 1 Gbit/s = 10⁹ bit/s
@@ -69,8 +61,7 @@ object GigabitPerSecond : DerivedPhysicalUnit(Gigabit / Second) {
 }
 
 /**
- * 太比特每秒
- * Terabit per second
+ * 太比特每秒 / Terabit per second
  *
  * 定义：1 Tbit/s = 10¹² bit/s
  * Definition: 1 Tbit/s = 10¹² bit/s
@@ -83,8 +74,7 @@ object TerabitPerSecond : DerivedPhysicalUnit(Terabit / Second) {
 }
 
 /**
- * 拍比特每秒
- * Petabit per second
+ * 拍比特每秒 / Petabit per second
  *
  * 定义：1 Pbit/s = 10¹⁵ bit/s
  * Definition: 1 Pbit/s = 10¹⁵ bit/s
@@ -97,8 +87,7 @@ object PetabitPerSecond : DerivedPhysicalUnit(Petabit / Second) {
 }
 
 /**
- * 艾比特每秒
- * Exabit per second
+ * 艾比特每秒 / Exabit per second
  *
  * 定义：1 Ebit/s = 10¹⁸ bit/s
  * Definition: 1 Ebit/s = 10¹⁸ bit/s
@@ -111,8 +100,7 @@ object ExabitPerSecond : DerivedPhysicalUnit(Exabit / Second) {
 }
 
 /**
- * 字节每秒
- * Byte per second
+ * 字节每秒 / Byte per second
  *
  * 定义：1 B/s = 8 bit/s
  * Definition: 1 B/s = 8 bit/s
@@ -125,8 +113,7 @@ object BytePerSecond : DerivedPhysicalUnit(Byte / Second) {
 }
 
 /**
- * 千字节每秒
- * Kilobyte per second
+ * 千字节每秒 / Kilobyte per second
  *
  * 定义：1 KB/s = 10³ B/s = 8000 bit/s
  * Definition: 1 KB/s = 10³ B/s = 8000 bit/s
@@ -139,8 +126,7 @@ object KilobytePerSecond : DerivedPhysicalUnit(Kilobyte / Second) {
 }
 
 /**
- * 兆字节每秒
- * Megabyte per second
+ * 兆字节每秒 / Megabyte per second
  *
  * 定义：1 MB/s = 10⁶ B/s
  * Definition: 1 MB/s = 10⁶ B/s

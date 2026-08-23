@@ -17,6 +17,7 @@ solver/
 ├── ModelingPreparation.kt        # 模型准备
 ├── SolveOptions.kt               # 求解选项
 ├── SolverExt.kt                  # 求解器扩展函数
+├── SolverReportExt.kt             # 统一 SolveReport 入口
 ├── SolverFailureSupport.kt       # 求解失败支持
 ├── SolverMemoryCleanupSupport.kt # 内存清理支持
 ├── SolverStatusSupport.kt        # 求解状态支持
@@ -60,7 +61,7 @@ solver/
 `LinearSolver` 接口定义了线性规划求解的完整能力：
 
 **核心求解方法**：
-- `invoke(model, callback)` — 求解线性模型，返回 `FeasibleSolverOutput<Flt64>`
+- `invoke(model, callback)` — 求解线性模型，返回 `SolveReport<Flt64>`
 - `invoke(model, solutionAmount, callback)` — 求解多个解
 - `solve(model, converter, callback)` — 泛型求解，支持任意数值类型 V
 
@@ -74,6 +75,13 @@ MetaModel<V> → dump → MechanismModel<Flt64> → dump → LinearTriadModel �
 
 **IIS 诊断**：
 - `invoke(model, callback, iisConfig)` — 求解并进行不可行子系统分析
+
+### 统一求解报告 (`SolverReportExt.kt`)
+
+新代码应优先使用 `solveReport(...)` 报告入口。线性和二次重载覆盖单解、解池、`SolveOptions`、IIS 编排、机制模型转储和泛型数值转换，并返回 `Ret<SolveReport<V>>`。请求解池时，主解保留在 `solution.values`，所有返回解保留在 `solution.pool`。
+
+`SolveReport<V>` 是新代码和迁移后代码的唯一主结果，统一保留非可行终态、incumbent、结构化诊断、provenance 和指纹。
+`LinearInfeasibleSolverOutput` 与 `QuadraticInfeasibleSolverOutput` 仅作为显式 IIS 兼容入口的物化 artifact 保留。
 
 ### 二次求解器接口 (`QuadraticSolver.kt`)
 
@@ -89,15 +97,14 @@ SolverOutput
 ├── LinearSolverOutput      — 线性求解器输出
 └── QuadraticSolverOutput   — 二次求解器输出
 
-FeasibleSolverOutput<V>     — 可行解输出（目标值、解、统计信息）
+SolveReport<V>              — 统一结果（状态、终止原因、解、诊断、provenance）
 LinearInfeasibleSolverOutput  — 线性不可行输出（含 IIS）
 QuadraticInfeasibleSolverOutput — 二次不可行输出（含 IIS）
 ```
 
-`FeasibleSolverOutput<V>` 同时提供 Flt64 和 V 类型的双视图访问：
-- `obj` / `objValue` — 目标值
-- `possibleBestObj` / `possibleBestObjValue` — 可能的最优目标值
-- `bestBound` / `bestBoundValue` — 最优界
+`SolveReport<V>` 通过 `solution` 暴露 incumbent，通过 `solution.objective` 暴露目标值，
+通过 `statistics` 暴露上下界和间隙；`ProblemStatus`、`TerminationReason` 和
+`SolutionPresence` 彼此独立。
 
 ### 值类型转换 (`value/IntoValue.kt`)
 

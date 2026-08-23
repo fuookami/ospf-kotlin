@@ -1,9 +1,7 @@
 /**
- * 二维放置
- * 2D Placement
+ * 二维放置 / 2D Placement
  *
- * 定义二维几何空间中的放置操作，将投影形状放置在指定 (x, y) 位置。
- * Defines placement operation in 2D geometric space, placing a projection shape at a specified (x, y) position.
+ * 定义二维几何空间中的放置操作，将投影形状放置在指定 (x, y) 位置。 / Defines placement operation in 2D geometric space, placing a projection shape at a specified (x, y) position.
 */
 package fuookami.ospf.kotlin.math.geometry
 
@@ -15,8 +13,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
- * 二维放置，将一个二维投影形状放置在 (x, y) 位置。
- * 2D placement: places a 2D projection shape at position (x, y).
+ * 二维放置，将一个二维投影形状放置在 (x, y) 位置。 / 2D placement: places a 2D projection shape at position (x, y).
  *
  * @param V 数值类型 / The numeric type
  * @property x X 坐标 / X coordinate
@@ -45,8 +42,7 @@ data class Placement2<V : FloatingNumber<V>>(
     val maxY: V get() = box.maxY
 
     /**
-     * 判断指定点是否在放置区域内
-     * Check whether a point is inside the placement region
+     * 判断指定点是否在放置区域内 / Check whether a point is inside the placement region
      *
      * @param x X 坐标 / X coordinate
      * @param y Y 坐标 / Y coordinate
@@ -72,8 +68,7 @@ data class Placement2<V : FloatingNumber<V>>(
     }
 
     /**
-     * 判断两个放置是否重叠
-     * Check whether two placements overlap
+     * 判断两个放置是否重叠 / Check whether two placements overlap
      *
      * @param rhs 另一个放置 / The other placement
      * @return 是否重叠 / Whether they overlap
@@ -83,8 +78,7 @@ data class Placement2<V : FloatingNumber<V>>(
     }
 
     /**
-     * 计算两个放置的交集，无交集返回 null
-     * Compute intersection of two placements, returns null if no overlap
+     * 计算两个放置的交集，无交集返回 null / Compute intersection of two placements, returns null if no overlap
      *
      * @param rhs 另一个放置 / The other placement
      * @return 交集放置，无交集返回 null / The intersection placement, or null if no overlap

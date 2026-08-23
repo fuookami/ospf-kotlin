@@ -1,6 +1,5 @@
 /**
- * 变量组合项及其多维数组视图，支持各数值类型的维度化变量组合。
- * Variable combination items and their multi-array views, supporting dimensional variable combinations for all numeric types.
+ * 变量组合项及其多维数组视图，支持各数值类型的维度化变量组合。 / Variable combination items and their multi-array views, supporting dimensional variable combinations for all numeric types.
 */
 package fuookami.ospf.kotlin.core.variable
 
@@ -13,8 +12,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 
 /**
- * 组合变量项的父级接口，提供维度、标识符和形状信息。
- * Parent interface for combination variable items, providing dimension, identifier, and shape information.
+ * 组合变量项的父级接口，提供维度、标识符和形状信息。 / Parent interface for combination variable items, providing dimension, identifier, and shape information.
  *
  * @param S 形状类型 / The shape type
 */
@@ -31,8 +29,7 @@ interface CombinationVariableItemParent<S : Shape> {
 }
 
 /**
- * 组合变量中的单个变量项，通过父级组合获取维度和标识符。
- * Individual variable item within a combination, obtaining dimension and identifier from the parent combination.
+ * 组合变量中的单个变量项，通过父级组合获取维度和标识符。 / Individual variable item within a combination, obtaining dimension and identifier from the parent combination.
  *
  * @property parent 父级组合变量 / Parent combination variable
  * @param type 变量类型 / Variable type
@@ -78,8 +75,7 @@ sealed class VariableCombination<T, Type : VariableType<T>, S : Shape>(
 }
 
 /**
- * 带物理单位的变量组合密封基类。
- * Sealed base class for variable combinations with physical units.
+ * 带物理单位的变量组合密封基类。 / Sealed base class for variable combinations with physical units.
  *
  * @property type 变量类型 / Variable type
  * @property name 组合名称 / Combination name

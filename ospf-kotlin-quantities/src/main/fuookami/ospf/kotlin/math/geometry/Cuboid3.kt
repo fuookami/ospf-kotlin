@@ -1,9 +1,7 @@
 /**
- * 三维长方体形状
- * 3D cuboid shape
+ * 三维长方体形状 / 3D cuboid shape
  *
- * 由宽度、高度和深度定义的三维长方体，支持体积计算和轴置换。
- * A 3D cuboid defined by width, height, and depth, supporting volume calculation and axis permutation.
+ * 由宽度、高度和深度定义的三维长方体，支持体积计算和轴置换。 / A 3D cuboid defined by width, height, and depth, supporting volume calculation and axis permutation.
 */
 package fuookami.ospf.kotlin.math.geometry
 
@@ -11,11 +9,9 @@ import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.quantities.quantity.*
 
 /**
- * 三维长方体形状
- * 3D cuboid shape
+ * 三维长方体形状 / 3D cuboid shape
  *
- * 由宽度、高度和深度定义的三维长方体，实现 QuantityShape3 接口。
- * A 3D cuboid defined by width, height, and depth, implementing the QuantityShape3 interface.
+ * 由宽度、高度和深度定义的三维长方体，实现 QuantityShape3 接口。 / A 3D cuboid defined by width, height, and depth, implementing the QuantityShape3 interface.
  *
  * @property width 宽度（x 方向）/ Width (x direction)
  * @property height 高度（y 方向）/ Height (y direction)
@@ -35,16 +31,14 @@ data class QuantityCuboid3<V : FloatingNumber<V>>(
     val volume: Quantity<V> get() = quantityProduct(quantityProduct(width, height), depth)
 
     /**
-     * 在原点创建包围盒
-     * Create a bounding box at the origin
+     * 在原点创建包围盒 / Create a bounding box at the origin
      *
      * @return 原点处的包围盒 / Bounding box at the origin
     */
     fun atOrigin(): QuantityBox3<V> = QuantityBox3.atOrigin(this)
 
     /**
-     * 在指定位置创建包围盒
-     * Create a bounding box at the specified position
+     * 在指定位置创建包围盒 / Create a bounding box at the specified position
      *
      * @param x x 坐标 / x coordinate
      * @param y y 坐标 / y coordinate
@@ -58,8 +52,7 @@ data class QuantityCuboid3<V : FloatingNumber<V>>(
     ): QuantityBox3<V> = QuantityBox3(x = x, y = y, z = z, cuboid = this)
 
     /**
-     * 获取沿指定轴的尺寸
-     * Get the dimension along a specified axis
+     * 获取沿指定轴的尺寸 / Get the dimension along a specified axis
      *
      * @param axis 目标轴 / Target axis
      * @return 沿该轴的尺寸 / Dimension along the axis

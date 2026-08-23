@@ -1,20 +1,15 @@
 /**
- * 环定後
- * Ring Laws
+ * 环定後 / Ring Laws
  *
- * 提供环代数结构定律验证类，验证加法交换律、乘法结合律、乘法单位元存在性和分配律，继承臌GroupLaw 验证群定律。
- * Provides ring algebraic structure law validation class, verifying additive commutativity, multiplicative associativity, multiplicative identity existence, and distributivity, inheriting from GroupLaw for group law verification.
+ * 提供环代数结构定律验证类，验证加法交换律、乘法结合律、乘法单位元存在性和分配律，继承臌GroupLaw 验证群定律。 / Provides ring algebraic structure law validation class, verifying additive commutativity, multiplicative associativity, multiplicative identity existence, and distributivity, inheriting from GroupLaw for group law verification.
 */
 package fuookami.ospf.kotlin.math.algebra.law
 
 /**
- * 环定律验证器
- * Ring law validator
+ * 环定律验证器 / Ring law validator
  *
  * 通过采样元素验证环的公理：加法交换律、乘法结合律、乘法单位元存在性、分配律。
- * 继承 GroupLaw 验证加法群定律。
- *
- * Validates ring axioms via sampled elements: additive commutativity, multiplicative associativity,
+ * 继承 GroupLaw 验证加法群定律。 / Validates ring axioms via sampled elements: additive commutativity, multiplicative associativity,
  * multiplicative identity existence, and distributivity. Inherits GroupLaw for additive group verification.
  *
  * @property Self 环元素类型 / Ring element type
@@ -44,8 +39,7 @@ class RingLaw<Self>(
     )
 
     /**
-     * 验证加法交换律
-     * Verify additive commutativity
+     * 验证加法交换律 / Verify additive commutativity
      *
      * @return 对所有采样元素满足加法交换律返回 true / True if additive commutativity holds for all sampled elements
     */
@@ -61,8 +55,7 @@ class RingLaw<Self>(
     }
 
     /**
-     * 验证乘法结合律
-     * Verify multiplicative associativity
+     * 验证乘法结合律 / Verify multiplicative associativity
      *
      * @return 对所有采样元素满足乘法结合律返回 true / True if multiplicative associativity holds for all sampled elements
     */
@@ -82,8 +75,7 @@ class RingLaw<Self>(
     }
 
     /**
-     * 验证乘法单位元存在性
-     * Verify multiplicative identity existence
+     * 验证乘法单位元存在性 / Verify multiplicative identity existence
      *
      * @return 对所有采样元素满足乘法单位元性质返回 true / True if multiplicative identity holds for all sampled elements
     */
@@ -100,8 +92,7 @@ class RingLaw<Self>(
     }
 
     /**
-     * 验证分配律
-     * Verify distributivity
+     * 验证分配律 / Verify distributivity
      *
      * @return 对所有采样元素满足分配律返回 true / True if distributivity holds for all sampled elements
     */
@@ -127,8 +118,7 @@ class RingLaw<Self>(
     }
 
     /**
-     * 验证所有环定律（含群定律）
-     * Validate all ring laws (including group laws)
+     * 验证所有环定律（含群定律） / Validate all ring laws (including group laws)
      *
      * @return 所有环公理均满足返回 true / True if all ring axioms hold
     */

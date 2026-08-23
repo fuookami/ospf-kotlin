@@ -21,8 +21,8 @@ interface AbstractFlowControlCondition {
     /**
      * 评估给定任务是否匹配此条件。Evaluates whether the given task matches this condition.
      *
-     * @param task The flight task to evaluate / 待评估的航班任务
-     * @return Whether the task matches the condition / 任务是否匹配条件
+     * @param task 待评估的航班任务 / The flight task to evaluate
+     * @return 任务是否匹配条件 / Whether the task matches the condition
     */
     operator fun invoke(task: FlightTask): Boolean
 }
@@ -30,7 +30,7 @@ interface AbstractFlowControlCondition {
 /**
  * 按航班类型和飞机子机型过滤的具体流量控制条件。Concrete flow control condition filtering by flight types and aircraft minor types.
  *
- * @property flightTypes The set of flight types to filter by / 用于过滤的航班类型集合
+ * @property flightTypes 用于过滤的航班类型集合 / The set of flight types to filter by
 */
 data class FlowControlCondition(
     val flightTypes: Set<FlightType> = emptySet(),
@@ -40,8 +40,8 @@ data class FlowControlCondition(
     /**
      * 评估给定任务是否匹配此条件。Evaluates whether the given task matches this condition.
      *
-     * @param task The flight task to evaluate / 待评估的航班任务
-     * @return Whether the task matches the condition / 任务是否匹配条件
+     * @param task 待评估的航班任务 / The flight task to evaluate
+     * @return 任务是否匹配条件 / Whether the task matches the condition
     */
     operator fun invoke(task: FlightTask): Boolean {
         if (task.isFlight) {
@@ -166,8 +166,8 @@ enum class FlowControlScene {
 /**
  * 流量控制的容量规格（包括数量和时间间隔）。Capacity specification for a flow control, including amount and time interval.
  *
- * @property amount The maximum number of tasks allowed / 允许的最大任务数量
- * @property interval The time interval for the capacity / 容量的时间间隔
+ * @property amount 允许的最大任务数量 / The maximum number of tasks allowed
+ * @property interval 容量的时间间隔 / The time interval for the capacity
 */
 data class FlowControlCapacity(
     val amount: UInt64,
@@ -177,7 +177,7 @@ data class FlowControlCapacity(
         /**
          * 为给定时间范围创建关闭（零容量）的流量控制。Creates a closed (zero capacity) flow control for the given time range.
          *
-         * @param time The time range to close / 要关闭的时间范围
+         * @param time 要关闭的时间范围 / The time range to close
         */
         fun close(time: TimeRange) = FlowControlCapacity(UInt64.zero, time.duration)
     }
@@ -190,7 +190,7 @@ data class FlowControlCapacity(
 /**
  * 指定机场在给定场景和时间范围内容量限制的流量控制规则。A flow control rule specifying capacity limits at an airport for a given scene and time range.
  *
- * @property id The unique identifier of the flow control / 流量控制的唯一标识符
+ * @property id 流量控制的唯一标识符 / The unique identifier of the flow control
 */
 data class FlowControl(
     val id: String = UUID.randomUUID().toString(),
@@ -234,7 +234,7 @@ data class FlowControl(
 /**
  * 表示机场特定场景的一组流量控制规则的流量资源。A flow resource representing a set of flow control rules at an airport for a specific scene.
  *
- * @property id The unique identifier of the flow resource / 流量资源的唯一标识符
+ * @property id 流量资源的唯一标识符 / The unique identifier of the flow resource
 */
 class Flow(
     id: String = UUID.randomUUID().toString(),

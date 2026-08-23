@@ -6,15 +6,13 @@
  * This module provides 2D data structure with named columns,
  * similar to pandas DataFrame or R data.frame.
  *
- * 主要组件：
- * Main components:
+ * 主要组件： / Main components:
  * - [NullableValue]: 可空值包装类
  *   Nullable value wrapper class
  * - [DataFrame]: 带命名列的二维数据结构
  *   2D data structure with named columns
  *
- * 特性：
- * Features:
+ * 特性： / Features:
  * - 列命名：支持通过列名访问数据
  *   Column naming: Access data by column name
  * - 类型安全：每列有明确的类型信息
@@ -22,8 +20,7 @@
  * - 空值支持：内置空值处理机制
  *   Null support: Built-in null handling mechanism
  *
- * 使用场景：
- * Use cases:
+ * 使用场景： / Use cases:
  * - 表格数据处理
  *   Tabular data processing
  * - 数据分析和统计
@@ -39,11 +36,9 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 可空值包装类
- * Nullable value wrapper class
+ * 可空值包装类 / Nullable value wrapper class
  *
- * 用于在 MultiArray 中存储可能为空的值。
- * Used to store potentially null values in MultiArray.
+ * 用于在 MultiArray 中存储可能为空的值。 / Used to store potentially null values in MultiArray.
  *
  * @param T 值类型 / Value type
  * @property value 包装的值 / Wrapped value
@@ -91,24 +86,21 @@ class DataFrame<T>(
     }
 
     /**
-     * 获取行数
-     * Get number of rows
+     * 获取行数 / Get number of rows
      *
      * @return 行数 / Number of rows
     */
     fun getNRows(): Int = nrows
 
     /**
-     * 获取列数
-     * Get number of columns
+     * 获取列数 / Get number of columns
      *
      * @return 列数 / Number of columns
     */
     fun getNCols(): Int = ncols
 
     /**
-     * 通过列名获取列索引
-     * Get column index by column name
+     * 通过列名获取列索引 / Get column index by column name
      *
      * @param name 列名 / Column name
      * @return 列索引，若列名不存在则返回 null / Column index, or null if column name not found
@@ -116,8 +108,7 @@ class DataFrame<T>(
     fun getColumnIndex(name: String): Int? = columnIndex[name]
 
     /**
-     * 构建列名未找到的失败结果。
-     * Build failure result for column name not found.
+     * 构建列名未找到的失败结果。 / Build failure result for column name not found.
      *
      * @param columnName 未找到的列名 / The column name not found
      * @return 失败结果 / Failure result
@@ -127,8 +118,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 获取指定位置的值
-     * Get value at specified position
+     * 获取指定位置的值 / Get value at specified position
      *
      * @param row 行索引 / Row index
      * @param col 列索引 / Column index
@@ -142,8 +132,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 通过行和列名获取值
-     * Get value by row and column name
+     * 通过行和列名获取值 / Get value by row and column name
      *
      * @param row 行索引 / Row index
      * @param columnName 列名 / Column name
@@ -155,8 +144,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 通过行和列名安全获取值
-     * Safely get value by row and column name
+     * 通过行和列名安全获取值 / Safely get value by row and column name
      *
      * @param row 行索引 / Row index
      * @param columnName 列名 / Column name
@@ -168,8 +156,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 通过行和列名获取值
-     * Get value by row and column name
+     * 通过行和列名获取值 / Get value by row and column name
      *
      * @param row 行索引 / Row index
      * @param columnName 列名 / Column name
@@ -183,8 +170,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 设置指定位置的值
-     * Set value at specified position
+     * 设置指定位置的值 / Set value at specified position
      *
      * @param row 行索引 / Row index
      * @param col 列索引 / Column index
@@ -198,14 +184,13 @@ class DataFrame<T>(
     }
 
     /**
-     * 通过行和列名设置值
-     * Set value by row and column name
+     * 通过行和列名设置值 / Set value by row and column name
      *
      * @param row 行索引 / Row index
      * @param columnName 列名 / Column name
      * @param value 要设置的值 / Value to set
      *
-     * @return Success if column exists and value was set, failure otherwise / 列存在且设置成功时返回成功，否则返回失败
+     * @return 列存在且设置成功时返回成功，否则返回失败 / Success if column exists and value was set, failure otherwise
     */
     fun setByNameSafe(row: Int, columnName: String, value: T?): Try {
         val col = columnIndex[columnName] ?: return columnNotFound(columnName)
@@ -214,8 +199,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 通过行和列名设置值
-     * Set value by row and column name
+     * 通过行和列名设置值 / Set value by row and column name
      *
      * @param row 行索引 / Row index
      * @param columnName 列名 / Column name
@@ -231,8 +215,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 获取指定行的所有值
-     * Get all values in a row
+     * 获取指定行的所有值 / Get all values in a row
      *
      * @param row 行索引 / Row index
      * @return 行数据 / Row data
@@ -243,8 +226,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 获取指定列的所有值
-     * Get all values in a column
+     * 获取指定列的所有值 / Get all values in a column
      *
      * @param col 列索引 / Column index
      * @return 列数据 / Column data
@@ -255,8 +237,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 通过列名获取列
-     * Get column by column name
+     * 通过列名获取列 / Get column by column name
      *
      * @param columnName 列名 / Column name
      * @return 列数据 / Column data
@@ -267,8 +248,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 通过列名安全获取列
-     * Safely get column by column name
+     * 通过列名安全获取列 / Safely get column by column name
      *
      * @param columnName 列名 / Column name
      * @return 列数据结果 / Column data result
@@ -279,8 +259,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 通过列名获取列
-     * Get column by column name
+     * 通过列名获取列 / Get column by column name
      *
      * @param columnName 列名 / Column name
      * @return 列数据结果 / Column data result
@@ -293,8 +272,7 @@ class DataFrame<T>(
      * 转换为可空元素的 MultiArray
      * Convert to MultiArray with nullable elements
      *
-     * 使用包装类 NullableValue 来存储可能为空的值。
-     * Uses wrapper class NullableValue to store potentially null values.
+     * 使用包装类 NullableValue 来存储可能为空的值。 / Uses wrapper class NullableValue to store potentially null values.
      *
      * @return 包含可空值的二维多维数组 / 2D multi-array with nullable values
     */
@@ -309,8 +287,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 获取指定范围的视图
-     * Get view of specified range
+     * 获取指定范围的视图 / Get view of specified range
      *
      * @param rows 行范围 / Row range
      * @param cols 列范围 / Column range
@@ -334,8 +311,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 选择指定列
-     * Select specified columns
+     * 选择指定列 / Select specified columns
      *
      * @param columnNames 要选择的列名 / Column names to select
      * @return 包含指定列的 DataFrame / DataFrame with selected columns
@@ -359,8 +335,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 选择指定列
-     * Select specified columns
+     * 选择指定列 / Select specified columns
      *
      * @param columnNames 要选择的列名 / Column names to select
      * @return 包含指定列的 DataFrame 结果 / DataFrame result with selected columns
@@ -370,8 +345,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 过滤行
-     * Filter rows
+     * 过滤行 / Filter rows
      *
      * @param predicate 行过滤谓词 / Row filter predicate
      * @return 过滤后的 DataFrame / Filtered DataFrame
@@ -394,8 +368,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 复制并添加行
-     * Copy and add a row
+     * 复制并添加行 / Copy and add a row
      *
      * @param values 新行的值 / Values for the new row
      * @return 添加行后的新 DataFrame / New DataFrame with added row
@@ -423,8 +396,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 转换为 Map 表示
-     * Convert to Map representation
+     * 转换为 Map 表示 / Convert to Map representation
      *
      * @return 列名到列数据的映射 / Mapping from column name to column data
     */
@@ -437,8 +409,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 安全转换为 Map 表示
-     * Safely convert to Map representation
+     * 安全转换为 Map 表示 / Safely convert to Map representation
      *
      * @return 列名到列数据映射的结果 / Result of mapping from column name to column data
     */
@@ -455,8 +426,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 转换为 Map 表示
-     * Convert to Map representation
+     * 转换为 Map 表示 / Convert to Map representation
      *
      * @return 列名到列数据映射的结果 / Result of mapping from column name to column data
     */
@@ -465,8 +435,7 @@ class DataFrame<T>(
     }
 
     /**
-     * 迭代器 - 按行迭代
-     * Iterator - iterate by row
+     * 迭代器 - 按行迭代 / Iterator - iterate by row
     */
     override fun iterator(): Iterator<Collection<T?>> {
         return data.map { it.toList() }.iterator()
@@ -475,8 +444,7 @@ class DataFrame<T>(
     override val size: Int get() = nrows
 
     /**
-     * 检查是否包含元素
-     * Check if contains all elements
+     * 检查是否包含元素 / Check if contains all elements
     */
     override fun containsAll(elements: Collection<Collection<T?>>): Boolean {
         return elements.all { row -> data.contains(row) }
@@ -489,8 +457,7 @@ class DataFrame<T>(
     override fun isEmpty(): Boolean = nrows == 0
 
     /**
-     * 字符串表示
-     * String representation
+     * 字符串表示 / String representation
     */
     override fun toString(): String {
         val sb = StringBuilder()
@@ -588,8 +555,7 @@ class DataFrameBuilder<T>(
     private val rows = mutableListOf<List<T?>>()
 
     /**
-     * 添加一行数据
-     * Add a row of data
+     * 添加一行数据 / Add a row of data
      *
      * @param values 行数据 / Row data
     */
@@ -601,8 +567,7 @@ class DataFrameBuilder<T>(
     }
 
     /**
-     * 添加多行数据
-     * Add multiple rows of data
+     * 添加多行数据 / Add multiple rows of data
      *
      * @param values 多行数据 / Multiple rows of data
     */
@@ -619,7 +584,7 @@ class DataFrameBuilder<T>(
      * 构建 DataFrame
      * Build DataFrame
      *
-     * @return Constructed DataFrame instance / 构建的 DataFrame 实例
+     * @return 构建的 DataFrame 实例 / Constructed DataFrame instance
     */
     fun build(): DataFrame<T> {
         val df = DataFrame<T>(rows.size, columnNames.size, columnNames)
@@ -647,8 +612,7 @@ fun <T> dataFrameOf(
 }
 
 /**
- * 便捷函数：从行创建 DataFrame
- * Convenience function: Create DataFrame from rows
+ * 便捷函数：从行创建 DataFrame / Convenience function: Create DataFrame from rows
  *
  * @param columnNames 列名列表 / List of column names
  * @param rows 行数据列表 / List of row data

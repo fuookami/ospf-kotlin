@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
 import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
 import fuookami.ospf.kotlin.core.solver.heuristic.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
@@ -28,7 +29,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
 /** 遗传算法策略接口 / Genetic algorithm policy interface */
 interface AbstractGAPolicy<ObjValue, V> :
-    AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+    AbstractHeuristicPolicy where V : RealNumber<V>, V : NumberField<V> {
 
     /**
      * 执行种群迁移 / Execute population migration
@@ -94,9 +95,7 @@ interface AbstractGAPolicy<ObjValue, V> :
 /**
  * 遗传算法策略
  *
- * 实现遗传算法的迁移、选择、交叉和变异操作，支持多种群迁移和精英保留策略。
- *
- * Genetic algorithm policy
+ * 实现遗传算法的迁移、选择、交叉和变异操作，支持多种群迁移和精英保留策略。 / Genetic algorithm policy
  *
  * Implements migration, selection, crossover, and mutation operations for genetic algorithm,
  * supporting multi-population migration and elite preservation strategy.
@@ -125,13 +124,13 @@ class GAPolicy<ObjValue, V>(
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
-    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
+    val randomGenerator: Generator<Flt64> = Generator { Random.nextFlt64() },
     private val converter: IntoValue<V>
 ) : HeuristicPolicy(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
-), AbstractGAPolicy<ObjValue, V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+), AbstractGAPolicy<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun invoke(
             migration: Migration<Flt64, Flt64>,
@@ -145,7 +144,7 @@ class GAPolicy<ObjValue, V>(
             iterationLimit: UInt64 = UInt64.maximum,
             notBetterIterationLimit: UInt64 = UInt64.maximum,
             timeLimit: Duration = 30.minutes,
-            randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
+            randomGenerator: Generator<Flt64> = Generator { Random.nextFlt64() }
         ): GAPolicy<Flt64, Flt64> {
             return GAPolicy(
                 migration = migration,
@@ -315,9 +314,7 @@ class GAPolicy<ObjValue, V>(
 /**
  * 遗传算法
  *
- * 实现基于种群的遗传算法，支持多种群协同进化、精英保留和周期性迁移。
- *
- * Genetic algorithm
+ * 实现基于种群的遗传算法，支持多种群协同进化、精英保留和周期性迁移。 / Genetic algorithm
  *
  * Implements population-based genetic algorithm, supporting multi-population co-evolution,
  * elite preservation, and periodic migration.
@@ -335,7 +332,7 @@ class GeneAlgorithm<Obj, ObjValue, V>(
     val migrationPeriod: UInt64,
     val solutionAmount: UInt64 = UInt64.one,
     val policy: AbstractGAPolicy<ObjValue, V>,
-) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+) where V : RealNumber<V>, V : NumberField<V> {
 
     /**
      * 执行遗传算法 / Execute genetic algorithm

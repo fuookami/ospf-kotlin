@@ -1,9 +1,7 @@
 /**
- * 爱因斯坦求和错误定义
- * Einstein summation error definitions
+ * 爱因斯坦求和错误定义 / Einstein summation error definitions
  *
- * 提供爱因斯坦求和操作的错误类型。
- * Provides error types for Einstein summation operations.
+ * 提供爱因斯坦求和操作的错误类型。 / Provides error types for Einstein summation operations.
 */
 package fuookami.ospf.kotlin.multiarray.einsum
 
@@ -27,8 +25,7 @@ sealed class EinsumError(
 ) : Exception(message) {
 
     /**
-     * 维度不匹配错误
-     * Dimension mismatch error
+     * 维度不匹配错误 / Dimension mismatch error
      *
      * @param expected 期望的维度数
      * @param actual 实际的维度数
@@ -44,8 +41,7 @@ sealed class EinsumError(
     )
 
     /**
-     * 形状不兼容错误
-     * Incompatible shapes error
+     * 形状不兼容错误 / Incompatible shapes error
      *
      * @param shape1 第一个张量的形状
      * @param shape2 第二个张量的形状
@@ -61,8 +57,7 @@ sealed class EinsumError(
     )
 
     /**
-     * 索引重复错误
-     * Duplicate indices error
+     * 索引重复错误 / Duplicate indices error
      *
      * @param index 重复的索引ID
     */
@@ -73,8 +68,7 @@ sealed class EinsumError(
     )
 
     /**
-     * 不支持的运算错误
-     * Unsupported operation error
+     * 不支持的运算错误 / Unsupported operation error
      *
      * @param description 描述信息
     */
@@ -85,8 +79,7 @@ sealed class EinsumError(
     )
 
     /**
-     * 索引越界错误
-     * Index out of bounds error
+     * 索引越界错误 / Index out of bounds error
      *
      * @param index 索引值
      * @param maxIndex 最大索引值
@@ -100,8 +93,7 @@ sealed class EinsumError(
     )
 
     /**
-     * 索引列表长度不匹配错误
-     * Index list length mismatch error
+     * 索引列表长度不匹配错误 / Index list length mismatch error
      *
      * @param expected 期望的长度
      * @param actual 实际的长度

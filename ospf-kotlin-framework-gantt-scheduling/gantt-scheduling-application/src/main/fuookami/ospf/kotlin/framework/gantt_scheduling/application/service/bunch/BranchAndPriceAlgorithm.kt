@@ -13,8 +13,10 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.report.SolveReport
+import fuookami.ospf.kotlin.core.solver.progress.*
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
+import fuookami.ospf.kotlin.framework.solver.FrameworkSolveOptions
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchSolution
@@ -25,8 +27,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.bunch.I
 /**
  * 分支分组跟踪器 / Branch group tracker
  *
- * 单时域默认一个执行器对应一个分组；分时隙场景可让一个执行器对应多个 `(executor, slot)` 分组。
- * A single-horizon executor owns one group by default, while slot-based scheduling can expose multiple
+ * 单时域默认一个执行器对应一个分组；分时隙场景可让一个执行器对应多个 `(executor, slot)` 分组。 / A single-horizon executor owns one group by default, while slot-based scheduling can expose multiple
  * `(executor, slot)` groups for the same executor.
  */
 internal class BranchGroupTracker<B, E>(
@@ -171,8 +172,8 @@ class BranchAndPriceAlgorithm<
      * Calculate the number of executors not associated with fixed bunches.
      * 计算未关联固定任务束的执行器数量
      *
-     * @param fixedBunches Set of fixed bunches / 已固定的任务束集合
-     * @return Number of non-fixed executors / 未固定的执行器数量
+     * @param fixedBunches 已固定的任务束集合 / Set of fixed bunches
+     * @return 未固定的执行器数量 / Number of non-fixed executors
     */
     private fun notFixedExtractorAmount(fixedBunches: Set<B>): UInt64 {
         return branchGroupTracker.notFixedAmount(fixedBunches)
@@ -182,9 +183,9 @@ class BranchAndPriceAlgorithm<
      * Calculate the minimum column amount requirement per executor in the current state.
      * 计算当前状态下每个执行器的最小列数要求
      *
-     * @param fixedBunches Set of fixed bunches / 已固定的任务束集合
-     * @param configuration Algorithm configuration / 算法配置
-     * @return Minimum column amount / 最小列数
+     * @param fixedBunches 已固定的任务束集合 / Set of fixed bunches
+     * @param configuration 算法配置 / Algorithm configuration
+     * @return 最小列数 / Minimum column amount
     */
     private fun minimumColumnAmount(
         fixedBunches: Set<B>,
@@ -202,13 +203,22 @@ class BranchAndPriceAlgorithm<
     */
     suspend operator fun invoke(
         id: SolverRunId,
-        heartBeatCallBack: ((kotlin.time.Instant, Duration, Flt64) -> Try)? = null
+        heartBeatCallBack: ((kotlin.time.Instant, Duration, Flt64) -> Try)? = null,
+        progressContext: SolverProgressContext? = null
     ): Ret<BunchSolution<B, V, T, E, A>> {
         var maximumReducedCost1 = Flt64(50.0)
         var maximumReducedCost2 = Flt64(3000.0)
 
         val beginTime = Clock.System.now()
         lateinit var bestSolution: BunchSolution<B, V, T, E, A>
+        progressContext?.report(
+            SolverProgressSnapshot(
+                stage = SolverStages.BranchAndPrice,
+                progressInStage = 0,
+                overallProgress = 0,
+                diagnostics = mapOf("solve" to id.value)
+            )
+        )
         return LinearMetaModel<Flt64>(id.value, converter = schedulingSolverValueAdapter).use { model ->
             try {
 
@@ -224,11 +234,25 @@ class BranchAndPriceAlgorithm<
                         return Fatal(result.errors)
                     }
                 }
+                progressContext?.report(
+                    SolverProgressSnapshot(
+                        stage = SolverStages.Registration,
+                        progressInStage = 100,
+                        overallProgress = 20,
+                        diagnostics = mapOf("solve" to id.value)
+                    )
+                )
 
                 // solve ip with initial column / 使用初始列求解 IP
-                val ipRet = when (val result = solver.solveMILP("${id.value}_$iteration", model)) {
+                val ipRet = when (val result = solver.solveMILP(
+                    metaModel = model,
+                    options = FrameworkSolveOptions(
+                        name = "${id.value}_$iteration",
+                        progressContext = progressContext
+                    )
+                )) {
                     is Ok -> {
-                        model.setSolution(result.value.solution)
+                        model.setSolution(result.value.values)
                         result.value
                     }
 
@@ -256,9 +280,9 @@ class BranchAndPriceAlgorithm<
                     }
                 }
                 refresh(ipRet)
-                iteration.refreshIpObj(ipRet.obj)
+                iteration.refreshIpObj(ipRet.solution?.objective ?: Flt64.zero)
 
-                if (ipRet.obj eq Flt64.zero) {
+                if ((ipRet.solution?.objective ?: Flt64.zero) eq Flt64.zero) {
                     return Ok(bestSolution)
                 }
 
@@ -290,8 +314,26 @@ class BranchAndPriceAlgorithm<
                     && iteration.runTime < configuration.timeLimit
                 ) {
                     logger.debug { "Iteration $mainIteration begin!" }
+                    val iterationProgress = (iteration.optimalRate * Flt64(100.0)).toDouble().toInt().coerceIn(0, 100)
+                    progressContext?.report(
+                        SolverProgressSnapshot(
+                            stage = SolverStages.BranchAndPrice,
+                            subStage = SolverSubStage(
+                                key = "master_iter",
+                                defaultTemplate = "主问题求解（迭代 {iter}）",
+                                messageKey = "i18n.ospf.substage.master_iter",
+                                args = mapOf("iter" to mainIteration.toString())
+                            ),
+                            progressInStage = iterationProgress,
+                            overallProgress = 30 + iterationProgress * 6 / 10,
+                            diagnostics = mapOf(
+                                "solve" to id.value,
+                                "iteration" to mainIteration.toString()
+                            )
+                        )
+                    )
 
-                    shadowPriceMap = when (val result = solveRMP(id, iteration, model, true)) {
+                    shadowPriceMap = when (val result = solveRMP(id, iteration, model, true, progressContext)) {
                         is Ok -> {
                             result.value
                         }
@@ -357,7 +399,7 @@ class BranchAndPriceAlgorithm<
                             }
                         }
 
-                        shadowPriceMap = when (val result = solveRMP(id, iteration, model, true)) {
+                        shadowPriceMap = when (val result = solveRMP(id, iteration, model, true, progressContext)) {
                             is Ok -> {
                                 result.value
                             }
@@ -437,7 +479,7 @@ class BranchAndPriceAlgorithm<
 
                     // locally column generation / 局部列生成
                     while (true) {
-                        shadowPriceMap = when (val result = solveRMP(id, iteration, model, false)) {
+                        shadowPriceMap = when (val result = solveRMP(id, iteration, model, false, progressContext)) {
                             is Ok -> {
                                 result.value
                             }
@@ -542,9 +584,15 @@ class BranchAndPriceAlgorithm<
 
                     this.fixedBunches.clear()
                     this.fixedBunches.addAll(fixedBunches)
-                    val thisIpRet = when (val result = solver.solveMILP("${id.value}_${iteration}_ip", model)) {
+                    val thisIpRet = when (val result = solver.solveMILP(
+                        metaModel = model,
+                        options = FrameworkSolveOptions(
+                            name = "${id.value}_${iteration}_ip",
+                            progressContext = progressContext
+                        )
+                    )) {
                         is Ok -> {
-                            model.setSolution(result.value.solution)
+                            model.setSolution(result.value.values)
                             result.value
                         }
 
@@ -558,11 +606,11 @@ class BranchAndPriceAlgorithm<
                     }
                     refresh(thisIpRet)
                     logIpResults(iteration.iteration, model)
-                    if (iteration.refreshIpObj(thisIpRet.obj)) {
+                    if (iteration.refreshIpObj(thisIpRet.solution?.objective ?: Flt64.zero)) {
                         when (val result = analyzeSolution(iteration.iteration, model)) {
                             is Ok -> {
                                 bestSolution = result.value
-                                if (thisIpRet.obj eq Flt64.zero) {
+                                if ((thisIpRet.solution?.objective ?: Flt64.zero) eq Flt64.zero) {
                                     return Ok(bestSolution)
                                 }
                             }
@@ -592,6 +640,14 @@ class BranchAndPriceAlgorithm<
                     ++mainIteration
                 }
 
+                progressContext?.report(
+                    SolverProgressSnapshot(
+                        stage = SolverStages.PostProcessing,
+                        progressInStage = 100,
+                        overallProgress = 100,
+                        diagnostics = mapOf("solve" to id.value)
+                    )
+                )
                 Ok(bestSolution)
             } catch (e: Exception) {
                 print(e.stackTraceToString())
@@ -620,8 +676,8 @@ class BranchAndPriceAlgorithm<
      * Register the context and extract contexts in the model, and add initial columns.
      * 在模型中注册上下文和提取上下文，并添加初始列
      *
-     * @param model Linear meta model / 线性元模型
-     * @return Operation result / 操作结果
+     * @param model 线性元模型 / Linear meta model
+     * @return 操作结果 / Operation result
     */
     private suspend fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = context.register(model)) {
@@ -685,19 +741,26 @@ class BranchAndPriceAlgorithm<
      * Solve the linear relaxation of the restricted master problem (RMP) and extract shadow prices.
      * 求解受限主问题（RMP）的线性松弛，提取影子价格
      *
-     * @param id Solver run identifier / 求解器运行标识
-     * @param iteration Current iteration / 当前迭代
-     * @param model Linear meta model / 线性元模型
-     * @param withKeeping Whether to perform bunch keeping when the objective improves / 目标值改善时是否执行任务束保留
-     * @return Shadow price map / 影子价格映射
+     * @param id 求解器运行标识 / Solver run identifier
+     * @param iteration 当前迭代 / Current iteration
+     * @param model 线性元模型 / Linear meta model
+     * @param withKeeping 目标值改善时是否执行任务束保留 / Whether to perform bunch keeping when the objective improves
+     * @return 影子价格映射 / Shadow price map
     */
     private suspend fun solveRMP(
         id: SolverRunId,
         iteration: Iteration<T, E, A, V>,
         model: LinearMetaModel<Flt64>,
-        withKeeping: Boolean
+        withKeeping: Boolean,
+        progressContext: SolverProgressContext? = null
     ): Ret<Map> {
-        val lpRet = when (val result = solver.solveLP("${id.value}_${iteration}_lp", model)) {
+        val lpRet = when (val result = solver.solveLP(
+            metaModel = model,
+            options = FrameworkSolveOptions(
+                name = "${id.value}_${iteration}_lp",
+                progressContext = progressContext
+            )
+        )) {
             is Ok -> {
                 model.setSolution(result.value.solution)
                 result.value
@@ -713,7 +776,7 @@ class BranchAndPriceAlgorithm<
         }
 
         refresh(lpRet)
-        if (iteration.refreshLpObj(lpRet.result.obj) && withKeeping) {
+        if (iteration.refreshLpObj(lpRet.result.solution?.objective ?: Flt64.zero) && withKeeping) {
             when (val ret = keepBunch(iteration.iteration, model)) {
                 is Ok -> {}
 
@@ -748,11 +811,11 @@ class BranchAndPriceAlgorithm<
      * Solve the sub-problem (pricing problem) to generate new bunches with negative reduced cost.
      * 求解子问题（定价问题），生成具有负约简成本的新任务束
      *
-     * @param id Solver run identifier / 求解器运行标识
-     * @param iteration Current iteration / 当前迭代
-     * @param executors List of executors / 执行器列表
-     * @param shadowPriceMap Shadow price map / 影子价格映射
-     * @return List of newly generated bunches / 新生成的任务束列表
+     * @param id 求解器运行标识 / Solver run identifier
+     * @param iteration 当前迭代 / Current iteration
+     * @param executors 执行器列表 / List of executors
+     * @param shadowPriceMap 影子价格映射 / Shadow price map
+     * @return 新生成的任务束列表 / List of newly generated bunches
     */
     private suspend fun solveSP(
         id: SolverRunId,
@@ -807,9 +870,9 @@ class BranchAndPriceAlgorithm<
      * Extract the shadow price map from the LP dual solution.
      * 从 LP 对偶解中提取影子价格映射
      *
-     * @param model Linear meta model / 线性元模型
-     * @param shadowPrices Dual solution / 对偶解
-     * @return Shadow price map / 影子价格映射
+     * @param model 线性元模型 / Linear meta model
+     * @param shadowPrices 对偶解 / Dual solution
+     * @return 影子价格映射 / Shadow price map
     */
     private fun extractShadowPrice(
         model: AbstractLinearMetaModel<Flt64>,
@@ -850,10 +913,10 @@ class BranchAndPriceAlgorithm<
      * Add newly generated columns (bunches) to the model, deduplicate, and flush the model.
      * 向模型添加新生成的列（任务束），去重后刷新模型
      *
-     * @param iteration Current iteration number / 当前迭代编号
-     * @param newBunches List of newly generated bunches / 新生成的任务束列表
-     * @param model Linear meta model / 线性元模型
-     * @return Operation result / 操作结果
+     * @param iteration 当前迭代编号 / Current iteration number
+     * @param newBunches 新生成的任务束列表 / List of newly generated bunches
+     * @param model 线性元模型 / Linear meta model
+     * @return 操作结果 / Operation result
     */
     private suspend fun addColumns(
         iteration: UInt64,
@@ -902,13 +965,13 @@ class BranchAndPriceAlgorithm<
      * Remove redundant columns based on reduced cost to keep total column count under the limit.
      * 根据约简成本移除冗余列，控制列总数不超过上限
      *
-     * @param maximumReducedCost Maximum reduced cost threshold / 最大约简成本阈值
-     * @param maximumColumnAmount Maximum column amount / 最大列数
-     * @param shadowPriceMap Shadow price map / 影子价格映射
-     * @param fixedBunches Set of fixed bunches / 已固定的任务束集合
-     * @param keptBunches Set of bunches to keep / 需保留的任务束集合
-     * @param model Linear meta model / 线性元模型
-     * @return New maximum reduced cost threshold / 新的最大约简成本阈值
+     * @param maximumReducedCost 最大约简成本阈值 / Maximum reduced cost threshold
+     * @param maximumColumnAmount 最大列数 / Maximum column amount
+     * @param shadowPriceMap 影子价格映射 / Shadow price map
+     * @param fixedBunches 已固定的任务束集合 / Set of fixed bunches
+     * @param keptBunches 需保留的任务束集合 / Set of bunches to keep
+     * @param model 线性元模型 / Linear meta model
+     * @return 新的最大约简成本阈值 / New maximum reduced cost threshold
     */
     private fun removeColumns(
         maximumReducedCost: Flt64,
@@ -946,9 +1009,9 @@ class BranchAndPriceAlgorithm<
      * Extract and fix bunches from the model (bind bunches to specific executors).
      * 从模型中提取并固定任务束（将任务束绑定到特定执行器）
      *
-     * @param iteration Current iteration number / 当前迭代编号
-     * @param model Linear meta model / 线性元模型
-     * @return Operation result / 操作结果
+     * @param iteration 当前迭代编号 / Current iteration number
+     * @param model 线性元模型 / Linear meta model
+     * @return 操作结果 / Operation result
     */
     private fun fixBunch(
         iteration: UInt64,
@@ -974,9 +1037,9 @@ class BranchAndPriceAlgorithm<
      * Extract and keep bunches from the model (exempt from column removal).
      * 从模型中提取并保留任务束（在列删除中不被移除）
      *
-     * @param iteration Current iteration number / 当前迭代编号
-     * @param model Linear meta model / 线性元模型
-     * @return Operation result / 操作结果
+     * @param iteration 当前迭代编号 / Current iteration number
+     * @param model 线性元模型 / Linear meta model
+     * @return 操作结果 / Operation result
     */
     private fun keepBunch(
         iteration: UInt64,
@@ -1017,8 +1080,8 @@ class BranchAndPriceAlgorithm<
      * Extract and hide executors from the model.
      * 从模型中提取并隐藏执行器
      *
-     * @param model Linear meta model / 线性元模型
-     * @return Operation result / 操作结果
+     * @param model 线性元模型 / Linear meta model
+     * @return 操作结果 / Operation result
     */
     private fun hideExecutors(model: AbstractLinearMetaModel<Flt64>): Try {
         return when (val result = context.extractHiddenExecutors(executors, model)) {
@@ -1041,8 +1104,8 @@ class BranchAndPriceAlgorithm<
      * Select free executors (not fixed or hidden) based on shadow prices.
      * 根据影子价格选择自由执行器（未被固定或隐藏）
      *
-     * @param model Linear meta model / 线性元模型
-     * @return Set of free executors / 自由执行器集合
+     * @param model 线性元模型 / Linear meta model
+     * @return 自由执行器集合 / Set of free executors
     */
     private fun selectFreeExecutors(
         model: AbstractLinearMetaModel<Flt64>
@@ -1071,30 +1134,30 @@ class BranchAndPriceAlgorithm<
      * Update main problem solving statistics from an LP result.
      * 根据 LP 求解结果更新主问题求解统计
      *
-     * @param feasibleLpResult Feasible LP result / 可行 LP 结果
+     * @param feasibleLpResult 可行 LP 结果 / Feasible LP result
     */
     private fun refresh(feasibleLpResult: ColumnGenerationSolver.LPResult) {
         mainProblemSolvingTimes += UInt64.one
-        mainProblemSolvingTime += feasibleLpResult.result.time
+        mainProblemSolvingTime += feasibleLpResult.result.solveTime ?: Duration.ZERO
     }
 
     /**
      * Update main problem solving statistics from an IP result.
      * 根据 IP 求解结果更新主问题求解统计
      *
-     * @param ipResult Feasible IP result / 可行 IP 结果
+     * @param ipResult 可行 IP 结果 / Feasible IP result
     */
-    private fun refresh(ipResult: FeasibleSolverOutput<Flt64>) {
+    private fun refresh(ipResult: SolveReport<Flt64>) {
         mainProblemSolvingTimes += UInt64.one
-        mainProblemSolvingTime += ipResult.time
+        mainProblemSolvingTime += ipResult.solveTime ?: Duration.ZERO
     }
 
     /**
      * Globally fix bunches: commit fixed bunches that are not in the free executors set to the context.
      * 全局固定任务束：将不在自由执行器中的已固定任务束提交到上下文
      *
-     * @param freeExecutors Set of free executors / 自由执行器集合
-     * @return Set of fixed bunches / 已固定的任务束集合
+     * @param freeExecutors 自由执行器集合 / Set of free executors
+     * @return 已固定的任务束集合 / Set of fixed bunches
     */
     private fun globallyFix(
         freeExecutors: Set<Executor>
@@ -1124,10 +1187,10 @@ class BranchAndPriceAlgorithm<
      * Locally fix bunches: pin high-certainty bunches to executors based on the current solution.
      * 局部固定任务束：根据当前解将高确定性的任务束固定到执行器
      *
-     * @param iteration Current iteration number / 当前迭代编号
-     * @param fixedBunches Set of already fixed bunches / 已固定的任务束集合
-     * @param model Linear meta model / 线性元模型
-     * @return Set of newly fixed bunches / 新固定的任务束集合
+     * @param iteration 当前迭代编号 / Current iteration number
+     * @param fixedBunches 已固定的任务束集合 / Set of already fixed bunches
+     * @param model 线性元模型 / Linear meta model
+     * @return 新固定的任务束集合 / Set of newly fixed bunches
     */
     private fun locallyFix(
         iteration: UInt64,
@@ -1154,8 +1217,8 @@ class BranchAndPriceAlgorithm<
      * Flush the context state of the current iteration, clearing kept bunches and hidden executors.
      * 刷新当前迭代的上下文状态，清除保留任务束和隐藏执行器
      *
-     * @param iteration Current iteration number / 当前迭代编号
-     * @return Operation result / 操作结果
+     * @param iteration 当前迭代编号 / Current iteration number
+     * @return 操作结果 / Operation result
     */
     private fun flush(iteration: UInt64): Try {
         when (val ret = context.flush(iteration)) {
@@ -1179,9 +1242,9 @@ class BranchAndPriceAlgorithm<
      * Analyze the current solution and extract the bunch scheduling plan.
      * 分析当前解，提取任务束调度方案
      *
-     * @param iteration Current iteration number / 当前迭代编号
-     * @param model Linear meta model / 线性元模型
-     * @return Bunch solution / 任务束解
+     * @param iteration 当前迭代编号 / Current iteration number
+     * @param model 线性元模型 / Linear meta model
+     * @return 任务束解 / Bunch solution
     */
     private fun analyzeSolution(
         iteration: UInt64,
@@ -1206,9 +1269,9 @@ class BranchAndPriceAlgorithm<
      * Log the LP solving results.
      * 记录 LP 求解结果日志
      *
-     * @param iteration Current iteration number / 当前迭代编号
-     * @param model Linear meta model / 线性元模型
-     * @return Operation result / 操作结果
+     * @param iteration 当前迭代编号 / Current iteration number
+     * @param model 线性元模型 / Linear meta model
+     * @return 操作结果 / Operation result
     */
     private fun logLpResults(iteration: UInt64, model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = context.logResult(iteration, model)) {
@@ -1244,9 +1307,9 @@ class BranchAndPriceAlgorithm<
      * Log the IP solving results, including LP results and bunch cost.
      * 记录 IP 求解结果日志，包括 LP 结果和任务束成本
      *
-     * @param iteration Current iteration number / 当前迭代编号
-     * @param model Linear meta model / 线性元模型
-     * @return Operation result / 操作结果
+     * @param iteration 当前迭代编号 / Current iteration number
+     * @param model 线性元模型 / Linear meta model
+     * @return 操作结果 / Operation result
     */
     private fun logIpResults(iteration: UInt64, model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = logLpResults(iteration, model)) {

@@ -1,6 +1,5 @@
 /**
- * 范德波尔系统
- * Van der Pol System
+ * 范德波尔系统 / Van der Pol System
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 范德波尔系统
- * Van der Pol System
+ * 范德波尔系统 / Van der Pol System
  *
  * @property a 系统参数 a / System parameter a
  * @property h 时间步长 / Time step size
@@ -35,8 +33,7 @@ data class VanDerPolSystem<V : FloatingNumber<V>>(val a: V, val h: V) : Extracto
 }
 
 /**
- * 范德波尔系统生成器
- * Van der Pol System Generator
+ * 范德波尔系统生成器 / Van der Pol System Generator
 */
 data class VanDerPolSystemGenerator(
     val attractor: VanDerPolSystem<Flt64> = VanDerPolSystem(),

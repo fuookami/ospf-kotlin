@@ -11,14 +11,12 @@ import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 /**
- * 启发式策略的抽象接口，定义值约束、状态更新和终止判断。
- * Abstract interface for heuristic policies, defining value coercion, state updates, and termination checks.
+ * 启发式策略的抽象接口，定义值约束、状态更新和终止判断。 / Abstract interface for heuristic policies, defining value coercion, state updates, and termination checks.
 */
 interface AbstractHeuristicPolicy {
 
     /**
-     * 将 Flt64 值约束到变量边界内。
-     * Coerce a Flt64 value within the variable bounds.
+     * 将 Flt64 值约束到变量边界内。 / Coerce a Flt64 value within the variable bounds.
      *
      * @param iteration 当前迭代 / Current iteration
      * @param index 变量索引 / Variable index
@@ -37,8 +35,7 @@ interface AbstractHeuristicPolicy {
     }
 
     /**
-     * 将泛型值约束到变量边界内。
-     * Coerce a generic value within the variable bounds.
+     * 将泛型值约束到变量边界内。 / Coerce a generic value within the variable bounds.
      *
      * @param V 值类型 / Value type
      * @param iteration 当前迭代 / Current iteration
@@ -61,8 +58,7 @@ interface AbstractHeuristicPolicy {
     }
 
     /**
-     * 更新启发式策略状态。
-     * Update heuristic policy state.
+     * 更新启发式策略状态。 / Update heuristic policy state.
      *
      * @param iteration 当前迭代 / Current iteration
      * @param better 本轮是否有改进 / Whether this round improved
@@ -82,8 +78,7 @@ interface AbstractHeuristicPolicy {
     }
 
     /**
-     * 判断启发式搜索是否终止。
-     * Check whether the heuristic search should terminate.
+     * 判断启发式搜索是否终止。 / Check whether the heuristic search should terminate.
      *
      * @param iteration 当前迭代 / Current iteration
      * @return 是否终止 / Whether to terminate
@@ -92,8 +87,7 @@ interface AbstractHeuristicPolicy {
 }
 
 /**
- * 启发式策略基类，提供基于迭代次数和时间的终止条件。
- * Base class for heuristic policies, providing termination conditions based on iteration count and time.
+ * 启发式策略基类，提供基于迭代次数和时间的终止条件。 / Base class for heuristic policies, providing termination conditions based on iteration count and time.
  *
  * @property iterationLimit 最大迭代次数 / Maximum iteration count
  * @property notBetterIterationLimit 最大无改进迭代次数 / Maximum no-improvement iteration count

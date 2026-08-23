@@ -116,9 +116,9 @@ data class ConnectionTimeIgnoringLink(
 /**
  * 提供按前驱和后继任务查找的所有链接类型映射。A map of all link types providing lookup by predecessor and successor tasks.
  *
- * @property connectingLinks The list of connecting links / 连接链接列表
- * @property stopoverLinks The list of stopover links / 经停链接列表
- * @property connectionTimeIgnoringLinks The list of connection-time-ignoring links / 忽略连接时间的链接列表
+ * @property connectingLinks 连接链接列表 / The list of connecting links
+ * @property stopoverLinks 经停链接列表 / The list of stopover links
+ * @property connectionTimeIgnoringLinks 忽略连接时间的链接列表 / The list of connection-time-ignoring links
 */
 class LinkMap(
     val connectingLinks: List<ConnectingLink>,
@@ -132,8 +132,8 @@ class LinkMap(
     /**
      * 返回给定任务作为前驱的所有链接。Returns all links where the given task is the predecessor.
      *
-     * @param task The flight task to look up / 要查找的航班任务
-     * @return All links where the given task is the predecessor / 给定任务作为前驱的所有链接
+     * @param task 要查找的航班任务 / The flight task to look up
+     * @return 给定任务作为前驱的所有链接 / All links where the given task is the predecessor
     */
     fun linksAfter(task: FlightTask): List<Link> {
         return leftMapper[task] ?: emptyList()
@@ -142,8 +142,8 @@ class LinkMap(
     /**
      * 返回给定任务作为后继的所有链接。Returns all links where the given task is the successor.
      *
-     * @param task The flight task to look up / 要查找的航班任务
-     * @return All links where the given task is the successor / 给定任务作为后继的所有链接
+     * @param task 要查找的航班任务 / The flight task to look up
+     * @return 给定任务作为后继的所有链接 / All links where the given task is the successor
     */
     fun linksBefore(task: FlightTask): List<Link> {
         return rightMapper[task] ?: emptyList()

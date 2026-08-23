@@ -1,20 +1,16 @@
 /**
- * List 扩展操作符模块
- * List Extension Operators Module
+ * List 扩展操作符模块 / List Extension Operators Module
  *
- * 本模块为嵌套 List 类型提供多维数组风格的访问操作符。
- * This module provides multi-dimensional array style access operators
+ * 本模块为嵌套 List 类型提供多维数组风格的访问操作符。 / This module provides multi-dimensional array style access operators
  * for nested List types.
  *
- * 类型定义：
- * Type definitions:
+ * 类型定义： / Type definitions:
  * - [List2]: 二维列表类型别名
  *   2D list type alias
  * - [List3]: 三维列表类型别名
  *   3D list type alias
  *
- * 支持的操作：
- * Supported operations:
+ * 支持的操作： / Supported operations:
  * - 使用 All 索引（_a）获取整行或整列
  *   Get entire row or column using All index (_a)
  * - 使用范围索引获取子集
@@ -22,8 +18,7 @@
  * - 使用 IntRange 进行切片
  *   Slice using IntRange
  *
- * 示例：
- * Example:
+ * 示例： / Example:
  * ```kotlin
  * val matrix: List2<Int> = listOf(
  *     listOf(1, 2, 3),
@@ -50,8 +45,7 @@ typealias List2<T> = List<List<T>>
 typealias List3<T> = List<List2<T>>
 
 /**
- * 通过 All 索引和 Int 索引获取所有行的指定列
- * Get specified column from all rows using All index and Int index
+ * 通过 All 索引和 Int 索引获取所有行的指定列 / Get specified column from all rows using All index and Int index
  *
  * @param i All 索引 / All index
  * @param j 列索引 / Column index
@@ -62,8 +56,7 @@ operator fun <T> List2<T>.get(i: DummyIndex.All, j: Int): Iterable<T> {
 }
 
 /**
- * 获取指定行的所有列
- * Get all columns from the specified row
+ * 获取指定行的所有列 / Get all columns from the specified row
  *
  * @param i 行索引 / Row index
  * @param j All 索引 / All index
@@ -74,8 +67,7 @@ operator fun <T> List2<T>.get(i: Int, j: DummyIndex.All): Iterable<T> {
 }
 
 /**
- * 获取所有元素
- * Get all elements
+ * 获取所有元素 / Get all elements
  *
  * @param i All 索引 / All index
  * @param j All 索引 / All index
@@ -86,8 +78,7 @@ operator fun <T> List2<T>.get(i: DummyIndex.All, j: DummyIndex.All): Iterable<T>
 }
 
 /**
- * 通过 All 索引获取所有层的指定行指定列
- * Get specified row and column from all layers using All index
+ * 通过 All 索引获取所有层的指定行指定列 / Get specified row and column from all layers using All index
  *
  * @param i All 索引 / All index
  * @param j 行索引 / Row index
@@ -99,8 +90,7 @@ operator fun <T> List3<T>.get(i: DummyIndex.All, j: Int, k: Int): Iterable<T> {
 }
 
 /**
- * 获取指定层指定列的所有行
- * Get all rows from the specified layer and column
+ * 获取指定层指定列的所有行 / Get all rows from the specified layer and column
  *
  * @param i 层索引 / Layer index
  * @param j All 索引 / All index
@@ -112,8 +102,7 @@ operator fun <T> List3<T>.get(i: Int, j: DummyIndex.All, k: Int): Iterable<T> {
 }
 
 /**
- * 获取指定层指定行的所有列
- * Get all columns from the specified layer and row
+ * 获取指定层指定行的所有列 / Get all columns from the specified layer and row
  *
  * @param i 层索引 / Layer index
  * @param j 行索引 / Row index
@@ -125,8 +114,7 @@ operator fun <T> List3<T>.get(i: Int, j: Int, k: DummyIndex.All): Iterable<T> {
 }
 
 /**
- * 获取指定列的所有元素
- * Get all elements from the specified column
+ * 获取指定列的所有元素 / Get all elements from the specified column
  *
  * @param i All 索引 / All index
  * @param j All 索引 / All index
@@ -138,8 +126,7 @@ operator fun <T> List3<T>.get(i: DummyIndex.All, j: DummyIndex.All, k: Int): Ite
 }
 
 /**
- * 获取指定行的所有元素
- * Get all elements from the specified row
+ * 获取指定行的所有元素 / Get all elements from the specified row
  *
  * @param i All 索引 / All index
  * @param j 行索引 / Row index
@@ -151,8 +138,7 @@ operator fun <T> List3<T>.get(i: DummyIndex.All, j: Int, k: DummyIndex.All): Ite
 }
 
 /**
- * 获取指定层的所有元素
- * Get all elements from the specified layer
+ * 获取指定层的所有元素 / Get all elements from the specified layer
  *
  * @param i 层索引 / Layer index
  * @param j All 索引 / All index
@@ -164,8 +150,7 @@ operator fun <T> List3<T>.get(i: Int, j: DummyIndex.All, k: DummyIndex.All): Ite
 }
 
 /**
- * 获取所有元素
- * Get all elements
+ * 获取所有元素 / Get all elements
  *
  * @param i All 索引 / All index
  * @param j All 索引 / All index

@@ -1,12 +1,9 @@
 /**
- * 指数映射
- * Exponential Map
+ * 指数映射 / Exponential Map
  *
  * 指数映射是基于指数函数的复动力学混沌映射。
  * 该映射在复平面上定义，通过指数运算产生混沌行为。
- * 常用于复动力系统研究和分形图形生成。
- *
- * The exponential map is a complex dynamics chaotic map based on the exponential function.
+ * 常用于复动力系统研究和分形图形生成。 / The exponential map is a complex dynamics chaotic map based on the exponential function.
  * This map is defined on the complex plane, generating chaotic behavior through exponential operations.
  * Commonly used for complex dynamics research and fractal graphics generation.
 */
@@ -19,8 +16,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 指数映射
- * Exponential Map
+ * 指数映射 / Exponential Map
  *
  * 公式 / Formula: z_{n+1} = exp(z) + c
  *
@@ -44,8 +40,7 @@ data class ExponentialMap<V : FloatingNumber<V>>(
 }
 
 /**
- * 指数映射生成器
- * Exponential Map Generator
+ * 指数映射生成器 / Exponential Map Generator
 */
 data class ExponentialMapGenerator(
     val exponentialMap: ExponentialMap<Flt64> = ExponentialMap(),

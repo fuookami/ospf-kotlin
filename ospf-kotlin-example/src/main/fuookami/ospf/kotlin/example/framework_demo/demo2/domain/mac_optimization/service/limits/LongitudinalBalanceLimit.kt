@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -25,25 +26,21 @@ class LongitudinalBalanceLimit(
     override val name: String = "longitudinal_balance_limit"
 ) : Pipeline<AbstractLinearMetaModel<Flt64>> {
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
-        val poly = MutableLinearPolynomial()
-        for ((range, slack) in longitudinalBalance.slack) {
-            poly += LinearMonomial(
-                coefficient(range),
-                slack.value
-            )
-        }
+        val poly = sum(longitudinalBalance.slack.map { (range, slack) ->
+            coefficient(range) * slack.value
+        })
 
         when (val result = model.minimize(
-            LinearPolynomial(poly.monomials, poly.constant),
+            poly,
             name = "longitudinal balance"
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                 return Failed(result.error)
             }
 
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Fatal -> {
                 return Fatal(result.errors)
             }
         }

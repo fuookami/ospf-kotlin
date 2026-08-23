@@ -1,10 +1,8 @@
 
 /**
- * 设备产能约束
- * Executor Capacity Constraint
+ * 设备产能约束 / Executor Capacity Constraint
  *
- * 每台设备在每个时隙的总产能不超过可用时长。
- * Total capacity per executor per slot should not exceed available duration.
+ * 每台设备在每个时隙的总产能不超过可用时长。 / Total capacity per executor per slot should not exceed available duration.
 */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.service.limits
 
@@ -17,11 +15,9 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**
- * 设备产能约束（适用于所有 Capacity 实现）
- * Executor Capacity Constraint (works for all Capacity implementations)
+ * 设备产能约束（适用于所有 Capacity 实现） / Executor Capacity Constraint (works for all Capacity implementations)
  *
- * 每台设备在每个时隙的总产能不超过可用时长。
- * Total capacity per executor per slot should not exceed available duration.
+ * 每台设备在每个时隙的总产能不超过可用时长。 / Total capacity per executor per slot should not exceed available duration.
  *
  * @param V 数值类型 / Numeric type
  * @param A 生产动作类型 / Production action type
@@ -38,10 +34,9 @@ class ExecutorCapacityConstraint<V : RealNumber<V>, A : ProductionAction>(
 ) {
 
     /**
-     * 应用约束到模型
-     * Apply constraint to model
+     * 应用约束到模型 / Apply constraint to model
      *
-     * @param model Linear meta model / 线性元模型
+     * @param model 线性元模型 / Linear meta model
      * @return Try result / Try 结果
     */
     operator fun invoke(model: LinearMetaModel<Flt64>): Try {

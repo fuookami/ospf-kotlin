@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 /**
  * 管理聚合和管线注册的乘客域上下文。Context for passenger domain managing aggregation and pipeline registration.
  *
- * @property parameter Column generation master model coefficient parameters / 列生成主模型系数参数
+ * @property parameter 列生成主模型系数参数 / Column generation master model coefficient parameters
 */
 class PassengerContext(
     private val parameter: Parameter = Parameter()
@@ -27,8 +27,8 @@ class PassengerContext(
     /**
      * 注册聚合和管线列表到模型。Registers the aggregation and pipeline list with the model.
      *
-     * @param model The linear meta model to register with / 要注册的线性元模型
-     * @return Registration result / 注册结果
+     * @param model 要注册的线性元模型 / The linear meta model to register with
+     * @return 注册结果 / Registration result
     */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = aggregation.register(model)) {

@@ -1,11 +1,9 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /**
- * Kafka 消息客户端
- * Kafka message client
+ * Kafka 消息客户端 / Kafka message client
  *
- * 提供 Kafka 生产者/消费者的封装，支持主题订阅和模式匹配订阅。
- * Provides Kafka producer/consumer wrapper with topic subscription and pattern-matching subscription.
+ * 提供 Kafka 生产者/消费者的封装，支持主题订阅和模式匹配订阅。 / Provides Kafka producer/consumer wrapper with topic subscription and pattern-matching subscription.
 */
 package fuookami.ospf.kotlin.framework.message
 
@@ -28,8 +26,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 
 /**
- * Kafka 配置构建器
- * Kafka configuration builder
+ * Kafka 配置构建器 / Kafka configuration builder
  *
  * @property urls Kafka 代理地址列表 / Kafka broker URL list
  * @property name 客户端名称 / Client name
@@ -81,8 +78,7 @@ data class KafkaConfig(
 )
 
 /**
- * Kafka 消息记录类型别名
- * Kafka message record type alias
+ * Kafka 消息记录类型别名 / Kafka message record type alias
 */
 typealias KafkaMessageRecord = ConsumerRecord<String, String>
 
@@ -90,8 +86,7 @@ typealias KafkaMessageRecord = ConsumerRecord<String, String>
  * Kafka 客户端
  * Kafka client
  *
- * 封装 Kafka 生产者和消费者，提供消息发送和订阅功能。
- * Wraps Kafka producer and consumers, providing message sending and subscription functionality.
+ * 封装 Kafka 生产者和消费者，提供消息发送和订阅功能。 / Wraps Kafka producer and consumers, providing message sending and subscription functionality.
  *
  * @property config Kafka 配置 / Kafka configuration
  * @property producer Kafka 生产者实例 / Kafka producer instance
@@ -121,8 +116,7 @@ data class KafkaClient(
     }
 
     /**
-     * 关闭客户端，释放生产者和消费者资源
-     * Close client, releasing producer and consumer resources
+     * 关闭客户端，释放生产者和消费者资源 / Close client, releasing producer and consumer resources
     */
     override fun close() {
         producer.close()
@@ -135,8 +129,7 @@ data class KafkaClient(
     }
 
     /**
-     * 发送字符串消息到指定主题
-     * Send string message to specified topic
+     * 发送字符串消息到指定主题 / Send string message to specified topic
      *
      * @param topic 主题名称 / Topic name
      * @param message 消息内容 / Message content
@@ -151,8 +144,7 @@ data class KafkaClient(
     }
 
     /**
-     * 发送序列化对象消息到指定主题
-     * Send serialized object message to specified topic
+     * 发送序列化对象消息到指定主题 / Send serialized object message to specified topic
      *
      * @param T 消息类型 / Message type
      * @param topic 主题名称 / Topic name
@@ -171,8 +163,7 @@ data class KafkaClient(
     }
 
     /**
-     * 订阅单个主题并处理字符串消息
-     * Subscribe to a single topic and process string messages
+     * 订阅单个主题并处理字符串消息 / Subscribe to a single topic and process string messages
      *
      * @param topic 主题名称 / Topic name
      * @param process 消息处理函数 / Message processor function
@@ -191,8 +182,7 @@ data class KafkaClient(
     }
 
     /**
-     * 订阅单个主题并处理字符串消息及记录元数据
-     * Subscribe to a single topic and process string messages with record metadata
+     * 订阅单个主题并处理字符串消息及记录元数据 / Subscribe to a single topic and process string messages with record metadata
      *
      * @param topic 主题名称 / Topic name
      * @param process 消息处理函数（含记录元数据）/ Message processor function (with record metadata)
@@ -211,8 +201,7 @@ data class KafkaClient(
     }
 
     /**
-     * 订阅多个主题并处理字符串消息
-     * Subscribe to multiple topics and process string messages
+     * 订阅多个主题并处理字符串消息 / Subscribe to multiple topics and process string messages
      *
      * @param topics 主题名称列表 / Topic name list
      * @param process 消息处理函数 / Message processor function
@@ -231,8 +220,7 @@ data class KafkaClient(
     }
 
     /**
-     * 订阅多个主题并处理字符串消息及记录元数据（核心实现）
-     * Subscribe to multiple topics and process string messages with record metadata (core implementation)
+     * 订阅多个主题并处理字符串消息及记录元数据（核心实现） / Subscribe to multiple topics and process string messages with record metadata (core implementation)
      *
      * @param topics 主题名称列表 / Topic name list
      * @param process 消息处理函数（含记录元数据）/ Message processor function (with record metadata)
@@ -270,8 +258,7 @@ data class KafkaClient(
     }
 
     /**
-     * 订阅单个主题并反序列化处理消息
-     * Subscribe to a single topic and process deserialized messages
+     * 订阅单个主题并反序列化处理消息 / Subscribe to a single topic and process deserialized messages
      *
      * @param T 消息类型 / Message type
      * @param topic 主题名称 / Topic name
@@ -294,8 +281,7 @@ data class KafkaClient(
     }
 
     /**
-     * 订阅单个主题并反序列化处理消息及记录元数据
-     * Subscribe to a single topic and process deserialized messages with record metadata
+     * 订阅单个主题并反序列化处理消息及记录元数据 / Subscribe to a single topic and process deserialized messages with record metadata
      *
      * @param T 消息类型 / Message type
      * @param topic 主题名称 / Topic name
@@ -318,8 +304,7 @@ data class KafkaClient(
     }
 
     /**
-     * 订阅多个主题并反序列化处理消息
-     * Subscribe to multiple topics and process deserialized messages
+     * 订阅多个主题并反序列化处理消息 / Subscribe to multiple topics and process deserialized messages
      *
      * @param T 消息类型 / Message type
      * @param topics 主题名称列表 / Topic name list
@@ -342,8 +327,7 @@ data class KafkaClient(
     }
 
     /**
-     * 订阅多个主题并反序列化处理消息及记录元数据
-     * Subscribe to multiple topics and process deserialized messages with record metadata
+     * 订阅多个主题并反序列化处理消息及记录元数据 / Subscribe to multiple topics and process deserialized messages with record metadata
      *
      * @param T 消息类型 / Message type
      * @param topics 主题名称列表 / Topic name list
@@ -366,8 +350,7 @@ data class KafkaClient(
     }
 
     /**
-     * 按正则模式订阅主题并处理字符串消息
-     * Subscribe to topics by regex pattern and process string messages
+     * 按正则模式订阅主题并处理字符串消息 / Subscribe to topics by regex pattern and process string messages
      *
      * @param pattern 主题名称正则模式 / Topic name regex pattern
      * @param process 消息处理函数 / Message processor function
@@ -386,8 +369,7 @@ data class KafkaClient(
     }
 
     /**
-     * 按正则模式订阅主题并处理字符串消息及记录元数据
-     * Subscribe to topics by regex pattern and process string messages with record metadata
+     * 按正则模式订阅主题并处理字符串消息及记录元数据 / Subscribe to topics by regex pattern and process string messages with record metadata
      *
      * @param pattern 主题名称正则模式 / Topic name regex pattern
      * @param process 消息处理函数（含记录元数据）/ Message processor function (with record metadata)
@@ -415,8 +397,7 @@ data class KafkaClient(
     }
 
     /**
-     * 按正则模式订阅主题并反序列化处理消息
-     * Subscribe to topics by regex pattern and process deserialized messages
+     * 按正则模式订阅主题并反序列化处理消息 / Subscribe to topics by regex pattern and process deserialized messages
      *
      * @param T 消息类型 / Message type
      * @param pattern 主题名称正则模式 / Topic name regex pattern
@@ -439,8 +420,7 @@ data class KafkaClient(
     }
 
     /**
-     * 按正则模式订阅主题并反序列化处理消息及记录元数据
-     * Subscribe to topics by regex pattern and process deserialized messages with record metadata
+     * 按正则模式订阅主题并反序列化处理消息及记录元数据 / Subscribe to topics by regex pattern and process deserialized messages with record metadata
      *
      * @param T 消息类型 / Message type
      * @param pattern 主题名称正则模式 / Topic name regex pattern
@@ -463,8 +443,7 @@ data class KafkaClient(
     }
 
     /**
-     * 创建 Kafka 消费者实例
-     * Create a Kafka consumer instance
+     * 创建 Kafka 消费者实例 / Create a Kafka consumer instance
      *
      * @param groupId 消费者组 ID（可选）/ Consumer group ID (optional)
      * @return Kafka 消费者实例 / Kafka consumer instance
@@ -488,19 +467,16 @@ data class KafkaClient(
 }
 
 /**
- * Kafka 客户端管理器
- * Kafka client manager
+ * Kafka 客户端管理器 / Kafka client manager
  *
- * 管理多个 Kafka 客户端实例，按名称索引。
- * Manages multiple Kafka client instances, indexed by name.
+ * 管理多个 Kafka 客户端实例，按名称索引。 / Manages multiple Kafka client instances, indexed by name.
 */
 object Kafka {
     @get:Synchronized
     private val clients: MutableMap<String, KafkaClient> = HashMap()
 
     /**
-     * 初始化并获取 Kafka 客户端
-     * Initialize and get Kafka client
+     * 初始化并获取 Kafka 客户端 / Initialize and get Kafka client
      *
      * @param builder 配置构建器 lambda / Configuration builder lambda
      * @return Kafka 客户端实例，初始化失败时返回 null / Kafka client instance, or null if initialization fails
@@ -513,8 +489,7 @@ object Kafka {
     }
 
     /**
-     * 获取或创建 Kafka 客户端
-     * Get or create Kafka client
+     * 获取或创建 Kafka 客户端 / Get or create Kafka client
      *
      * @param config Kafka 配置 / Kafka configuration
      * @return Kafka 客户端实例，创建失败时返回 null / Kafka client instance, or null if creation fails
@@ -531,8 +506,7 @@ object Kafka {
     }
 
     /**
-     * 按名称获取已注册的 Kafka 客户端
-     * Get registered Kafka client by name
+     * 按名称获取已注册的 Kafka 客户端 / Get registered Kafka client by name
      *
      * @param name 客户端名称（为 null 时返回第一个）/ Client name (returns first if null)
      * @return Kafka 客户端实例，未找到时返回 null / Kafka client instance, or null if not found

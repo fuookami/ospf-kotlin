@@ -1,9 +1,7 @@
 /**
- * 三维轴置换
- * 3D Axis Permutation
+ * 三维轴置换 / 3D Axis Permutation
  *
- * 定义三维几何空间中的轴置换，为纯几何概念，支持宽高深轴的交换与映射。
- * Defines axis permutation in 3D geometric space, a pure geometry concept supporting width/height/depth axis swapping and mapping.
+ * 定义三维几何空间中的轴置换，为纯几何概念，支持宽高深轴的交换与映射。 / Defines axis permutation in 3D geometric space, a pure geometry concept supporting width/height/depth axis swapping and mapping.
 */
 package fuookami.ospf.kotlin.math.geometry
 
@@ -12,8 +10,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 三维轴置换为纯几何概念；apply/mapAxis 可被桥接层复用。
- * 3D axis permutation is pure geometry; apply/mapAxis are reusable by bridges.
+ * 三维轴置换为纯几何概念；apply/mapAxis 可被桥接层复用。 / 3D axis permutation is pure geometry; apply/mapAxis are reusable by bridges.
  *
  * @property widthAxis 宽度对应的轴 / The axis corresponding to width
  * @property heightAxis 高度对应的轴 / The axis corresponding to height
@@ -51,8 +48,7 @@ data class AxisPermutation3(
     }
 
     /**
-     * 按轴置换成方体的宽、高、深
-     * Permute the width, height, and depth of a cuboid by axes
+     * 按轴置换成方体的宽、高、深 / Permute the width, height, and depth of a cuboid by axes
      *
      * @param V 数值类型 / The numeric type
      * @param cuboid 待置换的长方体 / The cuboid to permute
@@ -67,8 +63,7 @@ data class AxisPermutation3(
     }
 
     /**
-     * 按轴置换圆柱的轴方向
-     * Permute the axis direction of a cylinder
+     * 按轴置换圆柱的轴方向 / Permute the axis direction of a cylinder
      *
      * @param V 数值类型 / The numeric type
      * @param cylinder 待置换的圆柱 / The cylinder to permute
@@ -81,8 +76,7 @@ data class AxisPermutation3(
     }
 
     /**
-     * 将原始轴映射到置换后的标准轴
-     * Map an original axis to its permuted standard axis
+     * 将原始轴映射到置换后的标准轴 / Map an original axis to its permuted standard axis
      *
      * @param axis 原始轴 / The original axis
      * @return 置换后的标准轴结果 / The permuted standard axis result

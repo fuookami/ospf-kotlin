@@ -1,6 +1,5 @@
 /**
- * 表达式值域
- * Expression value range
+ * 表达式值域 / Expression value range
 */
 package fuookami.ospf.kotlin.core.model.basic
 
@@ -9,8 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 /**
- * 表达式的值域，支持通过交集操作逐步收紧上下界。
- * Value range of an expression, supporting progressive tightening of bounds via intersection.
+ * 表达式的值域，支持通过交集操作逐步收紧上下界。 / Value range of an expression, supporting progressive tightening of bounds via intersection.
  *
  * @param V   数值类型 / The numeric type
  * @property _range      当前值域（null 表示空集） / Current value range (null means empty set)
@@ -79,8 +77,7 @@ open class ExpressionRange<V>(
     internal val set get() = _set
 
     /**
-     * 设置值范围
-     * Set value range
+     * 设置值范围 / Set value range
      *
      * @param range   要设置的值范围 / The value range to set
     */
@@ -90,8 +87,7 @@ open class ExpressionRange<V>(
     }
 
     /**
-     * 与指定范围求交
-     * Intersect with specified range
+     * 与指定范围求交 / Intersect with specified range
      *
      * @param range   要求交的值范围 / The value range to intersect with
      * @return        交集是否非空 / Whether the intersection is non-empty
@@ -103,8 +99,7 @@ open class ExpressionRange<V>(
     }
 
     /**
-     * 判断是否小于
-     * Check if less than
+     * 判断是否小于 / Check if less than
      *
      * @param value   比较值 / The value to compare against
      * @return        约束是否可行 / Whether the constraint is feasible
@@ -120,8 +115,7 @@ open class ExpressionRange<V>(
     }
 
     /**
-     * 判断是否小于等于
-     * Check if less than or equal
+     * 判断是否小于等于 / Check if less than or equal
      *
      * @param value   比较值 / The value to compare against
      * @return        约束是否可行 / Whether the constraint is feasible
@@ -131,8 +125,7 @@ open class ExpressionRange<V>(
     }
 
     /**
-     * 判断是否大于
-     * Check if greater than
+     * 判断是否大于 / Check if greater than
      *
      * @param value   比较值 / The value to compare against
      * @return        约束是否可行 / Whether the constraint is feasible
@@ -148,8 +141,7 @@ open class ExpressionRange<V>(
     }
 
     /**
-     * 判断是否大于等于
-     * Check if greater than or equal
+     * 判断是否大于等于 / Check if greater than or equal
      *
      * @param value   比较值 / The value to compare against
      * @return        约束是否可行 / Whether the constraint is feasible
@@ -159,8 +151,7 @@ open class ExpressionRange<V>(
     }
 
     /**
-     * 判断是否等于
-     * Check if equal
+     * 判断是否等于 / Check if equal
      *
      * @param value   比较值 / The value to compare against
      * @return        约束是否可行 / Whether the constraint is feasible
@@ -175,8 +166,7 @@ open class ExpressionRange<V>(
     }
 
     /**
-     * 与指定上下界求交
-     * Intersect with specified bounds
+     * 与指定上下界求交 / Intersect with specified bounds
      *
      * @param lb      下界 / The lower bound
      * @param ub      上界 / The upper bound
@@ -195,8 +185,7 @@ open class ExpressionRange<V>(
     }
 
     /**
-     * 设置上限
-     * Set upper bound
+     * 设置上限 / Set upper bound
      *
      * @param value   上限值 / The upper bound value
      * @return        约束是否可行 / Whether the constraint is feasible
@@ -206,8 +195,7 @@ open class ExpressionRange<V>(
     }
 
     /**
-     * 设置下限
-     * Set lower bound
+     * 设置下限 / Set lower bound
      *
      * @param value   下限值 / The lower bound value
      * @return        约束是否可行 / Whether the constraint is feasible

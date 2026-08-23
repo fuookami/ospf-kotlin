@@ -1,6 +1,5 @@
 /**
- * MongoDB 标量表达式翻译器
- * MongoDB Scalar Expression Translator
+ * MongoDB 标量表达式翻译器 / MongoDB Scalar Expression Translator
  *
  * 将通用 ScalarExpression 翻译为 MongoDB $expr 可用的表达式值。
  * Translates generic ScalarExpression to values usable in MongoDB $expr.
@@ -14,8 +13,7 @@ import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.framework.persistence.expression.*
 
 /**
- * MongoDB 标量表达式翻译器
- * MongoDB scalar expression translator
+ * MongoDB 标量表达式翻译器 / MongoDB scalar expression translator
  *
  * @property resolveFieldName 字段名解析函数 / Field name resolver function
  * @property unsupportedPredicatePolicy 不支持谓词时的策略 / Policy for unsupported predicates
@@ -26,8 +24,7 @@ class MongoScalarTranslator(
 ) {
 
     /**
-     * 翻译标量表达式为 MongoDB 可用的值
-     * Translate scalar expression to MongoDB-compatible value
+     * 翻译标量表达式为 MongoDB 可用的值 / Translate scalar expression to MongoDB-compatible value
      *
      * @param expr 标量表达式 / Scalar expression
      * @return MongoDB 可用的值，不支持时返回 null / MongoDB-compatible value, or null if unsupported
@@ -48,8 +45,7 @@ class MongoScalarTranslator(
     }
 
     /**
-     * 翻译一元标量表达式
-     * Translate unary scalar expression
+     * 翻译一元标量表达式 / Translate unary scalar expression
      *
      * @param expr 一元标量表达式 / Unary scalar expression
      * @return MongoDB 可用的值 / MongoDB-compatible value
@@ -64,8 +60,7 @@ class MongoScalarTranslator(
     }
 
     /**
-     * 翻译二元标量表达式
-     * Translate binary scalar expression
+     * 翻译二元标量表达式 / Translate binary scalar expression
      *
      * @param expr 二元标量表达式 / Binary scalar expression
      * @return MongoDB 可用的值 / MongoDB-compatible value
@@ -85,8 +80,7 @@ class MongoScalarTranslator(
     }
 
     /**
-     * 翻译标量函数表达式
-     * Translate scalar function expression
+     * 翻译标量函数表达式 / Translate scalar function expression
      *
      * @param expr 标量函数表达式 / Scalar function expression
      * @return MongoDB 可用的值 / MongoDB-compatible value
@@ -112,8 +106,7 @@ class MongoScalarTranslator(
     }
 
     /**
-     * 翻译一元函数为 MongoDB 表达式
-     * Translate unary function to MongoDB expression
+     * 翻译一元函数为 MongoDB 表达式 / Translate unary function to MongoDB expression
      *
      * @param logicalName 逻辑函数名 / Logical function name
      * @param mongoName MongoDB 函数名 / MongoDB function name
@@ -134,8 +127,7 @@ class MongoScalarTranslator(
     }
 
     /**
-     * 根据策略处理不支持的标量表达式
-     * Handle unsupported scalar expression based on policy
+     * 根据策略处理不支持的标量表达式 / Handle unsupported scalar expression based on policy
      *
      * @param reason 不支持的原因 / Reason for being unsupported
      * @return 处理结果 / Handling result

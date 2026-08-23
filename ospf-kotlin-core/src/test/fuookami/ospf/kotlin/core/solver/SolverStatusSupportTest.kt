@@ -4,6 +4,8 @@ import kotlin.test.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
+import fuookami.ospf.kotlin.core.solver.report.ProofStatus
+import kotlin.time.Duration.Companion.ZERO
 
 class SolverStatusSupportTest {
     @Test
@@ -33,5 +35,12 @@ class SolverStatusSupportTest {
         aborted = false
         assertFalse(shouldAbortOnCallbackFailure(success) { aborted = true })
         assertFalse(aborted)
+    }
+
+    @Test
+    fun shouldPreserveVerifiedProofForBackendInfeasibility() {
+        val report = SolverStatus.Infeasible.toSolveReport(solveTime = ZERO)
+
+        assertEquals(ProofStatus.Verified, report.proof.status)
     }
 }

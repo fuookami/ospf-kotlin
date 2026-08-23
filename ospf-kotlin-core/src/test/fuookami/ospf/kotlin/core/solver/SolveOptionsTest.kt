@@ -4,6 +4,8 @@ import kotlin.test.*
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStatusCallBack
+import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.solver.value.SolveValueConversionPolicy
 
 class SolveOptionsTest {
@@ -21,8 +23,8 @@ class SolveOptionsTest {
     fun solveOptionsBuilderShouldBuildConfiguredValues() {
         val options = SolveOptions.build {
             solutionAmount = UInt64(3)
-            modelBuildingStatusCallBack = { ok }
-            solvingStatusCallBack = { ok }
+            modelBuildingStatusCallBack = ModelBuildingStatusCallBack { ok }
+            solvingStatusCallBack = SolvingStatusCallBack { ok }
             valueConversionPolicy = SolveValueConversionPolicy.Strict
         }
 

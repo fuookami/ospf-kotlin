@@ -1,6 +1,5 @@
 /**
- * 缩放操作
- * Scale Operations
+ * 缩放操作 / Scale Operations
  *
  * 定义 Scale 数据类用于表示科学计数缩放因子，支持 SI 单位前缀 (atto, femto, pico, nano, micro, milli, centi, deci, deca, hecto, kilo, mega, giga, tera, peta, exa)，以及乘法和除法运算。
  * Defines Scale data class for representing scientific scaling factors, supporting SI unit prefixes (atto, femto, pico, nano, micro, milli, centi, deci, deca, hecto, kilo, mega, giga, tera, peta, exa), with multiplication and division operations.
@@ -21,8 +20,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 private typealias ScaleBase = Either<FltX, RtnX>
 
 /**
- * 科学计数缩放因子
- * Scientific scaling factor
+ * 科学计数缩放因子 / Scientific scaling factor
  *
  * @property scales 缩放因子列表 / List of scaling factors
 */
@@ -79,8 +77,7 @@ data class Scale(
         val exa = Scale(10, 18)
 
         /**
-         * 从 FltX 底数和 FltX 指数创建缩放因子
-         * Create scale from FltX base and FltX exponent
+         * 从 FltX 底数和 FltX 指数创建缩放因子 / Create scale from FltX base and FltX exponent
          *
          * @param base 底数 / The base value
          * @param index 指数 / The exponent value
@@ -92,8 +89,7 @@ data class Scale(
         }
 
         /**
-         * 从 FltX 底数和 Int 指数创建缩放因子
-         * Create scale from FltX base and Int exponent
+         * 从 FltX 底数和 Int 指数创建缩放因子 / Create scale from FltX base and Int exponent
          *
          * @param base 底数 / The base value
          * @param index 指数（默认 1） / The exponent value (default 1)
@@ -104,8 +100,7 @@ data class Scale(
         }
 
         /**
-         * 从 Double 底数和 Int 指数创建缩放因子
-         * Create scale from Double base and Int exponent
+         * 从 Double 底数和 Int 指数创建缩放因子 / Create scale from Double base and Int exponent
          *
          * @param base 底数 / The base value
          * @param index 指数（默认 1） / The exponent value (default 1)
@@ -116,8 +111,7 @@ data class Scale(
         }
 
         /**
-         * 从 Int 底数和 Int 指数创建缩放因子
-         * Create scale from Int base and Int exponent
+         * 从 Int 底数和 Int 指数创建缩放因子 / Create scale from Int base and Int exponent
          *
          * @param base 底数 / The base value
          * @param index 指数（默认 1） / The exponent value (default 1)
@@ -128,8 +122,7 @@ data class Scale(
         }
 
         /**
-         * 从 RtnX 底数和 FltX 指数创建缩放因子
-         * Create scale from RtnX base and FltX exponent
+         * 从 RtnX 底数和 FltX 指数创建缩放因子 / Create scale from RtnX base and FltX exponent
          *
          * @param base 底数 / The base value
          * @param index 指数 / The exponent value
@@ -141,8 +134,7 @@ data class Scale(
         }
 
         /**
-         * 从 RtnX 底数和 Int 指数创建缩放因子
-         * Create scale from RtnX base and Int exponent
+         * 从 RtnX 底数和 Int 指数创建缩放因子 / Create scale from RtnX base and Int exponent
          *
          * @param base 底数 / The base value
          * @param index 指数（默认 1） / The exponent value (default 1)
@@ -154,8 +146,7 @@ data class Scale(
         }
 
         /**
-         * 按底数值升序排列缩放因子列表
-         * Sort scale factor list by base value ascending
+         * 按底数值升序排列缩放因子列表 / Sort scale factor list by base value ascending
          *
          * @return 排序后的缩放因子列表 / Sorted scale factor list
         */
@@ -169,8 +160,7 @@ data class Scale(
         }
 
         /**
-         * 过滤指数为零的项并排序
-         * Filter out zero-exponent entries and sort
+         * 过滤指数为零的项并排序 / Filter out zero-exponent entries and sort
          *
          * @return 过滤并排序后的缩放因子列表 / Filtered and sorted scale factor list
         */
@@ -182,8 +172,7 @@ data class Scale(
     }
 
     /**
-     * 懒加载计算缩放值（对所有底数的指数幂累乘），计算失败返回 null
-     * Lazily compute the scale value (accumulate base^exponent for all bases), returning null on failure
+     * 懒加载计算缩放值（对所有底数的指数幂累乘），计算失败返回 null / Lazily compute the scale value (accumulate base^exponent for all bases), returning null on failure
     */
     val valueOrNull: FltX? by lazy {
         var acc = FltX.one
@@ -198,15 +187,13 @@ data class Scale(
     }
 
     /**
-     * 获取缩放值（可为 null）
-     * Get the scale value (nullable)
+     * 获取缩放值（可为 null） / Get the scale value (nullable)
     */
     val value: FltX?
         get() = valueOrNull
 
     /**
-     * 安全获取缩放值
-     * Safely get scale value
+     * 安全获取缩放值 / Safely get scale value
      *
      * @return 缩放因子值结果 / Result of the scale factor value
     */
@@ -216,8 +203,7 @@ data class Scale(
     }
 
     /**
-     * 判断两个底数是否匹配
-     * Check whether two bases match
+     * 判断两个底数是否匹配 / Check whether two bases match
      *
      * @param other 另一个底数 / The other base
      * @return 类型和值均相等返回 true / True if type and value are both equal
@@ -237,8 +223,7 @@ data class Scale(
     }
 
     /**
-     * 生成底数的缓存键
-     * Generate cache key for the base
+     * 生成底数的缓存键 / Generate cache key for the base
      *
      * @return 用于 HashMap 查找的字符串键 / String key for HashMap lookup
     */
@@ -250,8 +235,7 @@ data class Scale(
     }
 
     /**
-     * 更新单个底数的指数
-     * Update exponent of a single base
+     * 更新单个底数的指数 / Update exponent of a single base
      *
      * @param base 要更新的底数 / The base to update
      * @param delta 指数增量 / Exponent delta
@@ -274,8 +258,7 @@ data class Scale(
     }
 
     /**
-     * 与另一个缩放因子合并（乘法或除法）
-     * Merge with another scale factor (multiplication or division)
+     * 与另一个缩放因子合并（乘法或除法） / Merge with another scale factor (multiplication or division)
      *
      * @param other 另一个缩放因子 / The other scale factor
      * @param subtract true 表示除法（减指数），false 表示乘法（加指数） / True for division (subtract exponent), false for multiplication (add exponent)
@@ -290,8 +273,7 @@ data class Scale(
         val indexBuckets = HashMap<String, MutableList<Int>>(merged.size + other.scales.size)
 
         /**
-         * 将底数索引添加到桶中
-         * Add base index to the bucket
+         * 将底数索引添加到桶中 / Add base index to the bucket
          *
          * @param index 要索引的位置 / The index to add
         */
@@ -301,8 +283,7 @@ data class Scale(
         }
 
         /**
-         * 查找已存在的匹配底数索引
-         * Find the index of an existing matching base
+         * 查找已存在的匹配底数索引 / Find the index of an existing matching base
          *
          * @param base 要查找的底数 / The base to find
          * @return 匹配的索引，未找到返回 -1 / The matching index, or -1 if not found
@@ -374,8 +355,7 @@ data class Scale(
     }
 
     /**
-     * 除以 FltX，除数为零时返回 null
-     * Divide by FltX, returning null when the divisor is zero
+     * 除以 FltX，除数为零时返回 null / Divide by FltX, returning null when the divisor is zero
      *
      * @param other 除数 / The divisor
      * @return 新缩放因子或 null / New scale factor, or null
@@ -385,8 +365,7 @@ data class Scale(
     }
 
     /**
-     * 除以 FltX，除数为零时返回 null
-     * Divide by FltX, returning null when the divisor is zero
+     * 除以 FltX，除数为零时返回 null / Divide by FltX, returning null when the divisor is zero
      *
      * @param other 除数 / The divisor
      * @return 新缩放因子或 null / New scale factor, or null
@@ -400,8 +379,7 @@ data class Scale(
     }
 
     /**
-     * 安全除以 FltX，除数为零时返回失败
-     * Safely divide by FltX, returning failure when the divisor is zero
+     * 安全除以 FltX，除数为零时返回失败 / Safely divide by FltX, returning failure when the divisor is zero
      *
      * @param other 除数 / The divisor
      * @return 新缩放因子结果 / Result of new scale factor
@@ -412,8 +390,7 @@ data class Scale(
     }
 
     /**
-     * 除以 RtnX，除数为零时返回 null
-     * Divide by RtnX, returning null when the divisor is zero
+     * 除以 RtnX，除数为零时返回 null / Divide by RtnX, returning null when the divisor is zero
      *
      * @param other 除数 / The divisor
      * @return 新缩放因子或 null / New scale factor, or null
@@ -423,8 +400,7 @@ data class Scale(
     }
 
     /**
-     * 除以 RtnX，除数为零时返回 null
-     * Divide by RtnX, returning null when the divisor is zero
+     * 除以 RtnX，除数为零时返回 null / Divide by RtnX, returning null when the divisor is zero
      *
      * @param other 除数 / The divisor
      * @return 新缩放因子或 null / New scale factor, or null
@@ -438,8 +414,7 @@ data class Scale(
     }
 
     /**
-     * 安全除以 RtnX，除数为零时返回失败
-     * Safely divide by RtnX, returning failure when the divisor is zero
+     * 安全除以 RtnX，除数为零时返回失败 / Safely divide by RtnX, returning failure when the divisor is zero
      *
      * @param other 除数 / The divisor
      * @return 新缩放因子结果 / Result of new scale factor
@@ -450,8 +425,7 @@ data class Scale(
     }
 
     /**
-     * 乘以另一个缩放因子
-     * Multiply by another scale
+     * 乘以另一个缩放因子 / Multiply by another scale
      *
      * @param other 另一个缩放因子 / The other scale factor
      * @return 合并后的新缩放因子 / New merged scale factor
@@ -461,8 +435,7 @@ data class Scale(
     }
 
     /**
-     * 除以另一个缩放因子
-     * Divide by another scale
+     * 除以另一个缩放因子 / Divide by another scale
      *
      * @param other 另一个缩放因子 / The other scale factor
      * @return 合并后的新缩放因子 / New merged scale factor
@@ -473,8 +446,7 @@ data class Scale(
 }
 
 /**
- * 获取缩放因子的值（Java 互操作）
- * Get scale value (Java interop)
+ * 获取缩放因子的值（Java 互操作） / Get scale value (Java interop)
  *
  * @param scale 缩放因子 / The scale factor
  * @return 缩放因子的浮点值 / The floating-point value of the scale factor

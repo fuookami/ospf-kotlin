@@ -127,10 +127,10 @@ class Csp1dMilp<V : RealNumber<V>>(
 /**
  * initialPlans.
  * initialPlans。
- * @param problem CSP1D problem definition containing products, materials, machines, and demands / 包含产品、原料、机器和需求的CSP1D问题定义
- * @param configuration Column generation configuration controlling plan generation limits / 控制方案生成数量限制的列生成配置
- * @param domainPolicies Domain-specific policies constraining cutting plan generation / 约束切割方案生成的领域策略
- * @return Generated initial cutting plans after deduplication and flow policy filtering / 经过去重和流量策略过滤后生成的初始切割方案
+ * @param problem 包含产品、原料、机器和需求的CSP1D问题定义 / CSP1D problem definition containing products, materials, machines, and demands
+ * @param configuration 控制方案生成数量限制的列生成配置 / Column generation configuration controlling plan generation limits
+ * @param domainPolicies 约束切割方案生成的领域策略 / Domain-specific policies constraining cutting plan generation
+ * @return 经过去重和流量策略过滤后生成的初始切割方案 / Generated initial cutting plans after deduplication and flow policy filtering
 */
     private fun initialPlans(
         problem: Csp1dProblem<V>,
@@ -139,7 +139,7 @@ class Csp1dMilp<V : RealNumber<V>>(
         candidateFilters: List<(CuttingPlan<V>, List<CuttingPlan<V>>) -> Boolean> = emptyList(),
         canonicalKeyOverrides: List<(CuttingPlan<V>) -> String?> = emptyList(),
         dominanceAcceptOverrides: List<(CuttingPlan<V>, List<CuttingPlan<V>>) -> Boolean> = emptyList(),
-        flowPolicies: List<fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowPolicy<V>> = emptyList(),
+        flowPolicies: List<Csp1dFlowPolicy<V>> = emptyList(),
         widthFeasibilityCheck: ((Material<V>, Product<V>, Quantity<V>) -> Boolean)? = null
     ): List<CuttingPlan<V>> {
         if (configuration.maxInitialPlans.toLong() <= 0L) {
@@ -160,21 +160,21 @@ class Csp1dMilp<V : RealNumber<V>>(
             )
         )
         // Resolve canonical key with strategy overrides
-        val resolveCanonicalKey: (CuttingPlan<V>) -> fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanCanonicalKey = { plan ->
+        val resolveCanonicalKey: (CuttingPlan<V>) -> CuttingPlanCanonicalKey = { plan ->
             val customKey = canonicalKeyOverrides.firstNotNullOfOrNull { it(plan) }
-            if (customKey != null) fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanCanonicalKey(customKey) else plan.canonicalKey()
+            if (customKey != null) CuttingPlanCanonicalKey(customKey) else plan.canonicalKey()
         }
         val generatedPlans = report.plans.distinctBy { resolveCanonicalKey(it) }
             .take(configuration.maxInitialPlans.toInt())
         // Apply flow policy initial plan filter with context
         return if (flowPolicies.isNotEmpty()) {
-            val flowContext = object : fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowContext<V> {
+            val flowContext = object : Csp1dFlowContext<V> {
                 override val iteration = Int64.zero
                 override val currentPlans: List<CuttingPlan<V>> = generatedPlans
                 override val iterationLimit = configuration.iterationLimit
                 override val allowPartialSolution = true
             }
-            fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.filterInitialPlansByPolicies(
+            filterInitialPlansByPolicies(
                 flowPolicies, flowContext, generatedPlans
             )
         } else {
@@ -185,9 +185,9 @@ class Csp1dMilp<V : RealNumber<V>>(
 /**
  * resolveSolveConfig.
  * resolveSolveConfig。
- * @param problem CSP1D problem definition providing the default solve config / 提供默认求解配置的CSP1D问题定义
- * @param solveConfig Explicit solve config that overrides the problem's default / 显式求解配置，覆盖问题的默认配置
- * @return Resolved solve config with fallbacks from constructor-level configs applied / 应用了构造函数级别配置回退的最终求解配置
+ * @param problem 提供默认求解配置的CSP1D问题定义 / CSP1D problem definition providing the default solve config
+ * @param solveConfig 显式求解配置，覆盖问题的默认配置 / Explicit solve config that overrides the problem's default
+ * @return 应用了构造函数级别配置回退的最终求解配置 / Resolved solve config with fallbacks from constructor-level configs applied
 */
     private fun resolveSolveConfig(
         problem: Csp1dProblem<V>,
@@ -206,11 +206,11 @@ class Csp1dMilp<V : RealNumber<V>>(
 /**
  * Solves the problem milp.
  * 求解问题Milp。
- * @param problem CSP1D problem definition containing demands, materials, and machines / 包含需求、原料和机器的CSP1D问题定义
- * @param cuttingPlans Cutting plans to include as decision variables in the MILP model / 作为MILP模型决策变量的切割方案
- * @param solveConfig Solve configuration including yield, waste, and length modeling configs / 包含成品率、废料和长度建模配置的求解配置
- * @param isFinalMilp Whether this is the final MILP solve (as opposed to a relaxation) / 是否为最终MILP求解（相对于松弛求解）
- * @return MILP solve result containing status, produce result, and optional failure message / 包含求解状态、生产结果和可选失败信息的MILP求解结果
+ * @param problem 包含需求、原料和机器的CSP1D问题定义 / CSP1D problem definition containing demands, materials, and machines
+ * @param cuttingPlans 作为MILP模型决策变量的切割方案 / Cutting plans to include as decision variables in the MILP model
+ * @param solveConfig 包含成品率、废料和长度建模配置的求解配置 / Solve configuration including yield, waste, and length modeling configs
+ * @param isFinalMilp 是否为最终MILP求解（相对于松弛求解） / Whether this is the final MILP solve (as opposed to a relaxation)
+ * @return 包含求解状态、生产结果和可选失败信息的MILP求解结果 / MILP solve result containing status, produce result, and optional failure message
 */
     private suspend fun solveMilp(
         problem: Csp1dProblem<V>,
@@ -266,8 +266,8 @@ class Csp1dMilp<V : RealNumber<V>>(
 /**
  * emptyProduce.
  * emptyProduce。
- * @param problem CSP1D problem definition whose demands become unmet / 其需求变为未满足的CSP1D问题定义
- * @return An empty produce with all demands marked as unmet / 所有需求标记为未满足的空生产结果
+ * @param problem 其需求变为未满足的CSP1D问题定义 / CSP1D problem definition whose demands become unmet
+ * @return 所有需求标记为未满足的空生产结果 / An empty produce with all demands marked as unmet
 */
     private fun emptyProduce(problem: Csp1dProblem<V>): Produce<V> {
         return Produce(

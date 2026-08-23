@@ -47,8 +47,7 @@ data class BoualiAttractor<V : FloatingNumber<V>>(
 }
 
 /**
- * Bouali 吸引子生成器
- * Bouali Attractor Generator
+ * Bouali 吸引子生成器 / Bouali Attractor Generator
  *
  * @property attractor Bouali 吸引子实例 / Bouali attractor instance
 */

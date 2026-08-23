@@ -33,8 +33,7 @@ data class LuChenAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val
     }
 
     /**
-     * 工厂方法，使用默认的 Flt64 类型参数创建 Lu-Chen 吸引子实例
-     * Factory method to create a Lu-Chen attractor instance with default Flt64 parameters
+     * 工厂方法，使用默认的 Flt64 类型参数创建 Lu-Chen 吸引子实例 / Factory method to create a Lu-Chen attractor instance with default Flt64 parameters
      *
      * @param alpha 系统参数 alpha / System parameter alpha
      * @param beta 系统参数 beta / System parameter beta
@@ -52,8 +51,7 @@ data class LuChenAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val
 }
 
 /**
- * Lu-Chen 吸引子生成器
- * Lu-Chen Attractor Generator
+ * Lu-Chen 吸引子生成器 / Lu-Chen Attractor Generator
  *
  * @property attractor Lu-Chen 吸引子实例 / Lu-Chen attractor instance
  * @property _x 内部可变状态点，初始值为随机生成的三维点 / Internal mutable state point initialized with a random 3D point

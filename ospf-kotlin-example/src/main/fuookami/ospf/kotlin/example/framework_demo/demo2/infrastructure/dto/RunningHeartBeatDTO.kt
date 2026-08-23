@@ -12,9 +12,9 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  * Data transfer object for a running solver's heartbeat signal.
  * 运行中求解器心跳信号的数据传输对象。
  *
- * @property runTime the elapsed duration since the solver started / 求解器启动以来的已用时长
- * @property estimatedTime the estimated remaining duration / 预估剩余时长
- * @property optimizedRate the current optimization progress rate / 当前优化进度比率
+ * @property runTime 求解器启动以来的已用时长 / the elapsed duration since the solver started
+ * @property estimatedTime 预估剩余时长 / the estimated remaining duration
+ * @property optimizedRate 当前优化进度比率 / the current optimization progress rate
 */
 data class RunningHeartBeatDTO(
     val id: String,
@@ -31,9 +31,9 @@ data class RunningHeartBeatDTO(
  * Data transfer object for a finished solver's heartbeat signal.
  * 已完成求解器心跳信号的数据传输对象。
  *
- * @property runTime the total duration the solver ran / 求解器运行的总时长
- * @property code the completion code (zero for success) / 完成代码（零表示成功）
- * @property message the completion message or error description / 完成消息或错误描述
+ * @property runTime 求解器运行的总时长 / the total duration the solver ran
+ * @property code 完成代码（零表示成功） / the completion code (zero for success)
+ * @property message 完成消息或错误描述 / the completion message or error description
 */
 data class FinnishHeartBeatDTO(
     val id: String,

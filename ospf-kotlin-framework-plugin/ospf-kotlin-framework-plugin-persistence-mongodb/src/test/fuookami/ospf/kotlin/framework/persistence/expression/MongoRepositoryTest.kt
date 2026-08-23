@@ -55,7 +55,7 @@ class MongoRepositoryTest {
     }
 
     private val codec = MongoClientSettings.getDefaultCodecRegistry()
-    private val resolver: MongoFieldNameResolver = { path: String -> path.substringAfterLast(".") }
+    private val resolver = MongoFieldNameResolver { path: String -> path.substringAfterLast(".") }
 
     @Test
     @DisplayName("should pass where sort page update delete to collection / 应将 where sort page update delete 传递到集合层")

@@ -11,14 +11,20 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.ordinary.*
-import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.core.solver.gurobi.GurobiLinearBendersDecompositionSolver
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.core.variable.URealVar
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.*
@@ -81,14 +87,22 @@ private class FullLoadAlgorithmImpl {
         val parameter = request.parameter
         val notes = mutableListOf<String>()
 
-        when (val result = init(request)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+        if (!BendersStrategy.supportedAircraft(request.aircraftType)) {
+            return unsupportedAircraftResponse(
+                request = request,
+                path = "full-load",
+                pathName = "满舱装载"
+            )
+        }
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+        when (val result = init(request)) {
+            is Ok -> {}
+
+            is Failed -> {
                 return ResponseDTO(request, result.error) to null
             }
 
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Fatal -> {
                 return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
             }
         }
@@ -98,23 +112,20 @@ private class FullLoadAlgorithmImpl {
             return ResponseDTO.noSolution("NoSolution", notes) to null
         }
 
-        if (!BendersStrategy.supportedAircraft(request.aircraftType)) {
-            notes.add("unsupported aircraft type for full-load path: ${request.aircraftType}")
-            return ResponseDTO.noSolution("UnsupportedAircraft", notes) to null
-        }
-
         val solveMode = BendersStrategy.resolveSolveMode(request, notes)
 
         val solution = when (solveMode) {
             is SolveMode.Benders -> {
+                notes.add("solver_path=benders")
                 when (val result = solveWithBendersAlgorithm(
                     request = request,
                     notes = notes
                 )) {
-                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> result.value!!
-                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                    is Ok -> result.value!!
+                    is Failed -> {
                         if (request.solvePolicy.bendersFallbackToMilp) {
                             notes.add("Benders failed, falling back to MILP")
+                            notes.add("solver_path=milp_fallback_after_benders")
                             Diagnostics.pushGroupedNote(
                                 notes, Diagnostics.LEVEL_DIAGNOSTIC, Diagnostics.GROUP_SOLVER,
                                 Diagnostics.CODE_BENDERS_FAILED, "benders failed, fallback to milp"
@@ -125,26 +136,35 @@ private class FullLoadAlgorithmImpl {
                                 startTime = startTime,
                                 runningHeartBeatCallBack = runningHeartBeatCallBack
                             )) {
-                                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> milpResult.value!!
-                                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, milpResult.error) to null
-                                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, milpResult.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
+                                is Ok -> milpResult.value!!
+                                is Failed -> return solverFailureResponse(
+                                    request = request,
+                                    notes = notes,
+                                    error = milpResult.error
+                                )
+                                is Fatal -> return ResponseDTO(request, milpResult.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
                             }
                         } else {
                             return ResponseDTO.noSolution("BendersFailed", notes) to null
                         }
                     }
-                    is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                    is Fatal -> {
                         if (request.solvePolicy.bendersFallbackToMilp) {
                             notes.add("Benders fatal, falling back to MILP")
+                            notes.add("solver_path=milp_fallback_after_benders")
                             when (val milpResult = solveWithMILP(
                                 id = request.id,
                                 parameter = parameter,
                                 startTime = startTime,
                                 runningHeartBeatCallBack = runningHeartBeatCallBack
                             )) {
-                                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> milpResult.value!!
-                                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, milpResult.error) to null
-                                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, milpResult.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
+                                is Ok -> milpResult.value!!
+                                is Failed -> return solverFailureResponse(
+                                    request = request,
+                                    notes = notes,
+                                    error = milpResult.error
+                                )
+                                is Fatal -> return ResponseDTO(request, milpResult.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
                             }
                         } else {
                             return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
@@ -162,14 +182,20 @@ private class FullLoadAlgorithmImpl {
                             startTime = startTime,
                             runningHeartBeatCallBack = runningHeartBeatCallBack
                         )) {
-                            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> result.value!!
-                            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, result.error) to null
-                            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
+                            is Ok -> result.value!!
+                            is Failed -> return solverFailureResponse(
+                                request = request,
+                                notes = notes,
+                                error = result.error
+                            )
+                            is Fatal -> return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
                         }
                     }
-                    AircraftType.B767 -> TODO("not implemented yet")
-                    AircraftType.B747 -> TODO("not implemented yet")
-                    null -> TODO("not implemented yet")
+                    AircraftType.B767, AircraftType.B747, null -> return unsupportedAircraftResponse(
+                        request = request,
+                        path = "full-load",
+                        pathName = "满舱装载"
+                    )
                 }
             }
         }
@@ -178,19 +204,19 @@ private class FullLoadAlgorithmImpl {
             solution = solution,
             input = request
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                result.value!! to if (withRender) {
+            is Ok -> {
+                result.value!!.withSolverNotes(notes) to if (withRender) {
                     solution.render()
                 } else {
                     null
                 }
             }
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                 return ResponseDTO(request, result.error) to null
             }
 
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Fatal -> {
                 return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
             }
         }
@@ -212,8 +238,8 @@ private class FullLoadAlgorithmImpl {
      * Initialize all domain contexts (aircraft, stowage, MAC, airworthiness security, soft security, MAC optimization, express effectiveness, loading effectiveness).
      * 初始化所有领域上下文（飞机、装载、MAC、适航安全、软安全、MAC 优化、快递效能、装载效能）。
      *
-     * @param request Request DTO containing problem input data. / 包含问题输入数据的请求 DTO
-     * @return Initialization result, ok on success or error on failure. / 初始化结果，成功返回 ok，失败返回对应错误
+     * @param request 包含问题输入数据的请求 DTO / Request DTO containing problem input data.
+     * @return 初始化结果，成功返回 ok，失败返回对应错误 / Initialization result, ok on success or error on failure.
     */
     private fun init(
         request: RequestDTO
@@ -221,28 +247,29 @@ private class FullLoadAlgorithmImpl {
         when (val result = aircraftContext.init(
             input = request
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
 
         when (val result = stowageContext.init(
             aircraftContext = aircraftContext,
-            input = request
+            input = request,
+            stowageMode = StowageMode.FullLoad
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -252,13 +279,13 @@ private class FullLoadAlgorithmImpl {
             stowageContext = stowageContext,
             input = request
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -269,13 +296,13 @@ private class FullLoadAlgorithmImpl {
             macContext = macContext,
             input = request
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -285,13 +312,13 @@ private class FullLoadAlgorithmImpl {
             stowageContext = stowageContext,
             input = request
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -302,13 +329,13 @@ private class FullLoadAlgorithmImpl {
             macContext = macContext,
             input = request
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -316,15 +343,16 @@ private class FullLoadAlgorithmImpl {
         when (val result = expressEffectivenessContext.init(
             aircraftContext = aircraftContext,
             stowageContext = stowageContext,
-            input = request
+            input = request,
+            stowageMode = StowageMode.FullLoad
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -332,15 +360,16 @@ private class FullLoadAlgorithmImpl {
         when (val result = loadingEffectivenessContext.init(
             aircraftContext = aircraftContext,
             stowageContext = stowageContext,
-            input = request
+            input = request,
+            stowageMode = StowageMode.FullLoad
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -352,27 +381,27 @@ private class FullLoadAlgorithmImpl {
      * Solve the full-load stowage problem using MILP (Mixed Integer Linear Programming).
      * 使用 MILP（混合整数线性规划）求解满舱装载问题。
      *
-     * @param id Request ID. / 请求 ID
-     * @param parameter Solve parameter. / 求解参数
-     * @param startTime Solve start time. / 求解开始时间
-     * @param runningHeartBeatCallBack Running heartbeat callback for progress updates. / 运行心跳回调，用于更新求解进度
-     * @return Solve result containing solution or error info. / 求解结果，包含解决方案或错误信息
+     * @param id 请求 ID / Request ID.
+     * @param parameter 求解参数 / Solve parameter.
+     * @param startTime 求解开始时间 / Solve start time.
+     * @param runningHeartBeatCallBack 运行心跳回调，用于更新求解进度 / Running heartbeat callback for progress updates.
+     * @return 求解结果，包含解决方案或错误信息 / Solve result containing solution or error info.
     */
     private suspend fun solveWithMILP(
         id: String,
         parameter: Parameter,
         startTime: kotlin.time.Instant,
         runningHeartBeatCallBack: ((RunningHeartBeatDTO) -> Try)? = null
-    ): Ret<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution> {
+    ): Ret<Solution> {
         val model = LinearMetaModel<Flt64>(converter = flt64Converter)
         when (val result = register(parameter, model)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -447,50 +476,53 @@ private class FullLoadAlgorithmImpl {
                 ok
             }
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Ok -> {
                 result.value!!
             }
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                 if (result.error.code == ErrorCode.ORModelInfeasible || result.error.code == ErrorCode.ORModelInfeasibleOrUnbounded) {
-                    TODO("not implemented yet")
+                    return Failed(Err(
+                        result.error.code,
+                        "满舱装载 MILP 无可行解：${result.error.message} / Full-load MILP has no feasible solution: ${result.error.message}"
+                    ))
                 } else {
                     return Failed(result.error)
                 }
             }
 
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Fatal -> {
                 return Fatal(result.errors)
             }
         }
 
         val solution = when (val result = stowageContext.analyze(
-            solution = modelSolution.solution,
+            solution = modelSolution.values,
             model = model
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Ok -> {
                 result.value!!
             }
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
 
-        return Ok<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution, ErrorCode, Error<ErrorCode>>(solution)
+        return Ok<Solution, ErrorCode, Error<ErrorCode>>(solution)
     }
 
     /**
      * Register all domain contexts into the linear meta-model to build the complete optimization model.
      * 将各领域上下文注册到线性元模型中，构建完整优化模型。
      *
-     * @param parameter Solve parameter. / 求解参数
-     * @param model Linear meta-model instance. / 线性元模型实例
-     * @return Registration result, ok on success or error on failure. / 注册结果，成功返回 ok，失败返回对应错误
+     * @param parameter 求解参数 / Solve parameter.
+     * @param model 线性元模型实例 / Linear meta-model instance.
+     * @return 注册结果，成功返回 ok，失败返回对应错误 / Registration result, ok on success or error on failure.
     */
     private fun register(
         parameter: Parameter,
@@ -500,13 +532,13 @@ private class FullLoadAlgorithmImpl {
             stowageMode = StowageMode.FullLoad,
             model = model
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -515,13 +547,13 @@ private class FullLoadAlgorithmImpl {
             stowageMode = StowageMode.FullLoad,
             model = model
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -530,13 +562,13 @@ private class FullLoadAlgorithmImpl {
             stowageMode = StowageMode.FullLoad,
             model = model
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -546,13 +578,13 @@ private class FullLoadAlgorithmImpl {
             parameter = parameter,
             model = model
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -562,13 +594,13 @@ private class FullLoadAlgorithmImpl {
             parameter = parameter,
             model = model
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -578,13 +610,13 @@ private class FullLoadAlgorithmImpl {
             parameter = parameter,
             model = model
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -594,13 +626,13 @@ private class FullLoadAlgorithmImpl {
             parameter = parameter,
             model = model
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -612,15 +644,19 @@ private class FullLoadAlgorithmImpl {
      * Solve the full-load stowage problem using Benders decomposition algorithm.
      * 使用 Benders 分解算法求解满舱装载问题。
      *
-     * @param request Request DTO containing solve parameters and cargo info. / 请求 DTO，包含求解参数和货物信息
-     * @param notes Diagnostic notes collection list. / 诊断信息收集列表
-     * @return Solve result containing solution or error info. / 求解结果，包含解决方案或错误信息
+     * @param request 请求 DTO，包含求解参数和货物信息 / Request DTO containing solve parameters and cargo info.
+     * @param notes 诊断信息收集列表 / Diagnostic notes collection list.
+     * @return 求解结果，包含解决方案或错误信息 / Solve result containing solution or error info.
     */
     private suspend fun solveWithBendersAlgorithm(
         request: RequestDTO,
         notes: MutableList<String>
-    ): Ret<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution> {
-        val bendersModels = buildBendersModels()
+    ): Ret<Solution> {
+        val bendersModels = when (val result = buildBendersModels(request.parameter)) {
+            is Ok -> result.value!!
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
         val bendersConfig = BendersStrategy.tuneAdaptiveConfig(
             request.bendersAdaptive,
             request.cargos.size * request.positions.size
@@ -643,9 +679,9 @@ private class FullLoadAlgorithmImpl {
             config = bendersConfig,
             notes = notes
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> result.value!!
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
+            is Ok -> result.value!!
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         // Quality guard check (aligns with Rust domain.rs)
@@ -697,8 +733,8 @@ private class FullLoadAlgorithmImpl {
                     Diagnostics.CODE_BENDERS_QUALITY_ACTION,
                     "action=fallback_to_milp reason=$qualityReason"
                 )
-                return Failed(fuookami.ospf.kotlin.utils.error.Err(
-                    fuookami.ospf.kotlin.utils.error.ErrorCode.ApplicationError,
+                return Failed(Err(
+                    ErrorCode.ApplicationError,
                     "Benders quality insufficient: $qualityReason"
                 ))
             } else {
@@ -716,9 +752,9 @@ private class FullLoadAlgorithmImpl {
             solution = solutionList,
             model = bendersModels.masterModel
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> Ok(result.value!!)
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> Failed(result.error)
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> Fatal(result.errors)
+            is Ok -> Ok(result.value!!)
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
         }
     }
 
@@ -728,7 +764,7 @@ private class FullLoadAlgorithmImpl {
      *
      * @return Benders decomposition model container with master, sub, objective variable and fixed variable mapping. / Benders 分解模型容器，包含主问题、子问题、目标变量和固定变量映射
     */
-    private fun buildBendersModels(): BendersModels {
+    private fun buildBendersModels(parameter: Parameter): Ret<BendersModels> {
         val masterModel = LinearMetaModel<Flt64>(
             name = "demo2_full_load_master",
             converter = flt64Converter
@@ -739,52 +775,86 @@ private class FullLoadAlgorithmImpl {
         )
 
         // Master problem: stowage + mac + soft_security + mac_optimization + express + loading
-        stowageContext.registerForBendersMP(masterModel)
-        macContext.registerForBendersMP(masterModel)
-        softSecurityContext.registerForBendersMP(masterModel)
-        macOptimizationContext.registerForBendersMP(masterModel)
-        expressEffectivenessContext.registerForBendersMP(masterModel)
-        loadingEffectivenessContext.registerForBendersMP(masterModel)
+        stowageContext.registerForBendersMP(StowageMode.FullLoad, masterModel).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
+        macContext.registerForBendersMP(StowageMode.FullLoad, masterModel).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
+        softSecurityContext.registerForBendersMP(StowageMode.FullLoad, parameter, masterModel).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
+        macOptimizationContext.registerForBendersMP(StowageMode.FullLoad, parameter, masterModel).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
+        expressEffectivenessContext.registerForBendersMP(StowageMode.FullLoad, parameter, masterModel).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
+        loadingEffectivenessContext.registerForBendersMP(StowageMode.FullLoad, parameter, masterModel).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
 
         // Sub problem: stowage (shared variables) + airworthiness constraints
-        stowageContext.registerForBendersSP(subModel, emptyList())
-        airworthinessSecurityContext.registerForBendersSP(subModel)
+        stowageContext.registerForBendersSP(StowageMode.FullLoad, subModel, emptyList()).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
+        airworthinessSecurityContext.registerForBendersSP(StowageMode.FullLoad, subModel).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
 
         // Create a dummy theta variable for cut generation (FullLoad has no z variable)
         val thetaVar = URealVar("benders_theta")
-        masterModel.add(thetaVar)
+        masterModel.add(thetaVar).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
+        masterModel.minimize(
+            variable = thetaVar,
+            name = "benders_recourse_objective"
+        ).orReturn(
+            failedHandler = { return Failed(it) },
+            fatalHandler = { return Fatal(it) }
+        )
 
         // Build fixedVariables from stowage x variables
         val stowageAgg = stowageContext.aggregation
-        val fixedVariables = mutableMapOf<fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>, Flt64>()
+        val fixedVariables = mutableMapOf<AbstractVariableItem<*, *>, Flt64>()
         for (i in stowageAgg.items.indices) {
             for (j in stowageAgg.positions.indices) {
                 fixedVariables[stowageAgg.stowage.x[i, j]] = Flt64.zero
             }
         }
 
-        return BendersModels(
+        return Ok(BendersModels(
             masterModel = masterModel,
             subModel = subModel,
             objectVariable = thetaVar,
             fixedVariables = fixedVariables
-        )
+        ))
     }
 
     /**
      * Benders decomposition model container.
      * Benders 分解模型容器。
      *
-     * @property masterModel Master problem linear meta-model. / 主问题线性元模型
-     * @property subModel Sub problem linear meta-model. / 子问题线性元模型
-     * @property objectVariable Objective variable (theta) for cut generation. / 目标变量（theta），用于割生成
-     * @property fixedVariables Fixed variable mapping between master and sub problems. / 主子问题间固定变量映射
+     * @property masterModel 主问题线性元模型 / Master problem linear meta-model.
+     * @property subModel 子问题线性元模型 / Sub problem linear meta-model.
+     * @property objectVariable 目标变量（theta），用于割生成 / Objective variable (theta) for cut generation.
+     * @property fixedVariables 主子问题间固定变量映射 / Fixed variable mapping between master and sub problems.
     */
     private data class BendersModels(
         val masterModel: LinearMetaModel<Flt64>,
         val subModel: LinearMetaModel<Flt64>,
-        val objectVariable: fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>,
-        val fixedVariables: Map<fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>, Flt64>
+        val objectVariable: AbstractVariableItem<*, *>,
+        val fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>
     )
 }
 

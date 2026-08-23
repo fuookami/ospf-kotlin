@@ -1,12 +1,9 @@
 /**
- * 耦合洛伦兹吸引子
- * Coupled Lorenz Attractor
+ * 耦合洛伦兹吸引子 / Coupled Lorenz Attractor
  *
  * 耦合洛伦兹吸引子是由两个相互耦合皌Lorenz 系统组成的混沌系统。
  * 通过耦合参数，两丌Lorenz 系统相互影响，展现出复杂的同步和混沌动力学行为。
- * 常用于混沌同步研究、复杂网络动力学和耦合系统分析。
- *
- * The coupled Lorenz attractor is a chaotic system composed of two mutually coupled Lorenz systems.
+ * 常用于混沌同步研究、复杂网络动力学和耦合系统分析。 / The coupled Lorenz attractor is a chaotic system composed of two mutually coupled Lorenz systems.
  * Through coupling parameters, the two Lorenz systems interact, exhibiting complex synchronization and chaotic dynamical behavior.
  * Commonly used for chaos synchronization research, complex network dynamics, and coupled systems analysis.
 */
@@ -20,8 +17,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 耦合洛伦兹吸引子
- * Coupled Lorenz Attractor
+ * 耦合洛伦兹吸引子 / Coupled Lorenz Attractor
  *
  * @property beta 系统参数 beta / System parameter beta
  * @property gamma1 第一个 Lorenz 系统的参数 gamma / Parameter gamma of the first Lorenz system
@@ -51,8 +47,7 @@ data class CoupledLorenzAttractor<V : FloatingNumber<V>>(
     }
 
     /**
-     * 计算 y 方向的导数
-     * Compute the derivative in the y direction
+     * 计算 y 方向的导数 / Compute the derivative in the y direction
      *
      * @param gamma 系统参数 gamma / System parameter gamma
      * @param x 当前状态点 / Current state point
@@ -63,8 +58,7 @@ data class CoupledLorenzAttractor<V : FloatingNumber<V>>(
     }
 
     /**
-     * 计算 z 方向的导数
-     * Compute the derivative in the z direction
+     * 计算 z 方向的导数 / Compute the derivative in the z direction
      *
      * @param x 当前状态点 / Current state point
      * @return z 方向的导数值 / Derivative value in the z direction
@@ -88,8 +82,7 @@ data class CoupledLorenzAttractor<V : FloatingNumber<V>>(
 }
 
 /**
- * 耦合洛伦兹吸引子生成器
- * Coupled Lorenz Attractor Generator
+ * 耦合洛伦兹吸引子生成器 / Coupled Lorenz Attractor Generator
 */
 data class CoupledLorenzAttractorGenerator(
     val coupledLorenzAttractor: CoupledLorenzAttractor<Flt64> = CoupledLorenzAttractor(),

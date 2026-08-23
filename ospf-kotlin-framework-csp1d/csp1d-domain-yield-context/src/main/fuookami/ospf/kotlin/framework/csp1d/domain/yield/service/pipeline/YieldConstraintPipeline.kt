@@ -4,7 +4,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
@@ -14,15 +14,13 @@ import fuookami.ospf.kotlin.framework.model.*
 
 /**
  * Over-production upper bound constraint pipeline.
- * 超产上限约束管线
- *
- * Add constraint for each demand with over-production upper bound: over_production_i <= upperBound
+ * 超产上限约束管线 / Add constraint for each demand with over-production upper bound: over_production_i <= upperBound
  * 为每个配置了超产上限的需求添加约束：over_production_i <= upperBound
  *
- * @param V Numeric value type / 数值类型
- * @property yield Yield deviation aggregation / 产出偏差聚合
- * @property config Yield modeling configuration / 产出建模配置
- * @property demands Demand list / 需求列表
+ * @param V 数值类型 / Numeric value type
+ * @property yield 产出偏差聚合 / Yield deviation aggregation
+ * @property config 产出建模配置 / Yield modeling configuration
+ * @property demands 需求列表 / Demand list
 */
 class YieldConstraintPipeline<V : RealNumber<V>>(
     private val yield: YieldAggregation<V>,
@@ -50,10 +48,7 @@ class YieldConstraintPipeline<V : RealNumber<V>>(
 
             model.addConstraint(
                 relation = LinearInequality(
-                    lhs = LinearPolynomial(
-                        monomials = listOf(LinearMonomial(Flt64.one, overVar)),
-                        constant = Flt64.zero
-                    ),
+                    lhs = LinearPolynomial(overVar),
                     rhs = LinearPolynomial(emptyList(), upperBound.toFlt64()),
                     comparison = Comparison.LE
                 ),
@@ -78,6 +73,6 @@ class YieldConstraintPipeline<V : RealNumber<V>>(
             AbstractCsp1dShadowPriceArguments,
             AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments>
             >? {
-        return { _, _ -> Flt64.zero }
+        return ShadowPriceExtractor { _, _ -> Flt64.zero }
     }
 }

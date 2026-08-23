@@ -1,9 +1,7 @@
 /**
  * 求解器边界类型转换 / Solver boundary type casts
  *
- * 提供运行时求解器边界的 Flt64 类型转换工具，将星投影引用转换回 Flt64 以调用泛型方法。
- *
- * Provides runtime solver-boundary Flt64 type cast utilities, converting star-projected
+ * 提供运行时求解器边界的 Flt64 类型转换工具，将星投影引用转换回 Flt64 以调用泛型方法。 / Provides runtime solver-boundary Flt64 type cast utilities, converting star-projected
  * references back to Flt64 for calling generic methods.
 */
 package fuookami.ospf.kotlin.core.symbol
@@ -23,13 +21,10 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.value.*
 
 /**
- * 集中的求解器边界类型转换。
- * Centralized solver-boundary type casts.
+ * 集中的求解器边界类型转换。 / Centralized solver-boundary type casts.
  *
  * 运行时所有求解器边界实例都使用 V=Flt64；这里把星投影引用转换回 Flt64，以便调用泛型方法。
- * 转换由于 JVM 类型擦除是安全的但未检查的。
- *
- * At runtime, all solver-boundary instances use V=Flt64. These casts convert
+ * 转换由于 JVM 类型擦除是安全的但未检查的。 / At runtime, all solver-boundary instances use V=Flt64. These casts convert
  * star-projected (V=*) references back to Flt64 so that generic methods can be called.
  * The casts are safe but unchecked due to JVM type erasure.
  *
@@ -49,8 +44,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 注册辅助令牌（星投影版本）。
-     * Register auxiliary tokens (star-projected version).
+     * 注册辅助令牌（星投影版本）。 / Register auxiliary tokens (star-projected version).
      *
      * @param symbol 中间符号实例 / Intermediate symbol instance
      * @param tokens 令牌集合实例 / Token collection instance
@@ -64,8 +58,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 准备符号值（星投影版本）。
-     * Prepare symbol value (star-projected version).
+     * 准备符号值（星投影版本）。 / Prepare symbol value (star-projected version).
      *
      * @param symbol 中间符号实例 / Intermediate symbol instance
      * @param fixedValues 固定值映射（可空） / Fixed values map (nullable)
@@ -86,8 +79,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 注册线性约束（星投影版本）。
-     * Register linear constraints (star-projected version).
+     * 注册线性约束（星投影版本）。 / Register linear constraints (star-projected version).
      *
      * @param symbol 数学函数符号实例 / Math function symbol instance
      * @param model 线性机制模型实例 / Linear mechanism model instance
@@ -101,8 +93,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 注册二次约束（星投影版本）。
-     * Register quadratic constraints (star-projected version).
+     * 注册二次约束（星投影版本）。 / Register quadratic constraints (star-projected version).
      *
      * @param symbol 二次数学函数符号实例 / Quadratic math function symbol instance
      * @param model 二次机制模型实例 / Quadratic mechanism model instance
@@ -116,8 +107,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将机制模型转换为线性机制模型（Flt64 类型）。
-     * Cast mechanism model to linear mechanism model (Flt64 type).
+     * 将机制模型转换为线性机制模型（Flt64 类型）。 / Cast mechanism model to linear mechanism model (Flt64 type).
      *
      * @param model 机制模型 / Mechanism model
      * @return 线性机制模型 / Linear mechanism model
@@ -128,8 +118,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将机制模型转换为二次机制模型（Flt64 类型）。
-     * Cast mechanism model to quadratic mechanism model (Flt64 type).
+     * 将机制模型转换为二次机制模型（Flt64 类型）。 / Cast mechanism model to quadratic mechanism model (Flt64 type).
      *
      * @param model 机制模型 / Mechanism model
      * @return 二次机制模型 / Quadratic mechanism model
@@ -140,8 +129,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将线性元模型转换为 Flt64 类型。
-     * Cast linear meta model to Flt64 type.
+     * 将线性元模型转换为 Flt64 类型。 / Cast linear meta model to Flt64 type.
      *
      * @param model 线性元模型 / Linear meta model
      * @return Flt64 类型的线性元模型 / Linear meta model of Flt64 type
@@ -152,8 +140,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将二次元模型转换为 Flt64 类型。
-     * Cast quadratic meta model to Flt64 type.
+     * 将二次元模型转换为 Flt64 类型。 / Cast quadratic meta model to Flt64 type.
      *
      * @param model 二次元模型 / Quadratic meta model
      * @return Flt64 类型的二次元模型 / Quadratic meta model of Flt64 type
@@ -164,8 +151,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将线性约束实现转换为 Flt64 类型约束。
-     * Cast linear constraint implementation to Flt64 constraint.
+     * 将线性约束实现转换为 Flt64 类型约束。 / Cast linear constraint implementation to Flt64 constraint.
      *
      * @param constraint 线性约束实现 / Linear constraint implementation
      * @return Flt64 类型的线性约束 / Linear constraint of Flt64 type
@@ -176,8 +162,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将线性约束实现列表转换为 Flt64 类型约束列表。
-     * Cast list of linear constraint implementations to Flt64 constraints.
+     * 将线性约束实现列表转换为 Flt64 类型约束列表。 / Cast list of linear constraint implementations to Flt64 constraints.
      *
      * @param constraints 线性约束实现列表 / List of linear constraint implementations
      * @return Flt64 类型的线性约束列表 / List of Flt64 linear constraints
@@ -188,8 +173,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将二次约束实现转换为 Flt64 类型约束。
-     * Cast quadratic constraint implementation to Flt64 constraint.
+     * 将二次约束实现转换为 Flt64 类型约束。 / Cast quadratic constraint implementation to Flt64 constraint.
      *
      * @param constraint 二次约束实现 / Quadratic constraint implementation
      * @return Flt64 类型的二次约束 / Quadratic constraint of Flt64 type
@@ -200,8 +184,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将二次约束实现列表转换为 Flt64 类型约束列表。
-     * Cast list of quadratic constraint implementations to Flt64 constraints.
+     * 将二次约束实现列表转换为 Flt64 类型约束列表。 / Cast list of quadratic constraint implementations to Flt64 constraints.
      *
      * @param constraints 二次约束实现列表 / List of quadratic constraint implementations
      * @return Flt64 类型的二次约束列表 / List of Flt64 quadratic constraints
@@ -212,8 +195,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将对象安全转换为线性不等式。
-     * Safely cast object to linear inequality.
+     * 将对象安全转换为线性不等式。 / Safely cast object to linear inequality.
      *
      * @param cut 待转换的对象 / Object to cast
      * @return 线性不等式，若类型不匹配则返回 null / Linear inequality, or null if type mismatch
@@ -224,8 +206,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将对象安全转换为二次不等式。
-     * Safely cast object to quadratic inequality.
+     * 将对象安全转换为二次不等式。 / Safely cast object to quadratic inequality.
      *
      * @param cut 待转换的对象 / Object to cast
      * @return 二次不等式，若类型不匹配则返回 null / Quadratic inequality, or null if type mismatch
@@ -236,8 +217,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将令牌表的令牌列表转换为 Flt64 类型。
-     * Cast token table's token list to Flt64 type.
+     * 将令牌表的令牌列表转换为 Flt64 类型。 / Cast token table's token list to Flt64 type.
      *
      * @param tokenTable 令牌表 / Token table
      * @return Flt64 类型的令牌列表 / Flt64 token list
@@ -248,8 +228,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将可空令牌表的令牌列表转换为 Flt64 类型。
-     * Cast nullable token table's token list to Flt64 type.
+     * 将可空令牌表的令牌列表转换为 Flt64 类型。 / Cast nullable token table's token list to Flt64 type.
      *
      * @param tokenTable 令牌表（可空） / Token table (nullable)
      * @return Flt64 类型的令牌列表（可空） / Flt64 token list (nullable)
@@ -260,8 +239,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 使用转换器将 Flt64 值映射转换为目标类型值映射。
-     * Convert Flt64 value map to target type value map using converter.
+     * 使用转换器将 Flt64 值映射转换为目标类型值映射。 / Convert Flt64 value map to target type value map using converter.
      *
      * @param values Flt64 类型的值映射 / Flt64 value map
      * @param converter 值转换器 / Value converter
@@ -273,8 +251,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将依赖符号转换为目标类型中间符号。
-     * Cast dependency symbol to target type intermediate symbol.
+     * 将依赖符号转换为目标类型中间符号。 / Cast dependency symbol to target type intermediate symbol.
      *
      * @param dependency 依赖中间符号 / Dependency intermediate symbol
      * @return 目标类型的中间符号 / Target type intermediate symbol
@@ -285,8 +262,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将可变线性多项式转换为 Flt64 类型。
-     * Convert mutable linear polynomial to Flt64 type.
+     * 将可变线性多项式转换为 Flt64 类型。 / Convert mutable linear polynomial to Flt64 type.
      *
      * @param polynomial 可变线性多项式 / Mutable linear polynomial
      * @return Flt64 类型的可变线性多项式 / Flt64 mutable linear polynomial
@@ -305,8 +281,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将可变二次多项式转换为 Flt64 类型。
-     * Convert mutable quadratic polynomial to Flt64 type.
+     * 将可变二次多项式转换为 Flt64 类型。 / Convert mutable quadratic polynomial to Flt64 type.
      *
      * @param polynomial 可变二次多项式 / Mutable quadratic polynomial
      * @return Flt64 类型的可变二次多项式 / Flt64 mutable quadratic polynomial
@@ -326,8 +301,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将对象安全转换为 Flt64 类型令牌表。
-     * Safely cast object to Flt64 token table.
+     * 将对象安全转换为 Flt64 类型令牌表。 / Safely cast object to Flt64 token table.
      *
      * @param tokenTable 待转换的对象（可空） / Object to cast (nullable)
      * @return Flt64 类型令牌表（可空） / Flt64 token table (nullable)
@@ -337,8 +311,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将符号安全转换为目标类型中间符号。
-     * Safely cast symbol to target type intermediate symbol.
+     * 将符号安全转换为目标类型中间符号。 / Safely cast symbol to target type intermediate symbol.
      *
      * @param symbol 符号（可空） / Symbol (nullable)
      * @return 目标类型的中间符号（可空） / Target type intermediate symbol (nullable)
@@ -349,8 +322,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 获取线性中间符号的 Flt64 扁平化单项式数据。
-     * Get Flt64 flattened monomial data for linear intermediate symbol.
+     * 获取线性中间符号的 Flt64 扁平化单项式数据。 / Get Flt64 flattened monomial data for linear intermediate symbol.
      *
      * @param symbol 线性中间符号实例 / Linear intermediate symbol instance
      * @return Flt64 类型的线性扁平化数据 / Flt64 linear flatten data
@@ -369,8 +341,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 获取二次中间符号的 Flt64 扁平化单项式数据。
-     * Get Flt64 flattened monomial data for quadratic intermediate symbol.
+     * 获取二次中间符号的 Flt64 扁平化单项式数据。 / Get Flt64 flattened monomial data for quadratic intermediate symbol.
      *
      * @param symbol 二次中间符号实例 / Quadratic intermediate symbol instance
      * @return Flt64 类型的二次扁平化数据 / Flt64 quadratic flatten data
@@ -390,8 +361,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 将 Flt64 值域转换为目标类型的表达式值域。
-     * Convert Flt64 value range to target type expression range.
+     * 将 Flt64 值域转换为目标类型的表达式值域。 / Convert Flt64 value range to target type expression range.
      *
      * @param rangeFlt64 Flt64 值域（可空） / Flt64 value range (nullable)
      * @return 目标类型的表达式值域 / Target type expression range
@@ -403,8 +373,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 创建目标类型的完整表达式值域（无界）。
-     * Create full (unbounded) expression range for target type.
+     * 创建目标类型的完整表达式值域（无界）。 / Create full (unbounded) expression range for target type.
      *
      * @return 完整的表达式值域 / Full expression range
     */
@@ -415,8 +384,7 @@ internal object SolverBoundaryCasts {
     }
 
     /**
-     * 获取中间符号的 Flt64 类型表达式值域。
-     * Get Flt64 expression range for intermediate symbol.
+     * 获取中间符号的 Flt64 类型表达式值域。 / Get Flt64 expression range for intermediate symbol.
      *
      * @param symbol 中间符号实例 / Intermediate symbol instance
      * @return Flt64 类型的表达式值域（可空） / Flt64 expression range (nullable)
@@ -428,8 +396,7 @@ internal object SolverBoundaryCasts {
 }
 
 /**
- * 为求解器将线性元模型转换为 Flt64 类型。
- * Cast linear meta model to Flt64 type for solver.
+ * 为求解器将线性元模型转换为 Flt64 类型。 / Cast linear meta model to Flt64 type for solver.
  *
  * @param model 线性元模型 / Linear meta model
  * @return Flt64 类型的线性元模型 / Flt64 linear meta model
@@ -440,8 +407,7 @@ fun <V> castLinearMetaModelForSolver(model: LinearMetaModel<V>): LinearMetaModel
 }
 
 /**
- * 为求解器将二次元模型转换为 Flt64 类型。
- * Cast quadratic meta model to Flt64 type for solver.
+ * 为求解器将二次元模型转换为 Flt64 类型。 / Cast quadratic meta model to Flt64 type for solver.
  *
  * @param model 二次元模型 / Quadratic meta model
  * @return Flt64 类型的二次元模型 / Flt64 quadratic meta model

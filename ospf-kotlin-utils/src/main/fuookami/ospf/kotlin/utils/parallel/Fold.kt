@@ -19,8 +19,8 @@ internal val maxSegmentValue = Int.MAX_VALUE.toLong()
  * Normalize segment size to valid integer range.
  * 规范化分段大小。
  *
- * @param segment segment size / 分段大小
- * @return normalized segment size / 规范化后的分段大小
+ * @param segment 分段大小 / segment size
+ * @return 规范化后的分段大小 / normalized segment size
 */
 @PublishedApi
 internal fun normalizeSegment(segment: Long): Int {
@@ -36,9 +36,9 @@ internal fun normalizeSegment(segment: Long): Int {
  * Update segment counter and yield when reaching segment size.
  * 更新分段计数器。
  *
- * @param counter current counter value / 当前计数器值
- * @param segmentSize segment size / 分段大小
- * @return new counter value / 新的计数器值
+ * @param counter 当前计数器值 / current counter value
+ * @param segmentSize 分段大小 / segment size
+ * @return 新的计数器值 / new counter value
 */
 @PublishedApi
 internal suspend fun nextSegmentCounter(counter: Int, segmentSize: Int): Int {
@@ -55,10 +55,10 @@ internal suspend fun nextSegmentCounter(counter: Int, segmentSize: Int): Int {
  * Fold collection elements with default segment size (10).
  * 并行折叠集合元素（默认分段）。
  *
- * @param T element type / 元素类型
- * @param initial initial value / 初始值
- * @param operation accumulation operation function / 累积操作函数
- * @return folded result / 折叠后的结果
+ * @param T 元素类型 / element type
+ * @param initial 初始值 / initial value
+ * @param operation 累积操作函数 / accumulation operation function
+ * @return 折叠后的结果 / folded result
 */
 suspend inline fun <T> Iterable<T>.foldParallelly(
     initial: T,
@@ -71,11 +71,11 @@ suspend inline fun <T> Iterable<T>.foldParallelly(
  * Fold collection elements with specified segment size.
  * 并行折叠集合元素（指定分段）。
  *
- * @param T element type / 元素类型
- * @param segment segment size (controls yield frequency) / 分段大小（控制 yield 频率）
- * @param initial initial value / 初始值
- * @param operation accumulation operation function / 累积操作函数
- * @return folded result / 折叠后的结果
+ * @param T 元素类型 / element type
+ * @param segment 分段大小（控制 yield 频率） / segment size (controls yield frequency)
+ * @param initial 初始值 / initial value
+ * @param operation 累积操作函数 / accumulation operation function
+ * @return 折叠后的结果 / folded result
 */
 suspend inline fun <T> Iterable<T>.foldParallelly(
     segment: Long,
@@ -96,10 +96,10 @@ suspend inline fun <T> Iterable<T>.foldParallelly(
  * Fold collection elements with default segment size (10) and error handling.
  * 并行折叠集合元素（带错误处理，默认分段）。
  *
- * @param T element type / 元素类型
- * @param initial initial value / 初始值
- * @param operation accumulation operation function (returns Ret) / 累积操作函数（返回 Ret）
- * @return folded result or error / 折叠结果或错误
+ * @param T 元素类型 / element type
+ * @param initial 初始值 / initial value
+ * @param operation 累积操作函数（返回 Ret） / accumulation operation function (returns Ret)
+ * @return 折叠结果或错误 / folded result or error
 */
 suspend inline fun <T> Iterable<T>.tryFoldParallelly(
     initial: T,
@@ -112,10 +112,10 @@ suspend inline fun <T> Iterable<T>.tryFoldParallelly(
  * Fold collection elements with default segment size (10) and error collection.
  * 并行折叠集合元素（带错误收集，默认分段）。
  *
- * @param T element type / 元素类型
- * @param initial initial value / 初始值
- * @param operation accumulation operation function (returns Ret) / 累积操作函数（返回 Ret）
- * @return folded result or error collection / 折叠结果或错误集合
+ * @param T 元素类型 / element type
+ * @param initial 初始值 / initial value
+ * @param operation 累积操作函数（返回 Ret） / accumulation operation function (returns Ret)
+ * @return 折叠结果或错误集合 / folded result or error collection
 */
 suspend inline fun <T> Iterable<T>.exTryFoldParallelly(
     initial: T,
@@ -128,11 +128,11 @@ suspend inline fun <T> Iterable<T>.exTryFoldParallelly(
  * Fold collection elements with specified segment size and error handling.
  * 并行折叠集合元素（带错误处理，指定分段）。
  *
- * @param T element type / 元素类型
- * @param segment segment size (controls yield frequency) / 分段大小（控制 yield 频率）
- * @param initial initial value / 初始值
- * @param operation accumulation operation function (returns Ret) / 累积操作函数（返回 Ret）
- * @return folded result or error / 折叠结果或错误
+ * @param T 元素类型 / element type
+ * @param segment 分段大小（控制 yield 频率） / segment size (controls yield frequency)
+ * @param initial 初始值 / initial value
+ * @param operation 累积操作函数（返回 Ret） / accumulation operation function (returns Ret)
+ * @return 折叠结果或错误 / folded result or error
 */
 suspend inline fun <T> Iterable<T>.tryFoldParallelly(
     segment: Long,
@@ -157,11 +157,11 @@ suspend inline fun <T> Iterable<T>.tryFoldParallelly(
  * Fold collection elements with specified segment size and error collection.
  * 并行折叠集合元素（带错误收集，指定分段）。
  *
- * @param T element type / 元素类型
- * @param segment segment size (controls yield frequency) / 分段大小（控制 yield 频率）
- * @param initial initial value / 初始值
- * @param operation accumulation operation function (returns Ret) / 累积操作函数（返回 Ret）
- * @return folded result or error collection / 折叠结果或错误集合
+ * @param T 元素类型 / element type
+ * @param segment 分段大小（控制 yield 频率） / segment size (controls yield frequency)
+ * @param initial 初始值 / initial value
+ * @param operation 累积操作函数（返回 Ret） / accumulation operation function (returns Ret)
+ * @return 折叠结果或错误集合 / folded result or error collection
 */
 suspend inline fun <T> Iterable<T>.exTryFoldParallelly(
     segment: Long,
@@ -186,10 +186,10 @@ suspend inline fun <T> Iterable<T>.exTryFoldParallelly(
  * Fold collection elements with index information and default segment size (10).
  * 并行折叠集合元素（带索引，默认分段）。
  *
- * @param T element type / 元素类型
- * @param initial initial value / 初始值
- * @param operation indexed accumulation operation function / 带索引的累积操作函数
- * @return folded result / 折叠后的结果
+ * @param T 元素类型 / element type
+ * @param initial 初始值 / initial value
+ * @param operation 带索引的累积操作函数 / indexed accumulation operation function
+ * @return 折叠后的结果 / folded result
 */
 suspend inline fun <T> Iterable<T>.foldIndexedParallelly(
     initial: T,
@@ -202,11 +202,11 @@ suspend inline fun <T> Iterable<T>.foldIndexedParallelly(
  * Fold collection elements with index information and specified segment size.
  * 并行折叠集合元素（带索引，指定分段）。
  *
- * @param T element type / 元素类型
- * @param segment segment size (controls yield frequency) / 分段大小（控制 yield 频率）
- * @param initial initial value / 初始值
- * @param operation indexed accumulation operation function / 带索引的累积操作函数
- * @return folded result / 折叠后的结果
+ * @param T 元素类型 / element type
+ * @param segment 分段大小（控制 yield 频率） / segment size (controls yield frequency)
+ * @param initial 初始值 / initial value
+ * @param operation 带索引的累积操作函数 / indexed accumulation operation function
+ * @return 折叠后的结果 / folded result
 */
 suspend inline fun <T> Iterable<T>.foldIndexedParallelly(
     segment: Long,
@@ -227,10 +227,10 @@ suspend inline fun <T> Iterable<T>.foldIndexedParallelly(
  * Fold collection elements with index information, default segment size (10) and error handling.
  * 并行折叠集合元素（带索引，带错误处理，默认分段）。
  *
- * @param T element type / 元素类型
- * @param initial initial value / 初始值
- * @param operation indexed accumulation operation function (returns Ret) / 带索引的累积操作函数（返回 Ret）
- * @return folded result or error / 折叠结果或错误
+ * @param T 元素类型 / element type
+ * @param initial 初始值 / initial value
+ * @param operation 带索引的累积操作函数（返回 Ret） / indexed accumulation operation function (returns Ret)
+ * @return 折叠结果或错误 / folded result or error
 */
 suspend inline fun <T> Iterable<T>.tryFoldIndexedParallelly(
     initial: T,
@@ -240,9 +240,7 @@ suspend inline fun <T> Iterable<T>.tryFoldIndexedParallelly(
 }
 
 /**
- * 并行折叠集合元素（带索引，带错误收集，默认分段）
- *
- * Fold collection elements with index information, default segment size (10) and error collection.
+ * 并行折叠集合元素（带索引，带错误收集，默认分段） / Fold collection elements with index information, default segment size (10) and error collection.
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -257,9 +255,7 @@ suspend inline fun <T> Iterable<T>.exTryFoldIndexedParallelly(
 }
 
 /**
- * 并行折叠集合元素（带索引，带错误处理，指定分段）
- *
- * Fold collection elements with index information, specified segment size and error handling.
+ * 并行折叠集合元素（带索引，带错误处理，指定分段） / Fold collection elements with index information, specified segment size and error handling.
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -287,9 +283,7 @@ suspend inline fun <T> Iterable<T>.tryFoldIndexedParallelly(
 }
 
 /**
- * 并行折叠集合元素（带索引，带错误收集，指定分段）
- *
- * Fold collection elements with index information, specified segment size and error collection.
+ * 并行折叠集合元素（带索引，带错误收集，指定分段） / Fold collection elements with index information, specified segment size and error collection.
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -317,9 +311,7 @@ suspend inline fun <T> Iterable<T>.exTryFoldIndexedParallelly(
 }
 
 /**
- * 并行反向折叠集合元素（默认分段）
- *
- * Fold collection elements from right to left with default segment size (10).
+ * 并行反向折叠集合元素（默认分段） / Fold collection elements from right to left with default segment size (10).
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -334,9 +326,7 @@ suspend inline fun <T> Iterable<T>.foldRightParallelly(
 }
 
 /**
- * 并行反向折叠集合元素（指定分段）
- *
- * Fold collection elements from right to left with specified segment size.
+ * 并行反向折叠集合元素（指定分段） / Fold collection elements from right to left with specified segment size.
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -360,9 +350,7 @@ suspend inline fun <T> Iterable<T>.foldRightParallelly(
 }
 
 /**
- * 并行反向折叠集合元素（带错误处理，默认分段）
- *
- * Fold collection elements from right to left with default segment size (10) and error handling.
+ * 并行反向折叠集合元素（带错误处理，默认分段） / Fold collection elements from right to left with default segment size (10) and error handling.
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -377,9 +365,7 @@ suspend inline fun <T> Iterable<T>.tryFoldRightParallelly(
 }
 
 /**
- * 并行反向折叠集合元素（带错误收集，默认分段）
- *
- * Fold collection elements from right to left with default segment size (10) and error collection.
+ * 并行反向折叠集合元素（带错误收集，默认分段） / Fold collection elements from right to left with default segment size (10) and error collection.
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -394,9 +380,7 @@ suspend inline fun <T> Iterable<T>.exTryFoldRightParallelly(
 }
 
 /**
- * 并行反向折叠集合元素（带错误处理，指定分段）
- *
- * Fold collection elements from right to left with specified segment size and error handling.
+ * 并行反向折叠集合元素（带错误处理，指定分段） / Fold collection elements from right to left with specified segment size and error handling.
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -424,9 +408,7 @@ suspend inline fun <T> Iterable<T>.tryFoldRightParallelly(
 }
 
 /**
- * 并行反向折叠集合元素（带错误收集，指定分段）
- *
- * Fold collection elements from right to left with specified segment size and error collection.
+ * 并行反向折叠集合元素（带错误收集，指定分段） / Fold collection elements from right to left with specified segment size and error collection.
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -454,9 +436,7 @@ suspend inline fun <T> Iterable<T>.exTryFoldRightParallelly(
 }
 
 /**
- * 并行反向折叠集合元素（带索引，默认分段）
- *
- * Fold collection elements from right to left with index information and default segment size (10).
+ * 并行反向折叠集合元素（带索引，默认分段） / Fold collection elements from right to left with index information and default segment size (10).
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -471,9 +451,7 @@ suspend inline fun <T> Iterable<T>.foldRightIndexedParallelly(
 }
 
 /**
- * 并行反向折叠集合元素（带索引，指定分段）
- *
- * Fold collection elements from right to left with index information and specified segment size.
+ * 并行反向折叠集合元素（带索引，指定分段） / Fold collection elements from right to left with index information and specified segment size.
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -498,9 +476,7 @@ suspend inline fun <T> Iterable<T>.foldRightIndexedParallelly(
 }
 
 /**
- * 并行反向折叠集合元素（带索引，带错误处理，默认分段）
- *
- * Fold collection elements from right to left with index information, default segment size (10) and error handling.
+ * 并行反向折叠集合元素（带索引，带错误处理，默认分段） / Fold collection elements from right to left with index information, default segment size (10) and error handling.
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -515,9 +491,7 @@ suspend inline fun <T> Iterable<T>.tryFoldRightIndexedParallelly(
 }
 
 /**
- * 并行反向折叠集合元素（带索引，带错误收集，默认分段）
- *
- * Fold collection elements from right to left with index information, default segment size (10) and error collection.
+ * 并行反向折叠集合元素（带索引，带错误收集，默认分段） / Fold collection elements from right to left with index information, default segment size (10) and error collection.
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -532,9 +506,7 @@ suspend inline fun <T> Iterable<T>.exTryFoldRightIndexedParallelly(
 }
 
 /**
- * 并行反向折叠集合元素（带索引，带错误处理，指定分段）
- *
- * Fold collection elements from right to left with index information, specified segment size and error handling.
+ * 并行反向折叠集合元素（带索引，带错误处理，指定分段） / Fold collection elements from right to left with index information, specified segment size and error handling.
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -563,9 +535,7 @@ suspend inline fun <T> Iterable<T>.tryFoldRightIndexedParallelly(
 }
 
 /**
- * 并行反向折叠集合元素（带索引，带错误收集，指定分段）
- *
- * Fold collection elements from right to left with index information, specified segment size and error collection.
+ * 并行反向折叠集合元素（带索引，带错误收集，指定分段） / Fold collection elements from right to left with index information, specified segment size and error collection.
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)

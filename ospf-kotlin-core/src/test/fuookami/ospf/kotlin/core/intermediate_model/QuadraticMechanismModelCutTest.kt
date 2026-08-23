@@ -23,7 +23,7 @@ class QuadraticMechanismModelCutTest {
         val theta = RealVar("theta")
 
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
-        assertTrue(tokens.add(listOf(x, y)) is Ok<*, *, *>)
+        assertTrue(tokens.add(listOf(x, y)) is Ok)
 
         val relation = QuadraticInequalityOf(
             lhs = QuadraticPolynomial(
@@ -69,7 +69,7 @@ class QuadraticMechanismModelCutTest {
         val theta = RealVar("theta")
 
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
-        assertTrue(tokens.add(x) is Ok<*, *, *>)
+        assertTrue(tokens.add(x) is Ok)
 
         val relation = QuadraticInequalityOf(
             lhs = QuadraticPolynomial(

@@ -17,8 +17,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Ser
  * Minimizes the total service cost by summing per-service cost weighted by assignment variables.
  * 通过求和按分配变量加权的每服务成本来最小化总服务成本。
  *
- * @property services the list of services / 服务列表
- * @property assignment the service-to-node assignment model / 服务到节点的分配模型
+ * @property services 服务列表 / the list of services
+ * @property assignment 服务到节点的分配模型 / the service-to-node assignment model
 */
 class ServiceCostObjective(
     private val services: List<Service>,

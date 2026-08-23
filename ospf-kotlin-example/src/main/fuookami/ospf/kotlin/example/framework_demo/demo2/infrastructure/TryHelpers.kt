@@ -12,9 +12,9 @@ import fuookami.ospf.kotlin.utils.functional.*
 */
 inline fun Try.orReturn(failedHandler: (Error<ErrorCode>) -> Nothing, fatalHandler: (List<Error<ErrorCode>>) -> Nothing) {
     when (this) {
-        is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
-        is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> failedHandler(error)
-        is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> fatalHandler(errors)
+        is Ok -> {}
+        is Failed -> failedHandler(error)
+        is Fatal -> fatalHandler(errors)
     }
 }
 
@@ -25,7 +25,7 @@ inline fun Try.orReturn(failedHandler: (Error<ErrorCode>) -> Nothing, fatalHandl
  * @param T The value type contained in the Ret result. / Ret 结果中包含的值类型
  * @param failedHandler Handler invoked on Failed result, which must never return. / Failed 结果时调用的处理器，必须永不返回
  * @param fatalHandler Handler invoked on Fatal result, which must never return. / Fatal 结果时调用的处理器，必须永不返回
- * @return The unwrapped value on success. / 成功时解包的值
+ * @return 成功时解包的值 / The unwrapped value on success.
 */
 inline fun <T> Ret<T>.orReturn(
     failedHandler: (Error<ErrorCode>) -> Nothing,
@@ -33,8 +33,8 @@ inline fun <T> Ret<T>.orReturn(
 ): T {
     @Suppress("UNCHECKED_CAST")
     return when (this) {
-        is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> value as T
-        is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> failedHandler(error)
-        is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> fatalHandler(errors)
+        is Ok -> value as T
+        is Failed -> failedHandler(error)
+        is Fatal -> fatalHandler(errors)
     }
 }

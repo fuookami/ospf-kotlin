@@ -24,9 +24,9 @@ internal class ConcurrentGenerationMaterialSliceTemplateCache<V : RealNumber<V>>
      * Retrieves cached slice templates for the given material.
      * 获取给定物料的缓存切片模板。
      *
-     * @param material the material to look up slice templates for / 要查找切片模板的物料
-     * @param collector the generation collector for recording cache statistics / 用于记录缓存统计的方案收集器
-     * @return the cached slice templates, or null if not present / 缓存的切片模板，若不存在则返回 null
+     * @param material 要查找切片模板的物料 / the material to look up slice templates for
+     * @param collector 用于记录缓存统计的方案收集器 / the generation collector for recording cache statistics
+     * @return 缓存的切片模板，若不存在则返回 null / the cached slice templates, or null if not present
     */
     fun get(
         material: Material<V>,
@@ -48,8 +48,8 @@ internal class ConcurrentGenerationMaterialSliceTemplateCache<V : RealNumber<V>>
      * Stores slice templates for the given material if not already cached.
      * 若给定物料尚未缓存，则存储其切片模板。
      *
-     * @param material the material to cache slice templates for / 要缓存切片模板的物料
-     * @param templates the slice templates to cache / 要缓存的切片模板
+     * @param material 要缓存切片模板的物料 / the material to cache slice templates for
+     * @param templates 要缓存的切片模板 / the slice templates to cache
     */
     fun put(
         material: Material<V>,

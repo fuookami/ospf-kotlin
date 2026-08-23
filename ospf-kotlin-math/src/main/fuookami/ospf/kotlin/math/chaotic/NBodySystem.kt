@@ -1,12 +1,9 @@
 /**
- * N 体系统
- * N-Body System
+ * N 体系统 / N-Body System
  *
  * N 体系统是经典力学中的多体引力相互作用模型。
  * 该系统通过牛顿万有引力定律计算多个天体之间的引力，产生复杂的混沌轨道。
- * 常用于天体力学研究、星系模拟和混沌轨道分析。
- *
- * The N-body system is a multi-body gravitational interaction model in classical mechanics.
+ * 常用于天体力学研究、星系模拟和混沌轨道分析。 / The N-body system is a multi-body gravitational interaction model in classical mechanics.
  * This system calculates gravitational forces between multiple celestial bodies using Newton's law of universal gravitation, producing complex chaotic orbits.
  * Commonly used for celestial mechanics research, galaxy simulation, and chaotic orbit analysis.
 */
@@ -19,8 +16,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * N 体系统
- * N-Body System
+ * N 体系统 / N-Body System
  *
  * 公式 / Formula:
  * dx_i/dt = v_i
@@ -79,8 +75,7 @@ data class NBodySystem(
 
     companion object {
         /**
-         * 创建二维 N 体系统
-         * Create a 2D N-body system
+         * 创建二维 N 体系统 / Create a 2D N-body system
          *
          * @param m 各天体质量列表 / List of body masses
          * @param G 万有引力常数 / Gravitational constant
@@ -98,8 +93,7 @@ data class NBodySystem(
 }
 
 /**
- * 二维 N 体系统
- * 2D N-Body System
+ * 二维 N 体系统 / 2D N-Body System
  *
  * @property m 各天体质量列表 / List of body masses
  * @property G 万有引力常数 / Gravitational constant
@@ -141,8 +135,7 @@ data class NBodySystemPlane(
 }
 
 /**
- * N 体系统生成器
- * N-Body System Generator
+ * N 体系统生成器 / N-Body System Generator
 */
 data class NBodySystemGenerator(
     val nBodySystem: NBodySystem = NBodySystem(listOf(Flt64.one, Flt64.one, Flt64.one)),

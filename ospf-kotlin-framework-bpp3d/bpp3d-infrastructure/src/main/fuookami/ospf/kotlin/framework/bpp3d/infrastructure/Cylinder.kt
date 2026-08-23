@@ -1,6 +1,5 @@
 /**
- * 圆柱体基础设施。
- * Cylinder infrastructure.
+ * 圆柱体基础设施。 / Cylinder infrastructure.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 

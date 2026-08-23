@@ -38,7 +38,7 @@ data object Demo3 {
      * A product with a minimum yield requirement.
      * 具有最低产量要求的产品。
      *
-     * @property minYield the minimum yield requirement / 最低产量要求
+     * @property minYield 最低产量要求 / the minimum yield requirement
     */
     data class Product(val minYield: Flt64) : AutoIndexed(Product::class)
 
@@ -46,8 +46,8 @@ data object Demo3 {
      * A material with cost and yield per product.
      * 具有成本和每产品产量的物料。
      *
-     * @property cost the cost of the material / 物料成本
-     * @property yieldQuantity the yield quantity per product / 每产品产量
+     * @property cost 物料成本 / the cost of the material
+     * @property yieldQuantity 每产品产量 / the yield quantity per product
     */
     data class Material(
         val cost: Flt64,
@@ -107,7 +107,7 @@ data object Demo3 {
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
      * 顺序运行所有子流程以构建、求解和分析模型。
      *
-     * @return the operation result / 操作结果
+     * @return 操作结果 / the operation result
     */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
@@ -130,7 +130,7 @@ data object Demo3 {
      * Initializes unsigned integer variables for material quantities.
      * 初始化物料数量的无符号整数变量。
      *
-     * @return the operation result / 操作结果
+     * @return 操作结果 / the operation result
     */
     private suspend fun initVariable(): Try {
         x = UIntVariable1("x", Shape1(materials.size))
@@ -145,7 +145,7 @@ data object Demo3 {
      * Creates cost and per-product yield expression symbols.
      * 创建成本和每产品产出表达式符号。
      *
-     * @return the operation result / 操作结果
+     * @return 操作结果 / the operation result
     */
     private suspend fun initSymbol(): Try {
         cost = LinearExpressionSymbol(
@@ -172,7 +172,7 @@ data object Demo3 {
      * Sets the objective to minimize material cost.
      * 设置目标函数以最小化物料成本。
      *
-     * @return the operation result / 操作结果
+     * @return 操作结果 / the operation result
     */
     private suspend fun initObject(): Try {
         metaModel.minimize(cost)
@@ -183,7 +183,7 @@ data object Demo3 {
      * Adds yield equality constraints for each product.
      * 为每个产品添加产出等式约束。
      *
-     * @return the operation result / 操作结果
+     * @return 操作结果 / the operation result
     */
     private suspend fun initConstraint(): Try {
         for (p in products) {
@@ -197,13 +197,13 @@ data object Demo3 {
      * Solves the linear model using the SCIP solver.
      * 使用 SCIP 求解器求解线性模型。
      *
-     * @return the operation result / 操作结果
+     * @return 操作结果 / the operation result
     */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
             is Ok -> {
-                metaModel.tokens.setSolution(ret.value.solution)
+                metaModel.tokens.setSolution(ret.value.values)
             }
 
             is Failed -> {
@@ -221,7 +221,7 @@ data object Demo3 {
      * Extracts the material quantities from the solution.
      * 从解中提取物料数量。
      *
-     * @return the operation result / 操作结果
+     * @return 操作结果 / the operation result
     */
     private suspend fun analyzeSolution(): Try {
         val ret = HashMap<Material, UInt64>()

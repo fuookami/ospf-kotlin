@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.report.ModelElementIdentityRegistry
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.testing.*
 import fuookami.ospf.kotlin.core.token.*
@@ -149,6 +150,7 @@ class FunctionSymbolRoundingGenericRegistrationTest {
         objectCategory: fuookami.ospf.kotlin.core.model.basic.ObjectCategory,
         override val tokens: AbstractTokenTable<V>
     ) : AbstractLinearMechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
+        override val identityRegistry: ModelElementIdentityRegistry? = null
         val collectedConstraints = mutableListOf<LinearInequality<V>>()
 
         override val constraints: List<Constraint<V, *>> = emptyList()

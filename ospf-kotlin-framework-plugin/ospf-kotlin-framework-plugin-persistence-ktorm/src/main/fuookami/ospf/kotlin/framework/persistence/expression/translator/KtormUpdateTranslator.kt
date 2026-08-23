@@ -1,6 +1,5 @@
 /**
- * Ktorm 更新翻译器
- * Ktorm Update Translator
+ * Ktorm 更新翻译器 / Ktorm Update Translator
  *
  * 将 UpdateAssignment 翻译为 Ktorm UPDATE SET 子句。
  * Translates UpdateAssignment to Ktorm UPDATE SET clause.
@@ -14,8 +13,7 @@ import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.framework.persistence.expression.*
 
 /**
- * 设置动态解析列的值
- * Set value for a dynamically resolved column
+ * 设置动态解析列的值 / Set value for a dynamically resolved column
  *
  * @param column 列声明表达式 / Column declaring expression
  * @param value 要设置的值 / Value to set
@@ -26,8 +24,7 @@ private fun UpdateStatementBuilder.setDynamicValue(column: ColumnDeclaring<*>, v
 }
 
 /**
- * Ktorm 更新翻译器
- * Ktorm Update Translator
+ * Ktorm 更新翻译器 / Ktorm Update Translator
  *
  * 将 UpdateAssignments 翻译为 Ktorm 更新构建器调用。
  * Translates UpdateAssignments to Ktorm update builder calls.
@@ -41,8 +38,7 @@ class KtormUpdateTranslator(
 ) {
 
     /**
-     * 执行更新语句
-     * Execute update statement
+     * 执行更新语句 / Execute update statement
      *
      * @param database Ktorm 数据库实例 / Ktorm database instance
      * @param whereCondition WHERE 条件 / WHERE condition

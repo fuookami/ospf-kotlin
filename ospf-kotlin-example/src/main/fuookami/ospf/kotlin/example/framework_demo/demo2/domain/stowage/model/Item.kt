@@ -27,8 +27,7 @@ enum class ItemLocationTag {
 }
 
 /**
- * 货物位置，描述货物可装载的舱位和位置标签。
- * Item location, describing which deck and position tags the item can be loaded to.
+ * 货物位置，描述货物可装载的舱位和位置标签。 / Item location, describing which deck and position tags the item can be loaded to.
  *
  * @property tags 位置标签集合 / set of location tags
 */
@@ -57,8 +56,7 @@ data class ItemLocation(
     val lowNotBulk = low && !bulk
 
     /**
-     * 检查该位置是否允许在指定甲板位置装载。
-     * Check whether this location is allowed at the given deck location.
+     * 检查该位置是否允许在指定甲板位置装载。 / Check whether this location is allowed at the given deck location.
      *
      * @param location 甲板位置 / deck location
      * @return 如果允许则返回 ok，否则返回失败原因 / ok if allowed, otherwise a failure reason
@@ -84,8 +82,7 @@ data class ItemLocation(
     }
 
     /**
-     * 检查该位置是否允许在指定货位位置装载。
-     * Check whether this location is allowed at the given position location.
+     * 检查该位置是否允许在指定货位位置装载。 / Check whether this location is allowed at the given position location.
      *
      * @param location 货位位置 / position location
      * @return 如果允许则返回 ok，否则返回失败原因 / ok if allowed, otherwise a failure reason
@@ -147,8 +144,7 @@ enum class ItemStatus {
 }
 
 /**
- * 货物类型信息，包含货物类型集合和优先级。
- * Cargo type information, including a set of cargo types and priority.
+ * 货物类型信息，包含货物类型集合和优先级。 / Cargo type information, including a set of cargo types and priority.
  *
  * @property types 货物类型集合 / set of cargo types
  * @property priority 货物优先级 / cargo priority
@@ -171,8 +167,7 @@ data class ItemCargo(
 }
 
 /**
- * 货物订单信息，包含硬停时间、复称时间、车辆板信息和顺序号。
- * Item order information, including hardstand time, reweigh time, car-board info, and order number.
+ * 货物订单信息，包含硬停时间、复称时间、车辆板信息和顺序号。 / Item order information, including hardstand time, reweigh time, car-board info, and order number.
  *
  * @property hardstand 硬停时间 / hardstand instant
  * @property reweighed 复称时间 / reweigh instant
@@ -187,8 +182,7 @@ data class ItemOrder(
 ) {
 
     /**
-     * 车辆板信息，包含车辆和板号。
-     * Car-board information, including car and board identifiers.
+     * 车辆板信息，包含车辆和板号。 / Car-board information, including car and board identifiers.
      *
      * @property car 车辆标识 / car identifier
      * @property board 板号 / board identifier
@@ -212,8 +206,7 @@ data class ItemOrder(
 }
 
 /**
- * 货物实例，包含标识、目的地、来源、ULD、重量、位置、状态和订单信息。
- * Item instance, containing identifier, destination, source, ULD, weight, location, status, and order info.
+ * 货物实例，包含标识、目的地、来源、ULD、重量、位置、状态和订单信息。 / Item instance, containing identifier, destination, source, ULD, weight, location, status, and order info.
  *
  * @property id 货物标识 / item identifier
  * @property destination 目的地 IATA 代码 / destination IATA code

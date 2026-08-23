@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 private val flt64Converter = object : IntoValue<Flt64> {
@@ -61,9 +62,9 @@ class Load(
      * Computes the load amount symbol for items matching the given predicate at a specific position.
      * 计算特定位置上匹配给定谓词的货物的装载量符号。
      *
-     * @param position the stowage position / 配载位置
-     * @param predicate the item filter predicate / 货物过滤谓词
-     * @return the linear intermediate symbol representing the load amount / 表示装载量的线性中间符号
+     * @param position 配载位置 / the stowage position
+     * @param predicate 货物过滤谓词 / the item filter predicate
+     * @return 表示装载量的线性中间符号 / the linear intermediate symbol representing the load amount
     */
     fun loadAmountOf(position: Position, predicate: (Item) -> Boolean): LinearIntermediateSymbol<Flt64> {
         val j = positions.indexOf(position)
@@ -84,8 +85,8 @@ class Load(
      * Registers all load-related variables and intermediate symbols into the model.
      * 将所有装载相关的变量和中间符号注册到模型中。
      *
-     * @param model the linear meta-model to register into / 要注册到的线性元模型
-     * @return success or failure / 成功或失败
+     * @param model 要注册到的线性元模型 / the linear meta-model to register into
+     * @return 成功或失败 / success or failure
     */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
@@ -104,13 +105,13 @@ class Load(
         for ((j, position) in positions.withIndex()) {
             if (position.status.predicateWeightNeeded) {
                 when (val result = model.add(y[j])) {
-                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                    is Ok -> {}
 
-                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                    is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
                 }
@@ -118,7 +119,7 @@ class Load(
         }
 
         if (!::z.isInitialized) {
-            z = QuantityUIntVariable1("z", Shape1(items.size), aircraftModel.weightUnit)
+            z = QuantityUIntVariable1("z", Shape1(positions.size), aircraftModel.weightUnit)
             for ((j, position) in positions.withIndex()) {
                 z[j].value.name = "z_${position}"
                 if (!position.status.recommendedWeightNeeded) {
@@ -131,13 +132,13 @@ class Load(
         for ((j, position) in positions.withIndex()) {
             if (position.status.recommendedWeightNeeded) {
                 when (val result = model.add(z[j])) {
-                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                    is Ok -> {}
 
-                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                    is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
                 }
@@ -152,11 +153,10 @@ class Load(
                         // 需要预估重量的舱位，且仅有一个 1，即该舱位装载后是一个二元值（0 或 1）
                         assert(position.mla eq UInt64.one)
                         if (position.status.stowageNeeded || position.status.adjustmentNeeded) {
-                            // TODO: upper bound constraint (x <= ub) not yet enforced with new SlackFunction API
                             LinearFunctionSymbolAdapter(
                                 delegate = SlackFunction(
                                     x = LinearPolynomial(y[j].to(aircraftModel.weightUnit)!!.value),
-                                    y = LinearPolynomial(loadAmount[j]) * position.plw!!.min.to(aircraftModel.weightUnit)!!.value,
+                                    y = sum(stowage.stowage[_a, j]) * position.plw!!.min.to(aircraftModel.weightUnit)!!.value,
                                     type = UContinuous,
                                     withNegative = true,
                                     withPositive = true,
@@ -166,7 +166,6 @@ class Load(
                                 converter = flt64Converter
                             )
                         } else {
-                            // TODO: upper bound constraint (x <= ub) not yet enforced with new SlackFunction API
                             LinearFunctionSymbolAdapter(
                                 delegate = SlackFunction(
                                     x = LinearPolynomial(y[j].to(aircraftModel.weightUnit)!!.value),
@@ -191,13 +190,13 @@ class Load(
             }
         }
         when (val result = model.add(predicateLoadWeightSlack)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -215,13 +214,13 @@ class Load(
             }
         }
         when (val result = model.add(loadAmount)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -258,13 +257,13 @@ class Load(
             }
         }
         when (val result = model.add(full)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -273,7 +272,7 @@ class Load(
             if (!::estimateLoadWeight.isInitialized) {
                 estimateLoadWeight = QuantityLinearIntermediateSymbols1<Flt64>("load_weight", Shape1(positions.size)) { j, _ ->
                     val position = positions[j]
-                    val poly = MutableLinearPolynomial()
+                    var poly = LinearPolynomial()
                     for ((i, item) in items.withIndex()) {
                         poly += item.weight.to(aircraftModel.weightUnit)!!.value * stowage.stowage[i, j]
                     }
@@ -293,13 +292,13 @@ class Load(
                 }
             }
             when (val result = model.add(estimateLoadWeight)) {
-                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                is Ok -> {}
 
-                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
             }
@@ -308,7 +307,7 @@ class Load(
         if (!::actualLoadWeight.isInitialized) {
             actualLoadWeight = QuantityLinearIntermediateSymbols1<Flt64>("actual_load_weight", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
-                val poly = MutableLinearPolynomial()
+                var poly = LinearPolynomial()
                 for ((i, item) in items.withIndex()) {
                     poly += item.weight.to(aircraftModel.weightUnit)!!.value * stowage.stowage[i, j]
                 }
@@ -322,13 +321,13 @@ class Load(
             }
         }
         when (val result = model.add(actualLoadWeight)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -356,7 +355,8 @@ class Load(
                     val withPredicateLoadWeight = if (position.status.predicateWeightNeeded) {
                         LinearFunctionSymbolAdapter(
                             delegate = IfFunction(
-                                condition = LinearPolynomial(y[j].to(aircraftModel.weightUnit)!!.value) - LinearPolynomial(Flt64.one),
+                                condition = LinearPolynomial(y[j].to(aircraftModel.weightUnit)!!.value)
+                                    - LinearPolynomial(Flt64.one) + Flt64(NONZERO_TOLERANCE),
                                 converter = flt64Converter,
                                 name = "estimate_loaded_predicate_load_weight_${position}"
                             ),
@@ -382,8 +382,8 @@ class Load(
                             val adapter = sym as LinearFunctionSymbolAdapter<Flt64>
                             when (val d = adapter.delegate) {
                                 is IfFunction<Flt64> -> d.result
-                                is BinaryzationFunction<Flt64> -> LinearPolynomial(listOf(LinearMonomial(Flt64.one, d.resultVar)), Flt64.zero)
-                                is SameAsFunction<Flt64> -> LinearPolynomial(listOf(LinearMonomial(Flt64.one, d.resultVar)), Flt64.zero)
+                                is BinaryzationFunction<Flt64> -> LinearPolynomial(d.resultVar)
+                                is SameAsFunction<Flt64> -> LinearPolynomial(d.resultVar)
                                 else -> sym.toLinearPolynomial()
                             }
                         } else {
@@ -407,13 +407,13 @@ class Load(
             }
         }
         when (val result = model.add(estimateLoaded)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -447,13 +447,13 @@ class Load(
             }
         }
         when (val result = model.add(actualLoaded)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -472,13 +472,13 @@ class Load(
             }
         }
         when (val result = model.add(loadEstimateLongitudinalTorque)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -490,26 +490,25 @@ class Load(
                 QuantityLinearIntermediateSymbol(
                     LinearExpressionSymbol(
                         torquePerWeight.to(aircraftModel.torqueUnit)!!.value * actualLoadWeight[j].to(aircraftModel.weightUnit)!!.value,
-                        name = "load_longitudinal_torque_${position}"
+                        name = "actual_load_longitudinal_torque_${position}"
                     ),
                     aircraftModel.torqueUnit
                 )
             }
         }
-        when (val result = model.add(loadEstimateLongitudinalTorque)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+        when (val result = model.add(loadActualLongitudinalTorque)) {
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
 
-        if (aircraftModel.wideBody) {
-            if (!::loadLateralTorque.isInitialized) {
+        if (!::loadLateralTorque.isInitialized) {
                 loadLateralTorque = QuantityLinearIntermediateSymbols1<Flt64>("load_lateral_torque", Shape1(positions.size)) { j, _ ->
                     val position = positions[j]
                     val torquePerWeight = (aircraftModel.gravity(Quantity(Flt64.one, aircraftModel.weightUnit)) * position.coordinate.lateralArm)!!
@@ -521,25 +520,26 @@ class Load(
                         aircraftModel.torqueUnit
                     )
                 }
-            }
-            when (val result = model.add(loadLateralTorque)) {
-                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+        }
+        when (val result = model.add(loadLateralTorque)) {
+                is Ok -> {}
 
-                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
-            }
+        }
 
+        if (aircraftModel.wideBody) {
             if (!::loadCLIM.isInitialized) {
                 loadCLIM = QuantityLinearIntermediateSymbols1<Flt64>("load_clim", Shape1(positions.size)) { j, _ ->
                     val position = positions[j]
                     QuantityLinearIntermediateSymbol(
                         LinearExpressionSymbol(
-                            Flt64.zero,
+                            loadEstimateLongitudinalTorque[j].to(aircraftModel.torqueUnit)!!.value.toLinearPolynomial(),
                             name = "load_clim_${position}"
                         ),
                         aircraftModel.torqueUnit
@@ -547,13 +547,13 @@ class Load(
                 }
             }
             when (val result = model.add(loadCLIM)) {
-                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                is Ok -> {}
 
-                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
             }
@@ -562,7 +562,7 @@ class Load(
         if (!::loadIndex.isInitialized) {
             loadIndex = QuantityLinearIntermediateSymbols1<Flt64>("load_index", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
-                val poly = MutableLinearPolynomial()
+                var poly = LinearPolynomial()
                 for ((i, item) in items.withIndex()) {
                     val index = formula.index(item.weight, position.coordinate.longitudinalArm)
                     poly += index.to(aircraftModel.torqueUnit)!!.value * stowage.stowage[i, j]
@@ -586,13 +586,13 @@ class Load(
             }
         }
         when (val result = model.add(loadIndex)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }

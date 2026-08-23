@@ -10,7 +10,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin-fraemwork-plugin</name>
+    <name>ospf-kotlin-framework-plugin</name>
     <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
     <artifactId>ospf-kotlin-framework-plugin</artifactId>
     <packaging>pom</packaging>

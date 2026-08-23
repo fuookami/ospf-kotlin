@@ -1,12 +1,9 @@
 /**
- * 复二次多项式
- * Complex Quadratic Polynomial
+ * 复二次多项式 / Complex Quadratic Polynomial
  *
  * 复二次多项式是复数域上的迭代映射，是 Mandelbrot 集和 Julia 集研究的基础。
  * 通过迭代复二次多项式可以生成丰富的分形结构，展现出复杂的混沌动力学行为。
- * 常用于分形几何研究、混沌可视化分析和复动力学理论研究。
- *
- * The complex quadratic polynomial is an iterative map on the complex domain, serving as the foundation for Mandelbrot set and Julia set research.
+ * 常用于分形几何研究、混沌可视化分析和复动力学理论研究。 / The complex quadratic polynomial is an iterative map on the complex domain, serving as the foundation for Mandelbrot set and Julia set research.
  * Iterating complex quadratic polynomials generates rich fractal structures, exhibiting complex chaotic dynamical behavior.
  * Commonly used for fractal geometry research, chaos visualization analysis, and complex dynamics theory research.
 */
@@ -20,8 +17,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 复二次多项式
- * Complex Quadratic Polynomial
+ * 复二次多项式 / Complex Quadratic Polynomial
  *
  * @property c 复数常数项（二维点表示复数） / Complex constant term (2D point represents complex number)
  * @property d 多项式指数 / Polynomial exponent
@@ -44,8 +40,7 @@ data class ComplexQuadraticPolynomial(
 }
 
 /**
- * 复二次多项式生成器
- * Complex Quadratic Polynomial Generator
+ * 复二次多项式生成器 / Complex Quadratic Polynomial Generator
 */
 data class ComplexQuadraticPolynomialGenerator(
     val complexQuadraticPolynomial: ComplexQuadraticPolynomial = ComplexQuadraticPolynomial(),

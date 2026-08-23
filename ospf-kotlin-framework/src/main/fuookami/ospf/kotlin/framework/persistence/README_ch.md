@@ -123,3 +123,9 @@ object MyTable : Table<MyEntity>("my_table") {
 `persistence/expression/` 子包提供基于 KSP 注解处理的 SQL 谓词下推框架，详见专属文档：
 
 - [expression/README_ch.md](expression/README_ch.md)
+
+## 关系查询计划
+
+framework 持久化 API 同时提供与数据库无关的[关系查询计划](query/README_ch.md)。该契约用于受控后端适配器：适配器注册数据源和字段，调用方只提交不可变的 Join、谓词、投影、排序、分组和分页语义。
+
+`Inner`、`Left` 和 `Exists` 是不同操作。`Exists` 是半连接，适合一对多存在性谓词并保持根记录粒度。根粒度计数必须显式提供 `rootKey`；不支持的复合根键策略必须拒绝，不能用近似计数替代。

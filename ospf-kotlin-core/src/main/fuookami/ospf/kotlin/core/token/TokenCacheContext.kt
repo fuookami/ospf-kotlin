@@ -13,8 +13,7 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import java.util.*
 
 /**
- * 线性展开缓存数据。
- * Linear flatten cache data.
+ * 线性展开缓存数据。 / Linear flatten cache data.
  *
  * @param T 数值环类型 / The ring type
  * @property monomials 线性单项式列表 / List of linear monomials
@@ -26,8 +25,7 @@ data class LinearFlattenData<T : Ring<T>>(
 )
 
 /**
- * 二次展开缓存数据。
- * Quadratic flatten cache data.
+ * 二次展开缓存数据。 / Quadratic flatten cache data.
  *
  * @param T 数值环类型 / The ring type
  * @property monomials 二次单项式列表 / List of quadratic monomials
@@ -39,8 +37,7 @@ data class QuadraticFlattenData<T : Ring<T>>(
 )
 
 /**
- * 线性展开缓存上下文。
- * Linear flatten cache context.
+ * 线性展开缓存上下文。 / Linear flatten cache context.
  *
  * @property cache 内部缓存映射 / Internal cache map
 */
@@ -104,8 +101,7 @@ class LinearFlattenContext<V : Ring<V>>(
 }
 
 /**
- * 二次展开缓存上下文。
- * Quadratic flatten cache context.
+ * 二次展开缓存上下文。 / Quadratic flatten cache context.
  *
  * @property cache 内部缓存映射 / Internal cache map
 */
@@ -169,8 +165,7 @@ class QuadraticFlattenContext<V : Ring<V>>(
 }
 
 /**
- * 值缓存上下文，按 solution 或 fixedValues 维度分别缓存求解结果。
- * Value cache context, caching solve results separately by solution and fixedValues dimensions.
+ * 值缓存上下文，按 solution 或 fixedValues 维度分别缓存求解结果。 / Value cache context, caching solve results separately by solution and fixedValues dimensions.
  *
  * @property solutionCache 按 solution 维度的缓存 / Cache by solution dimension
  * @property fixedValueCache 按 fixedValues 维度的缓存 / Cache by fixedValues dimension
@@ -358,8 +353,7 @@ class ValueCacheContext<V : RealNumber<V>>(
 }
 
 /**
- * 范围缓存上下文。
- * Range cache context.
+ * 范围缓存上下文。 / Range cache context.
  *
  * @property cache 内部缓存映射 / Internal cache map
 */
@@ -423,8 +417,7 @@ class RangeCacheContext<V>(
 }
 
 /**
- * 聚合所有 token 缓存上下文的容器。
- * Container aggregating all token cache contexts.
+ * 聚合所有 token 缓存上下文的容器。 / Container aggregating all token cache contexts.
  *
  * @property linearFlatten 线性展开缓存 / Linear flatten cache
  * @property quadraticFlatten 二次展开缓存 / Quadratic flatten cache

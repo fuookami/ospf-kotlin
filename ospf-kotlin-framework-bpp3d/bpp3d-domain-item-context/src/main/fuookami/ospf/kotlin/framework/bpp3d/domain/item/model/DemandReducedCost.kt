@@ -9,9 +9,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 /**
  * demandStatisticsForReducedCost.
  * demandStatisticsForReducedCost。
- * @param unit packing unit (Item, Container3, or Container2) / 装箱单元（货物、三维容器或二维容器）
- * @param mode demand mode for statistics / 需求统计模式
- * @return demand statistics map for the given unit and mode / 给定单元和模式的需求统计映射
+ * @param unit 装箱单元（货物、三维容器或二维容器） / packing unit (Item, Container3, or Container2)
+ * @param mode 需求统计模式 / demand mode for statistics
+ * @return 给定单元和模式的需求统计映射 / demand statistics map for the given unit and mode
 */
 private fun demandStatisticsForReducedCost(
     unit: Any,
@@ -34,10 +34,10 @@ private fun demandStatisticsForReducedCost(
 /**
  * AbstractBPP3DShadowPriceMap.
  * AbstractBPP3DShadowPriceMap。
- * @param unit packing unit (Item, Container3, or Container2) / 装箱单元（货物、三维容器或二维容器）
- * @param demandEntries active demand mode-key pairs / 活跃的需求模式-键对
- * @param shadowPriceOf function to look up shadow price by mode and key / 按模式和键查找影子价格的函数
- * @return reduced cost value / 缩减成本值
+ * @param unit 装箱单元（货物、三维容器或二维容器） / packing unit (Item, Container3, or Container2)
+ * @param demandEntries 活跃的需求模式-键对 / active demand mode-key pairs
+ * @param shadowPriceOf 按模式和键查找影子价格的函数 / function to look up shadow price by mode and key
+ * @return 缩减成本值 / reduced cost value
 */
 fun AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, FltX, Item>.reducedCost(
     unit: Any,

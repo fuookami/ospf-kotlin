@@ -31,7 +31,7 @@ data class GenerationConstraints<V : RealNumber<V>>(
          * Returns unconstrained generation constraints with all limits disabled.
          * 返回所有限制均禁用的无约束生成配置。
          *
-         * @return unconstrained generation constraints / 无约束的生成配置
+         * @return 无约束的生成配置 / unconstrained generation constraints
         */
         fun <V : RealNumber<V>> unconstrained(): GenerationConstraints<V> = GenerationConstraints()
     }
@@ -45,7 +45,7 @@ data class GenerationConstraints<V : RealNumber<V>>(
      * - [MaxOverProduceLengthConstraint]（当 maxOverProduceLength 非空时）
      * - [WidthUpperBoundConstraint]（始终包含，由生成器根据物料上界传入 context）
      *
-     * @return list of cutting plan constraint predicates derived from this configuration / 由当前配置生成的切割方案约束谓词列表
+     * @return 由当前配置生成的切割方案约束谓词列表 / list of cutting plan constraint predicates derived from this configuration
     */
     fun toConstraints(): List<CuttingPlanConstraint<V>> {
         val constraints = mutableListOf<CuttingPlanConstraint<V>>()

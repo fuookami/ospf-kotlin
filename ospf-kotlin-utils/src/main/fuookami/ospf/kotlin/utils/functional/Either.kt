@@ -144,9 +144,7 @@ sealed class Either<L, R> {
     val isRight get() = this is Right
 
     /**
-     * 获取 Left 值（如果存在）
-     *
-     * Returns the Left value if present, otherwise null.
+     * 获取 Left 值（如果存在） / Returns the Left value if present, otherwise null.
      * 如果存在 Left 值则返回，否则返回 null。
     */
     val left: L?
@@ -161,9 +159,7 @@ sealed class Either<L, R> {
         }
 
     /**
-     * 获取 Right 值（如果存在）
-     *
-     * Returns the Right value if present, otherwise null.
+     * 获取 Right 值（如果存在） / Returns the Right value if present, otherwise null.
      * 如果存在 Right 值则返回，否则返回 null。
     */
     val right: R?
@@ -178,9 +174,7 @@ sealed class Either<L, R> {
         }
 
     /**
-     * 如果是 Left 则执行提取器
-     *
-     * Creates a matcher that executes the extractor if this is a Left value.
+     * 如果是 Left 则执行提取器 / Creates a matcher that executes the extractor if this is a Left value.
      * 创建一个匹配器，如果是 Left 值则执行提取器。
      *
      * @param Ret 返回值类型 / The return type
@@ -190,9 +184,7 @@ sealed class Either<L, R> {
     fun <Ret> ifLeft(extractor: Extractor<Ret, L>) = EitherMatcher<L, R, Ret>(this).ifLeft(extractor)
 
     /**
-     * 如果是 Right 则执行提取器
-     *
-     * Creates a matcher that executes the extractor if this is a Right value.
+     * 如果是 Right 则执行提取器 / Creates a matcher that executes the extractor if this is a Right value.
      * 创建一个匹配器，如果是 Right 值则执行提取器。
      *
      * @param Ret 返回值类型 / The return type
@@ -286,41 +278,35 @@ sealed class Either<L, R> {
 class EitherMatcher<L, R, Ret>(
     private val value: Either<L, R>
 ) {
-    private lateinit var leftCallBack: (L) -> Ret
-    private lateinit var rightCallBack: (R) -> Ret
+    private lateinit var leftCallBack: Extractor<Ret, L>
+    private lateinit var rightCallBack: Extractor<Ret, R>
 
     /**
-     * 设置 Left 分支的回调
-     *
-     * Sets the callback for the Left branch.
+     * 设置 Left 分支的回调 / Sets the callback for the Left branch.
      * 设置 Left 分支的回调函数。
      *
      * @param callBack Left 值的处理函数 / The handler function for Left value
      * @return 匹配器本身 / The matcher itself
     */
-    fun ifLeft(callBack: (L) -> Ret): EitherMatcher<L, R, Ret> {
+    fun ifLeft(callBack: Extractor<Ret, L>): EitherMatcher<L, R, Ret> {
         leftCallBack = callBack
         return this
     }
 
     /**
-     * 设置 Right 分支的回调
-     *
-     * Sets the callback for the Right branch.
+     * 设置 Right 分支的回调 / Sets the callback for the Right branch.
      * 设置 Right 分支的回调函数。
      *
      * @param callBack Right 值的处理函数 / The handler function for Right value
      * @return 匹配器本身 / The matcher itself
     */
-    fun ifRight(callBack: (R) -> Ret): EitherMatcher<L, R, Ret> {
+    fun ifRight(callBack: Extractor<Ret, R>): EitherMatcher<L, R, Ret> {
         rightCallBack = callBack
         return this
     }
 
     /**
-     * 执行匹配并返回结果
-     *
-     * Executes the matching and returns the result based on which branch is present.
+     * 执行匹配并返回结果 / Executes the matching and returns the result based on which branch is present.
      * 执行匹配并根据存在的分支返回结果。
      *
      * @return 匹配结果 / The matching result
@@ -337,9 +323,7 @@ class EitherMatcher<L, R, Ret>(
 }
 
 /**
- * Either 模式匹配函数
- *
- * Pattern matching function for Either values with callbacks for both branches.
+ * Either 模式匹配函数 / Pattern matching function for Either values with callbacks for both branches.
  * Either 值的模式匹配函数，为两个分支提供回调。
  *
  * @param L Left 值的类型 / The type of Left value
@@ -354,8 +338,8 @@ class EitherMatcher<L, R, Ret>(
 @Throws(NullPointerException::class)
 fun <L, R, Ret> match(
     value: Either<L, R>,
-    leftCallBack: (L) -> Ret,
-    rightCallBack: (R) -> Ret
+    leftCallBack: Extractor<Ret, L>,
+    rightCallBack: Extractor<Ret, R>
 ): Ret {
     val matcher = value.ifLeft(leftCallBack).ifRight(rightCallBack)
     return matcher()

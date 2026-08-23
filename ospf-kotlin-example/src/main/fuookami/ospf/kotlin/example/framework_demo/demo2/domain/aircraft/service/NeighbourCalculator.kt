@@ -10,9 +10,9 @@ import fuookami.ospf.kotlin.utils.functional.*
  * Check if two positions are on the same side of the aircraft.
  * 检查两个位置是否在飞机的同一侧。
  *
- * @param position1 The first position. / 第一个位置
- * @param position2 The second position. / 第二个位置
- * @return True if both positions are on the same side. / 如果两个位置在同一侧则返回 true
+ * @param position1 第一个位置 / The first position.
+ * @param position2 第二个位置 / The second position.
+ * @return 如果两个位置在同一侧则返回 true / True if both positions are on the same side.
 */
 private fun onSameSide(
     position1: Position,
@@ -61,9 +61,9 @@ data object PhysicalNeighbourCalculator {
      * Check if two positions are on the same longitudinal line.
      * 检查两个位置是否在同一纵线上。
      *
-     * @param position1 The first position. / 第一个位置
-     * @param position2 The second position. / 第二个位置
-     * @return True if both positions are on the same line. / 如果两个位置在同一条线上则返回 true
+     * @param position1 第一个位置 / The first position.
+     * @param position2 第二个位置 / The second position.
+     * @return 如果两个位置在同一条线上则返回 true / True if both positions are on the same line.
     */
     private fun onSameLine(
         position1: Position,
@@ -129,8 +129,8 @@ data object IndirectPhysicsNeighbourCalculator {
      * Organize physical neighbour pairs into a bidirectional position map.
      * 将物理邻接对组织为双向位置映射。
      *
-     * @param physicalNeighbours The list of physical neighbour relationships. / 物理邻接关系列表
-     * @return A map from each position to its physically adjacent positions. / 从每个位置到其物理相邻位置的映射
+     * @param physicalNeighbours 物理邻接关系列表 / The list of physical neighbour relationships.
+     * @return 从每个位置到其物理相邻位置的映射 / A map from each position to its physically adjacent positions.
     */
     private fun tidy(
         physicalNeighbours: List<Neighbour>
@@ -147,9 +147,9 @@ data object IndirectPhysicsNeighbourCalculator {
      * Check if two positions are close enough longitudinally to be considered indirect neighbours.
      * 检查两个位置在纵向上是否足够接近以被视为间接邻居。
      *
-     * @param position1 The first position. / 第一个位置
-     * @param position2 The second position. / 第二个位置
-     * @return True if the positions are near enough. / 如果位置足够接近则返回 true
+     * @param position1 第一个位置 / The first position.
+     * @param position2 第二个位置 / The second position.
+     * @return 如果位置足够接近则返回 true / True if the positions are near enough.
     */
     private fun nearEnough(
         position1: Position,

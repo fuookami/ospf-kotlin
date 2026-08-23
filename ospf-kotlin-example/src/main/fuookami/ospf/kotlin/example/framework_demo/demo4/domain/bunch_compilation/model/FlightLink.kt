@@ -24,8 +24,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
  * 航班连接表达式模型，跟踪连续航班任务之间的连接及其关联的松弛变量用于列生成公式。/ Models flight link expressions tracking connections between consecutive flight tasks
  * and their associated slack variables for the column generation formulation.
  *
- * @property links Flight links / 航班连接
- * @property compilation Compilation model / 编译模型
+ * @property links 航班连接 / Flight links
+ * @property compilation 编译模型 / Compilation model
 */
 class FlightLink(
     val links: List<Link>,
@@ -44,8 +44,8 @@ class FlightLink(
     /**
      * 向模型注册连接和松弛符号。/ Registers link and slack symbols with the model.
      *
-     * @param model Linear meta model / 线性元模型
-     * @return Registration result / 注册结果
+     * @param model 线性元模型 / Linear meta model
+     * @return 注册结果 / Registration result
     */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (links.isNotEmpty()) {
@@ -55,7 +55,7 @@ class FlightLink(
                     Shape1(links.size)
                 ) { k, _ ->
                     LinearExpressionSymbol(
-                        MutableLinearPolynomial(),
+                        Flt64,
                         name = "link_$k"
                     )
                 }
@@ -77,12 +77,12 @@ class FlightLink(
                     "link_slack",
                     Shape1(links.size)
                 ) { k, _ ->
-                    val poly = MutableLinearPolynomial()
-                    poly += LinearMonomial(Flt64.one, link[k])
-                    poly += LinearMonomial(Flt64(0.5), compilation.y[links[k].prevTask])
-                    poly += LinearMonomial(Flt64(0.5), compilation.y[links[k].succTask])
+                    var poly = LinearPolynomial()
+                    poly += link[k]
+                    poly += Flt64(0.5) * compilation.y[links[k].prevTask]
+                    poly += Flt64(0.5) * compilation.y[links[k].succTask]
                     exampleThresholdSlack(
-                        x = LinearPolynomial(poly.monomials, poly.constant),
+                        x = poly,
                         threshold = Flt64.one,
                         withNegative = true,
                         withPositive = false,
@@ -109,9 +109,9 @@ class FlightLink(
     /**
      * 向连接表达式添加新束的列。/ Adds columns for new bunches to the link expressions.
      *
-     * @param iteration Current iteration index / 当前迭代索引
-     * @param bunches New flight task bunches / 新的航班任务束
-     * @return Column addition result / 列添加结果
+     * @param iteration 当前迭代索引 / Current iteration index
+     * @param bunches 新的航班任务束 / New flight task bunches
+     * @return 列添加结果 / Column addition result
     */
     fun addColumns(
         iteration: UInt64,
@@ -125,7 +125,7 @@ class FlightLink(
                 val thisLink = this.link[link]
                 thisLink.flush()
                 for (bunch in thisBunches) {
-                    thisLink.asMutable() += LinearMonomial(Flt64.one, xi[bunch])
+                    thisLink.asMutable() += Flt64.one * xi[bunch]
                 }
             }
         }

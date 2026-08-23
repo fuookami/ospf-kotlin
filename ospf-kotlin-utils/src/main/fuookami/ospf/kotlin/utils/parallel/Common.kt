@@ -15,14 +15,10 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * Utility module for parallel operations.
  *
- * 并行操作工具模块。
- *
- * Improvement for RVW-009: Uses Channel + Worker Pool to truly control coroutine count.
+ * 并行操作工具模块。 / Improvement for RVW-009: Uses Channel + Worker Pool to truly control coroutine count.
  * RVW-009 改进：使用 Channel + Worker Pool 实现真正的协程数量控制。
  * Coroutine count is bound to concurrentAmount, not pre-created by input size.
- * 协程数量与 concurrentAmount 绑定，而非按输入规模预创建。
- *
- * Approach:
+ * 协程数量与 concurrentAmount 绑定，而非按输入规模预创建。 / Approach:
  * 1. Create Channel for task distribution
  * 2. Launch fixed number of worker coroutines (= concurrentAmount)
  * 3. Each worker receives tasks from Channel and executes
@@ -34,9 +30,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 2. 启动固定数量的 worker 协程（= concurrentAmount）
  * 3. 每个 worker 从 Channel 接收任务并执行
  * 4. 发送端将所有任务发送到 Channel 后关闭
- * 5. 等待所有 worker 完成
- *
- * Guarantees:
+ * 5. 等待所有 worker 完成 / Guarantees:
  * - Coroutine creation count = concurrentAmount (fixed)
  * - Task distribution via Channel, no pre-creation of large coroutine counts
  * - No coroutine explosion for large collections
@@ -55,7 +49,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 对于空集合返回 1 以避免 log(0) = -inf。
  *
  * @receiver Collection / 集合
- * @return Default concurrent amount / 默认并发量
+ * @return 默认并发量 / Default concurrent amount
 */
 val Collection<*>.defaultConcurrentAmount: ULong
     get() = if (this.isEmpty()) {
@@ -77,7 +71,7 @@ val Collection<*>.defaultConcurrentAmount: ULong
  * 对于非 Collection 的 Iterable，使用可用处理器数作为默认值。
  *
  * @receiver Iterable / 可迭代对象
- * @return Default concurrent amount / 默认并发量
+ * @return 默认并发量 / Default concurrent amount
 */
 val Iterable<*>.defaultConcurrentAmount: ULong
     get() = if (this is Collection<*>) {
@@ -93,9 +87,9 @@ val Iterable<*>.defaultConcurrentAmount: ULong
  *
  * 解析并发量参数，为 null 时使用默认值。
  *
- * @param concurrentAmount Specified concurrent amount / 指定的并发量
- * @param default Default concurrent amount / 默认并发量
- * @return Resolved concurrent amount / 解析后的并发量
+ * @param concurrentAmount 指定的并发量 / Specified concurrent amount
+ * @param default 默认并发量 / Default concurrent amount
+ * @return 解析后的并发量 / Resolved concurrent amount
 */
 @PublishedApi
 internal fun resolveConcurrentAmount(concurrentAmount: ULong?, default: ULong): ULong {
@@ -107,8 +101,8 @@ internal fun resolveConcurrentAmount(concurrentAmount: ULong?, default: ULong): 
  *
  * 创建并发控制信号量。
  *
- * @param concurrentAmount Concurrency limit / 并发上限
- * @return Semaphore instance / 信号量实例
+ * @param concurrentAmount 并发上限 / Concurrency limit
+ * @return 信号量实例 / Semaphore instance
 */
 @PublishedApi
 internal fun createConcurrencySemaphore(concurrentAmount: ULong): Semaphore {
@@ -120,9 +114,9 @@ internal fun createConcurrencySemaphore(concurrentAmount: ULong): Semaphore {
  *
  * 使用信号量进行并发限流执行块。
  *
- * @param semaphore Semaphore / 信号量
- * @param block Execution block / 执行块
- * @return Execution result / 执行结果
+ * @param semaphore 信号量 / Semaphore
+ * @param block 执行块 / Execution block
+ * @return 执行结果 / Execution result
 */
 @PublishedApi
 internal suspend inline fun <T> withConcurrencyLimit(
@@ -144,9 +138,9 @@ internal suspend inline fun <T> withConcurrencyLimit(
  *
  * Worker Pool 任务包装器。
  *
- * @param T Task input type / 任务输入类型
- * @property index Task index / 任务索引
- * @property element Task element / 任务元素
+ * @param T 任务输入类型 / Task input type
+ * @property index 任务索引 / Task index
+ * @property element 任务元素 / Task element
 */
 @PublishedApi
 internal data class WorkerPoolTask<T>(
@@ -159,9 +153,9 @@ internal data class WorkerPoolTask<T>(
  *
  * Worker Pool 结果包装器。
  *
- * @param R Result type / 结果类型
- * @property index Task index (for ordering) / 任务索引（用于保持顺序）
- * @property result Execution result / 执行结果
+ * @param R 结果类型 / Result type
+ * @property index 任务索引（用于保持顺序） / Task index (for ordering)
+ * @property result 执行结果 / Execution result
 */
 @PublishedApi
 internal data class WorkerPoolResult<R>(
@@ -176,9 +170,9 @@ internal data class WorkerPoolResult<R>(
  * 安全转换 Worker Pool 结果值。
  * 安全不变量：结果槽位在读取前都由对应任务完整写入，运行时类型与目标 R 一致。
  *
- * @param R Target type / 目标类型
- * @param value Value to cast / 待转换值
- * @return Casted value / 转换后的值
+ * @param R 目标类型 / Target type
+ * @param value 待转换值 / Value to cast
+ * @return 转换后的值 / Casted value
 */
 @PublishedApi
 @Suppress("UNCHECKED_CAST")
@@ -187,9 +181,7 @@ internal fun <R> castWorkerPoolResult(value: Any?): R {
 }
 
 /**
- * 将 Worker Pool 结果数组转换为类型化列表
- *
- * Convert Worker Pool result array to typed list.
+ * 将 Worker Pool 结果数组转换为类型化列表 / Convert Worker Pool result array to typed list.
  *
  * @param R 结果类型 / Result type
  * @param results 结果数组 / Result array
@@ -205,8 +197,7 @@ internal fun <R> castWorkerPoolResultList(results: Array<Any?>): List<R> {
  *
  * Execute parallel tasks using Worker Pool (coroutine count = concurrentAmount).
  *
- * 这是核心并发控制实现，确保协程创建数量与 concurrentAmount 绑定。
- * This is the core concurrency control implementation, ensuring coroutine count is bound to concurrentAmount.
+ * 这是核心并发控制实现，确保协程创建数量与 concurrentAmount 绑定。 / This is the core concurrency control implementation, ensuring coroutine count is bound to concurrentAmount.
  *
  * @param R 结果类型 / Result type
  * @param T 元素类型 / Element type
@@ -294,9 +285,7 @@ internal suspend inline fun <R, T> executeWithWorkerPool(
 }
 
 /**
- * 使用 Worker Pool 执行并行任务（带错误处理）
- *
- * Execute parallel tasks using Worker Pool with error handling.
+ * 使用 Worker Pool 执行并行任务（带错误处理） / Execute parallel tasks using Worker Pool with error handling.
  *
  * @param R 结果类型 / Result type
  * @param T 元素类型 / Element type
@@ -376,9 +365,7 @@ internal suspend inline fun <R, T> executeTryWithWorkerPool(
 }
 
 /**
- * 使用 Worker Pool 执行并行任务（收集所有错误）
- *
- * Execute parallel tasks using Worker Pool, collecting all errors.
+ * 使用 Worker Pool 执行并行任务（收集所有错误） / Execute parallel tasks using Worker Pool, collecting all errors.
  *
  * @param R 结果类型 / Result type
  * @param T 元素类型 / Element type
@@ -458,9 +445,7 @@ internal suspend inline fun <R, T> executeExTryWithWorkerPool(
 }
 
 /**
- * 从 Ret 结果中提取错误并添加到列表
- *
- * Extract errors from a Ret result and append to the list.
+ * 从 Ret 结果中提取错误并添加到列表 / Extract errors from a Ret result and append to the list.
  *
  * @receiver 错误列表 / Error list
  * @param ret 结果对象 / Result object
@@ -475,9 +460,7 @@ internal fun MutableList<Error<ErrorCode>>.appendFrom(ret: Ret<*>) {
 }
 
 /**
- * 根据错误列表创建结果
- *
- * Create result based on error list.
+ * 根据错误列表创建结果 / Create result based on error list.
  *
  * @param value 成功时的值 / Value for success case
  * @param errors 错误列表 / Error list
@@ -518,9 +501,7 @@ internal suspend inline fun <T> executePredicateWithWorkerPool(
 }
 
 /**
- * 使用 Worker Pool 执行谓词判断（带错误处理）
- *
- * Execute predicate operations using Worker Pool with error handling.
+ * 使用 Worker Pool 执行谓词判断（带错误处理） / Execute predicate operations using Worker Pool with error handling.
  *
  * @param T 元素类型 / Element type
  * @param elements 任务元素迭代器 / Task element iterator
@@ -560,9 +541,7 @@ internal suspend inline fun <T> executeFilterWithWorkerPool(
 }
 
 /**
- * 使用 Worker Pool 执行过滤操作（带错误处理）
- *
- * Execute filter operations using Worker Pool with error handling.
+ * 使用 Worker Pool 执行过滤操作（带错误处理） / Execute filter operations using Worker Pool with error handling.
  *
  * @param T 元素类型 / Element type
  * @param elements 任务元素迭代器 / Task element iterator

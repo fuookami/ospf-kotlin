@@ -1,6 +1,5 @@
 /**
- * 元约束组与数学约束
- * Meta-constraint group and math constraints
+ * 元约束组与数学约束 / Meta-constraint group and math constraints
 */
 package fuookami.ospf.kotlin.core.model.mechanism
 
@@ -18,8 +17,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 元约束组接口，提供在 MetaModel 上注册和查询约束组的能力。
- * Meta-constraint group interface providing constraint group registration and querying on MetaModel.
+ * 元约束组接口，提供在 MetaModel 上注册和查询约束组的能力。 / Meta-constraint group interface providing constraint group registration and querying on MetaModel.
 */
 interface MetaConstraintGroup {
     val lazy: Boolean get() = false
@@ -40,8 +38,7 @@ interface MetaConstraintGroup {
     }
 
     /**
-     * 以变量项为约束添加到线性元模型。
-     * Add a variable item as a constraint to the linear meta model.
+     * 以变量项为约束添加到线性元模型。 / Add a variable item as a constraint to the linear meta model.
      *
      * @param constraint    变量项 / The variable item
      * @param lazy          是否延迟求值（可为 null，使用组默认值）/ Whether lazy evaluation (nullable, uses group default)
@@ -73,8 +70,7 @@ interface MetaConstraintGroup {
     }
 
     /**
-     * 以线性中间符号为约束添加到线性元模型。
-     * Add a linear intermediate symbol as a constraint to the linear meta model.
+     * 以线性中间符号为约束添加到线性元模型。 / Add a linear intermediate symbol as a constraint to the linear meta model.
      *
      * @param constraint    线性中间符号 / The linear intermediate symbol
      * @param lazy          是否延迟求值（可为 null，使用组默认值）/ Whether lazy evaluation (nullable, uses group default)
@@ -106,8 +102,7 @@ interface MetaConstraintGroup {
     }
 
     /**
-     * 以变量项集合创建分区约束。
-     * Create a partition constraint from a collection of variable items.
+     * 以变量项集合创建分区约束。 / Create a partition constraint from a collection of variable items.
      *
      * @param variables   变量项集合 / The collection of variable items
      * @param lazy        是否延迟求值（可为 null，使用组默认值）/ Whether lazy evaluation (nullable, uses group default)
@@ -139,8 +134,7 @@ interface MetaConstraintGroup {
     }
 
     /**
-     * 以线性中间符号集合创建分区约束。
-     * Create a partition constraint from a collection of linear intermediate symbols.
+     * 以线性中间符号集合创建分区约束。 / Create a partition constraint from a collection of linear intermediate symbols.
      *
      * @param symbols     线性中间符号集合 / The collection of linear intermediate symbols
      * @param lazy        是否延迟求值（可为 null，使用组默认值）/ Whether lazy evaluation (nullable, uses group default)
@@ -172,8 +166,7 @@ interface MetaConstraintGroup {
     }
 
     /**
-     * 以二次中间符号为约束添加到二次元模型。
-     * Add a quadratic intermediate symbol as a constraint to the quadratic meta model.
+     * 以二次中间符号为约束添加到二次元模型。 / Add a quadratic intermediate symbol as a constraint to the quadratic meta model.
      *
      * @param constraint    二次中间符号 / The quadratic intermediate symbol
      * @param lazy          是否延迟求值（可为 null，使用组默认值）/ Whether lazy evaluation (nullable, uses group default)
@@ -204,8 +197,7 @@ interface MetaConstraintGroup {
     }
 
     /**
-     * 以二次中间符号集合创建分区约束。
-     * Create a partition constraint from a collection of quadratic intermediate symbols.
+     * 以二次中间符号集合创建分区约束。 / Create a partition constraint from a collection of quadratic intermediate symbols.
      *
      * @param symbols     二次中间符号集合 / The collection of quadratic intermediate symbols
      * @param lazy        是否延迟求值（可为 null，使用组默认值）/ Whether lazy evaluation (nullable, uses group default)
@@ -311,8 +303,7 @@ fun <V> MetaModel<V>.constraintsOfGroup(group: MetaConstraintGroup): List<MathCo
 // ========== Math Inequality-based Constraint<Flt64> Types ==========
 
 /**
- * 数学约束通用接口。
- * Common interface for math-based constraints.
+ * 数学约束通用接口。 / Common interface for math-based constraints.
 */
 interface MathConstraint {
     val group: MetaConstraintGroup?
@@ -355,8 +346,7 @@ data class LinearInequalityConstraint<V>(
      * 将内部线性不等式扁平化为 LinearFlattenData。
      * Flatten the internal linear inequality into LinearFlattenData.
      *
-     * 将不等式转换为单项式列表加常量的形式，供约束构建和求值使用。
-     * Converts the inequality into a monomial-list-plus-constant form for constraint building and evaluation.
+     * 将不等式转换为单项式列表加常量的形式，供约束构建和求值使用。 / Converts the inequality into a monomial-list-plus-constant form for constraint building and evaluation.
      *
      * @return 包含扁平化线性数据的结果，或错误 / Result containing the flattened linear data, or an error
     */
@@ -377,8 +367,7 @@ data class LinearInequalityConstraint<V>(
     val displayName: String? get() = constraintDisplayName
 
     /**
-     * 判断约束条件是否成立。
-     * Evaluate whether the constraint condition is satisfied.
+     * 判断约束条件是否成立。 / Evaluate whether the constraint condition is satisfied.
      *
      * @param value 待判断的值 / Value to evaluate
      * @return 判断结果 / Evaluation result

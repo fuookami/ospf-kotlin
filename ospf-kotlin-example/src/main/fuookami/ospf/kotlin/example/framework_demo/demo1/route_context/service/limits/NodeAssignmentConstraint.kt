@@ -14,8 +14,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
  * Constrains each normal node to be assigned to at most one service.
  * 约束每个普通节点最多分配一个服务。
  *
- * @property nodes the list of network nodes / 网络节点列表
- * @property assignment the service-to-node assignment model / 服务到节点的分配模型
+ * @property nodes 网络节点列表 / the list of network nodes
+ * @property assignment 服务到节点的分配模型 / the service-to-node assignment model
 */
 class NodeAssignmentConstraint(
     private val nodes: List<Node>,
@@ -23,7 +23,7 @@ class NodeAssignmentConstraint(
     override val name: String = "node_assignment"
 ) : Pipeline<LinearMetaModel<Flt64>> {
     override fun invoke(model: LinearMetaModel<Flt64>): Try {
-        for (node in nodes.filter(normal)) {
+        for (node in nodes.filter { normal(it) }) {
             model.addConstraint(
                 assignment.nodeAssignment[node] leq 1,
                 name = "${name}_$node"

@@ -24,13 +24,11 @@ import fuookami.ospf.kotlin.utils.functional.*
 */
 
 /**
- * 松弛范围函数：使用松弛变量将 x 约束在 [lb, ub] 范围内。
- * Slack range function: bounds x within [lb, ub] using slack variables.
+ * 松弛范围函数：使用松弛变量将 x 约束在 [lb, ub] 范围内。 / Slack range function: bounds x within [lb, ub] using slack variables.
  *
  * 原始语义：polyX = x + neg - pos，约束 polyX leq ub / geq lb。
  * Original semantics: polyX = x + neg - pos, with constraints polyX leq ub / geq lb.
- * neg = 下松弛（x 低于 lb），pos = 上松弛（x 高于 ub）。
- * neg = lower slack (x below lb), pos = upper slack (x above ub).
+ * neg = 下松弛（x 低于 lb），pos = 上松弛（x 高于 ub）。 / neg = lower slack (x below lb), pos = upper slack (x above ub).
  *
  * @param x 要约束的表达式 / the expression to bound
  * @param lb 下界多项式 / lower bound polynomial
@@ -113,8 +111,7 @@ class SlackRangeFunction<V>(
 
     companion object {
         /**
-         * 使用 lb/ub 多项式的 V 泛型工厂。
-         * V-generic factory with lb/ub polynomials.
+         * 使用 lb/ub 多项式的 V 泛型工厂。 / V-generic factory with lb/ub polynomials.
          *
          * @param x 要约束的表达式 / the expression to bound
          * @param lb 下界多项式 / lower bound polynomial

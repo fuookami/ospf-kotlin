@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -18,9 +19,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
  * Aggregates MAC optimization models for longitudinal and lateral balance.
  * 聚合纵向和横向平衡的 MAC 优化模型。
  *
- * @property macRange The MAC range model for balance optimization / 用于平衡优化的 MAC 范围模型
- * @property longitudinalBalance The longitudinal balance slack model / 纵向平衡松弛模型
- * @property lateralBalance The lateral balance slack model (null for narrow-body) / 横向平衡松弛模型（窄体机为 null）
+ * @property macRange 用于平衡优化的 MAC 范围模型 / The MAC range model for balance optimization
+ * @property longitudinalBalance 纵向平衡松弛模型 / The longitudinal balance slack model
+ * @property lateralBalance 横向平衡松弛模型（窄体机为 null） / The lateral balance slack model (null for narrow-body)
 */
 class Aggregation(
     internal val aircraftModel: AircraftModel,
@@ -54,35 +55,35 @@ class Aggregation(
      * Registers longitudinal and lateral balance symbols into the optimization model.
      * 将纵向和横向平衡符号注册到优化模型中。
      *
-     * @param stowageMode The stowage mode controlling which symbols are registered / 控制注册哪些符号的装载模式
-     * @param model The linear meta-model to register symbols into / 要注册符号的线性元模型
-     * @return [Try] indicating success or failure / 表示成功或失败
+     * @param stowageMode 控制注册哪些符号的装载模式 / The stowage mode controlling which symbols are registered
+     * @param model 要注册符号的线性元模型 / The linear meta-model to register symbols into
+     * @return 表示成功或失败 / [Try] indicating success or failure
     */
     fun register(
         stowageMode: StowageMode,
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
         when (val result = longitudinalBalance.register(stowageMode, model)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
 
         if (lateralBalance != null) {
             when (val result = lateralBalance.register(model)) {
-                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                is Ok -> {}
 
-                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
             }
@@ -92,16 +93,18 @@ class Aggregation(
     }
 
     /**
-     * Registers all symbols for the Benders master problem using full-load stowage mode.
-     * 使用满载装载模式为 Benders 主问题注册所有符号。
+     * Registers all symbols for the Benders master problem.
+     * 为 Benders 主问题注册所有符号。
      *
+     * @param stowageMode 控制注册行为的装载模式 / The stowage mode controlling registration
      * @param model The linear meta-model for the master problem / Benders 主问题的线性元模型
-     * @return [Try] indicating success or failure / 表示成功或失败
+     * @return 表示成功或失败 / [Try] indicating success or failure
     */
     fun registerForBendersMP(
+        stowageMode: StowageMode,
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
-        return register(stowageMode = StowageMode.FullLoad, model = model)
+        return register(stowageMode = stowageMode, model = model)
     }
 
     /**
@@ -109,8 +112,8 @@ class Aggregation(
      * 为 Benders 子问题注册符号。
      *
      * @param model The linear meta-model for the sub-problem / Benders 子问题的线性元模型
-     * @param solution The solution from the master problem / 来自主问题的解
-     * @return [Try] indicating success or failure / 表示成功或失败
+     * @param solution 来自主问题的解 / The solution from the master problem
+     * @return 表示成功或失败 / [Try] indicating success or failure
     */
     fun registerForBendersSP(
         model: AbstractLinearMetaModel<Flt64>,
@@ -124,8 +127,8 @@ class Aggregation(
      * 求解后刷新 Benders 子问题的状态。
      *
      * @param model The linear meta-model for the sub-problem / Benders 子问题的线性元模型
-     * @param solution The solution from the master problem / 来自主问题的解
-     * @return [Try] indicating success or failure / 表示成功或失败
+     * @param solution 来自主问题的解 / The solution from the master problem
+     * @return 表示成功或失败 / [Try] indicating success or failure
     */
     private fun flushForBendersSP(
         model: AbstractLinearMetaModel<Flt64>,

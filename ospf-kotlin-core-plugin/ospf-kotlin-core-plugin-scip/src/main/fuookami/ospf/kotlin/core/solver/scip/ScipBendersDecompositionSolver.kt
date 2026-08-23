@@ -25,8 +25,8 @@ import jscip.SCIP_ParamSetting
  *
  * SCIP 线性 Benders 分解求解器
  *
- * @property config solver configuration / 求解器配置
- * @property callBack solver callback / 求解器回调
+ * @property config 求解器配置 / solver configuration
+ * @property callBack 求解器回调 / solver callback
 */
 class ScipLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
@@ -87,7 +87,7 @@ class ScipLinearBendersDecompositionSolver(
 
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
-                        metaModel.tokens.setSolution(result.value.solution)
+                        metaModel.tokens.setSolution(result.value.values)
                         jobs.joinAll()
                         Ok(result.value)
                     }
@@ -197,12 +197,12 @@ class ScipLinearBendersDecompositionSolver(
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
                         metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
-                            token.variable to result.value.solution[index]
+                            token.variable to result.value.values[index]
                         }.toMap() + fixedVariables)
                         val dualObject = dualSolution.sumOf(Flt64) { (constraint, value) ->
                             constraint.rhs * value
                         }
-                        if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {
+                        if (abs(dualObject - (result.value.solution?.objective ?: Flt64.zero)) gr Flt64(1e-6)) {
                             // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution / 某些配置可能未正确设置，导致对偶解不准确，因此需要重新求解对偶问题以获取对偶解
                             when (val result = solveDual(model, ScipLinearSolver(config))) {
                                 is Ok -> {
@@ -265,9 +265,7 @@ class ScipLinearBendersDecompositionSolver(
  * SCIP 二次 Benders 分解求解器
  *
  * 使用 SCIP 求解器实现二次 Benders 分解策略，支持线性主问题求解（委托给线性 Benders 求解器）和二次主问题求解，
- * 以及二次子问题求解（含对偶解和 Farkas 证明提取）。
- *
- * SCIP quadratic Benders decomposition solver
+ * 以及二次子问题求解（含对偶解和 Farkas 证明提取）。 / SCIP quadratic Benders decomposition solver
  *
  * Implements quadratic Benders decomposition strategy using SCIP solver, supporting linear master problem solving
  * (delegates to linear Benders solver) and quadratic master problem solving, as well as quadratic sub-problem solving
@@ -352,7 +350,7 @@ class ScipQuadraticBendersDecompositionSolver(
 
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
-                        metaModel.tokens.setSolution(result.value.solution)
+                        metaModel.tokens.setSolution(result.value.values)
                         jobs.joinAll()
                         Ok(result.value)
                     }
@@ -482,12 +480,12 @@ class ScipQuadraticBendersDecompositionSolver(
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
                         metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
-                            token.variable to result.value.solution[index]
+                            token.variable to result.value.values[index]
                         }.toMap() + fixedVariables)
                         val dualObject = dualSolution.sumOf(Flt64) { (constraint, value) ->
                             constraint.rhs * value
                         }
-                        if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {
+                        if (abs(dualObject - (result.value.solution?.objective ?: Flt64.zero)) gr Flt64(1e-6)) {
                             // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution / 某些配置可能未正确设置，导致对偶解不准确，因此需要重新求解对偶问题以获取对偶解
                             when (val result = solveDual(model, ScipQuadraticSolver(config))) {
                                 is Ok -> {

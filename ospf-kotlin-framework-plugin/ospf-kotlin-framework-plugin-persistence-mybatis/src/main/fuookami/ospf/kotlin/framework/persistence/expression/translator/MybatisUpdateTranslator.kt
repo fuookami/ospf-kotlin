@@ -50,9 +50,9 @@ class MybatisUpdateTranslator<T : Any>(
 /**
  * applySetValue.
  * applySetValue。
- * @param wrapper MyBatis-Plus update wrapper to apply the value to / 要应用赋值的 MyBatis-Plus 更新 Wrapper
- * @param item Set value assignment item / 赋值项
- * @return UpdateWrapper with the value assignment applied / 应用赋值后的 UpdateWrapper
+ * @param wrapper 要应用赋值的 MyBatis-Plus 更新 Wrapper / MyBatis-Plus update wrapper to apply the value to
+ * @param item 赋值项 / Set value assignment item
+ * @return 应用赋值后的 UpdateWrapper / UpdateWrapper with the value assignment applied
 */
     private fun applySetValue(wrapper: UpdateWrapper<T>, item: SetValue): UpdateWrapper<T> {
         val column = resolveColumnName(item.path) ?: return wrapper
@@ -73,8 +73,7 @@ class MybatisUpdateTranslator<T : Any>(
     }
 
     /**
-     * 应用表达式赋值到 Wrapper
-     * Apply expression assignment to wrapper
+     * 应用表达式赋值到 Wrapper / Apply expression assignment to wrapper
      *
      * @param wrapper MyBatis-Plus 更新 Wrapper / MyBatis-Plus update wrapper
      * @param item 表达式赋值项 / Expression assignment item

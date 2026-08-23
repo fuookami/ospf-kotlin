@@ -22,8 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 说明：通过统一锁与 TokenCacheContexts 管理 value/flatten/range 缓存，并在 close/remove 时解绑上下文。
  * Note: value/flatten/range caches are managed with a unified lock and TokenCacheContexts, and symbol contexts are unbound on close/remove.
  *
- * 非目标：不在该层执行建模求解逻辑，仅提供线程安全的数据与缓存容器。
- * Non-goal: no modeling/solving logic is executed in this layer; it only provides thread-safe data and cache containers.
+ * 非目标：不在该层执行建模求解逻辑，仅提供线程安全的数据与缓存容器。 / Non-goal: no modeling/solving logic is executed in this layer; it only provides thread-safe data and cache containers.
  *
  * @param V 数值类型 / The number type
  * @property category 符号操作类别 / Symbol operation category
@@ -574,8 +573,7 @@ sealed class ConcurrentMutableTokenTable<V>(
 }
 
 /**
- * 并发自动 token table，变量缺失时自动创建 token。
- * Concurrent auto token table that creates tokens on-the-fly for missing variables.
+ * 并发自动 token table，变量缺失时自动创建 token。 / Concurrent auto token table that creates tokens on-the-fly for missing variables.
  *
  * @param V 数值类型 / The number type
  * @param category 符号操作类别 / Symbol operation category
@@ -613,8 +611,7 @@ class ConcurrentAutoTokenTable<V>(
 }
 
 /**
- * 并发手动 token table，变量需显式添加后才能使用。
- * Concurrent manual token table where variables must be explicitly added before use.
+ * 并发手动 token table，变量需显式添加后才能使用。 / Concurrent manual token table where variables must be explicitly added before use.
  *
  * @param V 数值类型 / The number type
  * @param category 符号操作类别 / Symbol operation category

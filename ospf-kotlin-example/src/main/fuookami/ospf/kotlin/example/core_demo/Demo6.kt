@@ -27,8 +27,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 }
 
 /**
- * 有界背包问题：在每项数量限制下最大化货物价值。
- * Bounded knapsack: maximize cargo value with quantity limits per item.
+ * 有界背包问题：在每项数量限制下最大化货物价值。 / Bounded knapsack: maximize cargo value with quantity limits per item.
  *
  * @see https://fuookami.github.io/ospf/examples/example6.html
 */
@@ -163,7 +162,7 @@ data object Demo6 {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
             is Ok -> {
-                metaModel.tokens.setSolution(ret.value.solution)
+                metaModel.tokens.setSolution(ret.value.values)
             }
 
             is Failed -> {

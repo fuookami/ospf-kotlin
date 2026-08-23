@@ -18,24 +18,19 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 唯一选择函数符号 / One-of function symbol
  *
- * 提供 [OneOfFunction]，实现恰好一个输入多项式非零的约束建模。
- *
- * Provides [OneOfFunction] for modeling the constraint that exactly one input polynomial is nonzero.
+ * 提供 [OneOfFunction]，实现恰好一个输入多项式非零的约束建模。 / Provides [OneOfFunction] for modeling the constraint that exactly one input polynomial is nonzero.
 */
 
 /**
- * 选一函数：恰好一个输入多项式必须非零。
- * OneOf function: exactly one of the input polynomials must be nonzero.
+ * 选一函数：恰好一个输入多项式必须非零。 / OneOf function: exactly one of the input polynomials must be nonzero.
  *
- * 结果：
- * Result:
+ * 结果： / Result:
  * - 若恰好一个输入多项式非零则 y = 1
  * - y = 1 if exactly one of the input polynomials is nonzero
  * - 否则 y = 0
  * - y = 0 otherwise
  *
- * 使用非零指示变量与类 XOR 链接约束。
- * Uses nonzero indicators with XOR-like linking constraints.
+ * 使用非零指示变量与类 XOR 链接约束。 / Uses nonzero indicators with XOR-like linking constraints.
  *
  * @property polynomials 输入线性多项式列表 / the list of input linear polynomials
  * @param bigM Big-M 界限（默认从每个输入范围推导，失败时回退到 1e6）/ Big-M bound (inferred from each input range by default, falls back to 1e6)

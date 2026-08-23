@@ -5,7 +5,8 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -46,11 +47,11 @@ class ConsumptionLessQuantityMinimization<
 
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         if (materials.isNotEmpty()) {
-            val cost = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
+            var cost = LinearPolynomial()
             for ((material, _) in materials) {
                 val thresholdValue = threshold(material)
                 if (thresholdValue eq Flt64.zero) {
-                    cost += LinearMonomial(coefficient(material), consumption.lessQuantity[material])
+                    cost += coefficient(material) * consumption.lessQuantity[material]
                 } else {
                     val slack = produceSlack(
                         x = consumption.lessQuantity[material],
@@ -71,11 +72,11 @@ class ConsumptionLessQuantityMinimization<
                             return Fatal(result.errors)
                         }
                     }
-                    cost += LinearMonomial(coefficient(material), slack)
+                    cost += coefficient(material) * slack
                 }
             }
             when (val result = model.minimize(
-                polynomial = cost.toLinearPolynomial(),
+                polynomial = cost,
                 name = "consumption less quantity"
             )) {
                 is Ok -> {}

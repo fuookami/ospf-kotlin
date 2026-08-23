@@ -22,15 +22,11 @@ import fuookami.ospf.kotlin.utils.functional.*
 */
 
 /**
- * 半连续变量函数。
- * Semi-continuous variable function.
+ * 半连续变量函数。 / Semi-continuous variable function.
  *
- * 建模 y = 0 或 lb <= y <= ub 的半连续变量。
- * Models y where either y = 0 or lb <= y <= ub.
- * 这通常由求解器内置的半连续支持处理，
- * This is typically handled by the solver's built-in semi-continuous support,
- * 因此这是一个不产生额外约束的标记类。
- * so this is a marker class that produces no additional constraints.
+ * 建模 y = 0 或 lb <= y <= ub 的半连续变量。 / Models y where either y = 0 or lb <= y <= ub.
+ * 这通常由求解器内置的半连续支持处理， / This is typically handled by the solver's built-in semi-continuous support,
+ * 因此这是一个不产生额外约束的标记类。 / so this is a marker class that produces no additional constraints.
  *
  * @param lb 激活时的下界 / lower bound when active
  * @param ub 激活时的上界（默认 1e6，或通过工厂从变量范围推导）/ upper bound when active (default 1e6, or inferred from variable range through factory)
@@ -80,8 +76,7 @@ class SemiFunction<V>(
             SemiFunction(lb, ub, converter, name, displayName)
 
         /**
-         * 从变量有限边界创建 [SemiFunction] 实例。
-         * Create a [SemiFunction] instance from finite variable bounds.
+         * 从变量有限边界创建 [SemiFunction] 实例。 / Create a [SemiFunction] instance from finite variable bounds.
          *
          * @param variable 用于推导边界的变量 / variable whose bounds are used for inference
          * @param lb 显式激活下界，优先于变量下界 / explicit active lower bound, preferred over variable lower bound

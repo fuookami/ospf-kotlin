@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.callback.*
@@ -35,8 +35,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 class Demo2 {
 
     /**
-     * 构建最大化 x + y 的线性模型（受边界约束），然后用 PSO 求解。
-     * Builds a linear model maximizing x + y (subject to bounds), then solves it with PSO.
+     * 构建最大化 x + y 的线性模型（受边界约束），然后用 PSO 求解。 / Builds a linear model maximizing x + y (subject to bounds), then solves it with PSO.
      *
      * @return PSO solver execution result / PSO 求解器执行结果
     */
@@ -51,31 +50,31 @@ class Demo2 {
 //        val abs = AbsFunction(x - Flt64.one)
 //        metaModel.add(abs)
 //        metaModel.addObject(ObjectCategory.Minimum, LinearPolynomial(abs))
-        val obj = MutableLinearPolynomial<Flt64>(constant = Flt64.zero)
-        obj += LinearMonomial(Flt64.one, x)
-        obj += LinearMonomial(Flt64.one, y)
-        metaModel.maximize(LinearPolynomial(obj.monomials, obj.constant))
+        var obj = LinearPolynomial()
+        obj += x
+        obj += y
+        metaModel.maximize(obj)
         val model = when (val result = runBlocking { LinearMechanismModel(metaModel) }) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Ok<*, ErrorCode, Error<ErrorCode>> -> {
                 result.value ?: return Failed(Err(ErrorCode.ApplicationError, "linear mechanism model is null"))
             }
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed<*, ErrorCode, Error<ErrorCode>> -> {
                 return Failed(result.error)
             }
 
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Fatal<*, ErrorCode, Error<ErrorCode>> -> {
                 return Fatal(result.errors)
             }
         }
 //        val solver = ScipLinearSolver()
 //        val result = when (val ret = runBlocking { solver(model) }) {
-//            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+//            is Ok<*, ErrorCode, Error<ErrorCode>> -> {
 //                metaModel.tokens.setSolution(ret.value.results)
 //                ret.value.results
 //            }
 //
-//            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+//            is Failed<*, ErrorCode, Error<ErrorCode>> -> {
 //                return ret
 //            }
 //        }

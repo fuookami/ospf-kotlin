@@ -119,8 +119,7 @@ private val defaultQuantityArithmeticX = object : QuantityArithmetic<FltX> {
 /**
  * 默认物理量算术解析器 / Default quantity arithmetic resolver
  *
- * 通过领域数值样本解析对应的 QuantityArithmetic 实现，调用方只依赖泛型接口。
- * Resolves a QuantityArithmetic implementation from a domain value sample so callers depend only on the generic interface.
+ * 通过领域数值样本解析对应的 QuantityArithmetic 实现，调用方只依赖泛型接口。 / Resolves a QuantityArithmetic implementation from a domain value sample so callers depend only on the generic interface.
 */
 object DefaultQuantityArithmetic {
 

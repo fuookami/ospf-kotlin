@@ -1,18 +1,14 @@
 /**
- * 本文件提供命名风格转换工具，支持在不同命名约定之间进行转换。
- * This file provides a name transfer utility for converting between different naming conventions.
+ * 本文件提供命名风格转换工具，支持在不同命名约定之间进行转换。 / This file provides a name transfer utility for converting between different naming conventions.
 */
 package fuookami.ospf.kotlin.utils.meta_programming
 
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * 缓存键类，包含名称和缩写集合
+ * 缓存键类，包含名称和缩写集合 / Cache key class containing name and abbreviations.
  *
- * Cache key class containing name and abbreviations.
- *
- * RVW-008 修复：缓存键扩展为 (name, abbreviations)，避免不同缩写集混用时的缓存污染。
- * Fix for RVW-008: Cache key extended to include (name, abbreviations) to prevent
+ * RVW-008 修复：缓存键扩展为 (name, abbreviations)，避免不同缩写集混用时的缓存污染。 / Fix for RVW-008: Cache key extended to include (name, abbreviations) to prevent
  * cache pollution when different abbreviation sets are mixed in the same process.
  *
  * @property name          名称 / Name
@@ -24,9 +20,7 @@ private data class NameTransferCacheKey(
 ) {
     companion object {
         /**
-         * 从名称和缩写集合创建缓存键
-         *
-         * Create cache key from name and abbreviation set.
+         * 从名称和缩写集合创建缓存键 / Create cache key from name and abbreviation set.
          *
          * @param name              名称 / Name
          * @param abbreviations     缩写集合 / Abbreviation set
@@ -39,9 +33,7 @@ private data class NameTransferCacheKey(
 }
 
 /**
- * 名称转换实现
- *
- * Implementation for name transfer.
+ * 名称转换实现 / Implementation for name transfer.
  *
  * @property frontend       前端命名系统 / Frontend naming system
  * @property backend        后端命名系统 / Backend naming system
@@ -53,26 +45,20 @@ private class NameTransferImpl(
 ) {
 
     /**
-     * 线程安全的缓存
-     *
-     * Thread-safe cache using ConcurrentHashMap.
+     * 线程安全的缓存 / Thread-safe cache using ConcurrentHashMap.
      *
      * RVW-002 修复：使用 ConcurrentHashMap 替代 HashMap + synchronized，
-     * 确保并发场景下的线程安全。
-     * Fix for RVW-002: Use ConcurrentHashMap instead of HashMap + synchronized
+     * 确保并发场景下的线程安全。 / Fix for RVW-002: Use ConcurrentHashMap instead of HashMap + synchronized
      * to ensure thread safety in concurrent scenarios.
      *
      * RVW-008 修复：缓存键使用 NameTransferCacheKey (name + abbreviations)，
-     * 避免同进程混用不同缩写集时的缓存命中错误。
-     * Fix for RVW-008: Cache key uses NameTransferCacheKey (name + abbreviations)
+     * 避免同进程混用不同缩写集时的缓存命中错误。 / Fix for RVW-008: Cache key uses NameTransferCacheKey (name + abbreviations)
      * to prevent cache hit errors when mixing different abbreviation sets.
     */
     val cache: ConcurrentHashMap<NameTransferCacheKey, String> = ConcurrentHashMap()
 
     /**
-     * 将名称从前端命名系统转换为后端命名系统
-     *
-     * Transform a name from the frontend naming system to the backend naming system.
+     * 将名称从前端命名系统转换为后端命名系统 / Transform a name from the frontend naming system to the backend naming system.
      *
      * @param name              给定名称 / Given name
      * @param abbreviations     缩写集合 / Abbreviation set
@@ -86,9 +72,7 @@ private class NameTransferImpl(
     }
 
     /**
-     * 将名称从后端命名系统转换为前端命名系统
-     *
-     * Transform a name from the backend naming system to the frontend naming system.
+     * 将名称从后端命名系统转换为前端命名系统 / Transform a name from the backend naming system to the frontend naming system.
      *
      * @param name              给定名称 / Given name
      * @param abbreviations     缩写集合 / Abbreviation set
@@ -100,8 +84,7 @@ private class NameTransferImpl(
 }
 
 /**
- * 使用给定的前端和后端命名系统构建名称转换器
- * Build a name transfer with given frontend and backend naming system
+ * 使用给定的前端和后端命名系统构建名称转换器 / Build a name transfer with given frontend and backend naming system
  *
  * @param frontend      前端命名系统 / Frontend naming system
  * @param backend       后端命名系统 / Backend naming system
@@ -145,9 +128,7 @@ private val transfers = mapOf(
 )
 
 /**
- * 名称转换器
- *
- * Name transfer.
+ * 名称转换器 / Name transfer.
  *
  * @property frontend           前端命名系统 / Frontend naming system
  * @property backend            后端命名系统 / Backend naming system
@@ -162,9 +143,7 @@ class NameTransfer(
     private val impl: NameTransferImpl? = transfers[Pair(frontend, backend)]
 
     /**
-     * 将名称从前端命名系统转换为后端命名系统
-     *
-     * Transform a name from the frontend naming system to the backend naming system.
+     * 将名称从前端命名系统转换为后端命名系统 / Transform a name from the frontend naming system to the backend naming system.
      *
      * @param name              给定名称 / Given name
      * @return                  对应后端命名系统的名称 / The name corresponding the backend naming system
@@ -174,9 +153,7 @@ class NameTransfer(
     }
 
     /**
-     * 将名称从后端命名系统转换为前端命名系统
-     *
-     * Transform a name from the backend naming system to the frontend naming system.
+     * 将名称从后端命名系统转换为前端命名系统 / Transform a name from the backend naming system to the frontend naming system.
      *
      * @param name              给定名称 / Given name
      * @return                  对应前端命名系统的名称 / The name corresponding the frontend naming system

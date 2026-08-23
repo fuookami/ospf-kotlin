@@ -17,6 +17,7 @@ solver/
 ├── ModelingPreparation.kt        # Model preparation
 ├── SolveOptions.kt               # Solve options
 ├── SolverExt.kt                  # Solver extension functions
+├── SolverReportExt.kt             # Unified SolveReport entry points
 ├── SolverFailureSupport.kt       # Solve failure support
 ├── SolverMemoryCleanupSupport.kt # Memory cleanup support
 ├── SolverStatusSupport.kt        # Solve status support
@@ -60,7 +61,7 @@ solver/
 The `LinearSolver` interface defines complete linear programming solving capabilities:
 
 **Core solving methods**:
-- `invoke(model, callback)` — Solve linear model, returns `FeasibleSolverOutput<Flt64>`
+- `invoke(model, callback)` — Solve linear model, returns `SolveReport<Flt64>`
 - `invoke(model, solutionAmount, callback)` — Solve for multiple solutions
 - `solve(model, converter, callback)` — Generic solve supporting arbitrary value type V
 
@@ -74,6 +75,15 @@ MetaModel<V> → dump → MechanismModel<Flt64> → dump → LinearTriadModel �
 
 **IIS diagnostics**:
 - `invoke(model, callback, iisConfig)` — Solve with infeasible subsystem analysis
+
+### Unified Solve Report (`SolverReportExt.kt`)
+
+Use `solveReport(...)` as the new report-first entry point. Linear and quadratic overloads cover single-solution solves, solution pools, `SolveOptions`, IIS orchestration, mechanism-model dumping, and generic numeric conversion, and return `Ret<SolveReport<V>>`. When a pool is requested, the primary solution remains in `solution.values` and all returned solutions are preserved in `solution.pool`.
+
+`SolveReport<V>` is the primary result for all new and migrated integrations. It keeps non-feasible
+terminal states, incumbent solutions, structured diagnostics, provenance, and fingerprints in one
+contract. `LinearInfeasibleSolverOutput` and `QuadraticInfeasibleSolverOutput` remain only as
+materialized IIS artifacts for the explicit IIS compatibility entry points.
 
 ### Quadratic Solver Interface (`QuadraticSolver.kt`)
 
@@ -89,15 +99,14 @@ SolverOutput
 ├── LinearSolverOutput      — Linear solver output
 └── QuadraticSolverOutput   — Quadratic solver output
 
-FeasibleSolverOutput<V>     — Feasible solution output (objective, solution, statistics)
+SolveReport<V>              — Unified result (status, termination, solution, diagnostics, provenance)
 LinearInfeasibleSolverOutput  — Linear infeasible output (with IIS)
 QuadraticInfeasibleSolverOutput — Quadratic infeasible output (with IIS)
 ```
 
-`FeasibleSolverOutput<V>` provides dual-view access for both Flt64 and V types:
-- `obj` / `objValue` — Objective value
-- `possibleBestObj` / `possibleBestObjValue` — Possible best objective value
-- `bestBound` / `bestBoundValue` — Best bound
+`SolveReport<V>` exposes the incumbent through `solution`, the objective through
+`solution.objective`, and bounds/gaps through `statistics`. `ProblemStatus`,
+`TerminationReason`, and `SolutionPresence` are independent fields.
 
 ### Value Type Conversion (`value/IntoValue.kt`)
 

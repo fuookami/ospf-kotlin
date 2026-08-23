@@ -1,10 +1,8 @@
 /**
- * 点
- * Point
+ * 点 / Point
  *
  * 定义几何空间中的点数据结构，支持任意维度和数值类型。
- * 点是几何空间中的基本元素，表示空间中的一个位置。
- * Defines point data structure in geometric space, supporting arbitrary dimensions and number types.
+ * 点是几何空间中的基本元素，表示空间中的一个位置。 / Defines point data structure in geometric space, supporting arbitrary dimensions and number types.
  * A point is a fundamental element in geometric space, representing a position.
 */
 package fuookami.ospf.kotlin.math.geometry
@@ -15,12 +13,10 @@ import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.operator.*
 
 /**
- * 点数据类
- * Point Data Class
+ * 点数据类 / Point Data Class
  *
  * 表示几何空间中的点，支持任意维度和浮点数类型。
- * 点可以与向量进行加减运算，支持距离计算和相等性比较。
- * Represents a point in geometric space, supporting arbitrary dimensions and floating-point types.
+ * 点可以与向量进行加减运算，支持距离计算和相等性比较。 / Represents a point in geometric space, supporting arbitrary dimensions and floating-point types.
  * Points can be added to or subtracted by vectors, supporting distance calculation and equality comparison.
  *
  * @param D 维度类型 / Dimension type
@@ -34,8 +30,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
 ) : Plus<Point<D, V>, Point<D, V>>, Minus<Point<D, V>, Point<D, V>>, Eq<Point<D, V>> {
     companion object {
         /**
-         * 获取二维维度类型
-         * Get the 2D dimension type
+         * 获取二维维度类型 / Get the 2D dimension type
          *
          * @param D 维度类型 / The dimension type
          * @return 二维维度类型 / The 2D dimension type
@@ -48,8 +43,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
         }
 
         /**
-         * 获取三维维度类型
-         * Get the 3D dimension type
+         * 获取三维维度类型 / Get the 3D dimension type
          *
          * @param D 维度类型 / The dimension type
          * @return 三维维度类型 / The 3D dimension type
@@ -62,8 +56,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
         }
 
         /**
-         * 通过二维坐标创建泛型点
-         * Create a generic point from 2D coordinates
+         * 通过二维坐标创建泛型点 / Create a generic point from 2D coordinates
          *
          * @param D 维度类型 / The dimension type
          * @param V 数值类型 / The numeric type
@@ -76,8 +69,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
         }
 
         /**
-         * 通过三维坐标创建泛型点
-         * Create a generic point from 3D coordinates
+         * 通过三维坐标创建泛型点 / Create a generic point from 3D coordinates
          *
          * @param D 维度类型 / The dimension type
          * @param V 数值类型 / The numeric type
@@ -91,8 +83,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
         }
 
         /**
-         * 从向量创建点
-         * Create a point from a vector
+         * 从向量创建点 / Create a point from a vector
          *
          * @param D 维度类型 / The dimension type
          * @param V 数值类型 / The numeric type
@@ -104,8 +95,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
         }
 
         /**
-         * 通过 Flt64 二维坐标创建点
-         * Create a point from Flt64 2D coordinates
+         * 通过 Flt64 二维坐标创建点 / Create a point from Flt64 2D coordinates
          *
          * @param x X 坐标 / X coordinate
          * @param y Y 坐标 / Y coordinate
@@ -116,8 +106,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
         }
 
         /**
-         * 通过 Flt64 三维坐标创建点
-         * Create a point from Flt64 3D coordinates
+         * 通过 Flt64 三维坐标创建点 / Create a point from Flt64 3D coordinates
          *
          * @param x X 坐标 / X coordinate
          * @param y Y 坐标 / Y coordinate
@@ -137,8 +126,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
     val indices by dim::indices
 
     /**
-     * 获取指定索引的坐标
-     * Get the coordinate at the specified index
+     * 获取指定索引的坐标 / Get the coordinate at the specified index
      *
      * @param i 索引值 / The index value
      * @return 对应位置的坐标 / The coordinate at the specified position
@@ -149,8 +137,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
     }
 
     /**
-     * 计算到另一点的欧几里得距离
-     * Compute Euclidean distance to another point
+     * 计算到另一点的欧几里得距离 / Compute Euclidean distance to another point
      *
      * @param rhs 另一个点 / The other point
      * @return 欧几里得距离 / The Euclidean distance
@@ -158,8 +145,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
     infix fun distance(rhs: Point<D, V>): V = Distance.Euclidean(this, rhs)
 
     /**
-     * 使用指定距离度量计算到另一点的距离
-     * Compute distance to another point using the specified metric
+     * 使用指定距离度量计算到另一点的距离 / Compute distance to another point using the specified metric
      *
      * @param rhs 另一个点 / The other point
      * @param type 距离度量策略，默认为欧几里得距离 / The distance metric, defaults to Euclidean
@@ -190,8 +176,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
     }
 
     /**
-     * 使用默认精度判断两点是否近似相等
-     * Check approximate equality with default precision
+     * 使用默认精度判断两点是否近似相等 / Check approximate equality with default precision
      *
      * @param rhs 另一个点 / The other point
      * @return 是否近似相等 / Whether approximately equal
@@ -210,8 +195,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
     }
 
     /**
-     * 使用指定精度判断两点是否近似相等
-     * Check approximate equality with specified precision
+     * 使用指定精度判断两点是否近似相等 / Check approximate equality with specified precision
      *
      * @param rhs 另一个点 / The other point
      * @param epsilon 容差值 / The tolerance value
@@ -230,8 +214,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
     }
 
     /**
-     * 计算两点的中点
-     * Compute the midpoint between two points
+     * 计算两点的中点 / Compute the midpoint between two points
      *
      * @param rhs 另一个点 / The other point
      * @return 中点 / The midpoint
@@ -260,8 +243,7 @@ val Point<Dim2, Flt64>.pair get() = Pair(x, y)
 val originPoint2 = point2()
 
 /**
- * 创建二维点
- * Create a 2D point
+ * 创建二维点 / Create a 2D point
  *
  * @param x X 坐标，默认为 0 / X coordinate, defaults to 0
  * @param y Y 坐标，默认为 0 / Y coordinate, defaults to 0
@@ -290,8 +272,7 @@ val Point<Dim3, Flt64>.triple get() = Triple(x, y, z)
 val originPoint3 = point3()
 
 /**
- * 创建三维点
- * Create a 3D point
+ * 创建三维点 / Create a 3D point
  *
  * @param x X 坐标，默认为 0 / X coordinate, defaults to 0
  * @param y Y 坐标，默认为 0 / Y coordinate, defaults to 0
@@ -322,8 +303,7 @@ val Point<Dim4, Flt64>.w get() = this[3]
 val originPoint4 = point4()
 
 /**
- * 创建四维点
- * Create a 4D point
+ * 创建四维点 / Create a 4D point
  *
  * @param x X 坐标，默认为 0 / X coordinate, defaults to 0
  * @param y Y 坐标，默认为 0 / Y coordinate, defaults to 0

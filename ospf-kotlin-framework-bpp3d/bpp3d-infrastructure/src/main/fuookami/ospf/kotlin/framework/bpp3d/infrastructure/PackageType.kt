@@ -1,8 +1,7 @@
 @file:Suppress("DEPRECATION")
 
 /**
- * 包装类型基础设施。
- * Package type infrastructure.
+ * 包装类型基础设施。 / Package type infrastructure.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 

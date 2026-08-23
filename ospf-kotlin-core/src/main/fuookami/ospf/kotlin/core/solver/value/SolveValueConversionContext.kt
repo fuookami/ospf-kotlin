@@ -1,6 +1,5 @@
 /**
- * 求解值转换上下文管理
- * Solve value conversion context management
+ * 求解值转换上下文管理 / Solve value conversion context management
 */
 package fuookami.ospf.kotlin.core.solver.value
 
@@ -9,8 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 private val solveValueConversionPolicyThreadLocal = ThreadLocal<SolveValueConversionPolicy?>()
 
 /**
- * 获取当前线程的求解值转换策略。
- * Get the current thread's solve value conversion policy.
+ * 获取当前线程的求解值转换策略。 / Get the current thread's solve value conversion policy.
  *
  * @return 当前转换策略 / Current conversion policy
 */
@@ -19,8 +17,7 @@ fun currentSolveValueConversionPolicy(): SolveValueConversionPolicy {
 }
 
 /**
- * 在指定的转换策略下执行代码块。
- * Execute a code block under the specified conversion policy.
+ * 在指定的转换策略下执行代码块。 / Execute a code block under the specified conversion policy.
  *
  * @param T 返回值类型 / Return value type
  * @param policy 转换策略 / Conversion policy
@@ -41,8 +38,7 @@ suspend fun <T> withSolveValueConversionPolicy(
 }
 
 /**
- * 使用当前线程的转换策略将 Flt64 转换为 Double。
- * Convert Flt64 to Double using the current thread's conversion policy.
+ * 使用当前线程的转换策略将 Flt64 转换为 Double。 / Convert Flt64 to Double using the current thread's conversion policy.
  *
  * @param fieldName 字段名称（用于错误信息）/ Field name (for error messages)
  * @return 转换后的 Double 值 / Converted Double value
@@ -60,8 +56,7 @@ fun Flt64.toSolverDouble(
 }
 
 /**
- * 使用指定策略将 Flt64 转换为 Double。
- * Convert Flt64 to Double using the specified policy.
+ * 使用指定策略将 Flt64 转换为 Double。 / Convert Flt64 to Double using the specified policy.
  *
  * @param policy 转换策略 / Conversion policy
  * @param fieldName 字段名称（用于错误信息）/ Field name (for error messages)

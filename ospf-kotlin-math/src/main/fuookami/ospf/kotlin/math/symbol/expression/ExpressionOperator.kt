@@ -1,16 +1,13 @@
 /**
- * 表达式操作符
- * Expression Operator
+ * 表达式操作符 / Expression Operator
  *
- * 定义表达式系统中使用的操作符类型，包括标量操作符、比较操作符和模式匹配模式。
- * Defines operator types used in the expression system,
+ * 定义表达式系统中使用的操作符类型，包括标量操作符、比较操作符和模式匹配模式。 / Defines operator types used in the expression system,
  * including scalar operators, comparison operators, and pattern match modes.
 */
 package fuookami.ospf.kotlin.math.symbol.expression
 
 /**
- * 标量一元操作符
- * Scalar Unary Operator
+ * 标量一元操作符 / Scalar Unary Operator
 */
 enum class UnaryOperator {
     /**
@@ -30,8 +27,7 @@ enum class UnaryOperator {
 }
 
 /**
- * 标量二元操作笌
- * Scalar Binary Operator
+ * 标量二元操作笌 / Scalar Binary Operator
 */
 enum class BinaryOperator {
     /**
@@ -66,8 +62,7 @@ enum class BinaryOperator {
 }
 
 /**
- * 比较操作笌
- * Comparison Operator
+ * 比较操作笌 / Comparison Operator
 */
 enum class ComparisonOperator {
     /**
@@ -102,68 +97,58 @@ enum class ComparisonOperator {
 }
 
 /**
- * 模式匹配模式
- * Pattern Match Mode
+ * 模式匹配模式 / Pattern Match Mode
  *
- * 定义通用的模式匹配语义，不携希SQL 方言细节。
- * Defines generic pattern matching semantics without SQL dialect details.
+ * 定义通用的模式匹配语义，不携希SQL 方言细节。 / Defines generic pattern matching semantics without SQL dialect details.
 */
 enum class PatternMatchMode {
     /**
      * 精确匹配 / Exact match
      *
-     * 整个字符串必须完全匹配模式。
-     * The entire string must exactly match the pattern.
+     * 整个字符串必须完全匹配模式。 / The entire string must exactly match the pattern.
     */
     Exact,
 
     /**
      * 前缀匹配 / Prefix Match
      *
-     * 字符串以模式开头。
-     * String starts with the pattern.
+     * 字符串以模式开头。 / String starts with the pattern.
     */
     Prefix,
 
     /**
      * 后缀匹配 / Suffix Match
      *
-     * 字符串以模式结尾。
-     * String ends with the pattern.
+     * 字符串以模式结尾。 / String ends with the pattern.
     */
     Suffix,
 
     /**
      * 包含匹配 / Contains Match
      *
-     * 字符串包含模式。
-     * String contains the pattern.
+     * 字符串包含模式。 / String contains the pattern.
     */
     Contains,
 
     /**
      * 通配符匹酌/ Wildcard Match
      *
-     * 支持 SQL LIKE 风格的通配符（% 和_）。
-     * Supports SQL LIKE-style wildcards (% and _).
+     * 支持 SQL LIKE 风格的通配符（% 和_）。 / Supports SQL LIKE-style wildcards (% and _).
      *
-     * 注意：这是通用语义，具佌SQL 方言映射甌framework 层处理。
-     * Note: This is generic semantics, specific SQL dialect mapping is handled by framework layer.
+     * 注意：这是通用语义，具佌SQL 方言映射甌framework 层处理。 / Note: This is generic semantics, specific SQL dialect mapping is handled by framework layer.
     */
     Like,
 
     /**
      * 正则匹配 / Regex Match
      *
-     * 支持正则表达式。
-     * Supports regular expressions.
+     * 支持正则表达式。 / Supports regular expressions.
     */
     Regex
 }
 
 /**
- * 布尔操作笌
- * Boolean Operator
+ * 布尔操作笌 / Boolean Operator
 */
 enum class BooleanOperator {
     /**
@@ -183,8 +168,7 @@ enum class BooleanOperator {
 }
 
 /**
- * 空值检查类垌
- * Null Check Type
+ * 空值检查类垌 / Null Check Type
 */
 enum class NullCheckType {
     /**
@@ -199,11 +183,9 @@ enum class NullCheckType {
 }
 
 /**
- * 操作符符号映尌
- * Operator Symbol Mapping
+ * 操作符符号映尌 / Operator Symbol Mapping
  *
- * 提供操作符到字符串符号的映射。
- * Provides mapping from operators to string symbols.
+ * 提供操作符到字符串符号的映射。 / Provides mapping from operators to string symbols.
 */
 object OperatorSymbols {
 
@@ -274,11 +256,9 @@ object OperatorSymbols {
 }
 
 /**
- * 比较操作符反轌
- * Comparison Operator Inversion
+ * 比较操作符反轌 / Comparison Operator Inversion
  *
- * 返回比较操作符的反向操作符（妌< 变为 >）。
- * Returns the inverse of a comparison operator (e.g., < becomes >).
+ * 返回比较操作符的反向操作符（妌< 变为 >）。 / Returns the inverse of a comparison operator (e.g., < becomes >).
  *
  * @return 反向比较操作符 / Inverse comparison operator
 */

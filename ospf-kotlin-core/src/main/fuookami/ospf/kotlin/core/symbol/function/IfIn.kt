@@ -24,11 +24,9 @@ import fuookami.ospf.kotlin.utils.functional.*
 */
 
 /**
- * 区间条件函数：当 a <= x <= b 时 y = 1，否则 y = 0。
- * If-In function: `y = 1 if a <= x <= b, else y = 0`.
+ * 区间条件函数：当 a <= x <= b 时 y = 1，否则 y = 0。 / If-In function: `y = 1 if a <= x <= b, else y = 0`.
  *
- * 使用两个二值指示变量进行下界和上界检查，通过类 AND 约束组合。
- * Uses two binary indicators for the lower and upper bound checks,
+ * 使用两个二值指示变量进行下界和上界检查，通过类 AND 约束组合。 / Uses two binary indicators for the lower and upper bound checks,
  * combined via an AND-like constraint.
  *
  * @property x 输入线性多项式 / the input linear polynomial

@@ -2,18 +2,15 @@
  * Combinations（组合算法）
  * Combinations Algorithm
  *
- * 提供组合生成算法，用于从集合中选取元素的所有可能组合。
- * Provides combination generation algorithms for selecting all possible combinations from a set.
+ * 提供组合生成算法，用于从集合中选取元素的所有可能组合。 / Provides combination generation algorithms for selecting all possible combinations from a set.
  *
- * 主要功能：
- * Main features:
+ * 主要功能： / Main features:
  * - combine: 生成所有组合或指定数量的组合 / Generate all combinations or combinations of specified size
  * - combineSequence: 惰性序列生成组合 / Lazy sequence generation of combinations
  * - combineCount: 计算组合数 C(n, k) / Calculate combination count C(n, k)
  * - combineAsync: 异步生成组合（使用协程通道）/ Async combination generation (using coroutine channels)
  *
- * 应用场景：优化问题遍历、约束求解、特征选择等。
- * Applications: optimization problem traversal, constraint solving, feature selection, etc.
+ * 应用场景：优化问题遍历、约束求解、特征选择等。 / Applications: optimization problem traversal, constraint solving, feature selection, etc.
 */
 package fuookami.ospf.kotlin.math.combinatorics
 
@@ -24,8 +21,7 @@ import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 
 /**
- * 生成输入列表的所有子集组合
- * Generate all subset combinations of the input list
+ * 生成输入列表的所有子集组合 / Generate all subset combinations of the input list
  *
  * @param input 输入列表 / The input list
  * @param callBack 每个组合生成时的回调函数（可选） / Callback function invoked for each generated combination (optional)
@@ -79,8 +75,7 @@ fun combineCount(n: Int, choose: Int): Long {
 }
 
 /**
- * 惰性序列生成所有子集组合
- * Lazy sequence generation of all subset combinations
+ * 惰性序列生成所有子集组合 / Lazy sequence generation of all subset combinations
  *
  * @param input 输入列表 / The input list
  * @return 所有子集组合的惰性序列 / Lazy sequence of all subset combinations
@@ -92,8 +87,7 @@ fun <T> combineSequence(input: List<T>): Sequence<List<T>> = sequence {
 }
 
 /**
- * 惰性序列生成指定大小的组合
- * Lazy sequence generation of combinations of specified size
+ * 惰性序列生成指定大小的组合 / Lazy sequence generation of combinations of specified size
  *
  * @param input 输入列表 / The input list
  * @param choose 每个组合的元素个数 / Number of elements per combination
@@ -125,8 +119,7 @@ fun <T> combineSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequen
 }
 
 /**
- * 生成指定大小的所有组合
- * Generate all combinations of specified size
+ * 生成指定大小的所有组合 / Generate all combinations of specified size
  *
  * @param input 输入列表 / The input list
  * @param choose 每个组合的元素个数 / Number of elements per combination
@@ -152,8 +145,7 @@ fun <T> combine(
 }
 
 /**
- * 异步生成所有子集组合，通过协程通道返回
- * Async generation of all subset combinations via coroutine channel
+ * 异步生成所有子集组合，通过协程通道返回 / Async generation of all subset combinations via coroutine channel
  *
  * @param input 输入列表 / The input list
  * @param scope 协程作用域（默认使用组合异步作用域） / Coroutine scope (defaults to combinatorics async scope)

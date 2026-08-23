@@ -29,15 +29,15 @@ enum class ScipVariable {
         */
         operator fun invoke(type: VariableType<*>): ScipVariable {
             return when (type) {
-                is fuookami.ospf.kotlin.core.variable.Binary -> {
+                is Binary -> {
                     Binary
                 }
 
-                is Ternary, is BalancedTernary, is fuookami.ospf.kotlin.core.variable.Integer, is UInteger -> {
+                is Ternary, is BalancedTernary, is Integer, is UInteger -> {
                     Integer
                 }
 
-                is Percentage, is fuookami.ospf.kotlin.core.variable.Continuous, is UContinuous -> {
+                is Percentage, is Continuous, is UContinuous -> {
                     Continuous
                 }
             }

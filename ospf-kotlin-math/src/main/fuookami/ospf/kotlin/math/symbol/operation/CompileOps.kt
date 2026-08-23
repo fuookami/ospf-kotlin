@@ -1,10 +1,8 @@
 /**
- * 编译运算
- * Compile Operations
+ * 编译运算 / Compile Operations
  *
  * 提供将多项式编译为高效求值函数的核心实现。
- * 支持编译求值函数和梯度函数，使用预计算的索引映射避免运行时查找开销。
- * Provides core implementation for compiling polynomials into efficient evaluation functions.
+ * 支持编译求值函数和梯度函数，使用预计算的索引映射避免运行时查找开销。 / Provides core implementation for compiling polynomials into efficient evaluation functions.
  * Supports compiling evaluation and gradient functions,
  * using pre-computed index mapping to avoid runtime lookup overhead.
 */
@@ -29,8 +27,8 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * Compiled linear monomial.
  * 编译后的线性单项式。
  *
- * @property coefficient the coefficient / 系数
- * @property symbolIndex the index of the symbol in the order / 符号在顺序中的索引
+ * @property coefficient 系数 / the coefficient
+ * @property symbolIndex 符号在顺序中的索引 / the index of the symbol in the order
 */
 private data class CompiledLinearMonomial<T>(
     val coefficient: T,
@@ -41,9 +39,9 @@ private data class CompiledLinearMonomial<T>(
  * Compiled quadratic monomial.
  * 编译后的二次单项式。
  *
- * @property coefficient the coefficient / 系数
- * @property symbol1Index the index of the first symbol in the order / 第一个符号在顺序中的索引
- * @property symbol2Index the index of the second symbol in the order, null for pure linear terms / 第二个符号在顺序中的索引，纯线性项时为 null
+ * @property coefficient 系数 / the coefficient
+ * @property symbol1Index 第一个符号在顺序中的索引 / the index of the first symbol in the order
+ * @property symbol2Index 第二个符号在顺序中的索引，纯线性项时为 null / the index of the second symbol in the order, null for pure linear terms
 */
 private data class CompiledQuadraticMonomial<T>(
     val coefficient: T,
@@ -55,8 +53,8 @@ private data class CompiledQuadraticMonomial<T>(
  * Compiled canonical monomial.
  * 编译后的规范单项式。
  *
- * @property coefficient the coefficient / 系数
- * @property powers list of symbol index and exponent pairs / 符号索引与指数的列表
+ * @property coefficient 系数 / the coefficient
+ * @property powers 符号索引与指数的列表 / list of symbol index and exponent pairs
 */
 private data class CompiledCanonicalMonomial<T>(
     val coefficient: T,
@@ -67,8 +65,8 @@ private data class CompiledCanonicalMonomial<T>(
  * Compiled canonical gradient monomial.
  * 编译后的规范梯度单项式。
  *
- * @property coefficient the coefficient / 系数
- * @property factorCounts list of symbol index and factor count pairs / 符号索引与因子次数的列表
+ * @property coefficient 系数 / the coefficient
+ * @property factorCounts 符号索引与因子次数的列表 / list of symbol index and factor count pairs
 */
 private data class CompiledCanonicalGradientMonomial<T>(
     val coefficient: T,
@@ -76,8 +74,7 @@ private data class CompiledCanonicalGradientMonomial<T>(
 ) where T : Ring<T>
 
 /**
- * 将符号顺序列表编译为符号-索引映射
- * Compile an ordered symbol list into a symbol-to-index map
+ * 将符号顺序列表编译为符号-索引映射 / Compile an ordered symbol list into a symbol-to-index map
  *
  * @param order 符号顺序列表 / Ordered list of symbols
  * @return 符号到索引的映射结果 / Result containing map from symbol to its index
@@ -90,8 +87,7 @@ private fun compileOrderIndex(order: List<Symbol>): Ret<Map<Symbol, Int>> {
 }
 
 /**
- * 验证值列表大小与预期一致
- * Assert that the value list size matches the expected size
+ * 验证值列表大小与预期一致 / Assert that the value list size matches the expected size
  *
  * @param values 值列表 / Value list
  * @param expectedSize 预期大小 / Expected size
@@ -106,8 +102,7 @@ private fun requireValuesSize(
 }
 
 /**
- * 从索引映射中获取符号的位置，不存在时抛出异常
- * Get the index of a symbol from the index map, throwing if not found
+ * 从索引映射中获取符号的位置，不存在时抛出异常 / Get the index of a symbol from the index map, throwing if not found
  *
  * @param symbol 目标符号 / Target symbol
  * @param indexOfSymbol 符号-索引映射 / Symbol-to-index map
@@ -123,8 +118,7 @@ private fun requireSymbolIndex(
 }
 
 /**
- * 将线性多项式编译为求值函数
- * Compile a linear polynomial into an evaluation function.
+ * 将线性多项式编译为求值函数 / Compile a linear polynomial into an evaluation function.
  *
  * @param order 符号顺序列表 / Ordered list of symbols
  * @param combineTerms 是否先合并同类项 / Whether to combine like terms first
@@ -175,8 +169,7 @@ fun <T> LinearPolynomial<T>.compileEvalLinear(
 }
 
 /**
- * 将二次多项式编译为求值函数
- * Compile a quadratic polynomial into an evaluation function.
+ * 将二次多项式编译为求值函数 / Compile a quadratic polynomial into an evaluation function.
  *
  * @param order 符号顺序列表 / Ordered list of symbols
  * @param combineTerms 是否先合并同类项 / Whether to combine like terms first
@@ -243,11 +236,9 @@ fun <T> QuadraticPolynomial<T>.compileEvalQuadratic(
 }
 
 /**
- * 将规范多项式编译为求值函数
- * Compile a canonical polynomial into an evaluation function.
+ * 将规范多项式编译为求值函数 / Compile a canonical polynomial into an evaluation function.
  *
- * 需要提供乘法单位元 one 用于幂运算。
- * Requires one (multiplicative identity) for power computation.
+ * 需要提供乘法单位元 one 用于幂运算。 / Requires one (multiplicative identity) for power computation.
  *
  * @param order 符号顺序列表 / Ordered list of symbols
  * @param combineTerms 是否先合并同类项 / Whether to combine like terms first
@@ -313,8 +304,7 @@ fun <T> CanonicalPolynomial<T>.compileEvalCanonical(
 }
 
 /**
- * 将规范多项式编译为求值函数（自动推断乘法单位元）
- * Compile a canonical polynomial into an evaluation function (infer one).
+ * 将规范多项式编译为求值函数（自动推断乘法单位元） / Compile a canonical polynomial into an evaluation function (infer one).
  *
  * 需要 Arithmetic<T> 约束以访问 constants.one。
  * Requires Arithmetic<T> to access constants.one.
@@ -348,8 +338,7 @@ fun <T> CanonicalPolynomial<T>.compileEvalCanonical(
 // ============================================================================
 
 /**
- * 通过重复加法将值缩放指定整数倍
- * Scale a value by a non-negative integer via repeated addition
+ * 通过重复加法将值缩放指定整数倍 / Scale a value by a non-negative integer via repeated addition
  *
  * @param value 要缩放的值 / Value to scale
  * @param amount 缩放倍数（非负） / Scale amount (non-negative)
@@ -370,8 +359,7 @@ private fun <T> scaleByInt(
 }
 
 /**
- * 将线性多项式编译为梯度函数
- * Compile a linear polynomial's gradient.
+ * 将线性多项式编译为梯度函数 / Compile a linear polynomial's gradient.
  *
  * @param order 符号顺序列表 / Ordered list of symbols
  * @param combineTerms 是否先合并同类项 / Whether to combine like terms first
@@ -413,8 +401,7 @@ fun <T> LinearPolynomial<T>.compileGradientLinear(
 }
 
 /**
- * 将二次多项式编译为梯度函数
- * Compile a quadratic polynomial's gradient.
+ * 将二次多项式编译为梯度函数 / Compile a quadratic polynomial's gradient.
  *
  * @param order 符号顺序列表 / Ordered list of symbols
  * @param combineTerms 是否先合并同类项 / Whether to combine like terms first
@@ -487,8 +474,7 @@ fun <T> QuadraticPolynomial<T>.compileGradientQuadratic(
 }
 
 /**
- * 将规范多项式编译为梯度函数
- * Compile a canonical polynomial's gradient.
+ * 将规范多项式编译为梯度函数 / Compile a canonical polynomial's gradient.
  *
  * @param order 符号顺序列表 / Ordered list of symbols
  * @param combineTerms 是否先合并同类项 / Whether to combine like terms first

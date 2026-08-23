@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -18,9 +19,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
  * Penalizes empty positions that are marked as empty-hated to discourage leaving them empty.
  * 对标记为空载厌恶的位置施加惩罚以避免留空。
  *
- * @property positions The list of stowage positions / 装载位置列表
- * @property load The load distribution data / 载荷分布数据
- * @property coefficient The penalty coefficient function per position / 每个位置的惩罚系数函数
+ * @property positions 装载位置列表 / The list of stowage positions
+ * @property load 载荷分布数据 / The load distribution data
+ * @property coefficient 每个位置的惩罚系数函数 / The penalty coefficient function per position
 */
 class EmptyHatedLimit(
     private val positions: List<Position>,
@@ -29,25 +30,25 @@ class EmptyHatedLimit(
     override val name: String = "empty_hated_limit"
 ) : Pipeline<AbstractLinearMetaModel<Flt64>> {
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
-        val poly = MutableLinearPolynomial()
-        for ((j, position) in positions.withIndex()) {
+        val poly = sum(positions.withIndex().mapNotNull { (j, position) ->
             if (position.type.contains(PositionTypeCode.EmptyHated)) {
                 val c = coefficient(position)
-                poly += c
-                poly += LinearMonomial(-c, load.full[j])
+                (-c * load.full[j]) + c
+            } else {
+                null
             }
-        }
+        })
         when (val result = model.minimize(
-            LinearExpressionSymbol(LinearPolynomial(poly.monomials, poly.constant)),
+            LinearExpressionSymbol(poly),
             name = "empty hated"
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                 return Failed(result.error)
             }
 
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Fatal -> {
                 return Fatal(result.errors)
             }
         }
@@ -55,4 +56,3 @@ class EmptyHatedLimit(
         return ok
     }
 }
-

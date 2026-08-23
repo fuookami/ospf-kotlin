@@ -11,17 +11,15 @@ import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * Yield deviation aggregation root.
- * 产出偏差聚合根
- *
- * Manage yield slack variables (under_production_i, over_production_i),
+ * 产出偏差聚合根 / Manage yield slack variables (under_production_i, over_production_i),
  * replacing the YieldSlackVars inner class in Csp1dMilpSolver.
  * 管理 yield slack 变量（under_production_i, over_production_i），
  * 替代 Csp1dMilpSolver 中的 YieldSlackVars 内部类。
  *
- * @param V Numeric value type / 数值类型
- * @property config Yield modeling configuration / 产出建模配置
- * @property demands Demand list / 需求列表
- * @property needsOverSlackForOverArea Whether over-production slack is needed for over-production area penalty / 是否因超产面积惩罚需要超产 slack
+ * @param V 数值类型 / Numeric value type
+ * @property config 产出建模配置 / Yield modeling configuration
+ * @property demands 需求列表 / Demand list
+ * @property needsOverSlackForOverArea 是否因超产面积惩罚需要超产 slack / Whether over-production slack is needed for over-production area penalty
 */
 class YieldAggregation<V : RealNumber<V>>(
     val config: YieldModelingConfig<V>,
@@ -83,8 +81,8 @@ class YieldAggregation<V : RealNumber<V>>(
      * Extract yield modeling result from solver solution.
      * 提取产出建模结果
      *
-     * @param model Solved linear meta model / 求解后的线性元模型
-     * @return Yield modeling result, or null if no slack variables exist / 产出建模结果，若无偏差变量则为 null
+     * @param model 求解后的线性元模型 / Solved linear meta model
+     * @return 产出建模结果，若无偏差变量则为 null / Yield modeling result, or null if no slack variables exist
     */
     fun extractResult(model: AbstractLinearMetaModel<Flt64>): YieldModelingResult<V>? {
         val underProductions = ArrayList<ModeledUnderProduction<V>>()
@@ -127,8 +125,8 @@ class YieldAggregation<V : RealNumber<V>>(
          * Generate demand shadow price key.
          * 生成需求影子价格键
          *
-         * @param demand Product demand / 产品需求
-         * @return Demand shadow price key / 需求影子价格键
+         * @param demand 产品需求 / Product demand
+         * @return 需求影子价格键 / Demand shadow price key
         */
         internal fun demandShadowPriceKey(demand: ProductDemand<*>): ProductDemandShadowPriceKey {
             return ProductDemandShadowPriceKey(

@@ -1,27 +1,22 @@
 /**
- * 多维数组视图模块
- * Multi-dimensional Array View Module
+ * 多维数组视图模块 / Multi-dimensional Array View Module
  *
- * 本模块提供多维数组的视图和切片功能，支持无数据复用的数据访问模式。
- * This module provides view and slice functionality for multi-dimensional arrays,
+ * 本模块提供多维数组的视图和切片功能，支持无数据复用的数据访问模式。 / This module provides view and slice functionality for multi-dimensional arrays,
  * supporting data access patterns without data duplication.
  *
- * 主要类型：
- * Main types:
+ * 主要类型： / Main types:
  * - [MultiArrayView]: 多维数组视图，支持切片和索引
  *   Multi-dimensional array view, supporting slicing and indexing
  * - [MappedMultiArrayView]: 映射视图，支持维度重排和转置
  *   Mapped view, supporting dimension reordering and transposition
  *
- * 视图类型：
- * View types:
+ * 视图类型： / View types:
  * - **切片视图**: 使用虚拟索引（_a、范围、单个索引）创建子数组视图
  *   Slice view: Create sub-array views using dummy indices (_a, ranges, single indices)
  * - **映射视图**: 使用 MapIndex 进行维度重排，如转置操作
  *   Mapped view: Reorder dimensions using MapIndex, e.g., transpose operations
  *
- * 使用场景：
- * Use cases:
+ * 使用场景： / Use cases:
  * - 无复制的数组切片
  *   Array slicing without copying
  * - 维度转置和重排
@@ -29,8 +24,7 @@
  * - 子数组访问
  *   Sub-array access
  *
- * 示例：
- * Example:
+ * 示例： / Example:
  * ```kotlin
  * // 创建视图（切片）
  * // Create view (slice)
@@ -57,11 +51,9 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 多维数组视图
- * Multi-dimensional array view
+ * 多维数组视图 / Multi-dimensional array view
  *
- * 提供对多维数组的切片、索引和视图操作。
- * Provides slicing, indexing, and view operations for multi-dimensional arrays.
+ * 提供对多维数组的切片、索引和视图操作。 / Provides slicing, indexing, and view operations for multi-dimensional arrays.
  *
  * @param T 元素类型
  * @param S 形状类型
@@ -76,20 +68,17 @@ class MultiArrayView<out T : Any, S : Shape>(
     )
 
     /**
-     * 视图的形状
-     * Shape of the view
+     * 视图的形状 / Shape of the view
     */
     val shape: DynShape
 
     /**
-     * 迭代器向量
-     * Iterator vector
+     * 迭代器向量 / Iterator vector
     */
     private val iteratorVector: IteratorVector
 
     /**
-     * 虚拟维度（保持为虚拟索引的维度）
-     * Dummy dimensions (dimensions that remain as dummy indices)
+     * 虚拟维度（保持为虚拟索引的维度） / Dummy dimensions (dimensions that remain as dummy indices)
     */
     private val dummyDimensions: Set<Int>
 
@@ -130,32 +119,28 @@ class MultiArrayView<out T : Any, S : Shape>(
     }
 
     /**
-     * 通过线性索引获取元素
-     * Get element by linear index
+     * 通过线性索引获取元素 / Get element by linear index
     */
     operator fun get(i: Int): T {
         return origin[actualVectorUnchecked(shape.vectorUnchecked(i))]
     }
 
     /**
-     * 通过 ULong 线性索引获取元素
-     * Get element by ULong linear index
+     * 通过 ULong 线性索引获取元素 / Get element by ULong linear index
     */
     operator fun get(i: ULong): T {
         return get(i.toInt())
     }
 
     /**
-     * 通过 Indexed 接口获取元素
-     * Get element by Indexed interface
+     * 通过 Indexed 接口获取元素 / Get element by Indexed interface
     */
     operator fun get(e: Indexed): T {
         return origin[actualVectorUnchecked(shape.vectorUnchecked(e.index))]
     }
 
     /**
-     * 通过向量索引获取元素
-     * Get element by vector index
+     * 通过向量索引获取元素 / Get element by vector index
     */
     @JvmName("getByIntArray")
     operator fun get(v: IntArray): Ret<T> {
@@ -163,8 +148,7 @@ class MultiArrayView<out T : Any, S : Shape>(
     }
 
     /**
-     * 通过可变参数获取元素
-     * Get element by vararg
+     * 通过可变参数获取元素 / Get element by vararg
     */
     @JvmName("getByInts")
     operator fun get(vararg v: Int): Ret<T> {
@@ -172,24 +156,21 @@ class MultiArrayView<out T : Any, S : Shape>(
     }
 
     /**
-     * 通过 ULong 迭代获取元素
-     * Get element by ULong iterable
+     * 通过 ULong 迭代获取元素 / Get element by ULong iterable
     */
     operator fun get(v: Iterable<ULong>): Ret<T> {
         return actualVector(v.map { it.toInt() }.toIntArray()).map { origin[it] }
     }
 
     /**
-     * 通过 Indexed 可变参数获取元素
-     * Get element by Indexed vararg
+     * 通过 Indexed 可变参数获取元素 / Get element by Indexed vararg
     */
     operator fun get(vararg v: Indexed): Ret<T> {
         return actualVector(v.map { it.index }.toIntArray()).map { origin[it] }
     }
 
     /**
-     * 通过任意类型数组创建子视图
-     * Create sub-view by any type array
+     * 通过任意类型数组创建子视图 / Create sub-view by any type array
     */
     operator fun get(vararg v: Any): MultiArrayView<T, S> {
         val newDummyVector = ArrayList<DummyIndex>()
@@ -213,14 +194,12 @@ class MultiArrayView<out T : Any, S : Shape>(
     }
 
     /**
-     * 计算实际向量索引
-     * Calculate actual vector index
+     * 计算实际向量索引 / Calculate actual vector index
      *
-     * 将视图索引转换为原数组的实际索引。
-     * Converts view indices to actual indices in the original array.
+     * 将视图索引转换为原数组的实际索引。 / Converts view indices to actual indices in the original array.
      *
-     * @param v View index vector to convert / 要转换的视图索引向量
-     * @return Actual index vector in the source array, or error on dimension mismatch / 源数组中的实际索引向量，维度不匹配时返回错误
+     * @param v 要转换的视图索引向量 / View index vector to convert
+     * @return 源数组中的实际索引向量，维度不匹配时返回错误 / Actual index vector in the source array, or error on dimension mismatch
     */
     private fun actualVector(v: IntArray): Ret<IntArray> {
         if (v.size != shape.dimension) {
@@ -233,8 +212,7 @@ class MultiArrayView<out T : Any, S : Shape>(
     }
 
     /**
-     * 将视图索引向量转换为实际源数组索引向量（不检查边界）。
-     * Convert view index vector to actual source array index vector (no bounds check).
+     * 将视图索引向量转换为实际源数组索引向量（不检查边界）。 / Convert view index vector to actual source array index vector (no bounds check).
      *
      * @param v 视图索引向量 / View index vector
      * @return 源数组索引向量 / Source array index vector
@@ -262,8 +240,7 @@ class MultiArrayView<out T : Any, S : Shape>(
     }
 
     /**
-     * 元素迭代器
-     * Element iterator
+     * 元素迭代器 / Element iterator
     */
     private class ElementIterator<out T : Any, S : Shape>(
         private val view: MultiArrayView<T, S>
@@ -286,8 +263,7 @@ class MultiArrayView<out T : Any, S : Shape>(
     }
 
     /**
-     * 转换为字符串表示
-     * Convert to string representation
+     * 转换为字符串表示 / Convert to string representation
     */
     override fun toString(): String {
         val sb = StringBuilder()
@@ -301,11 +277,9 @@ class MultiArrayView<out T : Any, S : Shape>(
 }
 
 /**
- * 多维数组映射视图
- * Multi-dimensional array mapped view
+ * 多维数组映射视图 / Multi-dimensional array mapped view
  *
- * 用于维度转置和重映射操作。
- * Used for dimension transposition and remapping operations.
+ * 用于维度转置和重映射操作。 / Used for dimension transposition and remapping operations.
 */
 class MappedMultiArrayView<out T : Any, S : Shape>(
     private val origin: AbstractMultiArray<T, S>,
@@ -380,8 +354,7 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
     }
 
     /**
-     * 通过线性索引获取元素
-     * Get element by linear index
+     * 通过线性索引获取元素 / Get element by linear index
      *
      * @param i 线性索引 / Linear index
      * @return 元素值 / Element value
@@ -391,8 +364,7 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
     }
 
     /**
-     * 通过 ULong 线性索引获取元素
-     * Get element by ULong linear index
+     * 通过 ULong 线性索引获取元素 / Get element by ULong linear index
      *
      * @param i ULong 线性索引 / ULong linear index
      * @return 元素值 / Element value
@@ -402,8 +374,7 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
     }
 
     /**
-     * 通过 Indexed 接口获取元素
-     * Get element by Indexed interface
+     * 通过 Indexed 接口获取元素 / Get element by Indexed interface
      *
      * @param e Indexed 接口实例 / Indexed interface instance
      * @return 元素值 / Element value
@@ -425,8 +396,7 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
     }
 
     /**
-     * 通过 vararg Any 创建子映射视图
-     * Create sub-mapped view by vararg Any indices
+     * 通过 vararg Any 创建子映射视图 / Create sub-mapped view by vararg Any indices
      *
      * @param v 索引参数 / Index parameters
      * @return 子映射视图 / Sub-mapped view
@@ -453,8 +423,7 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
     }
 
     /**
-     * 将视图索引向量映射为原始数组索引向量
-     * Map view index vector to original array index vector
+     * 将视图索引向量映射为原始数组索引向量 / Map view index vector to original array index vector
      *
      * @param v 视图索引向量 / View index vector
      * @return 原始数组索引向量 / Original array index vector
@@ -470,8 +439,7 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
     }
 
     /**
-     * 将映射视图索引向量转换为源数组索引向量（不检查边界）。
-     * Convert mapped view index vector to source array index vector (no bounds check).
+     * 将映射视图索引向量转换为源数组索引向量（不检查边界）。 / Convert mapped view index vector to source array index vector (no bounds check).
      *
      * @param v 映射视图索引向量 / Mapped view index vector
      * @return 源数组索引向量 / Source array index vector

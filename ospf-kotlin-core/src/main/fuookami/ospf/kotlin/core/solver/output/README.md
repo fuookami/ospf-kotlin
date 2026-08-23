@@ -4,7 +4,9 @@
 
 ## Overview
 
-The `output` sub-package defines the **data structures for solver results** in the OSPF framework. It provides sealed interfaces and data classes representing feasible solutions, infeasible outputs, solver status, and solving statistics.
+The `output` sub-package defines compatibility data structures for solver results. The primary
+result contract lives in `solver.report.SolveReport`; this package retains solver status views and
+materialized IIS artifacts used by explicit compatibility entry points.
 
 ## Package Structure
 
@@ -27,16 +29,10 @@ Sealed interface hierarchy for solver outputs:
 - **`LinearSolverOutput`** — Linear solver output marker
 - **`QuadraticSolverOutput`** — Quadratic solver output marker
 
-**`FeasibleSolverOutput<V>`** — Feasible solution output containing:
-- `obj` / `objValue` — Objective value (Flt64 and generic V dual view)
-- `solution` — Solution vector
-- `time` — Solve time
-- `gap` — Optimality gap
-- `bestBound` / `bestBoundValue` — Best bound
-- `mipGap` — MIP gap
-- `iterations` / `nodeCount` — Solver statistics
+**`SolveReport<V>`** — Primary unified result, containing orthogonal problem status,
+termination reason, solution/incumbent, proof, statistics, diagnostics, provenance, and fingerprints.
 
-**`LinearInfeasibleSolverOutput`** / **`QuadraticInfeasibleSolverOutput`** — Infeasible outputs with IIS information.
+**`LinearInfeasibleSolverOutput`** / **`QuadraticInfeasibleSolverOutput`** — Infeasible outputs with IIS information. When `iisAvailable=false`, IIS analysis failed: `iis` is an original-model snapshot, the failure is recorded in `diagnostics.errors`, and `withIIS()` returns no IIS.
 
 ### SolverStatus (`SolverStatus.kt`)
 
@@ -52,6 +48,7 @@ Fields specific to infeasible solver outputs.
 
 ## Relationships with Other Packages
 
-- **solver** — Solver interfaces return `SolverOutput` subtypes
+- **solver.report** — Solver interfaces return `SolveReport<V>`
+- **solver** — Explicit IIS compatibility entry points return `SolverOutput` artifacts
 - **solver/iis** — IIS results are embedded in infeasible output types
-- **solver/value** — `FeasibleSolverOutput` uses `IntoValue<V>` for type conversion
+- **solver/value** — `SolveReport<Flt64>.convertTo(converter)` converts solutions and diagnostics

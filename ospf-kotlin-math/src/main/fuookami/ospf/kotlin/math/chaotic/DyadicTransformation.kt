@@ -1,6 +1,5 @@
 /**
- * 二进制变换
- * Dyadic Transformation
+ * 二进制变换 / Dyadic Transformation
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -11,8 +10,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 二进制变换
- * Dyadic Transformation
+ * 二进制变换 / Dyadic Transformation
  *
  * 公式 / Formula: x_{n+1} = 2*x mod 1
  *
@@ -28,8 +26,7 @@ data class DyadicTransformation<V : FloatingNumber<V>>(val two: V, val one: V) :
 }
 
 /**
- * 二进制变换生成器
- * Dyadic Transformation Generator
+ * 二进制变换生成器 / Dyadic Transformation Generator
  *
  * @property map 二进制变换实例 / Dyadic transformation instance
  * @property _x 当前迭代值 / Current iteration value

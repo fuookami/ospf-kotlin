@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -18,8 +18,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
 /**
  * Bunch 模式的产能调度资源使用量管理（支持列生成）/ Bunch-mode resource usage for Capacity Scheduling (with column generation)
  *
- * 用于列生成场景，通过 CapacityColumn 追加资源使用量贡献
- * Used for column generation scenarios, adds resource usage contribution through CapacityColumn
+ * 用于列生成场景，通过 CapacityColumn 追加资源使用量贡献 / Used for column generation scenarios, adds resource usage contribution through CapacityColumn
  *
  * @param E 执行器类型 / Executor type
  * @param A 生产动作类型 / Production action type
@@ -120,8 +119,7 @@ class BunchCapacitySchedulingResourceUsage<
     /**
      * 从 IterativeCapacityCompilation 添加列贡献 / Add column contribution from IterativeCapacityCompilation
      *
-     * 用于列生成场景，在每次迭代中添加新列的资源使用量贡献
-     * Used for column generation, adds resource usage contribution from new columns in each iteration
+     * 用于列生成场景，在每次迭代中添加新列的资源使用量贡献 / Used for column generation, adds resource usage contribution from new columns in each iteration
      *
      * @param iteration 当前迭代 / Current iteration
      * @param columns 产能列列表 / Capacity columns
@@ -148,7 +146,7 @@ class BunchCapacitySchedulingResourceUsage<
             for ((actionIndex, action) in actions.withIndex()) {
                 val unitUsage = slot.resource.usedBy(action, slot.time)
                 if (unitUsage neq unitUsage.constants.zero) {
-                    quantity[slot].asMutable() += LinearMonomial(unitUsage.toSolverValue(), compilation.operationTime[actionIndex, slotIndex])
+                    quantity[slot].asMutable() += unitUsage.toSolverValue() * compilation.operationTime[actionIndex, slotIndex]
                 }
             }
         }

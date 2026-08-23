@@ -1,6 +1,5 @@
 /**
- * 泛型量纲几何基础设施。
- * Quantity geometry infrastructure.
+ * 泛型量纲几何基础设施。 / Quantity geometry infrastructure.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
@@ -30,8 +29,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 对两个量纲值执行二元运算，自动处理类型转换和单位兼容性。
- * Perform a binary operation on two quantity values, handling type conversion and unit compatibility.
+ * 对两个量纲值执行二元运算，自动处理类型转换和单位兼容性。 / Perform a binary operation on two quantity values, handling type conversion and unit compatibility.
  *
  * @param lhs 左操作数 / left-hand operand
  * @param rhs 右操作数 / right-hand operand
@@ -156,8 +154,7 @@ internal fun <V : FloatingNumber<V>> quantityRatioByValue(lhs: Quantity<V>, rhs:
 }
 
 /**
- * 重复累加同一量纲值指定次数。
- * Repeatedly add the same quantity value for the specified number of times.
+ * 重复累加同一量纲值指定次数。 / Repeatedly add the same quantity value for the specified number of times.
  *
  * @param sample 待累加的量纲值 / quantity value to accumulate
  * @param times 重复次数 / number of repetitions
@@ -942,7 +939,7 @@ fun point2FltX(
      * Returns a default 3D point at the origin.
      * 返回原点处的默认三维点。
      *
-     * @return the origin point / 原点
+     * @return 原点 / the origin point
     */
     fun point3FltX(): QuantityPoint3<FltX> {
     return QuantityPoint3(

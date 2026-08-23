@@ -1,8 +1,7 @@
 /**
  * 平面角单位 / Plane angle units
  *
- * 用于测量平面内角度的单位。
- * Units for measuring angles in a plane.
+ * 用于测量平面内角度的单位。 / Units for measuring angles in a plane.
  *
  * 单位常量来源 / Unit constant sources:
  * - Radian: SI导出单位，定义为弧长等于半径的圆心角 / SI derived unit, defined as the angle subtended by an arc equal in length to the radius
@@ -18,8 +17,7 @@ import fuookami.ospf.kotlin.quantities.dimension.PlaneAngle
 /**
  * 弧度（基本单位）/ Radian (base unit)
  *
- * 平面角的SI导出单位，定义为圆周上弧长等于半径的圆心角。
- * The SI derived unit of plane angle, defined as the angle subtended at the center
+ * 平面角的SI导出单位，定义为圆周上弧长等于半径的圆心角。 / The SI derived unit of plane angle, defined as the angle subtended at the center
  * of a circle by an arc equal in length to the radius.
  *
  * 符号 / Symbol: rad
@@ -43,8 +41,7 @@ object Radian : PhysicalUnit() {
 /**
  * 毫弧度 / Milliradian
  *
- * 千分之一弧度。
- * One thousandth of a radian.
+ * 千分之一弧度。 / One thousandth of a radian.
  *
  * 符号 / Symbol: mrad
  * 换算关系 / Conversion: 1 mrad = 10⁻³ rad
@@ -64,8 +61,7 @@ object Milliradian : DerivedPhysicalUnit(Radian * Scale.milli) {
 /**
  * 周角 / Round angle
  *
- * 完整圆周的角度。
- * The angle of a complete circle.
+ * 完整圆周的角度。 / The angle of a complete circle.
  *
  * 符号 / Symbol: round angle
  * 换算关系 / Conversion: 1 round angle = 2π rad = 360°
@@ -85,8 +81,7 @@ object RoundAngle : DerivedPhysicalUnit(Radian * (FltX.two * FltX.pi)) {
 /**
  * 直角 / Right angle
  *
- * 四分之一圆周的角度。
- * The angle of a quarter circle.
+ * 四分之一圆周的角度。 / The angle of a quarter circle.
  *
  * 符号 / Symbol: right angle
  * 换算关系 / Conversion: 1 right angle = π/2 rad = 90°
@@ -106,8 +101,7 @@ object RightAngle : DerivedPhysicalUnit(Radian / FltX(4.0)) {
 /**
  * 度 / Degree
  *
- * 最常用的角度单位，将圆周分为360等份。
- * The most commonly used angle unit, dividing a circle into 360 equal parts.
+ * 最常用的角度单位，将圆周分为360等份。 / The most commonly used angle unit, dividing a circle into 360 equal parts.
  *
  * 符号 / Symbol: °
  * 换算关系 / Conversion: 1° = π/180 rad ≈ 0.01745 rad
@@ -127,8 +121,7 @@ object Degree : DerivedPhysicalUnit(RoundAngle / FltX(360.0)) {
 /**
  * 角分 / Arc minute
  *
- * 度的六十分之一。
- * One sixtieth of a degree.
+ * 度的六十分之一。 / One sixtieth of a degree.
  *
  * 符号 / Symbol: '
  * 换算关系 / Conversion: 1' = 1/60° = π/10800 rad
@@ -148,8 +141,7 @@ object ArcMinute : DerivedPhysicalUnit(Degree / FltX(60.0)) {
 /**
  * 角秒 / Arc second
  *
- * 角分的六十分之一。
- * One sixtieth of an arc minute.
+ * 角分的六十分之一。 / One sixtieth of an arc minute.
  *
  * 符号 / Symbol: ''
  * 换算关系 / Conversion: 1'' = 1/60' = 1/3600° = π/648000 rad
@@ -169,8 +161,7 @@ object ArcSecond : DerivedPhysicalUnit(ArcMinute / FltX(60.0)) {
 /**
  * 百分度 / Gradian
  *
- * 将直角分为100等份的角度单位。
- * An angle unit dividing a right angle into 100 equal parts.
+ * 将直角分为100等份的角度单位。 / An angle unit dividing a right angle into 100 equal parts.
  *
  * 符号 / Symbol: gon
  * 换算关系 / Conversion: 1 gon = 1/100 right angle = π/200 rad = 0.9°

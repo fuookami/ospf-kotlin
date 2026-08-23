@@ -15,8 +15,8 @@ data object LinearSolverBuilder {
     /**
      * Creates a [ColumnGenerationSolver] using the given solver name, config, and optional callback / 使用给定的求解器名称、配置和可选回调创建列生成求解器
      *
-     * @param solver The solver name (e.g., "gurobi", "scip") / 求解器名称（如"gurobi"、"scip"）
-     * @param config The solver configuration / 求解器配置
+     * @param solver 求解器名称（如"gurobi"、"scip"） / The solver name (e.g., "gurobi", "scip")
+     * @param config 求解器配置 / The solver configuration
     */
     operator fun invoke(
         solver: String? = null,

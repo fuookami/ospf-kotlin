@@ -1,9 +1,7 @@
 /**
- * 带索引标记的张量表达式
- * Tensor expression with index labels
+ * 带索引标记的张量表达式 / Tensor expression with index labels
  *
- * 提供带编译期索引标记的张量包装类型。
- * Provides tensor wrapper types with compile-time index labels.
+ * 提供带编译期索引标记的张量包装类型。 / Provides tensor wrapper types with compile-time index labels.
 */
 package fuookami.ospf.kotlin.multiarray.einsum
 
@@ -15,8 +13,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 带索引标记的张量表达式/ Tensor expression with index labels
  *
- * 尌MultiArray 与索引列表关联，用于爱因斯坦求和操作。
- * Associates a MultiArray with an index list for Einstein summation operations.
+ * 尌MultiArray 与索引列表关联，用于爱因斯坦求和操作。 / Associates a MultiArray with an index list for Einstein summation operations.
  *
  * 示例 / Example:
  *
@@ -41,53 +38,45 @@ import fuookami.ospf.kotlin.utils.functional.*
 data class TensorExpr<T : Any, S : Shape> private constructor(
 
     /**
-     * 数据引用
-     * Data reference
+     * 数据引用 / Data reference
     */
     val data: AbstractMultiArray<T, S>,
 
     /**
-     * 索引列表
-     * Index list
+     * 索引列表 / Index list
     */
     val indices: IndexList
 ) {
 
     /**
-     * 获取形状引用
-     * Get shape reference
+     * 获取形状引用 / Get shape reference
     */
     val shape: S = data.shape
 
     /**
-     * 获取索引列表名称
-     * Get index list names
+     * 获取索引列表名称 / Get index list names
     */
     val indexNames: String = indices.names
 
     /**
-     * 获取索引列表 ID
-     * Get index list IDs
+     * 获取索引列表 ID / Get index list IDs
     */
     val indexIds: List<Int> = indices.ids
 
     /**
-     * 获取数组长度（元素总数，
-     * Get array length (total elements)
+     * 获取数组长度（元素总数， / Get array length (total elements)
     */
     val size: Int = data.size
 
     /**
-     * 获取维度数
-     * Get number of dimensions
+     * 获取维度数 / Get number of dimensions
     */
     val dimension: Int = data.shape.dimension
 
     /** 工厂方法 / Factory methods */
     companion object {
         /**
-         * 创建带索引的张量表达式，失败时返回 null
-         * Create tensor expression with indices, returning null on failure
+         * 创建带索引的张量表达式，失败时返回 null / Create tensor expression with indices, returning null on failure
          *
          * @param data 多维数组
          * @param indices 索引标签数组
@@ -101,8 +90,7 @@ data class TensorExpr<T : Any, S : Shape> private constructor(
         }
 
         /**
-         * 创建带索引的张量表达式，失败时返回 Failed
-         * Create tensor expression with indices, returning Failed on failure
+         * 创建带索引的张量表达式，失败时返回 Failed / Create tensor expression with indices, returning Failed on failure
          *
          * @param data 多维数组
          * @param indices 索引列表
@@ -122,8 +110,7 @@ data class TensorExpr<T : Any, S : Shape> private constructor(
         }
 
         /**
-         * 创建带索引的张量表达式
-         * Create tensor expression with indices
+         * 创建带索引的张量表达式 / Create tensor expression with indices
          *
          * @param data 多维数组
          * @param indices 索引列表
@@ -137,8 +124,7 @@ data class TensorExpr<T : Any, S : Shape> private constructor(
         }
 
         /**
-         * 从索引标签数组创建张量表达式
-         * Create tensor expression from index label array
+         * 从索引标签数组创建张量表达式 / Create tensor expression from index label array
          *
          * @param data 多维数组
          * @param labels 索引标签数组
@@ -152,8 +138,7 @@ data class TensorExpr<T : Any, S : Shape> private constructor(
         }
 
         /**
-         * 使用默认索引创建张量表达式（自动分配 I, J, K, ...）
-         * Create tensor expression with default indices (auto-assign I, J, K, ...)
+         * 使用默认索引创建张量表达式（自动分配 I, J, K, ...） / Create tensor expression with default indices (auto-assign I, J, K, ...)
          *
          * @param data 多维数组
          * @return 张量表达式结果
@@ -170,8 +155,7 @@ data class TensorExpr<T : Any, S : Shape> private constructor(
 }
 
 /**
- * 使用默认索引创建张量表达式的便捷函数
- * Convenience function to create tensor expression with default indices
+ * 使用默认索引创建张量表达式的便捷函数 / Convenience function to create tensor expression with default indices
  *
  * 示例 / Example:
  *
@@ -190,8 +174,7 @@ fun <T : Any, S : Shape> tensorExpr(data: AbstractMultiArray<T, S>): Ret<TensorE
 }
 
 /**
- * 使用指定索引创建张量表达式的便捷函数
- * Convenience function to create tensor expression with specified indices
+ * 使用指定索引创建张量表达式的便捷函数 / Convenience function to create tensor expression with specified indices
  *
  * 示例 / Example:
  *

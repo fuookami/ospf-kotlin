@@ -1,9 +1,7 @@
 /**
- * 三维平面框架
- * 3D plane frame
+ * 三维平面框架 / 3D plane frame
  *
- * 定义三维空间中的平面坐标框架，支持点投影、法向量计算和长方体底面积投影。
- * Defines plane coordinate frames in 3D space, supporting point projection, normal vector calculation, and cuboid footprint projection.
+ * 定义三维空间中的平面坐标框架，支持点投影、法向量计算和长方体底面积投影。 / Defines plane coordinate frames in 3D space, supporting point projection, normal vector calculation, and cuboid footprint projection.
 */
 package fuookami.ospf.kotlin.math.geometry
 
@@ -15,8 +13,7 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
- * 二维平面上的点
- * 2D point on a plane
+ * 二维平面上的点 / 2D point on a plane
  *
  * @property x x 坐标 / x coordinate
  * @property y y 坐标 / y coordinate
@@ -28,8 +25,7 @@ data class QuantityPlanePoint2<V : FloatingNumber<V>>(
 )
 
 /**
- * 三维空间中的点
- * 3D point in space
+ * 三维空间中的点 / 3D point in space
  *
  * @property x x 坐标 / x coordinate
  * @property y y 坐标 / y coordinate
@@ -43,8 +39,7 @@ data class QuantityPlanePoint3<V : FloatingNumber<V>>(
 ) {
 
     /**
-     * 获取沿指定轴的坐标
-     * Get the coordinate along a specified axis
+     * 获取沿指定轴的坐标 / Get the coordinate along a specified axis
      *
      * @param axis 目标轴 / Target axis
      * @return 沿该轴的坐标 / Coordinate along the axis
@@ -59,8 +54,7 @@ data class QuantityPlanePoint3<V : FloatingNumber<V>>(
 }
 
 /**
- * 三维平面法向量
- * 3D plane normal vector
+ * 三维平面法向量 / 3D plane normal vector
  *
  * @property x x 分量 / x component
  * @property y y 分量 / y component
@@ -74,8 +68,7 @@ data class QuantityPlaneVector3<V : FloatingNumber<V>>(
 )
 
 /**
- * 平面坐标框架是纯几何能力；BPP3D 的 Bottom/Side/Front 映射由桥接层负责。
- * Plane frame is pure geometry; BPP3D Bottom/Side/Front mapping stays in bridge layer.
+ * 平面坐标框架是纯几何能力；BPP3D 的 Bottom/Side/Front 映射由桥接层负责。 / Plane frame is pure geometry; BPP3D Bottom/Side/Front mapping stays in bridge layer.
  *
  * @property firstAxis 第一轴 / First axis
  * @property secondAxis 第二轴 / Second axis
@@ -90,10 +83,9 @@ class QuantityPlaneFrame3 private constructor(
     val normalAxisOrNull: Axis3? get() = normalAxisValue
 
     /**
-     * 获取法向轴。
-     * Gets the normal axis.
+     * 获取法向轴。 / Gets the normal axis.
      *
-     * @return the normal axis, or failure if invalid / 法向轴，或无效时的失败
+     * @return 法向轴，或无效时的失败 / the normal axis, or failure if invalid
     */
     fun normalAxis(): Ret<Axis3> {
         return normalAxisOrNull?.let { Ok(it) }
@@ -104,8 +96,7 @@ class QuantityPlaneFrame3 private constructor(
     }
 
     /**
-     * 计算点到平面的距离
-     * Compute the distance from a point to the plane
+     * 计算点到平面的距离 / Compute the distance from a point to the plane
      *
      * @param point 三维点 / 3D point
      * @param V 数值类型 / Number type
@@ -114,8 +105,7 @@ class QuantityPlaneFrame3 private constructor(
     fun <V : FloatingNumber<V>> distance(point: QuantityPlanePoint3<V>): Quantity<V> = point.along(normalAxisValue)
 
     /**
-     * 将三维点投影到二维平面坐标
-     * Project a 3D point to 2D plane coordinates
+     * 将三维点投影到二维平面坐标 / Project a 3D point to 2D plane coordinates
      *
      * @param point 三维点 / 3D point
      * @param V 数值类型 / Number type
@@ -129,8 +119,7 @@ class QuantityPlaneFrame3 private constructor(
     }
 
     /**
-     * 从二维平面坐标和距离恢复三维点
-     * Restore a 3D point from 2D plane coordinates and distance
+     * 从二维平面坐标和距离恢复三维点 / Restore a 3D point from 2D plane coordinates and distance
      *
      * @param point 二维平面坐标 / 2D plane coordinates
      * @param distance 到平面的距离 / Distance to the plane
@@ -167,8 +156,7 @@ class QuantityPlaneFrame3 private constructor(
     }
 
     /**
-     * 根据距离生成法向量
-     * Generate a normal vector from a distance value
+     * 根据距离生成法向量 / Generate a normal vector from a distance value
      *
      * @param distance 距离值 / Distance value
      * @param V 数值类型 / Number type
@@ -184,8 +172,7 @@ class QuantityPlaneFrame3 private constructor(
     }
 
     /**
-     * 计算长方体在平面上的投影（底面积）
-     * Compute the footprint of a cuboid on the plane
+     * 计算长方体在平面上的投影（底面积） / Compute the footprint of a cuboid on the plane
      *
      * @param cuboid 长方体 / Cuboid
      * @param V 数值类型 / Number type
@@ -224,12 +211,11 @@ class QuantityPlaneFrame3 private constructor(
     /** 工厂方法 / Factory methods */
     companion object {
         /**
-         * 创建平面坐标框架。
-         * Creates a plane frame from two axes.
+         * 创建平面坐标框架。 / Creates a plane frame from two axes.
          *
-         * @param firstAxis the first axis / 第一个轴
-         * @param secondAxis the second axis / 第二个轴
-         * @return the plane frame, or failure if axes are invalid / 平面坐标框架，或轴无效时的失败
+         * @param firstAxis 第一个轴 / the first axis
+         * @param secondAxis 第二个轴 / the second axis
+         * @return 平面坐标框架，或轴无效时的失败 / the plane frame, or failure if axes are invalid
         */
         fun of(firstAxis: Axis3, secondAxis: Axis3): Ret<QuantityPlaneFrame3> {
             return ofOrNull(firstAxis, secondAxis)?.let { Ok(it) }
@@ -240,8 +226,7 @@ class QuantityPlaneFrame3 private constructor(
         }
 
         /**
-         * 创建平面坐标框架，非法轴组合返回 null
-         * Create a plane frame, returning null for invalid axis combinations
+         * 创建平面坐标框架，非法轴组合返回 null / Create a plane frame, returning null for invalid axis combinations
          *
          * @param firstAxis 第一轴 / First axis
          * @param secondAxis 第二轴 / Second axis
@@ -257,8 +242,7 @@ class QuantityPlaneFrame3 private constructor(
         }
 
         /**
-         * 计算两个轴的法向轴
-         * Compute the normal axis for two given axes
+         * 计算两个轴的法向轴 / Compute the normal axis for two given axes
          *
          * @param firstAxis 第一轴 / First axis
          * @param secondAxis 第二轴 / Second axis

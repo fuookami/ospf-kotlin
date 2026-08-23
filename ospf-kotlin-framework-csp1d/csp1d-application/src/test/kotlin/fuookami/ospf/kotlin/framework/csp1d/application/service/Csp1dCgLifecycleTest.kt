@@ -1,23 +1,43 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
+import fuookami.ospf.kotlin.core.solver.toSolveReport
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.test.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlinx.coroutines.runBlocking
+import fuookami.ospf.kotlin.core.solver.report.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.csp1d.application.model.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.solver.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
@@ -39,7 +59,7 @@ class Csp1dCgLifecycleTest {
             toLogModel: Boolean,
             registrationStatusCallBack: RegistrationStatusCallBack?,
             solvingStatusCallBack: SolvingStatusCallBack?
-        ): Ret<Flt64FeasibleSolverOutput> {
+        ): Ret<Flt64SolveReport> {
             return Ok(fakeOutput(metaModel))
         }
 
@@ -68,7 +88,7 @@ class Csp1dCgLifecycleTest {
             toLogModel: Boolean,
             registrationStatusCallBack: RegistrationStatusCallBack?,
             solvingStatusCallBack: SolvingStatusCallBack?
-        ): Ret<Flt64FeasibleSolverOutput> {
+        ): Ret<Flt64SolveReport> {
             return Failed(ErrorCode.ApplicationError, "forced final MILP failure")
         }
 
@@ -170,14 +190,14 @@ class Csp1dCgLifecycleTest {
     }
 
     companion object {
-        private fun fakeOutput(metaModel: Flt64LinearMetaModel): Flt64FeasibleSolverOutput {
+        private fun fakeOutput(metaModel: Flt64LinearMetaModel): Flt64SolveReport {
             val size = metaModel.tokens.tokensInSolver.size
             val solution: Solution<Flt64> = (0 until size).map { Flt64(1.0) }
-            return FeasibleSolverOutput(
-                obj = Flt64.zero,
-                solution = solution,
-                time = Duration.ZERO,
-                possibleBestObj = Flt64.zero,
+            return SolverStatus.Feasible.toSolveReport(
+                objective = Flt64.zero,
+                values = solution,
+                solveTime = Duration.ZERO,
+                bestBound = Flt64.zero,
                 gap = Flt64.zero
             )
         }

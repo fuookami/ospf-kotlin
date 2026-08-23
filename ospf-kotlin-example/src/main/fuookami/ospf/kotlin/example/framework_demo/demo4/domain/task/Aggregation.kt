@@ -8,15 +8,15 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 /**
  * 组合机场、飞机、航段和原始批次的任务域聚合。Aggregation for the task domain combining airports, aircraft, flight legs, and origin bunches.
  *
- * @property timeWindow The time window for the scheduling period / 调度周期的时间窗口
- * @property airports The list of airports / 机场列表
- * @property aircrafts The list of aircraft / 飞机列表
- * @property aircraftUsability The map of aircraft to their usability / 飞机到其可用性的映射
- * @property legs The list of flight legs / 航段列表
- * @property maintenances The list of maintenance tasks / 维护任务列表
+ * @property timeWindow 调度周期的时间窗口 / The time window for the scheduling period
+ * @property airports 机场列表 / The list of airports
+ * @property aircrafts 飞机列表 / The list of aircraft
+ * @property aircraftUsability 飞机到其可用性的映射 / The map of aircraft to their usability
+ * @property legs 航段列表 / The list of flight legs
+ * @property maintenances 维护任务列表 / The list of maintenance tasks
  * @property aogs The list of AOG events / AOG事件列表
- * @property transferFlights The list of transfer flights / 中转航班列表
- * @property originBunches The list of original flight task bunches / 原始航班任务束列表
+ * @property transferFlights 中转航班列表 / The list of transfer flights
+ * @property originBunches 原始航班任务束列表 / The list of original flight task bunches
 */
 class Aggregation(
     val timeWindow: TimeWindow<*>,
@@ -45,10 +45,10 @@ class Aggregation(
     /**
      * 检查飞机是否对给定的恢复策略和任务启用。Checks whether the aircraft is enabled for the given recovery policy and task.
      *
-     * @param aircraft The aircraft to check / 要检查的飞机
-     * @param recoveryPolicy The recovery policy assignment / 恢复策略分配
-     * @param task The optional flight task / 可选的航班任务
-     * @return true if the aircraft is enabled, false otherwise / 如果飞机启用则为true，否则为false
+     * @param aircraft 要检查的飞机 / The aircraft to check
+     * @param recoveryPolicy 恢复策略分配 / The recovery policy assignment
+     * @param task 可选的航班任务 / The optional flight task
+     * @return 如果飞机启用则为true，否则为false / true if the aircraft is enabled, false otherwise
     */
     fun enabled(
         aircraft: Aircraft,

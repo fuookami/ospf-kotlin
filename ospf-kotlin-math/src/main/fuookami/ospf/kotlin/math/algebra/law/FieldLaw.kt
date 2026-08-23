@@ -1,20 +1,15 @@
 /**
- * 域定後
- * Field Laws
+ * 域定後 / Field Laws
  *
- * 提供域代数结构定律验证类，验证乘法交换律和乘法逆元存在性，继承臌RingLaw 验证环定律。
- * Provides field algebraic structure law validation class, verifying multiplicative commutativity and multiplicative inverse existence, inheriting from RingLaw for ring law verification.
+ * 提供域代数结构定律验证类，验证乘法交换律和乘法逆元存在性，继承臌RingLaw 验证环定律。 / Provides field algebraic structure law validation class, verifying multiplicative commutativity and multiplicative inverse existence, inheriting from RingLaw for ring law verification.
 */
 package fuookami.ospf.kotlin.math.algebra.law
 
 /**
- * 域定律验证器
- * Field law validator
+ * 域定律验证器 / Field law validator
  *
  * 通过采样元素验证域的公理：乘法交换律、乘法逆元存在性。
- * 继承 RingLaw 验证环定律。
- *
- * Validates field axioms via sampled elements: multiplicative commutativity and multiplicative inverse existence.
+ * 继承 RingLaw 验证环定律。 / Validates field axioms via sampled elements: multiplicative commutativity and multiplicative inverse existence.
  * Inherits RingLaw for ring law verification.
  *
  * @property Self 域元素类型 / Field element type
@@ -50,8 +45,7 @@ class FieldLaw<Self>(
     )
 
     /**
-     * 验证乘法交换律
-     * Verify multiplicative commutativity
+     * 验证乘法交换律 / Verify multiplicative commutativity
      *
      * @return 对所有采样元素满足乘法交换律返回 true / True if multiplicative commutativity holds for all sampled elements
     */
@@ -67,8 +61,7 @@ class FieldLaw<Self>(
     }
 
     /**
-     * 验证乘法逆元存在性
-     * Verify multiplicative inverse existence
+     * 验证乘法逆元存在性 / Verify multiplicative inverse existence
      *
      * @return 对所有非零采样元素满足乘法逆元性质返回 true / True if multiplicative inverse holds for all non-zero sampled elements
     */
@@ -89,8 +82,7 @@ class FieldLaw<Self>(
     }
 
     /**
-     * 验证所有域定律（含环定律）
-     * Validate all field laws (including ring laws)
+     * 验证所有域定律（含环定律） / Validate all field laws (including ring laws)
      *
      * @return 所有域公理均满足返回 true / True if all field axioms hold
     */

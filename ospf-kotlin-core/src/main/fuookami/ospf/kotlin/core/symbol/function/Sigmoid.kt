@@ -27,8 +27,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * Sigmoid/阶跃函数：当 condition > 0 时 y = 1，否则为 0。
  * Sigmoid/step function: y = 1 if condition > 0, else 0.
  *
- * 使用 Big-M 线性化与正数指示变量。
- * Uses Big-M linearization with positive-value indicators.
+ * 使用 Big-M 线性化与正数指示变量。 / Uses Big-M linearization with positive-value indicators.
  *
  * @property condition 条件线性多项式 / condition linear polynomial
  * @param bigM Big-M 界限（默认从输入范围推导，失败时回退到 1e6）/ Big-M bound (inferred from input range by default, falls back to 1e6)

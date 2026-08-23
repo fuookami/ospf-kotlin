@@ -23,8 +23,7 @@ interface Csp1dAggregation<V : RealNumber<V>> {
     /**
      * 注册到元模型 / Register to meta model
      *
-     * 将聚合根管理的变量和中间值注册到元模型。
-     * Register the variables and intermediate values managed by this aggregation root to the meta model.
+     * 将聚合根管理的变量和中间值注册到元模型。 / Register the variables and intermediate values managed by this aggregation root to the meta model.
      *
      * @param model 元模型 / Meta model
      * @return 操作结果 / Operation result

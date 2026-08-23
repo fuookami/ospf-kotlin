@@ -17,8 +17,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
  * Minimizes the total bandwidth cost across all normal edges.
  * 最小化所有普通边的总带宽成本。
  *
- * @property edges the list of network edges / 网络边列表
- * @property edgeBandwidth the edge bandwidth model / 边带宽模型
+ * @property edges 网络边列表 / the list of network edges
+ * @property edgeBandwidth 边带宽模型 / the edge bandwidth model
 */
 class BandwidthCostObjective(
     private val edges: List<Edge>,
@@ -27,7 +27,7 @@ class BandwidthCostObjective(
 ) : Pipeline<LinearMetaModel<Flt64>> {
     override fun invoke(model: LinearMetaModel<Flt64>): Try {
         model.minimize(
-            sum(edges.filter(from(normal))) { it.costPerBandwidth * edgeBandwidth.bandwidth[it] },
+            sum(edges.filter { from(normal)(it) }) { it.costPerBandwidth * edgeBandwidth.bandwidth[it] },
             "bandwidth cost"
         )
         return ok

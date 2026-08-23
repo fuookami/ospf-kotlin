@@ -2,8 +2,7 @@
  * MongoDB 仓储实现
  * MongoDB Repository Implementation
  *
- * 提供基于 MongoDB 的仓储实现。
- * Provides MongoDB-based repository implementation.
+ * 提供基于 MongoDB 的仓储实现。 / Provides MongoDB-based repository implementation.
 */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
@@ -18,8 +17,7 @@ import fuookami.ospf.kotlin.framework.persistence.expression.translator.*
  * MongoDB 仓储实现
  * MongoDB Repository Implementation
  *
- * 提供基于 MongoDB 的仓储基类实现。
- * Provides base repository implementation based on MongoDB.
+ * 提供基于 MongoDB 的仓储基类实现。 / Provides base repository implementation based on MongoDB.
  *
  * @param E 实体类型 / Entity type
  * @property database MongoDB 数据库实例 / MongoDB database instance
@@ -35,20 +33,17 @@ abstract class MongoRepository<E : Any>(
 ) : ExpressionRepository<E> {
 
     /**
-     * 布尔表达式翻译器实例
-     * Boolean expression translator instance
+     * 布尔表达式翻译器实例 / Boolean expression translator instance
     */
     private val booleanTranslator = MongoBooleanTranslator(resolveFieldName, unsupportedPredicatePolicy)
 
     /**
-     * 排序翻译器实例
-     * Order by translator instance
+     * 排序翻译器实例 / Order by translator instance
     */
     private val orderByTranslator = MongoOrderByTranslator(resolveFieldName)
 
     /**
-     * 更新翻译器实例
-     * Update translator instance
+     * 更新翻译器实例 / Update translator instance
     */
     private val updateTranslator = MongoUpdateTranslator(resolveFieldName)
 
@@ -60,8 +55,7 @@ abstract class MongoRepository<E : Any>(
         get() = database.getCollection(collectionName)
 
     /**
-     * 根据条件查询实体列表
-     * Find entity list by condition
+     * 根据条件查询实体列表 / Find entity list by condition
      *
      * @param where 查询条件 / Query condition
      * @return 实体列表 / Entity list
@@ -71,8 +65,7 @@ abstract class MongoRepository<E : Any>(
     }
 
     /**
-     * 根据条件查询实体列表（支持排序和分页）
-     * Find entity list by condition with sorting and pagination
+     * 根据条件查询实体列表（支持排序和分页） / Find entity list by condition with sorting and pagination
      *
      * @param where 查询条件 / Query condition
      * @param sortBy 排序条件（可选）/ Sort conditions (optional)
@@ -110,8 +103,7 @@ abstract class MongoRepository<E : Any>(
     }
 
     /**
-     * 统计满足条件的实体数量
-     * Count entities matching condition
+     * 统计满足条件的实体数量 / Count entities matching condition
      *
      * @param where 查询条件 / Query condition
      * @return 实体数量 / Entity count
@@ -122,8 +114,7 @@ abstract class MongoRepository<E : Any>(
     }
 
     /**
-     * 更新满足条件的实体
-     * Update entities matching condition
+     * 更新满足条件的实体 / Update entities matching condition
      *
      * @param where 更新条件 / Update condition
      * @param assignments 更新赋值列表 / Update assignment list
@@ -140,8 +131,7 @@ abstract class MongoRepository<E : Any>(
     }
 
     /**
-     * 删除满足条件的实体
-     * Delete entities matching condition
+     * 删除满足条件的实体 / Delete entities matching condition
      *
      * @param where 删除条件 / Delete condition
      * @return 受影响的行数 / Number of affected rows
@@ -157,22 +147,20 @@ abstract class MongoRepository<E : Any>(
      * 将 Document 映射为实体
      * Map Document to entity
      *
-     * 子类需要实现此方法以进行实体映射。
-     * Subclasses must implement this method for entity mapping.
+     * 子类需要实现此方法以进行实体映射。 / Subclasses must implement this method for entity mapping.
      *
-     * @param document MongoDB Document to map / 需要映射的 MongoDB Document
-     * @return Mapped entity instance, or null if mapping fails / 映射后的实体实例，映射失败时返回 null
+     * @param document 需要映射的 MongoDB Document / MongoDB Document to map
+     * @return 映射后的实体实例，映射失败时返回 null / Mapped entity instance, or null if mapping fails
     */
     protected abstract fun mapToEntity(document: Document): E?
 
     companion object {
         /**
-         * 简单字段名解析器：直接使用路径最后一部分作为字段名
-         * Simple field resolver: use last part of path as field name
+         * 简单字段名解析器：直接使用路径最后一部分作为字段名 / Simple field resolver: use last part of path as field name
          *
          * @return 字段名解析器函数 / Field name resolver function
         */
-        fun simpleFieldResolver(): MongoFieldNameResolver = { path: String ->
+        fun simpleFieldResolver(): MongoFieldNameResolver = MongoFieldNameResolver { path: String ->
             path.substringAfterLast(".")
         }
     }

@@ -1,10 +1,8 @@
 /**
- * 因式分解
- * Factorization
+ * 因式分解 / Factorization
  *
  * 提供一元二次多项式的因式分解功能。
- * 包括系数提取、求根和因式分解操作，将 ax² + bx + c 分解丌a(x - r₌(x - r₌。
- * Provides factorization functionality for univariate quadratic polynomials.
+ * 包括系数提取、求根和因式分解操作，将 ax² + bx + c 分解丌a(x - r₌(x - r₌。 / Provides factorization functionality for univariate quadratic polynomials.
  * Includes coefficient extraction, root finding, and factorization operations,
  * factorizing ax² + bx + c into a(x - r₌(x - r₌.
 */
@@ -21,11 +19,9 @@ import fuookami.ospf.kotlin.utils.functional.Order
 // ============================================================================
 
 /**
- * 一元二次多项式系数
- * Univariate quadratic polynomial coefficients
+ * 一元二次多项式系数 / Univariate quadratic polynomial coefficients
  *
- * 表示形式：ax² + bx + c
- * Representation: ax² + bx + c
+ * 表示形式：ax² + bx + c / Representation: ax² + bx + c
 */
 data class QuadraticCoefficients<T>(
     val a: T,  // 二次项系敌/ Quadratic coefficient
@@ -38,8 +34,7 @@ data class QuadraticCoefficients<T>(
  * 仌QuadraticPolynomial 提取一元二次多项式系数
  * Extract univariate quadratic polynomial coefficients from QuadraticPolynomial
  *
- * 要求多项式只包含一个变量符号。
- * Requires the polynomial to contain only one variable symbol.
+ * 要求多项式只包含一个变量符号。 / Requires the polynomial to contain only one variable symbol.
  *
  * @return 系数元组 (a, b, c, symbol)，如果多项式不是单变量的则返囌null
  * @return Coefficient tuple (a, b, c, symbol), or null if not univariate
@@ -83,8 +78,7 @@ fun <T> QuadraticPolynomial<T>.extractUnivariateCoefficients(): QuadraticCoeffic
 // ============================================================================
 
 /**
- * 多项式的栌
- * Roots of a polynomial
+ * 多项式的栌 / Roots of a polynomial
 */
 data class PolynomialRoots<T>(
     val roots: List<T>,
@@ -93,8 +87,7 @@ data class PolynomialRoots<T>(
 )
 
 /**
- * 一元二次多项式求根（使用求根公式）
- * Find roots of univariate quadratic polynomial (using quadratic formula)
+ * 一元二次多项式求根（使用求根公式） / Find roots of univariate quadratic polynomial (using quadratic formula)
  *
  * 公式 / Formula: x = (-b ± ∌b² - 4ac)) / 2a
  *
@@ -153,8 +146,7 @@ private fun <T> castToFloatingType(value: Any?): T where T : Field<T>, T : Float
 }
 
 /**
- * 一元二次多项式求根（便捷方法）
- * Find roots of univariate quadratic polynomial (convenience method)
+ * 一元二次多项式求根（便捷方法） / Find roots of univariate quadratic polynomial (convenience method)
 */
 fun <T> QuadraticPolynomial<T>.solve(): PolynomialRoots<T>?
     where T : Field<T>, T : FloatingNumber<T> {
@@ -175,11 +167,9 @@ fun <T> QuadraticPolynomial<T>.solve(): PolynomialRoots<T>?
 // ============================================================================
 
 /**
- * 因式分解结果
- * Factorization result
+ * 因式分解结果 / Factorization result
  *
- * 表示形式：a(x - r₌(x - r₌
- * Representation: a(x - r₌(x - r₌
+ * 表示形式：a(x - r₌(x - r₌ / Representation: a(x - r₌(x - r₌
 */
 data class QuadraticFactorization<T>(
     val leadingCoefficient: T,  // 首项系数 / Leading coefficient
@@ -196,8 +186,7 @@ data class LinearFactor<T>(
 )
 
 /**
- * 一元二次多项式因式分解
- * Factorize univariate quadratic polynomial
+ * 一元二次多项式因式分解 / Factorize univariate quadratic polynomial
  *
  * 尌ax² + bx + c 分解丌a(x - r₌(x - r₌ 的形式。
  * Factorizes ax² + bx + c into the form a(x - r₌(x - r₌.
@@ -237,8 +226,7 @@ fun <T> factorizeQuadratic(coefficients: QuadraticCoefficients<T>): QuadraticFac
 }
 
 /**
- * 一元二次多项式因式分解（便捷方法）
- * Factorize univariate quadratic polynomial (convenience method)
+ * 一元二次多项式因式分解（便捷方法） / Factorize univariate quadratic polynomial (convenience method)
 */
 fun <T> QuadraticPolynomial<T>.factorize(): QuadraticFactorization<T>?
     where T : Field<T>, T : FloatingNumber<T> {
@@ -257,8 +245,7 @@ fun <T> QuadraticPolynomial<T>.factorize(): QuadraticFactorization<T>?
 // ============================================================================
 
 /**
- * 将因式分解结果展开回多项式
- * Expand factorization result back to polynomial
+ * 将因式分解结果展开回多项式 / Expand factorization result back to polynomial
 */
 fun <T> QuadraticFactorization<T>.expand(): QuadraticPolynomial<T>
     where T : Field<T>, T : RealNumber<T> {

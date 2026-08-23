@@ -1,13 +1,10 @@
 /**
- * 分块多维数组模块
- * Block Multi-dimensional Array Module
+ * 分块多维数组模块 / Block Multi-dimensional Array Module
  *
- * 本模块提供基于分块存储的稀疏多维数组实现。
- * This module provides sparse multi-dimensional array implementation
+ * 本模块提供基于分块存储的稀疏多维数组实现。 / This module provides sparse multi-dimensional array implementation
  * based on block storage.
  *
- * 特性：
- * Features:
+ * 特性： / Features:
  * - 稀疏存储：仅存储非默认值元素
  *   Sparse storage: Only stores non-default value elements
  * - 内存效率：适用于大规模稀疏数组
@@ -15,8 +12,7 @@
  * - 延迟初始化：支持增量添加元素
  *   Lazy initialization: Supports incremental element addition
  *
- * 使用场景：
- * Use cases:
+ * 使用场景： / Use cases:
  * - 大规模稀疏矩阵
  *   Large-scale sparse matrices
  * - 仅少数元素非零的数组
@@ -24,8 +20,7 @@
  * - 内存敏感的应用
  *   Memory-sensitive applications
  *
- * 示例：
- * Example:
+ * 示例： / Example:
  * ```kotlin
  * // 创建稀疏数组
  * // Create sparse array
@@ -48,9 +43,7 @@ package fuookami.ospf.kotlin.multiarray
 
 /**
  * Index key for block storage
- * 索引键，用于分块存储
- *
- * Internal key class used to map multi-dimensional indices to block storage entries.
+ * 索引键，用于分块存储 / Internal key class used to map multi-dimensional indices to block storage entries.
  * Provides both persistent (copying) and transient (non-copying) creation modes.
  * 内部键类，用于将多维索引映射到分块存储条目。
  * 提供持久化（拷贝）和瞬态（非拷贝）两种创建模式。
@@ -65,9 +58,7 @@ private class IndexKey private constructor(
     companion object {
         /**
          * Create a persistent IndexKey that copies the indices array
-         * 创建持久化索引键，会拷贝索引数组
-         *
-         * Use when the indices array may be modified after creation.
+         * 创建持久化索引键，会拷贝索引数组 / Use when the indices array may be modified after creation.
          * 当索引数组在创建后可能被修改时使用。
          *
          * @param indices 索引数组 / Index array
@@ -79,9 +70,7 @@ private class IndexKey private constructor(
 
         /**
          * Create a transient IndexKey that shares the indices array
-         * 创建瞬态索引键，共享索引数组
-         *
-         * Use when the indices array will not be modified after creation.
+         * 创建瞬态索引键，共享索引数组 / Use when the indices array will not be modified after creation.
          * 当索引数组在创建后不会被修改时使用。
          *
          * @param indices 索引数组 / Index array
@@ -164,8 +153,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
     ) : this(shape, blocks.toIndexKeyBlocks(), InternalIndexKeyBlocks)
 
     /**
-     * 获取元素
-     * Get element
+     * 获取元素 / Get element
      *
      * @param indices 向量索引 / Vector indices
      * @return 元素值，如果不存在则返回 null / Element value, or null if not exists
@@ -175,8 +163,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
     }
 
     /**
-     * 设置元素
-     * Set element
+     * 设置元素 / Set element
      *
      * @param indices 向量索引 / Vector indices
      * @param value 要设置的值 / Value to set
@@ -186,8 +173,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
     }
 
     /**
-     * 获取或设置默认值
-     * Get or set default value
+     * 获取或设置默认值 / Get or set default value
      *
      * @param indices 向量索引 / Vector indices
      * @param defaultValue 默认值生成器 / Default value generator
@@ -205,8 +191,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
     }
 
     /**
-     * 检查是否包含指定索引的值
-     * Check if value at specified index exists
+     * 检查是否包含指定索引的值 / Check if value at specified index exists
      *
      * @param indices 向量索引 / Vector indices
      * @return 是否存在 / Whether exists
@@ -216,8 +201,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
     }
 
     /**
-     * 移除指定索引的元素
-     * Remove element at specified index
+     * 移除指定索引的元素 / Remove element at specified index
      *
      * @param indices 向量索引 / Vector indices
      * @return 被移除的元素，如果不存在则返回 null / Removed element, or null if not exists
@@ -227,50 +211,43 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
     }
 
     /**
-     * 清除所有元素
-     * Clear all elements
+     * 清除所有元素 / Clear all elements
     */
     fun clear() {
         blocks.clear()
     }
 
     /**
-     * 已存储的元素数量
-     * Number of stored elements
+     * 已存储的元素数量 / Number of stored elements
     */
     override val size: Int get() = blocks.size
 
     /**
-     * 检查是否为空
-     * Check if empty
+     * 检查是否为空 / Check if empty
     */
     override fun isEmpty(): Boolean = blocks.isEmpty()
 
     /**
-     * 迭代器 - 只迭代已存储的值
-     * Iterator - only iterates stored values
+     * 迭代器 - 只迭代已存储的值 / Iterator - only iterates stored values
     */
     override fun iterator(): Iterator<T> = blocks.values.iterator()
 
     /**
-     * 检查是否包含所有元素
-     * Check if contains all elements
+     * 检查是否包含所有元素 / Check if contains all elements
     */
     override fun containsAll(elements: Collection<T>): Boolean {
         return blocks.values.containsAll(elements)
     }
 
     /**
-     * 检查是否包含指定元素
-     * Check if contains specified element
+     * 检查是否包含指定元素 / Check if contains specified element
     */
     override fun contains(element: T): Boolean {
         return blocks.values.contains(element)
     }
 
     /**
-     * 获取所有已存储的索引
-     * Get all stored indices
+     * 获取所有已存储的索引 / Get all stored indices
      *
      * @return 已存储的索引集合 / Set of stored indices
     */

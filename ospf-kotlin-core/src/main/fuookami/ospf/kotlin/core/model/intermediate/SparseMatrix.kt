@@ -1,6 +1,5 @@
 /**
- * 稀疏矩阵
- * Sparse matrix
+ * 稀疏矩阵 / Sparse matrix
 */
 package fuookami.ospf.kotlin.core.model.intermediate
 
@@ -8,8 +7,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 
 /**
- * 稀疏向量中的单个条目，将列索引与值配对。
- * A single entry in a [SparseVector], pairing a column index with a value.
+ * 稀疏向量中的单个条目，将列索引与值配对。 / A single entry in a [SparseVector], pairing a column index with a value.
  *
  * @property index 列索引 / Column index
  * @property value 条目值 / Entry value
@@ -20,8 +18,7 @@ data class SparseVectorEntry<V : RealNumber<V>>(
 )
 
 /**
- * 稀疏向量，由 (index, value) 对列表支持。
- * Sparse vector backed by a list of (index, value) pairs.
+ * 稀疏向量，由 (index, value) 对列表支持。 / Sparse vector backed by a list of (index, value) pairs.
  *
  * @property entries 条目列表 / Entry list
 */
@@ -30,8 +27,7 @@ class SparseVector<V : RealNumber<V>>(
 ) {
 
     /**
-     * 添加一个条目到向量末尾。
-     * Append an entry to the end of this vector.
+     * 添加一个条目到向量末尾。 / Append an entry to the end of this vector.
      *
      * @param index 列索引 / Column index
      * @param value 条目值 / Entry value
@@ -41,16 +37,14 @@ class SparseVector<V : RealNumber<V>>(
     }
 
     /**
-     * 条目数量
-     * Number of entries
+     * 条目数量 / Number of entries
      *
      * @return 条目数量 / Number of entries
     */
     fun len(): Int = entries.size
 
     /**
-     * 是否为空
-     * Whether this vector is empty
+     * 是否为空 / Whether this vector is empty
      *
      * @return 若为空则返回 true / true if this vector is empty
     */
@@ -78,8 +72,7 @@ class SparseVector<V : RealNumber<V>>(
 }
 
 /**
- * 稀疏矩阵，由 [SparseVector] 行列表支持。
- * Sparse matrix backed by a list of [SparseVector] rows.
+ * 稀疏矩阵，由 [SparseVector] 行列表支持。 / Sparse matrix backed by a list of [SparseVector] rows.
  *
  * @property rows 行列表 / Row list
 */
@@ -88,8 +81,7 @@ class SparseMatrix<V : RealNumber<V>>(
 ) {
 
     /**
-     * 添加一行到矩阵末尾。
-     * Append a row to the end of this matrix.
+     * 添加一行到矩阵末尾。 / Append a row to the end of this matrix.
      *
      * @param row 要添加的稀疏向量行 / Sparse vector row to append
     */
@@ -98,16 +90,14 @@ class SparseMatrix<V : RealNumber<V>>(
     }
 
     /**
-     * 矩阵行数
-     * Number of rows in this matrix
+     * 矩阵行数 / Number of rows in this matrix
      *
      * @return 行数 / Number of rows
     */
     fun numRows(): Int = rows.size
 
     /**
-     * 第 [row] 行的非零条目数
-     * Number of non-zero entries in row [row]
+     * 第 [row] 行的非零条目数 / Number of non-zero entries in row [row]
      *
      * @param row 行索引 / Row index
      * @return 该行的非零条目数 / Number of non-zero entries in the specified row
@@ -115,8 +105,7 @@ class SparseMatrix<V : RealNumber<V>>(
     fun rowSize(row: Int): Int = rows.getOrNull(row)?.len() ?: 0
 
     /**
-     * 获取指定行，越界时返回 null。
-     * Get the row at [index], or null if out of bounds.
+     * 获取指定行，越界时返回 null。 / Get the row at [index], or null if out of bounds.
      *
      * @param index 行索引 / Row index
      * @return 对应的稀疏向量行，越界时返回 null / The sparse vector row, or null if out of bounds
@@ -124,8 +113,7 @@ class SparseMatrix<V : RealNumber<V>>(
     fun getRow(index: Int): SparseVector<V>? = rows.getOrNull(index)
 
     /**
-     * 遍历第 [row] 行的所有非零条目，调用 [action] 处理 (colIndex, value)。越界时为空操作。
-     * Iterate over all non-zero entries in row [row], invoking [action] with (colIndex, value).
+     * 遍历第 [row] 行的所有非零条目，调用 [action] 处理 (colIndex, value)。越界时为空操作。 / Iterate over all non-zero entries in row [row], invoking [action] with (colIndex, value).
      * If [row] is out of bounds, the call is a no-op.
      *
      * @param row 行索引 / Row index
@@ -155,8 +143,7 @@ class SparseMatrix<V : RealNumber<V>>(
     }
 
     /**
-     * 构建转置矩阵：每个条目 (r, c, v) 变为 (c, r, v)。
-     * Build the transpose of this matrix: each entry (r, c, v) becomes (c, r, v).
+     * 构建转置矩阵：每个条目 (r, c, v) 变为 (c, r, v)。 / Build the transpose of this matrix: each entry (r, c, v) becomes (c, r, v).
      *
      * @return 转置后的稀疏矩阵 / The transposed sparse matrix
     */
@@ -211,8 +198,7 @@ class SparseMatrix<V : RealNumber<V>>(
 }
 
 /**
- * 就地取反稀疏矩阵：每个条目乘以 -1。
- * Negate a [SparseMatrix] in-place: multiply every entry by -1.
+ * 就地取反稀疏矩阵：每个条目乘以 -1。 / Negate a [SparseMatrix] in-place: multiply every entry by -1.
  *
  * @return 就地取反后的稀疏矩阵（即 this）/ The negated sparse matrix in-place (this)
 */
@@ -227,8 +213,7 @@ fun SparseMatrix<Flt64>.negateInPlace(): SparseMatrix<Flt64> {
 }
 
 /**
- * 返回取反后的副本。
- * Return a negated copy of this [SparseMatrix].
+ * 返回取反后的副本。 / Return a negated copy of this [SparseMatrix].
  *
  * @return 取反后的新稀疏矩阵 / A new negated sparse matrix
 */
@@ -245,8 +230,7 @@ fun SparseMatrix<Flt64>.negated(): SparseMatrix<Flt64> {
 }
 
 /**
- * 就地缩放稀疏矩阵。
- * Scale a [SparseMatrix] in-place by [factor].
+ * 就地缩放稀疏矩阵。 / Scale a [SparseMatrix] in-place by [factor].
  *
  * @param factor 缩放因子 / Scale factor
  * @return 缩放后的稀疏矩阵（即 this）/ The scaled sparse matrix in-place (this)
@@ -263,8 +247,7 @@ fun SparseMatrix<Flt64>.scaleInPlace(factor: Flt64): SparseMatrix<Flt64> {
 
 /**
  * 稀疏二次向量中的单个条目，配对 (colIndex1, colIndex2?, coefficient)。
- * 用于二次约束行，其中每项可以是线性（colIndex2 == null）或二次（colIndex2 != null）。
- * A single entry in a [SparseQuadraticVector], pairing (colIndex1, colIndex2?, coefficient).
+ * 用于二次约束行，其中每项可以是线性（colIndex2 == null）或二次（colIndex2 != null）。 / A single entry in a [SparseQuadraticVector], pairing (colIndex1, colIndex2?, coefficient).
  * Used for quadratic constraint rows where each term may be linear (colIndex2 == null)
  * or quadratic (colIndex2 != null).
  *
@@ -279,8 +262,7 @@ data class SparseQuadraticEntry(
 )
 
 /**
- * 稀疏二次向量：二次约束条目的一行。
- * Sparse quadratic vector: a row of quadratic constraint entries.
+ * 稀疏二次向量：二次约束条目的一行。 / Sparse quadratic vector: a row of quadratic constraint entries.
  *
  * @property entries 条目列表 / Entry list
 */
@@ -289,8 +271,7 @@ class SparseQuadraticVector(
 ) {
 
     /**
-     * 添加一个二次条目到向量末尾。
-     * Append a quadratic entry to the end of this vector.
+     * 添加一个二次条目到向量末尾。 / Append a quadratic entry to the end of this vector.
      *
      * @param colIndex1 第一列索引 / First column index
      * @param colIndex2 第二列索引（null 表示线性项）/ Second column index (null for linear term)
@@ -301,16 +282,14 @@ class SparseQuadraticVector(
     }
 
     /**
-     * 条目数量
-     * Number of entries
+     * 条目数量 / Number of entries
      *
      * @return 条目数量 / Number of entries
     */
     fun len(): Int = entries.size
 
     /**
-     * 是否为空
-     * Whether this vector is empty
+     * 是否为空 / Whether this vector is empty
      *
      * @return 若为空则返回 true / true if this vector is empty
     */
@@ -344,8 +323,7 @@ class SparseQuadraticVector(
 
 /**
  * 稀疏二次矩阵：由 [SparseQuadraticVector] 行列表支持。
- * 用作二次约束左侧的稀疏表示。
- * Sparse quadratic matrix: a list of [SparseQuadraticVector] rows.
+ * 用作二次约束左侧的稀疏表示。 / Sparse quadratic matrix: a list of [SparseQuadraticVector] rows.
  * Used as the sparse representation of quadratic constraint LHS.
  *
  * @property rows 行列表 / Row list
@@ -355,8 +333,7 @@ class SparseQuadraticMatrix(
 ) {
 
     /**
-     * 添加一行到二次矩阵末尾。
-     * Append a row to the end of this quadratic matrix.
+     * 添加一行到二次矩阵末尾。 / Append a row to the end of this quadratic matrix.
      *
      * @param row 要添加的稀疏二次向量行 / Sparse quadratic vector row to append
     */
@@ -365,16 +342,14 @@ class SparseQuadraticMatrix(
     }
 
     /**
-     * 矩阵行数
-     * Number of rows in this matrix
+     * 矩阵行数 / Number of rows in this matrix
      *
      * @return 行数 / Number of rows
     */
     fun numRows(): Int = rows.size
 
     /**
-     * 第 [row] 行的条目数
-     * Number of entries in row [row]
+     * 第 [row] 行的条目数 / Number of entries in row [row]
      *
      * @param row 行索引 / Row index
      * @return 该行的条目数 / Number of entries in the specified row
@@ -382,8 +357,7 @@ class SparseQuadraticMatrix(
     fun rowSize(row: Int): Int = rows.getOrNull(row)?.len() ?: 0
 
     /**
-     * 获取指定行，越界时返回 null。
-     * Get the row at [index], or null if out of bounds.
+     * 获取指定行，越界时返回 null。 / Get the row at [index], or null if out of bounds.
      *
      * @param index 行索引 / Row index
      * @return 对应的稀疏二次向量行，越界时返回 null / The sparse quadratic vector row, or null if out of bounds

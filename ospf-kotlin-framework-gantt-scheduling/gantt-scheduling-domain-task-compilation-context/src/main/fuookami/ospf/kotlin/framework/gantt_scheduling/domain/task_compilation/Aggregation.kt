@@ -212,8 +212,7 @@ open class TaskCompilationAggregationWithTime<
     )
 
     /**
-     * 通过 solver 时间窗口边界创建带时间的任务编译聚合 /
-     * Create task compilation aggregation with time from a solver time-window boundary
+     * 通过 solver 时间窗口边界创建带时间的任务编译聚合 / / Create task compilation aggregation with time from a solver time-window boundary
      *
      * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
      * @param tasks 任务列表 / List of tasks

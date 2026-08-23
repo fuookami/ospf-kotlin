@@ -24,11 +24,9 @@ import fuookami.ospf.kotlin.utils.functional.*
 */
 
 /**
- * 向上取整函数：y = ceil(x)。
- * Ceiling function: y = ceil(x).
+ * 向上取整函数：y = ceil(x)。 / Ceiling function: y = ceil(x).
  *
- * 使用整数变量 k = ceil(x)，并用 k-1 < x <= k 的线性约束近似严格下界。
- * Uses integer variable k = ceil(x), with linear constraints for k-1 < x <= k.
+ * 使用整数变量 k = ceil(x)，并用 k-1 < x <= k 的线性约束近似严格下界。 / Uses integer variable k = ceil(x), with linear constraints for k-1 < x <= k.
  *
  * @property x 输入线性多项式 / Input linear polynomial
  * @property kVar 整数变量 / Integer variable

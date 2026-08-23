@@ -1,8 +1,7 @@
 /**
  * 值提供者适配噌 * Value Provider Adapter
  *
- * 提供符号值查找的适配器接口，用于在表达式求值时获取符号对应的数值。 * 支持不同的值来源，妌Map、函数调用或自定义实现。 * Provides adapter interfaces for symbol value lookup,
- * used to retrieve numeric values for symbols during expression evaluation.
+ * 提供符号值查找的适配器接口，用于在表达式求值时获取符号对应的数值。 * 支持不同的值来源，妌Map、函数调用或自定义实现。 * Provides adapter interfaces for symbol value lookup, / used to retrieve numeric values for symbols during expression evaluation.
  * Supports different value sources such as Map, function calls, or custom implementations.
 */
 package fuookami.ospf.kotlin.math.symbol.operation
@@ -69,8 +68,7 @@ enum class MissingValuePolicy {
     ReturnNull,
 
     /**
-     * 将缺失值视为零
-     * Treats missing values as zero
+     * 将缺失值视为零 / Treats missing values as zero
     */
     AsZero,
 

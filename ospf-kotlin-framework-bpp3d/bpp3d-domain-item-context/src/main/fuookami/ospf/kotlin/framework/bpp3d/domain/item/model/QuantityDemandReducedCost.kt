@@ -8,8 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 /**
- * 泛型需求影子价格键。
- * Quantity demand shadow price key.
+ * 泛型需求影子价格键。 / Quantity demand shadow price key.
 */
 data class QuantityDemandShadowPriceKey<V : FloatingNumber<V>>(
     val mode: Bpp3dDemandMode,

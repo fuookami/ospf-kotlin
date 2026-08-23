@@ -1,6 +1,5 @@
 /**
- * Token 列表，管理变量与求解器索引之间的映射关系。
- * Token lists managing the mapping between variables and solver indices.
+ * Token 列表，管理变量与求解器索引之间的映射关系。 / Token lists managing the mapping between variables and solver indices.
 */
 package fuookami.ospf.kotlin.core.token
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.core.variable.*
 
 /**
- * 通用抽象 token 列表，带有实数类型参数 T。
- * Generic abstract token list with real type parameter T.
+ * 通用抽象 token 列表，带有实数类型参数 T。 / Generic abstract token list with real type parameter T.
  *
  * @param T 数值类型 / The number type
 */
@@ -154,8 +152,7 @@ sealed class AbstractTokenList<T : RealNumber<T>> : AutoCloseable {
 }
 
 /**
- * 不可变 token 列表，线程安全地管理已有的 token 集合。
- * Immutable token list managing an existing token collection in a thread-safe manner.
+ * 不可变 token 列表，线程安全地管理已有的 token 集合。 / Immutable token list managing an existing token collection in a thread-safe manner.
  *
  * @param T 数值类型 / The number type
  * @property list 变量键到 token 的映射 / Mapping from variable keys to tokens
@@ -260,8 +257,7 @@ class TokenList<T : RealNumber<T>>(
 }
 
 /**
- * 可添加 token 的集合接口。
- * Interface for token-addable collections.
+ * 可添加 token 的集合接口。 / Interface for token-addable collections.
  *
  * @param T 数值类型 / The number type
 */
@@ -285,8 +281,7 @@ interface AddableTokenCollection<T : RealNumber<T>> {
 }
 
 /**
- * 可变 token 列表的抽象基类。
- * Abstract base class for mutable token lists.
+ * 可变 token 列表的抽象基类。 / Abstract base class for mutable token lists.
  *
  * @param T 数值类型 / The number type
 */
@@ -304,8 +299,7 @@ abstract class AbstractMutableTokenList<T : RealNumber<T>> : AbstractTokenList<T
 }
 
 /**
- * 可变 token 列表的密封基类，支持 token 的增删和求解结果管理。
- * Sealed base class for mutable token lists, supporting token add/remove and solution management.
+ * 可变 token 列表的密封基类，支持 token 的增删和求解结果管理。 / Sealed base class for mutable token lists, supporting token add/remove and solution management.
  *
  * @param T 数值类型 / The number type
  * @param list 变量键到 token 的可变映射 / Mutable mapping from variable keys to tokens
@@ -444,8 +438,7 @@ sealed class MutableTokenList<T : RealNumber<T>>(
 }
 
 /**
- * 自动 token 列表，查询时若 token 不存在则自动创建。
- * Auto token list that creates tokens on-the-fly when queried and not found.
+ * 自动 token 列表，查询时若 token 不存在则自动创建。 / Auto token list that creates tokens on-the-fly when queried and not found.
  *
  * @param T 数值类型 / The number type
  * @param list 变量键到 token 的可变映射 / Mutable mapping from variable keys to tokens
@@ -516,8 +509,7 @@ class AutoTokenList<T : RealNumber<T>> private constructor(
 }
 
 /**
- * 手动 token 列表，变量需显式添加后才能查询。
- * Manual token list where variables must be explicitly added before querying.
+ * 手动 token 列表，变量需显式添加后才能查询。 / Manual token list where variables must be explicitly added before querying.
  *
  * @param T 数值类型 / The number type
  * @param list 变量键到 token 的可变映射 / Mutable mapping from variable keys to tokens

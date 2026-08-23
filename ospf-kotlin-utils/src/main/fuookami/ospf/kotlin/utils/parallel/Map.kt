@@ -1,16 +1,12 @@
 /**
- * 并行映射操作
- *
- * Parallel mapping operations with concurrency control.
+ * 并行映射操作 / Parallel mapping operations with concurrency control.
 */
 package fuookami.ospf.kotlin.utils.parallel
 
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 并行映射集合元素
- *
- * Map collection elements in parallel with concurrency control.
+ * 并行映射集合元素 / Map collection elements in parallel with concurrency control.
  *
  * @param R 结果类型 / Result type
  * @param T 元素类型 / Element type
@@ -27,9 +23,7 @@ suspend inline fun <R : Any, T> Iterable<T>.mapParallelly(
 }
 
 /**
- * 并行映射集合元素（带错误处理）
- *
- * Map collection elements in parallel with error handling and concurrency control.
+ * 并行映射集合元素（带错误处理） / Map collection elements in parallel with error handling and concurrency control.
  *
  * @param R 结果类型 / Result type
  * @param T 元素类型 / Element type
@@ -46,9 +40,7 @@ suspend inline fun <R, T> Iterable<T>.tryMapParallelly(
 }
 
 /**
- * 并行映射集合元素（带错误收集）
- *
- * Map collection elements in parallel with error collection and concurrency control.
+ * 并行映射集合元素（带错误收集） / Map collection elements in parallel with error collection and concurrency control.
  * 并发映射集合元素并收集所有错误。
  *
  * @param R 结果类型 / Result type
@@ -66,9 +58,7 @@ suspend inline fun <R, T> Iterable<T>.exTryMapParallelly(
 }
 
 /**
- * 并行映射集合元素到目标集合
- *
- * Map collection elements in parallel to a destination collection with concurrency control.
+ * 并行映射集合元素到目标集合 / Map collection elements in parallel to a destination collection with concurrency control.
  *
  * @param R 结果类型 / Result type
  * @param T 元素类型 / Element type
@@ -90,9 +80,7 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.mapToPa
 }
 
 /**
- * 并行映射集合元素到目标集合（带错误处理）
- *
- * Map collection elements in parallel to a destination collection with error handling.
+ * 并行映射集合元素到目标集合（带错误处理） / Map collection elements in parallel to a destination collection with error handling.
  * 并发映射集合元素到目标集合，支持错误处理。
  *
  * @param R 结果类型 / Result type
@@ -120,9 +108,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryMapToParal
 }
 
 /**
- * 并行映射集合元素到目标集合（带错误收集）
- *
- * Map collection elements in parallel to a destination collection with error collection.
+ * 并行映射集合元素到目标集合（带错误收集） / Map collection elements in parallel to a destination collection with error collection.
  * 并发映射集合元素到目标集合，收集所有错误。
  *
  * @param R 结果类型 / Result type
@@ -154,9 +140,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryMapToPar
 }
 
 /**
- * 并行映射集合元素（过滤空值）
- *
- * Map collection elements in parallel, filtering out null results.
+ * 并行映射集合元素（过滤空值） / Map collection elements in parallel, filtering out null results.
  * 并发映射集合元素，过滤掉空值结果。
  *
  * @param R 结果类型（非空）/ Result type (non-null)
@@ -175,9 +159,7 @@ suspend inline fun <R : Any, T> Iterable<T>.mapNotNullParallelly(
 }
 
 /**
- * 并行映射集合元素（过滤空值，带错误处理）
- *
- * Map collection elements in parallel, filtering out null results with error handling.
+ * 并行映射集合元素（过滤空值，带错误处理） / Map collection elements in parallel, filtering out null results with error handling.
  * 并发映射集合元素，过滤掉空值结果，支持错误处理。
  *
  * @param R 结果类型（非空）/ Result type (non-null)
@@ -201,9 +183,7 @@ suspend inline fun <R : Any, T> Iterable<T>.tryMapNotNullParallelly(
 }
 
 /**
- * 并行映射集合元素（过滤空值，带错误收集）
- *
- * Map collection elements in parallel, filtering out null results with error collection.
+ * 并行映射集合元素（过滤空值，带错误收集） / Map collection elements in parallel, filtering out null results with error collection.
  * 并发映射集合元素，过滤掉空值结果，收集所有错误。
  *
  * @param R 结果类型（非空）/ Result type (non-null)
@@ -230,9 +210,7 @@ suspend inline fun <R : Any, T> Iterable<T>.exTryMapNotNullParallelly(
 }
 
 /**
- * 并行映射集合元素到目标集合（过滤空值）
- *
- * Map collection elements in parallel to a destination collection, filtering out null results.
+ * 并行映射集合元素到目标集合（过滤空值） / Map collection elements in parallel to a destination collection, filtering out null results.
  * 并发映射集合元素到目标集合，过滤掉空值结果。
  *
  * @param R 结果类型（非空）/ Result type (non-null)
@@ -255,9 +233,7 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.mapNotN
 }
 
 /**
- * 并行映射集合元素到目标集合（过滤空值，带错误处理）
- *
- * Map collection elements in parallel to a destination collection, filtering out null results with error handling.
+ * 并行映射集合元素到目标集合（过滤空值，带错误处理） / Map collection elements in parallel to a destination collection, filtering out null results with error handling.
  * 并发映射集合元素到目标集合，过滤掉空值结果，支持错误处理。
  *
  * @param R 结果类型（非空）/ Result type (non-null)
@@ -285,9 +261,7 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.tryMapN
 }
 
 /**
- * 并行映射集合元素到目标集合（过滤空值，带错误收集）
- *
- * Map collection elements in parallel to a destination collection, filtering out null results with error collection.
+ * 并行映射集合元素到目标集合（过滤空值，带错误收集） / Map collection elements in parallel to a destination collection, filtering out null results with error collection.
  * 并发映射集合元素到目标集合，过滤掉空值结果，收集所有错误。
  *
  * @param R 结果类型（非空）/ Result type (non-null)
@@ -319,9 +293,7 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.exTryMa
 }
 
 /**
- * 并行映射集合元素（带索引）
- *
- * Map collection elements in parallel with index information.
+ * 并行映射集合元素（带索引） / Map collection elements in parallel with index information.
  * 并发映射集合元素，提供元素索引信息。
  *
  * @param R 结果类型 / Result type
@@ -339,9 +311,7 @@ suspend inline fun <R, T> Iterable<T>.mapIndexedParallelly(
 }
 
 /**
- * 并行映射集合元素（带索引，带错误处理）
- *
- * Map collection elements in parallel with index information and error handling.
+ * 并行映射集合元素（带索引，带错误处理） / Map collection elements in parallel with index information and error handling.
  * 并发映射集合元素，提供元素索引信息，支持错误处理。
  *
  * @param R 结果类型 / Result type
@@ -359,9 +329,7 @@ suspend inline fun <R, T> Iterable<T>.tryMapIndexedParallelly(
 }
 
 /**
- * 并行映射集合元素（带索引，带错误收集）
- *
- * Map collection elements in parallel with index information and error collection.
+ * 并行映射集合元素（带索引，带错误收集） / Map collection elements in parallel with index information and error collection.
  * 并发映射集合元素，提供元素索引信息，收集所有错误。
  *
  * @param R 结果类型 / Result type
@@ -379,9 +347,7 @@ suspend inline fun <R, T> Iterable<T>.exTryMapIndexedParallelly(
 }
 
 /**
- * 并行映射集合元素到目标集合（带索引）
- *
- * Map collection elements in parallel to a destination collection with index information.
+ * 并行映射集合元素到目标集合（带索引） / Map collection elements in parallel to a destination collection with index information.
  * 并发映射集合元素到目标集合，提供元素索引信息。
  *
  * @param R 结果类型 / Result type
@@ -404,9 +370,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.mapIndexedToP
 }
 
 /**
- * 并行映射集合元素到目标集合（带索引，带错误处理）
- *
- * Map collection elements in parallel to a destination collection with index information and error handling.
+ * 并行映射集合元素到目标集合（带索引，带错误处理） / Map collection elements in parallel to a destination collection with index information and error handling.
  * 并发映射集合元素到目标集合，提供元素索引信息，支持错误处理。
  *
  * @param R 结果类型 / Result type
@@ -434,9 +398,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryMapIndexed
 }
 
 /**
- * 并行映射集合元素到目标集合（带索引，带错误收集）
- *
- * Map collection elements in parallel to a destination collection with index information and error collection.
+ * 并行映射集合元素到目标集合（带索引，带错误收集） / Map collection elements in parallel to a destination collection with index information and error collection.
  * 并发映射集合元素到目标集合，提供元素索引信息，收集所有错误。
  *
  * @param R 结果类型 / Result type
@@ -468,9 +430,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryMapIndex
 }
 
 /**
- * 并行映射集合元素（带索引，过滤空值）
- *
- * Map collection elements in parallel with index information, filtering out null results.
+ * 并行映射集合元素（带索引，过滤空值） / Map collection elements in parallel with index information, filtering out null results.
  * 并发映射集合元素，提供元素索引信息，过滤掉空值结果。
  *
  * @param R 结果类型（非空）/ Result type (non-null)
@@ -489,9 +449,7 @@ suspend inline fun <R : Any, T> Iterable<T>.mapIndexedNotNullParallelly(
 }
 
 /**
- * 并行映射集合元素（带索引，过滤空值，带错误处理）
- *
- * Map collection elements in parallel with index information, filtering out null results with error handling.
+ * 并行映射集合元素（带索引，过滤空值，带错误处理） / Map collection elements in parallel with index information, filtering out null results with error handling.
  * 并发映射集合元素，提供元素索引信息，过滤掉空值结果，支持错误处理。
  *
  * @param R 结果类型（非空）/ Result type (non-null)
@@ -515,9 +473,7 @@ suspend inline fun <R : Any, T> Iterable<T>.tryMapIndexedNotNullParallelly(
 }
 
 /**
- * 并行映射集合元素（带索引，过滤空值，带错误收集）
- *
- * Map collection elements in parallel with index information, filtering out null results with error collection.
+ * 并行映射集合元素（带索引，过滤空值，带错误收集） / Map collection elements in parallel with index information, filtering out null results with error collection.
  * 并发映射集合元素，提供元素索引信息，过滤掉空值结果，收集所有错误。
  *
  * @param R 结果类型（非空）/ Result type (non-null)
@@ -544,9 +500,7 @@ suspend inline fun <R : Any, T> Iterable<T>.exTryMapIndexedNotNullParallelly(
 }
 
 /**
- * 并行映射集合元素到目标集合（带索引，过滤空值）
- *
- * Map collection elements in parallel to a destination collection with index information, filtering out null results.
+ * 并行映射集合元素到目标集合（带索引，过滤空值） / Map collection elements in parallel to a destination collection with index information, filtering out null results.
  * 并发映射集合元素到目标集合，提供元素索引信息，过滤掉空值结果。
  *
  * @param R 结果类型（非空）/ Result type (non-null)
@@ -569,9 +523,7 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.mapInde
 }
 
 /**
- * 并行映射集合元素到目标集合（带索引，过滤空值，带错误处理）
- *
- * Map collection elements in parallel to a destination collection with index information, filtering out null results with error handling.
+ * 并行映射集合元素到目标集合（带索引，过滤空值，带错误处理） / Map collection elements in parallel to a destination collection with index information, filtering out null results with error handling.
  * 并发映射集合元素到目标集合，提供元素索引信息，过滤掉空值结果，支持错误处理。
  *
  * @param R 结果类型（非空）/ Result type (non-null)
@@ -599,9 +551,7 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.tryMapI
 }
 
 /**
- * 并行映射集合元素到目标集合（带索引，过滤空值，带错误收集）
- *
- * Map collection elements in parallel to a destination collection with index information, filtering out null results with error collection.
+ * 并行映射集合元素到目标集合（带索引，过滤空值，带错误收集） / Map collection elements in parallel to a destination collection with index information, filtering out null results with error collection.
  * 并发映射集合元素到目标集合，提供元素索引信息，过滤掉空值结果，收集所有错误。
  *
  * @param R 结果类型（非空）/ Result type (non-null)

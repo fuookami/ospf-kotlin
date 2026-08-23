@@ -6,25 +6,19 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * `core.solver` 的插件支持 API：失败构造与回调失败透传。
- * Plugin support APIs in `core.solver` for failure construction and callback-failure passthrough.
+ * `core.solver` 的插件支持 API：失败构造与回调失败透传。 / Plugin support APIs in `core.solver` for failure construction and callback-failure passthrough.
  *
- * 目标：为跨模块 solver 插件提供统一 Try 失败口径，不绑定任何具体商业/开源 solver SDK。
- * Goal: provide a unified Try-failure contract for cross-module solver plugins without coupling to any specific solver SDK.
+ * 目标：为跨模块 solver 插件提供统一 Try 失败口径，不绑定任何具体商业/开源 solver SDK。 / Goal: provide a unified Try-failure contract for cross-module solver plugins without coupling to any specific solver SDK.
  *
- * 非目标：不负责求解流程编排、模型语义解释或算法策略。
- * Non-goal: does not handle solving-flow orchestration, model semantics, or algorithm strategy.
+ * 非目标：不负责求解流程编排、模型语义解释或算法策略。 / Non-goal: does not handle solving-flow orchestration, model semantics, or algorithm strategy.
  *
- * 稳定性：按“新增优先、兼容优先”维护；除明确迁移窗口外不破坏既有调用语义。
- * Stability: maintained with additive and compatibility-first policy; existing call semantics should remain stable outside explicit migration windows.
+ * 稳定性：按“新增优先、兼容优先”维护；除明确迁移窗口外不破坏既有调用语义。 / Stability: maintained with additive and compatibility-first policy; existing call semantics should remain stable outside explicit migration windows.
 */
 
 /**
- * 执行创建环境回调并统一透传失败分支。
- * Execute creating-environment callback and pass through failure branches.
+ * 执行创建环境回调并统一透传失败分支。 / Execute creating-environment callback and pass through failure branches.
  *
- * 该函数仅做结果归一，不持有环境对象生命周期。
- * This function only normalizes callback outcomes and does not own environment lifecycle.
+ * 该函数仅做结果归一，不持有环境对象生命周期。 / This function only normalizes callback outcomes and does not own environment lifecycle.
  *
  * @param T 目标对象类型 / Target object type
  * @param target 目标对象 / Target object
@@ -43,8 +37,7 @@ fun <T> executeCreatingEnvironmentCallback(
 }
 
 /**
- * 构造”求解环境丢失”失败结果。
- * Build a failure result for lost solver environment.
+ * 构造”求解环境丢失”失败结果。 / Build a failure result for lost solver environment.
  *
  * @param message 错误信息（可选）/ Error message (optional)
  * @return 失败结果 / Failure result
@@ -52,8 +45,7 @@ fun <T> executeCreatingEnvironmentCallback(
 fun environmentLost(message: String? = null): Try = Failed(Err(ErrorCode.OREngineEnvironmentLost, message))
 
 /**
- * 构造”求解环境丢失”失败结果（携带 SolverError detail）。
- * Build a failure result for lost solver environment (with SolverError detail).
+ * 构造”求解环境丢失”失败结果（携带 SolverError detail）。 / Build a failure result for lost solver environment (with SolverError detail).
  *
  * @param detail 求解器错误详情 / Solver error detail
  * @return 失败结果 / Failure result
@@ -67,8 +59,7 @@ fun environmentLost(detail: SolverError): Try = Failed(
 )
 
 /**
- * 构造”求解阶段异常”失败结果。
- * Build a failure result for solving-stage exception.
+ * 构造”求解阶段异常”失败结果。 / Build a failure result for solving-stage exception.
  *
  * @param message 错误信息（可选）/ Error message (optional)
  * @return 失败结果 / Failure result
@@ -76,8 +67,7 @@ fun environmentLost(detail: SolverError): Try = Failed(
 fun solvingException(message: String? = null): Try = Failed(Err(ErrorCode.OREngineSolvingException, message))
 
 /**
- * 构造”求解阶段异常”失败结果（携带 SolverError detail）。
- * Build a failure result for solving-stage exception (with SolverError detail).
+ * 构造”求解阶段异常”失败结果（携带 SolverError detail）。 / Build a failure result for solving-stage exception (with SolverError detail).
  *
  * @param detail 求解器错误详情 / Solver error detail
  * @return 失败结果 / Failure result
@@ -91,8 +81,7 @@ fun solvingException(detail: SolverError): Try = Failed(
 )
 
 /**
- * 构造”建模阶段异常”失败结果。
- * Build a failure result for modeling-stage exception.
+ * 构造”建模阶段异常”失败结果。 / Build a failure result for modeling-stage exception.
  *
  * @param message 错误信息（可选）/ Error message (optional)
  * @return 失败结果 / Failure result
@@ -100,8 +89,7 @@ fun solvingException(detail: SolverError): Try = Failed(
 fun modelingException(message: String? = null): Try = Failed(Err(ErrorCode.OREngineModelingException, message))
 
 /**
- * 构造”建模阶段异常”失败结果（携带 SolverError detail）。
- * Build a failure result for modeling-stage exception (with SolverError detail).
+ * 构造”建模阶段异常”失败结果（携带 SolverError detail）。 / Build a failure result for modeling-stage exception (with SolverError detail).
  *
  * @param detail 求解器错误详情 / Solver error detail
  * @return 失败结果 / Failure result
@@ -115,8 +103,7 @@ fun modelingException(detail: SolverError): Try = Failed(
 )
 
 /**
- * 构造”外部终止”失败结果。
- * Build a failure result for externally terminated solving.
+ * 构造”外部终止”失败结果。 / Build a failure result for externally terminated solving.
  *
  * @return 失败结果 / Failure result
 */
@@ -143,8 +130,7 @@ fun terminated(detail: SolverError): Try = Failed(
 // ============================================================================
 
 /**
- * 构造”求解器未找到”失败结果（命名子类型）。
- * Build a failure result for solver not found (named subclass).
+ * 构造”求解器未找到”失败结果（命名子类型）。 / Build a failure result for solver not found (named subclass).
  *
  * 调用方可通过 `when (error is SolverNotFoundError)` 稳定断言。
  * Callers can assert via `when (error is SolverNotFoundError)`.
@@ -155,8 +141,7 @@ fun terminated(detail: SolverError): Try = Failed(
 fun solverNotFound(solver: String? = null): Try = Failed(SolverNotFoundError(solver))
 
 /**
- * 构造”求解器环境丢失”失败结果（命名子类型）。
- * Build a failure result for lost solver environment (named subclass).
+ * 构造”求解器环境丢失”失败结果（命名子类型）。 / Build a failure result for lost solver environment (named subclass).
  *
  * 调用方可通过 `when (error is SolverEnvironmentLostError)` 稳定断言。
  * Callers can assert via `when (error is SolverEnvironmentLostError)`.
@@ -167,8 +152,7 @@ fun solverNotFound(solver: String? = null): Try = Failed(SolverNotFoundError(sol
 fun solverEnvironmentLost(detail: String? = null): Try = Failed(SolverEnvironmentLostError(detail))
 
 /**
- * 构造”求解器求解异常”失败结果（命名子类型）。
- * Build a failure result for solver solving exception (named subclass).
+ * 构造”求解器求解异常”失败结果（命名子类型）。 / Build a failure result for solver solving exception (named subclass).
  *
  * 调用方可通过 `when (error is SolverSolvingError)` 稳定断言。
  * Callers can assert via `when (error is SolverSolvingError)`.
@@ -179,8 +163,7 @@ fun solverEnvironmentLost(detail: String? = null): Try = Failed(SolverEnvironmen
 fun solverSolvingException(detail: String? = null): Try = Failed(SolverSolvingError(detail))
 
 /**
- * 构造”求解器建模异常”失败结果（命名子类型）。
- * Build a failure result for solver modeling exception (named subclass).
+ * 构造”求解器建模异常”失败结果（命名子类型）。 / Build a failure result for solver modeling exception (named subclass).
  *
  * 调用方可通过 `when (error is SolverModelingError)` 稳定断言。
  * Callers can assert via `when (error is SolverModelingError)`.
@@ -191,8 +174,7 @@ fun solverSolvingException(detail: String? = null): Try = Failed(SolverSolvingEr
 fun solverModelingException(detail: String? = null): Try = Failed(SolverModelingError(detail))
 
 /**
- * 构造”求解器终止”失败结果（命名子类型）。
- * Build a failure result for solver terminated (named subclass).
+ * 构造”求解器终止”失败结果（命名子类型）。 / Build a failure result for solver terminated (named subclass).
  *
  * 调用方可通过 `when (error is SolverTerminatedError)` 稳定断言。
  * Callers can assert via `when (error is SolverTerminatedError)`.

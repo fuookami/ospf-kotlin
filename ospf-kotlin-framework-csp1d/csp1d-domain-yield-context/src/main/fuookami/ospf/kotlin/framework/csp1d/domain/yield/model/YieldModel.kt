@@ -9,9 +9,9 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
  * Demand aggregation key ensuring same-product different-unit outputs are not mixed.
  * 需求聚合键，确保相同产品不同单位的产出不混算
  *
- * @param V Numeric value type / 数值类型
- * @property productId Product identifier / 产品标识
- * @property unit Physical unit / 物理单位
+ * @param V 数值类型 / Numeric value type
+ * @property productId 产品标识 / Product identifier
+ * @property unit 物理单位 / Physical unit
 */
 data class DemandAggregationKey<V : RealNumber<V>>(
     val productId: ProductId,
@@ -22,9 +22,9 @@ data class DemandAggregationKey<V : RealNumber<V>>(
  * Under-production shortfall for a product demand.
  * 欠产
  *
- * @param V Numeric value type / 数值类型
- * @property demand Corresponding product demand / 对应的产品需求
- * @property shortfall Shortfall quantity / 欠缺量
+ * @param V 数值类型 / Numeric value type
+ * @property demand 对应的产品需求 / Corresponding product demand
+ * @property shortfall 欠缺量 / Shortfall quantity
 */
 data class UnderProduction<V : RealNumber<V>>(
     val demand: ProductDemand<V>,
@@ -35,9 +35,9 @@ data class UnderProduction<V : RealNumber<V>>(
  * Over-production surplus for a product demand.
  * 超产
  *
- * @param V Numeric value type / 数值类型
- * @property demand Corresponding product demand / 对应的产品需求
- * @property surplus Surplus quantity / 盈余量
+ * @param V 数值类型 / Numeric value type
+ * @property demand 对应的产品需求 / Corresponding product demand
+ * @property surplus 盈余量 / Surplus quantity
 */
 data class OverProduction<V : RealNumber<V>>(
     val demand: ProductDemand<V>,
@@ -48,10 +48,10 @@ data class OverProduction<V : RealNumber<V>>(
  * Product output summary.
  * 产品产出汇总
  *
- * @param V Numeric value type / 数值类型
- * @property product Product / 产品
- * @property totalQuantity Total output quantity / 总产出量
- * @property mode Demand mode / 需求模式
+ * @param V 数值类型 / Numeric value type
+ * @property product 产品 / Product
+ * @property totalQuantity 总产出量 / Total output quantity
+ * @property mode 需求模式 / Demand mode
 */
 data class ProductOutput<V : RealNumber<V>>(
     val product: Product<V>,
@@ -63,10 +63,10 @@ data class ProductOutput<V : RealNumber<V>>(
  * Yield deviation analysis result.
  * 产出偏差分析结果
  *
- * @param V Numeric value type / 数值类型
- * @property underProductions Under-production list / 欠产列表
- * @property overProductions Over-production list / 超产列表
- * @property outputs Product output summary list / 产品产出汇总列表
+ * @param V 数值类型 / Numeric value type
+ * @property underProductions 欠产列表 / Under-production list
+ * @property overProductions 超产列表 / Over-production list
+ * @property outputs 产品产出汇总列表 / Product output summary list
 */
 data class YieldAnalysis<V : RealNumber<V>>(
     val underProductions: List<UnderProduction<V>>,

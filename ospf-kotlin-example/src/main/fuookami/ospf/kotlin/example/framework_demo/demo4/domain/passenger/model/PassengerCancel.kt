@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.core.variable.*
 /**
  * 跟踪列生成公式的乘客取消变量。Tracks passenger cancellation variables for the column generation formulation.
  *
- * @property passengers List of flight-passenger associations / 航班乘客关联列表
+ * @property passengers 航班乘客关联列表 / List of flight-passenger associations
 */
 class PassengerCancel(
     private val passengers: List<FlightPassenger>
@@ -24,8 +24,8 @@ class PassengerCancel(
     /**
      * 将取消变量注册到模型中。Registers cancellation variables with the model.
      *
-     * @param model The linear meta model to register with / 要注册的线性元模型
-     * @return Registration result / 注册结果
+     * @param model 要注册的线性元模型 / The linear meta model to register with
+     * @return 注册结果 / Registration result
     */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (!::passengerCancel.isInitialized) {

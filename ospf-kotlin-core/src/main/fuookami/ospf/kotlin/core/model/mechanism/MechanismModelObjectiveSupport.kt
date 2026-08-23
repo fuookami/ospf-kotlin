@@ -1,6 +1,5 @@
 /**
- * 机制模型目标函数构建支持
- * Mechanism model objective function building support
+ * 机制模型目标函数构建支持 / Mechanism model objective function building support
 */
 package fuookami.ospf.kotlin.core.model.mechanism
 
@@ -11,8 +10,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 
 /**
- * 构建线性目标子对象列表
- * Build linear objective sub-object list
+ * 构建线性目标子对象列表 / Build linear objective sub-object list
  *
  * @param V 数值类型 / The number type
  * @param metaModel 线性元模型 / Linear meta model
@@ -38,6 +36,7 @@ internal fun <V> buildLinearObjectiveSubObjects(
                 ),
                 _constant = source.constant,
                 name = source.name,
+                origin = source,
             )
         }
     }
@@ -50,14 +49,14 @@ internal fun <V> buildLinearObjectiveSubObjects(
             ),
             tokens = tokens,
             name = it.name,
-            converter = metaModel.converter
+            converter = metaModel.converter,
+            origin = it
         )
     }
 }
 
 /**
- * 构建二次目标子对象列表
- * Build quadratic objective sub-object list
+ * 构建二次目标子对象列表 / Build quadratic objective sub-object list
  *
  * @param V 数值类型 / The number type
  * @param metaModel 二次元模型 / Quadratic meta model
@@ -95,7 +94,8 @@ internal fun <V> buildQuadraticObjectiveSubObjects(
                     }
                 ),
                 _constant = source.flattenData.constant,
-                name = source.name
+                name = source.name,
+                origin = source,
             )
         }
     }
@@ -108,7 +108,8 @@ internal fun <V> buildQuadraticObjectiveSubObjects(
             ).toQuadraticFlattenData(),
             tokens = tokens,
             name = it.name,
-            converter = metaModel.converter
+            converter = metaModel.converter,
+            origin = it
         )
     }
 }

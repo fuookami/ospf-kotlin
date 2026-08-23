@@ -1,9 +1,7 @@
 /**
- * 符号多项式物理量运算扩展
- * Symbol Polynomial Quantity Operations Extensions
+ * 符号多项式物理量运算扩展 / Symbol Polynomial Quantity Operations Extensions
  *
- * 为符号多项式物理量提供单位转换、加减运算、标量乘除和求值扩展函数。
- * Provides unit conversion, addition/subtraction, scalar multiplication/division,
+ * 为符号多项式物理量提供单位转换、加减运算、标量乘除和求值扩展函数。 / Provides unit conversion, addition/subtraction, scalar multiplication/division,
  * and evaluation extension functions for symbol polynomial quantities.
  *
  * 支持的多项式类型 / Supported polynomial types:
@@ -35,8 +33,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 // ============================================================================
 
 /**
- * 线性多项式物理量的单位转换 (Flt64)
- * Unit conversion for linear polynomial quantities (Flt64)
+ * 线性多项式物理量的单位转换 (Flt64) / Unit conversion for linear polynomial quantities (Flt64)
  *
  * 示例 / Example:
  * ```kotlin
@@ -67,8 +64,7 @@ fun Quantity<LinearPolynomial<Flt64>>.to(unit: PhysicalUnit): Quantity<LinearPol
 }
 
 /**
- * 线性多项式物理量的单位转换 (FltX)
- * Unit conversion for linear polynomial quantities (FltX)
+ * 线性多项式物理量的单位转换 (FltX) / Unit conversion for linear polynomial quantities (FltX)
  *
  * @param unit 目标单位 / Target unit
  * @return 转换后的物理量，或 null 如果量纲不匹配 / Converted quantity, or null if dimensions don't match
@@ -93,8 +89,7 @@ fun Quantity<LinearPolynomial<FltX>>.to(unit: PhysicalUnit): Quantity<LinearPoly
 }
 
 /**
- * 二次多项式物理量的单位转换 (Flt64)
- * Unit conversion for quadratic polynomial quantities (Flt64)
+ * 二次多项式物理量的单位转换 (Flt64) / Unit conversion for quadratic polynomial quantities (Flt64)
  *
  * 示例 / Example:
  * ```kotlin
@@ -129,8 +124,7 @@ fun Quantity<QuadraticPolynomial<Flt64>>.to(unit: PhysicalUnit): Quantity<Quadra
 }
 
 /**
- * 规范多项式物理量的单位转换 (Flt64)
- * Unit conversion for canonical polynomial quantities (Flt64)
+ * 规范多项式物理量的单位转换 (Flt64) / Unit conversion for canonical polynomial quantities (Flt64)
  *
  * @param unit 目标单位 / Target unit
  * @return 转换后的物理量，或 null 如果量纲不匹配 / Converted quantity, or null if dimensions don't match
@@ -189,8 +183,7 @@ private fun <P> Quantity<P>.convertSymbolQuantityOperandSafe(
 }
 
 /**
- * 线性多项式物理量的加法 (Flt64)
- * Addition for linear polynomial quantities (Flt64)
+ * 线性多项式物理量的加法 (Flt64) / Addition for linear polynomial quantities (Flt64)
  *
  * 示例 / Example:
  * ```kotlin
@@ -210,8 +203,7 @@ operator fun Quantity<LinearPolynomial<Flt64>>.plus(
 }
 
 /**
- * 安全执行线性多项式物理量的加法 (Flt64)
- * Safely add linear polynomial quantities (Flt64)
+ * 安全执行线性多项式物理量的加法 (Flt64) / Safely add linear polynomial quantities (Flt64)
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量结果 / Sum quantity result
@@ -229,8 +221,7 @@ fun Quantity<LinearPolynomial<Flt64>>.plusSafe(
 }
 
 /**
- * 尝试执行线性多项式物理量的加法 (Flt64)
- * Try to add linear polynomial quantities (Flt64)
+ * 尝试执行线性多项式物理量的加法 (Flt64) / Try to add linear polynomial quantities (Flt64)
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
@@ -243,8 +234,7 @@ fun Quantity<LinearPolynomial<Flt64>>.plusOrNull(
 }
 
 /**
- * 线性多项式物理量的减法 (Flt64)
- * Subtraction for linear polynomial quantities (Flt64)
+ * 线性多项式物理量的减法 (Flt64) / Subtraction for linear polynomial quantities (Flt64)
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量结果 / Difference quantity result
@@ -257,8 +247,7 @@ operator fun Quantity<LinearPolynomial<Flt64>>.minus(
 }
 
 /**
- * 安全执行线性多项式物理量的减法 (Flt64)
- * Safely subtract linear polynomial quantities (Flt64)
+ * 安全执行线性多项式物理量的减法 (Flt64) / Safely subtract linear polynomial quantities (Flt64)
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量结果 / Difference quantity result
@@ -276,8 +265,7 @@ fun Quantity<LinearPolynomial<Flt64>>.minusSafe(
 }
 
 /**
- * 尝试执行线性多项式物理量的减法 (Flt64)
- * Try to subtract linear polynomial quantities (Flt64)
+ * 尝试执行线性多项式物理量的减法 (Flt64) / Try to subtract linear polynomial quantities (Flt64)
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
@@ -290,8 +278,7 @@ fun Quantity<LinearPolynomial<Flt64>>.minusOrNull(
 }
 
 /**
- * 线性多项式物理量的加法 (FltX)
- * Addition for linear polynomial quantities (FltX)
+ * 线性多项式物理量的加法 (FltX) / Addition for linear polynomial quantities (FltX)
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量结果 / Sum quantity result
@@ -304,8 +291,7 @@ operator fun Quantity<LinearPolynomial<FltX>>.plus(
 }
 
 /**
- * 安全执行线性多项式物理量的加法 (FltX)
- * Safely add linear polynomial quantities (FltX)
+ * 安全执行线性多项式物理量的加法 (FltX) / Safely add linear polynomial quantities (FltX)
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量结果 / Sum quantity result
@@ -323,8 +309,7 @@ fun Quantity<LinearPolynomial<FltX>>.plusSafe(
 }
 
 /**
- * 尝试执行线性多项式物理量的加法 (FltX)
- * Try to add linear polynomial quantities (FltX)
+ * 尝试执行线性多项式物理量的加法 (FltX) / Try to add linear polynomial quantities (FltX)
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
@@ -337,8 +322,7 @@ fun Quantity<LinearPolynomial<FltX>>.plusOrNull(
 }
 
 /**
- * 线性多项式物理量的减法 (FltX)
- * Subtraction for linear polynomial quantities (FltX)
+ * 线性多项式物理量的减法 (FltX) / Subtraction for linear polynomial quantities (FltX)
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量结果 / Difference quantity result
@@ -351,8 +335,7 @@ operator fun Quantity<LinearPolynomial<FltX>>.minus(
 }
 
 /**
- * 安全执行线性多项式物理量的减法 (FltX)
- * Safely subtract linear polynomial quantities (FltX)
+ * 安全执行线性多项式物理量的减法 (FltX) / Safely subtract linear polynomial quantities (FltX)
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量结果 / Difference quantity result
@@ -370,8 +353,7 @@ fun Quantity<LinearPolynomial<FltX>>.minusSafe(
 }
 
 /**
- * 尝试执行线性多项式物理量的减法 (FltX)
- * Try to subtract linear polynomial quantities (FltX)
+ * 尝试执行线性多项式物理量的减法 (FltX) / Try to subtract linear polynomial quantities (FltX)
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
@@ -389,8 +371,7 @@ fun Quantity<LinearPolynomial<FltX>>.minusOrNull(
 // ============================================================================
 
 /**
- * 线性多项式物理量与标量的乘法 (Flt64)
- * Multiplication between linear polynomial quantity and scalar (Flt64)
+ * 线性多项式物理量与标量的乘法 (Flt64) / Multiplication between linear polynomial quantity and scalar (Flt64)
  *
  * 示例 / Example:
  * ```kotlin
@@ -410,8 +391,7 @@ operator fun Quantity<LinearPolynomial<Flt64>>.times(scalar: Flt64): Quantity<Li
 }
 
 /**
- * 标量与线性多项式物理量的乘法 (Flt64)
- * Multiplication between scalar and linear polynomial quantity (Flt64)
+ * 标量与线性多项式物理量的乘法 (Flt64) / Multiplication between scalar and linear polynomial quantity (Flt64)
  *
  * @param quantity 物理量 / Quantity
  * @return 相乘后的物理量 / Product quantity
@@ -422,8 +402,7 @@ operator fun Flt64.times(quantity: Quantity<LinearPolynomial<Flt64>>): Quantity<
 }
 
 /**
- * 线性多项式物理量与标量的除法 (Flt64)
- * Division between linear polynomial quantity and scalar (Flt64)
+ * 线性多项式物理量与标量的除法 (Flt64) / Division between linear polynomial quantity and scalar (Flt64)
  *
  * @param scalar 标量值 / Scalar value
  * @return 相除后的物理量 / Quotient quantity
@@ -437,8 +416,7 @@ operator fun Quantity<LinearPolynomial<Flt64>>.div(scalar: Flt64): Quantity<Line
 }
 
 /**
- * 线性多项式物理量与标量的乘法 (FltX)
- * Multiplication between linear polynomial quantity and scalar (FltX)
+ * 线性多项式物理量与标量的乘法 (FltX) / Multiplication between linear polynomial quantity and scalar (FltX)
  *
  * @param scalar 标量值 / Scalar value
  * @return 相乘后的物理量 / Product quantity
@@ -452,8 +430,7 @@ operator fun Quantity<LinearPolynomial<FltX>>.times(scalar: FltX): Quantity<Line
 }
 
 /**
- * 标量与线性多项式物理量的乘法 (FltX)
- * Multiplication between scalar and linear polynomial quantity (FltX)
+ * 标量与线性多项式物理量的乘法 (FltX) / Multiplication between scalar and linear polynomial quantity (FltX)
  *
  * @param quantity 物理量 / Quantity
  * @return 相乘后的物理量 / Product quantity
@@ -464,8 +441,7 @@ operator fun FltX.times(quantity: Quantity<LinearPolynomial<FltX>>): Quantity<Li
 }
 
 /**
- * 线性多项式物理量与标量的除法 (FltX)
- * Division between linear polynomial quantity and scalar (FltX)
+ * 线性多项式物理量与标量的除法 (FltX) / Division between linear polynomial quantity and scalar (FltX)
  *
  * @param scalar 标量值 / Scalar value
  * @return 相除后的物理量 / Quotient quantity
@@ -484,11 +460,9 @@ operator fun Quantity<LinearPolynomial<FltX>>.div(scalar: FltX): Quantity<Linear
 // ============================================================================
 
 /**
- * 求值线性多项式物理量 (Flt64)
- * Evaluate linear polynomial quantity (Flt64)
+ * 求值线性多项式物理量 (Flt64) / Evaluate linear polynomial quantity (Flt64)
  *
- * 将符号变量替换为具体数值，得到一个普通物理量。
- * Substitutes symbol variables with concrete values to get a plain quantity.
+ * 将符号变量替换为具体数值，得到一个普通物理量。 / Substitutes symbol variables with concrete values to get a plain quantity.
  *
  * 示例 / Example:
  * ```kotlin

@@ -12,18 +12,15 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
- * Flt64 微分快捷函数
- * Flt64 Differentiation Convenience Functions
+ * Flt64 微分快捷函数 / Flt64 Differentiation Convenience Functions
  *
  * 提供 Flt64 多项式的导数、梯度和海森矩阵快捷函数。
- * 封装通用微分运算，自动填入 Flt64 的零值。
- * Provides Flt64 polynomial derivative, gradient, and Hessian convenience functions.
+ * 封装通用微分运算，自动填入 Flt64 的零值。 / Provides Flt64 polynomial derivative, gradient, and Hessian convenience functions.
  * Wraps generic differentiation operations with Flt64 zero constant.
 */
 
 /**
- * 计算 Flt64 线性单项式对指定符号的导数
- * Compute the derivative of a Flt64 linear monomial with respect to a symbol
+ * 计算 Flt64 线性单项式对指定符号的导数 / Compute the derivative of a Flt64 linear monomial with respect to a symbol
  *
  * @param symbol 微分变量 / Differentiation variable
  * @return 导数值 / Derivative value
@@ -33,8 +30,7 @@ fun LinearMonomial<Flt64>.derivative(symbol: Symbol): Flt64 {
 }
 
 /**
- * 计算 Flt64 线性多项式对指定符号的导数
- * Compute the derivative of a Flt64 linear polynomial with respect to a symbol
+ * 计算 Flt64 线性多项式对指定符号的导数 / Compute the derivative of a Flt64 linear polynomial with respect to a symbol
  *
  * @param symbol 微分变量 / Differentiation variable
  * @return 导数值 / Derivative value
@@ -44,8 +40,7 @@ fun LinearPolynomial<Flt64>.derivative(symbol: Symbol): Flt64 {
 }
 
 /**
- * 计算 Flt64 线性多项式的梯度
- * Compute the gradient of a Flt64 linear polynomial
+ * 计算 Flt64 线性多项式的梯度 / Compute the gradient of a Flt64 linear polynomial
  *
  * @param order 符号顺序 / Symbol order
  * @return 梯度值列表 / Gradient value list
@@ -55,8 +50,7 @@ fun LinearPolynomial<Flt64>.gradient(order: List<Symbol>): List<Flt64> {
 }
 
 /**
- * 计算 Flt64 二次单项式对指定符号的导数
- * Compute the derivative of a Flt64 quadratic monomial with respect to a symbol
+ * 计算 Flt64 二次单项式对指定符号的导数 / Compute the derivative of a Flt64 quadratic monomial with respect to a symbol
  *
  * @param symbol 微分变量 / Differentiation variable
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
@@ -75,8 +69,7 @@ fun QuadraticMonomial<Flt64>.derivative(
 }
 
 /**
- * 计算 Flt64 二次多项式对指定符号的导数
- * Compute the derivative of a Flt64 quadratic polynomial with respect to a symbol
+ * 计算 Flt64 二次多项式对指定符号的导数 / Compute the derivative of a Flt64 quadratic polynomial with respect to a symbol
  *
  * @param symbol 微分变量 / Differentiation variable
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
@@ -95,8 +88,7 @@ fun QuadraticPolynomial<Flt64>.derivative(
 }
 
 /**
- * 计算 Flt64 二次多项式的梯度
- * Compute the gradient of a Flt64 quadratic polynomial
+ * 计算 Flt64 二次多项式的梯度 / Compute the gradient of a Flt64 quadratic polynomial
  *
  * @param order 符号顺序 / Symbol order
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
@@ -115,8 +107,7 @@ fun QuadraticPolynomial<Flt64>.gradient(
 }
 
 /**
- * 计算 Flt64 二次多项式的海森矩阵
- * Compute the Hessian matrix of a Flt64 quadratic polynomial
+ * 计算 Flt64 二次多项式的海森矩阵 / Compute the Hessian matrix of a Flt64 quadratic polynomial
  *
  * @param order 符号顺序 / Symbol order
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
@@ -135,8 +126,7 @@ fun QuadraticPolynomial<Flt64>.hessian(
 }
 
 /**
- * 计算 Flt64 规范单项式对指定符号的导数
- * Compute the derivative of a Flt64 canonical monomial with respect to a symbol
+ * 计算 Flt64 规范单项式对指定符号的导数 / Compute the derivative of a Flt64 canonical monomial with respect to a symbol
  *
  * @param symbol 微分变量 / Differentiation variable
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
@@ -155,8 +145,7 @@ fun CanonicalMonomial<Flt64>.derivative(
 }
 
 /**
- * 计算 Flt64 规范多项式对指定符号的导数
- * Compute the derivative of a Flt64 canonical polynomial with respect to a symbol
+ * 计算 Flt64 规范多项式对指定符号的导数 / Compute the derivative of a Flt64 canonical polynomial with respect to a symbol
  *
  * @param symbol 微分变量 / Differentiation variable
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
@@ -175,8 +164,7 @@ fun CanonicalPolynomial<Flt64>.derivative(
 }
 
 /**
- * 计算 Flt64 规范多项式的梯度
- * Compute the gradient of a Flt64 canonical polynomial
+ * 计算 Flt64 规范多项式的梯度 / Compute the gradient of a Flt64 canonical polynomial
  *
  * @param order 符号顺序 / Symbol order
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
@@ -195,8 +183,7 @@ fun CanonicalPolynomial<Flt64>.gradient(
 }
 
 /**
- * 计算 Flt64 规范多项式的海森矩阵
- * Compute the Hessian matrix of a Flt64 canonical polynomial
+ * 计算 Flt64 规范多项式的海森矩阵 / Compute the Hessian matrix of a Flt64 canonical polynomial
  *
  * @param order 符号顺序 / Symbol order
  * @param combineTerms 是否合并同类项 / Whether to combine like terms

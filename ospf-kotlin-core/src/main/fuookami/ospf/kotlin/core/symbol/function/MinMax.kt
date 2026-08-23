@@ -27,8 +27,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 最小-最大值函数：result = max(polynomials[0], polynomials[1], ...)。
  * MinMax function: result = max(polynomials[0], polynomials[1], ...).
  *
- * 命名为"MinMax"是因为在优化上下文中它计算最大值的最小值。
- * Named "MinMax" because it computes the minimum of the maximum values
+ * 命名为"MinMax"是因为在优化上下文中它计算最大值的最小值。 / Named "MinMax" because it computes the minimum of the maximum values
  * in optimization contexts. Delegates to MaxFunction internally.
  * 内部委托给 MaxFunction。
  *
@@ -81,8 +80,7 @@ class MinMaxFunction<V>(
             MinMaxFunction(polynomials, bigM, converter, name, displayName)
 
         /**
-         * 类型化符号工厂：将中间符号列表转换为线性多项式。
-         * Generic symbol factory: converts intermediate symbols to linear polynomials.
+         * 类型化符号工厂：将中间符号列表转换为线性多项式。 / Generic symbol factory: converts intermediate symbols to linear polynomials.
         */
         @JvmStatic
         @JvmName("fromSymbols")
@@ -109,8 +107,7 @@ class MinMaxFunction<V>(
  * 最大-最小值函数：result = min(polynomials[0], polynomials[1], ...)。
  * MaxMin function: result = min(polynomials[0], polynomials[1], ...).
  *
- * 命名为"MaxMin"是因为在优化上下文中它计算最小值的最大值。
- * Named "MaxMin" because it computes the maximum of the minimum values
+ * 命名为"MaxMin"是因为在优化上下文中它计算最小值的最大值。 / Named "MaxMin" because it computes the maximum of the minimum values
  * in optimization contexts. Delegates to MinFunction internally.
  * 内部委托给 MinFunction。
  *
@@ -163,8 +160,7 @@ class MaxMinFunction<V>(
             MaxMinFunction(polynomials, bigM, converter, name, displayName)
 
         /**
-         * 类型化符号工厂：将中间符号列表转换为线性多项式。
-         * Generic symbol factory: converts intermediate symbols to linear polynomials.
+         * 类型化符号工厂：将中间符号列表转换为线性多项式。 / Generic symbol factory: converts intermediate symbols to linear polynomials.
         */
         @JvmStatic
         @JvmName("fromSymbols")

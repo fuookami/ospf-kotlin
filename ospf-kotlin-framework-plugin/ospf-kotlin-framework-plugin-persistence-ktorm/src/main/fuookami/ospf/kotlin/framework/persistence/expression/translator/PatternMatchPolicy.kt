@@ -1,9 +1,7 @@
 /**
- * 模式匹配方言策略
- * Pattern Match Dialect Policy
+ * 模式匹配方言策略 / Pattern Match Dialect Policy
  *
- * 处理不同数据库对 LIKE/ILIKE/REGEX 的支持差异。
- * Handles differences in LIKE/ILIKE/REGEX support across databases.
+ * 处理不同数据库对 LIKE/ILIKE/REGEX 的支持差异。 / Handles differences in LIKE/ILIKE/REGEX support across databases.
 */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
@@ -11,17 +9,14 @@ import org.ktorm.dsl.*
 import org.ktorm.schema.ColumnDeclaring
 
 /**
- * 模式匹配策略
- * Pattern Match Policy
+ * 模式匹配策略 / Pattern Match Policy
  *
- * 定义如何将 PatternMatch 表达式翻译为数据库特定的语法。
- * Defines how to translate PatternMatch expressions to database-specific syntax.
+ * 定义如何将 PatternMatch 表达式翻译为数据库特定的语法。 / Defines how to translate PatternMatch expressions to database-specific syntax.
 */
 interface PatternMatchPolicy {
 
     /**
-     * 翻译 LIKE 模式匹配
-     * Translate LIKE pattern match
+     * 翻译 LIKE 模式匹配 / Translate LIKE pattern match
      *
      * @param column 列表达式 / Column expression
      * @param pattern 匹配模式 / Match pattern (SQL LIKE pattern with % and _)
@@ -35,8 +30,7 @@ interface PatternMatchPolicy {
     ): ColumnDeclaring<Boolean>
 
     /**
-     * 翻译正则匹配
-     * Translate regex match
+     * 翻译正则匹配 / Translate regex match
      *
      * @param column 列表达式 / Column expression
      * @param pattern 正则表达式模式 / Regex pattern
@@ -53,8 +47,7 @@ interface PatternMatchPolicy {
 }
 
 /**
- * 默认模式匹配策略（标准 SQL）
- * Default Pattern Match Policy (Standard SQL)
+ * 默认模式匹配策略（标准 SQL） / Default Pattern Match Policy (Standard SQL)
 */
 object DefaultPatternMatchPolicy : PatternMatchPolicy {
     override fun translateLike(
@@ -67,8 +60,7 @@ object DefaultPatternMatchPolicy : PatternMatchPolicy {
 }
 
 /**
- * SQLite 模式匹配策略
- * SQLite Pattern Match Policy
+ * SQLite 模式匹配策略 / SQLite Pattern Match Policy
 */
 object SqlitePatternMatchPolicy : PatternMatchPolicy {
     override fun translateLike(
@@ -95,8 +87,7 @@ object PostgresPatternMatchPolicy : PatternMatchPolicy {
 }
 
 /**
- * MySQL 模式匹配策略
- * MySQL Pattern Match Policy
+ * MySQL 模式匹配策略 / MySQL Pattern Match Policy
 */
 object MySqlPatternMatchPolicy : PatternMatchPolicy {
     override fun translateLike(

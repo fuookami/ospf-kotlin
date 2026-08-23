@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.framework.csp1d.application.service
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.framework.csp1d.application.model.*
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
+import fuookami.ospf.kotlin.core.solver.progress.SolverProgressContext
 
 /**
  * CSP1D 排程入口（最小实现）/ CSP1D schedule entry point (minimal implementation)
@@ -22,11 +23,13 @@ class Csp1dSchedule<V : RealNumber<V>>(
     */
     suspend fun solve(
         problem: Csp1dProblem<V>,
-        solveConfig: Csp1dSolveConfig<V>? = null
+        solveConfig: Csp1dSolveConfig<V>? = null,
+        progressContext: SolverProgressContext? = null
     ): Csp1dSolution<V> {
         return columnGeneration.solve(
             problem = problem,
-            solveConfig = solveConfig
+            solveConfig = solveConfig,
+            progressContext = progressContext
         )
     }
 }

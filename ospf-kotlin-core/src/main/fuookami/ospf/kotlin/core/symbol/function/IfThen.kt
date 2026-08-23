@@ -18,17 +18,14 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 蕴含-则函数符号 / If-Then function symbol
  *
- * 提供 [IfThenFunction]，实现条件-结果联动的线性化建模。
- *
- * Provides [IfThenFunction] for linearized modeling of conditional-consequent linkage.
+ * 提供 [IfThenFunction]，实现条件-结果联动的线性化建模。 / Provides [IfThenFunction] for linearized modeling of conditional-consequent linkage.
 */
 
 /**
  * 若-则函数：当 condition > 0 时 y = then_poly，否则 y = 0。
  * If-Then function: `y = then_poly if condition > 0, else y = 0`.
  *
- * 使用 Big-M 线性化：
- * Uses Big-M linearization:
+ * 使用 Big-M 线性化： / Uses Big-M linearization:
  * - 当条件指示变量 b = 1 时：y = then_poly
  * - When condition indicator b = 1: y = then_poly
  * - 当条件指示变量 b = 0 时：y = 0
@@ -171,8 +168,7 @@ class IfThenFunction<V>(
             IfThenFunction(condition, thenPoly, converter, bigM, name = name, displayName = displayName)
 
         /**
-         * 约束输入工厂：从约束输入提取条件多项式，默认 then 多项式为一。
-         * Constraint-input factory: extracts the condition polynomial and defaults thenPoly to one.
+         * 约束输入工厂：从约束输入提取条件多项式，默认 then 多项式为一。 / Constraint-input factory: extracts the condition polynomial and defaults thenPoly to one.
          * @param inequality 约束输入 / constraint input
          * @param converter 值类型转换器 / value type converter
          * @param thenPoly "则"线性多项式，默认为一 / "then" linear polynomial, defaults to one

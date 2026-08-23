@@ -1,9 +1,7 @@
 /**
- * 更新赋值模�?
- * Update Assignment Model
+ * 更新赋值模�? / Update Assignment Model
  *
- * 定义 UPDATE SET 语句的赋值规则�?
- * Defines assignment rules for UPDATE SET statements.
+ * 定义 UPDATE SET 语句的赋值规则�? / Defines assignment rules for UPDATE SET statements.
 */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
@@ -11,11 +9,9 @@ import kotlin.reflect.KProperty1
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarExpression
 
 /**
- * 更新赋值集�?
- * Update Assignments
+ * 更新赋值集�? / Update Assignments
  *
- * 表示一个或多个更新赋值项的集合�?
- * Represents a collection of one or more update assignment items.
+ * 表示一个或多个更新赋值项的集合�? / Represents a collection of one or more update assignment items.
  *
  * 示例 / Example:
  * ```kotlin
@@ -28,14 +24,12 @@ data class UpdateAssignments(
 ) {
     companion object {
         /**
-         * 空赋�?
-         * Empty assignments
+         * 空赋�? / Empty assignments
         */
         val empty = UpdateAssignments(emptyList())
 
         /**
-         * 设置值
-         * Set value
+         * 设置值 / Set value
          *
          * @param path 字段路径 / Field path
          * @param value 要设置的值 / Value to set
@@ -45,8 +39,7 @@ data class UpdateAssignments(
             UpdateAssignments(listOf(SetValue(path, value)))
 
         /**
-         * 按属性设置值
-         * Set value by property
+         * 按属性设置值 / Set value by property
          *
          * @param property 属性引用 / Property reference
          * @param value 要设置的值 / Value to set
@@ -66,8 +59,7 @@ data class UpdateAssignments(
             UpdateAssignments(listOf(SetNull(path)))
 
         /**
-         * 按属性设置 NULL
-         * Set NULL by property
+         * 按属性设置 NULL / Set NULL by property
          *
          * @param property 属性引用 / Property reference
          * @return 更新赋值集合 / Update assignments
@@ -76,8 +68,7 @@ data class UpdateAssignments(
             setNull(property.name)
 
         /**
-         * 从表达式设置
-         * Set from expression
+         * 从表达式设置 / Set from expression
          *
          * @param path 字段路径 / Field path
          * @param expr 标量表达式 / Scalar expression
@@ -87,8 +78,7 @@ data class UpdateAssignments(
             UpdateAssignments(listOf(SetFromExpression(path, expr)))
 
         /**
-         * 按属性从表达式设置
-         * Set from expression by property
+         * 按属性从表达式设置 / Set from expression by property
          *
          * @param property 属性引用 / Property reference
          * @param expr 标量表达式 / Scalar expression
@@ -99,15 +89,13 @@ data class UpdateAssignments(
     }
 
     /**
-     * 组合多个赋�?
-     * Combine multiple assignments
+     * 组合多个赋�? / Combine multiple assignments
     */
     operator fun plus(other: UpdateAssignments): UpdateAssignments =
         UpdateAssignments(items + other.items)
 
     /**
-     * 添加设置值项
-     * Add set value item
+     * 添加设置值项 / Add set value item
      *
      * @param path 字段路径 / Field path
      * @param value 要设置的值 / Value to set
@@ -117,8 +105,7 @@ data class UpdateAssignments(
         UpdateAssignments(items + SetValue(path, value))
 
     /**
-     * 添加属性设置值项
-     * Add set value item by property
+     * 添加属性设置值项 / Add set value item by property
      *
      * @param property 属性引用 / Property reference
      * @param value 要设置的值 / Value to set
@@ -128,8 +115,7 @@ data class UpdateAssignments(
         thenSet(property.name, value)
 
     /**
-     * 添加设置 NULL 项
-     * Add set NULL item
+     * 添加设置 NULL 项 / Add set NULL item
      *
      * @param path 字段路径 / Field path
      * @return 更新赋值集合 / Update assignments
@@ -138,8 +124,7 @@ data class UpdateAssignments(
         UpdateAssignments(items + SetNull(path))
 
     /**
-     * 添加属性设置 NULL 项
-     * Add set NULL item by property
+     * 添加属性设置 NULL 项 / Add set NULL item by property
      *
      * @param property 属性引用 / Property reference
      * @return 更新赋值集合 / Update assignments
@@ -148,8 +133,7 @@ data class UpdateAssignments(
         thenSetNull(property.name)
 
     /**
-     * 添加表达式设置项
-     * Add expression set item
+     * 添加表达式设置项 / Add expression set item
      *
      * @param path 字段路径 / Field path
      * @param expr 标量表达式 / Scalar expression
@@ -159,8 +143,7 @@ data class UpdateAssignments(
         UpdateAssignments(items + SetFromExpression(path, expr))
 
     /**
-     * 添加属性表达式设置项
-     * Add expression set item by property
+     * 添加属性表达式设置项 / Add expression set item by property
      *
      * @param property 属性引用 / Property reference
      * @param expr 标量表达式 / Scalar expression
@@ -170,16 +153,14 @@ data class UpdateAssignments(
         thenSetExpr(property.name, expr)
 
     /**
-     * 是否为空
-     * Check if empty
+     * 是否为空 / Check if empty
      *
      * @return 如果为空则返回 true / true if empty
     */
     fun isEmpty(): Boolean = items.isEmpty()
 
     /**
-     * 是否非空
-     * Check if not empty
+     * 是否非空 / Check if not empty
      *
      * @return 如果非空则返回 true / true if not empty
     */
@@ -187,27 +168,22 @@ data class UpdateAssignments(
 }
 
 /**
- * 更新赋值项
- * Update Assignment Item
+ * 更新赋值项 / Update Assignment Item
  *
- * 表示单个字段的更新赋值规则�?
- * Represents update assignment rule for a single field.
+ * 表示单个字段的更新赋值规则�? / Represents update assignment rule for a single field.
 */
 sealed interface UpdateAssignment {
 
     /**
-     * 字段路径
-     * Field path
+     * 字段路径 / Field path
     */
     val path: String
 }
 
 /**
- * 设置�?
- * Set Value
+ * 设置�? / Set Value
  *
- * 将字段设置为指定值�?
- * Set field to specified value.
+ * 将字段设置为指定值�? / Set field to specified value.
  *
  * @property path 字段路径 / Field path
  * @property value 要设置的�?/ Value to set
@@ -221,8 +197,7 @@ data class SetValue(
  * 设置 NULL
  * Set NULL
  *
- * 将字段设置为 NULL�?
- * Set field to NULL.
+ * 将字段设置为 NULL�? / Set field to NULL.
  *
  * @property path 字段路径 / Field path
 */
@@ -231,11 +206,9 @@ data class SetNull(
 ) : UpdateAssignment
 
 /**
- * 从表达式设置
- * Set From Expression
+ * 从表达式设置 / Set From Expression
  *
- * 将字段设置为表达式的结果�?
- * Set field to result of expression.
+ * 将字段设置为表达式的结果�? / Set field to result of expression.
  *
  * @property path 字段路径 / Field path
  * @property expression 标量表达�?/ Scalar expression

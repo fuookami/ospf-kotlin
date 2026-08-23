@@ -1,12 +1,9 @@
 /**
- * 逻辑斯蒂映射
- * Logistic Map
+ * 逻辑斯蒂映射 / Logistic Map
  *
  * 逻辑斯蒂映射是最经典的一维混沌映射，由 Robert May 于 1976 年推广。
  * 该映射通过简单的二次函数产生复杂的混沌行为，是混沌理论的入门模型。
- * 常用于混沌理论教学、种群动力学建模和伪随机数生成。
- *
- * The logistic map is the most classic one-dimensional chaotic map, popularized by Robert May in 1976.
+ * 常用于混沌理论教学、种群动力学建模和伪随机数生成。 / The logistic map is the most classic one-dimensional chaotic map, popularized by Robert May in 1976.
  * This map generates complex chaotic behavior through a simple quadratic function, serving as an introductory model for chaos theory.
  * Commonly used for chaos theory education, population dynamics modeling, and pseudo-random number generation.
 */
@@ -19,8 +16,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 逻辑斯蒂映射
- * Logistic Map
+ * 逻辑斯蒂映射 / Logistic Map
  *
  * 公式 / Formula: x_{n+1} = a * x * (1 - x)
  *
@@ -43,8 +39,7 @@ data class LogisticMap<V : FloatingNumber<V>>(
 }
 
 /**
- * 逻辑斯蒂映射生成器
- * Logistic Map Generator
+ * 逻辑斯蒂映射生成器 / Logistic Map Generator
 */
 data class LogisticMapGenerator(
     val logisticMap: LogisticMap<Flt64> = LogisticMap(),

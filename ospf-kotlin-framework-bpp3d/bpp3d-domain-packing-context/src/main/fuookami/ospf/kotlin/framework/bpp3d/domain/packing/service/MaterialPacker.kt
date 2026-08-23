@@ -325,7 +325,7 @@ class MaterialPacker(
             val itemId = "${candidate.id}-$sequence"
             val pack = sameSlots.first().pack
             val item = ActualItem(
-                id = fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.itemIdOf(itemId),
+                id = itemIdOf(itemId),
                 name = "${candidate.itemName}-$sequence",
                 pack = pack,
                 width = packQuantityToFltX(pack.width),

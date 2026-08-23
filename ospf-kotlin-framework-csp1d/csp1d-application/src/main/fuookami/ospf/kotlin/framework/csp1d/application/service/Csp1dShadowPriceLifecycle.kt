@@ -15,9 +15,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 和轻量级 ShadowPriceMap 转换。
  *
  * 通过 CGPipeline refresh / extractor 机制提取影子价格。
- * 普通扩展若需要参与 pricing 影子价格，应建模为 CGPipeline。
- *
- * Unified management of LP dual value extraction, framework AbstractShadowPriceMap
+ * 普通扩展若需要参与 pricing 影子价格，应建模为 CGPipeline。 / Unified management of LP dual value extraction, framework AbstractShadowPriceMap
  * population and lightweight ShadowPriceMap conversion.
  *
  * Extracts shadow prices through CGPipeline refresh / extractor mechanism.
@@ -80,7 +78,7 @@ class Csp1dShadowPriceLifecycle<V : RealNumber<V>>(
      * 转换对偶值到领域数值 / Convert dual value to domain value
      *
      * @param dualValue Dual value from LP solution / LP 对偶值
-     * @return Domain value / 领域数值
+     * @return 领域数值 / Domain value
     */
     fun convertDualValue(dualValue: Flt64): V = (convertSolverValue(domainValueSample, dualValue) as Ok).value
 }

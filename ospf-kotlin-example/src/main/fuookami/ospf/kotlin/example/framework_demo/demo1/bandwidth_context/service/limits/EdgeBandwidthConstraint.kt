@@ -18,10 +18,10 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
  * Limits edge bandwidth to zero when the associated service is not assigned to that edge.
  * 当关联服务未分配到该边时将边带宽限制为零。
  *
- * @property edges the list of network edges / 网络边列表
- * @property services the list of services / 服务列表
- * @property assignment the service-to-node assignment model / 服务到节点的分配模型
- * @property edgeBandwidth the edge bandwidth model / 边带宽模型
+ * @property edges 网络边列表 / the list of network edges
+ * @property services 服务列表 / the list of services
+ * @property assignment 服务到节点的分配模型 / the service-to-node assignment model
+ * @property edgeBandwidth 边带宽模型 / the edge bandwidth model
 */
 class EdgeBandwidthConstraint(
     private val edges: List<Edge>,
@@ -34,7 +34,7 @@ class EdgeBandwidthConstraint(
         val y = edgeBandwidth.y
         val assignment = assignment.serviceAssignment
 
-        for (edge in edges.filter(from(normal))) {
+        for (edge in edges.filter { from(normal)(it) }) {
             for (service in services) {
                 model.addConstraint(
                     (UInt64.one - assignment[service]) * edge.maxBandwidth.toFlt64() + LinearPolynomial(y[edge, service]) leq edge.maxBandwidth.toFlt64(),

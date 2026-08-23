@@ -8,8 +8,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 并行折叠
- * Parallel Fold Operations
+ * 并行折叠 / Parallel Fold Operations
  *
  * 提供并行计算集合总和的功能，使用 Kotlin 协程实现并发计算。
  * 将集合按 chunkSize 分块，每个块在独立协程中计算部分和，最后合并结果。
@@ -21,9 +20,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 不立即中止，而是继续计算并收集所有错误，最终返囌ExRet 类型。
  * 边界情况：空集合返回 zero，chunkSize 默认丌100。
  * 使用 Dispatchers.Default 作为协程调度器，适合 CPU 密集型计算。
- * 线程安全：每个协程独立计算部分和，最终合并使用单线程串行操作。
- *
- * Provides parallel sum computation functionality using Kotlin coroutines for concurrent execution.
+ * 线程安全：每个协程独立计算部分和，最终合并使用单线程串行操作。 / Provides parallel sum computation functionality using Kotlin coroutines for concurrent execution.
  * Splits collection by chunkSize, each chunk computed in separate coroutine, results merged at end.
  * sumOfParallelly: parallel sum computation using suspend extractor to extract values from elements,
  * requires element type supporting Plus operation and Arithmetic constants.
@@ -37,10 +34,9 @@ import fuookami.ospf.kotlin.utils.functional.*
 */
 
 /**
- * 从 Ret 结果中提取错误并追加到列表
- * Extract errors from Ret result and append to list
+ * 从 Ret 结果中提取错误并追加到列表 / Extract errors from Ret result and append to list
  *
- * @param ret the Ret result to extract errors from / 要提取错误的 Ret 结果
+ * @param ret 要提取错误的 Ret 结果 / the Ret result to extract errors from
 */
 @PublishedApi
 internal fun MutableList<Error<ErrorCode>>.appendFrom(ret: Ret<*>) {

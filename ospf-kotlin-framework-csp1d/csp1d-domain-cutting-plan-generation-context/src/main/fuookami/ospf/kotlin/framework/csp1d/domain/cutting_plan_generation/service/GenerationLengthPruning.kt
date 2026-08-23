@@ -55,8 +55,7 @@ internal fun <V : RealNumber<V>> GenerationWidthIndex<V>.filterByLengthBound(
 }
 
 /**
- * 生成长度边界过滤结果，包含过滤后的宽度索引和剪枝条目数。
- * Result of generation length bound filtering, containing the filtered width index and pruned entry count.
+ * 生成长度边界过滤结果，包含过滤后的宽度索引和剪枝条目数。 / Result of generation length bound filtering, containing the filtered width index and pruned entry count.
  *
  * @property widthIndex 过滤后的宽度索引 / The filtered width index
  * @property prunedEntries 被剪枝的条目数 / The number of pruned entries

@@ -2,25 +2,45 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.copt
 
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.math.min
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.Duration.Companion.seconds
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.DurationUnit
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.config.CoptSolverConfig
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import copt.*
 
 /**
@@ -45,7 +65,12 @@ class CoptLinearSolver(
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput<Flt64>> {
+    ): Ret<SolveReport<Flt64>> {
+        when (val validation = model.identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         return CoptLinearSolverImpl(
             config = config,
             callBack = callBack,
@@ -69,7 +94,12 @@ class CoptLinearSolver(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
+    ): Ret<Pair<SolveReport<Flt64>, List<List<Flt64>>>> {
+        when (val validation = model.identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
         } else {
@@ -117,7 +147,7 @@ private class CoptLinearSolverImpl(
 ) : CoptSolver() {
     private lateinit var coptVars: List<Var>
     private lateinit var coptConstraints: List<Constraint>
-    private lateinit var output: FeasibleSolverOutput<Flt64>
+    private lateinit var output: SolveReport<Flt64>
 
     private var initialBestObj: Flt64? = null
     private var bestObj: Flt64? = null
@@ -130,8 +160,8 @@ private class CoptLinearSolverImpl(
      * @param model 线性模型视图 / linear model view
      * @return 求解结果 / solving result
     */
-    suspend operator fun invoke(model: LinearTriadModelView): Ret<FeasibleSolverOutput<Flt64>> {
-        val coptConfig = config.extraConfig as? CoptSolverConfig
+    suspend operator fun invoke(model: LinearTriadModelView): Ret<SolveReport<Flt64>> {
+        val coptConfig = config.backendConfiguration as? CoptSolverConfig
         val server = coptConfig?.server
         val port = coptConfig?.port
         val password = coptConfig?.password
@@ -330,7 +360,10 @@ private class CoptLinearSolverImpl(
                                 bestObj = currentObj
                                 bestBound = currentBound
                                 bestTime = currentTime
-                            } else if (currentTime - bestTime >= config.notImprovementTime!!) {
+                            } else if (currentTime - bestTime >= config.notImprovementTime!!
+                                && config.interruptibleTime?.let { currentTime >= it } ?: true
+                                && config.interruptibleGap?.let { (currentObj - currentBound).abs() ls it } ?: true
+                            ) {
                                 interrupt()
                             }
                         }
@@ -408,10 +441,9 @@ private class CoptLinearSolverImpl(
     }
 
     /**
-     * 分析求解结果
-     * Analyze solving result
+     * 分析求解结果 / Analyze solving result
      *
-     * @return the analysis result as Try / 以Try包装的分析结果
+     * @return 以Try包装的分析结果 / the analysis result as Try
     */
     private suspend fun analyzeSolution(): Try {
         return try {
@@ -420,15 +452,15 @@ private class CoptLinearSolverImpl(
                 for (coptVar in coptVars) {
                     results.add(Flt64(coptVar.get(COPT.DoubleInfo.Value)))
                 }
-                output = FeasibleSolverOutput<Flt64>(
-                    obj = if (coptModel.get(COPT.IntAttr.IsMIP) != 0) {
+                output = status.toSolveReport(
+                    objective = if (coptModel.get(COPT.IntAttr.IsMIP) != 0) {
                         Flt64(coptModel.get(COPT.DoubleAttr.BestObj))
                     } else {
                         Flt64(coptModel.get(COPT.DoubleAttr.LpObjVal))
                     },
-                    solution = results,
-                    time = coptModel.get(COPT.DoubleAttr.SolvingTime).seconds,
-                    possibleBestObj = Flt64(
+                    values = results,
+                    solveTime = coptModel.get(COPT.DoubleAttr.SolvingTime).seconds,
+                    bestBound = Flt64(
                         if (coptModel.get(COPT.IntAttr.IsMIP) != 0) {
                             coptModel.get(COPT.DoubleAttr.BestBound)
                         } else {

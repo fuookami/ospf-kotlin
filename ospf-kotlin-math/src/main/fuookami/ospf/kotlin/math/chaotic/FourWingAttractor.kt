@@ -1,6 +1,5 @@
 /**
- * 四翼吸引子
- * Four-Wing Attractor
+ * 四翼吸引子 / Four-Wing Attractor
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 四翼吸引子
- * Four-Wing Attractor
+ * 四翼吸引子 / Four-Wing Attractor
  *
  * @property alpha 系统参数 alpha / System parameter alpha
  * @property beta 系统参数 beta / System parameter beta
@@ -53,8 +51,7 @@ data class FourWingAttractor<V : FloatingNumber<V>>(
 }
 
 /**
- * 四翼吸引子生成器
- * Four-Wing Attractor Generator
+ * 四翼吸引子生成器 / Four-Wing Attractor Generator
 */
 data class FourWingAttractorGenerator(
     val attractor: FourWingAttractor<Flt64> = FourWingAttractor(),

@@ -1,11 +1,8 @@
 /**
- * 范围运算笌
- * Range Operator
+ * 范围运算笌 / Range Operator
  *
  * 定义范围运算接口，用于创建闭区间范围。
- * 支持运算符重载，允许使用 .. 和until 运算符创建范围。
- *
- * Defines the range operation interface for creating closed interval ranges.
+ * 支持运算符重载，允许使用 .. 和until 运算符创建范围。 / Defines the range operation interface for creating closed interval ranges.
  * Supports operator overloading, allowing the use of .. and until operators to create ranges.
  *
  * 数学定义 / Mathematical definitions:
@@ -19,13 +16,10 @@
 package fuookami.ospf.kotlin.math.operator
 
 /**
- * 范围运算符接双
- * Range Operator Interface
+ * 范围运算符接双 / Range Operator Interface
  *
  * 定义范围运算，支挌.. 和until 运算符。
- * 用于创建闭区间和半开区间的范围对象。
- *
- * Defines range operations, supporting .. and until operators.
+ * 用于创建闭区间和半开区间的范围对象。 / Defines range operations, supporting .. and until operators.
  * Used to create closed interval and half-open interval range objects.
  *
  * @param Rhs 右操作数（范围终点）的类垌
@@ -35,8 +29,7 @@ package fuookami.ospf.kotlin.math.operator
 interface RangeTo<in Rhs, out Ret : Comparable<@UnsafeVariance Ret>> {
 
     /**
-     * 创建闭区间范囌[this, rhs]
-     * Creates a closed interval range [this, rhs]
+     * 创建闭区间范囌[this, rhs] / Creates a closed interval range [this, rhs]
      *
      * @param rhs 范围终点
      * @return 闭区间范围对豌
@@ -46,8 +39,7 @@ interface RangeTo<in Rhs, out Ret : Comparable<@UnsafeVariance Ret>> {
     operator fun rangeTo(rhs: Rhs): ClosedRange<@UnsafeVariance Ret>
 
     /**
-     * 创建半开区间范围 [this, rhs)
-     * Creates a half-open interval range [this, rhs)
+     * 创建半开区间范围 [this, rhs) / Creates a half-open interval range [this, rhs)
      *
      * @param rhs 范围终点（不包含，
      * @return 半开区间范围对象

@@ -1,8 +1,7 @@
 /**
  * 质量密度单位 / Mass density units
  *
- * 用于测量物质密度（单位体积质量）的单位。
- * Units for measuring the density of substances (mass per unit volume).
+ * 用于测量物质密度（单位体积质量）的单位。 / Units for measuring the density of substances (mass per unit volume).
  *
  * 单位常量来源 / Unit constant sources:
  * - KilogramPerCubicMeter: SI导出单位 / SI derived unit
@@ -15,8 +14,7 @@ import fuookami.ospf.kotlin.quantities.dimension.MassDensity
 /**
  * 千克每立方米 / Kilogram per cubic meter
  *
- * 质量密度的SI导出单位。
- * The SI derived unit of mass density.
+ * 质量密度的SI导出单位。 / The SI derived unit of mass density.
  *
  * 符号 / Symbol: kg/m³
  * 换算关系 / Conversion: 1 kg/m³ = 1 kg/m³（基本单位）/ 1 kg/m³ = 1 kg/m³ (base unit)
@@ -36,8 +34,7 @@ object KilogramPerCubicMeter : DerivedPhysicalUnit(Kilogram / CubicMeter) {
 /**
  * 千克每升 / Kilogram per liter
  *
- * 常用于液体密度的单位。
- * A unit commonly used for liquid density.
+ * 常用于液体密度的单位。 / A unit commonly used for liquid density.
  *
  * 符号 / Symbol: kg/L
  * 换算关系 / Conversion: 1 kg/L = 1000 kg/m³
@@ -57,8 +54,7 @@ object KilogramPerLiter : DerivedPhysicalUnit(Kilogram / Liter) {
 /**
  * 千克每立方厘米 / Kilogram per cubic centimeter
  *
- * 用于高密度物质的单位。
- * A unit used for high-density substances.
+ * 用于高密度物质的单位。 / A unit used for high-density substances.
  *
  * 符号 / Symbol: kg/cm³
  * 换算关系 / Conversion: 1 kg/cm³ = 10⁶ kg/m³
@@ -78,8 +74,7 @@ object KilogramPerCubicCentimeter : DerivedPhysicalUnit(Kilogram / CubicCentimet
 /**
  * 克每立方厘米 / Gram per cubic centimeter
  *
- * 常用于固体和液体密度的单位。
- * A unit commonly used for solid and liquid densities.
+ * 常用于固体和液体密度的单位。 / A unit commonly used for solid and liquid densities.
  *
  * 符号 / Symbol: g/cm³
  * 换算关系 / Conversion: 1 g/cm³ = 1000 kg/m³

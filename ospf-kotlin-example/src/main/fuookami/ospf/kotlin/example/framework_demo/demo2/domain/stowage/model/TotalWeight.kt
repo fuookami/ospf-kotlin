@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -19,8 +20,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
  * across different flight phases (takeoff, landing, zero-fuel).
  * 总重模型，管理不同飞行阶段（起飞、着陆、零油）的预估和实际总重计算。
  *
- * @property maxTotalWeight the maximum total weight per flight phase / 每个飞行阶段的最大总重
- * @property computedTotalWeight the computed total weight per flight phase, or empty if not yet computed / 每个飞行阶段的已计算总重，未计算时为空
+ * @property maxTotalWeight 每个飞行阶段的最大总重 / the maximum total weight per flight phase
+ * @property computedTotalWeight 每个飞行阶段的已计算总重，未计算时为空 / the computed total weight per flight phase, or empty if not yet computed
 */
 class TotalWeight(
     val maxTotalWeight: Map<FlightPhase, Quantity<Flt64>>,
@@ -37,8 +38,8 @@ class TotalWeight(
      * Registers total weight symbols into the model.
      * 将总重符号注册到模型中。
      *
-     * @param model the linear meta-model to register into / 要注册到的线性元模型
-     * @return success or failure / 成功或失败
+     * @param model 要注册到的线性元模型 / the linear meta-model to register into
+     * @return 成功或失败 / success or failure
     */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
@@ -67,13 +68,13 @@ class TotalWeight(
         }
         estimateTotalWeight.values.forEach {
             when (val result = model.add(it)) {
-                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                is Ok -> {}
 
-                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
             }
@@ -92,13 +93,13 @@ class TotalWeight(
         }
         actualTotalWeight.values.forEach {
             when (val result = model.add(it)) {
-                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                is Ok -> {}
 
-                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
             }
@@ -111,15 +112,15 @@ class TotalWeight(
      * Computes the total weight polynomial for a given flight phase and payload.
      * 计算给定飞行阶段和业载的总重多项式。
      *
-     * @param phase the flight phase / 飞行阶段
-     * @param payload the payload polynomial / 业载多项式
-     * @return the total weight polynomial / 总重多项式
+     * @param phase 飞行阶段 / the flight phase
+     * @param payload 业载多项式 / the payload polynomial
+     * @return 总重多项式 / the total weight polynomial
     */
     private fun totalWeight(
         phase: FlightPhase,
         payload: LinearPolynomial<Flt64>
     ): LinearPolynomial<Flt64> {
-        val poly = MutableLinearPolynomial()
+        var poly = LinearPolynomial()
         poly += payload
         poly += fuselage.dow.to(aircraftModel.weightUnit)!!.value
         poly += fuselage.liferaft?.weight?.let {
@@ -132,6 +133,6 @@ class TotalWeight(
 
             FlightPhase.ZeroFuel -> {}
         }
-        return LinearPolynomial(poly)
+        return poly
     }
 }

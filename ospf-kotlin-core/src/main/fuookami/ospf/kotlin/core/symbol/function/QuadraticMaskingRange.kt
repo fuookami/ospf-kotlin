@@ -26,8 +26,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 */
 
 /**
- * 二次掩码范围：当 z = 1 时，y 被强制等于多项式；当 z = 0 时，y 自由（在边界内）。
- * Quadratic masking range: when z = 1, y is forced to equal polynomial;
+ * 二次掩码范围：当 z = 1 时，y 被强制等于多项式；当 z = 0 时，y 自由（在边界内）。 / Quadratic masking range: when z = 1, y is forced to equal polynomial;
  * when z = 0, y is free (within bounds).
  * 使用 Big-M 公式：y <= polynomial + M*(1-z), y >= polynomial - M*(1-z)。
  * Uses Big-M formulation: y <= polynomial + M*(1-z), y >= polynomial - M*(1-z).
@@ -76,8 +75,7 @@ class QuadraticMaskingRangeFunction<V>(
     }
 
     /**
-     * 从 token 表求值单个符号。
-     * Evaluate a single symbol from the token table.
+     * 从 token 表求值单个符号。 / Evaluate a single symbol from the token table.
      *
      * @param symbol 要求值的符号 / the symbol to evaluate
      * @param tokenTable token 表 / the token table
@@ -97,8 +95,7 @@ class QuadraticMaskingRangeFunction<V>(
     }
 
     /**
-     * 从结果列表求值单个符号。
-     * Evaluate a single symbol from a results list.
+     * 从结果列表求值单个符号。 / Evaluate a single symbol from a results list.
      *
      * @param symbol 要求值的符号 / the symbol to evaluate
      * @param results 结果值列表 / list of result values
@@ -124,8 +121,7 @@ class QuadraticMaskingRangeFunction<V>(
     }
 
     /**
-     * 从值映射求值单个符号。
-     * Evaluate a single symbol from a value map.
+     * 从值映射求值单个符号。 / Evaluate a single symbol from a value map.
      *
      * @param symbol 要求值的符号 / the symbol to evaluate
      * @param values 符号到值的映射 / symbol-to-value map
@@ -147,8 +143,7 @@ class QuadraticMaskingRangeFunction<V>(
     }
 
     /**
-     * 求值二次多项式。
-     * Evaluate a quadratic polynomial.
+     * 求值二次多项式。 / Evaluate a quadratic polynomial.
      *
      * @param poly 要求值的二次多项式 / the quadratic polynomial to evaluate
      * @param resolve 符号解析函数 / symbol resolution function
@@ -172,8 +167,7 @@ class QuadraticMaskingRangeFunction<V>(
     }
 
     /**
-     * 求值掩码逻辑：z=0 时返回 0，z=1 时返回多项式值。
-     * Evaluate masking logic: return 0 when z=0, polynomial value when z=1.
+     * 求值掩码逻辑：z=0 时返回 0，z=1 时返回多项式值。 / Evaluate masking logic: return 0 when z=0, polynomial value when z=1.
      *
      * @param resolve 符号解析函数 / symbol resolution function
      * @return 掩码结果值或 null / masking result value or null
@@ -189,8 +183,7 @@ class QuadraticMaskingRangeFunction<V>(
     }
 
     /**
-     * 使用 Flt64 值预计算求解器结果。
-     * Pre-compute solver result with Flt64 values.
+     * 使用 Flt64 值预计算求解器结果。 / Pre-compute solver result with Flt64 values.
      *
      * @param values 符号到 Flt64 值的映射，可为 null / symbol-to-Flt64 value map, may be null
      * @param tokenTable token 表 / the token table
@@ -212,8 +205,7 @@ class QuadraticMaskingRangeFunction<V>(
     override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
     /**
-     * 使用 Flt64 token 列表求值（始终返回 null）。
-     * Evaluate with Flt64 token list (always returns null).
+     * 使用 Flt64 token 列表求值（始终返回 null）。 / Evaluate with Flt64 token list (always returns null).
      *
      * @param tokenList Flt64 token 列表 / Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
@@ -222,8 +214,7 @@ class QuadraticMaskingRangeFunction<V>(
     internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
 
     /**
-     * 使用 Flt64 结果列表求值（始终返回 null）。
-     * Evaluate with Flt64 results list (always returns null).
+     * 使用 Flt64 结果列表求值（始终返回 null）。 / Evaluate with Flt64 results list (always returns null).
      *
      * @param results Flt64 结果值列表 / list of Flt64 result values
      * @param tokenList Flt64 token 列表 / Flt64 token list
@@ -233,8 +224,7 @@ class QuadraticMaskingRangeFunction<V>(
     internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
 
     /**
-     * 使用 Flt64 值映射求值（始终返回 null）。
-     * Evaluate with Flt64 value map (always returns null).
+     * 使用 Flt64 值映射求值（始终返回 null）。 / Evaluate with Flt64 value map (always returns null).
      *
      * @param values 符号到 Flt64 值的映射 / symbol-to-Flt64 value map
      * @param tokenList 可选的 Flt64 token 列表 / optional Flt64 token list
@@ -267,8 +257,7 @@ class QuadraticMaskingRangeFunction<V>(
     }
 
     /**
-     * 使用 Flt64 结果列表进行求解器求值。
-     * Evaluate solver with Flt64 results list.
+     * 使用 Flt64 结果列表进行求解器求值。 / Evaluate solver with Flt64 results list.
      *
      * @param results Flt64 结果值列表 / list of Flt64 result values
      * @param tokenTable token 表 / the token table
@@ -282,8 +271,7 @@ class QuadraticMaskingRangeFunction<V>(
     }
 
     /**
-     * 使用 Flt64 值映射进行求解器求值。
-     * Evaluate solver with Flt64 value map.
+     * 使用 Flt64 值映射进行求解器求值。 / Evaluate solver with Flt64 value map.
      *
      * @param values 符号到 Flt64 值的映射 / symbol-to-Flt64 value map
      * @param tokenTable 可选的 token 表 / optional token table
@@ -311,8 +299,7 @@ class QuadraticMaskingRangeFunction<V>(
     }
 
     /**
-     * 注册 Big-M 掩码约束。
-     * Register Big-M masking constraints.
+     * 注册 Big-M 掩码约束。 / Register Big-M masking constraints.
     */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         val m = bigM

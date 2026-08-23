@@ -1,9 +1,7 @@
 /**
- * 类型化值范囌
- * Typed Value Range
+ * 类型化值范囌 / Typed Value Range
  *
- * 定义类型安全的值范围类，使用泛型参数静态编码区间开闭性，支持闭区间、开区间、半开半闭区间等类型，并提供算术运算和类型推导。
- * Defines type-safe value range class, using generic parameters to statically encode interval openness/closedness, supporting closed, open, and half-open interval types, with arithmetic operations and type inference.
+ * 定义类型安全的值范围类，使用泛型参数静态编码区间开闭性，支持闭区间、开区间、半开半闭区间等类型，并提供算术运算和类型推导。 / Defines type-safe value range class, using generic parameters to statically encode interval openness/closedness, supporting closed, open, and half-open interval types, with arithmetic operations and type inference.
 */
 package fuookami.ospf.kotlin.math.algebra.value_range
 
@@ -13,11 +11,9 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 区间类型标记接口
- * Interval Kind Marker Interface
+ * 区间类型标记接口 / Interval Kind Marker Interface
  *
- * 用于标记区间的开闭性质，支持静态类型推导。
- * Used to mark interval openness/closedness, supporting static type inference.
+ * 用于标记区间的开闭性质，支持静态类型推导。 / Used to mark interval openness/closedness, supporting static type inference.
  *
  * @property interval 对应皌Interval 枚举倌
 */
@@ -31,33 +27,27 @@ sealed interface IntervalKind {
 }
 
 /**
- * 闭区间类型标讌
- * Closed Interval Kind Marker
+ * 闭区间类型标讌 / Closed Interval Kind Marker
  *
- * 表示闭区间类型，边界包含边界值。
- * Represents closed interval type, boundary includes boundary value.
+ * 表示闭区间类型，边界包含边界值。 / Represents closed interval type, boundary includes boundary value.
 */
 data object ClosedIntervalKind : IntervalKind {
     override val interval: Interval = Interval.Closed
 }
 
 /**
- * 开区间类型标记
- * Open Interval Kind Marker
+ * 开区间类型标记 / Open Interval Kind Marker
  *
- * 表示开区间类型，边界不包含边界值。
- * Represents open interval type, boundary does not include boundary value.
+ * 表示开区间类型，边界不包含边界值。 / Represents open interval type, boundary does not include boundary value.
 */
 data object OpenIntervalKind : IntervalKind {
     override val interval: Interval = Interval.Open
 }
 
 /**
- * 运行时区间类型标讌
- * Runtime Interval Kind Marker
+ * 运行时区间类型标讌 / Runtime Interval Kind Marker
  *
- * 用于动态包装值范围，区间类型在运行时确定。
- * Used for dynamic wrapping of value ranges, interval type determined at runtime.
+ * 用于动态包装值范围，区间类型在运行时确定。 / Used for dynamic wrapping of value ranges, interval type determined at runtime.
  *
  * @property interval 对应皌Interval 枚举倌
 */
@@ -66,56 +56,44 @@ data class RuntimeIntervalKind(
 ) : IntervalKind
 
 /**
- * 动态类型化值范围类型别同
- * Dynamic Typed Value Range Type Alias
+ * 动态类型化值范围类型别同 / Dynamic Typed Value Range Type Alias
  *
- * 上下边界均为运行时确定类型。
- * Both upper and lower bounds are runtime-determined types.
+ * 上下边界均为运行时确定类型。 / Both upper and lower bounds are runtime-determined types.
 */
 typealias DynamicTypedValueRange<T> = TypedValueRange<T, RuntimeIntervalKind, RuntimeIntervalKind>
 
 /**
- * 闭区间类型化值范围类型别同
- * Closed Typed Value Range Type Alias
+ * 闭区间类型化值范围类型别同 / Closed Typed Value Range Type Alias
  *
- * 上下边界均为闭区间。
- * Both upper and lower bounds are closed intervals.
+ * 上下边界均为闭区间。 / Both upper and lower bounds are closed intervals.
 */
 typealias ClosedTypedValueRange<T> = TypedValueRange<T, ClosedIntervalKind, ClosedIntervalKind>
 
 /**
- * 开区间类型化值范围类型别同
- * Open Typed Value Range Type Alias
+ * 开区间类型化值范围类型别同 / Open Typed Value Range Type Alias
  *
- * 上下边界均为开区间。
- * Both upper and lower bounds are open intervals.
+ * 上下边界均为开区间。 / Both upper and lower bounds are open intervals.
 */
 typealias OpenTypedValueRange<T> = TypedValueRange<T, OpenIntervalKind, OpenIntervalKind>
 
 /**
- * 左闭右开区间类型化值范围类型别同
- * Closed-Open Typed Value Range Type Alias
+ * 左闭右开区间类型化值范围类型别同 / Closed-Open Typed Value Range Type Alias
  *
- * 下边界为闭区间，上边界为开区间。
- * Lower bound is closed interval, upper bound is open interval.
+ * 下边界为闭区间，上边界为开区间。 / Lower bound is closed interval, upper bound is open interval.
 */
 typealias ClosedOpenTypedValueRange<T> = TypedValueRange<T, ClosedIntervalKind, OpenIntervalKind>
 
 /**
- * 左开右闭区间类型化值范围类型别同
- * Open-Closed Typed Value Range Type Alias
+ * 左开右闭区间类型化值范围类型别同 / Open-Closed Typed Value Range Type Alias
  *
- * 下边界为开区间，上边界为闭区间。
- * Lower bound is open interval, upper bound is closed interval.
+ * 下边界为开区间，上边界为闭区间。 / Lower bound is open interval, upper bound is closed interval.
 */
 typealias OpenClosedTypedValueRange<T> = TypedValueRange<T, OpenIntervalKind, ClosedIntervalKind>
 
 /**
- * 类型化值范囌
- * Typed Value Range
+ * 类型化值范囌 / Typed Value Range
  *
- * 使用泛型参数静态编码区间开闭性的值范围类，提供类型安全的区间运算。
- * Value range class with generic parameters statically encoding interval openness/closedness, providing type-safe interval operations.
+ * 使用泛型参数静态编码区间开闭性的值范围类，提供类型安全的区间运算。 / Value range class with generic parameters statically encoding interval openness/closedness, providing type-safe interval operations.
  *
  * 类型推导规则，
  * - plus/minus/times/div: 先计箌ValueRange 运算结果，再依据结果上下界区间推富Closed/Open typed kind
@@ -155,8 +133,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 将值范围转换为相同类型标记的类型化值范囌
-     * Converts value range to typed value range with same kind markers
+     * 将值范围转换为相同类型标记的类型化值范囌 / Converts value range to typed value range with same kind markers
      *
      * @param range 要转换的值范囌
      * @return 相同类型标记的类型化值范囌
@@ -170,11 +147,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 将值范围转换为最静态类型标记的类型化值范囌
-     * Converts value range to typed value range with most static kind markers
+     * 将值范围转换为最静态类型标记的类型化值范囌 / Converts value range to typed value range with most static kind markers
      *
-     * 根据值范围的边界区间类型自动推导最静态的类型标记。
-     * Automatically infers most static kind markers from value range's boundary interval types.
+     * 根据值范围的边界区间类型自动推导最静态的类型标记。 / Automatically infers most static kind markers from value range's boundary interval types.
      *
      * @param range 要转换的值范囌
      * @return 最静态类型标记的类型化值范围，戌null
@@ -190,8 +165,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 将值范围转换为指定类型标记的类型化值范囌
-     * Converts value range to typed value range with specified kind markers
+     * 将值范围转换为指定类型标记的类型化值范囌 / Converts value range to typed value range with specified kind markers
      *
      * @param NLB 新的下边界区间类垌
      * @param NUB 新的上边界区间类垌
@@ -225,8 +199,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 判断数值是否为正数
-     * Determines if number is positive
+     * 判断数值是否为正数 / Determines if number is positive
      *
      * @param value 要判断的数倌
      * @return 是否为正敌
@@ -237,8 +210,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 判断数值是否为负数
-     * Determines if number is negative
+     * 判断数值是否为负数 / Determines if number is negative
      *
      * @param value 要判断的数倌
      * @return 是否为负敌
@@ -250,8 +222,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
 
     companion object {
         /**
-         * 将值范围转换为动态类型化值范囌
-         * Converts value range to dynamic typed value range
+         * 将值范围转换为动态类型化值范囌 / Converts value range to dynamic typed value range
          *
          * @param T 数值类垌
          * @param range 要转换的值范囌
@@ -268,11 +239,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
         }
 
         /**
-         * 从值范围创建类型化值范围（动态验证）
-         * Creates typed value range from value range (dynamic validation)
+         * 从值范围创建类型化值范围（动态验证） / Creates typed value range from value range (dynamic validation)
          *
-         * 验证值范围的边界区间类型是否与指定的类型标记匹配。
-         * Validates whether value range's boundary interval types match specified kind markers.
+         * 验证值范围的边界区间类型是否与指定的类型标记匹配。 / Validates whether value range's boundary interval types match specified kind markers.
          *
          * @param T 数值类垌
          * @param LB 下边界区间类垌
@@ -304,8 +273,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
         }
 
         /**
-         * 从数值创建类型化值范囌
-         * Creates typed value range from numbers
+         * 从数值创建类型化值范囌 / Creates typed value range from numbers
          *
          * @param T 数值类垌
          * @param LB 下边界区间类垌
@@ -340,8 +308,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
         }
 
         /**
-         * 从值包装器创建类型化值范囌
-         * Creates typed value range from value wrappers
+         * 从值包装器创建类型化值范囌 / Creates typed value range from value wrappers
          *
          * @param T 数值类垌
          * @param LB 下边界区间类垌
@@ -376,8 +343,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
         }
 
         /**
-         * 创建闭区间类型化值范囌
-         * Creates closed typed value range
+         * 创建闭区间类型化值范囌 / Creates closed typed value range
          *
          * @param T 数值类垌
          * @param lb 下边界倌
@@ -394,8 +360,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
         }
 
         /**
-         * 创建开区间类型化值范囌
-         * Creates open typed value range
+         * 创建开区间类型化值范囌 / Creates open typed value range
          *
          * @param T 数值类垌
          * @param lb 下边界倌
@@ -412,8 +377,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
         }
 
         /**
-         * 创建左闭右开区间类型化值范囌
-         * Creates closed-open typed value range
+         * 创建左闭右开区间类型化值范囌 / Creates closed-open typed value range
          *
          * @param T 数值类垌
          * @param lb 下边界倌
@@ -430,8 +394,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
         }
 
         /**
-         * 创建左开右闭区间类型化值范囌
-         * Creates open-closed typed value range
+         * 创建左开右闭区间类型化值范囌 / Creates open-closed typed value range
          *
          * @param T 数值类垌
          * @param lb 下边界倌
@@ -448,8 +411,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
         }
 
         /**
-         * 创建闭区间类型化值范围（自动解析常量，
-         * Creates closed typed value range (auto-resolves constants)
+         * 创建闭区间类型化值范围（自动解析常量， / Creates closed typed value range (auto-resolves constants)
          *
          * @param lb 下边界倌
          * @param ub 上边界倌
@@ -465,8 +427,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
         }
 
         /**
-         * 创建开区间类型化值范围（自动解析常量，
-         * Creates open typed value range (auto-resolves constants)
+         * 创建开区间类型化值范围（自动解析常量， / Creates open typed value range (auto-resolves constants)
          *
          * @param lb 下边界倌
          * @param ub 上边界倌
@@ -482,8 +443,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
         }
 
         /**
-         * 创建左闭右开区间类型化值范围（自动解析常量，
-         * Creates closed-open typed value range (auto-resolves constants)
+         * 创建左闭右开区间类型化值范围（自动解析常量， / Creates closed-open typed value range (auto-resolves constants)
          *
          * @param lb 下边界倌
          * @param ub 上边界倌
@@ -499,8 +459,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
         }
 
         /**
-         * 创建左开右闭区间类型化值范围（自动解析常量，
-         * Creates open-closed typed value range (auto-resolves constants)
+         * 创建左开右闭区间类型化值范围（自动解析常量， / Creates open-closed typed value range (auto-resolves constants)
          *
          * @param lb 下边界倌
          * @param ub 上边界倌
@@ -517,52 +476,44 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 下边界倌
-     * Lower bound value
+     * 下边界倌 / Lower bound value
     */
     val lowerBound: ValueWrapper<T> get() = valueRange.lowerBound.value
 
     /**
-     * 上边界倌
-     * Upper bound value
+     * 上边界倌 / Upper bound value
     */
     val upperBound: ValueWrapper<T> get() = valueRange.upperBound.value
 
     /**
-     * 下边界区间类垌
-     * Lower bound interval type
+     * 下边界区间类垌 / Lower bound interval type
     */
     val lowerInterval: Interval get() = valueRange.lowerBound.interval
 
     /**
-     * 上边界区间类垌
-     * Upper bound interval type
+     * 上边界区间类垌 / Upper bound interval type
     */
     val upperInterval: Interval get() = valueRange.upperBound.interval
 
     /**
-     * 是否为固定值（单点区间，
-     * Whether is a fixed value (single-point interval)
+     * 是否为固定值（单点区间， / Whether is a fixed value (single-point interval)
     */
     val fixed: Boolean get() = valueRange.fixed
 
     /**
-     * 固定倌
-     * Fixed value
+     * 固定倌 / Fixed value
     */
     val fixedValue: T? get() = valueRange.fixedValue
 
     /**
-     * 转换为动态值范囌
-     * Converts to dynamic value range
+     * 转换为动态值范囌 / Converts to dynamic value range
      *
      * @return 动态值范围副朌
     */
     fun toDynamic(): ValueRange<T> = valueRange.copy()
 
     /**
-     * 判断值是否在范围册
-     * Determines if value is within range
+     * 判断值是否在范围册 / Determines if value is within range
      *
      * @param value 要判断的倌
      * @return 是否在范围内
@@ -572,8 +523,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 判断另一类型化值范围是否完全包含在本范围内
-     * Determines if another typed value range is fully contained in this range
+     * 判断另一类型化值范围是否完全包含在本范围内 / Determines if another typed value range is fully contained in this range
      *
      * @param rhs 要判断的类型化值范囌
      * @return 是否完全包含
@@ -583,11 +533,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 计算与另一类型化值范围的并集
-     * Computes union with another typed value range
+     * 计算与另一类型化值范围的并集 / Computes union with another typed value range
      *
-     * 返回动态类型化值范围，因为并集的边界类型可能改变。
-     * Returns dynamic typed value range, as union's boundary types may change.
+     * 返回动态类型化值范围，因为并集的边界类型可能改变。 / Returns dynamic typed value range, as union's boundary types may change.
      *
      * @param rhs 另一个类型化值范囌
      * @return 动态类型化值范围，戌null（不相交时）
@@ -597,11 +545,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 计算与同类型类型化值范围的并集（保持类型）
-     * Computes union with same-type typed value range (preserves type)
+     * 计算与同类型类型化值范围的并集（保持类型） / Computes union with same-type typed value range (preserves type)
      *
-     * 仅当两个类型化值范围具有相同类型标记时使用。
-     * Only used when two typed value ranges have same kind markers.
+     * 仅当两个类型化值范围具有相同类型标记时使用。 / Only used when two typed value ranges have same kind markers.
      *
      * @param rhs 另一个同类型的类型化值范囌
      * @return 相同类型标记的类型化值范围，戌null
@@ -611,11 +557,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 计算与另一类型化值范围的交集
-     * Computes intersection with another typed value range
+     * 计算与另一类型化值范围的交集 / Computes intersection with another typed value range
      *
-     * 返回动态类型化值范围，因为交集的边界类型可能改变。
-     * Returns dynamic typed value range, as intersection's boundary types may change.
+     * 返回动态类型化值范围，因为交集的边界类型可能改变。 / Returns dynamic typed value range, as intersection's boundary types may change.
      *
      * @param rhs 另一个类型化值范囌
      * @return 动态类型化值范围，戌null（不相交时）
@@ -625,11 +569,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 计算与同类型类型化值范围的交集（保持类型）
-     * Computes intersection with same-type typed value range (preserves type)
+     * 计算与同类型类型化值范围的交集（保持类型） / Computes intersection with same-type typed value range (preserves type)
      *
-     * 仅当两个类型化值范围具有相同类型标记时使用。
-     * Only used when two typed value ranges have same kind markers.
+     * 仅当两个类型化值范围具有相同类型标记时使用。 / Only used when two typed value ranges have same kind markers.
      *
      * @param rhs 另一个同类型的类型化值范囌
      * @return 相同类型标记的类型化值范围，戌null
@@ -639,8 +581,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围与数值相加（保持类型，
-     * Adds a number to typed value range (preserves type)
+     * 类型化值范围与数值相加（保持类型， / Adds a number to typed value range (preserves type)
      *
      * @param rhs 要添加的数倌
      * @return 相同类型标记的类型化值范囌
@@ -650,8 +591,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围与数值相劌
-     * Adds a number to typed value range
+     * 类型化值范围与数值相劌 / Adds a number to typed value range
      *
      * @param rhs 要添加的数倌
      * @return 相同类型标记的类型化值范囌
@@ -661,11 +601,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围与另一类型化值范围相劌
-     * Adds typed value range with another typed value range
+     * 类型化值范围与另一类型化值范围相劌 / Adds typed value range with another typed value range
      *
-     * 返回动态类型化值范围，因为加法结果的边界类型可能改变。
-     * Returns dynamic typed value range, as addition result's boundary types may change.
+     * 返回动态类型化值范围，因为加法结果的边界类型可能改变。 / Returns dynamic typed value range, as addition result's boundary types may change.
      *
      * @param rhs 另一个类型化值范囌
      * @return 动态类型化值范囌
@@ -675,8 +613,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围与同类型类型化值范围相加（保持类型，
-     * Adds typed value range with same-type typed value range (preserves type)
+     * 类型化值范围与同类型类型化值范围相加（保持类型， / Adds typed value range with same-type typed value range (preserves type)
      *
      * @param rhs 另一个同类型的类型化值范囌
      * @return 相同类型标记的类型化值范围，戌null
@@ -686,11 +623,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围与另一类型化值范围相加（跨类型推导）
-     * Adds typed value range with another typed value range (cross-type inference)
+     * 类型化值范围与另一类型化值范围相加（跨类型推导） / Adds typed value range with another typed value range (cross-type inference)
      *
-     * 根据结果边界类型自动推导最静态的类型标记。
-     * Automatically infers most static kind markers from result boundary types.
+     * 根据结果边界类型自动推导最静态的类型标记。 / Automatically infers most static kind markers from result boundary types.
      *
      * @param rhs 另一个类型化值范囌
      * @return 最静态类型标记的类型化值范围，戌null
@@ -700,8 +635,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围与数值相减（保持类型，
-     * Subtracts a number from typed value range (preserves type)
+     * 类型化值范围与数值相减（保持类型， / Subtracts a number from typed value range (preserves type)
      *
      * @param rhs 要减去的数倌
      * @return 相同类型标记的类型化值范囌
@@ -711,8 +645,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围与数值相凌
-     * Subtracts a number from typed value range
+     * 类型化值范围与数值相凌 / Subtracts a number from typed value range
      *
      * @param rhs 要减去的数倌
      * @return 相同类型标记的类型化值范囌
@@ -722,11 +655,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围与另一类型化值范围相凌
-     * Subtracts typed value range with another typed value range
+     * 类型化值范围与另一类型化值范围相凌 / Subtracts typed value range with another typed value range
      *
-     * 返回动态类型化值范围，因为减法结果的边界类型可能改变。
-     * Returns dynamic typed value range, as subtraction result's boundary types may change.
+     * 返回动态类型化值范围，因为减法结果的边界类型可能改变。 / Returns dynamic typed value range, as subtraction result's boundary types may change.
      *
      * @param rhs 另一个类型化值范囌
      * @return 动态类型化值范囌
@@ -736,8 +667,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围与同类型类型化值范围相减（保持类型，
-     * Subtracts typed value range with same-type typed value range (preserves type)
+     * 类型化值范围与同类型类型化值范围相减（保持类型， / Subtracts typed value range with same-type typed value range (preserves type)
      *
      * @param rhs 另一个同类型的类型化值范囌
      * @return 相同类型标记的类型化值范围，戌null
@@ -747,11 +677,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围与另一类型化值范围相减（跨类型推导）
-     * Subtracts typed value range with another typed value range (cross-type inference)
+     * 类型化值范围与另一类型化值范围相减（跨类型推导） / Subtracts typed value range with another typed value range (cross-type inference)
      *
-     * 根据结果边界类型自动推导最静态的类型标记。
-     * Automatically infers most static kind markers from result boundary types.
+     * 根据结果边界类型自动推导最静态的类型标记。 / Automatically infers most static kind markers from result boundary types.
      *
      * @param rhs 另一个类型化值范囌
      * @return 最静态类型标记的类型化值范围，戌null
@@ -761,11 +689,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围与数值相乌
-     * Multiplies typed value range by a number
+     * 类型化值范围与数值相乌 / Multiplies typed value range by a number
      *
-     * 返回动态类型化值范围，因为乘法可能改变区间方向。
-     * Returns dynamic typed value range, as multiplication may change interval direction.
+     * 返回动态类型化值范围，因为乘法可能改变区间方向。 / Returns dynamic typed value range, as multiplication may change interval direction.
      *
      * @param rhs 要乘的数倌
      * @return 动态类型化值范围，戌null
@@ -775,11 +701,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围与正数相乘（保持类型）
-     * Multiplies typed value range by positive number (preserves type)
+     * 类型化值范围与正数相乘（保持类型） / Multiplies typed value range by positive number (preserves type)
      *
-     * 仅当乘数为正数时使用，区间方向不变。
-     * Only used when multiplier is positive, interval direction unchanged.
+     * 仅当乘数为正数时使用，区间方向不变。 / Only used when multiplier is positive, interval direction unchanged.
      *
      * @param rhs 要乘的正敌
      * @return 相同类型标记的类型化值范围，戌null
@@ -792,11 +716,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围与负数相乘（类型翻转）
-     * Multiplies typed value range by negative number (type flipped)
+     * 类型化值范围与负数相乘（类型翻转） / Multiplies typed value range by negative number (type flipped)
      *
-     * 仅当乘数为负数时使用，区间方向翻转（上下边界类型互换）。
-     * Only used when multiplier is negative, interval direction reversed (upper and lower bound types swapped).
+     * 仅当乘数为负数时使用，区间方向翻转（上下边界类型互换）。 / Only used when multiplier is negative, interval direction reversed (upper and lower bound types swapped).
      *
      * @param rhs 要乘的负敌
      * @return 类型翻转的类型化值范围，戌null
@@ -809,11 +731,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围与数值相乘（跨类型推导）
-     * Multiplies typed value range by a number (cross-type inference)
+     * 类型化值范围与数值相乘（跨类型推导） / Multiplies typed value range by a number (cross-type inference)
      *
-     * 根据乘数符号和结果边界类型自动推导最静态的类型标记。
-     * Automatically infers most static kind markers from multiplier sign and result boundary types.
+     * 根据乘数符号和结果边界类型自动推导最静态的类型标记。 / Automatically infers most static kind markers from multiplier sign and result boundary types.
      *
      * @param rhs 要乘的数倌
      * @return 最静态类型标记的类型化值范围，戌null
@@ -824,11 +744,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围与另一类型化值范围相乌
-     * Multiplies typed value range with another typed value range
+     * 类型化值范围与另一类型化值范围相乌 / Multiplies typed value range with another typed value range
      *
-     * 返回动态类型化值范围，因为乘法结果的边界类型可能改变。
-     * Returns dynamic typed value range, as multiplication result's boundary types may change.
+     * 返回动态类型化值范围，因为乘法结果的边界类型可能改变。 / Returns dynamic typed value range, as multiplication result's boundary types may change.
      *
      * @param rhs 另一个类型化值范囌
      * @return 动态类型化值范围，戌null
@@ -838,11 +756,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围与另一类型化值范围相乘（跨类型推导）
-     * Multiplies typed value range with another typed value range (cross-type inference)
+     * 类型化值范围与另一类型化值范围相乘（跨类型推导） / Multiplies typed value range with another typed value range (cross-type inference)
      *
-     * 根据结果边界类型自动推导最静态的类型标记。
-     * Automatically infers most static kind markers from result boundary types.
+     * 根据结果边界类型自动推导最静态的类型标记。 / Automatically infers most static kind markers from result boundary types.
      *
      * @param rhs 另一个类型化值范囌
      * @return 最静态类型标记的类型化值范围，戌null
@@ -853,11 +769,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围除以数倌
-     * Divides typed value range by a number
+     * 类型化值范围除以数倌 / Divides typed value range by a number
      *
-     * 返回动态类型化值范围，因为除法可能改变区间方向。
-     * Returns dynamic typed value range, as division may change interval direction.
+     * 返回动态类型化值范围，因为除法可能改变区间方向。 / Returns dynamic typed value range, as division may change interval direction.
      *
      * @param rhs 要除的数倌
      * @return 动态类型化值范围，戌null
@@ -867,11 +781,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围除以正数（保持类型，
-     * Divides typed value range by positive number (preserves type)
+     * 类型化值范围除以正数（保持类型， / Divides typed value range by positive number (preserves type)
      *
-     * 仅当除数为正数时使用，区间方向不变。
-     * Only used when divisor is positive, interval direction unchanged.
+     * 仅当除数为正数时使用，区间方向不变。 / Only used when divisor is positive, interval direction unchanged.
      *
      * @param rhs 要除的正敌
      * @return 相同类型标记的类型化值范围，戌null
@@ -884,11 +796,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围除以负数（类型翻转，
-     * Divides typed value range by negative number (type flipped)
+     * 类型化值范围除以负数（类型翻转， / Divides typed value range by negative number (type flipped)
      *
-     * 仅当除数为负数时使用，区间方向翻转（上下边界类型互换）。
-     * Only used when divisor is negative, interval direction reversed (upper and lower bound types swapped).
+     * 仅当除数为负数时使用，区间方向翻转（上下边界类型互换）。 / Only used when divisor is negative, interval direction reversed (upper and lower bound types swapped).
      *
      * @param rhs 要除的负敌
      * @return 类型翻转的类型化值范围，戌null
@@ -901,11 +811,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 类型化值范围除以数值（跨类型推导）
-     * Divides typed value range by a number (cross-type inference)
+     * 类型化值范围除以数值（跨类型推导） / Divides typed value range by a number (cross-type inference)
      *
-     * 根据除数符号和结果边界类型自动推导最静态的类型标记。
-     * Automatically infers most static kind markers from divisor sign and result boundary types.
+     * 根据除数符号和结果边界类型自动推导最静态的类型标记。 / Automatically infers most static kind markers from divisor sign and result boundary types.
      *
      * @param rhs 要除的数倌
      * @return 最静态类型标记的类型化值范围，戌null
@@ -916,8 +824,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 相等判断
-     * Equality judgment
+     * 相等判断 / Equality judgment
      *
      * @param other 要比较的对象
      * @return 是否相等
@@ -933,8 +840,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 计算哈希倌
-     * Computes hash value
+     * 计算哈希倌 / Computes hash value
      *
      * @return 哈希倌
     */
@@ -946,8 +852,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     }
 
     /**
-     * 获取字符串表礌
-     * Gets string representation
+     * 获取字符串表礌 / Gets string representation
      *
      * @return 类型化值范围的字符串形弌
     */
@@ -957,8 +862,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
 }
 
 /**
- * 将值范围转换为动态类型化值范囌
- * Converts value range to dynamic typed value range
+ * 将值范围转换为动态类型化值范囌 / Converts value range to dynamic typed value range
  *
  * @param T 数值类垌
  * @return 动态类型化值范囌

@@ -60,7 +60,7 @@ class LabelGenerateBunchTest {
                 lastTask = null,
                 enabledTime = start
             ),
-            totalCostCalculator = { actualExecutor: Executor, lastTask: TestTask?, tasks: List<TestTask> ->
+            totalCostCalculator = TotalCostCalculator { actualExecutor: Executor, lastTask: TestTask?, tasks: List<TestTask> ->
                 assertEquals(executor, actualExecutor)
                 assertEquals(null, lastTask)
                 assertEquals(listOf(first, second), tasks)
@@ -93,7 +93,7 @@ class LabelGenerateBunchTest {
                 lastTask = null,
                 enabledTime = start
             ),
-            totalCostCalculator = { _, _, tasks ->
+            totalCostCalculator = TotalCostCalculator { _, _, tasks ->
                 assertEquals(listOf(first, second), tasks)
                 fltXCost(FltX("10.0"))
             }

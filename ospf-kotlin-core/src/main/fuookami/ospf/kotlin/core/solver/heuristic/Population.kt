@@ -1,6 +1,5 @@
 /**
- * 种群与个体数据结构
- * Population and individual data structures
+ * 种群与个体数据结构 / Population and individual data structures
 */
 package fuookami.ospf.kotlin.core.solver.heuristic
 
@@ -13,8 +12,7 @@ import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 
 /**
- * 个体接口，表示启发式搜索中的一个解及其适应度。
- * Individual interface, representing a solution and its fitness in heuristic search.
+ * 个体接口，表示启发式搜索中的一个解及其适应度。 / Individual interface, representing a solution and its fitness in heuristic search.
  *
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
@@ -29,8 +27,7 @@ interface Individual<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
 }
 
 /**
- * 种群构建器，封装种群构建参数。
- * Population builder, encapsulating population construction parameters.
+ * 种群构建器，封装种群构建参数。 / Population builder, encapsulating population construction parameters.
  *
  * @property eliteAmount 精英数量 / Elite amount
  * @property densityRange 密度范围 / Density range
@@ -45,8 +42,7 @@ data class PopulationBuilder(
 )
 
 /**
- * 种群数据结构，包含个体列表、精英和最优个体。
- * Population data structure, containing individual list, elites, and best individual.
+ * 种群数据结构，包含个体列表、精英和最优个体。 / Population data structure, containing individual list, elites, and best individual.
  *
  * @param T 个体类型 / Individual type
  * @param ObjValue 目标值类型 / Objective value type
@@ -74,8 +70,7 @@ data class Population<T : Individual<ObjValue, V>, ObjValue, V>(
 }
 
 /**
- * 带适应度的解，实现 [Individual] 接口。
- * Solution with fitness, implementing [Individual] interface.
+ * 带适应度的解，实现 [Individual] 接口。 / Solution with fitness, implementing [Individual] interface.
  *
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
@@ -88,8 +83,7 @@ data class SolutionWithFitness<ObjValue, V>(
 ) : Individual<ObjValue, V> where V : RealNumber<V>, V : NumberField<V>
 
 /**
- * 刷新优良个体列表，合并新个体并保持有序。
- * Refresh the good individuals list, merging new individuals while maintaining order.
+ * 刷新优良个体列表，合并新个体并保持有序。 / Refresh the good individuals list, merging new individuals while maintaining order.
  *
  * @param T 个体类型 / Individual type
  * @param ObjValue 目标值类型 / Objective value type

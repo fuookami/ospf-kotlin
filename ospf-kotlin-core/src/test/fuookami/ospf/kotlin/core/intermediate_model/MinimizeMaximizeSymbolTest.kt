@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
@@ -50,6 +51,37 @@ class MinimizeMaximizeSymbolTest {
         assertTrue(result is Ok)
         assertEquals(1, model.flattenSubObjects.size)
         assertEquals(ObjectCategory.Maximum, model.flattenSubObjects[0].category)
+        model.close()
+    }
+
+    @Test
+    fun `LinearMetaModel objective expands nested intermediate symbols`() {
+        val model = LinearMetaModel<Flt64>(name = "test_nested_linear_objective", converter = flt64Converter)
+        val x = RealVar("x")
+        model.add(x)
+        val inner = LinearExpressionSymbol<Flt64>(
+            _utilsPolynomial = MutableLinearPolynomial(
+                monomials = listOf(LinearMonomial(Flt64(2.0), x)),
+                constant = Flt64(5.0)
+            ),
+            name = "inner"
+        )
+        val outer = LinearExpressionSymbol<Flt64>(
+            _utilsPolynomial = MutableLinearPolynomial(
+                monomials = listOf(LinearMonomial(Flt64(4.0), inner)),
+                constant = Flt64(7.0)
+            ),
+            name = "outer"
+        )
+
+        val result = model.maximize(LinearMonomial(Flt64(3.0), outer), name = "nested")
+
+        assertTrue(result is Ok)
+        val objective = model.flattenSubObjects.single()
+        assertEquals(1, objective.cells.size)
+        assertEquals(x, objective.cells.single().token.variable)
+        assertEquals(Flt64(24.0), objective.cells.single().coefficient)
+        assertEquals(Flt64(81.0), objective.constant)
         model.close()
     }
 

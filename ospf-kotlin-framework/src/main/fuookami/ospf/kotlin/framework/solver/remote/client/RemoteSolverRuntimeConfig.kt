@@ -1,6 +1,5 @@
 /**
- * 远程求解运行配置
- * Remote solve runtime config
+ * 远程求解运行配置 / Remote solve runtime config
 */
 package fuookami.ospf.kotlin.framework.solver.remote.client
 
@@ -11,13 +10,13 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 
 /**
- * 远程求解运行配置。
- * Remote solve runtime config.
+ * 远程求解运行配置。 / Remote solve runtime config.
  *
  * @property tenantId 默认租户 ID / Default tenant ID
  * @property nodeId 客户端节点 ID / Client node ID
  * @property quantum 远程切片轮询时间片 / Remote slice polling quantum
  * @property maxRounds 最大轮询轮数 / Maximum polling rounds
+ * @property solverConfig CP 客户端默认求解配置 / Default solver configuration for the CP client
  * @property taskIdProvider 任务 ID 生成器 / Task ID provider
  * @property sliceIdProvider 切片 ID 生成器 / Slice ID provider
 */
@@ -27,7 +26,8 @@ data class RemoteSolverRuntimeConfig(
     val quantum: Duration = 4000.milliseconds,
     val maxRounds: UInt64 = UInt64(64),
     val taskIdProvider: () -> TaskId = { TaskId.of(UUID.randomUUID().toString()) },
-    val sliceIdProvider: () -> SliceId = { SliceId.of(UUID.randomUUID().toString()) }
+    val sliceIdProvider: () -> SliceId = { SliceId.of(UUID.randomUUID().toString()) },
+    val solverConfig: SolverConfig = SolverConfig()
 ) {
     init {
         require(quantum > Duration.ZERO) { "quantum must be positive." }

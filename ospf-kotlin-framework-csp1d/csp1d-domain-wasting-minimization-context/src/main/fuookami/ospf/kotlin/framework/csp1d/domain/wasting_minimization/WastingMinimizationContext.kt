@@ -103,8 +103,7 @@ class WastingMinimizationContext<V : RealNumber<V>>(
     }
 
     /**
-     * 重复数量计算，用于浪费最小化。
-     * Repeat quantity calculation for waste minimization.
+     * 重复数量计算，用于浪费最小化。 / Repeat quantity calculation for waste minimization.
      *
      * @param q 待重复的数量 / Quantity to repeat
      * @param times 重复次数 / Number of repetitions
@@ -128,9 +127,9 @@ class WastingMinimizationContext<V : RealNumber<V>>(
      * Multiply two quantities together.
      * 将两个数量相乘
      *
-     * @param a First quantity / 第一个数量
-     * @param b Second quantity / 第二个数量
-     * @return Product of the two quantities / 两个数量的乘积
+     * @param a 第一个数量 / First quantity
+     * @param b 第二个数量 / Second quantity
+     * @return 两个数量的乘积 / Product of the two quantities
     */
     private fun multiplyQuantities(a: Quantity<V>, b: Quantity<V>): Quantity<V> {
         return (a * b)!!

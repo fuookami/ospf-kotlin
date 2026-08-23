@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -55,12 +56,12 @@ class ResourceOverQuantityMinimization<
     */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         if (slots.isNotEmpty()) {
-            val cost = MutableLinearPolynomial(constant = Flt64.zero)
+            var cost = LinearPolynomial()
             for (slot in slots) {
                 val thresholdValue = threshold(slot)
                 val thisCoefficient = coefficient(slot)
                 if (thresholdValue eq Flt64.zero) {
-                    cost += LinearMonomial(thisCoefficient, quantity.overQuantity[slot])
+                    cost += thisCoefficient * quantity.overQuantity[slot]
                 } else {
                     val slack = resourceSlack(
                         x = quantity.overQuantity[slot],
@@ -81,11 +82,11 @@ class ResourceOverQuantityMinimization<
                             return Fatal(result.errors)
                         }
                     }
-                    cost += LinearMonomial(thisCoefficient, slack)
+                    cost += thisCoefficient * slack
                 }
             }
             when (val result = model.minimize(
-                polynomial = cost.toLinearPolynomial(),
+                polynomial = cost,
                 name = "${quantity.name} over quantity"
             )) {
                 is Ok -> {}

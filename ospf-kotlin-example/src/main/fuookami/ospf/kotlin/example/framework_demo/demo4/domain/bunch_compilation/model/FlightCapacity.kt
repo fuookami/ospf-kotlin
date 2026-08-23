@@ -5,7 +5,6 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilati
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -19,10 +18,10 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
  * 航班容量表达式模型，跟踪航班任务束中的旅客和货物容量用于列生成公式。/ Models flight capacity expressions tracking passenger and cargo capacity
  * across flight task bunches for the column generation formulation.
  *
- * @property tasks Flight tasks / 航班任务
- * @property compilation Compilation model / 编译模型
- * @property withPassenger Whether passenger capacity is tracked / 是否跟踪旅客容量
- * @property withCargo Whether cargo capacity is tracked / 是否跟踪货物容量
+ * @property tasks 航班任务 / Flight tasks
+ * @property compilation 编译模型 / Compilation model
+ * @property withPassenger 是否跟踪旅客容量 / Whether passenger capacity is tracked
+ * @property withCargo 是否跟踪货物容量 / Whether cargo capacity is tracked
 */
 class FlightCapacity(
     private val tasks: List<FlightTask>,
@@ -36,8 +35,8 @@ class FlightCapacity(
     /**
      * 向模型注册旅客和货物容量符号。/ Registers passenger and cargo capacity symbols with the model.
      *
-     * @param model Linear meta model / 线性元模型
-     * @return Registration result / 注册结果
+     * @param model 线性元模型 / Linear meta model
+     * @return 注册结果 / Registration result
     */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (withPassenger) {
@@ -47,7 +46,7 @@ class FlightCapacity(
                     .associateWith { task ->
                         PassengerClass.entries.associateWith { cls ->
                             LinearExpressionSymbol(
-                                MutableLinearPolynomial(),
+                                Flt64,
                                 name = "${task}_capacity_${cls.name}"
                             )
                         }
@@ -73,7 +72,7 @@ class FlightCapacity(
                     .filter { it.capacity is AircraftCapacity.Cargo }
                     .associateWith { task ->
                         LinearExpressionSymbol(
-                            MutableLinearPolynomial(),
+                            Flt64,
                             name = "${task}_capacity"
                         )
                     }
@@ -98,9 +97,9 @@ class FlightCapacity(
     /**
      * 向容量表达式添加新束的列。/ Adds columns for new bunches to the capacity expressions.
      *
-     * @param iteration Current iteration index / 当前迭代索引
-     * @param bunches New flight task bunches / 新的航班任务束
-     * @return Column addition result / 列添加结果
+     * @param iteration 当前迭代索引 / Current iteration index
+     * @param bunches 新的航班任务束 / New flight task bunches
+     * @return 列添加结果 / Column addition result
     */
     fun addColumns(
         iteration: UInt64,

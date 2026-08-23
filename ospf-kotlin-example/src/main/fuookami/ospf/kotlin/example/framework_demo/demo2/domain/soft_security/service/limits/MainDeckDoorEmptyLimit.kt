@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -18,11 +19,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
  * Minimizes stowage at positions beside main deck doors to keep door areas clear.
  * 最小化主甲板门旁位置的装载以保持门区畅通。
  *
- * @property items The list of cargo items / 货物项目列表
- * @property positions The list of stowage positions / 装载位置列表
- * @property deck The main deck configuration with door ubieties / 带有门位置的主甲板配置
- * @property stowage The stowage assignment matrix / 装载分配矩阵
- * @property coefficient The penalty coefficient function per item / 每个项目的惩罚系数函数
+ * @property items 货物项目列表 / The list of cargo items
+ * @property positions 装载位置列表 / The list of stowage positions
+ * @property deck 带有门位置的主甲板配置 / The main deck configuration with door ubieties
+ * @property stowage 装载分配矩阵 / The stowage assignment matrix
+ * @property coefficient 每个项目的惩罚系数函数 / The penalty coefficient function per item
 */
 class MainDeckDoorEmptyLimit(
     private val items: List<Item>,
@@ -45,13 +46,13 @@ class MainDeckDoorEmptyLimit(
             }),
             "main deck door empty"
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }

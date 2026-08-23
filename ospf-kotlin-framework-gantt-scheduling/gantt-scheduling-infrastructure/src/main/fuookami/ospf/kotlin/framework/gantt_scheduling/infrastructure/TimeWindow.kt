@@ -232,8 +232,7 @@ data class TimeWindow<V : RealNumber<V>>(
     }
 
     /**
-     * 转换为日历数值边界，用于仍固定 solver 数值类型的日历或 solver 内部 /
-     * Convert to a calendar numeric boundary for calendar or solver internals that still use the solver numeric type
+     * 转换为日历数值边界，用于仍固定 solver 数值类型的日历或 solver 内部 / / Convert to a calendar numeric boundary for calendar or solver internals that still use the solver numeric type
      *
      * @return 日历数值时间窗口边界 / The calendar numeric time-window boundary
     */

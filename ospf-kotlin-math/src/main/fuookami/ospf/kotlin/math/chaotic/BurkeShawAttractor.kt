@@ -4,9 +4,7 @@
  *
  * Burke-Shaw 吸引子是一个三维连续时间混沌系统，甌Burke 和Shaw 提出。
  * 该系统通过非线性项产生混沌行为，轨迹在三维空间中形成独特的吸引子结构。
- * 常用于混沌系统研究、非线性动力学分析和混沌信号处理。
- *
- * The Burke-Shaw attractor is a three-dimensional continuous-time chaotic system proposed by Burke and Shaw.
+ * 常用于混沌系统研究、非线性动力学分析和混沌信号处理。 / The Burke-Shaw attractor is a three-dimensional continuous-time chaotic system proposed by Burke and Shaw.
  * This system generates chaotic behavior through nonlinear terms, with trajectories forming unique attractor structures in three-dimensional space.
  * Commonly used for chaotic system research, nonlinear dynamics analysis, and chaotic signal processing.
 */

@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -16,9 +17,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 /**
  * 限制相邻位置之间的载荷间隙。Limits the load gap between adjacent positions.
  *
- * @property positions The list of cargo positions / 货物位置列表
- * @property load The load estimation model / 载荷估算模型
- * @property maxAdjacentLoadGap The maximum allowed load gap between adjacent positions / 相邻位置间允许的最大载荷间隙
+ * @property positions 货物位置列表 / The list of cargo positions
+ * @property load 载荷估算模型 / The load estimation model
+ * @property maxAdjacentLoadGap 相邻位置间允许的最大载荷间隙 / The maximum allowed load gap between adjacent positions
 */
 class AdjacentGapLimit(
     private val positions: List<Position>,
@@ -38,9 +39,9 @@ class AdjacentGapLimit(
                 relation = (loadP - loadP1) leq gapLimit,
                 name = "${name}_pos_${p}"
             )) {
-                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
-                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
 
             // load[p+1] - load[p] <= maxAdjacentLoadGap
@@ -48,9 +49,9 @@ class AdjacentGapLimit(
                 relation = (loadP1 - loadP) leq gapLimit,
                 name = "${name}_neg_${p}"
             )) {
-                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
-                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
         }
 

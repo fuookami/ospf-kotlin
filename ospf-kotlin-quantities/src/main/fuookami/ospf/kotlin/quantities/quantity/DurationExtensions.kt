@@ -13,8 +13,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 时间物理量与 kotlin.time.Duration 互转换扩展
  * Extension functions for converting between time Quantity and kotlin.time.Duration
  *
- * 提供物理量时间单位与 Kotlin Duration 类型之间的双向转换，支持纳秒到天的各种时间单位。
- * Provides bidirectional conversion between physical quantity time units and Kotlin Duration type,
+ * 提供物理量时间单位与 Kotlin Duration 类型之间的双向转换，支持纳秒到天的各种时间单位。 / Provides bidirectional conversion between physical quantity time units and Kotlin Duration type,
  * supporting various time units from nanoseconds to days.
  *
  * 支持的数值类型 / Supported number types:
@@ -31,8 +30,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * Duration 转换器接口
  * Duration converter interface
  *
- * 定义从 Duration 转换为特定数值类型的方法。
- * Defines methods for converting Duration to specific number types.
+ * 定义从 Duration 转换为特定数值类型的方法。 / Defines methods for converting Duration to specific number types.
  *
  * @param V 数值类型 / The number type
 */
@@ -48,8 +46,7 @@ interface DurationConverter<V> {
     fun fromDouble(value: Double): Ret<V>
 
     /**
-     * 将数值转换为 Double（秒为单位）
-     * Convert number to Double (in seconds)
+     * 将数值转换为 Double（秒为单位） / Convert number to Double (in seconds)
      *
      * @param value 数值 / The number value
      * @return Double 值（秒） / The Double value in seconds
@@ -57,8 +54,7 @@ interface DurationConverter<V> {
     fun toDoubleSeconds(value: V): Double
 
     /**
-     * 获取数值的零值
-     * Get zero value of the number type
+     * 获取数值的零值 / Get zero value of the number type
      *
      * @return 零值 / The zero value
     */
@@ -70,8 +66,7 @@ interface DurationConverter<V> {
 // ============================================================================
 
 /**
- * Flt64 转换器
- * Flt64 converter
+ * Flt64 转换器 / Flt64 converter
 */
 object Flt64DurationConverter : DurationConverter<Flt64> {
     override fun fromDouble(value: Double): Ret<Flt64> = Ok(Flt64(value))
@@ -90,8 +85,7 @@ object FltXDurationConverter : DurationConverter<FltX> {
 }
 
 /**
- * Int64 转换器
- * Int64 converter
+ * Int64 转换器 / Int64 converter
 */
 object Int64DurationConverter : DurationConverter<Int64> {
     override fun fromDouble(value: Double): Ret<Int64> = Ok(Int64(value.toLong()))
@@ -146,8 +140,7 @@ object UIntXDurationConverter : DurationConverter<UIntX> {
 // ============================================================================
 
 /**
- * 转换器缓存
- * Converter cache
+ * 转换器缓存 / Converter cache
 */
 private val converters = mutableMapOf<Class<*>, DurationConverter<*>>(
     Flt64::class.java to Flt64DurationConverter,
@@ -166,8 +159,7 @@ private fun <V> DurationConverter<*>.asDurationConverter(): DurationConverter<V>
 }
 
 /**
- * 获取指定类型的转换器
- * Get converter for specified type
+ * 获取指定类型的转换器 / Get converter for specified type
  *
  * @param V 数值类型 / The number type
  * @param valueClass 数值类型的 Class 对象 / The Class object of the number type
@@ -233,8 +225,7 @@ fun <V> Quantity<V>.toDuration(): Ret<Duration> where V : RealNumber<V> {
 }
 
 /**
- * 将时间物理量转换为指定单位的 Duration
- * Convert time quantity to kotlin.time.Duration in specified unit
+ * 将时间物理量转换为指定单位的 Duration / Convert time quantity to kotlin.time.Duration in specified unit
  *
  * @param V 数值类型 / The number type
  * @param unit 目标 Duration 单位 / The target Duration unit
@@ -256,8 +247,7 @@ fun <V> Quantity<V>.toDuration(unit: DurationUnit): Ret<Duration> where V : Real
 // ============================================================================
 
 /**
- * 将 Duration 转换为指定时间单位的时间物理量（泛型版本）
- * Convert Duration to time quantity in specified unit (generic version)
+ * 将 Duration 转换为指定时间单位的时间物理量（泛型版本） / Convert Duration to time quantity in specified unit (generic version)
  *
  * 示例 / Example:
  * ```kotlin
@@ -306,8 +296,7 @@ inline fun <reified V> Duration.toQuantity(unit: PhysicalUnit): Ret<Quantity<V>>
 }
 
 /**
- * 将 Duration 转换为指定时间单位的时间物理量（显式转换器版本）
- * Convert Duration to time quantity with explicit converter
+ * 将 Duration 转换为指定时间单位的时间物理量（显式转换器版本） / Convert Duration to time quantity with explicit converter
  *
  * 用于非 reified 场景 / For non-reified scenarios
  *
@@ -529,11 +518,9 @@ fun Duration.toQuantityDaysUIntX(): Ret<Quantity<UIntX>> = toQuantityUIntX(Day)
 // ============================================================================
 
 /**
- * 将 Duration 转换为最佳时间单位的时间物理量（泛型版本）
- * Convert Duration to time quantity in the best fitting unit (generic version)
+ * 将 Duration 转换为最佳时间单位的时间物理量（泛型版本） / Convert Duration to time quantity in the best fitting unit (generic version)
  *
- * 自动选择最合适的单位以避免数值过大或过小。
- * Automatically selects the most appropriate unit to avoid very large or small values.
+ * 自动选择最合适的单位以避免数值过大或过小。 / Automatically selects the most appropriate unit to avoid very large or small values.
  *
  * 示例 / Example:
  * ```kotlin
@@ -581,8 +568,7 @@ inline fun <reified V> Duration.toQuantityBestFit(threshold: Double = 1000.0): R
 }
 
 /**
- * 将 Duration 转换为 Flt64 最佳单位时间物理量
- * Convert Duration to Flt64 time quantity with best fit unit
+ * 将 Duration 转换为 Flt64 最佳单位时间物理量 / Convert Duration to Flt64 time quantity with best fit unit
  *
  * @param threshold 单位切换阈值，默认为 1000.0 / Unit switching threshold, defaults to 1000.0
  * @return 以最佳单位表示的 Flt64 时间物理量，或错误 / Flt64 time quantity in best fit unit, or an error
@@ -592,8 +578,7 @@ fun Duration.toQuantityBestFitFlt64(threshold: Double = 1000.0): Ret<Quantity<Fl
 }
 
 /**
- * 将 Duration 转换为 FltX 最佳单位时间物理量
- * Convert Duration to FltX time quantity with best fit unit
+ * 将 Duration 转换为 FltX 最佳单位时间物理量 / Convert Duration to FltX time quantity with best fit unit
  *
  * @param threshold 单位切换阈值，默认为 1000.0 / Unit switching threshold, defaults to 1000.0
  * @return 以最佳单位表示的 FltX 时间物理量，或错误 / FltX time quantity in best fit unit, or an error
@@ -603,8 +588,7 @@ fun Duration.toQuantityBestFitFltX(threshold: Double = 1000.0): Ret<Quantity<Flt
 }
 
 /**
- * 将 Duration 转换为 Int64 最佳单位时间物理量
- * Convert Duration to Int64 time quantity with best fit unit
+ * 将 Duration 转换为 Int64 最佳单位时间物理量 / Convert Duration to Int64 time quantity with best fit unit
  *
  * @param threshold 单位切换阈值，默认为 1000.0 / Unit switching threshold, defaults to 1000.0
  * @return 以最佳单位表示的 Int64 时间物理量，或错误 / Int64 time quantity in best fit unit, or an error
@@ -614,8 +598,7 @@ fun Duration.toQuantityBestFitInt64(threshold: Double = 1000.0): Ret<Quantity<In
 }
 
 /**
- * 将 Duration 转换为 UInt64 最佳单位时间物理量
- * Convert Duration to UInt64 time quantity with best fit unit
+ * 将 Duration 转换为 UInt64 最佳单位时间物理量 / Convert Duration to UInt64 time quantity with best fit unit
  *
  * @param threshold 单位切换阈值，默认为 1000.0 / Unit switching threshold, defaults to 1000.0
  * @return 以最佳单位表示的 UInt64 时间物理量，或错误 / UInt64 time quantity in best fit unit, or an error
@@ -629,22 +612,19 @@ fun Duration.toQuantityBestFitUInt64(threshold: Double = 1000.0): Ret<Quantity<U
 // ============================================================================
 
 /**
- * Duration 的 Flt64 纳秒值作为时间物理量
- * Duration value in nanoseconds as Flt64 time quantity
+ * Duration 的 Flt64 纳秒值作为时间物理量 / Duration value in nanoseconds as Flt64 time quantity
 */
 val Duration.inNanosecondsQuantityFlt64: Ret<Quantity<Flt64>>
     get() = toQuantityFlt64(Nanosecond)
 
 /**
- * Duration 的 Flt64 微秒值作为时间物理量
- * Duration value in microseconds as Flt64 time quantity
+ * Duration 的 Flt64 微秒值作为时间物理量 / Duration value in microseconds as Flt64 time quantity
 */
 val Duration.inMicrosecondsQuantityFlt64: Ret<Quantity<Flt64>>
     get() = toQuantityFlt64(Microsecond)
 
 /**
- * Duration 的 Flt64 毫秒值作为时间物理量
- * Duration value in milliseconds as Flt64 time quantity
+ * Duration 的 Flt64 毫秒值作为时间物理量 / Duration value in milliseconds as Flt64 time quantity
 */
 val Duration.inMillisecondsQuantityFlt64: Ret<Quantity<Flt64>>
     get() = toQuantityFlt64(Millisecond)
@@ -657,15 +637,13 @@ val Duration.inSecondsQuantityFlt64: Ret<Quantity<Flt64>>
     get() = toQuantityFlt64(Second)
 
 /**
- * Duration 的 Flt64 分钟值作为时间物理量
- * Duration value in minutes as Flt64 time quantity
+ * Duration 的 Flt64 分钟值作为时间物理量 / Duration value in minutes as Flt64 time quantity
 */
 val Duration.inMinutesQuantityFlt64: Ret<Quantity<Flt64>>
     get() = toQuantityFlt64(Minute)
 
 /**
- * Duration 的 Flt64 小时值作为时间物理量
- * Duration value in hours as Flt64 time quantity
+ * Duration 的 Flt64 小时值作为时间物理量 / Duration value in hours as Flt64 time quantity
 */
 val Duration.inHoursQuantityFlt64: Ret<Quantity<Flt64>>
     get() = toQuantityFlt64(Hour)
@@ -739,3 +717,32 @@ val Duration.inHoursQuantityUInt64: Ret<Quantity<UInt64>> get() = toQuantityUInt
 
 /** Duration 的 UInt64 天值作为时间物理量 / Duration value in days as UInt64 time quantity */
 val Duration.inDaysQuantityUInt64: Ret<Quantity<UInt64>> get() = toQuantityUInt64(Day)
+
+// ============================================================================
+// PhysicalUnit -> DurationUnit 转换 / PhysicalUnit to DurationUnit conversion
+// ============================================================================
+
+/**
+ * 将物理量时间单位转换为 kotlin.time.DurationUnit
+ * Convert physical quantity time unit to kotlin.time.DurationUnit
+ *
+ * 对于 Week、Year 等无对应 DurationUnit 的单位返回 null。 / Returns null for units like Week and Year that have no corresponding DurationUnit.
+ *
+ * 示例 / Example:
+ * ```kotlin
+ * val unit = Hour.toDurationUnit()  // DurationUnit.HOURS
+ * val unit2 = Week.toDurationUnit() // null
+ * ```
+ *
+ * @return 对应的 DurationUnit，或 null / The corresponding DurationUnit, or null
+*/
+fun PhysicalUnit.toDurationUnit(): DurationUnit? = when (this) {
+    Nanosecond  -> DurationUnit.NANOSECONDS
+    Microsecond -> DurationUnit.MICROSECONDS
+    Millisecond -> DurationUnit.MILLISECONDS
+    Second      -> DurationUnit.SECONDS
+    Minute      -> DurationUnit.MINUTES
+    Hour        -> DurationUnit.HOURS
+    Day         -> DurationUnit.DAYS
+    else        -> null
+}

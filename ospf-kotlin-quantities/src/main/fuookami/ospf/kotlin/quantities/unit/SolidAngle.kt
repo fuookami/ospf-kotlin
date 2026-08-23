@@ -1,8 +1,7 @@
 /**
  * 立体角单位 / Solid angle units
  *
- * 用于测量三维空间中角度的单位。
- * Units for measuring angles in three-dimensional space.
+ * 用于测量三维空间中角度的单位。 / Units for measuring angles in three-dimensional space.
  *
  * 单位常量来源 / Unit constant sources:
  * - Steradian: SI导出单位，定义为半径为1的球面上面积为1的球面所对的立体角 / SI derived unit, defined as the solid angle subtended by a surface of area 1 on a sphere of radius 1
@@ -16,8 +15,7 @@ import fuookami.ospf.kotlin.quantities.dimension.SolidAngle
 /**
  * 球面度（基本单位）/ Steradian (base unit)
  *
- * 立体角的SI导出单位，定义为半径为1的球面上面积为1的球面所对的立体角。
- * The SI derived unit of solid angle, defined as the solid angle subtended by a surface
+ * 立体角的SI导出单位，定义为半径为1的球面上面积为1的球面所对的立体角。 / The SI derived unit of solid angle, defined as the solid angle subtended by a surface
  * of area 1 on a sphere of radius 1.
  *
  * 符号 / Symbol: sr
@@ -41,8 +39,7 @@ object Steradian : PhysicalUnit() {
 /**
  * 平方度 / Square degree
  *
- * 以平方度表示的立体角单位。
- * A solid angle unit expressed in square degrees.
+ * 以平方度表示的立体角单位。 / A solid angle unit expressed in square degrees.
  *
  * 符号 / Symbol: deg²
  * 换算关系 / Conversion: 1 deg² = (π/180)² sr ≈ 0.000304617 sr, 1 sr = (180/π)² deg² ≈ 3282.806 deg²

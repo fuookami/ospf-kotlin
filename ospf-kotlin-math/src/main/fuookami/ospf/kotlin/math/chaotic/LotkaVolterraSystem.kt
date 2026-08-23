@@ -47,7 +47,7 @@ data class LotkaVolterraSystem<V : FloatingNumber<V>>(val a: V, val b: V, val c:
  * Lotka-Volterra 系统生成器，通过迭代产生捕食者-猎物动力学序列。
  *
  * @property attractor the Lotka-Volterra system instance / Lotka-Volterra 系统实例
- * @property _x the internal state variable for iteration / 迭代用的内部状态变量
+ * @property _x 迭代用的内部状态变量 / the internal state variable for iteration
 */
 data class LotkaVolterraSystemGenerator(
     val attractor: LotkaVolterraSystem<Flt64> = LotkaVolterraSystem(),

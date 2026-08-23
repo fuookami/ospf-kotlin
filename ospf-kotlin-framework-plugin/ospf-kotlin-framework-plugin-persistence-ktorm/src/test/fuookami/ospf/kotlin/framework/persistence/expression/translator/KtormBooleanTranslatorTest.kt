@@ -19,9 +19,13 @@ import org.ktorm.expression.UnaryExpressionType
 import org.ktorm.schema.int
 import org.ktorm.schema.Table
 import org.ktorm.schema.varchar
+import fuookami.ospf.kotlin.framework.persistence.fltx
+import fuookami.ospf.kotlin.framework.persistence.ui64
 import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicateDetail
 import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
 import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.utils.error.ExErr
@@ -29,18 +33,24 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 
 @DisplayName("KtormBooleanTranslator Tests / Ktorm 布尔翻译器测试")
 class KtormBooleanTranslatorTest {
+    @JvmInline
+    private value class UserId(val value: Int)
+
     data class Entity(val age: Int)
 
     private object Users : Table<Nothing>("users") {
         val id = int("id")
+            .transform(::UserId, UserId::value)
         val age = int("age")
         val name = varchar("name")
         val status = varchar("status")
         val widthValue = int("width_value")
         val widthUnitSymbol = varchar("width_unit_symbol")
+        val sequence = ui64("sequence")
+        val ratio = fltx("ratio")
     }
 
-    private val resolver: KtormColumnResolver = { path: String ->
+    private val resolver = KtormColumnResolver { path: String ->
         when (path.substringAfterLast(".")) {
             "id" -> Users.id
             "age" -> Users.age
@@ -48,15 +58,47 @@ class KtormBooleanTranslatorTest {
             "status" -> Users.status
             "widthValue" -> Users.widthValue
             "widthUnitSymbol" -> Users.widthUnitSymbol
+            "sequence" -> Users.sequence
+            "ratio" -> Users.ratio
             else -> null
         }
     }
 
-    private val translator = KtormBooleanTranslator(resolver)
+    private val translator = KtormBooleanTranslator(
+        resolveColumn = resolver,
+        targetConstantBinder = { value, target ->
+            when {
+                value is UserId && target == Users.id.sqlType -> {
+                    KtormScalarBinding.forTarget(value, target)
+                }
+                value is UInt64 && target == Users.sequence.sqlType -> {
+                    KtormScalarBinding.forTarget(value, target)
+                }
+                value is FltX && target == Users.ratio.sqlType -> {
+                    KtormScalarBinding.forTarget(value, target)
+                }
+                else -> null
+            }
+        }
+    )
 
     @Nested
     @DisplayName("Comparison Tests / 比较翻译测试")
     inner class ComparisonTests {
+        @Test
+        @DisplayName("should bind value object constants with column SQL type / 值对象常量应复用列 SQL 类型")
+        fun shouldBindValueObjectConstantWithColumnSqlType() {
+            val expr = Comparison(
+                ComparisonOperator.Eq,
+                ScalarReference<UserId>(PropertyPath.parse("id")),
+                ScalarConstant(UserId(7))
+            )
+
+            val translated = translator.translate(expr).valueOrFail().orFail() as BinaryExpression<*>
+
+            assertEquals(Users.id.sqlType, translated.right.sqlType)
+        }
+
         @Test
         @DisplayName("should support lt/le/gt/ge / 应支持 lt/le/gt/ge")
         fun shouldSupportLtLeGtGe() {
@@ -89,6 +131,21 @@ class KtormBooleanTranslatorTest {
 
             val translated = translator.translate(expr).valueOrFail().orFail() as BinaryExpression<Boolean>
             assertEquals(BinaryExpressionType.LESS_THAN, translated.type)
+        }
+
+        @Test
+        @DisplayName("should support constant-constant comparison / 应支持常量-常量比较")
+        fun shouldSupportConstantConstantComparison() {
+            val expr = Comparison(
+                ComparisonOperator.Eq,
+                ScalarConstant(10),
+                ScalarConstant(10)
+            )
+
+            val translated = translator.translate(expr).valueOrFail().orFail() as BinaryExpression<Boolean>
+
+            assertEquals(BinaryExpressionType.EQUAL, translated.type)
+            assertEquals(translated.left.sqlType, translated.right.sqlType)
         }
 
         @Test
@@ -143,6 +200,32 @@ class KtormBooleanTranslatorTest {
             val result = translator.translate(expr).valueOrFail().orFail() as BinaryExpression<Boolean>
 
             assertEquals(BinaryExpressionType.GREATER_THAN, result.type)
+        }
+
+        @Test
+        @DisplayName("should preserve transformed column values / 转换列常量应保留领域值对象")
+        fun shouldBindNumericValueConstants() {
+            val uint64 = translator.translate(
+                Comparison(
+                    ComparisonOperator.Eq,
+                    ScalarReference<UInt64>(PropertyPath.parse("sequence")),
+                    ScalarConstant(UInt64(7UL))
+                )
+            ).valueOrFail().orFail() as BinaryExpression<*>
+            val fltx = translator.translate(
+                Comparison(
+                    ComparisonOperator.Eq,
+                    ScalarReference<FltX>(PropertyPath.parse("ratio")),
+                    ScalarConstant(FltX("1.25"))
+                )
+            ).valueOrFail().orFail() as BinaryExpression<*>
+
+            val uintArgument = uint64.right as org.ktorm.expression.ArgumentExpression<*>
+            val fltArgument = fltx.right as org.ktorm.expression.ArgumentExpression<*>
+            assertEquals(UInt64(7UL), uintArgument.value)
+            assertEquals(FltX("1.25"), fltArgument.value)
+            assertEquals(Users.sequence.sqlType, uintArgument.sqlType)
+            assertEquals(Users.ratio.sqlType, fltArgument.sqlType)
         }
     }
 
@@ -240,7 +323,7 @@ class KtormBooleanTranslatorTest {
             val result = failFastTranslator.translate(BooleanCustom("x"))
 
             assertTrue(result.failed)
-            assertTrue(result is Failed<*, *, *>)
+            assertTrue(result is Failed)
 
             val failed = result as Failed<*, *, *>
             val error = failed.error
@@ -253,6 +336,30 @@ class KtormBooleanTranslatorTest {
             assertEquals(UnsupportedPredicatePolicy.FailFast, detail.policy)
             assertEquals("Ktorm", detail.backendName)
         }
+
+        @Test
+        @DisplayName("nested fail fast should propagate / 嵌套 FailFast 应传播失败")
+        fun nestedFailFastShouldPropagate() {
+            val failFastTranslator = KtormBooleanTranslator(
+                resolver,
+                unsupportedPredicatePolicy = UnsupportedPredicatePolicy.FailFast
+            )
+            val expression = AndExpression(
+                listOf(
+                    Comparison(
+                        ComparisonOperator.Eq,
+                        ScalarReference(PropertyPath.parse("age")),
+                        ScalarConstant(18)
+                    ),
+                    BooleanCustom("unsupported")
+                )
+            )
+
+            val result = failFastTranslator.translate(expression)
+
+            assertTrue(result.failed)
+        }
+
     }
 
     @Nested

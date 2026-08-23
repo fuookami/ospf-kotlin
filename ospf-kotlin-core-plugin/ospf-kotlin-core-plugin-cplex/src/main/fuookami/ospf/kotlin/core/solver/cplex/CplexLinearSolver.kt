@@ -2,23 +2,41 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.cplex
 
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.math.min
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.Duration.Companion.seconds
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.DurationUnit
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import ilog.concert.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import ilog.cplex.IloCplex
 
 /** CPLEX 线性求解器 / CPLEX linear solver */
@@ -38,7 +56,12 @@ class CplexLinearSolver(
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput<Flt64>> {
+    ): Ret<SolveReport<Flt64>> {
+        when (val validation = model.identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         return CplexLinearSolverImpl(
             config = config,
             callBack = callBack,
@@ -62,7 +85,12 @@ class CplexLinearSolver(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
+    ): Ret<Pair<SolveReport<Flt64>, List<List<Flt64>>>> {
+        when (val validation = model.identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
         } else {
@@ -116,7 +144,7 @@ private class CplexLinearSolverImpl(
 ) : CplexSolver() {
     private lateinit var cplexVars: List<IloNumVar>
     private lateinit var cplexConstraints: List<IloRange>
-    private lateinit var output: FeasibleSolverOutput<Flt64>
+    private lateinit var output: SolveReport<Flt64>
 
     private var initialBestObj: Flt64? = null
     private var bestObj: Flt64? = null
@@ -131,7 +159,7 @@ private class CplexLinearSolverImpl(
      * @param model 线性模型视图 / linear model view
      * @return 求解结果 / solving result
     */
-    suspend operator fun invoke(model: LinearTriadModelView): Ret<FeasibleSolverOutput<Flt64>> {
+    suspend operator fun invoke(model: LinearTriadModelView): Ret<SolveReport<Flt64>> {
         val processes = arrayOf(
             { it.init(model.name) },
             { it.dump(model) },
@@ -353,7 +381,10 @@ private class CplexLinearSolverImpl(
                             bestObj = currentObj
                             bestBound = currentBound
                             bestTime = currentTime
-                        } else if (currentTime - bestTime >= notImprovementTime) {
+                        } else if (currentTime - bestTime >= notImprovementTime
+                            && config.interruptibleTime?.let { currentTime >= it } ?: true
+                            && config.interruptibleGap?.let { (currentObj - currentBound).abs() ls it } ?: true
+                        ) {
                             abort()
                         }
                     }
@@ -422,7 +453,7 @@ private class CplexLinearSolverImpl(
      * 执行 CPLEX 求解
      * Execute CPLEX solving
      *
-     * @return the solve result as Try / 以Try包装的求解结果
+     * @return 以Try包装的求解结果 / the solve result as Try
     */
     private suspend fun solve(): Try {
         when (val result = callBack?.execIfContain(
@@ -464,11 +495,11 @@ private class CplexLinearSolverImpl(
         return if (status.succeeded) {
             val obj = Flt64(cplex.objValue) + model.objective.constant
             val possibleBestObj = Flt64(cplex.bestObjValue) + model.objective.constant
-            output = FeasibleSolverOutput<Flt64>(
-                obj = obj,
-                solution = cplexVars.map { Flt64(cplex.getValue(it)) },
-                time = cplex.cplexTime.seconds,
-                possibleBestObj = possibleBestObj,
+            output = status.toSolveReport(
+                objective = obj,
+                values = cplexVars.map { Flt64(cplex.getValue(it)) },
+                solveTime = cplex.cplexTime.seconds,
+                bestBound = possibleBestObj,
                 gap = if (cplex.isMIP) {
                     gap(obj, possibleBestObj)
                 } else {

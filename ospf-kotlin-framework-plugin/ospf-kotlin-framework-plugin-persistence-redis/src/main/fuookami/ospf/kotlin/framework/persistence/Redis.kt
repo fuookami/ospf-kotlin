@@ -1,11 +1,9 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /**
- * Redis 客户端管理
- * Redis client management
+ * Redis 客户端管理 / Redis client management
  *
- * 提供 Redis 客户端的初始化、管理和常用数据结构操作扩展函数。
- * Provides Redis client initialization, management, and common data structure operation extension functions.
+ * 提供 Redis 客户端的初始化、管理和常用数据结构操作扩展函数。 / Provides Redis client initialization, management, and common data structure operation extension functions.
 */
 package fuookami.ospf.kotlin.framework.persistence
 
@@ -29,8 +27,7 @@ data class RedisClientKey(
 )
 
 /**
- * Redis 配置构建器
- * Redis configuration builder
+ * Redis 配置构建器 / Redis configuration builder
  *
  * @property urls Redis 哨兵地址列表 / Redis sentinel URL list
  * @property name 客户端名称 / Client name
@@ -103,19 +100,16 @@ data class RedisClient(
 }
 
 /**
- * Redis 客户端管理器
- * Redis client manager
+ * Redis 客户端管理器 / Redis client manager
  *
- * 管理多个 Redis 连接池实例，按名称和数据库编号索引。
- * Manages multiple Redis connection pool instances, indexed by name and database number.
+ * 管理多个 Redis 连接池实例，按名称和数据库编号索引。 / Manages multiple Redis connection pool instances, indexed by name and database number.
 */
 object Redis {
     @get:Synchronized
     private val clients: MutableMap<RedisClientKey, Pool<Jedis>> = HashMap()
 
     /**
-     * 初始化并获取 Redis 客户端
-     * Initialize and get Redis client
+     * 初始化并获取 Redis 客户端 / Initialize and get Redis client
      *
      * @param builder 配置构建器 lambda / Configuration builder lambda
      * @return Redis 客户端实例，初始化失败时返回 null / Redis client instance, or null if initialization fails
@@ -128,8 +122,7 @@ object Redis {
     }
 
     /**
-     * 获取或创建 Redis 客户端
-     * Get or create Redis client
+     * 获取或创建 Redis 客户端 / Get or create Redis client
      *
      * @param config Redis 配置 / Redis configuration
      * @return Redis 客户端实例，创建失败时返回 null / Redis client instance, or null if creation fails
@@ -159,8 +152,7 @@ object Redis {
     }
 
     /**
-     * 按键获取已注册的 Redis 客户端
-     * Get registered Redis client by key
+     * 按键获取已注册的 Redis 客户端 / Get registered Redis client by key
      *
      * @param key 客户端键（为 null 时返回第一个）/ Client key (returns first if null)
      * @return Redis 客户端实例，未找到时返回 null / Redis client instance, or null if not found
@@ -175,8 +167,7 @@ object Redis {
     }
 
     /**
-     * 按名称获取已注册的 Redis 客户端
-     * Get registered Redis client by name
+     * 按名称获取已注册的 Redis 客户端 / Get registered Redis client by name
      *
      * @param name 客户端名称 / Client name
      * @param dataBase 数据库编号（可选）/ Database number (optional)
@@ -193,8 +184,7 @@ object Redis {
 }
 
 /**
- * 设置字符串键值
- * Set string key-value
+ * 设置字符串键值 / Set string key-value
  *
  * @param name 键名 / Key name
  * @param value 值 / Value
@@ -206,8 +196,7 @@ fun RedisClient.set(name: String, value: String, ex: Duration = 1.days) {
 }
 
 /**
- * 设置列表键值
- * Set list key-value
+ * 设置列表键值 / Set list key-value
  *
  * @param name 键名 / Key name
  * @param value 值列表 / Value list
@@ -220,8 +209,7 @@ fun RedisClient.set(name: String, value: List<String>, ex: Duration = 1.days) {
 }
 
 /**
- * 设置集合键值
- * Set set key-value
+ * 设置集合键值 / Set set key-value
  *
  * @param name 键名 / Key name
  * @param value 值集合 / Value set
@@ -234,8 +222,7 @@ fun RedisClient.set(name: String, value: Set<String>, ex: Duration = 1.days) {
 }
 
 /**
- * 设置哈希表键值
- * Set hash map key-value
+ * 设置哈希表键值 / Set hash map key-value
  *
  * @param name 键名 / Key name
  * @param value 值映射 / Value map
@@ -248,8 +235,7 @@ fun RedisClient.set(name: String, value: Map<String, String>, ex: Duration = 1.d
 }
 
 /**
- * 设置序列化对象键值（使用默认序列化器）
- * Set serialized object key-value (using default serializer)
+ * 设置序列化对象键值（使用默认序列化器） / Set serialized object key-value (using default serializer)
  *
  * @param T 对象类型 / Object type
  * @param name 键名 / Key name
@@ -265,8 +251,7 @@ inline fun <reified T : Any> RedisClient.set(name: String, value: T, ex: Duratio
 }
 
 /**
- * 设置序列化对象键值（使用自定义序列化函数）
- * Set serialized object key-value (using custom serialization function)
+ * 设置序列化对象键值（使用自定义序列化函数） / Set serialized object key-value (using custom serialization function)
  *
  * @param T 对象类型 / Object type
  * @param name 键名 / Key name
@@ -281,8 +266,7 @@ fun <T> RedisClient.set(name: String, serializer: (T) -> String, value: T, ex: D
 }
 
 /**
- * 获取字符串值
- * Get string value
+ * 获取字符串值 / Get string value
  *
  * @param name 键名 / Key name
  * @return 值，不存在时返回 null / Value, or null if not exists
@@ -292,8 +276,7 @@ fun RedisClient.get(name: String): String? {
 }
 
 /**
- * 获取列表值
- * Get list value
+ * 获取列表值 / Get list value
  *
  * @param name 键名 / Key name
  * @return 值列表，不存在时返回 null / Value list, or null if not exists
@@ -303,8 +286,7 @@ fun RedisClient.getList(name: String): List<String>? {
 }
 
 /**
- * 获取集合值
- * Get set value
+ * 获取集合值 / Get set value
  *
  * @param name 键名 / Key name
  * @return 值集合，不存在时返回 null / Value set, or null if not exists
@@ -314,8 +296,7 @@ fun RedisClient.getSet(name: String): Set<String>? {
 }
 
 /**
- * 获取哈希表值
- * Get hash map value
+ * 获取哈希表值 / Get hash map value
  *
  * @param name 键名 / Key name
  * @return 值映射，不存在时返回 null / Value map, or null if not exists
@@ -325,8 +306,7 @@ fun RedisClient.getMap(name: String): Map<String, String>? {
 }
 
 /**
- * 获取反序列化对象（使用默认反序列化器）
- * Get deserialized object (using default deserializer)
+ * 获取反序列化对象（使用默认反序列化器） / Get deserialized object (using default deserializer)
  *
  * @param T 对象类型 / Object type
  * @param name 键名 / Key name
@@ -341,8 +321,7 @@ inline fun <reified T : Any> RedisClient.getObj(name: String): T? {
 }
 
 /**
- * 获取反序列化对象（使用自定义反序列化函数）
- * Get deserialized object (using custom deserialization function)
+ * 获取反序列化对象（使用自定义反序列化函数） / Get deserialized object (using custom deserialization function)
  *
  * @param T 对象类型 / Object type
  * @param name 键名 / Key name
@@ -368,8 +347,7 @@ data class RedisContext(
 }
 
 /**
- * 使用默认 Redis 客户端执行操作
- * Execute operation using default Redis client
+ * 使用默认 Redis 客户端执行操作 / Execute operation using default Redis client
  *
  * @param block 操作块 / Operation block
 */
@@ -382,8 +360,7 @@ fun useRedis(block: RedisContext.() -> Unit) {
 }
 
 /**
- * 使用指定键的 Redis 客户端执行操作
- * Execute operation using Redis client by key
+ * 使用指定键的 Redis 客户端执行操作 / Execute operation using Redis client by key
  *
  * @param key 客户端键 / Client key
  * @param block 操作块 / Operation block
@@ -397,8 +374,7 @@ fun useRedis(key: RedisClientKey, block: RedisContext.() -> Unit) {
 }
 
 /**
- * 使用指定名称的 Redis 客户端执行操作
- * Execute operation using Redis client by name
+ * 使用指定名称的 Redis 客户端执行操作 / Execute operation using Redis client by name
  *
  * @param name 客户端名称 / Client name
  * @param block 操作块 / Operation block
@@ -412,8 +388,7 @@ fun useRedis(name: String, block: RedisContext.() -> Unit) {
 }
 
 /**
- * 使用指定名称和数据库编号的 Redis 客户端执行操作
- * Execute operation using Redis client by name and database number
+ * 使用指定名称和数据库编号的 Redis 客户端执行操作 / Execute operation using Redis client by name and database number
  *
  * @param name 客户端名称 / Client name
  * @param database 数据库编号 / Database number

@@ -20,8 +20,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
  * Computes the next reduced-cost cutoff for column pruning.
  * 计算列剪枝的下一个约简成本阈值
  *
- * @param maximumReducedCost Current maximum reduced cost / 当前最大约简成本
- * @return Next reduced-cost cutoff value / 下一个约简成本阈值
+ * @param maximumReducedCost 当前最大约简成本 / Current maximum reduced cost
+ * @return 下一个约简成本阈值 / Next reduced-cost cutoff value
 */
 private fun nextReducedCostCutoff(maximumReducedCost: Flt64): Flt64 {
     val reducedCostCutoff = maximumReducedCost.floor().toInt64() * Int64(2L) / Int64(3L)
@@ -32,15 +32,15 @@ private fun nextReducedCostCutoff(maximumReducedCost: Flt64): Flt64 {
  * Abstract bunch compilation aggregation.
  * 抽象任务束编译聚合
  *
- * @param B Bunch type / 任务束类型
- * @param V Numeric type / 数值类型
- * @param T Task type / 任务类型
- * @param E Executor type / 执行器类型
- * @param A Assignment policy type / 分配策略类型
- * @param tasks List of tasks / 任务列表
- * @param executors List of executors / 执行器列表
- * @param lockCancelTasks Set of locked cancel tasks / 锁定取消任务集合
- * @param withExecutorLeisure Whether to include executor leisure / 是否包含执行器空闲
+ * @param B 任务束类型 / Bunch type
+ * @param V 数值类型 / Numeric type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param tasks 任务列表 / List of tasks
+ * @param executors 执行器列表 / List of executors
+ * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
+ * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
 */
 abstract class AbstractBunchCompilationAggregation<
         B : AbstractTaskBunch<T, E, A, V>,
@@ -425,10 +425,10 @@ abstract class AbstractBunchCompilationAggregation<
 /**
  * Extracts bunches matching the given predicate from the solved model.
  * 从已求解的模型中提取满足给定谓词的任务束。
- * @param iteration Iteration number / 迭代编号
- * @param model Solved linear meta model / 已求解的线性元模型
- * @param predicate Filter predicate on the token result value / 对令牌结果值的过滤谓词
- * @return Map of matching bunches to their solution values / 匹配的任务束到其解值的映射
+ * @param iteration 迭代编号 / Iteration number
+ * @param model 已求解的线性元模型 / Solved linear meta model
+ * @param predicate 对令牌结果值的过滤谓词 / Filter predicate on the token result value
+ * @return 匹配的任务束到其解值的映射 / Map of matching bunches to their solution values
 */
     private fun extractBunches(
         iteration: UInt64,
@@ -537,8 +537,7 @@ open class BunchCompilationAggregationWithTime<
     )
 
     /**
-     * 通过 solver 时间窗口边界创建带时间的任务束编译聚合 /
-     * Create bunch compilation aggregation with time from a solver time-window boundary
+     * 通过 solver 时间窗口边界创建带时间的任务束编译聚合 / / Create bunch compilation aggregation with time from a solver time-window boundary
      *
      * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
      * @param tasks 任务列表 / List of tasks

@@ -1,6 +1,5 @@
 /**
- * 求解值验证函数
- * Solve value validation functions
+ * 求解值验证函数 / Solve value validation functions
 */
 package fuookami.ospf.kotlin.core.solver.value
 
@@ -10,8 +9,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.intermediate.*
 
 /**
- * 验证 Flt64 值是否符合转换策略要求。
- * Validate whether a Flt64 value meets the conversion policy requirements.
+ * 验证 Flt64 值是否符合转换策略要求。 / Validate whether a Flt64 value meets the conversion policy requirements.
  *
  * @param value 待验证的值 / Value to validate
  * @param policy 转换策略 / Conversion policy
@@ -36,8 +34,7 @@ fun validateSolverFlt64Value(
 }
 
 /**
- * 验证 Flt64 边界值是否符合转换策略要求（允许无穷大）。
- * Validate whether a Flt64 bound value meets the conversion policy requirements (allowing infinity).
+ * 验证 Flt64 边界值是否符合转换策略要求（允许无穷大）。 / Validate whether a Flt64 bound value meets the conversion policy requirements (allowing infinity).
  *
  * @param value 待验证的边界值 / Bound value to validate
  * @param policy 转换策略 / Conversion policy
@@ -67,8 +64,7 @@ fun validateSolverFlt64Bound(
 }
 
 /**
- * 验证线性模型的所有值是否符合转换策略要求。
- * Validate all values in a linear model against the conversion policy.
+ * 验证线性模型的所有值是否符合转换策略要求。 / Validate all values in a linear model against the conversion policy.
  *
  * @param model 线性三元模型视图 / Linear triad model view
  * @param policy 转换策略 / Conversion policy
@@ -160,8 +156,7 @@ fun validateLinearModelValueConversion(
 }
 
 /**
- * 验证二次模型的所有值是否符合转换策略要求。
- * Validate all values in a quadratic model against the conversion policy.
+ * 验证二次模型的所有值是否符合转换策略要求。 / Validate all values in a quadratic model against the conversion policy.
  *
  * @param model 二次四元模型视图 / Quadratic tetrad model view
  * @param policy 转换策略 / Conversion policy

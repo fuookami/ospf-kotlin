@@ -1,17 +1,14 @@
 /**
- * 词法单元
- * Token
+ * 词法单元 / Token
  *
- * 定义布尔表达式解析器使用的词法单元类型。
- * Defines token types used in the boolean expression parser.
+ * 定义布尔表达式解析器使用的词法单元类型。 / Defines token types used in the boolean expression parser.
 */
 package fuookami.ospf.kotlin.math.symbol.expression.parser
 
 import fuookami.ospf.kotlin.math.symbol.expression.*
 
 /**
- * 词法单元类型
- * Token Type
+ * 词法单元类型 / Token Type
 */
 enum class TokenType {
     // 字面里/ Literals
@@ -138,11 +135,9 @@ enum class TokenType {
 }
 
 /**
- * 词法单元
- * Token
+ * 词法单元 / Token
  *
- * 表示词法分析器输出的单个词法单元。
- * Represents a single token output by the lexer.
+ * 表示词法分析器输出的单个词法单元。 / Represents a single token output by the lexer.
  *
  * @property type 词法单元类型 / Token type
  * @property value 词法单元的字符串倌/ String value of the token
@@ -161,8 +156,7 @@ data class Token(
 
     companion object {
         /**
-         * 创建 EOF 词法单元
-         * Create EOF token
+         * 创建 EOF 词法单元 / Create EOF token
          *
          * @param position 位置索引 / Position index
          * @return EOF 词法单元 / EOF token
@@ -170,8 +164,7 @@ data class Token(
         fun eof(position: Int = 0): Token = Token(TokenType.EOF, "", position)
 
         /**
-         * 创建未知词法单元
-         * Create unknown token
+         * 创建未知词法单元 / Create unknown token
          *
          * @param value 未知值 / Unknown value
          * @param position 位置索引 / Position index
@@ -182,8 +175,7 @@ data class Token(
 }
 
 /**
- * 判断词法单元是否是比较操作符
- * Check if token is a comparison operator
+ * 判断词法单元是否是比较操作符 / Check if token is a comparison operator
  *
  * @return 是否是比较操作符 / Whether it is a comparison operator
 */
@@ -192,8 +184,7 @@ fun Token.isComparisonOperator(): Boolean = type in listOf(
 )
 
 /**
- * 判断词法单元是否是模式匹配操作符
- * Check if token is a pattern match operator
+ * 判断词法单元是否是模式匹配操作符 / Check if token is a pattern match operator
  *
  * @return 是否是模式匹配操作符 / Whether it is a pattern match operator
 */
@@ -202,8 +193,7 @@ fun Token.isPatternOperator(): Boolean = type in listOf(
 )
 
 /**
- * 将词法单元类型转换为比较操作符
- * Convert token type to comparison operator
+ * 将词法单元类型转换为比较操作符 / Convert token type to comparison operator
  *
  * @return 比较操作符，不支持时返回 null / Comparison operator, null if not supported
 */
@@ -218,8 +208,7 @@ fun TokenType.toComparisonOperator(): ComparisonOperator? = when (this) {
 }
 
 /**
- * 将词法单元类型转换为模式匹配模式
- * Convert token type to pattern match mode
+ * 将词法单元类型转换为模式匹配模式 / Convert token type to pattern match mode
  *
  * @return 模式匹配模式，不支持时返回 null / Pattern match mode, null if not supported
 */

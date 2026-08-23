@@ -1,9 +1,7 @@
 /**
- * 常见爱因斯坦运算实现
- * Common Einstein operations implementation
+ * 常见爱因斯坦运算实现 / Common Einstein operations implementation
  *
- * 提供矩阵乘法、点积、迹等常见运算的便捷函数。
- * Provides convenience functions for common operations like matrix multiplication, dot product, and trace.
+ * 提供矩阵乘法、点积、迹等常见运算的便捷函数。 / Provides convenience functions for common operations like matrix multiplication, dot product, and trace.
 */
 package fuookami.ospf.kotlin.multiarray.einsum
 
@@ -16,8 +14,7 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
- * 构建 einsum 操作失败结果。
- * Build einsum operation failure result.
+ * 构建 einsum 操作失败结果。 / Build einsum operation failure result.
  *
  * @param error einsum 错误 / Einsum error
  * @return 失败的 Ret 结果 / Failed Ret result
@@ -28,8 +25,7 @@ internal fun <T> einsumFailed(error: EinsumError): Ret<T> {
 }
 
 /**
- * 构建 einsum 操作失败结果。
- * Build einsum operation failure result.
+ * 构建 einsum 操作失败结果。 / Build einsum operation failure result.
  *
  * @param message 错误描述 / Error description
  * @return 失败的 Ret 结果 / Failed Ret result
@@ -56,11 +52,9 @@ internal inline fun <reified T : Ring<T>> defaultZero(): Ret<T> {
 // ============================================================================
 
 /**
- * 矩阵乘法
- * Matrix multiplication
+ * 矩阵乘法 / Matrix multiplication
  *
- * 计算 C = A @ B，其中 A 的形状为 [m, k]，B 的形状为 [k, n]，结果 C 的形状为 [m, n]。
- * Computes C = A @ B, where A has shape [m, k], B has shape [k, n], and result C has shape [m, n].
+ * 计算 C = A @ B，其中 A 的形状为 [m, k]，B 的形状为 [k, n]，结果 C 的形状为 [m, n]。 / Computes C = A @ B, where A has shape [m, k], B has shape [k, n], and result C has shape [m, n].
  *
  * 爱因斯坦表示法：A_ij * B_jk -> C_ik
  * Einstein notation: A_ij * B_jk -> C_ik
@@ -143,11 +137,9 @@ fun <T : Ring<T>> matmul(
 }
 
 /**
- * 矩阵乘法（使用默认零值）
- * Matrix multiplication (using default zero)
+ * 矩阵乘法（使用默认零值） / Matrix multiplication (using default zero)
  *
- * 要求元素类型有默认零值。
- * Requires element type to have default zero value.
+ * 要求元素类型有默认零值。 / Requires element type to have default zero value.
  *
  * @param a 左矩阌
  * @param b 右矩阌
@@ -169,14 +161,11 @@ inline fun <reified T : Ring<T>> matmul(
 // ============================================================================
 
 /**
- * 向量点积
- * Vector dot product
+ * 向量点积 / Vector dot product
  *
- * 计算两个向量的点积（内积）。
- * Computes the dot product (inner product) of two vectors.
+ * 计算两个向量的点积（内积）。 / Computes the dot product (inner product) of two vectors.
  *
- * 爱因斯坦表示法：a_i * b_i -> （标量）
- * Einstein notation: a_i * b_i -> (scalar)
+ * 爱因斯坦表示法：a_i * b_i -> （标量） / Einstein notation: a_i * b_i -> (scalar)
  *
  * 示例 / Example:
  *
@@ -235,8 +224,7 @@ fun <T : Ring<T>> dot(
 }
 
 /**
- * 点积（使用默认零值）
- * Dot product (using default zero)
+ * 点积（使用默认零值） / Dot product (using default zero)
 */
 inline fun <reified T : Ring<T>> dot(
     a: AbstractMultiArray<T, *>,
@@ -254,14 +242,11 @@ inline fun <reified T : Ring<T>> dot(
 // ============================================================================
 
 /**
- * 矩阵迌
- * Matrix trace
+ * 矩阵迌 / Matrix trace
  *
- * 计算方阵的迹（对角元素之和）。
- * Computes the trace of a square matrix (sum of diagonal elements).
+ * 计算方阵的迹（对角元素之和）。 / Computes the trace of a square matrix (sum of diagonal elements).
  *
- * 爱因斯坦表示法：A_ii -> （标量）
- * Einstein notation: A_ii -> (scalar)
+ * 爱因斯坦表示法：A_ii -> （标量） / Einstein notation: A_ii -> (scalar)
  *
  * 示例 / Example:
  *
@@ -306,8 +291,7 @@ fun <T : Ring<T>> trace(
 }
 
 /**
- * 迹（使用默认零值）
- * Trace (using default zero)
+ * 迹（使用默认零值） / Trace (using default zero)
 */
 inline fun <reified T : Ring<T>> trace(a: AbstractMultiArray<T, *>): Ret<T> {
     return when (val zero = defaultZero<T>()) {
@@ -322,14 +306,11 @@ inline fun <reified T : Ring<T>> trace(a: AbstractMultiArray<T, *>): Ret<T> {
 // ============================================================================
 
 /**
- * 向量外积
- * Vector outer product
+ * 向量外积 / Vector outer product
  *
- * 计算两个向量的外积，生成矩阵。
- * Computes the outer product of two vectors, producing a matrix.
+ * 计算两个向量的外积，生成矩阵。 / Computes the outer product of two vectors, producing a matrix.
  *
- * 爱因斯坦表示法：a_i * b_j -> C_ij
- * Einstein notation: a_i * b_j -> C_ij
+ * 爱因斯坦表示法：a_i * b_j -> C_ij / Einstein notation: a_i * b_j -> C_ij
  *
  * 示例 / Example:
  *
@@ -390,8 +371,7 @@ fun <T : Ring<T>> outer(
 }
 
 /**
- * 外积（使用默认零值）
- * Outer product (using default zero)
+ * 外积（使用默认零值） / Outer product (using default zero)
 */
 inline fun <reified T : Ring<T>> outer(
     a: AbstractMultiArray<T, *>,
@@ -409,14 +389,11 @@ inline fun <reified T : Ring<T>> outer(
 // ============================================================================
 
 /**
- * 矩阵转置
- * Matrix transpose
+ * 矩阵转置 / Matrix transpose
  *
- * 返回矩阵的转置。
- * Returns the transpose of a matrix.
+ * 返回矩阵的转置。 / Returns the transpose of a matrix.
  *
- * 爱因斯坦表示法：A_ij -> B_ji
- * Einstein notation: A_ij -> B_ji
+ * 爱因斯坦表示法：A_ij -> B_ji / Einstein notation: A_ij -> B_ji
  *
  * 示例 / Example:
  *
@@ -471,11 +448,9 @@ fun <T : Any> transpose(a: AbstractMultiArray<T, *>): Ret<MultiArray<T, DynShape
 // ============================================================================
 
 /**
- * 沿指定轴的张量缩并
- * Tensor contraction along specified axes
+ * 沿指定轴的张量缩并 / Tensor contraction along specified axes
  *
- * 爱因斯坦表示法中，缩并是对公共索引进行求和的操作。
- * In Einstein notation, contraction is summing over common indices.
+ * 爱因斯坦表示法中，缩并是对公共索引进行求和的操作。 / In Einstein notation, contraction is summing over common indices.
  *
  * 示例 / Example:
  *
@@ -606,8 +581,7 @@ fun <T : Ring<T>> contract(
 }
 
 /**
- * 缩并（使用默认零值）
- * Contract (using default zero)
+ * 缩并（使用默认零值） / Contract (using default zero)
 */
 inline fun <reified T : Ring<T>> contract(
     a: AbstractMultiArray<T, *>,
@@ -627,8 +601,7 @@ inline fun <reified T : Ring<T>> contract(
 // ============================================================================
 
 /**
- * 线性索引转坐标
- * Convert linear index to coordinates
+ * 线性索引转坐标 / Convert linear index to coordinates
  *
  * @param linear 线性索引
  * @param shape 形状列表
@@ -655,8 +628,7 @@ internal fun linearToCoords(linear: Int, shape: List<Int>): List<Int> {
 }
 
 /**
- * 坐标转线性索引
- * Convert coordinates to linear index
+ * 坐标转线性索引 / Convert coordinates to linear index
  *
  * @param coords 坐标列表
  * @param shape 形状列表

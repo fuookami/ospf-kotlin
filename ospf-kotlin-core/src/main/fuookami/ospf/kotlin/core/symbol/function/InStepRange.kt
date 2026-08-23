@@ -25,8 +25,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
  * 步进区间函数：y = lb + floor((ub - lb) / step) * step。
  * In-Step-Range function: `y = lb + floor((ub - lb) / step) * step`.
  *
- * 查找满足以下条件的最大值 y：
- * Finds the largest value y such that:
+ * 查找满足以下条件的最大值 y： / Finds the largest value y such that:
  * - y >= lb
  * - y <= ub
  * - y = lb + n * step，其中 n 为 >= 0 的整数

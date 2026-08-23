@@ -1,8 +1,7 @@
 /**
  * 产能动作生产接口 / Capacity action produce interface
  *
- * 本文件定义 ProductionAction 与产出消耗之间的关系接口，以及相关扩展函数。
- * This file defines the interface between ProductionAction and produce/consumption, along with related extension functions.
+ * 本文件定义 ProductionAction 与产出消耗之间的关系接口，以及相关扩展函数。 / This file defines the interface between ProductionAction and produce/consumption, along with related extension functions.
 */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
@@ -16,8 +15,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * 支持 ProductionAction 的产出消耗接口。
  * Produce/Consumption interface that supports ProductionAction.
  *
- * 此接口定义生产动作与产品产量、原料消耗之间的关系。
- * This interface defines the relationship between production actions and product output/material consumption.
+ * 此接口定义生产动作与产品产量、原料消耗之间的关系。 / This interface defines the relationship between production actions and product output/material consumption.
 */
 interface CapacityActionProduce<
         P : AbstractMaterial,
@@ -26,23 +24,19 @@ interface CapacityActionProduce<
         > {
 
     /**
-     * 生产动作对应的产品产量（单位操作时间的产量）
-     * Product produce per unit operation time
+     * 生产动作对应的产品产量（单位操作时间的产量） / Product produce per unit operation time
     */
     val produce: Map<P, V>
 
     /**
-     * 生产动作对应的原料消耗（单位操作时间的消耗）
-     * Material consumption per unit operation time
+     * 生产动作对应的原料消耗（单位操作时间的消耗） / Material consumption per unit operation time
     */
     val consumption: Map<C, V>
 }
 
 /**
  * 按产品方向读取生产动作的单位产量映射。
- * 生产动作与产出物料类型由对应 column/produce 构造路径绑定。
- *
- * Reads the unit-produce map from a production action for product-side lookup.
+ * 生产动作与产出物料类型由对应 column/produce 构造路径绑定。 / Reads the unit-produce map from a production action for product-side lookup.
  * Production action material types are bound by the corresponding column/produce construction path.
 */
 @Suppress("UNCHECKED_CAST")
@@ -55,9 +49,7 @@ fun <P : AbstractMaterial, V : RealNumber<V>> unitProduceMapOf(
 
 /**
  * 按消耗方向读取生产动作的单位消耗映射。
- * 生产动作与消耗物料类型由对应 column/produce 构造路径绑定。
- *
- * Reads the unit-consumption map from a production action for material-side lookup.
+ * 生产动作与消耗物料类型由对应 column/produce 构造路径绑定。 / Reads the unit-consumption map from a production action for material-side lookup.
  * Production action material types are bound by the corresponding column/produce construction path.
 */
 @Suppress("UNCHECKED_CAST")

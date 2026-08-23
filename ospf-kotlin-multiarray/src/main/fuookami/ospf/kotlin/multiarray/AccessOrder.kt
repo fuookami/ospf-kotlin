@@ -1,12 +1,9 @@
 /**
- * 访问顺序和迭代器模块
- * Access Order and Iterator Module
+ * 访问顺序和迭代器模块 / Access Order and Iterator Module
  *
- * 本模块定义多维数组的访问顺序和迭代器系统。
- * This module defines access order and iterator system for multi-dimensional arrays.
+ * 本模块定义多维数组的访问顺序和迭代器系统。 / This module defines access order and iterator system for multi-dimensional arrays.
  *
- * 主要组件：
- * Main components:
+ * 主要组件： / Main components:
  * - [AccessOrder]: 访问顺序枚举（行主序/列主序）
  *   Access order enum (RowMajor/ColumnMajor)
  * - [MultiIndexIterator]: 多维索引迭代器
@@ -14,15 +11,13 @@
  * - [MultiIndexSequence]: 多维索引序列
  *   Multi-dimensional index sequence
  *
- * 访问顺序：
- * Access order:
+ * 访问顺序： / Access order:
  * - [RowMajor]: 行主序（C 风格），最后一维变化最快
  *   Row-major (C style), last dimension varies fastest
  * - [ColumnMajor]: 列主序（Fortran 风格），第一维变化最快
  *   Column-major (Fortran style), first dimension varies fastest
  *
- * 迭代器特性：
- * Iterator features:
+ * 迭代器特性： / Iterator features:
  * - 返回独立快照，后续迭代不影响历史值
  *   Returns independent snapshots, subsequent iterations don't affect historical values
  * - 正确实现 hasNext/next 契约
@@ -30,8 +25,7 @@
  * - 支持指定访问顺序的迭代
  *   Supports iteration with specified access order
  *
- * 示例：
- * Example:
+ * 示例： / Example:
  * ```kotlin
  * // 按行主序迭代
  * // Iterate in row-major order
@@ -54,11 +48,9 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 访问顺序枚举
- * Access order enum
+ * 访问顺序枚举 / Access order enum
  *
- * 定义多维数组的访问顺序：
- * Defines the access order for multi-dimensional arrays:
+ * 定义多维数组的访问顺序： / Defines the access order for multi-dimensional arrays:
  *
  * - RowMajor: 行优先，最后一个维度变化最快（C 风格）
  *   Row-major, last dimension varies fastest (C style)
@@ -75,11 +67,9 @@ enum class AccessOrder {
 }
 
 /**
- * 迭代器位置
- * Iterator position
+ * 迭代器位置 / Iterator position
  *
- * 用于跟踪多维迭代的状态。
- * Used to track the state of multi-dimensional iteration.
+ * 用于跟踪多维迭代的状态。 / Used to track the state of multi-dimensional iteration.
  *
  * @param positions 各维度的当前位置 / Current position of each dimension
  * @param exhausted 是否已耗尽 / Whether exhausted
@@ -101,11 +91,9 @@ data class IteratorPosition(
 }
 
 /**
- * 多维索引迭代器
- * Multi-dimensional index iterator
+ * 多维索引迭代器 / Multi-dimensional index iterator
  *
- * 按照指定的访问顺序迭代多维索引。
- * Iterates over multi-dimensional indices in the specified access order.
+ * 按照指定的访问顺序迭代多维索引。 / Iterates over multi-dimensional indices in the specified access order.
  *
  * @param shape 数组形状 / Array shape
  * @param accessOrder 访问顺序 / Access order
@@ -153,11 +141,10 @@ class MultiIndexIterator(
     }
 
     /**
-     * 推进到下一个索引
-     * Advance to the next index
+     * 推进到下一个索引 / Advance to the next index
      *
-     * @param v Current multi-dimensional index to advance / 要推进的当前多维索引
-     * @return Next index array, or null if iteration is exhausted / 下一个索引数组，迭代耗尽时返回 null
+     * @param v 要推进的当前多维索引 / Current multi-dimensional index to advance
+     * @return 下一个索引数组，迭代耗尽时返回 null / Next index array, or null if iteration is exhausted
     */
     private fun advance(v: IntArray): IntArray? {
         when (accessOrder) {
@@ -192,16 +179,14 @@ class MultiIndexIterator(
     }
 
     /**
-     * 获取已迭代的元素数量
-     * Get the count of iterated elements
+     * 获取已迭代的元素数量 / Get the count of iterated elements
      *
-     * @return Number of elements iterated so far / 已迭代的元素数量
+     * @return 已迭代的元素数量 / Number of elements iterated so far
     */
     fun count(): Int = count
 
     /**
-     * 重置迭代器
-     * Reset the iterator
+     * 重置迭代器 / Reset the iterator
     */
     fun reset() {
         current = null
@@ -210,8 +195,7 @@ class MultiIndexIterator(
 }
 
 /**
- * 将存储顺序转换为访问顺序
- * Convert storage order to access order
+ * 将存储顺序转换为访问顺序 / Convert storage order to access order
  *
  * @return 对应的访问顺序 / Corresponding access order
 */
@@ -223,8 +207,7 @@ private fun StorageOrder.toAccessOrder(): AccessOrder {
 }
 
 /**
- * 按照存储顺序重新排列元素列表
- * Reorder element list according to storage order
+ * 按照存储顺序重新排列元素列表 / Reorder element list according to storage order
  *
  * @param shape 数组形状 / Array shape
  * @param list 元素列表 / Element list
@@ -245,8 +228,7 @@ private fun <T : Any, S : Shape> reorderToStorageOrder(
 }
 
 /**
- * 多维索引序列
- * Multi-dimensional index sequence
+ * 多维索引序列 / Multi-dimensional index sequence
  *
  * @param shape 数组形状 / Array shape
  * @param accessOrder 访问顺序 / Access order
@@ -261,8 +243,7 @@ class MultiIndexSequence(
 }
 
 /**
- * 创建多维索引序列
- * Create multi-dimensional index sequence
+ * 创建多维索引序列 / Create multi-dimensional index sequence
  *
  * @param order 访问顺序 / Access order
  * @return 多维索引序列 / Multi-dimensional index sequence
@@ -272,8 +253,7 @@ fun Shape.indices(order: AccessOrder = AccessOrder.Default): MultiIndexSequence 
 }
 
 /**
- * 使用指定访问顺序迭代形状
- * Iterate over shape with specified access order
+ * 使用指定访问顺序迭代形状 / Iterate over shape with specified access order
  *
  * @param order 访问顺序 / Access order
  * @return 索引序列 / Index sequence
@@ -283,8 +263,7 @@ fun Shape.iterate(order: AccessOrder = AccessOrder.Default): Sequence<IntArray> 
 }
 
 /**
- * 使用指定访问顺序迭代虚拟向量
- * Iterate over dummy vector with specified access order
+ * 使用指定访问顺序迭代虚拟向量 / Iterate over dummy vector with specified access order
  *
  * @param shape 数组形状 / Array shape
  * @param accessOrder 访问顺序 / Access order
@@ -389,8 +368,7 @@ fun <T : Any, S : Shape> AbstractMultiArray<T, S>.iterWithOrder(
 }
 
 /**
- * 使用指定访问顺序进行枚举迭代
- * Enumerate iteration with specified access order
+ * 使用指定访问顺序进行枚举迭代 / Enumerate iteration with specified access order
  *
  * @param accessOrder 访问顺序 / Access order
  * @return (线性索引, 向量坐标, 元素) 三元组序列 / (linear index, vector, element) triple sequence
@@ -405,8 +383,7 @@ fun <T : Any, S : Shape> AbstractMultiArray<T, S>.enumerateWithOrder(
 }
 
 /**
- * 多维数组展平为列表
- * Flatten multi-dimensional array to list
+ * 多维数组展平为列表 / Flatten multi-dimensional array to list
  *
  * @param accessOrder 访问顺序 / Access order
  * @return 展平后的元素列表 / Flattened element list
@@ -418,8 +395,7 @@ fun <T : Any, S : Shape> AbstractMultiArray<T, S>.flatten(
 }
 
 /**
- * 从列表创建多维数组
- * Create multi-dimensional array from list
+ * 从列表创建多维数组 / Create multi-dimensional array from list
  *
  * @param shape 数组形状 / Array shape
  * @param list 元素列表 / Element list
@@ -439,8 +415,7 @@ fun <T : Any, S : Shape> MultiArray.Companion.fromList(
 }
 
 /**
- * 从列表创建多维数组，失败时返回 null
- * Create multi-dimensional array from list, returning null on failure
+ * 从列表创建多维数组，失败时返回 null / Create multi-dimensional array from list, returning null on failure
  *
  * @param shape 数组形状 / Array shape
  * @param list 元素列表 / Element list
@@ -460,8 +435,7 @@ fun <T : Any, S : Shape> MultiArray.Companion.fromListOrNull(
 }
 
 /**
- * 从列表创建多维数组，失败时返回 Failed
- * Create multi-dimensional array from list, returning Failed on failure
+ * 从列表创建多维数组，失败时返回 Failed / Create multi-dimensional array from list, returning Failed on failure
  *
  * @param shape 数组形状 / Array shape
  * @param list 元素列表 / Element list
@@ -492,8 +466,7 @@ fun <T : Any, S : Shape> MultiArray.Companion.fromListSafe(
 }
 
 /**
- * 从列表创建可变多维数组
- * Create mutable multi-dimensional array from list
+ * 从列表创建可变多维数组 / Create mutable multi-dimensional array from list
  *
  * @param shape 数组形状 / Array shape
  * @param list 元素列表 / Element list
@@ -513,8 +486,7 @@ fun <T : Any, S : Shape> MutableMultiArray.Companion.fromList(
 }
 
 /**
- * 从列表创建可变多维数组，失败时返回 null
- * Create mutable multi-dimensional array from list, returning null on failure
+ * 从列表创建可变多维数组，失败时返回 null / Create mutable multi-dimensional array from list, returning null on failure
  *
  * @param shape 数组形状 / Array shape
  * @param list 元素列表 / Element list
@@ -534,8 +506,7 @@ fun <T : Any, S : Shape> MutableMultiArray.Companion.fromListOrNull(
 }
 
 /**
- * 从列表创建可变多维数组，失败时返回 Failed
- * Create mutable multi-dimensional array from list, returning Failed on failure
+ * 从列表创建可变多维数组，失败时返回 Failed / Create mutable multi-dimensional array from list, returning Failed on failure
  *
  * @param shape 数组形状 / Array shape
  * @param list 元素列表 / Element list

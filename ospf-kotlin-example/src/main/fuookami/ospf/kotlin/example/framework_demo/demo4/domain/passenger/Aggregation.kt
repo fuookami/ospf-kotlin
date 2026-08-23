@@ -16,11 +16,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 /**
  * 乘客域聚合（组合取消、变更和数量跟踪）。Aggregation for passenger domain combining cancel, change, and amount tracking.
  *
- * @property timeWindow Time window for scheduling / 调度时间窗口
- * @property flights List of flight tasks / 航班任务列表
- * @property passengers List of flight-passenger associations / 航班乘客关联列表
- * @property time Task time estimation / 任务时间估算
- * @property capacity Flight capacity / 航班容量
+ * @property timeWindow 调度时间窗口 / Time window for scheduling
+ * @property flights 航班任务列表 / List of flight tasks
+ * @property passengers 航班乘客关联列表 / List of flight-passenger associations
+ * @property time 任务时间估算 / Task time estimation
+ * @property capacity 航班容量 / Flight capacity
 */
 class Aggregation(
     val timeWindow: TimeWindow<*>,
@@ -48,8 +48,8 @@ class Aggregation(
     /**
      * 将取消、变更和数量组件注册到模型中。Registers cancel, change, and amount components with the model.
      *
-     * @param model The linear meta model to register with / 要注册的线性元模型
-     * @return Registration result / 注册结果
+     * @param model 要注册的线性元模型 / The linear meta model to register with
+     * @return 注册结果 / Registration result
     */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = cancel.register(model)) {

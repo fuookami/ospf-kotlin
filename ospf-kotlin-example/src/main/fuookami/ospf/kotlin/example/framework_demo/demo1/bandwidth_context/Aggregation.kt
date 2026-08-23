@@ -12,9 +12,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model
  * Aggregates edge, service, and node bandwidth models and registers them with the optimization model.
  * 聚合边、服务和节点带宽模型，并将其注册到优化模型。
  *
- * @property edgeBandwidth edge bandwidth model / 边带宽模型
- * @property serviceBandwidth service bandwidth model / 服务带宽模型
- * @property nodeBandwidth node bandwidth model / 节点带宽模型
+ * @property edgeBandwidth 边带宽模型 / edge bandwidth model
+ * @property serviceBandwidth 服务带宽模型 / service bandwidth model
+ * @property nodeBandwidth 节点带宽模型 / node bandwidth model
 */
 class Aggregation(
     val edgeBandwidth: EdgeBandwidth,
@@ -26,8 +26,8 @@ class Aggregation(
      * Registers edge bandwidth, service bandwidth, and node bandwidth models to the optimization model.
      * 将边带宽、服务带宽和节点带宽模型注册到优化模型。
      *
-     * @param model the optimization model / 优化模型
-     * @return the registration result / 注册结果
+     * @param model 优化模型 / the optimization model
+     * @return 注册结果 / the registration result
     */
     fun register(model: LinearMetaModel<Flt64>): Try {
         val subprocesses = arrayListOf(

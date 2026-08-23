@@ -1,8 +1,6 @@
 /**
  * Parse result and parse issues
- * 解析结果与解析问题
- *
- * Defines type aliases for polynomial parse results and parse issue types.
+ * 解析结果与解析问题 / Defines type aliases for polynomial parse results and parse issue types.
  * 定义多项式解析的结果类型别名和解析问题类型。
 */
 package fuookami.ospf.kotlin.math.symbol.parse
@@ -34,8 +32,7 @@ enum class ParseIssueType {
 }
 
 /**
- * 解析问题
- * Parse issue
+ * 解析问题 / Parse issue
  *
  * @param type 问题类型 / Issue type
  * @param message 问题描述 / Issue description

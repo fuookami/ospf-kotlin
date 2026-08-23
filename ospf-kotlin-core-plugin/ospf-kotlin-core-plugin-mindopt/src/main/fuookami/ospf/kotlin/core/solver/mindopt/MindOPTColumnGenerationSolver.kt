@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.report.SolveReport
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 
@@ -21,8 +21,8 @@ import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
  *
  * MindOPT 列生成求解器
  *
- * @property config Solver configuration / 求解器配置
- * @property callBack Linear solver callback / 线性求解器回调
+ * @property config 求解器配置 / Solver configuration
+ * @property callBack 线性求解器回调 / Linear solver callback
 */
 class MindOPTColumnGenerationSolver(
     private val config: SolverConfig = SolverConfig(),
@@ -36,7 +36,7 @@ class MindOPTColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput<Flt64>> {
+    ): Ret<SolveReport<Flt64>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
@@ -83,7 +83,7 @@ class MindOPTColumnGenerationSolver(
 
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
-                        metaModel.tokens.setSolution(result.value.solution)
+                        metaModel.tokens.setSolution(result.value.values)
                         jobs.joinAll()
                         Ok(result.value)
                     }
@@ -109,7 +109,7 @@ class MindOPTColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
+    ): Ret<Pair<SolveReport<Flt64>, List<List<Flt64>>>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
@@ -173,8 +173,8 @@ class MindOPTColumnGenerationSolver(
 
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
-                        metaModel.tokens.setSolution(result.value.solution)
-                        results.add(0, result.value.solution)
+                        metaModel.tokens.setSolution(result.value.values)
+                        results.add(0, result.value.values)
                         jobs.joinAll()
                         Ok(Pair(result.value, results))
                     }
@@ -254,7 +254,7 @@ class MindOPTColumnGenerationSolver(
 
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
-                        metaModel.tokens.setSolution(result.value.solution)
+                        metaModel.tokens.setSolution(result.value.values)
                         jobs.joinAll()
                         Ok(
                             ColumnGenerationSolver.LPResult(

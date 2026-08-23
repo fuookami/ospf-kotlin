@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -20,10 +21,10 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 /**
  * 约束沿机身每个检查点的累积载荷重量。Constrains cumulative load weight at each checkpoint along the fuselage.
  *
- * @property aircraftModel The aircraft model providing unit configuration / 提供单位配置的飞机型号
- * @property maxCumulativeLoadWeight The maximum cumulative load weight limits at checkpoints / 各检查点的最大累积载荷重量限制
- * @property positions The list of cargo positions / 货物位置列表
- * @property load The load estimation model / 载荷估算模型
+ * @property aircraftModel 提供单位配置的飞机型号 / The aircraft model providing unit configuration
+ * @property maxCumulativeLoadWeight 各检查点的最大累积载荷重量限制 / The maximum cumulative load weight limits at checkpoints
+ * @property positions 货物位置列表 / The list of cargo positions
+ * @property load 载荷估算模型 / The load estimation model
 */
 class CumulativeLoadWeightLimit(
     private val aircraftModel: AircraftModel,
@@ -38,25 +39,21 @@ class CumulativeLoadWeightLimit(
                 continue
             }
 
-            val poly = MutableLinearPolynomial()
-            for (part in checkPoint.parts) {
+            val poly = sum(checkPoint.parts.map { part ->
                 val j = positions.indexOf(part.position)
-                poly += LinearMonomial(
-                    part.weight,
-                    load.estimateLoadWeight[j].value
-                )
-            }
+                part.weight * load.estimateLoadWeight[j].value
+            })
             when (val result = model.addConstraint(
-                relation = LinearPolynomial(poly.monomials, poly.constant) leq checkPoint.maxSum.to(aircraftModel.weightUnit)!!.value,
+                relation = poly leq checkPoint.maxSum.to(aircraftModel.weightUnit)!!.value,
                 name = "${name}_${checkPoint.zone.name}_${checkPoint.toArm.value}"
             )) {
-                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                is Ok -> {}
 
-                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
             }

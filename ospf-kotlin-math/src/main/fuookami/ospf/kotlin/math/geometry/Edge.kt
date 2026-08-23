@@ -1,10 +1,8 @@
 /**
- * 边
- * Edge
+ * 边 / Edge
  *
  * 定义几何空间中的边数据结构，表示连接两个点的线段。
- * 边是几何图形的基本元素，支持长度计算、中点查找、相交检测等操作。
- * Defines edge data structure in geometric space, representing a line segment connecting two points.
+ * 边是几何图形的基本元素，支持长度计算、中点查找、相交检测等操作。 / Defines edge data structure in geometric space, representing a line segment connecting two points.
  * An edge is a fundamental element of geometric shapes, supporting length calculation, midpoint finding, intersection detection, etc.
 */
 package fuookami.ospf.kotlin.math.geometry
@@ -14,12 +12,10 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 /**
- * 边数据类
- * Edge Data Class
+ * 边数据类 / Edge Data Class
  *
  * 表示连接两个点的线段，支持任意维度和浮点数类型。
- * 提供长度、方向向量、中点等计算功能。
- * Represents a line segment connecting two points, supporting arbitrary dimensions and floating-point types.
+ * 提供长度、方向向量、中点等计算功能。 / Represents a line segment connecting two points, supporting arbitrary dimensions and floating-point types.
  * Provides functionality for length, direction vector, midpoint calculations, etc.
  *
  * @param P 点类型 / Point type
@@ -37,14 +33,12 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     }
 
     /**
-     * 边的长度（欧几里得距离）
-     * The length of the edge (Euclidean distance)
+     * 边的长度（欧几里得距离） / The length of the edge (Euclidean distance)
     */
     val length by lazy { from distance to }
 
     /**
-     * 使用指定距离度量计算长度
-     * Compute length using the specified distance metric
+     * 使用指定距离度量计算长度 / Compute length using the specified distance metric
      *
      * @param distance 距离度量策略，默认为欧几里得距离 / The distance metric strategy, defaults to Euclidean
      * @return 边的长度 / The length of the edge
@@ -80,8 +74,8 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
      * Cast a coordinate list to the point type.
      * 将坐标列表转换为点类型。
      *
-     * @param position the coordinate list / 坐标列表
-     * @return the casted point / 转换后的点
+     * @param position 坐标列表 / the coordinate list
+     * @return 转换后的点 / the casted point
     */
     @Suppress("UNCHECKED_CAST")
     private fun castPoint(position: List<V>): P {
@@ -91,8 +85,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     }
 
     /**
-     * 计算边的中点
-     * Compute the midpoint of the edge
+     * 计算边的中点 / Compute the midpoint of the edge
      *
      * @return 中点 / The midpoint
     */
@@ -103,8 +96,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     }
 
     /**
-     * 计算边上参数 t 处的点
-     * Compute the point at parameter t on the edge
+     * 计算边上参数 t 处的点 / Compute the point at parameter t on the edge
      *
      * @param t 参数值（0 为起点，1 为终点） / The parameter value (0 for start, 1 for end)
      * @return 边上对应位置的点 / The point at the corresponding position on the edge
@@ -114,8 +106,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     }
 
     /**
-     * 判断点是否在边上（含容差）
-     * Check whether a point is on the edge (with tolerance)
+     * 判断点是否在边上（含容差） / Check whether a point is on the edge (with tolerance)
      *
      * @param point 待检测的点 / The point to check
      * @param epsilon 容差值，默认为 decimalPrecision / The tolerance value, defaults to decimalPrecision
@@ -128,8 +119,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     }
 
     /**
-     * 使用默认精度判断两条边是否近似相等（有向）
-     * Check approximate equality with default precision (directed)
+     * 使用默认精度判断两条边是否近似相等（有向） / Check approximate equality with default precision (directed)
      *
      * @param other 另一条边 / The other edge
      * @return 是否近似相等 / Whether approximately equal
@@ -139,8 +129,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     }
 
     /**
-     * 使用指定精度判断两条边是否近似相等（有向）
-     * Check approximate equality with specified precision (directed)
+     * 使用指定精度判断两条边是否近似相等（有向） / Check approximate equality with specified precision (directed)
      *
      * @param other 另一条边 / The other edge
      * @param epsilon 容差值 / The tolerance value
@@ -151,8 +140,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     }
 
     /**
-     * 使用默认精度判断两条边是否近似相等（无向）
-     * Check approximate equality with default precision (undirected)
+     * 使用默认精度判断两条边是否近似相等（无向） / Check approximate equality with default precision (undirected)
      *
      * @param other 另一条边 / The other edge
      * @return 是否近似相等 / Whether approximately equal
@@ -163,8 +151,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     }
 
     /**
-     * 使用指定精度判断两条边是否近似相等（无向）
-     * Check approximate equality with specified precision (undirected)
+     * 使用指定精度判断两条边是否近似相等（无向） / Check approximate equality with specified precision (undirected)
      *
      * @param other 另一条边 / The other edge
      * @param epsilon 容差值 / The tolerance value
@@ -179,8 +166,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
 }
 
 /**
- * 判断两条二维边是否相交
- * Check whether two 2D edges intersect
+ * 判断两条二维边是否相交 / Check whether two 2D edges intersect
  *
  * @param other 另一条边 / The other edge
  * @return 是否相交 / Whether they intersect
@@ -190,8 +176,7 @@ infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.intersects(other: Edge<Point<Dim
 }
 
 /**
- * 计算两条二维边的交点，无交点返回 null
- * Compute intersection point of two 2D edges, returns null if none
+ * 计算两条二维边的交点，无交点返回 null / Compute intersection point of two 2D edges, returns null if none
  *
  * @param other 另一条边 / The other edge
  * @return 交点，无交点返回 null / The intersection point, or null if none
@@ -227,8 +212,7 @@ infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.intersectionPoint(other: Edge<Po
 }
 
 /**
- * 计算边上离给定点最近的点
- * Compute the closest point on the edge to the given point
+ * 计算边上离给定点最近的点 / Compute the closest point on the edge to the given point
  *
  * @param point 给定的点 / The given point
  * @return 边上最近的点 / The closest point on the edge
@@ -256,8 +240,7 @@ infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.closestPoint(point: Point<Dim2, 
 }
 
 /**
- * 计算边到给定点的距离
- * Compute the distance from the edge to the given point
+ * 计算边到给定点的距离 / Compute the distance from the edge to the given point
  *
  * @param point 给定的点 / The given point
  * @return 边到该点的距离 / The distance from the edge to the point

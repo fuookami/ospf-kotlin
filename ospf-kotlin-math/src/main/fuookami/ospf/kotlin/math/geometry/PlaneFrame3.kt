@@ -1,9 +1,7 @@
 /**
- * 三维平面坐标框架
- * 3D Plane Coordinate Frame
+ * 三维平面坐标框架 / 3D Plane Coordinate Frame
  *
- * 定义三维空间中的平面坐标框架及相关类型（平面点、平面矩形等）。
- * Defines plane coordinate frame and related types (plane point, plane rectangle, etc.) in 3D space.
+ * 定义三维空间中的平面坐标框架及相关类型（平面点、平面矩形等）。 / Defines plane coordinate frame and related types (plane point, plane rectangle, etc.) in 3D space.
 */
 package fuookami.ospf.kotlin.math.geometry
 
@@ -15,8 +13,7 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
- * 二维平面点，用于平面坐标框架中的二维坐标。
- * 2D plane point for coordinates within a plane coordinate frame.
+ * 二维平面点，用于平面坐标框架中的二维坐标。 / 2D plane point for coordinates within a plane coordinate frame.
  *
  * @param V 数值类型 / The numeric type
  * @property x X 坐标 / X coordinate
@@ -28,8 +25,7 @@ data class PlanePoint2<V : FloatingNumber<V>>(
 )
 
 /**
- * 三维空间点，用于平面坐标框架中的三维坐标。
- * 3D space point for coordinates within a plane coordinate frame.
+ * 三维空间点，用于平面坐标框架中的三维坐标。 / 3D space point for coordinates within a plane coordinate frame.
  *
  * @param V 数值类型 / The numeric type
  * @property x X 坐标 / X coordinate
@@ -43,8 +39,7 @@ data class PlanePoint3<V : FloatingNumber<V>>(
 ) {
 
     /**
-     * 沿指定轴的坐标值
-     * Coordinate value along the specified axis
+     * 沿指定轴的坐标值 / Coordinate value along the specified axis
      *
      * @param axis 目标轴（X、Y 或 Z） / Target axis (X, Y, or Z)
      * @return 该轴上的坐标分量 / The coordinate component along the specified axis
@@ -59,8 +54,7 @@ data class PlanePoint3<V : FloatingNumber<V>>(
 }
 
 /**
- * 三维平面法向量，表示平面坐标框架中的法向偏移。
- * 3D plane normal vector representing the normal offset in a plane coordinate frame.
+ * 三维平面法向量，表示平面坐标框架中的法向偏移。 / 3D plane normal vector representing the normal offset in a plane coordinate frame.
  *
  * @param V 数值类型 / The numeric type
  * @property x X 分量 / X component
@@ -74,8 +68,7 @@ data class PlaneVector3<V : FloatingNumber<V>>(
 )
 
 /**
- * 平面坐标框架是纯几何能力；BPP3D 的 Bottom/Side/Front 映射由桥接层负责。
- * Plane frame is pure geometry; BPP3D Bottom/Side/Front mapping stays in bridge layer.
+ * 平面坐标框架是纯几何能力；BPP3D 的 Bottom/Side/Front 映射由桥接层负责。 / Plane frame is pure geometry; BPP3D Bottom/Side/Front mapping stays in bridge layer.
  *
  * @property firstAxis 平面第一轴 / The first axis of the plane
  * @property secondAxis 平面第二轴 / The second axis of the plane
@@ -100,8 +93,7 @@ data class PlaneFrame3(
         }
 
     /**
-     * 获取法向轴
-     * Get the normal axis.
+     * 获取法向轴 / Get the normal axis.
      *
      * @return 法向轴或失败原因 / The normal axis or failure reason
     */
@@ -112,8 +104,7 @@ data class PlaneFrame3(
     }
 
     /**
-     * 计算点到平面的距离
-     * Compute the distance from a point to the plane
+     * 计算点到平面的距离 / Compute the distance from a point to the plane
      *
      * @param V 数值类型 / The numeric type
      * @param point 三维空间点 / The 3D space point
@@ -128,8 +119,7 @@ data class PlaneFrame3(
     }
 
     /**
-     * 将三维点投影到平面二维坐标
-     * Project a 3D point to 2D plane coordinates
+     * 将三维点投影到平面二维坐标 / Project a 3D point to 2D plane coordinates
      *
      * @param V 数值类型 / The numeric type
      * @param point 三维空间点 / The 3D space point
@@ -143,8 +133,7 @@ data class PlaneFrame3(
     }
 
     /**
-     * 将平面二维坐标还原为三维点
-     * Convert 2D plane coordinates back to a 3D point
+     * 将平面二维坐标还原为三维点 / Convert 2D plane coordinates back to a 3D point
      *
      * @param V 数值类型 / The numeric type
      * @param point 平面二维坐标 / The 2D plane coordinates
@@ -181,8 +170,7 @@ data class PlaneFrame3(
     }
 
     /**
-     * 根据距离值创建法向量
-     * Create a normal vector from a distance value
+     * 根据距离值创建法向量 / Create a normal vector from a distance value
      *
      * @param V 数值类型 / The numeric type
      * @param distance 法向距离值 / The normal distance value
@@ -202,8 +190,7 @@ data class PlaneFrame3(
     }
 
     /**
-     * 计算长方体在平面上的投影矩形
-     * Compute the footprint rectangle of a cuboid on the plane
+     * 计算长方体在平面上的投影矩形 / Compute the footprint rectangle of a cuboid on the plane
      *
      * @param V 数值类型 / The numeric type
      * @param cuboid 长方体 / The cuboid

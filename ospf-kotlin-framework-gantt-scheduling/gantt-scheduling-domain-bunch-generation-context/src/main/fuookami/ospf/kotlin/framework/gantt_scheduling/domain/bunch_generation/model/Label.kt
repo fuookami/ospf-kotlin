@@ -6,13 +6,15 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**
- * 总成本计算器类型别名 / Total cost calculator typealias
+ * 总成本计算器 / Total cost calculator
  *
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param V 数值类型 / Numeric type
 */
-typealias TotalCostCalculator<T, E, V> = (executor: E, lastTask: T?, tasks: List<T>) -> Cost<V>?
+fun interface TotalCostCalculator<T, E, V : RealNumber<V>> {
+    operator fun invoke(executor: E, lastTask: T?, tasks: List<T>): Cost<V>?
+}
 
 /**
  * 生成任务束 / Generate bunch
@@ -112,8 +114,7 @@ private fun <B : AbstractTaskBunch<T, E, A, V>, V, T : AbstractTask<E, A>, E : E
 /**
  * 标签类，用于列生成中的标签算法 / Label class for labeling algorithm in column generation
  *
- * 每个标签代表从根节点到当前节点的部分路径，包含累计成本和影子价格信息。
- * Each label represents a partial path from the root node to the current node, containing accumulated cost and shadow price information.
+ * 每个标签代表从根节点到当前节点的部分路径，包含累计成本和影子价格信息。 / Each label represents a partial path from the root node to the current node, containing accumulated cost and shadow price information.
  *
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type

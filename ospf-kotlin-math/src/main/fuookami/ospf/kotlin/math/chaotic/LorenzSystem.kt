@@ -1,12 +1,9 @@
 /**
- * 洛伦兹系绌
- * Lorenz System
+ * 洛伦兹系绌 / Lorenz System
  *
  * 洛伦兹系统是甌Edward Lorenz 二1963 年提出的著名三维混沌系统。
  * 该系统最初用于研究大气对流，意外发现了混沌现象，开创了混沌理论的研究。
- * 洛伦兹吸引子（蝴蝶效应）是最著名的混沌系统之一，常用于混沌动力学研究、气象模型分析和教学演示。
- *
- * The Lorenz system is a famous three-dimensional chaotic system proposed by Edward Lorenz in 1963.
+ * 洛伦兹吸引子（蝴蝶效应）是最著名的混沌系统之一，常用于混沌动力学研究、气象模型分析和教学演示。 / The Lorenz system is a famous three-dimensional chaotic system proposed by Edward Lorenz in 1963.
  * This system was originally used for studying atmospheric convection, unexpectedly discovering chaotic phenomena, pioneering chaos theory research.
  * The Lorenz attractor (butterfly effect) is one of the most famous chaotic systems, commonly used for chaos dynamics research, meteorological model analysis, and educational demonstrations.
 */
@@ -20,8 +17,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 洛伦兹系统
- * Lorenz System
+ * 洛伦兹系统 / Lorenz System
  *
  * @property a 系统参数 a（普朗特数） / System parameter a (Prandtl number)
  * @property b 系统参数 b / System parameter b
@@ -54,8 +50,7 @@ data class LorenzSystem<V : FloatingNumber<V>>(
 }
 
 /**
- * 洛伦兹系统生成器
- * Lorenz System Generator
+ * 洛伦兹系统生成器 / Lorenz System Generator
 */
 data class LorenzSystemGenerator(
     val lorenzSystem: LorenzSystem<Flt64> = LorenzSystem(),

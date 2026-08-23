@@ -1,6 +1,5 @@
 /**
- * Ktorm 排序翻译器
- * Ktorm Order By Translator
+ * Ktorm 排序翻译器 / Ktorm Order By Translator
  *
  * 将 SortBy 翻译为 Ktorm ORDER BY 子句。
  * Translates SortBy to Ktorm ORDER BY clause.
@@ -14,11 +13,9 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * Ktorm 排序翻译器
- * Ktorm Order By Translator
+ * Ktorm 排序翻译器 / Ktorm Order By Translator
  *
- * 将 SortBy 模型翻译为 Ktorm 排序表达式。
- * Translates SortBy model to Ktorm order expressions.
+ * 将 SortBy 模型翻译为 Ktorm 排序表达式。 / Translates SortBy model to Ktorm order expressions.
  *
  * @property resolveColumn 列解析函数 / Column resolver function
  * @property nullsOrderSupport 空值排序支持检测 / Nulls order support detection
@@ -29,8 +26,7 @@ class KtormOrderByTranslator(
 ) {
 
     /**
-     * 应用排序到查询
-     * Apply sort to query
+     * 应用排序到查询 / Apply sort to query
      *
      * @param query Ktorm 查询对象 / Ktorm query object
      * @param sortBy 排序条件 / Sort conditions
@@ -53,8 +49,7 @@ class KtormOrderByTranslator(
     }
 
     /**
-     * 构建排序表达式列表
-     * Build order by expression list
+     * 构建排序表达式列表 / Build order by expression list
      *
      * @param item 排序项 / Sort item
      * @return 排序表达式列表 / List of order by expressions

@@ -26,12 +26,9 @@ import fuookami.ospf.kotlin.utils.functional.*
 */
 
 /**
- * 二次最小值函数：y = min(p1, p2, ..., pn)。
- * Quadratic min function: y = min(p1, p2, ..., pn).
- * 使用 Big-M 公式与二值选择变量实现精确最小值，
- * Uses Big-M formulation with binary selection variables for exact min,
- * 或使用简单下界约束实现松弛最小值。
- * or simple lower-bound constraints for relaxed min.
+ * 二次最小值函数：y = min(p1, p2, ..., pn)。 / Quadratic min function: y = min(p1, p2, ..., pn).
+ * 使用 Big-M 公式与二值选择变量实现精确最小值， / Uses Big-M formulation with binary selection variables for exact min,
+ * 或使用简单下界约束实现松弛最小值。 / or simple lower-bound constraints for relaxed min.
  *
  * @property polynomials 要取最小值的二次多项式列表 / list of quadratic polynomials to take the min of
  * @property exact 若为 true，使用二值变量实现精确最小值；若为 false，仅强制 y <= pi / if true, uses binary variables for exact min; if false, only enforces y <= pi
@@ -81,8 +78,7 @@ class QuadraticMinFunction<V>(
     }
 
     /**
-     * 从 token 表求值单个符号。
-     * Evaluate a single symbol from the token table.
+     * 从 token 表求值单个符号。 / Evaluate a single symbol from the token table.
      *
      * @param symbol 要求值的符号 / the symbol to evaluate
      * @param tokenTable token 表 / the token table
@@ -102,8 +98,7 @@ class QuadraticMinFunction<V>(
     }
 
     /**
-     * 从结果列表求值单个符号。
-     * Evaluate a single symbol from a results list.
+     * 从结果列表求值单个符号。 / Evaluate a single symbol from a results list.
      *
      * @param symbol 要求值的符号 / the symbol to evaluate
      * @param results 结果值列表 / list of result values
@@ -129,8 +124,7 @@ class QuadraticMinFunction<V>(
     }
 
     /**
-     * 从值映射求值单个符号。
-     * Evaluate a single symbol from a value map.
+     * 从值映射求值单个符号。 / Evaluate a single symbol from a value map.
      *
      * @param symbol 要求值的符号 / the symbol to evaluate
      * @param values 符号到值的映射 / symbol-to-value map
@@ -152,8 +146,7 @@ class QuadraticMinFunction<V>(
     }
 
     /**
-     * 求值二次多项式。
-     * Evaluate a quadratic polynomial.
+     * 求值二次多项式。 / Evaluate a quadratic polynomial.
      *
      * @param poly 要求值的二次多项式 / the quadratic polynomial to evaluate
      * @param resolve 符号解析函数 / symbol resolution function
@@ -177,8 +170,7 @@ class QuadraticMinFunction<V>(
     }
 
     /**
-     * 从所有多项式中选择最小值。
-     * Choose the minimum value from all polynomials.
+     * 从所有多项式中选择最小值。 / Choose the minimum value from all polynomials.
      *
      * @param eval 多项式求值函数 / polynomial evaluation function
      * @return 最小值或 null / minimum value or null
@@ -197,8 +189,7 @@ class QuadraticMinFunction<V>(
     }
 
     /**
-     * 使用 Flt64 值预计算求解器结果。
-     * Pre-compute solver result with Flt64 values.
+     * 使用 Flt64 值预计算求解器结果。 / Pre-compute solver result with Flt64 values.
      *
      * @param values 符号到 Flt64 值的映射，可为 null / symbol-to-Flt64 value map, may be null
      * @param tokenTable token 表 / the token table
@@ -220,8 +211,7 @@ class QuadraticMinFunction<V>(
     override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
     /**
-     * 使用 Flt64 token 列表求值（始终返回 null）。
-     * Evaluate with Flt64 token list (always returns null).
+     * 使用 Flt64 token 列表求值（始终返回 null）。 / Evaluate with Flt64 token list (always returns null).
      *
      * @param tokenList Flt64 token 列表 / Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
@@ -230,8 +220,7 @@ class QuadraticMinFunction<V>(
     internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
 
     /**
-     * 使用 Flt64 结果列表求值（始终返回 null）。
-     * Evaluate with Flt64 results list (always returns null).
+     * 使用 Flt64 结果列表求值（始终返回 null）。 / Evaluate with Flt64 results list (always returns null).
      *
      * @param results Flt64 结果值列表 / list of Flt64 result values
      * @param tokenList Flt64 token 列表 / Flt64 token list
@@ -241,8 +230,7 @@ class QuadraticMinFunction<V>(
     internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
 
     /**
-     * 使用 Flt64 值映射求值（始终返回 null）。
-     * Evaluate with Flt64 value map (always returns null).
+     * 使用 Flt64 值映射求值（始终返回 null）。 / Evaluate with Flt64 value map (always returns null).
      *
      * @param values 符号到 Flt64 值的映射 / symbol-to-Flt64 value map
      * @param tokenList Flt64 token 列表 / Flt64 token list
@@ -281,8 +269,7 @@ class QuadraticMinFunction<V>(
     }
 
     /**
-     * 使用 Flt64 结果列表进行求解器求值。
-     * Evaluate solver with Flt64 results list.
+     * 使用 Flt64 结果列表进行求解器求值。 / Evaluate solver with Flt64 results list.
      *
      * @param results Flt64 结果值列表 / list of Flt64 result values
      * @param tokenTable token 表 / the token table
@@ -296,8 +283,7 @@ class QuadraticMinFunction<V>(
     }
 
     /**
-     * 使用 Flt64 值映射进行求解器求值。
-     * Evaluate solver with Flt64 value map.
+     * 使用 Flt64 值映射进行求解器求值。 / Evaluate solver with Flt64 value map.
      *
      * @param values 符号到 Flt64 值的映射 / symbol-to-Flt64 value map
      * @param tokenTable token 表 / the token table
@@ -327,8 +313,7 @@ class QuadraticMinFunction<V>(
     }
 
     /**
-     * 注册最小值约束（y <= pi，精确模式下：y >= pi - M*(1-ui), sum(ui)=1）。
-     * Register min constraints (y <= pi, and if exact: y >= pi - M*(1-ui), sum(ui)=1).
+     * 注册最小值约束（y <= pi，精确模式下：y >= pi - M*(1-ui), sum(ui)=1）。 / Register min constraints (y <= pi, and if exact: y >= pi - M*(1-ui), sum(ui)=1).
     */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         val one = converter.one

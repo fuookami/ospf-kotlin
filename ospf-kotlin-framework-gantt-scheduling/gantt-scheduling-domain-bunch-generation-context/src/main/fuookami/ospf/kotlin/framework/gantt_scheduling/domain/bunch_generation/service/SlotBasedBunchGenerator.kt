@@ -12,14 +12,11 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
 
 /**
- * 分时隙任务束生成器接口
- * Slot-based bunch generator interface
+ * 分时隙任务束生成器接口 / Slot-based bunch generator interface
  *
- * 生成满足时隙约束的 bunch。
- * Generates bunches that satisfy slot constraints.
+ * 生成满足时隙约束的 bunch。 / Generates bunches that satisfy slot constraints.
  *
- * 每个 bunch 只能属于一个时隙，时隙对应关系由具体实现保证。
- * Each bunch can only belong to one time slot, ensured by concrete implementation.
+ * 每个 bunch 只能属于一个时隙，时隙对应关系由具体实现保证。 / Each bunch can only belong to one time slot, ensured by concrete implementation.
  *
  * @param B 任务束类型 / Task bunch type
  * @param T 任务类型 / Task type
@@ -42,8 +39,7 @@ interface SlotBasedBunchGenerator<
         > where V : RealNumber<V>, V : PlusGroup<V> {
 
     /**
-     * 分时隙定价请求，保留入口状态和分支限制以供精确定价器消费。
-     * Slot pricing request carrying entry state and branch restrictions for exact pricing.
+     * 分时隙定价请求，保留入口状态和分支限制以供精确定价器消费。 / Slot pricing request carrying entry state and branch restrictions for exact pricing.
      *
      * @property iteration 当前迭代 / Current iteration
      * @property slot 目标时隙 / Target slot
@@ -62,20 +58,18 @@ interface SlotBasedBunchGenerator<
     ) where V : RealNumber<V>, V : PlusGroup<V>
 
     /**
-     * 支持的执行器列表
-     * List of supported executors
+     * 支持的执行器列表 / List of supported executors
     */
     val executors: List<E>
 
     /**
-     * 为指定时隙生成 bunch
-     * Generate bunches for specified slot
+     * 为指定时隙生成 bunch / Generate bunches for specified slot
      *
-     * @param iteration Current iteration number / 当前迭代数
-     * @param slot Target time slot / 目标时隙
-     * @param constraints Slot constraints / 时隙约束
-     * @param shadowPrices Task shadow prices / 任务影子价格
-     * @return Generated bunches / 生成的 bunch 列表
+     * @param iteration 当前迭代数 / Current iteration number
+     * @param slot 目标时隙 / Target time slot
+     * @param constraints 时隙约束 / Slot constraints
+     * @param shadowPrices 任务影子价格 / Task shadow prices
+     * @return 生成的 bunch 列表 / Generated bunches
     */
     suspend fun generate(
         iteration: UInt64,
@@ -85,11 +79,10 @@ interface SlotBasedBunchGenerator<
     ): Ret<List<B>>
 
     /**
-     * 使用完整定价请求生成 bunch；旧实现默认忽略新增上下文。
-     * Generate bunches with a complete pricing request; legacy implementations ignore added context by default.
+     * 使用完整定价请求生成 bunch；旧实现默认忽略新增上下文。 / Generate bunches with a complete pricing request; legacy implementations ignore added context by default.
      *
      * @param request 定价请求 / Pricing request
-     * @return Generated bunches / 生成的 bunch 列表
+     * @return 生成的 bunch 列表 / Generated bunches
      */
     suspend fun generate(request: PricingRequest<T, M, R, V>): Ret<List<B>> {
         return generate(
@@ -101,15 +94,14 @@ interface SlotBasedBunchGenerator<
     }
 
     /**
-     * 批量生成所有时隙的 bunch
-     * Generate bunches for all slots in batch
+     * 批量生成所有时隙的 bunch / Generate bunches for all slots in batch
      *
-     * @param iteration Current iteration number / 当前迭代数
-     * @param intermediateValues Capacity intermediate values / 产能中间值
-     * @param shadowPrices Task shadow prices / 任务影子价格
-     * @param entryStateProvider Slot entry-state provider / 时隙入口状态提供器
-     * @param branchRestrictionsProvider Slot branch-restriction provider / 时隙分支限制提供器
-     * @return Generated bunches / 生成的 bunch 列表
+     * @param iteration 当前迭代数 / Current iteration number
+     * @param intermediateValues 产能中间值 / Capacity intermediate values
+     * @param shadowPrices 任务影子价格 / Task shadow prices
+     * @param entryStateProvider 时隙入口状态提供器 / Slot entry-state provider
+     * @param branchRestrictionsProvider 时隙分支限制提供器 / Slot branch-restriction provider
+     * @return 生成的 bunch 列表 / Generated bunches
     */
     suspend fun generateAll(
         iteration: UInt64,
@@ -152,11 +144,10 @@ interface SlotBasedBunchGenerator<
     }
 
     /**
-     * 检查是否支持指定执行器
-     * Check if specified executor is supported
+     * 检查是否支持指定执行器 / Check if specified executor is supported
      *
-     * @param executor The executor / 执行器
-     * @return Whether the executor is supported / 是否支持该执行器
+     * @param executor 执行器 / The executor
+     * @return 是否支持该执行器 / Whether the executor is supported
     */
     fun supportsExecutor(executor: E): Boolean {
         return executors.contains(executor)
@@ -164,11 +155,9 @@ interface SlotBasedBunchGenerator<
 }
 
 /**
- * 分时隙任务束生成器工厂接口
- * Slot-based bunch generator factory interface
+ * 分时隙任务束生成器工厂接口 / Slot-based bunch generator factory interface
  *
- * 用于创建特定执行器的 bunch 生成器。
- * Used to create bunch generators for specific executors.
+ * 用于创建特定执行器的 bunch 生成器。 / Used to create bunch generators for specific executors.
 */
 interface SlotBasedBunchGeneratorFactory<
         B : SlotBasedBunch<T, E, A>,
@@ -182,11 +171,10 @@ interface SlotBasedBunchGeneratorFactory<
         > where V : RealNumber<V>, V : PlusGroup<V> {
 
     /**
-     * 创建指定执行器的生成器
-     * Create generator for specified executor
+     * 创建指定执行器的生成器 / Create generator for specified executor
      *
-     * @param executor The executor / 执行器
-     * @return Bunch generator / 任务束生成器
+     * @param executor 执行器 / The executor
+     * @return 任务束生成器 / Bunch generator
     */
     fun create(executor: E): SlotBasedBunchGenerator<B, T, E, A, Action, M, R, V>?
 }

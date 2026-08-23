@@ -2,21 +2,17 @@
  * Permutations（排列算法）
  * Permutations Algorithm
  *
- * 提供排列生成算法，用于生成元素的所有可能排列顺序。
- * Provides permutation generation algorithms for generating all possible orderings of elements.
+ * 提供排列生成算法，用于生成元素的所有可能排列顺序。 / Provides permutation generation algorithms for generating all possible orderings of elements.
  *
- * 主要功能：
- * Main features:
+ * 主要功能： / Main features:
  * - permute: 生成全排列或部分排列 / Generate full permutations or partial permutations (permutations of subsets)
  * - permuteSequence: 惰性序列生成排列 / Lazy sequence generation of permutations
  * - permuteCount: 计算排列数 P(n, k) / Calculate permutation count P(n, k)
  * - permuteAsync: 异步生成排列（使用协程通道）/ Async permutation generation (using coroutine channels)
  *
- * 使用 QuickPerm 算法实现高效排列生成。
- * Uses QuickPerm algorithm for efficient permutation generation.
+ * 使用 QuickPerm 算法实现高效排列生成。 / Uses QuickPerm algorithm for efficient permutation generation.
  *
- * 应用场景：调度问题、排序优化、序列搜索等。
- * Applications: scheduling problems, ordering optimization, sequence search, etc.
+ * 应用场景：调度问题、排序优化、序列搜索等。 / Applications: scheduling problems, ordering optimization, sequence search, etc.
 */
 package fuookami.ospf.kotlin.math.combinatorics
 
@@ -27,8 +23,7 @@ import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 
 /**
- * 使用 QuickPerm 算法生成输入列表的所有全排列
- * Generate all full permutations of input list using QuickPerm algorithm
+ * 使用 QuickPerm 算法生成输入列表的所有全排列 / Generate all full permutations of input list using QuickPerm algorithm
  *
  * @param input 输入列表 / The input list
  * @param callBack 每个排列生成时的回调函数（可选） / Callback function invoked for each generated permutation (optional)
@@ -90,8 +85,7 @@ fun permuteCount(n: Int, choose: Int = n): Long {
 }
 
 /**
- * 惰性序列生成所有全排列
- * Lazy sequence generation of all full permutations
+ * 惰性序列生成所有全排列 / Lazy sequence generation of all full permutations
  *
  * @param input 输入列表 / The input list
  * @return 所有全排列的惰性序列 / Lazy sequence of all full permutations
@@ -101,8 +95,7 @@ fun <T> permuteSequence(input: List<T>): Sequence<List<T>> = sequence {
 }
 
 /**
- * 惰性序列生成指定大小的排列
- * Lazy sequence generation of permutations of specified size
+ * 惰性序列生成指定大小的排列 / Lazy sequence generation of permutations of specified size
  *
  * @param input 输入列表 / The input list
  * @param choose 每个排列的元素个数 / Number of elements per permutation
@@ -121,8 +114,7 @@ fun <T> permuteSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequen
     val path = ArrayList<T>(choose)
 
     /**
-     * 深度优先搜索生成排列
-     * Depth-first search for permutation generation
+     * 深度优先搜索生成排列 / Depth-first search for permutation generation
     */
     suspend fun SequenceScope<List<T>>.dfs() {
         if (path.size == choose) {
@@ -144,8 +136,7 @@ fun <T> permuteSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequen
 }
 
 /**
- * 生成指定大小的所有排列
- * Generate all permutations of specified size
+ * 生成指定大小的所有排列 / Generate all permutations of specified size
  *
  * @param input 输入列表 / The input list
  * @param choose 每个排列的元素个数 / Number of elements per permutation
@@ -171,8 +162,7 @@ fun <T> permute(
 }
 
 /**
- * 异步生成所有排列，通过协程通道返回
- * Async permutation generation via coroutine channel
+ * 异步生成所有排列，通过协程通道返回 / Async permutation generation via coroutine channel
  *
  * @param input 输入列表 / The input list
  * @param scope 协程作用域（默认使用组合异步作用域） / Coroutine scope (defaults to combinatorics async scope)

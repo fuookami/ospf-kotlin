@@ -5,8 +5,7 @@ import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.*
 
 /**
- * 序列化协议失败。
- * Serialization protocol failure.
+ * 序列化协议失败。 / Serialization protocol failure.
  * @param message 失败信息 / The failure message
  * @return 永不返回，始终抛出异常 / Never returns, always throws an exception
 */
@@ -15,8 +14,7 @@ internal fun serializationFailure(message: String): Nothing {
 }
 
 /**
- * 要求 JSON 编码器。
- * Requires a JSON encoder.
+ * 要求 JSON 编码器。 / Requires a JSON encoder.
  * @param encoder 待检查的编码器 / The encoder to check
  * @param serializerName 序列化器名称，用于错误提示 / The serializer name used in error messages
  * @return 转换后的 JsonEncoder / The casted JsonEncoder
@@ -28,8 +26,7 @@ internal fun requireJsonEncoder(encoder: Encoder, serializerName: String): JsonE
 }
 
 /**
- * 要求 JSON 解码器。
- * Requires a JSON decoder.
+ * 要求 JSON 解码器。 / Requires a JSON decoder.
  * @param decoder 待检查的解码器 / The decoder to check
  * @param serializerName 序列化器名称，用于错误提示 / The serializer name used in error messages
  * @return 转换后的 JsonDecoder / The casted JsonDecoder
@@ -41,8 +38,7 @@ internal fun requireJsonDecoder(decoder: Decoder, serializerName: String): JsonD
 }
 
 /**
- * 要求 JSON 对象。
- * Requires a JSON object.
+ * 要求 JSON 对象。 / Requires a JSON object.
  * @param element 待检查的 JSON 元素 / The JSON element to check
  * @param serializerName 序列化器名称，用于错误提示 / The serializer name used in error messages
  * @return 转换后的 JsonObject / The casted JsonObject
@@ -54,8 +50,7 @@ internal fun requireJsonObject(element: JsonElement, serializerName: String): Js
 }
 
 /**
- * 要求 JSON 字段完整。
- * Requires all JSON fields.
+ * 要求 JSON 字段完整。 / Requires all JSON fields.
  * @param element 待检查的 JSON 对象 / The JSON object to check
  * @param fields 必须存在的字段名列表 / The field names that must be present
  * @param serializerName 序列化器名称，用于错误提示 / The serializer name used in error messages

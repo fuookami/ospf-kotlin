@@ -36,7 +36,7 @@ value class ICAO(val code: String) {
  * Inline value class wrapping an aircraft type name.
  * 包装飞机类型名称的内联值类。
  *
- * @property name The aircraft type name string / 飞机类型名称字符串
+ * @property name 飞机类型名称字符串 / The aircraft type name string
 */
 @JvmInline
 value class AircraftTypeName(val name: String) {
@@ -47,7 +47,7 @@ value class AircraftTypeName(val name: String) {
  * Inline value class wrapping an aircraft type code.
  * 包装飞机类型代码的内联值类。
  *
- * @property code The aircraft type code string / 飞机类型代码字符串
+ * @property code 飞机类型代码字符串 / The aircraft type code string
 */
 @JvmInline
 value class AircraftTypeCode(val code: String) {
@@ -58,7 +58,7 @@ value class AircraftTypeCode(val code: String) {
  * Inline value class wrapping an aircraft minor type name.
  * 包装飞机子类型名称的内联值类。
  *
- * @property name The aircraft minor type name string / 飞机子类型名称字符串
+ * @property name 飞机子类型名称字符串 / The aircraft minor type name string
 */
 @JvmInline
 value class AircraftMinorTypeName(val name: String) {
@@ -69,7 +69,7 @@ value class AircraftMinorTypeName(val name: String) {
  * Inline value class wrapping an aircraft minor type code.
  * 包装飞机子类型代码的内联值类。
  *
- * @property code The aircraft minor type code string / 飞机子类型代码字符串
+ * @property code 飞机子类型代码字符串 / The aircraft minor type code string
 */
 @JvmInline
 value class AircraftMinorTypeCode(val code: String) {
@@ -80,7 +80,7 @@ value class AircraftMinorTypeCode(val code: String) {
  * Inline value class wrapping a wing aircraft type code.
  * 包装机翼飞机类型代码的内联值类。
  *
- * @property code The wing aircraft type code string / 机翼飞机类型代码字符串
+ * @property code 机翼飞机类型代码字符串 / The wing aircraft type code string
 */
 @JvmInline
 value class WingAircraftTypeCode(val code: String) {
@@ -91,7 +91,7 @@ value class WingAircraftTypeCode(val code: String) {
  * Inline value class wrapping an aircraft register number.
  * 包装飞机注册号的内联值类。
  *
- * @property no The aircraft register number string / 飞机注册号字符串
+ * @property no 飞机注册号字符串 / The aircraft register number string
 */
 @JvmInline
 value class AircraftRegisterNumber(val no: String) {
@@ -102,7 +102,7 @@ value class AircraftRegisterNumber(val no: String) {
  * Inline value class wrapping a passenger class identifier.
  * 包装舱位标识符的内联值类。
  *
- * @property cls The passenger class identifier string / 舱位标识符字符串
+ * @property cls 舱位标识符字符串 / The passenger class identifier string
 */
 @JvmInline
 value class PassengerClass(val cls: String) {
@@ -113,7 +113,7 @@ value class PassengerClass(val cls: String) {
  * Inline value class wrapping a pilot rank number.
  * 包装飞行员职级编号的内联值类。
  *
- * @property no The pilot rank number string / 飞行员职级编号字符串
+ * @property no 飞行员职级编号字符串 / The pilot rank number string
 */
 @JvmInline
 value class PilotRankNo(val no: String) {
@@ -124,7 +124,7 @@ value class PilotRankNo(val no: String) {
  * Inline value class wrapping a pilot code.
  * 包装飞行员代码的内联值类。
  *
- * @property code The pilot code string / 飞行员代码字符串
+ * @property code 飞行员代码字符串 / The pilot code string
 */
 @JvmInline
 value class PilotCode(val code: String) {
@@ -135,7 +135,7 @@ value class PilotCode(val code: String) {
  * Inline value class wrapping a crew member rank number.
  * 包装机组成员职级编号的内联值类。
  *
- * @property no The crew member rank number string / 机组成员职级编号字符串
+ * @property no 机组成员职级编号字符串 / The crew member rank number string
 */
 @JvmInline
 value class CrewManRankNo(val no: String) {
@@ -146,7 +146,7 @@ value class CrewManRankNo(val no: String) {
  * Inline value class wrapping a worker number.
  * 包装工号的内联值类。
  *
- * @property no The worker number string / 工号字符串
+ * @property no 工号字符串 / The worker number string
 */
 @JvmInline
 value class WorkerNo(val no: String) {

@@ -1,6 +1,5 @@
 /**
- * 机制模型转储状态
- * Mechanism model dumping status
+ * 机制模型转储状态 / Mechanism model dumping status
 */
 package fuookami.ospf.kotlin.core.model.intermediate
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
 /**
- * 机制模型转储进度状态，跟踪约束和符号的准备进度。
- * Mechanism model dumping progress status tracking constraint and symbol readiness.
+ * 机制模型转储进度状态，跟踪约束和符号的准备进度。 / Mechanism model dumping progress status tracking constraint and symbol readiness.
  *
  * @property readyConstraintAmount 已就绪约束数量 / Number of ready constraints
  * @property totalConstraintAmount 约束总数 / Total number of constraints
@@ -45,8 +43,7 @@ data class MechanismModelDumpingStatus(
 
     companion object {
         /**
-         * 创建约束转储阶段的状态。
-         * Create a status for the constraint dumping phase.
+         * 创建约束转储阶段的状态。 / Create a status for the constraint dumping phase.
          *
          * @param ready 已就绪约束数量 / Number of ready constraints
          * @param model 元模型 / The meta model
@@ -62,8 +59,7 @@ data class MechanismModelDumpingStatus(
         }
 
         /**
-         * 创建符号转储阶段的状态。
-         * Create a status for the symbol dumping phase.
+         * 创建符号转储阶段的状态。 / Create a status for the symbol dumping phase.
          *
          * @param ready 已就绪符号数量 / Number of ready symbols
          * @param model 元模型 / The meta model
@@ -81,11 +77,12 @@ data class MechanismModelDumpingStatus(
 }
 
 /** 机制模型转储状态回调 / Mechanism model dumping status callback */
-typealias MechanismModelDumpingStatusCallBack = (MechanismModelDumpingStatus) -> Try
+fun interface MechanismModelDumpingStatusCallBack {
+    operator fun invoke(status: MechanismModelDumpingStatus): Try
+}
 
 /**
- * 将机制模型转储状态转换为模型构建状态。
- * Convert mechanism model dumping status to model building status.
+ * 将机制模型转储状态转换为模型构建状态。 / Convert mechanism model dumping status to model building status.
  *
  * @param modelName 模型名称 / The model name
  * @param quadratic 是否为二次模型 / Whether the model is quadratic

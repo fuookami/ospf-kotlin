@@ -19,8 +19,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper
  * MyBatis 仓储实现
  * MyBatis Repository Implementation
  *
- * 提供基于 MyBatis-Plus 的仓储基类实现。
- * Provides base repository implementation based on MyBatis-Plus.
+ * 提供基于 MyBatis-Plus 的仓储基类实现。 / Provides base repository implementation based on MyBatis-Plus.
  *
  * @param E 实体类型 / Entity type
  * @param M Mapper 类型 / Mapper type
@@ -41,8 +40,7 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
     private val updateTranslator = MybatisUpdateTranslator<E>(resolveColumnName)
 
     /**
-     * 根据条件查询实体列表
-     * Find entity list by condition
+     * 根据条件查询实体列表 / Find entity list by condition
      *
      * @param where 查询条件 / Query condition
      * @return 实体列表 / Entity list
@@ -52,8 +50,7 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
     }
 
     /**
-     * 根据条件查询实体列表（支持排序和分页）
-     * Find entity list by condition with sorting and pagination
+     * 根据条件查询实体列表（支持排序和分页） / Find entity list by condition with sorting and pagination
      *
      * @param where 查询条件 / Query condition
      * @param sortBy 排序条件（可选）/ Sort conditions (optional)
@@ -93,8 +90,7 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
     }
 
     /**
-     * 统计满足条件的实体数量
-     * Count entities matching condition
+     * 统计满足条件的实体数量 / Count entities matching condition
      *
      * @param where 查询条件 / Query condition
      * @return 实体数量 / Entity count
@@ -106,8 +102,7 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
     }
 
     /**
-     * 更新满足条件的实体
-     * Update entities matching condition
+     * 更新满足条件的实体 / Update entities matching condition
      *
      * @param where 更新条件 / Update condition
      * @param assignments 更新赋值列表 / Update assignment list
@@ -126,8 +121,7 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
     }
 
     /**
-     * 删除满足条件的实体
-     * Delete entities matching condition
+     * 删除满足条件的实体 / Delete entities matching condition
      *
      * @param where 删除条件 / Delete condition
      * @return 受影响的行数 / Number of affected rows
@@ -140,12 +134,11 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
 
     companion object {
         /**
-         * 简单列名解析器：直接使用路径最后一部分作为列名
-         * Simple column resolver: use last part of path as column name
+         * 简单列名解析器：直接使用路径最后一部分作为列名 / Simple column resolver: use last part of path as column name
          *
          * @return 列名解析器函数 / Column name resolver function
         */
-        fun simpleColumnResolver(): MybatisColumnNameResolver = { path: String ->
+        fun simpleColumnResolver(): MybatisColumnNameResolver = MybatisColumnNameResolver { path: String ->
             path.substringAfterLast(".")
         }
     }

@@ -182,7 +182,7 @@ private fun <V : RealNumber<V>> Quantity<V>.canonicalQuantityKey(): String {
 /**
  * PhysicalUnit.
  * PhysicalUnit。
- * @return the unit's symbol if available, otherwise its name, or its string representation / 物理单位的符号（若可用），否则为其名称或字符串表示
+ * @return 物理单位的符号（若可用），否则为其名称或字符串表示 / the unit's symbol if available, otherwise its name, or its string representation
 */
 private fun PhysicalUnit.canonicalUnitKey(): String {
     return symbol ?: name ?: toString()

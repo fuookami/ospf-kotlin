@@ -1,9 +1,7 @@
 /**
  * 表达式扁平化工具 / Expression flatten utilities
  *
- * 提供线性与二次表达式的合并、乘法和归一化操作，用于模型构建时的表达式展开。
- *
- * Provides merge, multiply, and normalize operations for linear and quadratic
+ * 提供线性与二次表达式的合并、乘法和归一化操作，用于模型构建时的表达式展开。 / Provides merge, multiply, and normalize operations for linear and quadratic
  * expressions, used during model construction for expression expansion.
 */
 package fuookami.ospf.kotlin.core.symbol.flatten
@@ -14,8 +12,7 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
- * 表达式扁平化工具 - 统一的表达式扁平化操作
- * Flatten Utility - Unified flatten operations for expression system
+ * 表达式扁平化工具 - 统一的表达式扁平化操作 / Flatten Utility - Unified flatten operations for expression system
  *
  * 提供以下单一实现：
  * - 合并：合并同类项（相同变量/键）
@@ -31,8 +28,7 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 // ========== Merge Operations ==========
 
 /**
- * 合并线性单项式，将相同变量的系数相加。
- * Merge linear monomials by combining coefficients of same variables.
+ * 合并线性单项式，将相同变量的系数相加。 / Merge linear monomials by combining coefficients of same variables.
  *
  * @param monomials 待合并的线性单项式列表 / List of linear monomials to merge
  * @param constant 基础常量值 / Base constant value
@@ -65,8 +61,7 @@ internal fun mergeLinearMonomials(
 }
 
 /**
- * 合并多个 LinearFlattenData，将所有单项式和常量合并。
- * Merge multiple LinearFlattenData by combining all monomials and constants.
+ * 合并多个 LinearFlattenData，将所有单项式和常量合并。 / Merge multiple LinearFlattenData by combining all monomials and constants.
  *
  * @param flattenDataList 待合并的扁平化数据列表 / List of flatten data to merge
  * @param initialConstant 初始常量值 / Initial constant value
@@ -103,8 +98,7 @@ internal fun mergeLinearFlattenDataFlt64(
 
 /**
  * 合并二次单项式，将相同变量对的系数相加。
- * 使用基于标识符的确定性键排序以保证对称性。
- * Merge quadratic monomials by combining coefficients of same variable pairs.
+ * 使用基于标识符的确定性键排序以保证对称性。 / Merge quadratic monomials by combining coefficients of same variable pairs.
  * Uses deterministic key ordering based on identifier for symmetry.
  *
  * @param monomials 待合并的二次单项式列表 / List of quadratic monomials to merge
@@ -202,8 +196,7 @@ internal fun mergeQuadraticFlattenDataFlt64(
 
 /**
  * 将两个线性扁平化数据相乘。
- * 结果为二次形式，因为线性 * 线性可能产生二次项。
- * Multiply two linear flatten data.
+ * 结果为二次形式，因为线性 * 线性可能产生二次项。 / Multiply two linear flatten data.
  * Result is quadratic because linear * linear can produce quadratic terms.
  *
  * (a1*x + c1) * (a2*y + c2) = a1*a2*xy + a1*c2*x + a2*c1*y + c1*c2
@@ -257,8 +250,7 @@ internal fun multiplyLinear(
 /**
  * 将线性扁平化数据与二次扁平化数据相乘。
  *
- * 线性 * 二次 -> 二次
- * Multiply linear by quadratic flatten data.
+ * 线性 * 二次 -> 二次 / Multiply linear by quadratic flatten data.
  *
  * Linear * Quadratic -> Quadratic
  *
@@ -310,8 +302,7 @@ internal fun multiplyLinearQuadratic(
 /**
  * 将两个二次扁平化数据相乘。
  * 注意：二次 * 二次会产生四次项，本函数不支持四次项。
- * 此函数仅处理保持在二次范围内的部分。
- * Multiply two quadratic flatten data.
+ * 此函数仅处理保持在二次范围内的部分。 / Multiply two quadratic flatten data.
  * Note: Quadratic * Quadratic would produce Quartic terms, which we don't support.
  * This function handles the parts that stay within quadratic bounds.
  *
@@ -355,8 +346,7 @@ internal fun multiplyQuadratic(
 // ========== Normalize Operations ==========
 
 /**
- * 归一化线性扁平化数据，移除零系数项。
- * Normalize linear flatten data by removing zero coefficients.
+ * 归一化线性扁平化数据，移除零系数项。 / Normalize linear flatten data by removing zero coefficients.
  *
  * @param data 待归一化的线性扁平化数据 / Linear flatten data to normalize
  * @return 归一化后的线性扁平化数据 / Normalized linear flatten data
@@ -369,8 +359,7 @@ internal fun normalizeLinear(data: LinearFlattenData<Flt64>): LinearFlattenData<
 }
 
 /**
- * 归一化二次扁平化数据，移除零系数项并规范化键。
- * Normalize quadratic flatten data by removing zero coefficients and canonicalizing keys.
+ * 归一化二次扁平化数据，移除零系数项并规范化键。 / Normalize quadratic flatten data by removing zero coefficients and canonicalizing keys.
  *
  * @param data 待归一化的二次扁平化数据 / Quadratic flatten data to normalize
  * @return 归一化后的二次扁平化数据 / Normalized quadratic flatten data

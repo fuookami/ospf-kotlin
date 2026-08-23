@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.framework.persistence.expression.UpdateAssignments
 class MybatisUpdateTranslatorTest {
     data class TestEntity(val id: Long, val name: String?)
 
-    private val resolver: MybatisColumnNameResolver = { path: String -> path.substringAfterLast(".") }
+    private val resolver = MybatisColumnNameResolver { path: String -> path.substringAfterLast(".") }
 
     @Test
     @DisplayName("should translate set setNull setExpr / 应翻译 set setNull setExpr")

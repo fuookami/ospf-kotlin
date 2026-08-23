@@ -1,20 +1,16 @@
 /**
- * Cross（笛卡尔积）
- * Cartesian Product (Cross Product)
+ * Cross（笛卡尔积） / Cartesian Product (Cross Product)
  *
- * 提供笛卡尔积（交叉积）生成算法，用于计算多个集合的所有组合。
- * Provides Cartesian product (cross product) generation algorithms for computing all combinations across multiple sets.
+ * 提供笛卡尔积（交叉积）生成算法，用于计算多个集合的所有组合。 / Provides Cartesian product (cross product) generation algorithms for computing all combinations across multiple sets.
  *
- * 主要功能：
- * Main features:
+ * 主要功能： / Main features:
  * - cross: 计算多集合的笛卡尔积 / Calculate Cartesian product of multiple sets
  * - crossSequence: 惰性序列生成笛卡尔积 / Lazy sequence generation of Cartesian product
  * - crossCount: 计算笛卡尔积元素总数 / Calculate total count of Cartesian product elements
  * - cross2/cross3: 计算两个或三个集合的笛卡尔积 / Calculate Cartesian product of two or three sets
  * - crossAsync: 异步生成笛卡尔积（使用协程通道）/ Async Cartesian product generation (using coroutine channels)
  *
- * 应用场景：参数空间遍历、多维决策变量组合、状态空间搜索等。
- * Applications: parameter space traversal, multi-dimensional decision variable combinations, state space search, etc.
+ * 应用场景：参数空间遍历、多维决策变量组合、状态空间搜索等。 / Applications: parameter space traversal, multi-dimensional decision variable combinations, state space search, etc.
 */
 package fuookami.ospf.kotlin.math.combinatorics
 
@@ -24,8 +20,7 @@ import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.parallel.*
 
 /**
- * 计算多个集合的笛卡尔积
- * Calculate Cartesian product of multiple sets
+ * 计算多个集合的笛卡尔积 / Calculate Cartesian product of multiple sets
  *
  * @param input 多个集合的列表 / List of multiple sets
  * @param callBack 每个组合生成时的回调函数（可选） / Callback function invoked for each generated combination (optional)
@@ -71,8 +66,7 @@ fun <T> cross(
 }
 
 /**
- * 计算笛卡尔积的元素总数
- * Calculate total count of Cartesian product elements
+ * 计算笛卡尔积的元素总数 / Calculate total count of Cartesian product elements
  *
  * @param input 多个集合的列表 / List of multiple sets
  * @return 笛卡尔积的元素总数 / Total count of Cartesian product elements
@@ -92,8 +86,7 @@ fun <T> crossCount(input: List<List<T>>): Long {
 }
 
 /**
- * 惰性序列生成笛卡尔积
- * Lazy sequence generation of Cartesian product
+ * 惰性序列生成笛卡尔积 / Lazy sequence generation of Cartesian product
  *
  * @param input 多个集合的列表 / List of multiple sets
  * @return 笛卡尔积的惰性序列 / Lazy sequence of Cartesian product
@@ -121,8 +114,7 @@ fun <T> crossSequence(input: List<List<T>>): Sequence<List<T>> = sequence {
 }
 
 /**
- * 计算两个集合的笛卡尔积，返回 Pair 列表
- * Calculate Cartesian product of two sets, returning list of Pairs
+ * 计算两个集合的笛卡尔积，返回 Pair 列表 / Calculate Cartesian product of two sets, returning list of Pairs
  *
  * @param lhs 左集合 / Left set
  * @param rhs 右集合 / Right set
@@ -133,8 +125,7 @@ fun <A, B> cross2(lhs: List<A>, rhs: List<B>): List<Pair<A, B>> {
 }
 
 /**
- * 惰性序列生成两个集合的笛卡尔积
- * Lazy sequence generation of Cartesian product of two sets
+ * 惰性序列生成两个集合的笛卡尔积 / Lazy sequence generation of Cartesian product of two sets
  *
  * @param lhs 左集合 / Left set
  * @param rhs 右集合 / Right set
@@ -149,8 +140,7 @@ fun <A, B> cross2Sequence(lhs: List<A>, rhs: List<B>): Sequence<Pair<A, B>> = se
 }
 
 /**
- * 计算三个集合的笛卡尔积，返回 Triple 列表
- * Calculate Cartesian product of three sets, returning list of Triples
+ * 计算三个集合的笛卡尔积，返回 Triple 列表 / Calculate Cartesian product of three sets, returning list of Triples
  *
  * @param a 第一个集合 / First set
  * @param b 第二个集合 / Second set
@@ -166,8 +156,7 @@ fun <A, B, C> cross3(a: List<A>, b: List<B>, c: List<C>): List<Triple<A, B, C>> 
 }
 
 /**
- * 惰性序列生成三个集合的笛卡尔积
- * Lazy sequence generation of Cartesian product of three sets
+ * 惰性序列生成三个集合的笛卡尔积 / Lazy sequence generation of Cartesian product of three sets
  *
  * @param a 第一个集合 / First set
  * @param b 第二个集合 / Second set
@@ -185,8 +174,7 @@ fun <A, B, C> cross3Sequence(a: List<A>, b: List<B>, c: List<C>): Sequence<Tripl
 }
 
 /**
- * 异步生成笛卡尔积，通过协程通道返回
- * Async Cartesian product generation via coroutine channel
+ * 异步生成笛卡尔积，通过协程通道返回 / Async Cartesian product generation via coroutine channel
  *
  * @param input 多个集合的列表 / List of multiple sets
  * @param scope 协程作用域（默认使用组合异步作用域） / Coroutine scope (defaults to combinatorics async scope)

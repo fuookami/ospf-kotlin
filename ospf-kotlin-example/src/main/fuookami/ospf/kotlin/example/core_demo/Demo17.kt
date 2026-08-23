@@ -33,8 +33,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 }
 
 /**
- * 带时间窗的车辆路径问题：最小化车队访问需求节点的固定和旅行成本。
- * Vehicle routing with time windows: minimize fixed and travel costs for a fleet visiting demand nodes.
+ * 带时间窗的车辆路径问题：最小化车队访问需求节点的固定和旅行成本。 / Vehicle routing with time windows: minimize fixed and travel costs for a fleet visiting demand nodes.
  *
  * @see https://fuookami.github.io/ospf/examples/example17.html
 */
@@ -47,8 +46,7 @@ data object Demo17 {
         val timeWindow: ValueRange<UInt64>
 
         /**
-         * 计算到另一个节点的距离。
-         * Calculate the distance to another node.
+         * 计算到另一个节点的距离。 / Calculate the distance to another node.
          * @param other 目标节点 / Target node
          * @return 距离值 / Distance value
         */
@@ -57,8 +55,7 @@ data object Demo17 {
         }
 
         /**
-         * 计算到达另一个节点的成本。
-         * Calculate the cost of reaching another node.
+         * 计算到达另一个节点的成本。 / Calculate the cost of reaching another node.
          * @param other 目标节点 / Target node
          * @return 移动成本 / Travel cost
         */
@@ -67,8 +64,7 @@ data object Demo17 {
         }
 
         /**
-         * 计算到达另一个节点所需的时间。
-         * Calculate the time required to reach another node.
+         * 计算到达另一个节点所需的时间。 / Calculate the time required to reach another node.
          * @param other 目标节点 / Target node
          * @return 所需时间 / Required time
         */
@@ -259,8 +255,7 @@ data object Demo17 {
     )
 
     /**
-     * 按顺序运行所有子过程以构建、求解和分析模型。
-     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 按顺序运行所有子过程以构建、求解和分析模型。 / Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
     */
@@ -282,8 +277,7 @@ data object Demo17 {
     }
 
     /**
-     * 初始化二进制路径变量和连续服务时间变量。
-     * Initializes binary route variables and continuous service-time variables.
+     * 初始化二进制路径变量和连续服务时间变量。 / Initializes binary route variables and continuous service-time variables.
      *
      * @return 操作结果 / Operation result
     */
@@ -322,8 +316,7 @@ data object Demo17 {
     }
 
     /**
-     * 创建起点、终点、流量、服务和容量表达式符号。
-     * Creates origin, destination, flow, service, and capacity expression symbols.
+     * 创建起点、终点、流量、服务和容量表达式符号。 / Creates origin, destination, flow, service, and capacity expression symbols.
      *
      * @return 操作结果 / Operation result
     */
@@ -432,8 +425,7 @@ data object Demo17 {
     }
 
     /**
-     * 设置目标函数以最小化固定车辆成本和旅行成本。
-     * Sets the objective to minimize fixed vehicle cost and travel cost.
+     * 设置目标函数以最小化固定车辆成本和旅行成本。 / Sets the objective to minimize fixed vehicle cost and travel cost.
      *
      * @return 操作结果 / Operation result
     */
@@ -456,8 +448,7 @@ data object Demo17 {
     }
 
     /**
-     * 添加流量平衡、服务、时间窗和容量约束。
-     * Adds flow balance, service, time-window, and capacity constraints.
+     * 添加流量平衡、服务、时间窗和容量约束。 / Adds flow balance, service, time-window, and capacity constraints.
      *
      * @return 操作结果 / Operation result
     */
@@ -539,8 +530,7 @@ data object Demo17 {
     }
 
     /**
-     * 使用 SCIP 求解器求解线性模型，时间限制为 5 分钟。
-     * Solves the linear model using the SCIP solver with a 5-minute time limit.
+     * 使用 SCIP 求解器求解线性模型，时间限制为 5 分钟。 / Solves the linear model using the SCIP solver with a 5-minute time limit.
      *
      * @return 操作结果 / Operation result
     */
@@ -548,7 +538,7 @@ data object Demo17 {
         val solver = ScipLinearSolver(config = SolverConfig(time = 300.seconds))
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
             is Ok -> {
-                metaModel.tokens.setSolution(ret.value.solution)
+                metaModel.tokens.setSolution(ret.value.values)
             }
 
             is Failed -> {
@@ -564,8 +554,7 @@ data object Demo17 {
     }
 
     /**
-     * 从解中提取路径和服务时间。
-     * Extracts routes and service times from the solution.
+     * 从解中提取路径和服务时间。 / Extracts routes and service times from the solution.
      *
      * @return 操作结果 / Operation result
     */

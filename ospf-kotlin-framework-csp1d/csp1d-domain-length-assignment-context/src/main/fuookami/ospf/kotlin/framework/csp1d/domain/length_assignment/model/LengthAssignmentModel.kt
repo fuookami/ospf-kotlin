@@ -9,10 +9,10 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
  * Length assignment result for a single product.
  * 卷长分配结果，描述单个产品被分配的卷长
  *
- * @param V Numeric value type / 数值类型
- * @property product Product / 产品
- * @property assignedLength Assigned coil length / 分配的卷长
- * @property batchCount Assigned batch count / 分配的批次数
+ * @param V 数值类型 / Numeric value type
+ * @property product 产品 / Product
+ * @property assignedLength 分配的卷长 / Assigned coil length
+ * @property batchCount 分配的批次数 / Assigned batch count
 */
 data class LengthAssignment<V : RealNumber<V>>(
     val product: Product<V>,
@@ -43,8 +43,8 @@ sealed interface LengthAssignmentObjective<V : RealNumber<V>> {
      * Minimize total assigned length.
      * 最小化总卷长
      *
-     * @param V Numeric value type / 数值类型
-     * @property weight Objective weight / 目标权重
+     * @param V 数值类型 / Numeric value type
+     * @property weight 目标权重 / Objective weight
     */
     data class MinimizeTotalLength<V : RealNumber<V>>(
         val weight: V
@@ -54,8 +54,8 @@ sealed interface LengthAssignmentObjective<V : RealNumber<V>> {
      * Minimize batch count.
      * 最小化批次数
      *
-     * @param V Numeric value type / 数值类型
-     * @property weight Objective weight / 目标权重
+     * @param V 数值类型 / Numeric value type
+     * @property weight 目标权重 / Objective weight
     */
     data class MinimizeBatchCount<V : RealNumber<V>>(
         val weight: V
@@ -65,8 +65,8 @@ sealed interface LengthAssignmentObjective<V : RealNumber<V>> {
      * Minimize over-length.
      * 最小化超长
      *
-     * @param V Numeric value type / 数值类型
-     * @property weight Objective weight / 目标权重
+     * @param V 数值类型 / Numeric value type
+     * @property weight 目标权重 / Objective weight
     */
     data class MinimizeOverLength<V : RealNumber<V>>(
         val weight: V

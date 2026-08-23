@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.model
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -30,9 +31,9 @@ class LongitudinalBalance(
      * Registers the longitudinal balance slack symbols into the optimization model.
      * 将纵向平衡松弛符号注册到优化模型中。
      *
-     * @param stowageMode The stowage mode determining which slack types to register / 决定注册哪些松弛类型的装载模式
-     * @param model The linear meta-model to register symbols into / 要注册符号的线性元模型
-     * @return [Try] indicating success or failure / 表示成功或失败
+     * @param stowageMode 决定注册哪些松弛类型的装载模式 / The stowage mode determining which slack types to register
+     * @param model 要注册符号的线性元模型 / The linear meta-model to register symbols into
+     * @return 表示成功或失败 / [Try] indicating success or failure
     */
     fun register(
         stowageMode: StowageMode,
@@ -73,13 +74,13 @@ class LongitudinalBalance(
         }
         slack.values.forEach {
             when (val result = model.add(it)) {
-                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                is Ok -> {}
 
-                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
             }

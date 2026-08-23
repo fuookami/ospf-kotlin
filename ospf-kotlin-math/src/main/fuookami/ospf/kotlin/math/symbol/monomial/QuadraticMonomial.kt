@@ -1,11 +1,9 @@
 /**
- * 二次单项式
- * Quadratic Monomial
+ * 二次单项式 / Quadratic Monomial
  *
  * 定义二次单项式的数据结构和运算。二次单项式形如 c*x*y 或 c*x2，
  * 其中 c 为系数，x、y 为符号变量。当 y 为 null 时表示线性项 c*x，
- * 当 x == y 时表示纯二次项 c*x2。是构建二次多项式的基本单元。
- * Defines data structures and operations for quadratic monomials.
+ * 当 x == y 时表示纯二次项 c*x2。是构建二次多项式的基本单元。 / Defines data structures and operations for quadratic monomials.
  * A quadratic monomial has the form c*x*y or c*x2, where c is the coefficient
  * and x, y are symbol variables. When y is null, it represents a linear term c*x,
  * when x == y, it represents a pure quadratic term c*x2.
@@ -21,13 +19,11 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 /**
- * 二次单项式
- * Quadratic Monomial
+ * 二次单项式 / Quadratic Monomial
  *
  * 表示二次单项式，形如 c*x*y 或 c*x2，其中 c 为系数，x、y 为符号变量。
  * 当 symbol2 为 null 时，表示线性项 c*symbol1；当 symbol1 == symbol2 时，表示纯二次项 c*symbol12。
- * 二次单项式是构建二次多项式的基本单元。
- * Represents a quadratic monomial of the form c*x*y or c*x2, where c is the coefficient
+ * 二次单项式是构建二次多项式的基本单元。 / Represents a quadratic monomial of the form c*x*y or c*x2, where c is the coefficient
  * and x, y are symbol variables. When symbol2 is null, it represents a linear term c*symbol1;
  * when symbol1 == symbol2, it represents a pure quadratic term c*symbol12.
  * Quadratic monomials are the basic building blocks for quadratic polynomials.
@@ -43,11 +39,9 @@ data class QuadraticMonomial<T : Ring<T>>(
 ) : ToQuadraticPolynomial<T>, ToCanonicalPolynomial<T> {
     companion object {
         /**
-         * 创建线性形式的二次单项式
-         * Creates a linear-form quadratic monomial
+         * 创建线性形式的二次单项式 / Creates a linear-form quadratic monomial
          *
-         * 创建形如 c*x 的单项式，在二次多项式框架中表示线性项。
-         * Creates a monomial of form c*x, representing a linear term in quadratic polynomial framework.
+         * 创建形如 c*x 的单项式，在二次多项式框架中表示线性项。 / Creates a monomial of form c*x, representing a linear term in quadratic polynomial framework.
          *
          * @param coefficient 系数 / The coefficient
          * @param symbol 符号变量 / Symbol variable
@@ -58,11 +52,9 @@ data class QuadraticMonomial<T : Ring<T>>(
         }
 
         /**
-         * 创建二次形式的二次单项式
-         * Creates a quadratic-form quadratic monomial
+         * 创建二次形式的二次单项式 / Creates a quadratic-form quadratic monomial
          *
-         * 创建形如 c*x*y 的单项式。
-         * Creates a monomial of form c*x*y.
+         * 创建形如 c*x*y 的单项式。 / Creates a monomial of form c*x*y.
          *
          * @param coefficient 系数 / The coefficient
          * @param symbol1 第一个符号变量 / First symbol variable
@@ -75,18 +67,15 @@ data class QuadraticMonomial<T : Ring<T>>(
     }
 
     /**
-     * 是否为二次项
-     * Whether this is a quadratic term
+     * 是否为二次项 / Whether this is a quadratic term
      *
-     * 当 symbol2 不为 null 时返回 true，表示这是真正的二次项。
-     * Returns true when symbol2 is not null, indicating this is a true quadratic term.
+     * 当 symbol2 不为 null 时返回 true，表示这是真正的二次项。 / Returns true when symbol2 is not null, indicating this is a true quadratic term.
     */
     val isQuadratic: Boolean
         get() = symbol2 != null
 
     /**
-     * 表达式类型分类
-     * Expression type category
+     * 表达式类型分类 / Expression type category
      *
      * 根据 isQuadratic 返回 Quadratic 或 Linear 分类。
      * Returns Quadratic or Linear category based on isQuadratic.
@@ -104,11 +93,9 @@ data class QuadraticMonomial<T : Ring<T>>(
 }
 
 /**
- * 获取零值
- * Gets zero value
+ * 获取零值 / Gets zero value
  *
- * 通过减法运算获取指定值的零值。
- * Obtains the zero value of the specified type through subtraction.
+ * 通过减法运算获取指定值的零值。 / Obtains the zero value of the specified type through subtraction.
  *
  * @param value 参考值 / Reference value
  * @return 零值 / Zero value
@@ -118,8 +105,7 @@ private fun <T : Ring<T>> zeroOf(value: T): T {
 }
 
 /**
- * 二次单项式的负运算符
- * Negation operator for quadratic monomial
+ * 二次单项式的负运算符 / Negation operator for quadratic monomial
  *
  * @receiver 二次单项式 / Quadratic monomial
  * @return 系数取负后的二次单项式 / Quadratic monomial with negated coefficient
@@ -129,8 +115,7 @@ operator fun <T : Ring<T>> QuadraticMonomial<T>.unaryMinus(): QuadraticMonomial<
 }
 
 /**
- * 二次单项式与标量的乘法运算符
- * Multiplication operator for quadratic monomial and scalar
+ * 二次单项式与标量的乘法运算符 / Multiplication operator for quadratic monomial and scalar
  *
  * @receiver 二次单项式 / Quadratic monomial
  * @param rhs 标量值 / Scalar value
@@ -141,8 +126,7 @@ operator fun <T : Ring<T>> QuadraticMonomial<T>.times(rhs: T): QuadraticMonomial
 }
 
 /**
- * 二次单项式与标量的除法运算符
- * Division operator for quadratic monomial and scalar
+ * 二次单项式与标量的除法运算符 / Division operator for quadratic monomial and scalar
  *
  * @receiver 二次单项式 / Quadratic monomial
  * @param rhs 标量值 / Scalar value
@@ -153,8 +137,7 @@ operator fun <T : Field<T>> QuadraticMonomial<T>.div(rhs: T): QuadraticMonomial<
 }
 
 /**
- * 标量与二次单项式的乘法运算符
- * Multiplication operator for scalar and quadratic monomial
+ * 标量与二次单项式的乘法运算符 / Multiplication operator for scalar and quadratic monomial
  *
  * @receiver 标量值 / Scalar value
  * @param rhs 二次单项式 / Quadratic monomial
@@ -165,8 +148,7 @@ operator fun <T : Ring<T>> T.times(rhs: QuadraticMonomial<T>): QuadraticMonomial
 }
 
 /**
- * 二次单项式之间的加法运算符
- * Addition operator between quadratic monomials
+ * 二次单项式之间的加法运算符 / Addition operator between quadratic monomials
  *
  * @receiver 左侧二次单项式 / Left-hand quadratic monomial
  * @param rhs 右侧二次单项式 / Right-hand quadratic monomial
@@ -177,8 +159,7 @@ operator fun <T : Ring<T>> QuadraticMonomial<T>.plus(rhs: QuadraticMonomial<T>):
 }
 
 /**
- * 二次单项式之间的减法运算符
- * Subtraction operator between quadratic monomials
+ * 二次单项式之间的减法运算符 / Subtraction operator between quadratic monomials
  *
  * @receiver 左侧二次单项式 / Left-hand quadratic monomial
  * @param rhs 右侧二次单项式 / Right-hand quadratic monomial
@@ -189,8 +170,7 @@ operator fun <T : Ring<T>> QuadraticMonomial<T>.minus(rhs: QuadraticMonomial<T>)
 }
 
 /**
- * 二次单项式与线性单项式的加法运算符
- * Addition operator between quadratic monomial and linear monomial
+ * 二次单项式与线性单项式的加法运算符 / Addition operator between quadratic monomial and linear monomial
  *
  * @receiver 二次单项式 / Quadratic monomial
  * @param rhs 线性单项式 / Linear monomial
@@ -201,8 +181,7 @@ operator fun <T : Ring<T>> QuadraticMonomial<T>.plus(rhs: LinearMonomial<T>): Qu
 }
 
 /**
- * 线性单项式与二次单项式的加法运算符
- * Addition operator between linear monomial and quadratic monomial
+ * 线性单项式与二次单项式的加法运算符 / Addition operator between linear monomial and quadratic monomial
  *
  * @receiver 线性单项式 / Linear monomial
  * @param rhs 二次单项式 / Quadratic monomial
@@ -213,8 +192,7 @@ operator fun <T : Ring<T>> LinearMonomial<T>.plus(rhs: QuadraticMonomial<T>): Qu
 }
 
 /**
- * 二次单项式与线性单项式的减法运算符
- * Subtraction operator between quadratic monomial and linear monomial
+ * 二次单项式与线性单项式的减法运算符 / Subtraction operator between quadratic monomial and linear monomial
  *
  * @receiver 二次单项式 / Quadratic monomial
  * @param rhs 线性单项式 / Linear monomial
@@ -225,8 +203,7 @@ operator fun <T : Ring<T>> QuadraticMonomial<T>.minus(rhs: LinearMonomial<T>): Q
 }
 
 /**
- * 线性单项式与二次单项式的减法运算符
- * Subtraction operator between linear monomial and quadratic monomial
+ * 线性单项式与二次单项式的减法运算符 / Subtraction operator between linear monomial and quadratic monomial
  *
  * @receiver 线性单项式 / Linear monomial
  * @param rhs 二次单项式 / Quadratic monomial
@@ -237,8 +214,7 @@ operator fun <T : Ring<T>> LinearMonomial<T>.minus(rhs: QuadraticMonomial<T>): Q
 }
 
 /**
- * 二次单项式与二次多项式的加法运算符
- * Addition operator between quadratic monomial and quadratic polynomial
+ * 二次单项式与二次多项式的加法运算符 / Addition operator between quadratic monomial and quadratic polynomial
  *
  * @receiver 二次单项式 / Quadratic monomial
  * @param rhs 二次多项式 / Quadratic polynomial
@@ -249,8 +225,7 @@ operator fun <T : Ring<T>> QuadraticMonomial<T>.plus(rhs: QuadraticPolynomial<T>
 }
 
 /**
- * 二次多项式与二次单项式的加法运算符
- * Addition operator between quadratic polynomial and quadratic monomial
+ * 二次多项式与二次单项式的加法运算符 / Addition operator between quadratic polynomial and quadratic monomial
  *
  * @receiver 二次多项式 / Quadratic polynomial
  * @param rhs 二次单项式 / Quadratic monomial
@@ -261,8 +236,7 @@ operator fun <T : Ring<T>> QuadraticPolynomial<T>.plus(rhs: QuadraticMonomial<T>
 }
 
 /**
- * 二次单项式与二次多项式的减法运算符
- * Subtraction operator between quadratic monomial and quadratic polynomial
+ * 二次单项式与二次多项式的减法运算符 / Subtraction operator between quadratic monomial and quadratic polynomial
  *
  * @receiver 二次单项式 / Quadratic monomial
  * @param rhs 二次多项式 / Quadratic polynomial
@@ -273,8 +247,7 @@ operator fun <T : Ring<T>> QuadraticMonomial<T>.minus(rhs: QuadraticPolynomial<T
 }
 
 /**
- * 二次多项式与二次单项式的减法运算符
- * Subtraction operator between quadratic polynomial and quadratic monomial
+ * 二次多项式与二次单项式的减法运算符 / Subtraction operator between quadratic polynomial and quadratic monomial
  *
  * @receiver 二次多项式 / Quadratic polynomial
  * @param rhs 二次单项式 / Quadratic monomial
@@ -285,8 +258,7 @@ operator fun <T : Ring<T>> QuadraticPolynomial<T>.minus(rhs: QuadraticMonomial<T
 }
 
 /**
- * 二次单项式与标量的加法运算符
- * Addition operator between quadratic monomial and scalar
+ * 二次单项式与标量的加法运算符 / Addition operator between quadratic monomial and scalar
  *
  * @receiver 二次单项式 / Quadratic monomial
  * @param rhs 标量值 / Scalar value
@@ -297,8 +269,7 @@ operator fun <T : Ring<T>> QuadraticMonomial<T>.plus(rhs: T): QuadraticPolynomia
 }
 
 /**
- * 标量与二次单项式的加法运算符
- * Addition operator between scalar and quadratic monomial
+ * 标量与二次单项式的加法运算符 / Addition operator between scalar and quadratic monomial
  *
  * @receiver 标量值 / Scalar value
  * @param rhs 二次单项式 / Quadratic monomial
@@ -309,8 +280,7 @@ operator fun <T : Ring<T>> T.plus(rhs: QuadraticMonomial<T>): QuadraticPolynomia
 }
 
 /**
- * 二次单项式与标量的减法运算符
- * Subtraction operator between quadratic monomial and scalar
+ * 二次单项式与标量的减法运算符 / Subtraction operator between quadratic monomial and scalar
  *
  * @receiver 二次单项式 / Quadratic monomial
  * @param rhs 标量值 / Scalar value
@@ -321,8 +291,7 @@ operator fun <T : Ring<T>> QuadraticMonomial<T>.minus(rhs: T): QuadraticPolynomi
 }
 
 /**
- * 标量与二次单项式的减法运算符
- * Subtraction operator between scalar and quadratic monomial
+ * 标量与二次单项式的减法运算符 / Subtraction operator between scalar and quadratic monomial
  *
  * @receiver 标量值 / Scalar value
  * @param rhs 二次单项式 / Quadratic monomial
@@ -333,8 +302,7 @@ operator fun <T : Ring<T>> T.minus(rhs: QuadraticMonomial<T>): QuadraticPolynomi
 }
 
 /**
- * 二次单项式与线性多项式的加法运算符
- * Addition operator between quadratic monomial and linear polynomial
+ * 二次单项式与线性多项式的加法运算符 / Addition operator between quadratic monomial and linear polynomial
  *
  * @receiver 二次单项式 / Quadratic monomial
  * @param rhs 线性多项式 / Linear polynomial
@@ -346,8 +314,7 @@ operator fun <T : Ring<T>> QuadraticMonomial<T>.plus(rhs: LinearPolynomial<T>): 
 }
 
 /**
- * 线性多项式与二次单项式的加法运算符
- * Addition operator between linear polynomial and quadratic monomial
+ * 线性多项式与二次单项式的加法运算符 / Addition operator between linear polynomial and quadratic monomial
  *
  * @receiver 线性多项式 / Linear polynomial
  * @param rhs 二次单项式 / Quadratic monomial
@@ -359,8 +326,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.plus(rhs: QuadraticMonomial<T>): 
 }
 
 /**
- * 二次单项式与线性多项式的减法运算符
- * Subtraction operator between quadratic monomial and linear polynomial
+ * 二次单项式与线性多项式的减法运算符 / Subtraction operator between quadratic monomial and linear polynomial
  *
  * @receiver 二次单项式 / Quadratic monomial
  * @param rhs 线性多项式 / Linear polynomial
@@ -372,8 +338,7 @@ operator fun <T : Ring<T>> QuadraticMonomial<T>.minus(rhs: LinearPolynomial<T>):
 }
 
 /**
- * 线性多项式与二次单项式的减法运算符
- * Subtraction operator between linear polynomial and quadratic monomial
+ * 线性多项式与二次单项式的减法运算符 / Subtraction operator between linear polynomial and quadratic monomial
  *
  * @receiver 线性多项式 / Linear polynomial
  * @param rhs 二次单项式 / Quadratic monomial

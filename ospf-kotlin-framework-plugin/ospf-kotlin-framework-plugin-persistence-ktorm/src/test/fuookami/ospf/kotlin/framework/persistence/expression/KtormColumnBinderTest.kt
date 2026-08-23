@@ -7,6 +7,7 @@ package fuookami.ospf.kotlin.framework.persistence.expression
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.ktorm.schema.int
@@ -141,5 +142,65 @@ class KtormColumnBinderTest {
         // 验证 resolver 能解析表达式中的路径
         val resolver = UserSchema.ktormResolver(UsersTable)
         assertNotNull(resolver("status"))
+    }
+
+    @Test
+    @DisplayName("diagnostic resolver rejects ambiguous short paths / 诊断解析器拒绝歧义短路径")
+    fun diagnosticResolverRejectsAmbiguousShortPaths() {
+        val resolver = resolveColumnWithDiagnostics {
+            map("orders", "id", UsersTable.userId)
+            map("items", "id", UsersTable.userStatus)
+        }
+
+        val result = resolver.resolveDetailed("id")
+        assertTrue(result is PersistenceFieldResolution.Ambiguous)
+        assertNull(resolver("id"))
+    }
+
+    @Test
+    @DisplayName("invalid DSL configuration is returned as a diagnostic / 非法 DSL 配置以诊断结果返回")
+    fun invalidDslConfigurationIsReturnedAsDiagnostic() {
+        val resolver = resolveColumnWithDiagnostics {
+            map("", UsersTable.userId)
+        }
+
+        val result = resolver.resolveDetailed("id")
+        assertTrue(result is PersistenceFieldResolution.InvalidConfiguration)
+    }
+
+    @Test
+    @DisplayName("versioned table DSL resolves qualified fields / 版本化表 DSL 应解析限定字段")
+    fun versionedTableDslResolvesQualifiedFields() {
+        val resolver = resolveColumnWithDiagnostics {
+            mainTable {
+                map("id", UsersTable.userId)
+            }
+            versionTable {
+                map("id", UsersTable.userName)
+                map("name", UsersTable.userName)
+            }
+        }
+
+        assertTrue(resolver.resolveDetailed("main.id") is PersistenceFieldResolution.Resolved)
+        assertTrue(resolver.resolveDetailed("version.name") is PersistenceFieldResolution.Resolved)
+        assertTrue(resolver.resolveDetailed("id") is PersistenceFieldResolution.Ambiguous)
+    }
+
+    @Test
+    @DisplayName("versioned table DSL supports query aliases / 版本化表 DSL 应支持查询别名")
+    fun versionedTableDslSupportsQueryAliases() {
+        val resolver = resolveColumn {
+            mainTable("m") {
+                map("id", UsersTable.userId)
+            }
+            versionTable("v") {
+                map("name", UsersTable.userName)
+            }
+        }
+
+        assertNotNull(resolver("m.id"))
+        assertNotNull(resolver("v.name"))
+        assertNotNull(resolver("id"))
+        assertNull(resolver("unknown.id"))
     }
 }

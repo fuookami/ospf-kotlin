@@ -281,6 +281,8 @@ val filters = where.fieldFilters()
 | `ColumnNamingStrategy` | enum | `Identity` 或 `SnakeCase`；控制 KSP 如何推导列名 |
 | `ColumnBinder.toResolver()` | extension | 将 `ColumnBinder<C>` 转为 `PersistenceFieldResolver<C>` |
 
+需要保留配置错误时可实现 `DiagnosticPersistenceFieldResolver<C>`。其 `resolveDetailed` 结果区分 `Resolved`、`Missing`、`Ambiguous` 和 `InvalidConfiguration`；可空的 `invoke` API 仍可供现有 Repository 兼容使用。
+
 实现 `HasColumnMapping` 的 `PredicateSchema` 可交给后端 resolver 工厂，使属性路径被翻译为具体列。schema 字段（`field(User::status)`）仍是 AST 入口；binder 只影响路径到后端列的解析方式。
 
 ### 启用列映射生成

@@ -1,6 +1,5 @@
 /**
- * 深度边界层方向策略。
- * Depth boundary layer orientation policy.
+ * 深度边界层方向策略。 / Depth boundary layer orientation policy.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 /**
- * 深度边界层轴向/朝向硬约束。
- * Hard axis/orientation constraints for depth boundary layers.
+ * 深度边界层轴向/朝向硬约束。 / Hard axis/orientation constraints for depth boundary layers.
  *
  * @property firstLayerAllowedCylinderAxes depth 方向第一个 layer 允许的圆柱轴向 / allowed cylinder axes on the first depth layer
  * @property lastLayerAllowedCylinderAxes depth 方向最后一个 layer 允许的圆柱轴向 / allowed cylinder axes on the last depth layer
@@ -54,8 +52,7 @@ data class DepthBoundaryLayerOrientationPolicy(
     }
 
     /**
-     * 确保层方向约束满足。
-     * Ensure layer orientation constraints are satisfied.
+     * 确保层方向约束满足。 / Ensure layer orientation constraints are satisfied.
      *
      * @param bins 待校验的容器列表 / list of bins to validate
      * @return 校验结果 / validation result
@@ -92,8 +89,7 @@ data class DepthBoundaryLayerOrientationPolicy(
     }
 
     /**
-     * 校验指定边界层是否满足方向约束。
-     * Validate whether the specified boundary layer satisfies orientation constraints.
+     * 校验指定边界层是否满足方向约束。 / Validate whether the specified boundary layer satisfies orientation constraints.
      *
      * @param binIndex 容器索引 / bin index
      * @param side 边界层侧别 / boundary layer side
@@ -134,8 +130,7 @@ data class DepthBoundaryLayerOrientationPolicy(
     }
 
     /**
-     * 校验单个边界层单元是否满足方向约束。
-     * Validate whether a single boundary layer unit satisfies orientation constraints.
+     * 校验单个边界层单元是否满足方向约束。 / Validate whether a single boundary layer unit satisfies orientation constraints.
      *
      * @param binIndex 容器索引 / bin index
      * @param side 边界层侧别 / boundary layer side
@@ -178,8 +173,7 @@ data class DepthBoundaryLayerOrientationPolicy(
     }
 
     /**
-     * 获取边界单元的描述字符串，优先使用实际物品 ID。
-     * Get a description string for the boundary unit, preferring the actual item ID.
+     * 获取边界单元的描述字符串，优先使用实际物品 ID。 / Get a description string for the boundary unit, preferring the actual item ID.
      *
      * @return 边界单元的描述字符串 / description string of the boundary unit
     */
@@ -189,8 +183,7 @@ data class DepthBoundaryLayerOrientationPolicy(
 
     private companion object {
         /**
-         * 校验集合非空约束，null 或非空均合法。
-         * Validate that the set is either null or non-empty.
+         * 校验集合非空约束，null 或非空均合法。 / Validate that the set is either null or non-empty.
          *
          * @param values 待校验的集合 / the set to validate
          * @param fieldName 字段名称，用于错误信息 / field name used in error message

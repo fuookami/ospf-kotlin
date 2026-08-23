@@ -65,6 +65,25 @@ import fuookami.ospf.kotlin.math.symbol.expression.operation.*
 val normalized = normalize(complexExpr)
 ```
 
+### Structural Expression Transforms
+
+`ScalarExpression.transform` and `BooleanExpression.transform` provide post-order, structure-preserving rewrites. Use `transformScalars` to rewrite scalar nodes inside a boolean tree and `transformBooleans` to rewrite boolean nodes:
+
+```kotlin
+val rewritten = predicate.transformScalars { scalar ->
+    when (scalar) {
+        is ScalarConstant<*> -> ScalarConstant(rewriteValue(scalar.value))
+        else -> scalar
+    }
+}
+
+val renamed = rewritten.transformBooleans { boolean ->
+    rewriteBoolean(boolean)
+}
+```
+
+The callbacks receive child-rebuilt nodes, including scalar branches inside `ScalarConditional` and `ScalarBoolean`. The helpers rebuild the shared AST and do not evaluate or mutate expressions.
+
 ### Local Evaluation
 
 ```kotlin

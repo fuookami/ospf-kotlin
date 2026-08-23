@@ -7,8 +7,7 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.functional.Order
 
 /**
- * 生成量缓存，用于缓存重复宽度和最大重复次数的计算结果，避免重复计算。
- * A cache for generation quantities, caching computed repeat width and max repeat count results to avoid redundant computation.
+ * 生成量缓存，用于缓存重复宽度和最大重复次数的计算结果，避免重复计算。 / A cache for generation quantities, caching computed repeat width and max repeat count results to avoid redundant computation.
  *
  * @property arithmetic 量算术运算器，用于执行量的加法和减法操作 / The quantity arithmetic used to perform addition and subtraction on quantities.
 */
@@ -31,8 +30,7 @@ internal class GenerationQuantityCache<V : RealNumber<V>>(
     val totalMisses: Int64 get() = repeatWidthMisses + maxRepeatCountMisses
 
     /**
-     * 获取或计算重复宽度，即宽度乘以重复次数。若缓存中存在则直接返回，否则计算并缓存。
-     * Get or compute the repeat width, i.e., width multiplied by the number of times. Returns the cached value if present, otherwise computes and caches it.
+     * 获取或计算重复宽度，即宽度乘以重复次数。若缓存中存在则直接返回，否则计算并缓存。 / Get or compute the repeat width, i.e., width multiplied by the number of times. Returns the cached value if present, otherwise computes and caches it.
      *
      * @param width 单次宽度 / The width per occurrence.
      * @param times 重复次数 / The number of repetitions.
@@ -52,8 +50,7 @@ internal class GenerationQuantityCache<V : RealNumber<V>>(
     }
 
     /**
-     * 获取或计算在可用宽度内可重复的最大次数。若缓存中存在则直接返回，否则计算并缓存。
-     * Get or compute the maximum number of repetitions within the available width. Returns the cached value if present, otherwise computes and caches it.
+     * 获取或计算在可用宽度内可重复的最大次数。若缓存中存在则直接返回，否则计算并缓存。 / Get or compute the maximum number of repetitions within the available width. Returns the cached value if present, otherwise computes and caches it.
      *
      * @param width 单次宽度 / The width per occurrence.
      * @param availableWidth 可用总宽度 / The total available width.
@@ -73,8 +70,7 @@ internal class GenerationQuantityCache<V : RealNumber<V>>(
     }
 
     /**
-     * 计算重复宽度，通过累加指定次数得到总宽度。
-     * Compute the repeat width by accumulating the width for the given number of times.
+     * 计算重复宽度，通过累加指定次数得到总宽度。 / Compute the repeat width by accumulating the width for the given number of times.
      *
      * @param width 单次宽度 / The width per occurrence.
      * @param times 重复次数 / The number of repetitions.
@@ -89,8 +85,7 @@ internal class GenerationQuantityCache<V : RealNumber<V>>(
     }
 
     /**
-     * 计算在可用宽度内可重复的最大次数，通过循环减法得到结果。
-     * Compute the maximum number of repetitions within the available width via repeated subtraction.
+     * 计算在可用宽度内可重复的最大次数，通过循环减法得到结果。 / Compute the maximum number of repetitions within the available width via repeated subtraction.
      *
      * @param width 单次宽度 / The width per occurrence.
      * @param availableWidth 可用总宽度 / The total available width.
@@ -110,8 +105,7 @@ internal class GenerationQuantityCache<V : RealNumber<V>>(
     }
 
     /**
-     * 重复宽度缓存键，由宽度和重复次数组成。
-     * Key for the repeat width cache, composed of width and repetition count.
+     * 重复宽度缓存键，由宽度和重复次数组成。 / Key for the repeat width cache, composed of width and repetition count.
      *
      * @property width 单次宽度 / The width per occurrence.
      * @property times 重复次数 / The number of repetitions.
@@ -122,8 +116,7 @@ internal class GenerationQuantityCache<V : RealNumber<V>>(
     )
 
     /**
-     * 最大重复次数缓存键，由单次宽度和可用宽度组成。
-     * Key for the max repeat count cache, composed of width and available width.
+     * 最大重复次数缓存键，由单次宽度和可用宽度组成。 / Key for the max repeat count cache, composed of width and available width.
      *
      * @property width 单次宽度 / The width per occurrence.
      * @property availableWidth 可用总宽度 / The total available width.

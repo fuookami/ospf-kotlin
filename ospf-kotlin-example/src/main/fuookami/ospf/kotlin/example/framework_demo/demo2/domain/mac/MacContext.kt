@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -32,10 +33,10 @@ class MacContext {
      * Initializes the MAC aggregation from aircraft, stowage, and request data.
      * 从飞机、装载和请求数据初始化 MAC 聚合。
      *
-     * @param aircraftContext The aircraft context providing aircraft model data / 提供飞机模型数据的飞机上下文
-     * @param stowageContext The stowage context providing load and position data / 提供装载和位置数据的装载上下文
-     * @param input The request DTO containing MAC-related input / 包含 MAC 相关输入的请求 DTO
-     * @return [Try] indicating success or failure / 表示成功或失败
+     * @param aircraftContext 提供飞机模型数据的飞机上下文 / The aircraft context providing aircraft model data
+     * @param stowageContext 提供装载和位置数据的装载上下文 / The stowage context providing load and position data
+     * @param input 包含 MAC 相关输入的请求 DTO / The request DTO containing MAC-related input
+     * @return 表示成功或失败 / [Try] indicating success or failure
     */
     fun init(
         aircraftContext: AircraftContext,
@@ -47,15 +48,15 @@ class MacContext {
             stowageAggregation = stowageContext.aggregation,
             input = input
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Ok -> {
                 aggregation = result.value!!
             }
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -67,9 +68,9 @@ class MacContext {
      * Registers the MAC aggregation symbols into the optimization model.
      * 将 MAC 聚合符号注册到优化模型中。
      *
-     * @param stowageMode The stowage mode controlling registration / 控制注册行为的装载模式
-     * @param model The linear meta-model to register into / 要注册的线性元模型
-     * @return [Try] indicating success or failure / 表示成功或失败
+     * @param stowageMode 控制注册行为的装载模式 / The stowage mode controlling registration
+     * @param model 要注册的线性元模型 / The linear meta-model to register into
+     * @return 表示成功或失败 / [Try] indicating success or failure
     */
     fun register(
         stowageMode: StowageMode,
@@ -79,13 +80,13 @@ class MacContext {
             stowageMode = stowageMode,
             model = model
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -98,18 +99,19 @@ class MacContext {
      * 使用满载装载模式为 Benders 主问题注册 MAC 聚合。
      *
      * @param model The linear meta-model for the master problem / Benders 主问题的线性元模型
-     * @return [Try] indicating success or failure / 表示成功或失败
+     * @return 表示成功或失败 / [Try] indicating success or failure
     */
     fun registerForBendersMP(
+        stowageMode: StowageMode,
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
         when (val result = aggregation.register(
-            stowageMode = StowageMode.FullLoad,
+            stowageMode = stowageMode,
             model = model
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
         return ok
     }
@@ -119,7 +121,7 @@ class MacContext {
      * 为 Benders 子问题注册符号。
      *
      * @param model The linear meta-model for the sub-problem / Benders 子问题的线性元模型
-     * @return [Try] indicating success or failure / 表示成功或失败
+     * @return 表示成功或失败 / [Try] indicating success or failure
     */
     fun registerForBendersSP(
         model: AbstractLinearMetaModel<Flt64>
@@ -132,8 +134,8 @@ class MacContext {
      * 求解后刷新 Benders 子问题的状态。
      *
      * @param model The linear meta-model for the sub-problem / Benders 子问题的线性元模型
-     * @param solution The solution from the master problem / 来自主问题的解
-     * @return [Try] indicating success or failure / 表示成功或失败
+     * @param solution 来自主问题的解 / The solution from the master problem
+     * @return 表示成功或失败 / [Try] indicating success or failure
     */
     fun flushForBendersSP(
         model: AbstractLinearMetaModel<Flt64>,

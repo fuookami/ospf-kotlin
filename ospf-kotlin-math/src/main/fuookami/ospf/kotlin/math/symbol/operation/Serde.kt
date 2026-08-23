@@ -1,8 +1,6 @@
 /**
  * Flt64 Serialization and Deserialization
- * Flt64 序列化与反序列化
- *
- * Provides JSON serialization and deserialization for Flt64 polynomials and inequalities.
+ * Flt64 序列化与反序列化 / Provides JSON serialization and deserialization for Flt64 polynomials and inequalities.
  * 提供 Flt64 多项式和不等式的 JSON 序列化与反序列化功能。
 */
 package fuookami.ospf.kotlin.math.symbol.operation
@@ -21,8 +19,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.serialization.*
 
 /**
- * 将 Flt64 规范多项式序列化为 JSON 字符串
- * Serialize a Flt64 canonical polynomial to a JSON string
+ * 将 Flt64 规范多项式序列化为 JSON 字符串 / Serialize a Flt64 canonical polynomial to a JSON string
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return JSON 字符串 / JSON string
@@ -32,8 +29,7 @@ fun CanonicalPolynomial<Flt64>.toJsonString(symbolComparator: Comparator<Symbol>
 }
 
 /**
- * 将 Flt64 线性多项式序列化为 JSON 字符串
- * Serialize a Flt64 linear polynomial to a JSON string
+ * 将 Flt64 线性多项式序列化为 JSON 字符串 / Serialize a Flt64 linear polynomial to a JSON string
  *
  * @return JSON 字符串 / JSON string
 */
@@ -42,8 +38,7 @@ fun LinearPolynomial<Flt64>.toJsonString(): String {
 }
 
 /**
- * 将 Flt64 二次多项式序列化为 JSON 字符串
- * Serialize a Flt64 quadratic polynomial to a JSON string
+ * 将 Flt64 二次多项式序列化为 JSON 字符串 / Serialize a Flt64 quadratic polynomial to a JSON string
  *
  * @return JSON 字符串 / JSON string
 */
@@ -52,8 +47,7 @@ fun QuadraticPolynomial<Flt64>.toJsonString(): String {
 }
 
 /**
- * 将 Flt64 线性不等式序列化为 JSON 字符串
- * Serialize a Flt64 linear inequality to a JSON string
+ * 将 Flt64 线性不等式序列化为 JSON 字符串 / Serialize a Flt64 linear inequality to a JSON string
  *
  * @return JSON 字符串 / JSON string
 */
@@ -62,8 +56,7 @@ fun LinearInequality<Flt64>.toJsonString(): String {
 }
 
 /**
- * 将 Flt64 二次不等式序列化为 JSON 字符串
- * Serialize a Flt64 quadratic inequality to a JSON string
+ * 将 Flt64 二次不等式序列化为 JSON 字符串 / Serialize a Flt64 quadratic inequality to a JSON string
  *
  * @return JSON 字符串 / JSON string
 */
@@ -72,8 +65,7 @@ fun QuadraticInequalityOf<Flt64>.toJsonString(): String {
 }
 
 /**
- * 将 Flt64 规范不等式序列化为 JSON 字符串
- * Serialize a Flt64 canonical inequality to a JSON string
+ * 将 Flt64 规范不等式序列化为 JSON 字符串 / Serialize a Flt64 canonical inequality to a JSON string
  *
  * @return JSON 字符串 / JSON string
 */
@@ -82,8 +74,7 @@ fun CanonicalInequality<Flt64>.toJsonString(): String {
 }
 
 /**
- * 从 JSON 字符串反序列化为 Flt64 规范多项式
- * Deserialize a JSON string to a Flt64 canonical polynomial
+ * 从 JSON 字符串反序列化为 Flt64 规范多项式 / Deserialize a JSON string to a Flt64 canonical polynomial
  *
  * @param json JSON 字符串 / JSON string
  * @param symbolOf 符号解析函数 / Symbol resolution function
@@ -95,8 +86,7 @@ fun canonicalPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::s
 }
 
 /**
- * 从 JSON 字符串反序列化为 Flt64 线性多项式
- * Deserialize a JSON string to a Flt64 linear polynomial
+ * 从 JSON 字符串反序列化为 Flt64 线性多项式 / Deserialize a JSON string to a Flt64 linear polynomial
  *
  * @param json JSON 字符串 / JSON string
  * @param symbolOf 符号解析函数 / Symbol resolution function
@@ -108,8 +98,7 @@ fun linearPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::symb
 }
 
 /**
- * 从 JSON 字符串反序列化为 Flt64 二次多项式
- * Deserialize a JSON string to a Flt64 quadratic polynomial
+ * 从 JSON 字符串反序列化为 Flt64 二次多项式 / Deserialize a JSON string to a Flt64 quadratic polynomial
  *
  * @param json JSON 字符串 / JSON string
  * @param symbolOf 符号解析函数 / Symbol resolution function
@@ -124,8 +113,7 @@ fun quadraticPolynomialFromJson(
 }
 
 /**
- * 从 JSON 字符串反序列化为 Flt64 线性不等式
- * Deserialize a JSON string to a Flt64 linear inequality
+ * 从 JSON 字符串反序列化为 Flt64 线性不等式 / Deserialize a JSON string to a Flt64 linear inequality
  *
  * @param json JSON 字符串 / JSON string
  * @param symbolOf 符号解析函数 / Symbol resolution function
@@ -137,8 +125,7 @@ fun linearInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symb
 }
 
 /**
- * 从 JSON 字符串反序列化为 Flt64 二次不等式
- * Deserialize a JSON string to a Flt64 quadratic inequality
+ * 从 JSON 字符串反序列化为 Flt64 二次不等式 / Deserialize a JSON string to a Flt64 quadratic inequality
  *
  * @param json JSON 字符串 / JSON string
  * @param symbolOf 符号解析函数 / Symbol resolution function
@@ -153,8 +140,7 @@ fun quadraticInequalityFromJson(
 }
 
 /**
- * 从 JSON 字符串反序列化为 Flt64 规范不等式
- * Deserialize a JSON string to a Flt64 canonical inequality
+ * 从 JSON 字符串反序列化为 Flt64 规范不等式 / Deserialize a JSON string to a Flt64 canonical inequality
  *
  * @param json JSON 字符串 / JSON string
  * @param symbolOf 符号解析函数 / Symbol resolution function
@@ -170,8 +156,7 @@ fun canonicalInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::s
 // ============================================================================
 
 /**
- * 将符号转换为 DTO 标识符字符串
- * Convert a symbol to a DTO identifier string
+ * 将符号转换为 DTO 标识符字符串 / Convert a symbol to a DTO identifier string
  *
  * @return DTO 标识符字符串 / DTO identifier string
 */
@@ -180,8 +165,7 @@ private fun Symbol.toDtoIdentifier(): String {
 }
 
 /**
- * 将比较运算符转换为 DTO 字符串
- * Convert a comparison operator to a DTO string
+ * 将比较运算符转换为 DTO 字符串 / Convert a comparison operator to a DTO string
  *
  * @return DTO 比较运算符字符串 / DTO comparison operator string
 */
@@ -197,8 +181,7 @@ private fun Comparison.toDtoString(): String {
 }
 
 /**
- * 从 DTO 字符串解析比较运算符
- * Parse a comparison operator from a DTO string
+ * 从 DTO 字符串解析比较运算符 / Parse a comparison operator from a DTO string
  *
  * @param str 比较运算符字符串 / Comparison operator string
  * @return 比较运算符结果 / Comparison operator result
@@ -216,8 +199,7 @@ private fun comparisonFromDtoString(str: String): Ret<Comparison> {
 }
 
 /**
- * 转换 Flt64 规范多项式为 DTO
- * Convert Flt64 canonical polynomial to DTO
+ * 转换 Flt64 规范多项式为 DTO / Convert Flt64 canonical polynomial to DTO
  *
  * @return 规范多项式 DTO 数据 / Canonical polynomial DTO data
 */
@@ -229,8 +211,7 @@ internal fun CanonicalPolynomial<Flt64>.toFlt64Dto(): CanonicalPolynomialData {
 }
 
 /**
- * 转换 Flt64 线性多项式为 DTO
- * Convert Flt64 linear polynomial to DTO
+ * 转换 Flt64 线性多项式为 DTO / Convert Flt64 linear polynomial to DTO
  *
  * @return 线性多项式 DTO 数据 / Linear polynomial DTO data
 */
@@ -242,8 +223,7 @@ internal fun LinearPolynomial<Flt64>.toFlt64Dto(): LinearPolynomialData {
 }
 
 /**
- * 转换 Flt64 二次多项式为 DTO
- * Convert Flt64 quadratic polynomial to DTO
+ * 转换 Flt64 二次多项式为 DTO / Convert Flt64 quadratic polynomial to DTO
  *
  * @return 二次多项式 DTO 数据 / Quadratic polynomial DTO data
 */
@@ -255,8 +235,7 @@ internal fun QuadraticPolynomial<Flt64>.toFlt64Dto(): QuadraticPolynomialData {
 }
 
 /**
- * 转换 Flt64 线性不等式为 DTO
- * Convert Flt64 linear inequality to DTO
+ * 转换 Flt64 线性不等式为 DTO / Convert Flt64 linear inequality to DTO
  *
  * @return 线性不等式 DTO 数据 / Linear inequality DTO data
 */
@@ -271,8 +250,7 @@ internal fun LinearInequality<Flt64>.toFlt64Dto(): LinearInequalityData {
 }
 
 /**
- * 转换 Flt64 二次不等式为 DTO
- * Convert Flt64 quadratic inequality to DTO
+ * 转换 Flt64 二次不等式为 DTO / Convert Flt64 quadratic inequality to DTO
  *
  * @return 二次不等式 DTO 数据 / Quadratic inequality DTO data
 */
@@ -287,8 +265,7 @@ internal fun QuadraticInequalityOf<Flt64>.toFlt64Dto(): QuadraticInequalityData 
 }
 
 /**
- * 转换 Flt64 规范不等式为 DTO
- * Convert Flt64 canonical inequality to DTO
+ * 转换 Flt64 规范不等式为 DTO / Convert Flt64 canonical inequality to DTO
  *
  * @return 规范不等式 DTO 数据 / Canonical inequality DTO data
 */
@@ -303,8 +280,7 @@ internal fun CanonicalInequality<Flt64>.toFlt64Dto(): CanonicalInequalityData {
 }
 
 /**
- * 转换规范多项式数据为 Flt64 域
- * Convert canonical polynomial data to Flt64 domain
+ * 转换规范多项式数据为 Flt64 域 / Convert canonical polynomial data to Flt64 domain
  *
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return Flt64 规范多项式 / Flt64 canonical polynomial
@@ -317,8 +293,7 @@ internal fun CanonicalPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol)
 }
 
 /**
- * 转换线性多项式数据为 Flt64 域
- * Convert linear polynomial data to Flt64 domain
+ * 转换线性多项式数据为 Flt64 域 / Convert linear polynomial data to Flt64 domain
  *
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return Flt64 线性多项式 / Flt64 linear polynomial
@@ -331,8 +306,7 @@ internal fun LinearPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol): L
 }
 
 /**
- * 转换二次多项式数据为 Flt64 域
- * Convert quadratic polynomial data to Flt64 domain
+ * 转换二次多项式数据为 Flt64 域 / Convert quadratic polynomial data to Flt64 domain
  *
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return Flt64 二次多项式 / Flt64 quadratic polynomial
@@ -345,8 +319,7 @@ internal fun QuadraticPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol)
 }
 
 /**
- * 转换线性不等式数据为 Flt64 域
- * Convert linear inequality data to Flt64 domain
+ * 转换线性不等式数据为 Flt64 域 / Convert linear inequality data to Flt64 domain
  *
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return Flt64 线性不等式结果 / Flt64 linear inequality result
@@ -364,8 +337,7 @@ internal fun LinearInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): R
 }
 
 /**
- * 转换二次不等式数据为 Flt64 域
- * Convert quadratic inequality data to Flt64 domain
+ * 转换二次不等式数据为 Flt64 域 / Convert quadratic inequality data to Flt64 domain
  *
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return Flt64 二次不等式结果 / Flt64 quadratic inequality result
@@ -383,8 +355,7 @@ internal fun QuadraticInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol)
 }
 
 /**
- * 转换标准不等式数据为 Flt64 域
- * Convert canonical inequality data to Flt64 domain
+ * 转换标准不等式数据为 Flt64 域 / Convert canonical inequality data to Flt64 domain
  *
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return Flt64 规范不等式结果 / Flt64 canonical inequality result

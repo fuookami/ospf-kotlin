@@ -1,9 +1,7 @@
 /**
- * 三维放置信息
- * 3D placement information
+ * 三维放置信息 / 3D placement information
  *
- * 由位置坐标和三维形状定义的三维放置，支持包含测试、重叠检测和求交运算。
- * A 3D placement defined by position coordinates and a 3D shape, supporting containment tests, overlap detection, and intersection.
+ * 由位置坐标和三维形状定义的三维放置，支持包含测试、重叠检测和求交运算。 / A 3D placement defined by position coordinates and a 3D shape, supporting containment tests, overlap detection, and intersection.
 */
 package fuookami.ospf.kotlin.math.geometry
 
@@ -16,11 +14,9 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
- * 三维放置信息
- * 3D placement information
+ * 三维放置信息 / 3D placement information
  *
- * 由位置坐标和三维形状定义的三维放置，支持包含测试、重叠检测和求交运算。
- * A 3D placement defined by position coordinates and a 3D shape, supporting containment tests, overlap detection, and intersection.
+ * 由位置坐标和三维形状定义的三维放置，支持包含测试、重叠检测和求交运算。 / A 3D placement defined by position coordinates and a 3D shape, supporting containment tests, overlap detection, and intersection.
  *
  * @property x x 坐标 / x coordinate
  * @property y y 坐标 / y coordinate
@@ -84,8 +80,7 @@ data class QuantityPlacement3<V : FloatingNumber<V>>(
     fun maxZ(): Ret<Quantity<V>> = box.maxZ()
 
     /**
-     * 判断点是否在放置区域内
-     * Check if a point is inside the placement area
+     * 判断点是否在放置区域内 / Check if a point is inside the placement area
      *
      * @param x 点的 x 坐标 / x coordinate of the point
      * @param y 点的 y 坐标 / y coordinate of the point
@@ -114,8 +109,7 @@ data class QuantityPlacement3<V : FloatingNumber<V>>(
     }
 
     /**
-     * 判断两个放置区域是否重叠
-     * Check if two placement areas overlap
+     * 判断两个放置区域是否重叠 / Check if two placement areas overlap
      *
      * @param rhs 另一个放置区域 / Another placement
      * @return 是否重叠 / Whether they overlap
@@ -123,8 +117,7 @@ data class QuantityPlacement3<V : FloatingNumber<V>>(
     fun overlapped(rhs: QuantityPlacement3<V>): Ret<Boolean> = box.overlapped(rhs.box)
 
     /**
-     * 计算两个放置区域的交集
-     * Compute the intersection of two placement areas
+     * 计算两个放置区域的交集 / Compute the intersection of two placement areas
      *
      * @param rhs 另一个放置区域 / Another placement
      * @return 交集放置区域，如果不相交则返回 null / Intersection placement, or null if they don't intersect

@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.model
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.*
@@ -26,11 +27,11 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * Computes relative priority reversal between item pairs across position pairs for express effectiveness.
  * 计算快递效能中位置对之间的项目对的相对优先级反转。
  *
- * @property items The list of cargo items. / 货物项列表
- * @property positions The list of stowage positions. / 配载位置列表
- * @property orderedItems The list of ordered item pairs for priority comparison. / 用于优先级比较的有序货物项对列表
- * @property orderedPositions The list of ordered position pairs for loading order comparison. / 用于装载顺序比较的有序位置对列表
- * @property stowage The stowage assignment model. / 配载分配模型
+ * @property items 货物项列表 / The list of cargo items.
+ * @property positions 配载位置列表 / The list of stowage positions.
+ * @property orderedItems 用于优先级比较的有序货物项对列表 / The list of ordered item pairs for priority comparison.
+ * @property orderedPositions 用于装载顺序比较的有序位置对列表 / The list of ordered position pairs for loading order comparison.
+ * @property stowage 配载分配模型 / The stowage assignment model.
 */
 class RelativeOrder(
     private val items: List<Item>,
@@ -45,7 +46,38 @@ class RelativeOrder(
             positions: List<Position>,
             stowage: Stowage
         ): RelativeOrder {
-            TODO("not implemented yet")
+            val orderedItems = items
+                .sortedWith(compareByDescending<Item> { it.cargo.priority.priority }.thenBy { it.id })
+                .flatMapIndexed { index, item ->
+                    items
+                        .sortedWith(compareByDescending<Item> { it.cargo.priority.priority }.thenBy { it.id })
+                        .drop(index + 1)
+                        .mapNotNull { other ->
+                            (item to other).takeIf {
+                                item.cargo.priority.priority > other.cargo.priority.priority
+                            }
+                        }
+                }
+            val orderedPositions = positions
+                .sortedWith(compareBy<Position> { it.loadingOrder.order }.thenBy { it.id.toString() })
+                .flatMapIndexed { index, position ->
+                    positions
+                        .sortedWith(compareBy<Position> { it.loadingOrder.order }.thenBy { it.id.toString() })
+                        .drop(index + 1)
+                        .mapNotNull { other ->
+                            (position to other).takeIf {
+                                position.loadingOrder.order < other.loadingOrder.order
+                            }
+                        }
+                }
+
+            return RelativeOrder(
+                items = items,
+                positions = positions,
+                orderedItems = orderedItems,
+                orderedPositions = orderedPositions,
+                stowage = stowage
+            )
         }
     }
 
@@ -55,14 +87,14 @@ class RelativeOrder(
      * Registers the item priority reverse intermediate symbols into the optimization model.
      * 将项目优先级反转中间符号注册到优化模型中。
      *
-     * @param model The linear meta model to register into. / 要注册到的线性元模型
-     * @return The result of the registration operation. / 注册操作的结果
+     * @param model 要注册到的线性元模型 / The linear meta model to register into.
+     * @return 注册操作的结果 / The result of the registration operation.
     */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::itemPriorityReverse.isInitialized) {
-            itemPriorityReverse = LinearIntermediateSymbols2<Flt64>("item_priority_reverse", Shape2(items.size, positions.size)) { _, v ->
+            itemPriorityReverse = LinearIntermediateSymbols2<Flt64>("item_priority_reverse", Shape2(orderedItems.size, orderedPositions.size)) { _, v ->
                 val (item1, item2) = orderedItems[v[0]]
                 val i1 = items.indexOf(item1)
                 val i2 = items.indexOf(item2)
@@ -73,7 +105,8 @@ class RelativeOrder(
                 if (Stowage.stowageNeeded(item2, position1) && Stowage.stowageNeeded(item1, position2)) {
                     LinearFunctionSymbolAdapter(
                         delegate = IfFunction(
-                            condition = stowage.stowage[i1, j2] + stowage.stowage[i2, j1] - Flt64.two,
+                            condition = stowage.stowage[i1, j2] + stowage.stowage[i2, j1]
+                                - Flt64.two + Flt64(NONZERO_TOLERANCE),
                             converter = flt64Converter,
                             name = "item_priority_reverse_${item1}_${item2}_${position1}_${position2}"
                         ),
@@ -88,13 +121,13 @@ class RelativeOrder(
             }
         }
         when (val result = model.add(itemPriorityReverse)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }

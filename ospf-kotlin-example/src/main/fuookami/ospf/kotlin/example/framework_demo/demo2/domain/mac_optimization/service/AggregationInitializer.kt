@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.service
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
@@ -15,6 +16,19 @@ data object AggregationInitializer {
         macAggregation: MACAggregation,
         input: RequestDTO
     ): Ret<Aggregation> {
-        TODO("not implemented yet")
+        if (stowageAggregation.positions.isEmpty()) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "MAC 优化聚合至少需要一个装载位置 / MAC optimization aggregation requires at least one stowage position"
+            )
+        }
+
+        return Ok(Aggregation(
+            aircraftModel = aircraftAggregation.aircraftModel,
+            formula = aircraftAggregation.formula,
+            totalWeight = stowageAggregation.totalWeight,
+            torque = macAggregation.torque,
+            horizontalStabilizers = macAggregation.horizontalStabilizers
+        ))
     }
 }

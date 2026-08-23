@@ -1,6 +1,5 @@
 /**
- * MongoDB 布尔表达式翻译器
- * MongoDB Boolean Expression Translator
+ * MongoDB 布尔表达式翻译器 / MongoDB Boolean Expression Translator
  *
  * 将 BooleanExpression 翻译为 MongoDB Bson 查询条件。
  * Translates BooleanExpression to MongoDB Bson query conditions.
@@ -17,14 +16,12 @@ import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.framework.persistence.expression.*
 
 /**
- * 字段名解析器
- * Field Name Resolver
+ * 字段名解析器 / Field Name Resolver
 */
 typealias MongoFieldNameResolver = PersistenceFieldResolver<String>
 
 /**
- * MongoDB 布尔表达式翻译器
- * MongoDB Boolean Expression Translator
+ * MongoDB 布尔表达式翻译器 / MongoDB Boolean Expression Translator
  *
  * 将 math.symbol.expression.BooleanExpression 翻译为 MongoDB 查询条件。
  * Translates math.symbol.expression.BooleanExpression to MongoDB query conditions.
@@ -38,14 +35,12 @@ class MongoBooleanTranslator(
 ) {
 
     /**
-     * 标量表达式翻译器实例
-     * Scalar expression translator instance
+     * 标量表达式翻译器实例 / Scalar expression translator instance
     */
     private val scalarTranslator = MongoScalarTranslator(resolveFieldName, unsupportedPredicatePolicy)
 
     /**
-     * 翻译布尔表达式为 Bson
-     * Translate boolean expression to Bson
+     * 翻译布尔表达式为 Bson / Translate boolean expression to Bson
      *
      * @param expr 布尔表达式 / Boolean expression
      * @return Bson 查询条件，不支持时返回 null / Bson query condition, or null if unsupported
@@ -65,8 +60,7 @@ class MongoBooleanTranslator(
     }
 
     /**
-     * 翻译布尔常量表达式
-     * Translate boolean constant expression
+     * 翻译布尔常量表达式 / Translate boolean constant expression
      *
      * @param expr 布尔常量表达式 / Boolean constant expression
      * @return Bson 查询条件 / Bson query condition
@@ -80,8 +74,7 @@ class MongoBooleanTranslator(
     }
 
     /**
-     * 翻译比较表达式
-     * Translate comparison expression
+     * 翻译比较表达式 / Translate comparison expression
      *
      * @param expr 比较表达式 / Comparison expression
      * @return Bson 查询条件 / Bson query condition
@@ -136,8 +129,7 @@ class MongoBooleanTranslator(
     }
 
     /**
-     * 翻译 IN 表达式
-     * Translate IN expression
+     * 翻译 IN 表达式 / Translate IN expression
      *
      * @param expr IN 表达式 / IN expression
      * @return Bson 查询条件 / Bson query condition
@@ -161,8 +153,7 @@ class MongoBooleanTranslator(
     }
 
     /**
-     * 翻译模式匹配表达式
-     * Translate pattern match expression
+     * 翻译模式匹配表达式 / Translate pattern match expression
      *
      * @param expr 模式匹配表达式 / Pattern match expression
      * @return Bson 查询条件 / Bson query condition
@@ -193,8 +184,7 @@ class MongoBooleanTranslator(
     }
 
     /**
-     * 翻译空值检查表达式
-     * Translate null check expression
+     * 翻译空值检查表达式 / Translate null check expression
      *
      * @param expr 空值检查表达式 / Null check expression
      * @return Bson 查询条件 / Bson query condition
@@ -217,8 +207,7 @@ class MongoBooleanTranslator(
     }
 
     /**
-     * 翻译逻辑与表达式
-     * Translate logical AND expression
+     * 翻译逻辑与表达式 / Translate logical AND expression
      *
      * @param expr 逻辑与表达式 / Logical AND expression
      * @return Bson 查询条件 / Bson query condition
@@ -229,8 +218,7 @@ class MongoBooleanTranslator(
     }
 
     /**
-     * 翻译逻辑或表达式
-     * Translate logical OR expression
+     * 翻译逻辑或表达式 / Translate logical OR expression
      *
      * @param expr 逻辑或表达式 / Logical OR expression
      * @return Bson 查询条件 / Bson query condition
@@ -241,8 +229,7 @@ class MongoBooleanTranslator(
     }
 
     /**
-     * 翻译逻辑非表达式
-     * Translate logical NOT expression
+     * 翻译逻辑非表达式 / Translate logical NOT expression
      *
      * @param expr 逻辑非表达式 / Logical NOT expression
      * @return Bson 查询条件 / Bson query condition
@@ -253,8 +240,7 @@ class MongoBooleanTranslator(
     }
 
     /**
-     * 将比较运算符映射为 MongoDB 表达式运算符
-     * Map comparison operator to MongoDB expression operator
+     * 将比较运算符映射为 MongoDB 表达式运算符 / Map comparison operator to MongoDB expression operator
      *
      * @param operator 比较运算符 / Comparison operator
      * @return MongoDB 表达式运算符字符串 / MongoDB expression operator string
@@ -271,8 +257,7 @@ class MongoBooleanTranslator(
     }
 
     /**
-     * 根据策略处理不支持的表达式
-     * Handle unsupported expression based on policy
+     * 根据策略处理不支持的表达式 / Handle unsupported expression based on policy
      *
      * @param reason 不支持的原因 / Reason for being unsupported
      * @param expression 不支持的表达式 / Unsupported expression
@@ -301,32 +286,29 @@ class MongoBooleanTranslator(
     }
 
     /**
-     * 生成恒假条件，避免 unsupported 表达式被误解释为“无条件”。
-     * Build an always-false filter to avoid unsupported expressions becoming "no filter".
+     * 生成恒假条件，避免 unsupported 表达式被误解释为“无条件”。 / Build an always-false filter to avoid unsupported expressions becoming "no filter".
      *
-     * @return A Bson filter that matches no documents / 不匹配任何文档的 Bson 过滤器
+     * @return 不匹配任何文档的 Bson 过滤器 / A Bson filter that matches no documents
     */
     private fun alwaysFalse(): Bson {
         return Filters.exists("_id", false)
     }
 
     /**
-     * 转义正则特殊字符
-     * Escape regex special characters
+     * 转义正则特殊字符 / Escape regex special characters
      *
-     * @param pattern Raw string pattern to escape / 需要转义的原始字符串模式
-     * @return Escaped regex-safe string / 转义后的正则安全字符串
+     * @param pattern 需要转义的原始字符串模式 / Raw string pattern to escape
+     * @return 转义后的正则安全字符串 / Escaped regex-safe string
     */
     private fun escapeRegex(pattern: String): String {
         return pattern.replace(Regex("[\\[\\]{}()*+?.\\\\^$|]")) { "\\${it.value}" }
     }
 
     /**
-     * 将 SQL LIKE 模式转换为正则表达式
-     * Convert SQL LIKE pattern to regex
+     * 将 SQL LIKE 模式转换为正则表达式 / Convert SQL LIKE pattern to regex
      *
      * @param pattern SQL LIKE pattern string / SQL LIKE 模式字符串
-     * @return Equivalent regex pattern string / 等价的正则表达式字符串
+     * @return 等价的正则表达式字符串 / Equivalent regex pattern string
     */
     private fun translateLikeToRegex(pattern: String): String {
         val escaped = escapeRegex(pattern)

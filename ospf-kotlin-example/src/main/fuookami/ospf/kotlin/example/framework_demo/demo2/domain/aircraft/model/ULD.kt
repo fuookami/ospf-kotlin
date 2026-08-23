@@ -106,7 +106,7 @@ enum class ULDCode {
  * 通过名称和可选代码标识的单元装载设备（ULD）（具有缓存以便重用）。
  *
  * @property name The name identifier of the ULD. / ULD 名称标识
- * @property code The optional ULD type code. / 可选的 ULD 类型代码
+ * @property code 可选的 ULD 类型代码 / The optional ULD type code.
 */
 data class ULD(
     val name: String,

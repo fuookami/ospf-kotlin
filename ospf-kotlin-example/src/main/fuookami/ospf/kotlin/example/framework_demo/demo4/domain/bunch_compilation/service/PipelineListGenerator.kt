@@ -14,8 +14,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
  * Generator for the column generation pipeline list including compilation constraints and limits.
  * 包含编译约束和限制的列生成管线列表生成器。
  *
- * @property aggregation Compilation aggregation. / 中文：编译聚合。
- * @property parameter Column generation master model coefficient parameters. / 中文：列生成主模型系数参数。
+ * @property aggregation 中文：编译聚合。 / Compilation aggregation.
+ * @property parameter 中文：列生成主模型系数参数。 / Column generation master model coefficient parameters.
 */
 class PipelineListGenerator(
     private val aggregation: Aggregation,
@@ -26,7 +26,7 @@ class PipelineListGenerator(
      * Creates and returns the pipeline list with all compilation constraints and limits.
      * 创建并返回包含所有编译约束和限制的管线列表。
      *
-     * @return The column generation pipeline list, or an error. / 中文：列生成管线列表，或错误。
+     * @return 中文：列生成管线列表，或错误。 / The column generation pipeline list, or an error.
     */
     operator fun invoke(): Ret<CGPipelineList> {
         val pipelines = ArrayList<CGPipeline>()

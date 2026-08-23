@@ -5,7 +5,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
  * stowage relationships that must be respected during optimization.
  * 货物与舱位之间的预约映射，表示优化过程中必须遵守的预分配装载关系。
  *
- * @property appointment the mapping from items to their appointed positions / 货物到其预约舱位的映射
+ * @property appointment 货物到其预约舱位的映射 / the mapping from items to their appointed positions
 */
 data class Appointment(
     val appointment: Map<Item, Position>

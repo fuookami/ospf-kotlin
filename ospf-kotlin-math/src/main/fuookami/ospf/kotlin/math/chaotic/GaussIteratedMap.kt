@@ -1,6 +1,5 @@
 /**
- * 高斯迭代映射
- * Gauss Iterated Map
+ * 高斯迭代映射 / Gauss Iterated Map
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -11,8 +10,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 高斯迭代映射
- * Gauss Iterated Map
+ * 高斯迭代映射 / Gauss Iterated Map
  *
  * @property a 系统参数 a / System parameter a
  * @property b 系统参数 b / System parameter b
@@ -30,8 +28,7 @@ data class GaussIteratedMap<V : FloatingNumber<V>>(val a: V, val b: V) : Extract
 }
 
 /**
- * 高斯迭代映射生成器
- * Gauss Iterated Map Generator
+ * 高斯迭代映射生成器 / Gauss Iterated Map Generator
  *
  * @property map 高斯迭代映射实例 / Gauss Iterated Map instance
 */

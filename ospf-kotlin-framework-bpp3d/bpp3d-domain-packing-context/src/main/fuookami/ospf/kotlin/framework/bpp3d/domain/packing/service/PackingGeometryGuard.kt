@@ -1,6 +1,5 @@
 /**
- * 装箱几何守卫。
- * Packing geometry guard.
+ * 装箱几何守卫。 / Packing geometry guard.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
@@ -37,11 +36,11 @@ private data class PackingGeometry(
 /**
  * intervalOverlaps.
  * intervalOverlaps。
- * @param lhsMin left-hand interval lower bound / 左侧区间下界
- * @param lhsMax left-hand interval upper bound / 左侧区间上界
- * @param rhsMin right-hand interval lower bound / 右侧区间下界
- * @param rhsMax right-hand interval upper bound / 右侧区间上界
- * @return whether the two intervals overlap / 两个区间是否重叠
+ * @param lhsMin 左侧区间下界 / left-hand interval lower bound
+ * @param lhsMax 左侧区间上界 / left-hand interval upper bound
+ * @param rhsMin 右侧区间下界 / right-hand interval lower bound
+ * @param rhsMax 右侧区间上界 / right-hand interval upper bound
+ * @return 两个区间是否重叠 / whether the two intervals overlap
 */
 private fun intervalOverlaps(lhsMin: Double, lhsMax: Double, rhsMin: Double, rhsMax: Double): Boolean {
     return min(lhsMax, rhsMax) - max(lhsMin, rhsMin) > PackingGeometryOverlapTolerance
@@ -50,10 +49,10 @@ private fun intervalOverlaps(lhsMin: Double, lhsMax: Double, rhsMin: Double, rhs
 /**
  * distanceToInterval.
  * distanceToInterval。
- * @param point value to check / 待检查的值
- * @param min interval lower bound / 区间下界
- * @param max interval upper bound / 区间上界
- * @return distance from point to interval / 点到区间的距离
+ * @param point 待检查的值 / value to check
+ * @param min 区间下界 / interval lower bound
+ * @param max 区间上界 / interval upper bound
+ * @return 点到区间的距离 / distance from point to interval
 */
 private fun distanceToInterval(point: Double, min: Double, max: Double): Double {
     return when {
@@ -66,8 +65,8 @@ private fun distanceToInterval(point: Double, min: Double, max: Double): Double 
 /**
  * PackingGeometry.
  * PackingGeometry。
- * @param axis coordinate axis / 坐标轴
- * @return center coordinate along the axis / 沿该轴的中心坐标
+ * @param axis 坐标轴 / coordinate axis
+ * @return 沿该轴的中心坐标 / center coordinate along the axis
 */
 private fun PackingGeometry.center(axis: Axis3): Double {
     return when (axis) {
@@ -80,8 +79,8 @@ private fun PackingGeometry.center(axis: Axis3): Double {
 /**
  * PackingGeometry.
  * PackingGeometry。
- * @param axis coordinate axis / 坐标轴
- * @return minimum coordinate along the axis / 沿该轴的最小坐标
+ * @param axis 坐标轴 / coordinate axis
+ * @return 沿该轴的最小坐标 / minimum coordinate along the axis
 */
 private fun PackingGeometry.min(axis: Axis3): Double {
     return when (axis) {
@@ -94,8 +93,8 @@ private fun PackingGeometry.min(axis: Axis3): Double {
 /**
  * PackingGeometry.
  * PackingGeometry。
- * @param axis coordinate axis / 坐标轴
- * @return maximum coordinate along the axis / 沿该轴的最大坐标
+ * @param axis 坐标轴 / coordinate axis
+ * @return 沿该轴的最大坐标 / maximum coordinate along the axis
 */
 private fun PackingGeometry.max(axis: Axis3): Double {
     return when (axis) {
@@ -108,8 +107,8 @@ private fun PackingGeometry.max(axis: Axis3): Double {
 /**
  * axesExcept.
  * axesExcept。
- * @param axis axis to exclude / 要排除的轴
- * @return the other two axes / 其余两个轴
+ * @param axis 要排除的轴 / axis to exclude
+ * @return 其余两个轴 / the other two axes
 */
 private fun axesExcept(axis: Axis3): List<Axis3> {
     return Axis3.entries.filter { it != axis }
@@ -118,7 +117,7 @@ private fun axesExcept(axis: Axis3): List<Axis3> {
 /**
  * PackingGeometry.
  * PackingGeometry。
- * @return horizontal cylinder support geometry / 水平圆柱支撑几何
+ * @return 水平圆柱支撑几何 / horizontal cylinder support geometry
 */
 private fun PackingGeometry.toHorizontalCylinderSupportGeometry(): HorizontalCylinderSupportGeometry {
     return HorizontalCylinderSupportGeometry(
@@ -135,10 +134,10 @@ private fun PackingGeometry.toHorizontalCylinderSupportGeometry(): HorizontalCyl
 /**
  * Checks if has horizontalCylinderSupportCoverage.
  * 检查是否具有HorizontalCylinderSupportCoverage。
- * @param geometry packing geometry of the cylinder to check / 待检查的圆柱装载几何
- * @param index index in the sequence / 序列中的索引
- * @param geometries all packing geometries in the bin / 箱内所有装载几何列表
- * @return whether the cylinder has sufficient support / 圆柱是否有足够支撑
+ * @param geometry 待检查的圆柱装载几何 / packing geometry of the cylinder to check
+ * @param index 序列中的索引 / index in the sequence
+ * @param geometries 箱内所有装载几何列表 / all packing geometries in the bin
+ * @return 圆柱是否有足够支撑 / whether the cylinder has sufficient support
 */
 private fun hasHorizontalCylinderSupportCoverage(
     geometry: PackingGeometry,
@@ -162,8 +161,7 @@ private fun hasHorizontalCylinderSupportCoverage(
 }
 
 /**
- * 校验水平放置的圆柱体是否获得足够的下方支撑覆盖。无支撑时返回失败。
- * Validate that a horizontally placed cylinder has sufficient support coverage from below. Returns failure when unsupported.
+ * 校验水平放置的圆柱体是否获得足够的下方支撑覆盖。无支撑时返回失败。 / Validate that a horizontally placed cylinder has sufficient support coverage from below. Returns failure when unsupported.
  *
  * @param geometry 待校验的几何体 / geometry to validate
  * @param index 该几何体在列表中的索引 / index of this geometry in the list
@@ -201,9 +199,9 @@ private fun requireHorizontalCylinderSupport(
 /**
  * boxBoxOverlaps.
  * boxBoxOverlaps。
- * @param lhs left-hand geometry / 左侧几何
- * @param rhs right-hand operand / 右操作数
- * @return whether the two boxes overlap / 两个长方体是否重叠
+ * @param lhs 左侧几何 / left-hand geometry
+ * @param rhs 右操作数 / right-hand operand
+ * @return 两个长方体是否重叠 / whether the two boxes overlap
 */
 private fun boxBoxOverlaps(lhs: PackingGeometry, rhs: PackingGeometry): Boolean {
     return intervalOverlaps(lhs.minX, lhs.maxX, rhs.minX, rhs.maxX)
@@ -214,9 +212,9 @@ private fun boxBoxOverlaps(lhs: PackingGeometry, rhs: PackingGeometry): Boolean 
 /**
  * cylinderBoxOverlaps.
  * cylinderBoxOverlaps。
- * @param cylinder cylinder geometry / 圆柱几何
- * @param box box geometry / 长方体几何
- * @return whether the cylinder and box overlap / 圆柱与长方体是否重叠
+ * @param cylinder 圆柱几何 / cylinder geometry
+ * @param box 长方体几何 / box geometry
+ * @return 圆柱与长方体是否重叠 / whether the cylinder and box overlap
 */
 private fun cylinderBoxOverlaps(cylinder: PackingGeometry, box: PackingGeometry): Boolean {
     val cylinderShape = cylinder.shape as CylinderPackingShape3
@@ -236,9 +234,9 @@ private fun cylinderBoxOverlaps(cylinder: PackingGeometry, box: PackingGeometry)
 /**
  * sameAxisCylinderOverlaps.
  * sameAxisCylinderOverlaps。
- * @param lhs left-hand geometry / 左侧几何
- * @param rhs right-hand operand / 右操作数
- * @return whether the two same-axis cylinders overlap / 两个同轴圆柱是否重叠
+ * @param lhs 左侧几何 / left-hand geometry
+ * @param rhs 右操作数 / right-hand operand
+ * @return 两个同轴圆柱是否重叠 / whether the two same-axis cylinders overlap
 */
 private fun sameAxisCylinderOverlaps(lhs: PackingGeometry, rhs: PackingGeometry): Boolean {
     val lhsShape = lhs.shape as CylinderPackingShape3
@@ -257,9 +255,9 @@ private fun sameAxisCylinderOverlaps(lhs: PackingGeometry, rhs: PackingGeometry)
 /**
  * differentAxisCylinderOverlaps.
  * differentAxisCylinderOverlaps。
- * @param lhs left-hand geometry / 左侧几何
- * @param rhs right-hand operand / 右操作数
- * @return whether the two different-axis cylinders overlap / 两个异轴圆柱是否重叠
+ * @param lhs 左侧几何 / left-hand geometry
+ * @param rhs 右操作数 / right-hand operand
+ * @return 两个异轴圆柱是否重叠 / whether the two different-axis cylinders overlap
 */
 private fun differentAxisCylinderOverlaps(lhs: PackingGeometry, rhs: PackingGeometry): Boolean {
     val lhsShape = lhs.shape as CylinderPackingShape3
@@ -297,9 +295,9 @@ private fun differentAxisCylinderOverlaps(lhs: PackingGeometry, rhs: PackingGeom
 /**
  * cylinderCylinderOverlaps.
  * cylinderCylinderOverlaps。
- * @param lhs left-hand cylinder geometry / 左侧圆柱几何
- * @param rhs right-hand operand / 右操作数
- * @return whether the two cylinders overlap / 两个圆柱是否重叠
+ * @param lhs 左侧圆柱几何 / left-hand cylinder geometry
+ * @param rhs 右操作数 / right-hand operand
+ * @return 两个圆柱是否重叠 / whether the two cylinders overlap
 */
 private fun cylinderCylinderOverlaps(lhs: PackingGeometry, rhs: PackingGeometry): Boolean {
     val lhsShape = lhs.shape as CylinderPackingShape3
@@ -314,8 +312,8 @@ private fun cylinderCylinderOverlaps(lhs: PackingGeometry, rhs: PackingGeometry)
 /**
  * PackingGeometry.
  * PackingGeometry。
- * @param rhs right-hand operand / 右操作数
- * @return whether this geometry overlaps the other / 此几何是否与另一几何重叠
+ * @param rhs 右操作数 / right-hand operand
+ * @return 此几何是否与另一几何重叠 / whether this geometry overlaps the other
 */
 private fun PackingGeometry.overlaps(rhs: PackingGeometry): Boolean {
     val lhsCylinder = shape is CylinderPackingShape3
@@ -329,8 +327,7 @@ private fun PackingGeometry.overlaps(rhs: PackingGeometry): Boolean {
 }
 
 /**
- * 校验已装箱物品的几何约束：形状不超出箱体边界、水平圆柱体有足够支撑、物品之间无重叠。
- * Validate geometric constraints of packed items: shapes do not exceed bin boundaries, horizontal cylinders have sufficient support, and no overlaps between items.
+ * 校验已装箱物品的几何约束：形状不超出箱体边界、水平圆柱体有足够支撑、物品之间无重叠。 / Validate geometric constraints of packed items: shapes do not exceed bin boundaries, horizontal cylinders have sufficient support, and no overlaps between items.
  *
  * @param bin 已装箱的箱子 / packed bin to validate
  * @param source 调用来源标识 / caller source identifier

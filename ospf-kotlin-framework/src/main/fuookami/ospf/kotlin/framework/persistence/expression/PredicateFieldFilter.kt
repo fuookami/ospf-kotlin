@@ -1,17 +1,14 @@
 /**
- * 谓词字段过滤提取
- * Predicate field filter extraction
+ * 谓词字段过滤提取 / Predicate field filter extraction
  *
- * 将简单仓储谓词还原为字段级过滤条件，便于轻量仓储实现复用。
- * Converts simple repository predicates into field-level filters for lightweight repositories.
+ * 将简单仓储谓词还原为字段级过滤条件，便于轻量仓储实现复用。 / Converts simple repository predicates into field-level filters for lightweight repositories.
 */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
 import fuookami.ospf.kotlin.math.symbol.expression.*
 
 /**
- * 字段级过滤条件
- * Field-level filter
+ * 字段级过滤条件 / Field-level filter
  *
  * @property eq 等值条件 / Equality condition
  * @property inValues IN 集合条件 / IN-list condition
@@ -32,8 +29,7 @@ data class FieldFilter(
 )
 
 /**
- * 尝试将谓词解析为字段名到等值条件的映射
- * Try to parse a predicate into field-to-equality filters
+ * 尝试将谓词解析为字段名到等值条件的映射 / Try to parse a predicate into field-to-equality filters
  *
  * @return 解析成功时返回字段过滤映射，不支持时返回 null / Field filter map on success, or null when unsupported
 */
@@ -48,8 +44,8 @@ fun BooleanExpression?.eqFilters(): Map<String, Any?>? {
      * Collects equality filters from the expression tree.
      * 从表达式树中收集等值过滤条件。
      *
-     * @param expression the expression to collect from / 要收集的表达式
-     * @return true if all sub-expressions were successfully collected / 是否所有子表达式都成功收集
+     * @param expression 要收集的表达式 / the expression to collect from
+     * @return 是否所有子表达式都成功收集 / true if all sub-expressions were successfully collected
     */
     fun collect(expression: BooleanExpression): Boolean {
         return when (expression) {
@@ -70,8 +66,7 @@ fun BooleanExpression?.eqFilters(): Map<String, Any?>? {
 }
 
 /**
- * 尝试将谓词解析为字段名到等值或 IN 条件的映射
- * Try to parse a predicate into field-to-equality-or-IN filters
+ * 尝试将谓词解析为字段名到等值或 IN 条件的映射 / Try to parse a predicate into field-to-equality-or-IN filters
  *
  * @return 解析成功时返回字段过滤映射，不支持时返回 null / Field filter map on success, or null when unsupported
 */
@@ -86,8 +81,8 @@ fun BooleanExpression?.eqOrInFilters(): Map<String, Any?>? {
      * Collects equality or IN filters from the expression tree.
      * 从表达式树中收集等值或 IN 过滤条件。
      *
-     * @param expression the expression to collect from / 要收集的表达式
-     * @return true if all sub-expressions were successfully collected / 是否所有子表达式都成功收集
+     * @param expression 要收集的表达式 / the expression to collect from
+     * @return 是否所有子表达式都成功收集 / true if all sub-expressions were successfully collected
     */
     fun collect(expression: BooleanExpression): Boolean {
         return when (expression) {
@@ -113,8 +108,7 @@ fun BooleanExpression?.eqOrInFilters(): Map<String, Any?>? {
 }
 
 /**
- * 尝试将谓词解析为字段级条件
- * Try to parse a predicate into field-level filters
+ * 尝试将谓词解析为字段级条件 / Try to parse a predicate into field-level filters
  *
  * @return 解析成功时返回字段过滤映射，不支持时返回 null / Field filter map on success, or null when unsupported
 */
@@ -143,8 +137,8 @@ fun BooleanExpression?.fieldFilters(): Map<String, FieldFilter>? {
      * Gets or creates a mutable filter for the given path.
      * 获取或创建指定路径的可变过滤器。
      *
-     * @param path the field path / 字段路径
-     * @return the mutable filter for the path / 指定路径的可变过滤器
+     * @param path 字段路径 / the field path
+     * @return 指定路径的可变过滤器 / the mutable filter for the path
     */
     fun mutableFilter(path: String): MutableFieldFilter {
         return filters.getOrPut(path) { MutableFieldFilter() }
@@ -154,8 +148,8 @@ fun BooleanExpression?.fieldFilters(): Map<String, FieldFilter>? {
      * Collects a comparison expression into the filter map.
      * 将比较表达式收集到过滤器映射中。
      *
-     * @param comparison the comparison expression / 比较表达式
-     * @return true if the comparison was successfully collected / 是否成功收集比较表达式
+     * @param comparison 比较表达式 / the comparison expression
+     * @return 是否成功收集比较表达式 / true if the comparison was successfully collected
     */
     fun collectComparison(comparison: Comparison<*>): Boolean {
         val field = comparison.fieldComparison() ?: return false
@@ -193,8 +187,8 @@ fun BooleanExpression?.fieldFilters(): Map<String, FieldFilter>? {
      * Collects filters from the expression tree.
      * 从表达式树中收集过滤条件。
      *
-     * @param expression the expression to collect from / 要收集的表达式
-     * @return true if all sub-expressions were successfully collected / 是否所有子表达式都成功收集
+     * @param expression 要收集的表达式 / the expression to collect from
+     * @return 是否所有子表达式都成功收集 / true if all sub-expressions were successfully collected
     */
     fun collect(expression: BooleanExpression): Boolean {
         return when (expression) {
@@ -231,8 +225,7 @@ fun BooleanExpression?.fieldFilters(): Map<String, FieldFilter>? {
 }
 
 /**
- * 字段与常量比较的解析结果
- * Parsed field-to-constant comparison
+ * 字段与常量比较的解析结果 / Parsed field-to-constant comparison
  *
  * @property path 字段路径 / Field path
  * @property operator 比较操作符 / Comparison operator
@@ -245,8 +238,7 @@ private data class FieldComparison(
 )
 
 /**
- * 字段 IN 条件的解析结果
- * Parsed field IN condition
+ * 字段 IN 条件的解析结果 / Parsed field IN condition
  *
  * @property path 字段路径 / Field path
  * @property values 候选常量值 / Candidate constant values
@@ -257,8 +249,7 @@ private data class FieldInValues(
 )
 
 /**
- * 尝试解析字段与常量之间的比较
- * Try to parse a field-to-constant comparison
+ * 尝试解析字段与常量之间的比较 / Try to parse a field-to-constant comparison
  *
  * @return 解析结果；不支持列列比较或函数比较时返回 null / Parsed result, or null for column-column or function comparisons
 */
@@ -280,8 +271,7 @@ private fun Comparison<*>.fieldComparison(): FieldComparison? {
 }
 
 /**
- * 尝试解析字段 IN 常量集合
- * Try to parse a field IN constant list
+ * 尝试解析字段 IN 常量集合 / Try to parse a field IN constant list
  *
  * @return 解析结果；not-in、空集合或非常量候选值返回 null / Parsed result, or null for not-in, empty list, or non-constant candidates
 */
@@ -301,8 +291,7 @@ private fun InExpression<*>.fieldInValues(): FieldInValues? {
 }
 
 /**
- * 反转比较表达式左右两侧时修正操作符方向
- * Adjust operator direction when flipping comparison sides
+ * 反转比较表达式左右两侧时修正操作符方向 / Adjust operator direction when flipping comparison sides
  *
  * @return 反转后的比较操作符 / Flipped comparison operator
 */

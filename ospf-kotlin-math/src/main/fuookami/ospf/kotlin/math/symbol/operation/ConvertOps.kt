@@ -1,10 +1,8 @@
 /**
- * 转换运算
- * Conversion Operations
+ * 转换运算 / Conversion Operations
  *
  * 提供单项式和多项式类型转换的核心实现。
- * 包括升阶转换（线性到二次到规范）和降阶转换（规范到二次到线性）。
- * Provides core implementation for monomial and polynomial type conversions.
+ * 包括升阶转换（线性到二次到规范）和降阶转换（规范到二次到线性）。 / Provides core implementation for monomial and polynomial type conversions.
  * Includes promotion conversions (linear to quadratic to canonical)
  * and demotion conversions (canonical to quadratic to linear).
 */
@@ -22,8 +20,7 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 // ============================================================================
 
 /**
- * 将线性单项式转换为二次单项式
- * Convert a linear monomial to a quadratic monomial.
+ * 将线性单项式转换为二次单项式 / Convert a linear monomial to a quadratic monomial.
  *
  * @return 对应的二次单项式 / Corresponding quadratic monomial
 */
@@ -36,8 +33,7 @@ fun <T> LinearMonomial<T>.toQuadraticMonomial(): QuadraticMonomial<T> where T : 
 }
 
 /**
- * 将线性单项式转换为规范单项式
- * Convert a linear monomial to a canonical monomial.
+ * 将线性单项式转换为规范单项式 / Convert a linear monomial to a canonical monomial.
  *
  * @return 对应的规范单项式 / Corresponding canonical monomial
 */
@@ -49,8 +45,7 @@ fun <T> LinearMonomial<T>.toCanonicalMonomial(): CanonicalMonomial<T> where T : 
 }
 
 /**
- * 尝试将二次单项式降阶为线性单项式
- * Convert a quadratic monomial to a linear monomial if possible.
+ * 尝试将二次单项式降阶为线性单项式 / Convert a quadratic monomial to a linear monomial if possible.
  *
  * @return 线性单项式，若为真正的二次项则返回 null / Linear monomial, or null if truly quadratic
 */
@@ -65,8 +60,7 @@ fun <T> QuadraticMonomial<T>.toLinearMonomialOrNull(): LinearMonomial<T>? where 
 }
 
 /**
- * 将二次单项式转换为规范单项式
- * Convert a quadratic monomial to a canonical monomial.
+ * 将二次单项式转换为规范单项式 / Convert a quadratic monomial to a canonical monomial.
  *
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 对应的规范单项式 / Corresponding canonical monomial
@@ -88,8 +82,7 @@ fun <T> QuadraticMonomial<T>.toCanonicalMonomial(
 }
 
 /**
- * 尝试将规范单项式降阶为线性单项式
- * Convert a canonical monomial to a linear monomial if possible.
+ * 尝试将规范单项式降阶为线性单项式 / Convert a canonical monomial to a linear monomial if possible.
  *
  * @return 线性单项式，若次数不为 1 则返回 null / Linear monomial, or null if degree is not 1
 */
@@ -105,8 +98,7 @@ fun <T> CanonicalMonomial<T>.toLinearMonomialOrNull(): LinearMonomial<T>? where 
 }
 
 /**
- * 尝试将规范单项式降阶为二次单项式
- * Convert a canonical monomial to a quadratic monomial if possible.
+ * 尝试将规范单项式降阶为二次单项式 / Convert a canonical monomial to a quadratic monomial if possible.
  *
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 二次单项式，若次数超过 2 则返回 null / Quadratic monomial, or null if degree exceeds 2
@@ -145,8 +137,7 @@ fun <T> CanonicalMonomial<T>.toQuadraticMonomialOrNull(
 }
 
 /**
- * 将二次多项式转换为规范多项式
- * Convert a quadratic polynomial to a canonical polynomial.
+ * 将二次多项式转换为规范多项式 / Convert a quadratic polynomial to a canonical polynomial.
  *
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 对应的规范多项式 / Corresponding canonical polynomial
@@ -161,8 +152,7 @@ fun <T> QuadraticPolynomial<T>.toCanonicalPolynomial(
 }
 
 /**
- * 尝试将规范多项式降阶为线性多项式
- * Convert a canonical polynomial to a linear polynomial if possible.
+ * 尝试将规范多项式降阶为线性多项式 / Convert a canonical polynomial to a linear polynomial if possible.
  *
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
@@ -200,8 +190,7 @@ fun <T> CanonicalPolynomial<T>.toLinearPolynomialOrNull(
 }
 
 /**
- * 尝试将规范多项式降阶为二次多项式
- * Convert a canonical polynomial to a quadratic polynomial if possible.
+ * 尝试将规范多项式降阶为二次多项式 / Convert a canonical polynomial to a quadratic polynomial if possible.
  *
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
@@ -241,8 +230,7 @@ fun <T> CanonicalPolynomial<T>.toQuadraticPolynomialOrNull(
 // ============================================================================
 
 /**
- * 两个线性多项式相减
- * Subtract two linear polynomials.
+ * 两个线性多项式相减 / Subtract two linear polynomials.
  *
  * @param rhs 右操作数（被减数） / Right-hand side operand (subtrahend)
  * @param zero 系数类型的零值 / Zero value for the coefficient type
@@ -266,8 +254,7 @@ fun <T> LinearPolynomial<T>.subtractLinear(
 }
 
 /**
- * 两个规范多项式相减
- * Subtract two canonical polynomials.
+ * 两个规范多项式相减 / Subtract two canonical polynomials.
  *
  * @param rhs 右操作数（被减数） / Right-hand side operand (subtrahend)
  * @param zero 系数类型的零值 / Zero value for the coefficient type

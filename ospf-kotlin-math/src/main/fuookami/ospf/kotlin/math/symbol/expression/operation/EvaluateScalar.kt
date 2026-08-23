@@ -1,9 +1,7 @@
 /**
- * 标量表达式求值器
- * Scalar Expression Evaluator
+ * 标量表达式求值器 / Scalar Expression Evaluator
  *
- * 提供标量表达式的本地求值能力，支持常量、引用、一元/二元操作、函数调用、条件表达式、布尔包装。
- * Provides local evaluation capability for scalar expressions,
+ * 提供标量表达式的本地求值能力，支持常量、引用、一元/二元操作、函数调用、条件表达式、布尔包装。 / Provides local evaluation capability for scalar expressions,
  * supporting constant, reference, unary/binary operations, function calls, conditional, and boolean wrapper.
 */
 package fuookami.ospf.kotlin.math.symbol.expression.operation
@@ -14,8 +12,7 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 求值标量表达式
- * Evaluate scalar expression
+ * 求值标量表达式 / Evaluate scalar expression
  *
  * @param expr 要求值的表达式 / Expression to evaluate
  * @param context 求值上下文 / Evaluation context
@@ -60,13 +57,12 @@ fun evaluateScalar(
 // ========== 内部求值函数 / Internal Evaluation Functions ==========
 
 /**
- * 求值一元操作
- * Evaluate unary operation
+ * 求值一元操作 / Evaluate unary operation
  *
- * @param expr the unary expression to evaluate / 待求值的一元表达式
- * @param context the evaluation context providing variable bindings / 提供变量绑定的求值上下文
- * @param functionEvaluator the evaluator for resolving function calls / 用于解析函数调用的求值器
- * @return the evaluated result of the unary operation / 一元运算的求值结果
+ * @param expr 待求值的一元表达式 / the unary expression to evaluate
+ * @param context 提供变量绑定的求值上下文 / the evaluation context providing variable bindings
+ * @param functionEvaluator 用于解析函数调用的求值器 / the evaluator for resolving function calls
+ * @return 一元运算的求值结果 / the evaluated result of the unary operation
 */
 private fun evaluateScalarUnary(
     expr: ScalarUnary<*>,
@@ -86,13 +82,12 @@ private fun evaluateScalarUnary(
 }
 
 /**
- * 求值二元操作
- * Evaluate binary operation
+ * 求值二元操作 / Evaluate binary operation
  *
- * @param expr the binary expression to evaluate / 待求值的二元表达式
- * @param context the evaluation context providing variable bindings / 提供变量绑定的求值上下文
- * @param functionEvaluator the evaluator for resolving function calls / 用于解析函数调用的求值器
- * @return the evaluated result of the binary operation / 二元运算的求值结果
+ * @param expr 待求值的二元表达式 / the binary expression to evaluate
+ * @param context 提供变量绑定的求值上下文 / the evaluation context providing variable bindings
+ * @param functionEvaluator 用于解析函数调用的求值器 / the evaluator for resolving function calls
+ * @return 二元运算的求值结果 / the evaluated result of the binary operation
 */
 private fun evaluateScalarBinary(
     expr: ScalarBinary<*>,
@@ -118,13 +113,12 @@ private fun evaluateScalarBinary(
 }
 
 /**
- * 求值函数调用
- * Evaluate function call
+ * 求值函数调用 / Evaluate function call
  *
- * @param expr the function call expression to evaluate / 待求值的函数调用表达式
- * @param context the evaluation context providing variable bindings / 提供变量绑定的求值上下文
- * @param functionEvaluator the evaluator for resolving function calls / 用于解析函数调用的求值器
- * @return the evaluated result of the function call / 函数调用的求值结果
+ * @param expr 待求值的函数调用表达式 / the function call expression to evaluate
+ * @param context 提供变量绑定的求值上下文 / the evaluation context providing variable bindings
+ * @param functionEvaluator 用于解析函数调用的求值器 / the evaluator for resolving function calls
+ * @return 函数调用的求值结果 / the evaluated result of the function call
 */
 private fun evaluateScalarFunction(
     expr: ScalarFunction<*>,
@@ -148,13 +142,12 @@ private fun evaluateScalarFunction(
 }
 
 /**
- * 求值条件表达式
- * Evaluate conditional expression
+ * 求值条件表达式 / Evaluate conditional expression
  *
- * @param expr the conditional expression to evaluate / 待求值的条件表达式
- * @param context the evaluation context providing variable bindings / 提供变量绑定的求值上下文
- * @param functionEvaluator the evaluator for resolving function calls / 用于解析函数调用的求值器
- * @return the evaluated result of the selected branch / 所选分支的求值结果
+ * @param expr 待求值的条件表达式 / the conditional expression to evaluate
+ * @param context 提供变量绑定的求值上下文 / the evaluation context providing variable bindings
+ * @param functionEvaluator 用于解析函数调用的求值器 / the evaluator for resolving function calls
+ * @return 所选分支的求值结果 / the evaluated result of the selected branch
 */
 private fun evaluateScalarConditional(
     expr: ScalarConditional<*>,
@@ -171,12 +164,11 @@ private fun evaluateScalarConditional(
 }
 
 /**
- * 求值布尔包装表达式
- * Evaluate boolean wrapper expression
+ * 求值布尔包装表达式 / Evaluate boolean wrapper expression
  *
- * @param expr the boolean wrapper expression to evaluate / 待求值的布尔包装表达式
- * @param context the evaluation context providing variable bindings / 提供变量绑定的求值上下文
- * @return the evaluated boolean result as a Kotlin Boolean / 求值后的布尔结果（Kotlin Boolean）
+ * @param expr 待求值的布尔包装表达式 / the boolean wrapper expression to evaluate
+ * @param context 提供变量绑定的求值上下文 / the evaluation context providing variable bindings
+ * @return 求值后的布尔结果（Kotlin Boolean） / the evaluated boolean result as a Kotlin Boolean
 */
 private fun evaluateScalarBoolean(
     expr: ScalarBoolean<*>,
@@ -193,8 +185,7 @@ private fun evaluateScalarBoolean(
 // ========== 便捷扩展函数 / Convenience Extension Functions ==========
 
 /**
- * 使用 Map 上下文求值标量表达式
- * Evaluate scalar expression with Map context
+ * 使用 Map 上下文求值标量表达式 / Evaluate scalar expression with Map context
  *
  * @param values 字符串路径到值的映射 / String path to value mapping
  * @param functionEvaluator 标量函数求值器 / Scalar function evaluator

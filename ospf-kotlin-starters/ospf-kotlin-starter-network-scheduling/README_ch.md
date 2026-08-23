@@ -4,11 +4,16 @@
 
 ## 简介
 
-`ospf-kotlin-starter-network-scheduling` 是预留给网络调度使用场景的 starter artifact。
+`ospf-kotlin-starter-network-scheduling` 是网络调度框架的 starter artifact。它引入全部六个 network-scheduling 模块以及基础 starter：
 
-## 边界
+- `ospf-kotlin-framework-network-scheduling-infrastructure` — 泛型图、弧、流量原语、值适配器
+- `ospf-kotlin-framework-network-scheduling-domain-vrp-context` — VRPTW 实例、路线、校验器、成本策略、BranchMask 与 VRP 时间值对象
+- `ospf-kotlin-framework-network-scheduling-domain-flow-context` — 单商品/多商品流、容量上下界、流守恒与最小费用目标
+- `ospf-kotlin-framework-network-scheduling-domain-route-generation-context` — ESPPRC 定价器、定价图
+- `ospf-kotlin-framework-network-scheduling-domain-route-compilation-context` — 列池、列生成生命周期、影子价格
+- `ospf-kotlin-framework-network-scheduling-application` — 分支定价算法、应用服务
 
-当前 starter 依赖通用 [ospf-kotlin-starter](../ospf-kotlin-starter/README_ch.md)。network scheduling framework 模块仍处于规划阶段，因此本 starter 暂未额外加入独立的网络调度运行时依赖。
+求解器插件（如 `ospf-kotlin-core-plugin-gurobi`）**不**包含在内，需单独添加。
 
 ## 使用方式
 
@@ -16,6 +21,16 @@
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-network-scheduling</artifactId>
+    <version>1.1.0</version>
+</dependency>
+```
+
+若需使用 Gurobi 后端的 VRPTW 分支定价求解器，还需添加：
+
+```xml
+<dependency>
+    <groupId>io.github.fuookami.ospf.kotlin</groupId>
+    <artifactId>ospf-kotlin-core-plugin-gurobi</artifactId>
     <version>1.1.0</version>
 </dependency>
 ```

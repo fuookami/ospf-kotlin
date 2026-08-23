@@ -1,12 +1,9 @@
 /**
- * 生物混沌模型
- * Biological Chaotic Model
+ * 生物混沌模型 / Biological Chaotic Model
  *
  * 生物混沌模型是模拟生态系统中种群动态变化的混沌系统。
  * 该模型反映了多物种之间的竞争关系，参数变化可导致系统从稳定状态过渡到混沌状态。
- * 常用于生态动力学研究、种群演化模拟和复杂系统分析。
- *
- * The biological chaotic model simulates chaotic dynamics of population changes in ecosystems.
+ * 常用于生态动力学研究、种群演化模拟和复杂系统分析。 / The biological chaotic model simulates chaotic dynamics of population changes in ecosystems.
  * This model reflects competitive relationships among multiple species, with parameter changes causing the system to transition from stable states to chaotic states.
  * Commonly used for ecological dynamics research, population evolution simulation, and complex systems analysis.
 */
@@ -20,8 +17,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 生物混沌模型
- * Biological Chaotic Model
+ * 生物混沌模型 / Biological Chaotic Model
  *
  * @property a 竞争参数 a / Competition parameter a
  * @property b 竞争参数 b / Competition parameter b
@@ -58,8 +54,7 @@ data class BiologyChaoticModel<V : FloatingNumber<V>>(
 }
 
 /**
- * 生物混沌模型生成器
- * Biological Chaotic Model Generator
+ * 生物混沌模型生成器 / Biological Chaotic Model Generator
 */
 data class BiologyChaoticModelGenerator(
     val biologyChaoticModel: BiologyChaoticModel<Flt64> = BiologyChaoticModel(),

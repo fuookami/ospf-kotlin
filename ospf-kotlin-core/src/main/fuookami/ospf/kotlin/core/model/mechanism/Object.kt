@@ -1,6 +1,5 @@
 /**
- * 目标对象
- * Objective object
+ * 目标对象 / Objective object
 */
 package fuookami.ospf.kotlin.core.model.mechanism
 
@@ -14,8 +13,7 @@ typealias AnySubObject = SubObject<out RealNumber<*>>
 sealed interface Object
 
 /**
- * 单目标对象，包含一个目标分类下的子目标列表。
- * Single objective object containing a list of sub-objectives under one category.
+ * 单目标对象，包含一个目标分类下的子目标列表。 / Single objective object containing a list of sub-objectives under one category.
  *
  * @param Obj 子目标类型 / The sub-objective type
  * @property category   目标分类 / The objective category

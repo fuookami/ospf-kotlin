@@ -8,8 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Category
 
 /**
- * Token 缓存键，由类别、前缀和唯一标识符组成。
- * Token cache key composed of category, prefix, and unique identifier.
+ * Token 缓存键，由类别、前缀和唯一标识符组成。 / Token cache key composed of category, prefix, and unique identifier.
  *
  * @property category 符号操作类别 / Symbol operation category
  * @property prefix 键前缀 / Key prefix
@@ -26,8 +25,7 @@ internal data class TokenCacheKey(
 }
 
 /**
- * 创建新的 Token 缓存键，标识符自动生成。
- * Creates a new token cache key with auto-generated identifier.
+ * 创建新的 Token 缓存键，标识符自动生成。 / Creates a new token cache key with auto-generated identifier.
  *
  * @param category 符号操作类别 / Symbol operation category
  * @param prefix 键前缀 / Key prefix

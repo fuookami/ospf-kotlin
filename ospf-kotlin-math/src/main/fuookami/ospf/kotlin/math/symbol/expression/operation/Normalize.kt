@@ -1,9 +1,7 @@
 /**
- * 表达式规范化
- * Expression Normalization
+ * 表达式规范化 / Expression Normalization
  *
- * 提供布尔表达式的规范化操作，包括扁平化、常量折叠、去重、双重否定消除、德摩根定律。
- * Provides boolean expression normalization operations, including flattening,
+ * 提供布尔表达式的规范化操作，包括扁平化、常量折叠、去重、双重否定消除、德摩根定律。 / Provides boolean expression normalization operations, including flattening,
  * constant folding, deduplication, double negation elimination, and De Morgan's laws.
 */
 package fuookami.ospf.kotlin.math.symbol.expression.operation
@@ -13,8 +11,7 @@ import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.Trivalent
 
 /**
- * 规范化配罌
- * Normalization Configuration
+ * 规范化配罌 / Normalization Configuration
  *
  * @property flatten 是否扁平化 And/Or / Whether to flatten And/Or
  * @property constantFolding 是否进行常量折叠 / Whether to perform constant folding
@@ -45,8 +42,7 @@ data class NormalizeConfig(
 )
 
 /**
- * 规范化布尔表达式
- * Normalize boolean expression
+ * 规范化布尔表达式 / Normalize boolean expression
  *
  * @param expr 要规范化的表达式 / Expression to normalize
  * @param config 规范化配罌/ Normalization configuration
@@ -95,8 +91,7 @@ fun normalize(expr: BooleanExpression, config: NormalizeConfig = NormalizeConfig
 }
 
 /**
- * 简化单操作数的 And/Or 表达弌
- * Simplify single-operand And/Or expressions
+ * 简化单操作数的 And/Or 表达弌 / Simplify single-operand And/Or expressions
  *
  * @param expr 要简化的表达式 / Expression to simplify
  * @return 简化后的表达式 / Simplified expression
@@ -125,8 +120,7 @@ private fun simplifySingleOperand(expr: BooleanExpression): BooleanExpression {
 }
 
 /**
- * 递归规范化子表达弌
- * Recursively normalize children
+ * 递归规范化子表达弌 / Recursively normalize children
  *
  * @param expr 要递归处理的表达式 / Expression to recursively process
  * @param config 规范化配置 / Normalization configuration
@@ -142,11 +136,9 @@ private fun normalizeChildren(expr: BooleanExpression, config: NormalizeConfig):
 }
 
 /**
- * 扁平匌And/Or 表达弌
- * Flatten And/Or expressions
+ * 扁平匌And/Or 表达弌 / Flatten And/Or expressions
  *
- * 将嵌套的 And/Or 展开为单层。
- * Flattens nested And/Or into a single layer.
+ * 将嵌套的 And/Or 展开为单层。 / Flattens nested And/Or into a single layer.
  *
  * 例如 / Example:
  * - And(A, And(B, C)) -> And(A, B, C)
@@ -195,11 +187,9 @@ fun flatten(expr: BooleanExpression): BooleanExpression {
 }
 
 /**
- * 常量折叠
- * Constant folding
+ * 常量折叠 / Constant folding
  *
- * 简化包含布尔常量的表达式。
- * Simplifies expressions containing boolean constants.
+ * 简化包含布尔常量的表达式。 / Simplifies expressions containing boolean constants.
  *
  * 规则 / Rules:
  * - A and true -> A
@@ -275,11 +265,9 @@ fun constantFold(expr: BooleanExpression): BooleanExpression {
 }
 
 /**
- * 去重
- * Deduplicate
+ * 去重 / Deduplicate
  *
- * 移除结构等价的重复操作数。
- * Removes structurally equivalent duplicate operands.
+ * 移除结构等价的重复操作数。 / Removes structurally equivalent duplicate operands.
  *
  * 例如 / Example:
  * - And(A, A, B) -> And(A, B)
@@ -313,8 +301,7 @@ fun deduplicate(expr: BooleanExpression): BooleanExpression {
 }
 
 /**
- * 消除双重否定
- * Eliminate double negation
+ * 消除双重否定 / Eliminate double negation
  *
  * 规则 / Rule:
  * - not(not(x)) -> x
@@ -338,8 +325,7 @@ fun eliminateDoubleNegation(expr: BooleanExpression): BooleanExpression {
 }
 
 /**
- * 应用德摩根定後
- * Apply De Morgan's laws
+ * 应用德摩根定後 / Apply De Morgan's laws
  *
  * 规则 / Rules:
  * - not(A and B) -> not(A) or not(B)
@@ -365,11 +351,9 @@ fun applyDeMorgan(expr: BooleanExpression): BooleanExpression {
 }
 
 /**
- * 排序操作敌
- * Sort operands
+ * 排序操作敌 / Sort operands
  *
- * 富And/Or 的操作数按结构键排序，便于比较。
- * Sort operands of And/Or by structural key for easier comparison.
+ * 富And/Or 的操作数按结构键排序，便于比较。 / Sort operands of And/Or by structural key for easier comparison.
  *
  * @param expr 要排序操作数的表达式 / Expression whose operands to sort
  * @return 操作数排序后的表达式 / Expression with sorted operands
@@ -392,8 +376,7 @@ fun sortOperands(expr: BooleanExpression): BooleanExpression {
 // ========== 辅助函数 / Helper Functions ==========
 
 /**
- * 获取表达式的结构键（用于去重和排序）
- * Get structural key of expression (for deduplication and sorting)
+ * 获取表达式的结构键（用于去重和排序） / Get structural key of expression (for deduplication and sorting)
  *
  * @return 结构键字符串 / Structural key string
 */
@@ -412,8 +395,7 @@ fun BooleanExpression.structuralKey(): String {
 }
 
 /**
- * 获取标量表达式的结构锌
- * Get structural key of scalar expression
+ * 获取标量表达式的结构锌 / Get structural key of scalar expression
  *
  * @return 结构键字符串 / Structural key string
 */

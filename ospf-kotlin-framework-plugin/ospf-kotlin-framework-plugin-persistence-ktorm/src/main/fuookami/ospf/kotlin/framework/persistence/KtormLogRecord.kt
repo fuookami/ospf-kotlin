@@ -1,9 +1,7 @@
 /**
- * Ktorm 日志记录持久化实现
- * Ktorm Log Record Persistence Implementation
+ * Ktorm 日志记录持久化实现 / Ktorm Log Record Persistence Implementation
  *
- * 提供基于 Ktorm 的日志记录 Entity、Table 定义、DAO 操作及持久化保存。
- * Provides Ktorm-based log record Entity, Table definitions, DAO operations, and persistence saving.
+ * 提供基于 Ktorm 的日志记录 Entity、Table 定义、DAO 操作及持久化保存。 / Provides Ktorm-based log record Entity, Table definitions, DAO operations, and persistence saving.
 */
 package fuookami.ospf.kotlin.framework.persistence
 
@@ -20,6 +18,7 @@ import org.ktorm.entity.*
 import org.ktorm.schema.*
 import org.ktorm.support.sqlite.SQLiteDialect
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.serialization.readFromJson
 import fuookami.ospf.kotlin.utils.serialization.writeJson
 import fuookami.ospf.kotlin.utils.serialization.writeJsonToStream
 import fuookami.ospf.kotlin.framework.log.*
@@ -81,8 +80,7 @@ interface KtormLogRecordStringPO : Entity<KtormLogRecordStringPO> {
 }
 
 /**
- * Ktorm 字节数组日志记录 DAO
- * Ktorm byte array log record DAO
+ * Ktorm 字节数组日志记录 DAO / Ktorm byte array log record DAO
  *
  * @param tableName 表名 / Table name
 */
@@ -184,7 +182,7 @@ fun <T : Any> LogRecordPO<T>.toKtormStringPO(serializer: KSerializer<T>): KtormL
 inline operator fun <reified T : Any> LogRecordPO.Companion.invoke(po: KtormLogRecordBytePO): LogRecordPO<T>? {
     return this(po) {
         val stream = java.io.ByteArrayInputStream(it)
-        fuookami.ospf.kotlin.utils.serialization.readFromJson(T::class.serializer(), stream)
+        readFromJson(T::class.serializer(), stream)
     }
 }
 
@@ -210,8 +208,7 @@ inline operator fun <reified T : Any> LogRecordPO.Companion.invoke(
 }
 
 /**
- * Ktorm 日志记录数据访问对象
- * Ktorm log record data access object
+ * Ktorm 日志记录数据访问对象 / Ktorm log record data access object
 */
 data object KtormLogRecordDB {
     fun <T : Any> insert(
@@ -296,8 +293,7 @@ data object KtormLogRecordDB {
 }
 
 /**
- * Ktorm 日志记录持久化保存
- * Ktorm log record persistence saving
+ * Ktorm 日志记录持久化保存 / Ktorm log record persistence saving
  *
  * @property db 数据库连接 / Database connection
  * @property tableName 表名 / Table name

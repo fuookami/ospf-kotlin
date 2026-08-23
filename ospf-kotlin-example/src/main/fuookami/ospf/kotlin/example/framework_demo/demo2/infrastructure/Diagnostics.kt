@@ -51,11 +51,11 @@ object Diagnostics {
      * Appends a structured diagnostic note to the notes list with level, group, code, and message.
      * 向日志列表追加结构化诊断信息，包含级别、分组、代码和消息。
      *
-     * @param notes The mutable list of notes to append to. / 要追加到的可变日志列表
-     * @param level The diagnostic level (e.g., "diagnostic", "critical"). / 诊断级别（如 "diagnostic"、"critical"）
-     * @param group The diagnostic group category (e.g., "airworthiness", "solver"). / 诊断分组类别（如 "airworthiness"、"solver"）
-     * @param code The specific diagnostic code identifier. / 特定诊断代码标识符
-     * @param message The human-readable diagnostic message. / 人类可读的诊断消息
+     * @param notes 要追加到的可变日志列表 / The mutable list of notes to append to.
+     * @param level 诊断级别（如 "diagnostic"、"critical"） / The diagnostic level (e.g., "diagnostic", "critical").
+     * @param group 诊断分组类别（如 "airworthiness"、"solver"） / The diagnostic group category (e.g., "airworthiness", "solver").
+     * @param code 特定诊断代码标识符 / The specific diagnostic code identifier.
+     * @param message 人类可读的诊断消息 / The human-readable diagnostic message.
     */
     fun pushGroupedNote(
         notes: MutableList<String>,
@@ -71,8 +71,8 @@ object Diagnostics {
      * Builds a list of structured DiagnosticNote objects from raw note strings, parsing grouped format where possible.
      * 从原始日志字符串构建结构化 DiagnosticNote 列表，尽可能解析分组格式。
      *
-     * @param notes The list of raw note strings to parse. / 要解析的原始日志字符串列表
-     * @return The list of parsed DiagnosticNote objects. / 解析后的 DiagnosticNote 对象列表
+     * @param notes 要解析的原始日志字符串列表 / The list of raw note strings to parse.
+     * @return 解析后的 DiagnosticNote 对象列表 / The list of parsed DiagnosticNote objects.
     */
     fun buildStructured(notes: List<String>): List<DiagnosticNote> {
         return notes.map { note -> parseGroupedNote(note) ?: DiagnosticNote(
@@ -86,7 +86,7 @@ object Diagnostics {
      * 将分组日志字符串解析为 DiagnosticNote，提取级别、分组、代码和消息段。
      *
      * @param note The raw note string in "level|group=...|code=...|msg=..." format. / "level|group=...|code=...|msg=..." 格式的原始日志字符串
-     * @return The parsed DiagnosticNote, or null if the format is invalid. / 解析后的 DiagnosticNote，格式无效时返回 null
+     * @return 解析后的 DiagnosticNote，格式无效时返回 null / The parsed DiagnosticNote, or null if the format is invalid.
     */
     private fun parseGroupedNote(note: String): DiagnosticNote? {
         val segments = note.split("|")

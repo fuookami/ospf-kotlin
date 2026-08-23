@@ -19,8 +19,7 @@ class LoadingOrderCalculator(
 ) {
 
     /**
-     * 解析放置的装箱形状。
-     * Resolve the packing shape of a placement.
+     * 解析放置的装箱形状。 / Resolve the packing shape of a placement.
      * @param placement the placement to resolve
      * @return the resolved packing shape
     */
@@ -29,8 +28,7 @@ class LoadingOrderCalculator(
     }
 
     /**
-     * 判断两个放置的底部投影（footprint）是否有重叠区域。
-     * Determine whether the bottom footprints of two placements overlap.
+     * 判断两个放置的底部投影（footprint）是否有重叠区域。 / Determine whether the bottom footprints of two placements overlap.
      * @param lhs the left-hand side placement
      * @param rhs the right-hand side placement
      * @return true if the footprints overlap
@@ -43,8 +41,7 @@ class LoadingOrderCalculator(
     }
 
     /**
-     * 判断两个放置在一维轴向上的投影是否有重叠区间。
-     * Determine whether two placements have overlapping intervals along a one-dimensional axis.
+     * 判断两个放置在一维轴向上的投影是否有重叠区间。 / Determine whether two placements have overlapping intervals along a one-dimensional axis.
      * @param lhsStart the start coordinate of the left-hand side
      * @param lhsEnd the end coordinate of the left-hand side
      * @param rhsStart the start coordinate of the right-hand side
@@ -72,8 +69,7 @@ class LoadingOrderCalculator(
     }
 
     /**
-     * 判断两个放置是否在指定投影平面上重叠。
-     * Determine whether two placements overlap on the specified projective plane.
+     * 判断两个放置是否在指定投影平面上重叠。 / Determine whether two placements overlap on the specified projective plane.
      * @param lhs the left-hand side placement
      * @param rhs the right-hand side placement
      * @param plane the projective plane to check overlap on
@@ -165,8 +161,7 @@ class LoadingOrderCalculator(
     }
 
     /**
-     * 将旧放置列表合并为块序列（按宽度-深度、高度-深度、宽度-高度三个方向依次尝试合并）。
-     * Merge the old placement list into a block sequence by attempting merge along width-depth, height-depth, and width-height directions.
+     * 将旧放置列表合并为块序列（按宽度-深度、高度-深度、宽度-高度三个方向依次尝试合并）。 / Merge the old placement list into a block sequence by attempting merge along width-depth, height-depth, and width-height directions.
      * @param oldPlacements the original placements to merge
      * @return the merged placements
     */
@@ -194,12 +189,10 @@ class LoadingOrderCalculator(
     }
 
     /**
-     * 判断两个单元是否同类型。
-     * Determine whether two units are the same type.
+     * 判断两个单元是否同类型。 / Determine whether two units are the same type.
      *
      * 使用 Any 参数代替基础设施层通配 cuboid 类型：when-dispatch 本身即为运行时类型检查，
-     * Any 等价且更通用，减少 domain 层对基础设施层几何兼容类型体系的绑定。
-     * Uses Any parameter instead of the infrastructure wildcard cuboid type: when-dispatch is runtime type checking,
+     * Any 等价且更通用，减少 domain 层对基础设施层几何兼容类型体系的绑定。 / Uses Any parameter instead of the infrastructure wildcard cuboid type: when-dispatch is runtime type checking,
      * Any is equivalent and more general, reducing domain-layer binding to infrastructure geometry compatibility type hierarchy.
      * @param lhs the left-hand side unit
      * @param rhs the right-hand side unit
@@ -220,8 +213,7 @@ class LoadingOrderCalculator(
     }
 
     /**
-     * 合并可合并的放置，支持深度检查以限制块深度。
-     * Merge mergeable placements, with optional depth checking to constrain block depth.
+     * 合并可合并的放置，支持深度检查以限制块深度。 / Merge mergeable placements, with optional depth checking to constrain block depth.
      * @param oldPlacements the original placements to merge
      * @param checkDepth whether to check the depth constraint
      * @param predicate the merge predicate
@@ -287,8 +279,7 @@ class LoadingOrderCalculator(
     }
 
     /**
-     * 将一组可合并的放置合并为一个公共块。
-     * Merge a group of mergeable placements into a common block.
+     * 将一组可合并的放置合并为一个公共块。 / Merge a group of mergeable placements into a common block.
      * @param thisPlacement the reference placement
      * @param thisPlacements the other placements to merge into the block
      * @return the merged common block
@@ -331,8 +322,7 @@ class LoadingOrderCalculator(
     }
 
     /**
-     * 构建向前依赖矩阵，记录每个放置之前必须装载的其它放置索引。
-     * Build a forward dependency matrix recording the indices of other placements that must be loaded before each placement.
+     * 构建向前依赖矩阵，记录每个放置之前必须装载的其它放置索引。 / Build a forward dependency matrix recording the indices of other placements that must be loaded before each placement.
      * @param placements the list of placements
      * @return a matrix where matrix[i] contains indices of placements that precede placement i
     */
@@ -349,8 +339,7 @@ class LoadingOrderCalculator(
     }
 
     /**
-     * 判断 lhs 是否应该在 rhs 之前装载（基于底面、侧面和正面三个投影平面的叠放关系）。
-     * Determine whether lhs should be loaded before rhs based on overlapping in bottom, side, and front projective planes.
+     * 判断 lhs 是否应该在 rhs 之前装载（基于底面、侧面和正面三个投影平面的叠放关系）。 / Determine whether lhs should be loaded before rhs based on overlapping in bottom, side, and front projective planes.
      * @param lhs the left-hand side placement
      * @param rhs the right-hand side placement
      * @return true if lhs should precede rhs
@@ -378,8 +367,7 @@ class LoadingOrderCalculator(
     }
 
     /**
-     * 将合并后的放置序列展平为单个物品级别的放置列表。
-     * Flatten the merged placement sequence into a list of individual item-level placements.
+     * 将合并后的放置序列展平为单个物品级别的放置列表。 / Flatten the merged placement sequence into a list of individual item-level placements.
      * @param placements the merged placements with sequence numbers
      * @return the flattened item-level placements with sequence numbers
     */

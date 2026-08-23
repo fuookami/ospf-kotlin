@@ -17,6 +17,9 @@ OSPF Kotlin 框架的 SCIP（求解约束整数规划）求解器插件模块。
 | 列生成 | :white_check_mark: |
 | Benders 分解 | :white_check_mark: |
 | 并发求解 | :white_check_mark: |
+| 约束规划 snapshot 求解 | :white_check_mark:（精确编译 lowering） |
+| Optional interval / variable duration | :white_check_mark:（精确 lowering） |
+| Native optional interval / native checkpoint | :x:（未声明） |
 | JAR 打包原生库 | :white_check_mark: |
 | 远程服务器连接 | :x: |
 
@@ -76,16 +79,19 @@ ScipSolver.loadLibraryInJar()  // 从 JAR 资源加载原生库
 
 ```kotlin
 val solver = ScipLinearSolver(
-    config = SolverConfig(timeLimit = 60.seconds)
+    config = SolverConfig(time = 60.seconds)
 )
-val result: Ret<FeasibleSolverOutput<Flt64>> = solver(model)
+val result: Ret<SolveReport<Flt64>> = solver(model)
 ```
 
 ### 并发求解
 
 ```kotlin
 val solver = ScipLinearSolver(
-    config = SolverConfig(concurrentConfig = ConcurrentConfig(enabled = true))
+    config = SolverConfig(
+        threadNum = UInt64(4),
+        backendConfiguration = SCIPSolverConfig(presolve = true)
+    )
 )
 ```
 
@@ -105,6 +111,16 @@ val solver = ScipLinearSolver(
         }
 )
 ```
+
+### 约束规划能力边界
+
+`ScipConstraintProgrammingSolver` 接收 portable CP snapshot，并将已支持的约束族编译到 SCIP 模型。fixed interval、optional interval 和 variable duration 均以 `ExactLowering` 暴露；编译器保留 presence、start/size/end、资源约束和全局约束语义，并将辅助产物映射回源 ID。本插件不声明 SCIP 原生 optional interval、variable-duration job、JSCIP 增量 session 或 native checkpoint/resume。超出能力边界时返回结构化 capability 错误，core 已声明的场景仍可使用 Fake/MIP-backed fallback。
+
+### SolveReport 迁移与后续范围
+
+`Ret<SolveReport<Flt64>>` 是主结果契约。请使用 `SolverConfig(time = ...)`、`threadNum` 和类型化的
+`backendConfiguration = SCIPSolverConfig(...)`；`timeLimit` 与 `concurrentConfig` 构造参数不属于
+1.1.0 源码线。其余插件迁移和能力门禁见 [`plans/solver_cp.md`](../../plans/solver_cp.md)。
 
 ## 依赖
 

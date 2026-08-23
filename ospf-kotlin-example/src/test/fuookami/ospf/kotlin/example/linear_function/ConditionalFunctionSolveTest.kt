@@ -59,11 +59,11 @@ class ConditionalFunctionSolveTest {
             val solver = ScipLinearSolver()
             val result = runBlocking { solveLinearMetaModel(solver, model) }
             assertNotNull(result.value, "Solver should return a feasible solution")
-            val obj = result.value!!.obj
+            val obj = result.value!!.solution?.objective ?: error("Solver returned no incumbent objective")
             assertTrue(obj geq Flt64.zero, "if function result should be non-negative")
             assertTrue(obj leq Flt64(3.0), "if function result should be <= max possible (x=5, threshold=2, result=3)")
 
-            model.setSolution(result.value!!.solution)
+            model.setSolution(result.value!!.values)
             val xVal = model.tokens.find(x)?.result
             assertNotNull(xVal, "x should appear in solution")
         } finally {
@@ -109,11 +109,11 @@ class ConditionalFunctionSolveTest {
             val solver = ScipLinearSolver()
             val result = runBlocking { solveLinearMetaModel(solver, model) }
             assertNotNull(result.value, "Solver should return a feasible solution")
-            val obj = result.value!!.obj
+            val obj = result.value!!.solution?.objective ?: error("Solver returned no incumbent objective")
             assertTrue(obj geq Flt64.zero, "oneOf result should be non-negative")
             assertTrue(obj leq Flt64.one, "oneOf result should be 0 or 1")
 
-            model.setSolution(result.value!!.solution)
+            model.setSolution(result.value!!.values)
             val aVal = model.tokens.find(a)?.result
             val bVal = model.tokens.find(b)?.result
             assertNotNull(aVal, "a should appear in solution")

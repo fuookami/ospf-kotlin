@@ -1,9 +1,7 @@
 /**
- * 布尔表达式顶层 DSL
- * Top-level Boolean Expression DSL
+ * 布尔表达式顶层 DSL / Top-level Boolean Expression DSL
  *
- * 提供避免扩展函数命名冲突的仓储谓词构造入口。
- * Provides repository predicate builders that avoid extension-function name conflicts.
+ * 提供避免扩展函数命名冲突的仓储谓词构造入口。 / Provides repository predicate builders that avoid extension-function name conflicts.
 */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
@@ -11,8 +9,7 @@ import kotlin.reflect.KProperty1
 import fuookami.ospf.kotlin.math.symbol.expression.*
 
 /**
- * 构造等值比较
- * Build an equality comparison
+ * 构造等值比较 / Build an equality comparison
  *
  * @param property 属性引用 / Property reference
  * @param value 比较值 / Comparison value
@@ -23,8 +20,7 @@ fun <E, T> eq(property: KProperty1<E, T>, value: T): Comparison<T> {
 }
 
 /**
- * 构造不等值比较
- * Build a not-equal comparison
+ * 构造不等值比较 / Build a not-equal comparison
  *
  * @param property 属性引用 / Property reference
  * @param value 比较值 / Comparison value
@@ -35,8 +31,7 @@ fun <E, T> ne(property: KProperty1<E, T>, value: T): Comparison<T> {
 }
 
 /**
- * 构造大于比较
- * Build a greater-than comparison
+ * 构造大于比较 / Build a greater-than comparison
  *
  * @param property 属性引用 / Property reference
  * @param value 比较值 / Comparison value
@@ -47,8 +42,7 @@ fun <E, T : Comparable<T>> gt(property: KProperty1<E, T>, value: T): Comparison<
 }
 
 /**
- * 构造大于等于比较
- * Build a greater-than-or-equal comparison
+ * 构造大于等于比较 / Build a greater-than-or-equal comparison
  *
  * @param property 属性引用 / Property reference
  * @param value 比较值 / Comparison value
@@ -59,8 +53,7 @@ fun <E, T : Comparable<T>> ge(property: KProperty1<E, T>, value: T): Comparison<
 }
 
 /**
- * 构造小于比较
- * Build a less-than comparison
+ * 构造小于比较 / Build a less-than comparison
  *
  * @param property 属性引用 / Property reference
  * @param value 比较值 / Comparison value
@@ -71,8 +64,7 @@ fun <E, T : Comparable<T>> lt(property: KProperty1<E, T>, value: T): Comparison<
 }
 
 /**
- * 构造小于等于比较
- * Build a less-than-or-equal comparison
+ * 构造小于等于比较 / Build a less-than-or-equal comparison
  *
  * @param property 属性引用 / Property reference
  * @param value 比较值 / Comparison value
@@ -83,8 +75,7 @@ fun <E, T : Comparable<T>> le(property: KProperty1<E, T>, value: T): Comparison<
 }
 
 /**
- * 构造集合成员判断
- * Build an in-list expression
+ * 构造集合成员判断 / Build an in-list expression
  *
  * @param property 属性引用 / Property reference
  * @param values 候选值集合 / Candidate values
@@ -95,8 +86,7 @@ fun <E, T> inValues(property: KProperty1<E, T>, values: Collection<T>): InExpres
 }
 
 /**
- * 构造集合成员判断
- * Build an in-list expression
+ * 构造集合成员判断 / Build an in-list expression
  *
  * @param property 属性引用 / Property reference
  * @param values 候选值 / Candidate values
@@ -107,8 +97,7 @@ fun <E, T> inValues(property: KProperty1<E, T>, vararg values: T): InExpression<
 }
 
 /**
- * 构造非集合成员判断
- * Build a not-in-list expression
+ * 构造非集合成员判断 / Build a not-in-list expression
  *
  * @param property 属性引用 / Property reference
  * @param values 候选值集合 / Candidate values
@@ -119,8 +108,7 @@ fun <E, T> notInValues(property: KProperty1<E, T>, values: Collection<T>): InExp
 }
 
 /**
- * 构造非集合成员判断
- * Build a not-in-list expression
+ * 构造非集合成员判断 / Build a not-in-list expression
  *
  * @param property 属性引用 / Property reference
  * @param values 候选值 / Candidate values
@@ -131,8 +119,7 @@ fun <E, T> notInValues(property: KProperty1<E, T>, vararg values: T): InExpressi
 }
 
 /**
- * 构造字段为空判断
- * Build an is-null check
+ * 构造字段为空判断 / Build an is-null check
  *
  * @param property 属性引用 / Property reference
  * @return 空值检查表达式 / Null-check expression
@@ -142,8 +129,7 @@ fun <E, T> isNull(property: KProperty1<E, T>): NullCheck {
 }
 
 /**
- * 构造字段非空判断
- * Build an is-not-null check
+ * 构造字段非空判断 / Build an is-not-null check
  *
  * @param property 属性引用 / Property reference
  * @return 非空检查表达式 / Not-null-check expression
@@ -153,8 +139,7 @@ fun <E, T> isNotNull(property: KProperty1<E, T>): NullCheck {
 }
 
 /**
- * 构造 AND 组合表达式
- * Build an AND expression
+ * 构造 AND 组合表达式 / Build an AND expression
  *
  * @param expressions 子表达式 / Child expressions
  * @return AND 表达式；空集合返回 true，单元素返回原表达式 / AND expression; empty returns true, single returns itself
@@ -164,8 +149,7 @@ fun and(vararg expressions: BooleanExpression): BooleanExpression {
 }
 
 /**
- * 构造 lambda 风格的 AND 组合表达式
- * Build an AND expression with a lambda scope
+ * 构造 lambda 风格的 AND 组合表达式 / Build an AND expression with a lambda scope
  *
  * @param init 子表达式收集逻辑 / Child expression collection logic
  * @return AND 表达式 / AND expression
@@ -177,8 +161,7 @@ fun and(init: BooleanExpressionScope.() -> Unit): BooleanExpression {
 }
 
 /**
- * 构造 OR 组合表达式
- * Build an OR expression
+ * 构造 OR 组合表达式 / Build an OR expression
  *
  * @param expressions 子表达式 / Child expressions
  * @return OR 表达式；空集合返回 false，单元素返回原表达式 / OR expression; empty returns false, single returns itself
@@ -188,8 +171,7 @@ fun or(vararg expressions: BooleanExpression): BooleanExpression {
 }
 
 /**
- * 构造 lambda 风格的 OR 组合表达式
- * Build an OR expression with a lambda scope
+ * 构造 lambda 风格的 OR 组合表达式 / Build an OR expression with a lambda scope
  *
  * @param init 子表达式收集逻辑 / Child expression collection logic
  * @return OR 表达式 / OR expression
@@ -201,8 +183,7 @@ fun or(init: BooleanExpressionScope.() -> Unit): BooleanExpression {
 }
 
 /**
- * 构造字段等值范围组合
- * Build a field equality scope combined with extra predicates
+ * 构造字段等值范围组合 / Build a field equality scope combined with extra predicates
  *
  * @param field 范围字段 / Scope field
  * @param value 范围值 / Scope value
@@ -218,8 +199,7 @@ fun <E, T> scopedAnd(
 }
 
 /**
- * 布尔表达式收集作用域
- * Boolean expression collection scope
+ * 布尔表达式收集作用域 / Boolean expression collection scope
 */
 class BooleanExpressionScope internal constructor() {
 
@@ -227,8 +207,7 @@ class BooleanExpressionScope internal constructor() {
     private val expressions = ArrayList<BooleanExpression>()
 
     /**
-     * 构造并收集等值比较
-     * Build and collect an equality comparison
+     * 构造并收集等值比较 / Build and collect an equality comparison
      *
      * @param property 属性引用 / Property reference
      * @param value 比较值 / Comparison value
@@ -239,8 +218,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 构造并收集不等值比较
-     * Build and collect a not-equal comparison
+     * 构造并收集不等值比较 / Build and collect a not-equal comparison
      *
      * @param property 属性引用 / Property reference
      * @param value 比较值 / Comparison value
@@ -251,8 +229,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 构造并收集大于比较
-     * Build and collect a greater-than comparison
+     * 构造并收集大于比较 / Build and collect a greater-than comparison
      *
      * @param property 属性引用 / Property reference
      * @param value 比较值 / Comparison value
@@ -263,8 +240,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 构造并收集大于等于比较
-     * Build and collect a greater-than-or-equal comparison
+     * 构造并收集大于等于比较 / Build and collect a greater-than-or-equal comparison
      *
      * @param property 属性引用 / Property reference
      * @param value 比较值 / Comparison value
@@ -275,8 +251,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 构造并收集小于比较
-     * Build and collect a less-than comparison
+     * 构造并收集小于比较 / Build and collect a less-than comparison
      *
      * @param property 属性引用 / Property reference
      * @param value 比较值 / Comparison value
@@ -287,8 +262,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 构造并收集小于等于比较
-     * Build and collect a less-than-or-equal comparison
+     * 构造并收集小于等于比较 / Build and collect a less-than-or-equal comparison
      *
      * @param property 属性引用 / Property reference
      * @param value 比较值 / Comparison value
@@ -299,8 +273,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 构造并收集集合成员判断
-     * Build and collect an in-list expression
+     * 构造并收集集合成员判断 / Build and collect an in-list expression
      *
      * @param property 属性引用 / Property reference
      * @param values 候选值集合 / Candidate values
@@ -311,8 +284,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 构造并收集集合成员判断
-     * Build and collect an in-list expression
+     * 构造并收集集合成员判断 / Build and collect an in-list expression
      *
      * @param property 属性引用 / Property reference
      * @param values 候选值 / Candidate values
@@ -323,8 +295,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 构造并收集非集合成员判断
-     * Build and collect a not-in-list expression
+     * 构造并收集非集合成员判断 / Build and collect a not-in-list expression
      *
      * @param property 属性引用 / Property reference
      * @param values 候选值集合 / Candidate values
@@ -335,8 +306,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 构造并收集非集合成员判断
-     * Build and collect a not-in-list expression
+     * 构造并收集非集合成员判断 / Build and collect a not-in-list expression
      *
      * @param property 属性引用 / Property reference
      * @param values 候选值 / Candidate values
@@ -347,8 +317,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 构造并收集字段为空判断
-     * Build and collect an is-null check
+     * 构造并收集字段为空判断 / Build and collect an is-null check
      *
      * @param property 属性引用 / Property reference
      * @return 空值检查表达式 / Null-check expression
@@ -358,8 +327,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 构造并收集字段非空判断
-     * Build and collect an is-not-null check
+     * 构造并收集字段非空判断 / Build and collect an is-not-null check
      *
      * @param property 属性引用 / Property reference
      * @return 非空检查表达式 / Not-null-check expression
@@ -369,8 +337,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 构造并收集 AND 组合表达式
-     * Build and collect an AND expression
+     * 构造并收集 AND 组合表达式 / Build and collect an AND expression
      *
      * @param expressions 子表达式 / Child expressions
      * @return AND 表达式 / AND expression
@@ -381,8 +348,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 构造并收集 lambda 风格的 AND 组合表达式
-     * Build and collect an AND expression with a lambda scope
+     * 构造并收集 lambda 风格的 AND 组合表达式 / Build and collect an AND expression with a lambda scope
      *
      * @param init 子表达式收集逻辑 / Child expression collection logic
      * @return AND 表达式 / AND expression
@@ -394,8 +360,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 构造并收集 OR 组合表达式
-     * Build and collect an OR expression
+     * 构造并收集 OR 组合表达式 / Build and collect an OR expression
      *
      * @param expressions 子表达式 / Child expressions
      * @return OR 表达式 / OR expression
@@ -406,8 +371,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 构造并收集 lambda 风格的 OR 组合表达式
-     * Build and collect an OR expression with a lambda scope
+     * 构造并收集 lambda 风格的 OR 组合表达式 / Build and collect an OR expression with a lambda scope
      *
      * @param init 子表达式收集逻辑 / Child expression collection logic
      * @return OR 表达式 / OR expression
@@ -419,8 +383,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 以 AND 语义构造当前作用域表达式
-     * Build the current scope expression with AND semantics
+     * 以 AND 语义构造当前作用域表达式 / Build the current scope expression with AND semantics
      *
      * @return 当前作用域表达式 / Current scope expression
     */
@@ -429,8 +392,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 以 OR 语义构造当前作用域表达式
-     * Build the current scope expression with OR semantics
+     * 以 OR 语义构造当前作用域表达式 / Build the current scope expression with OR semantics
      *
      * @return 当前作用域表达式 / Current scope expression
     */
@@ -439,8 +401,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 记录表达式并返回原表达式
-     * Record an expression and return it unchanged
+     * 记录表达式并返回原表达式 / Record an expression and return it unchanged
      *
      * @param expression 待记录表达式 / Expression to record
      * @return 原表达式 / Original expression
@@ -451,8 +412,7 @@ class BooleanExpressionScope internal constructor() {
     }
 
     /**
-     * 移除已经由 vararg 参数求值过程收集的尾部表达式
-     * Remove tail expressions already collected while evaluating vararg arguments
+     * 移除已经由 vararg 参数求值过程收集的尾部表达式 / Remove tail expressions already collected while evaluating vararg arguments
      *
      * @param suffix 待移除的尾部表达式 / Tail expressions to remove
     */
@@ -471,8 +431,7 @@ class BooleanExpressionScope internal constructor() {
 }
 
 /**
- * 从属性引用解析属性路径
- * Resolve a property path from a property reference
+ * 从属性引用解析属性路径 / Resolve a property path from a property reference
  *
  * @param property 属性引用 / Property reference
  * @return 属性路径 / Property path
@@ -482,8 +441,7 @@ private fun <E, T> path(property: KProperty1<E, T>): PropertyPath {
 }
 
 /**
- * 从属性引用构造标量引用
- * Build a scalar reference from a property reference
+ * 从属性引用构造标量引用 / Build a scalar reference from a property reference
  *
  * @param property 属性引用 / Property reference
  * @return 标量引用 / Scalar reference
@@ -493,8 +451,7 @@ private fun <E, T> reference(property: KProperty1<E, T>): ScalarReference<T> {
 }
 
 /**
- * 构造属性与常量之间的比较表达式
- * Build a comparison between a property and a constant
+ * 构造属性与常量之间的比较表达式 / Build a comparison between a property and a constant
  *
  * @param property 属性引用 / Property reference
  * @param operator 比较操作符 / Comparison operator
@@ -510,8 +467,7 @@ private fun <E, T> compare(
 }
 
 /**
- * 按 AND 单位元规则组合表达式
- * Combine expressions with AND identity semantics
+ * 按 AND 单位元规则组合表达式 / Combine expressions with AND identity semantics
  *
  * @param expressions 子表达式 / Child expressions
  * @return 组合后的表达式 / Combined expression
@@ -525,8 +481,7 @@ private fun combineAnd(expressions: List<BooleanExpression>): BooleanExpression 
 }
 
 /**
- * 按 OR 单位元规则组合表达式
- * Combine expressions with OR identity semantics
+ * 按 OR 单位元规则组合表达式 / Combine expressions with OR identity semantics
  *
  * @param expressions 子表达式 / Child expressions
  * @return 组合后的表达式 / Combined expression

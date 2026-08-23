@@ -1,6 +1,5 @@
 /**
- * 元模型导出支持
- * MetaModel export support
+ * 元模型导出支持 / MetaModel export support
 */
 package fuookami.ospf.kotlin.core.model.mechanism
 
@@ -26,8 +25,7 @@ import fuookami.ospf.kotlin.core.token.*
  * MetaModel 导出支持。
  * MetaModel export support.
  *
- * 说明：将模型导出为文本化诊断格式（当前为 `.opm`），用于问题定位与回归对比。
- * Note: exports models to text-oriented diagnostic format (currently `.opm`) for troubleshooting and regression comparison.
+ * 说明：将模型导出为文本化诊断格式（当前为 `.opm`），用于问题定位与回归对比。 / Note: exports models to text-oriented diagnostic format (currently `.opm`) for troubleshooting and regression comparison.
 */
 /**
  * 将符号转换为 OPM 表达式文本 / Convert a symbol to OPM expression text
@@ -190,8 +188,7 @@ private fun <V> QuadraticInequalityConstraint<V>.toOpmString(unfold: UInt64): St
 }
 
 /**
- * 导出 MetaModel 到目标路径；当路径是目录时自动生成 `<model>.opm` 文件名。
- * Export MetaModel to target path; when path is a directory, `<model>.opm` is generated automatically.
+ * 导出 MetaModel 到目标路径；当路径是目录时自动生成 `<model>.opm` 文件名。 / Export MetaModel to target path; when path is a directory, `<model>.opm` is generated automatically.
 */
 internal suspend fun <V> exportMetaModel(
     metaModel: MetaModel<V>,
@@ -228,8 +225,7 @@ internal suspend fun <V> exportMetaModel(
 }
 
 /**
- * 按 OPM 文本格式写出模型主体内容。
- * Write model body in OPM text format.
+ * 按 OPM 文本格式写出模型主体内容。 / Write model body in OPM text format.
 */
 /** 按 OPM 文本格式写出模型主体内容 / Write model body in OPM text format */
 private suspend fun <V> exportMetaModelOpm(

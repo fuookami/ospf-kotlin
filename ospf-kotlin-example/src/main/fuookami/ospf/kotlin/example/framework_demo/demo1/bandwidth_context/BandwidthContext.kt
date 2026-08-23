@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Nod
  * Manages bandwidth allocation context, building bandwidth models from the route graph and analyzing solutions.
  * 管理带宽分配上下文，从路由图构建带宽模型并分析解。
  *
- * @property routeContext the route context / 路由上下文
+ * @property routeContext 路由上下文 / the route context
 */
 class BandwidthContext(
     private val routeContext: RouteContext
@@ -30,8 +30,8 @@ class BandwidthContext(
      * Initializes the bandwidth context by creating edge, service, and node bandwidth models from the route graph.
      * 通过从路由图创建边、服务和节点带宽模型来初始化带宽上下文。
      *
-     * @param input the aggregated input data / 聚合输入数据
-     * @return the initialization result / 初始化结果
+     * @param input 聚合输入数据 / the aggregated input data
+     * @return 初始化结果 / the initialization result
     */
     fun init(input: Input): Try {
         val routeAggregation = routeContext.aggregation
@@ -58,8 +58,8 @@ class BandwidthContext(
      * Registers the bandwidth aggregation models with the optimization model.
      * 将带宽聚合模型注册到优化模型。
      *
-     * @param model the linear meta model / 线性元模型
-     * @return the registration result / 注册结果
+     * @param model 线性元模型 / the linear meta model
+     * @return 注册结果 / the registration result
     */
     fun register(model: LinearMetaModel<Flt64>): Try {
         return aggregation.register(model)
@@ -69,8 +69,8 @@ class BandwidthContext(
      * Constructs the bandwidth model constraints and objectives using the pipeline list generator.
      * 使用管线列表生成器构建带宽模型约束和目标。
      *
-     * @param model the linear meta model / 线性元模型
-     * @return the construction result / 构建结果
+     * @param model 线性元模型 / the linear meta model
+     * @return 构建结果 / the construction result
     */
     fun construct(model: LinearMetaModel<Flt64>): Try {
         val routeAggregation = routeContext.aggregation
@@ -112,9 +112,9 @@ class BandwidthContext(
      * Analyzes the solved model to extract service paths as lists of nodes.
      * 分析求解模型以提取服务路径（节点列表）。
      *
-     * @param model the solved linear meta model / 已求解的线性元模型
-     * @param result the solution values / 求解值列表
-     * @return the list of service paths / 服务路径列表
+     * @param model 已求解的线性元模型 / the solved linear meta model
+     * @param result 求解值列表 / the solution values
+     * @return 服务路径列表 / the list of service paths
     */
     fun analyze(model: LinearMetaModel<Flt64>, result: List<Flt64>): Ret<List<List<Node>>> {
         val routeAggregation = routeContext.aggregation

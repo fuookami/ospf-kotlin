@@ -11,15 +11,13 @@ import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * Length assignment aggregation root.
- * 长度分配聚合根
- *
- * Manages dynamic coil length variables (assigned_length_i) and over-length slack variables (over_length_i),
+ * 长度分配聚合根 / Manages dynamic coil length variables (assigned_length_i) and over-length slack variables (over_length_i),
  * replacing the LengthSlackVars inner class in Csp1dMilpSolver.
  * 管理动态卷长变量（assigned_length_i）和超长松弛变量（over_length_i），替代 Csp1dMilpSolver 中的 LengthSlackVars 内部类。
  *
- * @param V Numeric value type / 数值类型
- * @property config Length assignment modeling configuration / 长度分配建模配置
- * @property demands Demand list / 需求列表
+ * @param V 数值类型 / Numeric value type
+ * @property config 长度分配建模配置 / Length assignment modeling configuration
+ * @property demands 需求列表 / Demand list
 */
 class LengthAggregation<V : RealNumber<V>>(
     val config: LengthAssignmentModelingConfig<V>,
@@ -84,8 +82,8 @@ class LengthAggregation<V : RealNumber<V>>(
      * Extract length assignment modeling result from solver solution.
      * 从求解器解中提取长度分配建模结果
      *
-     * @param model Solved linear meta model / 求解后的线性元模型
-     * @return Length assignment modeling result, or null if no length variables exist / 长度分配建模结果，若无长度变量则为 null
+     * @param model 求解后的线性元模型 / Solved linear meta model
+     * @return 长度分配建模结果，若无长度变量则为 null / Length assignment modeling result, or null if no length variables exist
     */
     fun extractResult(model: AbstractLinearMetaModel<Flt64>): LengthAssignmentModelingResult<V>? {
         if (!hasAny) return null

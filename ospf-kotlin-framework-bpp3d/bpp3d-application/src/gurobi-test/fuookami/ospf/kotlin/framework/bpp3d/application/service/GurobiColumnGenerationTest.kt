@@ -1,6 +1,5 @@
 /**
- * Gurobi 列生成测试。
- * Gurobi column generation test.
+ * Gurobi 列生成测试。 / Gurobi column generation test.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 

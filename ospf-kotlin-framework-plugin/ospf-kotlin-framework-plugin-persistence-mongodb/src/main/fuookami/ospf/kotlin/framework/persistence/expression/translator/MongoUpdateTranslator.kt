@@ -26,8 +26,7 @@ class MongoUpdateTranslator(
 ) {
 
     /**
-     * 翻译更新为 Bson
-     * Translate update to Bson
+     * 翻译更新为 Bson / Translate update to Bson
      *
      * @param assignments 更新赋值列表 / Update assignment list
      * @return Bson 更新表达式，为空时返回 null / Bson update expression, or null if empty
@@ -42,8 +41,7 @@ class MongoUpdateTranslator(
     }
 
     /**
-     * 翻译单个更新赋值项为 Bson
-     * Translate single update assignment item to Bson
+     * 翻译单个更新赋值项为 Bson / Translate single update assignment item to Bson
      *
      * @param item 更新赋值项 / Update assignment item
      * @return Bson 更新表达式 / Bson update expression
@@ -57,8 +55,7 @@ class MongoUpdateTranslator(
     }
 
     /**
-     * 翻译设置值赋值项
-     * Translate set-value assignment item
+     * 翻译设置值赋值项 / Translate set-value assignment item
      *
      * @param item 设置值赋值项 / Set-value assignment item
      * @return Bson 更新表达式 / Bson update expression
@@ -69,8 +66,7 @@ class MongoUpdateTranslator(
     }
 
     /**
-     * 翻译设置空值赋值项
-     * Translate set-null assignment item
+     * 翻译设置空值赋值项 / Translate set-null assignment item
      *
      * @param item 设置空值赋值项 / Set-null assignment item
      * @return Bson 更新表达式 / Bson update expression
@@ -81,8 +77,7 @@ class MongoUpdateTranslator(
     }
 
     /**
-     * 翻译表达式赋值项
-     * Translate set-from-expression assignment item
+     * 翻译表达式赋值项 / Translate set-from-expression assignment item
      *
      * @param item 表达式赋值项 / Set-from-expression assignment item
      * @return Bson 更新表达式 / Bson update expression

@@ -18,8 +18,7 @@ import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 /**
- * 连续半径 solver 变量（持有真实 solver 变量和对应的原型）。
- * Continuous-radius solver variable (holds a real solver variable and its prototype).
+ * 连续半径 solver 变量（持有真实 solver 变量和对应的原型）。 / Continuous-radius solver variable (holds a real solver variable and its prototype).
  *
  * @property prototype 连续半径 solver 变量原型 / continuous-radius solver variable prototype
  * @property variable 真实 solver 连续变量 / real solver continuous variable
@@ -102,8 +101,7 @@ fun continuousRadiusSolverVariables(
 }
 
 /**
- * 从原型列表创建 PWL solver 变量列表。
- * Create PWL solver variable list from prototype list.
+ * 从原型列表创建 PWL solver 变量列表。 / Create PWL solver variable list from prototype list.
  *
  * 使用 core [UnivariateLinearPiecewiseFunction] 实现分段线性近似 q ≈ r²。
  * 仅处理 isPWLRegisterable 且非 isSolverRegisterable 的原型。
@@ -164,8 +162,7 @@ fun pwlContinuousRadiusSolverVariables(
 }
 
 /**
- * 连续半径 solver 变量注册计划。
- * Continuous-radius solver variable registration plan.
+ * 连续半径 solver 变量注册计划。 / Continuous-radius solver variable registration plan.
  *
  * @property variableNames 变量名列表 / variable names
  * @property boundDescriptions 变量上下界描述 / variable bound descriptions
@@ -188,8 +185,7 @@ data class ContinuousRadiusSolverVariableRegistrationPlan(
 ) {
 
     /**
-     * 转为诊断信息。
-     * Convert to diagnostic info.
+     * 转为诊断信息。 / Convert to diagnostic info.
      *
      * @return 诊断信息 / diagnostic info
     */
@@ -236,8 +232,7 @@ data class ContinuousRadiusSolverVariableRegistrationPlan(
 }
 
 /**
- * 生成连续半径 solver 变量注册计划。
- * Build the continuous-radius solver variable registration plan.
+ * 生成连续半径 solver 变量注册计划。 / Build the continuous-radius solver variable registration plan.
  *
  * @param prototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
  * @param solverVariables solver 变量列表（native path）/ solver variable list (native path)
@@ -332,8 +327,7 @@ private fun ContinuousCylinderRadiusSolverPrototype.registrationSelectedRadiusDe
 }
 
 /**
- * PWL 提取的半径结果。
- * PWL extracted radius result.
+ * PWL 提取的半径结果。 / PWL extracted radius result.
  *
  * @property variableName 变量名 / variable name
  * @property solverRadius solver 选择的半径 r / solver-selected radius r
@@ -401,8 +395,7 @@ data class PWLExtractedRadius(
 }
 
 /**
- * 连续半径模型组件，统一管理 native 和 PWL 两条路径的变量创建、约束注册和结果提取。
- * Continuous radius model component that unifies variable creation, constraint registration,
+ * 连续半径模型组件，统一管理 native 和 PWL 两条路径的变量创建、约束注册和结果提取。 / Continuous radius model component that unifies variable creation, constraint registration,
  * and result extraction for both native and PWL paths.
  *
  * 使用方式 / Usage:
@@ -438,8 +431,7 @@ class ContinuousRadiusModelComponent(
     }
 
     /**
-     * 将所有连续半径变量和约束注册到模型。
-     * Register all continuous-radius variables and constraints into the model.
+     * 将所有连续半径变量和约束注册到模型。 / Register all continuous-radius variables and constraints into the model.
      *
      * 包括：
      * - native 路径：注册 RealVar + 上下界约束 + target 约束
@@ -567,8 +559,7 @@ class ContinuousRadiusModelComponent(
     }
 
     /**
-     * 从 solver 模型中提取 native 连续半径结果。
-     * Extract native continuous-radius results from solver model.
+     * 从 solver 模型中提取 native 连续半径结果。 / Extract native continuous-radius results from solver model.
      *
      * @param model 线性元模型（求解后）/ linear meta model (after solving)
      * @return 变量名到 solver 选择值的映射 / variable name to solver-selected value map
@@ -622,19 +613,16 @@ class ContinuousRadiusModelComponent(
     }
 
     /**
-     * 获取注册计划诊断信息。
-     * Get registration plan diagnostic info.
+     * 获取注册计划诊断信息。 / Get registration plan diagnostic info.
      *
      * @return 诊断信息 / diagnostic info
     */
     fun info(): Map<String, String> = registrationPlan.info()
 
     /**
-     * 获取 PWL 模型规模诊断信息。
-     * Get PWL model scale diagnostic info.
+     * 获取 PWL 模型规模诊断信息。 / Get PWL model scale diagnostic info.
      *
-     * 包括所有 PWL 变量的段数、选择变量数、辅助变量数、约束数和误差统计汇总。
-     * Includes summary of segment counts, selector variables, helper variables,
+     * 包括所有 PWL 变量的段数、选择变量数、辅助变量数、约束数和误差统计汇总。 / Includes summary of segment counts, selector variables, helper variables,
      * constraint counts, and error statistics across all PWL variables.
      *
      * @return 模型规模诊断信息 / model scale diagnostic info

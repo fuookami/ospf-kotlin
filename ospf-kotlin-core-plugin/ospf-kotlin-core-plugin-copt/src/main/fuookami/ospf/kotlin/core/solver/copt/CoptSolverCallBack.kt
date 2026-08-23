@@ -8,8 +8,10 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.syncRun
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 
-/** 创建环境函数类型 / Creating environment function type */
-typealias CreatingEnvironmentFunction = (EnvrConfig) -> Try
+/** 创建环境函数 / Creating environment function */
+fun interface CreatingEnvironmentFunction {
+    operator fun invoke(env: EnvrConfig): Try
+}
 
 /** COPT 原生回调函数类型 / COPT native callback function type */
 typealias NativeCallback = CallbackBase.() -> Unit

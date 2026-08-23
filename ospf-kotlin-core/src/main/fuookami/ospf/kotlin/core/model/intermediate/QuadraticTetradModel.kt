@@ -1,11 +1,27 @@
 /**
- * 二次四元模型
- * Quadratic tetrad model
+ * 二次四元模型 / Quadratic tetrad model
 */
 package fuookami.ospf.kotlin.core.model.intermediate
 
+import java.io.OutputStreamWriter
+import kotlinx.coroutines.*
+import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.operator.abs
+import fuookami.ospf.kotlin.math.ordinary.*
+import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.report.ModelElementKind
+import fuookami.ospf.kotlin.core.solver.report.ModelElementIdentityRegistry
+import fuookami.ospf.kotlin.core.solver.report.ModelElementOrigin
+import fuookami.ospf.kotlin.core.solver.report.ModelElementScope
+import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
+import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.derivedModelElementIdentity
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.token.Token
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -17,19 +33,9 @@ import fuookami.ospf.kotlin.core.variable.Percentage
 import fuookami.ospf.kotlin.core.variable.Ternary
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.core.variable.UInteger
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.operator.abs
-import fuookami.ospf.kotlin.math.ordinary.*
-import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.functional.*
-import java.io.OutputStreamWriter
-import kotlinx.coroutines.*
-import org.apache.logging.log4j.kotlin.logger
 
 /**
- * 判断此二次约束是否为单变量边界约束（单项、系数为1、无二次项）
- * Check whether this quadratic constraint is a single-variable bound constraint (single term, coefficient 1, no quadratic term)
+ * 判断此二次约束是否为单变量边界约束（单项、系数为1、无二次项） / Check whether this quadratic constraint is a single-variable bound constraint (single term, coefficient 1, no quadratic term)
  *
  * @return 若为单变量边界约束则返回 true，否则返回 false / true if this is a single-variable bound constraint, false otherwise
 */
@@ -41,11 +47,9 @@ private fun QuadraticConstraintImpl<Flt64>.isBound(): Boolean {
 }
 
 /**
- * 二次约束单元
- * Quadratic constraint cell
+ * 二次约束单元 / Quadratic constraint cell
  *
- * 表示二次约束矩阵中的一个非零元素，包含行索引、列索引和系数。
- * Represents a non-zero element in the quadratic constraint matrix,
+ * 表示二次约束矩阵中的一个非零元素，包含行索引、列索引和系数。 / Represents a non-zero element in the quadratic constraint matrix,
  * containing row index, column indices, and coefficient.
  *
  * @property rowIndex 行索引 / Row index
@@ -82,11 +86,9 @@ class QuadraticConstraintCell(
 }
 
 /**
- * 二次约束批次
- * Quadratic constraint batch
+ * 二次约束批次 / Quadratic constraint batch
  *
- * 存储一组二次约束的稀疏矩阵表示，包括约束符号、右侧常量和约束来源。
- * Stores a batch of quadratic constraints in sparse matrix representation,
+ * 存储一组二次约束的稀疏矩阵表示，包括约束符号、右侧常量和约束来源。 / Stores a batch of quadratic constraints in sparse matrix representation,
  * including constraint signs, right-hand side constants, and constraint sources.
  *
  * @property sparseLhs 稀疏二次矩阵（左侧）/ Sparse quadratic matrix (left-hand side)
@@ -97,6 +99,11 @@ class QuadraticConstraintCell(
  * @param origins 约束来源列表 / Constraint origin list
  * @param froms 约束来源符号列表 / Constraint from-symbol list
  * @param priorities 约束优先级列表 / Constraint priority list
+ * @param ids 稳定约束 ID 列表 / Stable constraint ID list
+ * @param identityScopes 每行身份作用域 / Identity scope for each row
+ * @param identityOrigins 每行稳定身份来源 / Stable identity origin for each row
+ * @param identityProvenance 每行完整身份来源集合 / Complete identity provenance for each row
+ * @param identityMetadataValidationOverride 复制或过滤时保留的身份元数据校验结果 / Identity metadata validation result preserved across copies or filters
 */
 class QuadraticConstraintBatch(
     val sparseLhs: SparseQuadraticMatrix,
@@ -106,15 +113,33 @@ class QuadraticConstraintBatch(
     sources: List<ConstraintSource>,
     origins: List<QuadraticConstraintImpl<Flt64>?> = (0 until sparseLhs.numRows()).map { null },
     froms: List<Pair<IntermediateSymbol<*>, Boolean>?> = (0 until sparseLhs.numRows()).map { null },
-    priorities: List<Int?> = (0 until sparseLhs.numRows()).map { null }
-) : ModelConstraint<QuadraticConstraintCell>(sparseLhs.numRows(), signs, rhs, names, sources) {
+    priorities: List<Int?> = (0 until sparseLhs.numRows()).map { null },
+    ids: List<ConstraintId> = emptyList(),
+    identityNamespace: String? = null,
+    identitySchemaVersion: String? = null,
+    identityScopes: List<ModelElementScope> = emptyList(),
+    identityOrigins: List<ModelElementOrigin?> = emptyList(),
+    identityProvenance: List<List<ModelElementOrigin>> = emptyList(),
+    identityMetadataValidationOverride: Try? = null
+) : ModelConstraint<QuadraticConstraintCell>(
+    sparseLhs.numRows(),
+    signs,
+    rhs,
+    names,
+    sources,
+    ids,
+    identityNamespace,
+    identitySchemaVersion,
+    identityScopes,
+    identityOrigins,
+    identityProvenance,
+    identityMetadataValidationOverride
+) {
 
     /**
      * 二次左侧矩阵的稀疏表示。
      * 每一行是一个 SparseQuadraticVector，其中条目携带 (colIndex1, colIndex2?, coefficient)。
-     * 这是主要的约束表示形式。
-     *
-     * Sparse representation of the quadratic LHS matrix.
+     * 这是主要的约束表示形式。 / Sparse representation of the quadratic LHS matrix.
      * Each row is a SparseQuadraticVector where entries carry (colIndex1, colIndex2?, coefficient).
      * This is the primary constraint representation.
     */
@@ -156,7 +181,14 @@ class QuadraticConstraintBatch(
         sources.toList(),
         origins.toList(),
         froms.toList(),
-        priorities.toList()
+        priorities.toList(),
+        ids.toList(),
+        identityNamespace,
+        identitySchemaVersion,
+        identityScopes.toList(),
+        identityOrigins.toList(),
+        identityProvenance.map { it.toList() },
+        identityMetadataValidation
     )
 
     override fun close() {
@@ -168,11 +200,9 @@ class QuadraticConstraintBatch(
 }
 
 /**
- * 二次目标单元
- * Quadratic objective cell
+ * 二次目标单元 / Quadratic objective cell
  *
- * 表示二次目标函数中的一个非零元素，包含列索引和系数。
- * Represents a non-zero element in the quadratic objective function,
+ * 表示二次目标函数中的一个非零元素，包含列索引和系数。 / Represents a non-zero element in the quadratic objective function,
  * containing column indices and coefficient.
  *
  * @property colIndex1 第一列索引 / First column index
@@ -205,14 +235,12 @@ class QuadraticObjectiveCell(
 }
 
 /**
- * 二次目标函数类型别名
- * Type alias for quadratic objective function
+ * 二次目标函数类型别名 / Type alias for quadratic objective function
 */
 typealias QuadraticObjective = Objective<QuadraticObjectiveCell>
 
 /**
- * 基础二次四元模型
- * Basic quadratic tetrad model
+ * 基础二次四元模型 / Basic quadratic tetrad model
  *
  * 二次问题的求解器标准形式（四元：变量 + 约束，无目标函数）。
  * 直接用于 IIS（不可约不可行子系统）计算，以及作为 [QuadraticTetradModel] 的 [impl] 委托。
@@ -252,9 +280,7 @@ class BasicQuadraticTetradModel(
          * 将变量和约束提取到求解器标准形式。
          *
          * 这是一个便捷工厂方法，镜像了 [QuadraticTetradModel.invoke] 中的变量/约束提取逻辑，
-         * 但不包含目标函数步骤。
-         *
-         * Create a [BasicQuadraticTetradModel] from a [QuadraticMechanismModel<Flt64>] by
+         * 但不包含目标函数步骤。 / Create a [BasicQuadraticTetradModel] from a [QuadraticMechanismModel<Flt64>] by
          * extracting variables and constraints into solver-standard form.
          *
          * This is a convenience factory that mirrors the variable/constraint extraction
@@ -264,23 +290,27 @@ class BasicQuadraticTetradModel(
          * @param tokenIndexMap   符号到求解器列索引的映射 / mapping from tokens to solver column indices
          * @param bounds          每个符号的预计算边界约束 / pre-computed bound constraints per token
          * @param fixedVariables  固定为常量值的变量（被替换掉）/ variables fixed to constant values (substituted out)
+         * @param identityRegistry 可选的稳定身份注册表 / optional stable identity registry
          * @return 包含提取的变量和约束的 [BasicQuadraticTetradModel] / a [BasicQuadraticTetradModel] containing the extracted variables and constraints
         */
         fun from(
             model: QuadraticMechanismModel<Flt64>,
             tokenIndexMap: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<QuadraticConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
-            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
+            identityRegistry: ModelElementIdentityRegistry? = model.identityRegistry
         ): BasicQuadraticTetradModel {
             val variables = dumpQuadraticTetradVariables(
                 tokenIndexes = tokenIndexMap,
-                bounds = bounds
+                bounds = bounds,
+                identityRegistry = identityRegistry
             )
             val constraints = dumpQuadraticTetradConstraints(
                 model = model,
                 tokenIndexes = tokenIndexMap,
                 bounds = bounds,
-                fixedVariables = fixedVariables
+                fixedVariables = fixedVariables,
+                identityRegistry = identityRegistry
             )
             return BasicQuadraticTetradModel(variables, constraints, model.name)
         }
@@ -294,8 +324,7 @@ class BasicQuadraticTetradModel(
     override fun clone() = copy()
 
     /**
-     * 就地线性松弛
-     * In-place linear relaxation
+     * 就地线性松弛 / In-place linear relaxation
      *
      * 将整数变量类型松弛为连续类型（Binary->Percentage, Integer->Continuous 等）。
      * Relaxes integer variable types to continuous types (Binary->Percentage, Integer->Continuous, etc.).
@@ -321,8 +350,7 @@ class BasicQuadraticTetradModel(
     }
 
     /**
-     * 返回线性松弛后的副本
-     * Return a linearly relaxed copy
+     * 返回线性松弛后的副本 / Return a linearly relaxed copy
      *
      * @return 线性松弛后的模型副本 / Linearly relaxed model copy
     */
@@ -440,15 +468,20 @@ class BasicQuadraticTetradModel(
 }
 
 /**
- * 二次四元模型视图接口
- * Quadratic tetrad model view interface
+ * 二次四元模型视图接口 / Quadratic tetrad model view interface
  *
- * 提供二次模型的视图操作，包括线性松弛、对偶、可行性和弹性模型。
- * Provides view operations for quadratic models, including linear relaxation, dual, feasibility, and elastic models.
+ * 提供二次模型的视图操作，包括线性松弛、对偶、可行性和弹性模型。 / Provides view operations for quadratic models, including linear relaxation, dual, feasibility, and elastic models.
 */
 interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, QuadraticObjectiveCell> {
     override val constraints: QuadraticConstraintBatch
     val dual: Boolean
+
+    /**
+     * Identity validation captured while building the intermediate model.
+     * 中间模型构建期间捕获的身份校验结果。
+     */
+    val identityValidation: Try
+        get() = ok
 
     /** 就地线性松弛（修改当前模型） / In-place linear relaxation (mutates current model)
      * @return 线性松弛后的模型视图 / The linearly relaxed model view
@@ -481,8 +514,7 @@ interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, Quadrati
     fun elastic(): QuadraticTetradModelView
 
     /**
-     * 整理对偶解，将完整对偶值（包括零值）映射回原始约束
-     * Tidy dual solution, mapping complete dual values (including zero) back to original constraints
+     * 整理对偶解，将完整对偶值（包括零值）映射回原始约束 / Tidy dual solution, mapping complete dual values (including zero) back to original constraints
      *
      * @param solution 求解器返回的对偶解向量 / Dual solution vector returned by the solver
      * @return 原始约束到对偶值的映射 / Mapping from original constraints to dual values
@@ -509,11 +541,9 @@ interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, Quadrati
 }
 
 /**
- * 二次四元模型
- * Quadratic tetrad model
+ * 二次四元模型 / Quadratic tetrad model
  *
- * 求解器标准形式的二次优化模型，包含变量、约束和目标函数。
- * Solver-standard form of quadratic optimization model, containing variables, constraints, and objective function.
+ * 求解器标准形式的二次优化模型，包含变量、约束和目标函数。 / Solver-standard form of quadratic optimization model, containing variables, constraints, and objective function.
  *
  * @property impl 基础模型实现 / Basic model implementation
  * @property tokensInSolver 求解器中的符号列表 / Token list in solver
@@ -524,7 +554,12 @@ data class QuadraticTetradModel(
     private val impl: BasicQuadraticTetradModel,
     val tokensInSolver: List<Token<Flt64>>,
     override val objective: QuadraticObjective,
-    internal val dualOrigin: QuadraticTetradModelView? = null
+    internal val dualOrigin: QuadraticTetradModelView? = null,
+    override val identityValidation: Try = validateDerivedIdentitySet(
+        variables = impl.variables,
+        constraints = impl.constraints,
+        objective = objective
+    )
 ) : QuadraticTetradModelView, Cloneable, Copyable<QuadraticTetradModel> {
     override val variables: List<Variable> by impl::variables
     override val constraints: QuadraticConstraintBatch by impl::constraints
@@ -534,13 +569,25 @@ data class QuadraticTetradModel(
     companion object {
         private val logger = logger()
 
-        /** V->Flt64 转换边界：泛型 V 在二次中间模型构造时解析为具体类型 Flt64。 / V->Flt64 conversion boundary: generic V resolves to concrete Flt64 for quadratic intermediate model construction. */
+        /**
+         * V->Flt64 转换边界：泛型 V 在二次中间模型构造时解析为具体类型 Flt64。 /
+         * V->Flt64 conversion boundary: generic V resolves to concrete Flt64 for quadratic intermediate model construction.
+         *
+         * @param model 源二次机制模型 / Source quadratic mechanism model
+         * @param fixedVariables 可选的固定变量 / Optional fixed variables
+         * @param dumpConstraintsToBounds 是否转储边界约束 / Whether to dump bound constraints
+         * @param forceDumpBounds 是否强制转储可识别边界 / Whether to force recognizable bounds
+         * @param concurrent 是否并行转储 / Whether to dump concurrently
+         * @param identityRegistry 可选的稳定身份注册表 / Optional stable identity registry
+         * @return 二次四元模型 / Quadratic tetrad model
+         */
         suspend operator fun invoke(
             model: QuadraticMechanismModel<Flt64>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             dumpConstraintsToBounds: Boolean? = null,
             forceDumpBounds: Boolean? = null,
-            concurrent: Boolean? = null
+            concurrent: Boolean? = null,
+            identityRegistry: ModelElementIdentityRegistry? = model.identityRegistry
         ): QuadraticTetradModel {
             logger.trace("Creating QuadraticTetradModel for $model")
             val tokensInSolver = if (fixedVariables.isNullOrEmpty()) {
@@ -578,7 +625,8 @@ data class QuadraticTetradModel(
                     val variablePromise = async(Dispatchers.Default) {
                         dumpQuadraticTetradVariables(
                             tokenIndexes = tokenIndexMap,
-                            bounds = bounds
+                            bounds = bounds,
+                            identityRegistry = identityRegistry
                         )
                     }
                     val constraintPromise = async(Dispatchers.Default) {
@@ -586,14 +634,16 @@ data class QuadraticTetradModel(
                             model = model,
                             tokenIndexes = tokenIndexMap,
                             bounds = bounds,
-                            fixedVariables = fixedVariables
+                            fixedVariables = fixedVariables,
+                            identityRegistry = identityRegistry
                         )
                     }
                     val objectivePromise = async(Dispatchers.Default) {
                         dumpQuadraticTetradObjectives(
                             model = model,
                             tokenIndexes = tokenIndexMap,
-                            fixedVariables = fixedVariables
+                            fixedVariables = fixedVariables,
+                            identityRegistry = identityRegistry
                         )
                     }
 
@@ -612,13 +662,15 @@ data class QuadraticTetradModel(
                     impl = BasicQuadraticTetradModel(
                         variables = dumpQuadraticTetradVariables(
                             tokenIndexes = tokenIndexMap,
-                            bounds = bounds
+                            bounds = bounds,
+                            identityRegistry = identityRegistry
                         ),
                         constraints = dumpQuadraticTetradConstraints(
                             model = model,
                             tokenIndexes = tokenIndexMap,
                             bounds = bounds,
-                            fixedVariables = fixedVariables
+                            fixedVariables = fixedVariables,
+                            identityRegistry = identityRegistry
                         ),
                         name = model.name
                     ),
@@ -626,24 +678,44 @@ data class QuadraticTetradModel(
                     objective = dumpQuadraticTetradObjectives(
                         model = model,
                         tokenIndexes = tokenIndexMap,
-                        fixedVariables = fixedVariables
+                        fixedVariables = fixedVariables,
+                        identityRegistry = identityRegistry
                     )
                 )
             }
 
+            val identityValidation = combineIdentityValidation(
+                materializedValidation = validateDerivedIdentitySet(
+                    variables = tetradModel.variables,
+                    constraints = tetradModel.constraints,
+                    objective = tetradModel.objective,
+                    allowGeneratedArtifactPrefix = true
+                ),
+                registryValidation = identityRegistry?.validate()
+            )
+            val validatedTetradModel = tetradModel.copy(identityValidation = identityValidation)
             logger.trace("QuadraticTetradModel created for $model")
             MemoryCleanupPolicy.cleanupAfterModelBuilt()
-            return tetradModel
+            return validatedTetradModel
         }
     }
 
     override fun copy() = QuadraticTetradModel(
         impl = impl.copy(),
         tokensInSolver = tokensInSolver,
-        objective = objective.copy()
+        objective = objective.copy(),
+        identityValidation = identityValidation
     )
 
     override fun clone() = copy()
+
+    /**
+     * Return the identity validation result captured during model construction. /
+     * 返回模型构建期间捕获的身份校验结果。
+     *
+     * @return Structured identity validation result. / 结构化身份校验结果。
+     */
+    fun validateIdentity(): Try = identityValidation
 
     override fun linearRelax(): QuadraticTetradModel {
         impl.linearRelax()
@@ -654,7 +726,8 @@ data class QuadraticTetradModel(
         return QuadraticTetradModel(
             impl = impl.linearRelaxed(),
             tokensInSolver = tokensInSolver,
-            objective = objective.copy()
+            objective = objective.copy(),
+            identityValidation = identityValidation
         )
     }
     override suspend fun dual(): QuadraticTetradModel {
@@ -701,6 +774,18 @@ data class QuadraticTetradModel(
                 slack = null,
                 name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_dual",
                 initialResult = Flt64.zero
+            )
+        }.mapIndexed { index, variable ->
+            val sourceId = this.constraints.ids.getOrNull(index)?.value
+            variable.withDerivedIdentity(
+                role = "dual-constraint",
+                sourceId = sourceId,
+                sourceScope = this.constraints.identityScopeAt(index),
+                sourceOrigin = this.constraints.identityOriginAt(index),
+                sourceProvenance = this.constraints.identityProvenanceOrOriginAt(index),
+                namespace = this.constraints.identityNamespace,
+                schemaVersion = this.constraints.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, "0", index.toString())
             )
         }
         var colIndex = this.constraints.size
@@ -826,6 +911,28 @@ data class QuadraticTetradModel(
                     }
                 }
             }
+        }.mapIndexed { sourceIndex, pair ->
+            val source = this.variables[sourceIndex]
+            val sourceId = source.id?.value
+            pair.first?.withDerivedIdentity(
+                role = "dual-bound",
+                sourceId = sourceId,
+                sourceScope = source.identityScope,
+                sourceOrigin = source.identityOrigin,
+                sourceProvenance = source.identityProvenanceOrOrigin(),
+                namespace = source.identityNamespace,
+                schemaVersion = source.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, "lower", "$sourceIndex:lower")
+            ) to pair.second?.withDerivedIdentity(
+                role = "dual-bound",
+                sourceId = sourceId,
+                sourceScope = source.identityScope,
+                sourceOrigin = source.identityOrigin,
+                sourceProvenance = source.identityProvenanceOrOrigin(),
+                namespace = source.identityNamespace,
+                schemaVersion = source.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, "upper", "$sourceIndex:upper")
+            )
         }
 
         val cellGroups = this.constraints.lhs.flatten().groupBy { it.colIndex1 }
@@ -920,14 +1027,62 @@ data class QuadraticTetradModel(
                     signs = signs,
                     rhs = rhs,
                     names = names,
-                    sources = sources
+                    sources = sources,
+                    ids = this.variables.mapIndexed { index, variable ->
+                        val sourceId = variable.id?.value
+                        ConstraintId(
+                            derivedModelElementIdentity(
+                                kind = ModelElementKind.Constraint,
+                                role = "dual-balance",
+                                sourceId = sourceId,
+                                sourceScope = variable.identityScope,
+                                sourceOrigin = variable.identityOrigin,
+                                sourceProvenance = variable.identityProvenanceOrOrigin(),
+                                namespace = variable.identityNamespace,
+                                schemaVersion = variable.identitySchemaVersion,
+                                discriminator = derivedDiscriminator(sourceId, "0", index.toString())
+                            ).id.value
+                        )
+                    },
+                    identityNamespace = this.identityNamespace,
+                    identitySchemaVersion = this.identitySchemaVersion,
+                    identityScopes = this.variables.map { variable ->
+                        if (variable.id == null) ModelElementScope.ModelLocal else variable.identityScope
+                    },
+                    identityOrigins = this.variables.map { it.identityOrigin },
+                    identityProvenance = this.variables.map { it.identityProvenanceOrOrigin() }
                 ),
                 name = "$name-dual"
             ),
             tokensInSolver = tokensInSolver,
-            objective = QuadraticObjective(this.objective.category.reverse, objective),
-            dualOrigin = this
-        )
+            objective = QuadraticObjective(
+                category = this.objective.category.reverse,
+                objective = objective,
+                id = ObjectiveId(
+                    derivedModelElementIdentity(
+                        kind = ModelElementKind.Objective,
+                        role = "dual-objective",
+                        sourceId = this.objective.id?.value,
+                        sourceScope = this.objective.identityScope,
+                        sourceOrigin = this.objective.identityOrigin,
+                        sourceProvenance = this.objective.identityProvenanceOrOrigin(),
+                        namespace = this.objective.identityNamespace ?: this.constraints.identityNamespace,
+                        schemaVersion = this.objective.identitySchemaVersion ?: this.constraints.identitySchemaVersion
+                    ).id.value
+                ),
+                identityScope = if (this.objective.id == null) {
+                    ModelElementScope.ModelLocal
+                } else {
+                    this.objective.identityScope
+                },
+                identityOrigin = if (this.objective.id == null) null else this.objective.identityOrigin,
+                identityNamespace = this.objective.identityNamespace ?: this.constraints.identityNamespace,
+                identitySchemaVersion = this.objective.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                identityProvenance = this.objective.identityProvenanceOrOrigin()
+            ),
+            dualOrigin = this,
+            identityValidation = ok
+        ).withDerivedIdentityValidation()
     }
     override suspend fun farkasDual(): QuadraticTetradModel {
         var colIndex = this.constraints.size
@@ -1236,27 +1391,202 @@ data class QuadraticTetradModel(
             )
         }
 
+        val derivedFarkasVariables = farkasVariables.mapIndexed { index, variable ->
+            val source = this.constraints
+            val sourceId = source.ids.getOrNull(index)?.value
+            variable.withDerivedIdentity(
+                role = "farkas-constraint",
+                sourceId = sourceId,
+                sourceScope = source.identityScopeAt(index),
+                sourceOrigin = source.identityOriginAt(index),
+                sourceProvenance = source.identityProvenanceOrOriginAt(index),
+                namespace = source.identityNamespace,
+                schemaVersion = source.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, "0", index.toString())
+            )
+        }
+        val derivedSlackVariables = slackVariables.mapIndexed { index, variable ->
+            val sourceIndex = this.constraints.indices
+                .filter { this.constraints.signs[it] == ConstraintRelation.Equal }[index / 2]
+            val source = this.constraints
+            val sourceId = source.ids.getOrNull(sourceIndex)?.value
+            variable.withDerivedIdentity(
+                role = "farkas-slack",
+                sourceId = sourceId,
+                sourceScope = source.identityScopeAt(sourceIndex),
+                sourceOrigin = source.identityOriginAt(sourceIndex),
+                sourceProvenance = source.identityProvenanceOrOriginAt(sourceIndex),
+                namespace = source.identityNamespace,
+                schemaVersion = source.identitySchemaVersion,
+                discriminator = derivedDiscriminator(
+                    sourceId,
+                    if (index % 2 == 0) "positive" else "negative",
+                    "$sourceIndex:${if (index % 2 == 0) "positive" else "negative"}"
+                )
+            )
+        }
+        val derivedBoundVariables = boundVariables.mapIndexed { index, pair ->
+            val source = this.variables[index]
+            val sourceId = source.id?.value
+            pair.first?.withDerivedIdentity(
+                role = "farkas-bound",
+                sourceId = sourceId,
+                sourceScope = source.identityScope,
+                sourceOrigin = source.identityOrigin,
+                sourceProvenance = source.identityProvenanceOrOrigin(),
+                namespace = source.identityNamespace ?: this.constraints.identityNamespace,
+                schemaVersion = source.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, "lower", "$index:lower")
+            ) to pair.second?.withDerivedIdentity(
+                role = "farkas-bound",
+                sourceId = sourceId,
+                sourceScope = source.identityScope,
+                sourceOrigin = source.identityOrigin,
+                sourceProvenance = source.identityProvenanceOrOrigin(),
+                namespace = source.identityNamespace ?: this.constraints.identityNamespace,
+                schemaVersion = source.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, "upper", "$index:upper")
+            )
+        }
+        val constraintIds = this.variables.mapIndexed { index, variable ->
+            val sourceId = variable.id?.value
+            ConstraintId(
+                derivedModelElementIdentity(
+                    kind = ModelElementKind.Constraint,
+                    role = "farkas-balance",
+                    sourceId = sourceId,
+                    sourceScope = variable.identityScope,
+                    sourceOrigin = variable.identityOrigin,
+                    sourceProvenance = variable.identityProvenanceOrOrigin(),
+                    namespace = this.identityNamespace ?: this.constraints.identityNamespace,
+                    schemaVersion = this.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                    discriminator = derivedDiscriminator(sourceId, "0", index.toString())
+                ).id.value
+            )
+        } + listOf(
+            ConstraintId(
+                derivedModelElementIdentity(
+                    kind = ModelElementKind.Constraint,
+                    role = "farkas-normalization",
+                    sourceId = null,
+                    sourceScope = ModelElementScope.ModelLocal,
+                    sourceOrigin = null,
+                    namespace = this.identityNamespace ?: this.constraints.identityNamespace,
+                    schemaVersion = this.identitySchemaVersion ?: this.constraints.identitySchemaVersion
+                ).id.value
+            )
+        ) + this.constraints.indices.filter { this.constraints.signs[it] == ConstraintRelation.Equal }.map { index ->
+            val sourceId = this.constraints.ids.getOrNull(index)?.value
+            ConstraintId(
+                derivedModelElementIdentity(
+                    kind = ModelElementKind.Constraint,
+                    role = "farkas-equality",
+                    sourceId = sourceId,
+                    sourceScope = this.constraints.identityScopeAt(index),
+                    sourceOrigin = this.constraints.identityOriginAt(index),
+                    sourceProvenance = this.constraints.identityProvenanceOrOriginAt(index),
+                    namespace = this.constraints.identityNamespace,
+                    schemaVersion = this.constraints.identitySchemaVersion,
+                    discriminator = derivedDiscriminator(sourceId, "0", index.toString())
+                ).id.value
+            )
+        }
+        val constraintScopes = this.variables.map { variable ->
+            if (variable.id == null) ModelElementScope.ModelLocal else variable.identityScope
+        } + ModelElementScope.ModelLocal + this.constraints.indices.filter {
+            this.constraints.signs[it] == ConstraintRelation.Equal
+        }.map { this.constraints.identityScopeAt(it) }
+        val constraintOrigins = this.variables.map { it.identityOrigin } + null + this.constraints.indices.filter {
+            this.constraints.signs[it] == ConstraintRelation.Equal
+        }.map { this.constraints.identityOriginAt(it) }
+        val constraintProvenance = this.variables.map { it.identityProvenanceOrOrigin() } + listOf(emptyList()) +
+            this.constraints.indices.filter {
+                this.constraints.signs[it] == ConstraintRelation.Equal
+            }.map { this.constraints.identityProvenanceOrOriginAt(it) }
+        val objectiveIdentity = derivedModelElementIdentity(
+            kind = ModelElementKind.Objective,
+            role = "farkas-objective",
+            sourceId = this.objective.id?.value,
+            sourceScope = this.objective.identityScope,
+            sourceOrigin = this.objective.identityOrigin,
+            sourceProvenance = this.objective.identityProvenanceOrOrigin(),
+            namespace = this.objective.identityNamespace ?: this.constraints.identityNamespace,
+            schemaVersion = this.objective.identitySchemaVersion ?: this.constraints.identitySchemaVersion
+        )
+
         return QuadraticTetradModel(
             impl = BasicQuadraticTetradModel(
-                variables = (farkasVariables + slackVariables + boundVariables.flatMapNotNull { listOf(it.first, it.second) }).sortedBy { it.index },
+                variables = (derivedFarkasVariables + derivedSlackVariables + derivedBoundVariables.flatMapNotNull { listOf(it.first, it.second) }).sortedBy { it.index },
                 constraints = QuadraticConstraintBatch(
                     sparseLhs = buildQuadraticSparseLhs(lhs),
                     signs = signs,
                     rhs = rhs,
                     names = names,
-                    sources = sources
+                    sources = sources,
+                    ids = constraintIds,
+                    identityNamespace = this.identityNamespace ?: this.constraints.identityNamespace,
+                    identitySchemaVersion = this.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                    identityScopes = constraintScopes,
+                    identityOrigins = constraintOrigins,
+                    identityProvenance = constraintProvenance
                 ),
                 name = "$name-farkas-dual"
             ),
             tokensInSolver = tokensInSolver,
-            objective = QuadraticObjective(ObjectCategory.Minimum, objective),
-            dualOrigin = this
-        )
+            objective = QuadraticObjective(
+                category = ObjectCategory.Minimum,
+                objective = objective,
+                id = ObjectiveId(objectiveIdentity.id.value),
+                identityScope = objectiveIdentity.scope,
+                identityOrigin = objectiveIdentity.origin,
+                identityNamespace = this.objective.identityNamespace ?: this.constraints.identityNamespace,
+                identitySchemaVersion = this.objective.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                identityProvenance = objectiveIdentity.provenance
+            ),
+            dualOrigin = this,
+            identityValidation = ok
+        ).withDerivedIdentityValidation()
     }
     override fun feasibility(): QuadraticTetradModel {
         var colIndex = this.variables.size
         val slackVariables = ArrayList<Variable>()
         val artifactVariables = ArrayList<Variable>()
+        fun artifactVariable(
+            constraintIndex: Int,
+            role: String,
+            index: Int,
+            slack: VariableSlack? = null
+        ): Variable {
+            val sourceId = this.constraints.ids.getOrNull(constraintIndex)?.value
+            val identity = derivedModelElementIdentity(
+                kind = ModelElementKind.Variable,
+                role = "feasibility-$role",
+                sourceId = sourceId,
+                sourceScope = this.constraints.identityScopeAt(constraintIndex),
+                sourceOrigin = this.constraints.identityOriginAt(constraintIndex),
+                sourceProvenance = this.constraints.identityProvenanceOrOriginAt(constraintIndex),
+                namespace = this.constraints.identityNamespace,
+                schemaVersion = this.constraints.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, role, "$constraintIndex:$role")
+            )
+            return Variable(
+                index = index,
+                lowerBound = Flt64.zero,
+                upperBound = Flt64.infinity,
+                type = Continuous,
+                origin = null,
+                dualOrigin = null,
+                slack = slack,
+                name = "${this.constraints.names[constraintIndex].ifEmpty { "cons$constraintIndex" }}_$role",
+                initialResult = Flt64.zero,
+                id = VariableId(identity.id.value),
+                identityScope = identity.scope,
+                identityOrigin = identity.origin,
+                identityNamespace = this.constraints.identityNamespace,
+                identitySchemaVersion = this.constraints.identitySchemaVersion,
+                identityProvenance = identity.provenance
+            )
+        }
         val lhs = this.constraints.indices.map {
                 when (if (this.constraints.rhs[it] ls Flt64.zero) {
                     this.constraints.signs[it].reverse
@@ -1264,18 +1594,11 @@ data class QuadraticTetradModel(
                     this.constraints.signs[it]
                 }) {
                     ConstraintRelation.LessEqual -> {
-                        val slack = Variable(
+                        val slack = artifactVariable(
+                            constraintIndex = it,
+                            role = "slack",
                             index = colIndex,
-                            lowerBound = Flt64.zero,
-                            upperBound = Flt64.infinity,
-                            type = Continuous,
-                            origin = null,
-                            dualOrigin = null,
-                            slack = VariableSlack(
-                                constraint = this.constraints.origins[it]
-                            ),
-                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_slack",
-                            initialResult = Flt64.zero
+                            slack = VariableSlack(constraint = this.constraints.origins[it])
                         )
                         colIndex += 1
 
@@ -1295,30 +1618,17 @@ data class QuadraticTetradModel(
                     }
 
                     ConstraintRelation.GreaterEqual -> {
-                        val slack = Variable(
-                            colIndex,
-                            lowerBound = Flt64.zero,
-                            upperBound = Flt64.infinity,
-                            type = Continuous,
-                            origin = null,
-                            dualOrigin = null,
-                            slack = VariableSlack(
-                                constraint = this.constraints.origins[it]
-                            ),
-                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_slack",
-                            initialResult = Flt64.zero
+                        val slack = artifactVariable(
+                            constraintIndex = it,
+                            role = "slack",
+                            index = colIndex,
+                            slack = VariableSlack(constraint = this.constraints.origins[it])
                         )
                         colIndex += 1
-                        val artifact = Variable(
-                            colIndex,
-                            lowerBound = Flt64.zero,
-                            upperBound = Flt64.infinity,
-                            type = Continuous,
-                            origin = null,
-                            dualOrigin = null,
-                            slack = null,
-                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_artifact",
-                            initialResult = Flt64.zero
+                        val artifact = artifactVariable(
+                            constraintIndex = it,
+                            role = "artifact",
+                            index = colIndex
                         )
                         colIndex += 1
 
@@ -1345,16 +1655,10 @@ data class QuadraticTetradModel(
                     }
 
                     ConstraintRelation.Equal -> {
-                        val artifact = Variable(
-                            colIndex,
-                            lowerBound = Flt64.zero,
-                            upperBound = Flt64.infinity,
-                            type = Continuous,
-                            origin = null,
-                            dualOrigin = null,
-                            slack = null,
-                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_artifact",
-                            initialResult = Flt64.zero
+                        val artifact = artifactVariable(
+                            constraintIndex = it,
+                            role = "artifact",
+                            index = colIndex
                         )
                         colIndex += 1
 
@@ -1374,6 +1678,20 @@ data class QuadraticTetradModel(
                     }
                 }
             }
+        val constraintIdentities = this.constraints.indices.map { index ->
+            val sourceId = this.constraints.ids.getOrNull(index)?.value
+            derivedModelElementIdentity(
+                kind = ModelElementKind.Constraint,
+                role = "feasibility-constraint",
+                sourceId = sourceId,
+                sourceScope = this.constraints.identityScopeAt(index),
+                sourceOrigin = this.constraints.identityOriginAt(index),
+                sourceProvenance = this.constraints.identityProvenanceOrOriginAt(index),
+                namespace = this.constraints.identityNamespace,
+                schemaVersion = this.constraints.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, "0", index.toString())
+            )
+        }
         val constraints = QuadraticConstraintBatch(
             sparseLhs = buildQuadraticSparseLhs(lhs),
             signs = this.constraints.indices.map {
@@ -1396,7 +1714,13 @@ data class QuadraticTetradModel(
             },
             priorities = this.constraints.indices.map {
                 this.constraints.priorities[it]
-            }
+            },
+            ids = constraintIdentities.map { ConstraintId(it.id.value) },
+            identityNamespace = this.constraints.identityNamespace,
+            identitySchemaVersion = this.constraints.identitySchemaVersion,
+            identityScopes = constraintIdentities.map { it.scope },
+            identityOrigins = constraintIdentities.map { it.origin },
+            identityProvenance = constraintIdentities.map { it.provenance }
         )
         val objective = artifactVariables.map {
             QuadraticObjectiveCell(
@@ -1406,6 +1730,20 @@ data class QuadraticTetradModel(
             )
         }
 
+        val objectiveIdentity = derivedModelElementIdentity(
+            kind = ModelElementKind.Objective,
+            role = "feasibility-objective",
+            sourceId = this.objective.id?.value,
+            sourceScope = this.objective.identityScope,
+            sourceOrigin = this.objective.identityOrigin,
+            sourceProvenance = (
+                this.objective.identityProvenanceOrOrigin() +
+                    this.constraints.indices.flatMap { this.constraints.identityProvenanceOrOriginAt(it) } +
+                    this.variables.flatMap { it.identityProvenanceOrOrigin() }
+                ).distinct(),
+            namespace = this.objective.identityNamespace ?: this.constraints.identityNamespace,
+            schemaVersion = this.objective.identitySchemaVersion ?: this.constraints.identitySchemaVersion
+        )
         return QuadraticTetradModel(
             impl = BasicQuadraticTetradModel(
                 variables = this.variables + (slackVariables + artifactVariables).sortedBy { it.index },
@@ -1413,8 +1751,18 @@ data class QuadraticTetradModel(
                 name = "$name-feasibility"
             ),
             tokensInSolver = tokensInSolver,
-            objective = QuadraticObjective(ObjectCategory.Minimum, objective)
-        )
+            objective = QuadraticObjective(
+                category = ObjectCategory.Minimum,
+                objective = objective,
+                id = ObjectiveId(objectiveIdentity.id.value),
+                identityScope = objectiveIdentity.scope,
+                identityOrigin = objectiveIdentity.origin,
+                identityNamespace = this.objective.identityNamespace ?: this.constraints.identityNamespace,
+                identitySchemaVersion = this.objective.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                identityProvenance = objectiveIdentity.provenance
+            ),
+            identityValidation = ok
+        ).withDerivedIdentityValidation()
     }
     override fun elastic(): QuadraticTetradModel {
         return buildElasticModel()

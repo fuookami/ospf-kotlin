@@ -300,7 +300,7 @@ class BooleanParserTest {
         @DisplayName("Empty expression detail should contain ParseIssue / 空表达式 detail 应包含 ParseIssue")
         fun testEmptyExpressionDetail() {
             val result = parseBooleanExpression("")
-            assertTrue(result is Failed<*, *, *>)
+            assertTrue(result is Failed)
 
             val failed = result as Failed<*, *, *>
             val error = failed.error
@@ -320,7 +320,7 @@ class BooleanParserTest {
         @DisplayName("Invalid expression detail should contain ParseIssue with position / 无效表达式 detail 应包含带位置的 ParseIssue")
         fun testInvalidExpressionDetail() {
             val result = parseBooleanExpression("age @ 18")
-            assertTrue(result is Failed<*, *, *>)
+            assertTrue(result is Failed)
 
             val failed = result as Failed<*, *, *>
             val error = failed.error
@@ -341,7 +341,7 @@ class BooleanParserTest {
         @DisplayName("Incomplete expression detail should contain ParseIssue / 不完整表达式 detail 应包含 ParseIssue")
         fun testIncompleteExpressionDetail() {
             val result = parseBooleanExpression("age >")
-            assertTrue(result is Failed<*, *, *>)
+            assertTrue(result is Failed)
 
             val failed = result as Failed<*, *, *>
             val error = failed.error

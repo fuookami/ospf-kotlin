@@ -1,9 +1,7 @@
 /**
- * 物理量值范围扩展
- * Value Range Extensions for Physical Quantities
+ * 物理量值范围扩展 / Value Range Extensions for Physical Quantities
  *
- * 为物理量提供值范围相关的扩展属性和函数。
- * Provides value range-related extension properties and functions for physical quantities.
+ * 为物理量提供值范围相关的扩展属性和函数。 / Provides value range-related extension properties and functions for physical quantities.
  *
  * 支持从 ValueRange、Bound、ValueWrapper 等包装类型中提取物理量值。
  * Supports extracting quantity values from wrapper types like ValueRange, Bound, and ValueWrapper.
@@ -16,11 +14,9 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 获取值范围物理量的下界
- * Get the lower bound of a value range quantity
+ * 获取值范围物理量的下界 / Get the lower bound of a value range quantity
  *
- * 返回一个新的物理量，其值为原物理量值范围的下界，单位不变。
- * Returns a new quantity with the lower bound value of the original quantity's value range,
+ * 返回一个新的物理量，其值为原物理量值范围的下界，单位不变。 / Returns a new quantity with the lower bound value of the original quantity's value range,
  * keeping the same unit.
  *
  * 示例 / Example:
@@ -33,11 +29,9 @@ val <V> Quantity<ValueRange<V>>.lowerBound where V : RealNumber<V>, V : NumberFi
     get() = Quantity(value.lowerBound, unit)
 
 /**
- * 获取值范围物理量的上界
- * Get the upper bound of a value range quantity
+ * 获取值范围物理量的上界 / Get the upper bound of a value range quantity
  *
- * 返回一个新的物理量，其值为原物理量值范围的上界，单位不变。
- * Returns a new quantity with the upper bound value of the original quantity's value range,
+ * 返回一个新的物理量，其值为原物理量值范围的上界，单位不变。 / Returns a new quantity with the upper bound value of the original quantity's value range,
  * keeping the same unit.
  *
  * 示例 / Example:
@@ -50,11 +44,9 @@ val <V> Quantity<ValueRange<V>>.upperBound where V : RealNumber<V>, V : NumberFi
     get() = Quantity(value.upperBound, unit)
 
 /**
- * 获取值范围物理量的差值
- * Get the difference of a value range quantity
+ * 获取值范围物理量的差值 / Get the difference of a value range quantity
  *
- * 返回一个新的物理量，其值为原物理量值范围的上界减下界，单位不变。
- * Returns a new quantity with the difference between upper and lower bounds,
+ * 返回一个新的物理量，其值为原物理量值范围的上界减下界，单位不变。 / Returns a new quantity with the difference between upper and lower bounds,
  * keeping the same unit.
  *
  * 示例 / Example:
@@ -67,8 +59,7 @@ val <V> Quantity<ValueRange<V>>.diffOrNull where V : RealNumber<V>, V : NumberFi
     get() = value.diffOrNull?.let { Quantity(it, unit) }
 
 /**
- * 获取值范围物理量的差值结果
- * Get the difference result of a value range quantity
+ * 获取值范围物理量的差值结果 / Get the difference result of a value range quantity
  *
  * @return 差值结果，失败时返回错误 / The difference result, or an error when unavailable
 */
@@ -76,11 +67,9 @@ val <V> Quantity<ValueRange<V>>.diff: Ret<Quantity<ValueWrapper<V>>> where V : R
     get() = value.diff.map { Quantity(it, unit) }
 
 /**
- * 获取边界物理量的边界值
- * Get the bound value of a bound quantity
+ * 获取边界物理量的边界值 / Get the bound value of a bound quantity
  *
- * 返回一个新的物理量，其值为原物理量边界的值，单位不变。
- * Returns a new quantity with the bound's value, keeping the same unit.
+ * 返回一个新的物理量，其值为原物理量边界的值，单位不变。 / Returns a new quantity with the bound's value, keeping the same unit.
  *
  * 示例 / Example:
  * ```kotlin
@@ -92,11 +81,9 @@ val <V> Quantity<Bound<V>>.boundValue where V : RealNumber<V>, V : NumberField<V
     get() = Quantity(value.value, unit)
 
 /**
- * 解包值包装器物理量
- * Unwrap a value wrapper quantity
+ * 解包值包装器物理量 / Unwrap a value wrapper quantity
  *
- * 将包装在 ValueWrapper 中的值提取出来，返回一个新的物理量。
- * Extracts the value wrapped in ValueWrapper and returns a new quantity.
+ * 将包装在 ValueWrapper 中的值提取出来，返回一个新的物理量。 / Extracts the value wrapped in ValueWrapper and returns a new quantity.
  *
  * 示例 / Example:
  * ```kotlin
@@ -111,11 +98,9 @@ fun <V> Quantity<ValueWrapper<V>>.unwrap(): Quantity<V> where V : RealNumber<V>,
 }
 
 /**
- * 解包值包装器物理量（可空版本）
- * Unwrap a value wrapper quantity (nullable version)
+ * 解包值包装器物理量（可空版本） / Unwrap a value wrapper quantity (nullable version)
  *
- * 将包装在 ValueWrapper 中的值提取出来，如果包装器为空则返回 null。
- * Extracts the value wrapped in ValueWrapper, returns null if the wrapper is empty.
+ * 将包装在 ValueWrapper 中的值提取出来，如果包装器为空则返回 null。 / Extracts the value wrapped in ValueWrapper, returns null if the wrapper is empty.
  *
  * 示例 / Example:
  * ```kotlin

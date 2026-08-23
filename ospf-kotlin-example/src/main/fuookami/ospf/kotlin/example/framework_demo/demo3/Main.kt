@@ -41,13 +41,13 @@ class CSP {
     suspend operator fun invoke(): Try {
         val products = rawProducts.mapIndexed { index, raw ->
             Product(
-                id = "p-$index",
+                id = ProductIdImpl("p-$index"),
                 name = "product-${raw.width.toInt()}",
                 width = listOf(Quantity(Flt64(raw.width), Meter))
             )
         }
         val material = Material(
-            id = "m-1000",
+            id = MaterialIdImpl("m-1000"),
             name = "material-1000",
             widthRange = WidthRange(
                 width = QuantityRange(
@@ -109,8 +109,8 @@ class CSP {
      * A raw product specification with width and demand.
      * 具有宽度和需求的原始产品规格。
      *
-     * @property width the width of the product / 产品宽度
-     * @property demand the demand quantity for the product / 产品需求量
+     * @property width 产品宽度 / the width of the product
+     * @property demand 产品需求量 / the demand quantity for the product
     */
     private data class RawProduct(
         val width: Double,

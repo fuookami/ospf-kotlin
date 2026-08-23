@@ -1,6 +1,5 @@
 /**
- * 三涡卷统一混沌系统
- * Three-Scroll Unified Chaotic System (TSUCS)
+ * 三涡卷统一混沌系统 / Three-Scroll Unified Chaotic System (TSUCS)
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 三涡卷统一混沌系统 TSUCS1
- * Three-Scroll Unified Chaotic System TSUCS1
+ * 三涡卷统一混沌系统 TSUCS1 / Three-Scroll Unified Chaotic System TSUCS1
  *
  * @property alpha 系统参数 alpha / System parameter alpha
  * @property beta 系统参数 beta / System parameter beta
@@ -51,8 +49,7 @@ data class ThreeScrollUnifiedChaoticSystemTsucs1Attractor<V : FloatingNumber<V>>
 }
 
 /**
- * 三涡卷统一混沌系统 TSUCS1 吸引子生成器
- * Three-Scroll Unified Chaotic System TSUCS1 attractor generator
+ * 三涡卷统一混沌系统 TSUCS1 吸引子生成器 / Three-Scroll Unified Chaotic System TSUCS1 attractor generator
  *
  * @property attractor TSUCS1 吸引子实例 / TSUCS1 attractor instance
 */
@@ -80,8 +77,7 @@ data class ThreeScrollUnifiedChaoticSystemTsucs1AttractorGenerator(
 }
 
 /**
- * 三涡卷统一混沌系统 TSUCS2
- * Three-Scroll Unified Chaotic System TSUCS2
+ * 三涡卷统一混沌系统 TSUCS2 / Three-Scroll Unified Chaotic System TSUCS2
  *
  * @property alpha 系统参数 alpha / System parameter alpha
  * @property beta 系统参数 beta / System parameter beta
@@ -118,8 +114,7 @@ data class ThreeScrollUnifiedChaoticSystemTsucs2Attractor<V : FloatingNumber<V>>
 }
 
 /**
- * 三涡卷统一混沌系统 TSUCS2 吸引子生成器
- * Three-Scroll Unified Chaotic System TSUCS2 attractor generator
+ * 三涡卷统一混沌系统 TSUCS2 吸引子生成器 / Three-Scroll Unified Chaotic System TSUCS2 attractor generator
  *
  * @property attractor TSUCS2 吸引子实例 / TSUCS2 attractor instance
 */

@@ -1,12 +1,9 @@
 /**
- * 圆映尌
- * Circle Map
+ * 圆映尌 / Circle Map
  *
  * 圆映射是描述周期驱动的非线性振子动力学的一维混沌映射。
  * 该映射在锁频和混沌之间展现出复杂的动力学行为，Arnold 舌结构是其重要特征。
- * 常用于锁相环分析、同步动力学研究和非线性振子建模。
- *
- * The circle map is a one-dimensional chaotic map describing the dynamics of periodically driven nonlinear oscillators.
+ * 常用于锁相环分析、同步动力学研究和非线性振子建模。 / The circle map is a one-dimensional chaotic map describing the dynamics of periodically driven nonlinear oscillators.
  * This map exhibits complex dynamical behavior between frequency locking and chaos, with Arnold tongues being its important feature.
  * Commonly used for phase-locked loop analysis, synchronization dynamics research, and nonlinear oscillator modeling.
 */
@@ -18,8 +15,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 圆映射
- * Circle Map
+ * 圆映射 / Circle Map
  *
  * @property alpha 频率参数 / Frequency parameter
  * @property beta 非线性耦合强度参数 / Nonlinear coupling strength parameter
@@ -33,9 +29,9 @@ data class CircleMap<V : FloatingImpl<V>>(
          * Creates a CircleMap instance with Flt64 parameters.
          * 创建使用 Flt64 参数的圆映射实例。
          *
-         * @param alpha angular frequency of the circle map / 圆映射的角频率
-         * @param beta the nonlinear coupling strength parameter / 非线性耦合强度参数
-         * @return a new CircleMap instance / 新的圆映射实例
+         * @param alpha 圆映射的角频率 / angular frequency of the circle map
+         * @param beta 非线性耦合强度参数 / the nonlinear coupling strength parameter
+         * @return 新的圆映射实例 / a new CircleMap instance
         */
         operator fun invoke(
             alpha: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
@@ -55,13 +51,11 @@ data class CircleMap<V : FloatingImpl<V>>(
 
     /**
      * Cast sin operation result to type V.
-     * 将 sin 运算结果转换为类型 V。
-     *
-     * Safety invariant: V implements FloatingImpl<V> and belongs to FloatingNumber; sin preserves the same numeric family as input.
+     * 将 sin 运算结果转换为类型 V。 / Safety invariant: V implements FloatingImpl<V> and belongs to FloatingNumber; sin preserves the same numeric family as input.
      * 安全不变量：V 实现 FloatingImpl<V> 且属于 FloatingNumber；sin 返回值与输入保持同一数值族。
      *
      * @param value the result value of the sin operation / sin 运算的结果值
-     * @return the value cast to type V / 转换为类型 V 的数值
+     * @return 转换为类型 V 的数值 / the value cast to type V
     */
     @Suppress("UNCHECKED_CAST")
     private fun castToNumber(value: Any): V {
@@ -70,8 +64,7 @@ data class CircleMap<V : FloatingImpl<V>>(
 }
 
 /**
- * 圆映射生成器
- * Circle Map Generator
+ * 圆映射生成器 / Circle Map Generator
  *
  * @property circleMap 圆映射实例 / Circle map instance
 */

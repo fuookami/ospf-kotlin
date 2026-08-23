@@ -1,6 +1,5 @@
 /**
- * 远程求解 HTTP 传输插件
- * Remote solver HTTP transport plugins
+ * 远程求解 HTTP 传输插件 / Remote solver HTTP transport plugins
 */
 package fuookami.ospf.kotlin.framework.solver.remote.client
 
@@ -10,8 +9,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * HTTP 传输配置。
- * HTTP transport config.
+ * HTTP 传输配置。 / HTTP transport config.
  *
  * @property connectTimeout 连接超时 / Connect timeout
  * @property requestTimeout 请求超时 / Request timeout
@@ -26,8 +24,7 @@ data class RemoteSolverHttpTransportConfig(
 )
 
 /**
- * HTTP 传输插件。
- * HTTP transport plugin.
+ * HTTP 传输插件。 / HTTP transport plugin.
 */
 interface RemoteSolverHttpTransportPlugin {
 
@@ -35,8 +32,7 @@ interface RemoteSolverHttpTransportPlugin {
     val name: String
 
     /**
-     * 创建 HTTP 传输。
-     * Create HTTP transport.
+     * 创建 HTTP 传输。 / Create HTTP transport.
      *
      * @param config HTTP 传输配置 / HTTP transport config
      * @return HTTP 传输 / HTTP transport
@@ -59,8 +55,7 @@ object JavaNetRemoteSolverHttpTransportPlugin : RemoteSolverHttpTransportPlugin 
 }
 
 /**
- * HTTP 传输插件注册表。
- * HTTP transport plugin registry.
+ * HTTP 传输插件注册表。 / HTTP transport plugin registry.
 */
 object RemoteSolverHttpTransportPlugins {
     private val plugins = ConcurrentHashMap<String, RemoteSolverHttpTransportPlugin>()
@@ -70,8 +65,7 @@ object RemoteSolverHttpTransportPlugins {
     }
 
     /**
-     * 注册插件。
-     * Register plugin.
+     * 注册插件。 / Register plugin.
      *
      * @param plugin HTTP 传输插件 / HTTP transport plugin
     */
@@ -82,8 +76,7 @@ object RemoteSolverHttpTransportPlugins {
     }
 
     /**
-     * 查找插件。
-     * Resolve plugin.
+     * 查找插件。 / Resolve plugin.
      *
      * @param name 插件名称 / Plugin name
      * @return HTTP 传输插件 / HTTP transport plugin
@@ -99,8 +92,7 @@ object RemoteSolverHttpTransportPlugins {
     }
 
     /**
-     * 创建 HTTP 传输。
-     * Create HTTP transport.
+     * 创建 HTTP 传输。 / Create HTTP transport.
      *
      * @param name 插件名称 / Plugin name
      * @param config HTTP 传输配置 / HTTP transport config
@@ -118,8 +110,7 @@ object RemoteSolverHttpTransportPlugins {
     }
 
     /**
-     * 默认插件。
-     * Default plugin.
+     * 默认插件。 / Default plugin.
      *
      * @return 默认 JDK HTTP 插件 / Default JDK HTTP plugin
     */
@@ -128,8 +119,7 @@ object RemoteSolverHttpTransportPlugins {
     }
 
     /**
-     * 已注册插件名称。
-     * Registered plugin names.
+     * 已注册插件名称。 / Registered plugin names.
      *
      * @return 插件名称集合 / Plugin name set
     */

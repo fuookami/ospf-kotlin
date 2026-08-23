@@ -14,9 +14,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
 /**
  * Halvorsen 吸引子是一种三维混沌系统，由 Halvorsen 提出，具有对称的周期性轨道结构。
  * 该系统通过非线性耦合项产生混沌行为，其动力学方程在三维空间中展现出独特的折叠和拉伸运动。
- * 常用于混沌通信、随机数生成和非线性动力学理论研究。
- *
- * The Halvorsen attractor is a three-dimensional chaotic system proposed by Halvorsen, characterized by symmetric periodic orbital structures.
+ * 常用于混沌通信、随机数生成和非线性动力学理论研究。 / The Halvorsen attractor is a three-dimensional chaotic system proposed by Halvorsen, characterized by symmetric periodic orbital structures.
  * This system generates chaotic behavior through nonlinear coupling terms, with its dynamic equations exhibiting unique folding and stretching motions in 3D space.
  * Commonly used in chaotic communication, random number generation, and nonlinear dynamics theory research.
  *
@@ -44,8 +42,7 @@ data class HalvorsenAttractor<V : FloatingNumber<V>>(val alpha: V, val h: V) :
 
 /**
  * Halvorsen 吸引子生成器，用于迭代生成吸引子轨迹点序列。
- * 初始状态随机生成，每次调用迭代一步，返回当前状态并更新到下一状态。
- * Halvorsen Attractor Generator for iteratively generating attractor trajectory point sequences.
+ * 初始状态随机生成，每次调用迭代一步，返回当前状态并更新到下一状态。 / Halvorsen Attractor Generator for iteratively generating attractor trajectory point sequences.
  * The initial state is randomly generated; each invocation advances one step, returns the current state, and updates to the next state.
  *
  * @property attractor Halvorsen 吸引子实例 / Halvorsen attractor instance

@@ -3,8 +3,7 @@
  * LaTeX Operations
  *
  * 提供将多项式和不等式转换丌LaTeX 格式字符串的核心实现。
- * 支持紧凑和展开格式，控制是否显示系敌1，以及是否使甌cdot 符号。
- * Provides core implementation for converting polynomials and inequalities
+ * 支持紧凑和展开格式，控制是否显示系敌1，以及是否使甌cdot 符号。 / Provides core implementation for converting polynomials and inequalities
  * to LaTeX format strings. Supports compact and expanded formats,
  * controlling whether to show coefficient 1, and whether to use cdot symbol.
 */
@@ -22,8 +21,7 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 // ============================================================================
 
 /**
- * LaTeX 格式化选项
- * LaTeX formatting options
+ * LaTeX 格式化选项 / LaTeX formatting options
  *
  * @property compact 是否使用紧凑格式（省略空格） / Whether to use compact format (omit spaces)
  * @property showOnes 是否显示系数 1 / Whether to show coefficient 1
@@ -36,11 +34,9 @@ data class LatexOptions(
 )
 
 /**
- * LaTeX 数值运算接口
- * LaTeX number operations interface
+ * LaTeX 数值运算接口 / LaTeX number operations interface
  *
- * 提供数值判断和格式化所需的回调函数。
- * Provides callbacks for number judgment and formatting.
+ * 提供数值判断和格式化所需的回调函数。 / Provides callbacks for number judgment and formatting.
  *
  * @property isZero 判断值是否为零 / Predicate to check if a value is zero
  * @property isOne 判断值是否为一 / Predicate to check if a value is one
@@ -60,8 +56,8 @@ data class LatexNumberOps<T>(
  * Signed term for LaTeX rendering.
  * 带符号的项。
  *
- * @property body the term body string / 项体字符串
- * @property negative whether the term is negative / 项是否为负
+ * @property body 项体字符串 / the term body string
+ * @property negative 项是否为负 / whether the term is negative
 */
 private data class SignedTerm(
     val body: String,
@@ -72,7 +68,7 @@ private data class SignedTerm(
  * Get the LaTeX display name of a symbol, preferring displayName.
  * 获取符号的 LaTeX 显示名称，优先使用 displayName。
  *
- * @return the display name string / 显示名称字符串
+ * @return 显示名称字符串 / the display name string
 */
 private fun Symbol.latexName(): String {
     return displayName ?: name
@@ -83,7 +79,7 @@ private fun Symbol.latexName(): String {
  * 根据选项获取乘法符号字符串。
  *
  * @param options LaTeX formatting options / LaTeX 格式化选项
- * @return the multiplication symbol string, or empty string if not using cdot / 乘法符号字符串，不使用 cdot 时为空字符串
+ * @return 乘法符号字符串，不使用 cdot 时为空字符串 / the multiplication symbol string, or empty string if not using cdot
 */
 private fun mulSymbol(options: LatexOptions): String {
     return if (options.useCdot) {
@@ -98,8 +94,7 @@ private fun mulSymbol(options: LatexOptions): String {
 }
 
 /**
- * 将带符号的项列表合并为 LaTeX 字符串
- * Merge a list of signed terms into a LaTeX string
+ * 将带符号的项列表合并为 LaTeX 字符串 / Merge a list of signed terms into a LaTeX string
  *
  * @param terms 带符号的项列表 / List of signed terms
  * @param options LaTeX 格式化选项 / LaTeX formatting options
@@ -130,8 +125,7 @@ private fun mergeTerms(
 }
 
 /**
- * 格式化单项式项为 LaTeX 字符串
- * Format a monomial term as a LaTeX string
+ * 格式化单项式项为 LaTeX 字符串 / Format a monomial term as a LaTeX string
  *
  * @param coefficient 系数 / Coefficient
  * @param variable 变量部分的 LaTeX 字符串 / LaTeX string of the variable part
@@ -163,8 +157,7 @@ private fun <T> formatMonomialTerm(
 }
 
 /**
- * 将线性单项式转换为 LaTeX 字符串
- * Convert a linear monomial to LaTeX string.
+ * 将线性单项式转换为 LaTeX 字符串 / Convert a linear monomial to LaTeX string.
  *
  * @param ops 数值运算接口 / Number operations interface
  * @param options LaTeX 格式化选项 / LaTeX formatting options
@@ -183,8 +176,7 @@ fun <T> LinearMonomial<T>.toLatexString(
 }
 
 /**
- * 将二次单项式转换为 LaTeX 字符串
- * Convert a quadratic monomial to LaTeX string.
+ * 将二次单项式转换为 LaTeX 字符串 / Convert a quadratic monomial to LaTeX string.
  *
  * @param ops 数值运算接口 / Number operations interface
  * @param options LaTeX 格式化选项 / LaTeX formatting options
@@ -221,8 +213,7 @@ fun <T> QuadraticMonomial<T>.toLatexString(
 }
 
 /**
- * 将规范单项式转换为 LaTeX 字符串
- * Convert a canonical monomial to LaTeX string.
+ * 将规范单项式转换为 LaTeX 字符串 / Convert a canonical monomial to LaTeX string.
  *
  * @param ops 数值运算接口 / Number operations interface
  * @param options LaTeX 格式化选项 / LaTeX formatting options
@@ -252,8 +243,7 @@ fun <T> CanonicalMonomial<T>.toLatexString(
 }
 
 /**
- * 将线性多项式转换为 LaTeX 字符串
- * Convert a linear polynomial to LaTeX string.
+ * 将线性多项式转换为 LaTeX 字符串 / Convert a linear polynomial to LaTeX string.
  *
  * @param ops 数值运算接口 / Number operations interface
  * @param options LaTeX 格式化选项 / LaTeX formatting options
@@ -287,8 +277,7 @@ fun <T> LinearPolynomial<T>.toLatexString(
 }
 
 /**
- * 将二次多项式转换为 LaTeX 字符串
- * Convert a quadratic polynomial to LaTeX string.
+ * 将二次多项式转换为 LaTeX 字符串 / Convert a quadratic polynomial to LaTeX string.
  *
  * @param ops 数值运算接口 / Number operations interface
  * @param options LaTeX 格式化选项 / LaTeX formatting options
@@ -322,8 +311,7 @@ fun <T> QuadraticPolynomial<T>.toLatexString(
 }
 
 /**
- * 将规范多项式转换为 LaTeX 字符串
- * Convert a canonical polynomial to LaTeX string.
+ * 将规范多项式转换为 LaTeX 字符串 / Convert a canonical polynomial to LaTeX string.
  *
  * @param ops 数值运算接口 / Number operations interface
  * @param options LaTeX 格式化选项 / LaTeX formatting options

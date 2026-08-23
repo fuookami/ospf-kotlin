@@ -52,9 +52,9 @@ class Aggregation(
  * Merges two demand values of the same type (Amount+Amount or Weight+Weight).
  * 合并两个同类型的需求值（数量+数量或重量+重量）。
  *
- * @param lhs left-hand demand value / 左侧需求值
- * @param rhs right-hand demand value / 右侧需求值
- * @return merged demand value, or error if types are incompatible / 合并后的需求值，类型不兼容时返回错误
+ * @param lhs 左侧需求值 / left-hand demand value
+ * @param rhs 右侧需求值 / right-hand demand value
+ * @return 合并后的需求值，类型不兼容时返回错误 / merged demand value, or error if types are incompatible
 */
     private fun mergeDemandValue(
         lhs: Bpp3dDemandValue,
@@ -73,9 +73,9 @@ class Aggregation(
  * Aggregates demand statistics for a set of items under the given mode.
  * 在给定模式下聚合一组货物的需求统计。
  *
- * @param items item-to-quantity map to aggregate / 待聚合的货物到数量映射
- * @param mode demand mode specifying which dimension to aggregate / 指定聚合维度的需求模式
- * @return aggregated demand key-value statistics / 聚合后的需求键值统计映射
+ * @param items 待聚合的货物到数量映射 / item-to-quantity map to aggregate
+ * @param mode 指定聚合维度的需求模式 / demand mode specifying which dimension to aggregate
+ * @return 聚合后的需求键值统计映射 / aggregated demand key-value statistics
 */
     private fun aggregateDemand(
         items: Map<Item, UInt64>,
@@ -131,8 +131,8 @@ class Aggregation(
  * Returns the demand statistics for already-used items under the given mode.
  * 返回已使用货物在给定模式下的需求统计。
  *
- * @param mode demand mode specifying which dimension to aggregate / 指定聚合维度的需求模式
- * @return demand key-value statistics for used items / 已使用货物的需求键值统计映射
+ * @param mode 指定聚合维度的需求模式 / demand mode specifying which dimension to aggregate
+ * @return 已使用货物的需求键值统计映射 / demand key-value statistics for used items
 */
     fun usedDemand(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
         return aggregateDemand(usedItems, mode)
@@ -142,8 +142,8 @@ class Aggregation(
  * Returns the demand statistics for remaining (unused) items under the given mode.
  * 返回剩余（未使用）货物在给定模式下的需求统计。
  *
- * @param mode demand mode specifying which dimension to aggregate / 指定聚合维度的需求模式
- * @return demand key-value statistics for remaining items / 剩余货物的需求键值统计映射
+ * @param mode 指定聚合维度的需求模式 / demand mode specifying which dimension to aggregate
+ * @return 剩余货物的需求键值统计映射 / demand key-value statistics for remaining items
 */
     fun restDemand(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
         return aggregateDemand(restItems, mode)
@@ -152,7 +152,7 @@ class Aggregation(
 /**
  * use.
  * use。
- * @param items item-to-quantity map / 货物到数量的映射
+ * @param items 货物到数量的映射 / item-to-quantity map
 */
     @JvmName("useItems")
     fun use(items: Map<Item, UInt64>) {
@@ -165,7 +165,7 @@ class Aggregation(
  * Releases previously used bins, decreasing their used count.
  * 释放已使用的箱，减少其已用计数。
  *
- * @param bins bin type to quantity map to release / 待释放的箱型到数量映射
+ * @param bins 待释放的箱型到数量映射 / bin type to quantity map to release
 */
     fun release(bins: Map<BinType<FltX>, UInt64>) {
         for ((bin, amount) in bins) {
@@ -177,7 +177,7 @@ class Aggregation(
  * Marks bins as used, increasing their used count.
  * 标记箱为已使用，增加其已用计数。
  *
- * @param bins bin type to quantity map to consume / 待使用的箱型到数量映射
+ * @param bins 待使用的箱型到数量映射 / bin type to quantity map to consume
 */
     @JvmName("useBins")
     fun use(bins: Map<BinType<FltX>, UInt64>) {

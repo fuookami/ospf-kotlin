@@ -25,9 +25,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 绝对值函数 / Absolute value function
  *
- * 实现 y = |x|，其中 x = pos - neg（pos, neg >= 0），y = pos + neg，并使用二进制变量强制正负部互补。
- *
- * Implements y = |x| where x = pos - neg (pos, neg >= 0), y = pos + neg,
+ * 实现 y = |x|，其中 x = pos - neg（pos, neg >= 0），y = pos + neg，并使用二进制变量强制正负部互补。 / Implements y = |x| where x = pos - neg (pos, neg >= 0), y = pos + neg,
  * and uses a binary variable to enforce positive/negative-part complementarity.
  *
  * @property polynomial 输入线性多项式 / Input linear polynomial

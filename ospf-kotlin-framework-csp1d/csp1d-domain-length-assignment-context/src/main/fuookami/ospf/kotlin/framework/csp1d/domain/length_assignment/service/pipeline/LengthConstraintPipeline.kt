@@ -4,7 +4,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.LengthAggregation
@@ -14,9 +14,7 @@ import fuookami.ospf.kotlin.framework.model.Pipeline
 
 /**
  * Length assignment constraint pipeline.
- * 长度分配约束管线
- *
- * Add constraints for dynamic-length products:
+ * 长度分配约束管线 / Add constraints for dynamic-length products:
  * - Lower bound: assigned_length_i >= lowerBound
  * - Upper bound: assigned_length_i <= upperBound
  * - Over-length bound: over_length_i <= overLengthUpperBound
@@ -28,10 +26,10 @@ import fuookami.ospf.kotlin.framework.model.Pipeline
  * - 超长上限约束: over_length_i <= overLengthUpperBound
  * - 卷长-超长关联约束: assigned_length_i - over_length_i <= maxOverProduceLength
  *
- * @param V Numeric value type / 数值类型
- * @property length Length assignment aggregation / 长度分配聚合
- * @property config Length assignment modeling configuration / 长度分配建模配置
- * @property demands Demand list / 需求列表
+ * @param V 数值类型 / Numeric value type
+ * @property length 长度分配聚合 / Length assignment aggregation
+ * @property config 长度分配建模配置 / Length assignment modeling configuration
+ * @property demands 需求列表 / Demand list
 */
 class LengthConstraintPipeline<V : RealNumber<V>>(
     private val length: LengthAggregation<V>,
@@ -54,7 +52,7 @@ class LengthConstraintPipeline<V : RealNumber<V>>(
             if (lowerBound != null && assignedVar != null) {
                 model.addConstraint(
                     relation = LinearInequality(
-                        lhs = LinearPolynomial(listOf(LinearMonomial(Flt64.one, assignedVar)), Flt64.zero),
+                        lhs = LinearPolynomial(assignedVar),
                         rhs = LinearPolynomial(emptyList(), lowerBound.toFlt64()),
                         comparison = Comparison.GE
                     ),
@@ -67,7 +65,7 @@ class LengthConstraintPipeline<V : RealNumber<V>>(
             if (upperBound != null && assignedVar != null) {
                 model.addConstraint(
                     relation = LinearInequality(
-                        lhs = LinearPolynomial(listOf(LinearMonomial(Flt64.one, assignedVar)), Flt64.zero),
+                        lhs = LinearPolynomial(assignedVar),
                         rhs = LinearPolynomial(emptyList(), upperBound.toFlt64()),
                         comparison = Comparison.LE
                     ),
@@ -80,7 +78,7 @@ class LengthConstraintPipeline<V : RealNumber<V>>(
             if (overLengthUpperBound != null && overVar != null) {
                 model.addConstraint(
                     relation = LinearInequality(
-                        lhs = LinearPolynomial(listOf(LinearMonomial(Flt64.one, overVar)), Flt64.zero),
+                        lhs = LinearPolynomial(overVar),
                         rhs = LinearPolynomial(emptyList(), overLengthUpperBound.toFlt64()),
                         comparison = Comparison.LE
                     ),
@@ -93,13 +91,7 @@ class LengthConstraintPipeline<V : RealNumber<V>>(
             if (maxOverProduceLength != null && assignedVar != null && overVar != null) {
                 model.addConstraint(
                     relation = LinearInequality(
-                        lhs = LinearPolynomial(
-                            monomials = listOf(
-                                LinearMonomial(Flt64.one, assignedVar),
-                                LinearMonomial(Flt64(-1.0), overVar)
-                            ),
-                            constant = Flt64.zero
-                        ),
+                        lhs = assignedVar - overVar,
                         rhs = LinearPolynomial(emptyList(), maxOverProduceLength.value.toFlt64()),
                         comparison = Comparison.LE
                     ),

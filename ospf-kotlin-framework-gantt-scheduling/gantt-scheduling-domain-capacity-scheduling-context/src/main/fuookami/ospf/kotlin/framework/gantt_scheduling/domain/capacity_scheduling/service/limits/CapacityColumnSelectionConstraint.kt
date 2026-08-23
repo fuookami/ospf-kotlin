@@ -10,8 +10,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
 
 /**
- * 执行器-时隙产能列选择影子价格键
- * Executor-slot capacity-column selection shadow-price key
+ * 执行器-时隙产能列选择影子价格键 / Executor-slot capacity-column selection shadow-price key
  *
  * @property executor 执行器 / Executor
  * @property slot 时隙 / Time slot
@@ -22,8 +21,7 @@ data class CapacityColumnSelectionShadowPriceKey<E : Executor>(
 ) : ShadowPriceKey(CapacityColumnSelectionShadowPriceKey::class)
 
 /**
- * 每个执行器在每个时隙恰好选择一条产能列
- * Select exactly one capacity column for every executor and slot
+ * 每个执行器在每个时隙恰好选择一条产能列 / Select exactly one capacity column for every executor and slot
  *
  * @property executors 执行器列表 / Executors
  * @property slots 时隙列表 / Time slots
@@ -66,8 +64,7 @@ class CapacityColumnSelectionConstraint<
     }
 
     /**
-     * 从 LP 对偶解提取强类型时隙选列影子价格
-     * Extract typed slot-selection shadow prices from an LP dual solution
+     * 从 LP 对偶解提取强类型时隙选列影子价格 / Extract typed slot-selection shadow prices from an LP dual solution
      *
      * @param model 线性元模型 / Linear meta model
      * @param shadowPrices 元对偶解 / Meta dual solution

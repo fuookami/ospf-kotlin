@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -14,8 +15,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 /**
  * 约束低甲板载荷以满足最低要求值。Constrains the low-deck payload to meet the minimum required value.
  *
- * @property payload The payload estimation model / 载荷估算模型
- * @property minLowPayload The minimum low-deck payload requirement / 低甲板最低载荷要求
+ * @property payload 载荷估算模型 / The payload estimation model
+ * @property minLowPayload 低甲板最低载荷要求 / The minimum low-deck payload requirement
 */
 class LowPayloadLimit(
     private val payload: Payload,
@@ -27,13 +28,13 @@ class LowPayloadLimit(
             relation = payload.lowEstimatePayload.value geq minLowPayload.minLowPayload.value,
             name = name
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                 return Failed(result.error)
             }
 
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Fatal -> {
                 return Fatal(result.errors)
             }
         }

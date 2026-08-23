@@ -1,12 +1,8 @@
 /**
- * 结果类型
- *
- * Result types for error handling with Ok, Failed, Fatal, and Warn states.
+ * 结果类型 / Result types for error handling with Ok, Failed, Fatal, and Warn states.
  * Provides functional error handling similar to Rust's Result type.
  * 结果类型，用于错误处理，包含 Ok、Failed、Fatal 和 Warn 状态。
- * 提供类似 Rust Result 类型的函数式错误处理。
- *
- * Key types:
+ * 提供类似 Rust Result 类型的函数式错误处理。 / Key types:
  * - [Result]: Basic result with Ok and Failed states
  * - [ExResult]: Extended result with Ok, Failed, and Warn states
  * - [Ok]: Success result containing a value
@@ -27,9 +23,7 @@ package fuookami.ospf.kotlin.utils.functional
 import fuookami.ospf.kotlin.utils.error.*
 
 /**
- * 基础结果类型，包含 Ok 和 Failed 两种状态
- *
- * Basic result type with Ok and Failed states.
+ * 基础结果类型，包含 Ok 和 Failed 两种状态 / Basic result type with Ok and Failed states.
  * 基础结果类型，包含 Ok 和 Failed 两种状态。
  *
  * @param T 值的类型 / The type of the success value
@@ -48,9 +42,7 @@ sealed interface Result<out T, C : Any, out E : Error<C>> {
     val value: T? get() = null
 
     /**
-     * 映射成功值
-     *
-     * Transforms the success value using the given function.
+     * 映射成功值 / Transforms the success value using the given function.
      * 使用给定函数转换成功值。
      *
      * @param transform 值转换函数 / The transformation function
@@ -60,9 +52,7 @@ sealed interface Result<out T, C : Any, out E : Error<C>> {
 }
 
 /**
- * 扩展结果类型，包含 Ok、Failed 和 Warn 三种状态
- *
- * Extended result type with Ok, Failed, and Warn states.
+ * 扩展结果类型，包含 Ok、Failed 和 Warn 三种状态 / Extended result type with Ok, Failed, and Warn states.
  * 扩展结果类型，包含 Ok、Failed 和 Warn 三种状态。
  *
  * @param T 值的类型 / The type of the success value
@@ -84,9 +74,7 @@ sealed interface ExResult<out T, C : Any, out E : Error<C>> {
     val value: T? get() = null
 
     /**
-     * 映射成功值
-     *
-     * Transforms the success value using the given function.
+     * 映射成功值 / Transforms the success value using the given function.
      * 使用给定函数转换成功值。
      *
      * @param transform 值转换函数 / The transformation function
@@ -96,9 +84,7 @@ sealed interface ExResult<out T, C : Any, out E : Error<C>> {
 }
 
 /**
- * 成功结果，包含值
- *
- * Success result containing a value.
+ * 成功结果，包含值 / Success result containing a value.
  * Implements both Result and ExResult for code reuse.
  * 成功结果，包含值。同时实现 Result 和 ExResult 以实现代码复用。
  *
@@ -118,9 +104,7 @@ class Ok<out T, C : Any, out E : Error<C>>(
     override val failed: Boolean get() = false
 
     /**
-     * 将值转换为指定类型
-     *
-     * Attempts to cast the value to the specified type.
+     * 将值转换为指定类型 / Attempts to cast the value to the specified type.
      * 尝试将值转换为指定类型。
      *
      * @param U 目标类型 / The target type
@@ -131,9 +115,7 @@ class Ok<out T, C : Any, out E : Error<C>>(
     }
 
     /**
-     * 映射成功值
-     *
-     * Transforms the success value using the given function.
+     * 映射成功值 / Transforms the success value using the given function.
      * 使用给定函数转换成功值。
      *
      * @param transform 值转换函数 / The transformation function
@@ -145,9 +127,7 @@ class Ok<out T, C : Any, out E : Error<C>>(
 }
 
 /**
- * 失败结果，包含错误
- *
- * Failed result containing an error.
+ * 失败结果，包含错误 / Failed result containing an error.
  * Implements both Result and ExResult for code reuse.
  * 失败结果，包含错误。同时实现 Result 和 ExResult 以实现代码复用。
  *
@@ -213,9 +193,7 @@ class Failed<out T, C : Any, out E : Error<C>>(
     val errValue by error::value
 
     /**
-     * 映射（Failed 状态下保持不变）
-     *
-     * Returns a new Failed with the same error, ignoring the transform.
+     * 映射（Failed 状态下保持不变） / Returns a new Failed with the same error, ignoring the transform.
      * 返回具有相同错误的新 Failed，忽略转换函数。
      *
      * @param transform 值转换函数（未使用）/ The transformation function (unused)
@@ -227,9 +205,7 @@ class Failed<out T, C : Any, out E : Error<C>>(
 }
 
 /**
- * 致命结果，包含多个错误
- *
- * Fatal result containing multiple errors.
+ * 致命结果，包含多个错误 / Fatal result containing multiple errors.
  * Implements both Result and ExResult for code reuse.
  * 致命结果，包含多个错误。同时实现 Result 和 ExResult 以实现代码复用。
  *
@@ -297,9 +273,7 @@ class Fatal<out T, C : Any, out E : Error<C>>(
     val isEmpty: Boolean get() = errors.isEmpty()
 
     /**
-     * 映射（Fatal 状态下保持不变）
-     *
-     * Returns a new Fatal with the same errors, ignoring the transform.
+     * 映射（Fatal 状态下保持不变） / Returns a new Fatal with the same errors, ignoring the transform.
      * 返回具有相同错误的新 Fatal，忽略转换函数。
      *
      * @param transform 值转换函数（未使用）/ The transformation function (unused)
@@ -310,9 +284,7 @@ class Fatal<out T, C : Any, out E : Error<C>>(
     }
 
     /**
-     * 合并两个 Fatal 的错误列表
-     *
-     * Merges this Fatal's errors with another Fatal's errors.
+     * 合并两个 Fatal 的错误列表 / Merges this Fatal's errors with another Fatal's errors.
      * 将此 Fatal 的错误列表与另一个 Fatal 的错误列表合并。
      *
      * @param other 要合并的另一个 Fatal / The other Fatal to merge with
@@ -323,9 +295,7 @@ class Fatal<out T, C : Any, out E : Error<C>>(
     }
 
     /**
-     * 遍历所有错误
-     *
-     * Iterates over all errors, applying the given action.
+     * 遍历所有错误 / Iterates over all errors, applying the given action.
      * 遍历所有错误，执行给定的操作。
      *
      * @param action 对每个错误执行的操作 / The action to perform on each error
@@ -336,9 +306,7 @@ class Fatal<out T, C : Any, out E : Error<C>>(
 }
 
 /**
- * 警告结果，包含值和警告错误
- *
- * Warning result containing both a value and warning errors.
+ * 警告结果，包含值和警告错误 / Warning result containing both a value and warning errors.
  * Only implements ExResult.
  * 警告结果，包含值和警告错误。仅实现 ExResult。
  *
@@ -415,9 +383,7 @@ class Warn<out T, C : Any, out E : Error<C>>(
     val warningValue get() = firstWarning?.value
 
     /**
-     * 将值转换为指定类型
-     *
-     * Attempts to cast the value to the specified type.
+     * 将值转换为指定类型 / Attempts to cast the value to the specified type.
      * 尝试将值转换为指定类型。
      *
      * @param U 目标类型 / The target type
@@ -428,9 +394,7 @@ class Warn<out T, C : Any, out E : Error<C>>(
     }
 
     /**
-     * 映射成功值，保留警告
-     *
-     * Transforms the success value using the given function, preserving warnings.
+     * 映射成功值，保留警告 / Transforms the success value using the given function, preserving warnings.
      * 使用给定函数转换成功值，保留警告。
      *
      * @param transform 值转换函数 / The transformation function
@@ -442,25 +406,19 @@ class Warn<out T, C : Any, out E : Error<C>>(
 }
 
 /**
- * 成功标记类
- *
- * Marker class for successful operations without a return value.
+ * 成功标记类 / Marker class for successful operations without a return value.
  * 用于标记没有返回值的成功操作的标记类。
 */
 class Success
 
 /**
- * 全局成功实例
- *
- * Global singleton instance of Success for use in Try results.
+ * 全局成功实例 / Global singleton instance of Success for use in Try results.
  * 用于 Try 结果的全局单例 Success 实例。
 */
 val success = Success()
 
 /**
- * 如果为 Ok 则执行函数
- *
- * Executes the given function if this result is Ok, then returns the result unchanged.
+ * 如果为 Ok 则执行函数 / Executes the given function if this result is Ok, then returns the result unchanged.
  * 如果结果是 Ok 则执行给定函数，然后返回未改变的结果。
  *
  * @param T 值的类型 / The type of the value
@@ -474,9 +432,7 @@ inline fun <T, C : Any, E : Error<C>> Result<T, C, E>.ifOk(crossinline func: Ok<
 }
 
 /**
- * 如果为 Failed 则执行函数
- *
- * Executes the given function if this result is Failed, then returns the result unchanged.
+ * 如果为 Failed 则执行函数 / Executes the given function if this result is Failed, then returns the result unchanged.
  * 如果结果是 Failed 则执行给定函数，然后返回未改变的结果。
  *
  * @param T 值的类型 / The type of the value
@@ -490,9 +446,7 @@ inline fun <T, C : Any, E : Error<C>> Result<T, C, E>.ifFailed(crossinline func:
 }
 
 /**
- * 如果为 Fatal 则执行函数
- *
- * Executes the given function if this result is Fatal, then returns the result unchanged.
+ * 如果为 Fatal 则执行函数 / Executes the given function if this result is Fatal, then returns the result unchanged.
  * 如果结果是 Fatal 则执行给定函数，然后返回未改变的结果。
  *
  * @param T 值的类型 / The type of the value
@@ -507,9 +461,7 @@ inline fun <T, C : Any, E : Error<C>> Result<T, C, E>.ifFatal(crossinline func: 
 
 // Extension functions for ExResult / ExResult 的扩展函数
 /**
- * 如果为 Ok 则执行函数（ExResult 版本）
- *
- * Executes the given function if this ExResult is Ok, then returns the result unchanged.
+ * 如果为 Ok 则执行函数（ExResult 版本） / Executes the given function if this ExResult is Ok, then returns the result unchanged.
  * 如果 ExResult 是 Ok 则执行给定函数，然后返回未改变的结果。
  *
  * @param T 值的类型 / The type of the value
@@ -555,9 +507,7 @@ inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifFatal(crossinline func
 }
 
 /**
- * 如果为 Warned 则执行函数
- *
- * Executes the given function if this ExResult is Warned, then returns the result unchanged.
+ * 如果为 Warned 则执行函数 / Executes the given function if this ExResult is Warned, then returns the result unchanged.
  * 如果 ExResult 是 Warned 则执行给定函数，然后返回未改变的结果。
  *
  * @param T 值的类型 / The type of the value
@@ -571,73 +521,55 @@ inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifWarned(crossinline fun
 }
 
 /**
- * 无返回值的 Result 类型别名
- *
- * Type alias for Result without a meaningful return value.
+ * 无返回值的 Result 类型别名 / Type alias for Result without a meaningful return value.
  * 无有意义返回值的 Result 类型别名。
 */
 typealias Try = Result<Success, ErrorCode, Error<ErrorCode>>
 
 /**
- * 自定义错误码的无返回值 Result 类型别名
- *
- * Type alias for Result without a meaningful return value and custom error code.
+ * 自定义错误码的无返回值 Result 类型别名 / Type alias for Result without a meaningful return value and custom error code.
  * 自定义错误码的无有意义返回值的 Result 类型别名。
 */
 typealias TryOf<C> = Result<Success, C, Error<C>>
 
 /**
- * 自定义错误类型的 Try 类型别名
- *
- * Type alias for Try with a custom error type.
+ * 自定义错误类型的 Try 类型别名 / Type alias for Try with a custom error type.
  * 自定义错误类型的 Try 类型别名。
 */
 typealias TryWith<E> = Result<Success, ErrorCode, E>
 
 /**
- * 自定义错误码和错误类型的 Try 类型别名
- *
- * Type alias for Try with custom error code and error type.
+ * 自定义错误码和错误类型的 Try 类型别名 / Type alias for Try with custom error code and error type.
  * 自定义错误码和错误类型的 Try 类型别名。
 */
 typealias TryWithOf<C, E> = Result<Success, C, E>
 
 /**
- * 带返回值的 Result 类型别名
- *
- * Type alias for Result with a return value type.
+ * 带返回值的 Result 类型别名 / Type alias for Result with a return value type.
  * 带返回值类型的 Result 类型别名。
 */
 typealias Ret<T> = Result<T, ErrorCode, Error<ErrorCode>>
 
 /**
- * 自定义错误码的带返回值 Result 类型别名
- *
- * Type alias for Result with a return value type and custom error code.
+ * 自定义错误码的带返回值 Result 类型别名 / Type alias for Result with a return value type and custom error code.
  * 自定义错误码的带返回值类型的 Result 类型别名。
 */
 typealias RetOf<T, C> = Result<T, C, Error<C>>
 
 /**
- * 全局 Ok 实例
- *
- * Global Ok instance for Try results.
+ * 全局 Ok 实例 / Global Ok instance for Try results.
  * 用于 Try 结果的全局 Ok 实例。
 */
 val ok = Ok<Success, ErrorCode, Error<ErrorCode>>(success)
 
 /**
- * 创建 Ok 实例的工厂函数
- *
- * Factory function to create an Ok instance with custom error type.
+ * 创建 Ok 实例的工厂函数 / Factory function to create an Ok instance with custom error type.
  * 创建自定义错误类型 Ok 实例的工厂函数。
 */
 fun <E : Error<ErrorCode>> ok(): Result<Success, ErrorCode, E> = Ok(success)
 
 /**
- * 创建成功的 Ret<T> 结果
- *
- * Creates a successful Ret<T> result with the given value.
+ * 创建成功的 Ret<T> 结果 / Creates a successful Ret<T> result with the given value.
  * 解决 K2 编译器无法从 Ok(value) 推断类型参数的问题。
  *
  * @param T 值的类型 / The type of the value
@@ -647,9 +579,7 @@ fun <E : Error<ErrorCode>> ok(): Result<Success, ErrorCode, E> = Ok(success)
 fun <T> ok(value: T) = Ok<T, ErrorCode, Error<ErrorCode>>(value)
 
 /**
- * 创建失败的 Ret<T> 结果
- *
- * Creates a failed Ret<T> result with the given error.
+ * 创建失败的 Ret<T> 结果 / Creates a failed Ret<T> result with the given error.
  * 解决 K2 编译器无法从 Failed(error) 推断 T 的问题。
  *
  * @param T 值的类型 / The type of the value (never used)
@@ -659,9 +589,7 @@ fun <T> ok(value: T) = Ok<T, ErrorCode, Error<ErrorCode>>(value)
 fun <T> failed(error: Error<ErrorCode>): Ret<T> = Failed<T, ErrorCode, Error<ErrorCode>>(error)
 
 /**
- * 创建致命的 Ret<T> 结果（单个错误）
- *
- * Creates a fatal Ret<T> result with a single error.
+ * 创建致命的 Ret<T> 结果（单个错误） / Creates a fatal Ret<T> result with a single error.
  * 解决 K2 编译器无法从 Fatal(error) 推断 T 的问题。
  *
  * @param T 值的类型 / The type of the value (never used)
@@ -671,9 +599,7 @@ fun <T> failed(error: Error<ErrorCode>): Ret<T> = Failed<T, ErrorCode, Error<Err
 fun <T> fatal(error: Error<ErrorCode>): Ret<T> = Fatal<T, ErrorCode, Error<ErrorCode>>(listOf(error))
 
 /**
- * 创建致命的 Ret<T> 结果（多个错误）
- *
- * Creates a fatal Ret<T> result with multiple errors.
+ * 创建致命的 Ret<T> 结果（多个错误） / Creates a fatal Ret<T> result with multiple errors.
  * 解决 K2 编译器无法从 Fatal(errors) 推断 T 的问题。
  *
  * @param T 值的类型 / The type of the value (never used)
@@ -683,9 +609,7 @@ fun <T> fatal(error: Error<ErrorCode>): Ret<T> = Fatal<T, ErrorCode, Error<Error
 fun <T> fatal(vararg errors: Error<ErrorCode>): Ret<T> = Fatal<T, ErrorCode, Error<ErrorCode>>(errors.toList())
 
 /**
- * 创建带警告的 ExRet<T> 结果（单个警告）
- *
- * Creates an ExRet<T> result with a value and a single warning.
+ * 创建带警告的 ExRet<T> 结果（单个警告） / Creates an ExRet<T> result with a value and a single warning.
  * 解决 K2 编译器无法从 Warn(value, error) 推断类型参数的问题。
  *
  * @param T 值的类型 / The type of the value
@@ -696,9 +620,7 @@ fun <T> fatal(vararg errors: Error<ErrorCode>): Ret<T> = Fatal<T, ErrorCode, Err
 fun <T> warn(value: T, warning: Error<ErrorCode>): ExRet<T> = Warn<T, ErrorCode, Error<ErrorCode>>(value, listOf(warning))
 
 /**
- * 创建带警告的 ExRet<T> 结果（多个警告）
- *
- * Creates an ExRet<T> result with a value and multiple warnings.
+ * 创建带警告的 ExRet<T> 结果（多个警告） / Creates an ExRet<T> result with a value and multiple warnings.
  * 解决 K2 编译器无法从 Warn(value, errors) 推断类型参数的问题。
  *
  * @param T 值的类型 / The type of the value
@@ -709,9 +631,7 @@ fun <T> warn(value: T, warning: Error<ErrorCode>): ExRet<T> = Warn<T, ErrorCode,
 fun <T> warn(value: T, vararg warnings: Error<ErrorCode>): ExRet<T> = Warn<T, ErrorCode, Error<ErrorCode>>(value, warnings.toList())
 
 /**
- * 顺序执行多个操作块
- *
- * Executes multiple operation blocks sequentially, returning the first failure or Ok.
+ * 顺序执行多个操作块 / Executes multiple operation blocks sequentially, returning the first failure or Ok.
  * 顺序执行多个操作块，返回第一个失败或 Ok。
  *
  * @param blocks 要执行的操作块 / The operation blocks to execute
@@ -731,9 +651,7 @@ fun run(
 }
 
 /**
- * 异步顺序执行多个操作块
- *
- * Executes multiple suspend operation blocks sequentially, returning the first failure or Ok.
+ * 异步顺序执行多个操作块 / Executes multiple suspend operation blocks sequentially, returning the first failure or Ok.
  * 异步顺序执行多个 suspend 操作块，返回第一个失败或 Ok。
  *
  * @param blocks 要执行的异步操作块 / The suspend operation blocks to execute
@@ -753,9 +671,7 @@ suspend fun syncRun(
 }
 
 /**
- * 顺序执行 Iterable 中的多个操作块
- *
- * Executes multiple operation blocks from an Iterable sequentially, returning the first failure or Ok.
+ * 顺序执行 Iterable 中的多个操作块 / Executes multiple operation blocks from an Iterable sequentially, returning the first failure or Ok.
  * 顺序执行 Iterable 中的多个操作块，返回第一个失败或 Ok。
  *
  * @param blocks 包含操作块的 Iterable / The Iterable containing operation blocks
@@ -775,9 +691,7 @@ fun run(
 }
 
 /**
- * 异步顺序执行 Iterable 中的多个操作块
- *
- * Executes multiple suspend operation blocks from an Iterable sequentially, returning the first failure or Ok.
+ * 异步顺序执行 Iterable 中的多个操作块 / Executes multiple suspend operation blocks from an Iterable sequentially, returning the first failure or Ok.
  * 异步顺序执行 Iterable 中的多个 suspend 操作块，返回第一个失败或 Ok。
  *
  * @param blocks 包含异步操作块的 Iterable / The Iterable containing suspend operation blocks
@@ -797,9 +711,7 @@ suspend fun syncRun(
 }
 
 /**
- * 顺序执行多个操作块并返回最终结果
- *
- * Executes multiple operation blocks sequentially, then executes lastBlock and returns its result.
+ * 顺序执行多个操作块并返回最终结果 / Executes multiple operation blocks sequentially, then executes lastBlock and returns its result.
  * 顺序执行多个操作块，然后执行 lastBlock 并返回其结果。
  *
  * @param T 最终返回值的类型 / The type of the final return value
@@ -822,9 +734,7 @@ fun <T> run(
 }
 
 /**
- * 异步顺序执行多个操作块并返回最终结果
- *
- * Executes multiple suspend operation blocks sequentially, then executes lastBlock and returns its result.
+ * 异步顺序执行多个操作块并返回最终结果 / Executes multiple suspend operation blocks sequentially, then executes lastBlock and returns its result.
  * 异步顺序执行多个 suspend 操作块，然后执行 lastBlock 并返回其结果。
  *
  * @param T 最终返回值的类型 / The type of the final return value
@@ -847,9 +757,7 @@ suspend fun <T> syncRun(
 }
 
 /**
- * 顺序执行 Iterable 中的多个操作块并返回最终结果
- *
- * Executes multiple operation blocks from an Iterable sequentially, then executes lastBlock and returns its result.
+ * 顺序执行 Iterable 中的多个操作块并返回最终结果 / Executes multiple operation blocks from an Iterable sequentially, then executes lastBlock and returns its result.
  * 顺序执行 Iterable 中的多个操作块，然后执行 lastBlock 并返回其结果。
  *
  * @param T 最终返回值的类型 / The type of the final return value
@@ -872,9 +780,7 @@ fun <T> run(
 }
 
 /**
- * 异步顺序执行 Iterable 中的多个操作块并返回最终结果
- *
- * Executes multiple suspend operation blocks from an Iterable sequentially, then executes lastBlock and returns its result.
+ * 异步顺序执行 Iterable 中的多个操作块并返回最终结果 / Executes multiple suspend operation blocks from an Iterable sequentially, then executes lastBlock and returns its result.
  * 异步顺序执行 Iterable 中的多个 suspend 操作块，然后执行 lastBlock 并返回其结果。
  *
  * @param T 最终返回值的类型 / The type of the final return value
@@ -897,65 +803,49 @@ suspend fun <T> syncRun(
 }
 
 /**
- * 无返回值的 ExResult 类型别名
- *
- * Type alias for ExResult without a meaningful return value.
+ * 无返回值的 ExResult 类型别名 / Type alias for ExResult without a meaningful return value.
  * 无有意义返回值的 ExResult 类型别名。
 */
 typealias ExTry = ExResult<Success, ErrorCode, Error<ErrorCode>>
 
 /**
- * 自定义错误码的无返回值 ExResult 类型别名
- *
- * Type alias for ExResult without a meaningful return value and custom error code.
+ * 自定义错误码的无返回值 ExResult 类型别名 / Type alias for ExResult without a meaningful return value and custom error code.
  * 自定义错误码的无有意义返回值的 ExResult 类型别名。
 */
 typealias ExTryWithCode<C> = ExResult<Success, C, Error<C>>
 
 /**
- * 自定义错误类型的 ExTry 类型别名
- *
- * Type alias for ExTry with a custom error type.
+ * 自定义错误类型的 ExTry 类型别名 / Type alias for ExTry with a custom error type.
  * 自定义错误类型的 ExTry 类型别名。
 */
 typealias ExTryWith<E> = ExResult<Success, ErrorCode, E>
 
 /**
- * 带返回值的 ExResult 类型别名
- *
- * Type alias for ExResult with a return value type.
+ * 带返回值的 ExResult 类型别名 / Type alias for ExResult with a return value type.
  * 带返回值类型的 ExResult 类型别名。
 */
 typealias ExRet<T> = ExResult<T, ErrorCode, Error<ErrorCode>>
 
 /**
- * 自定义错误码的带返回值 ExResult 类型别名
- *
- * Type alias for ExResult with a return value type and custom error code.
+ * 自定义错误码的带返回值 ExResult 类型别名 / Type alias for ExResult with a return value type and custom error code.
  * 自定义错误码的带返回值类型的 ExResult 类型别名。
 */
 typealias ExRetWithCode<T, C> = ExResult<T, C, Error<C>>
 
 /**
- * 全局 ExOk 实例
- *
- * Global Ok instance for ExTry results.
+ * 全局 ExOk 实例 / Global Ok instance for ExTry results.
  * 用于 ExTry 结果的全局 Ok 实例。
 */
 val exOk = Ok<Success, ErrorCode, Error<ErrorCode>>(success)
 
 /**
- * 创建 ExOk 实例的工厂函数
- *
- * Factory function to create an Ok instance with custom error type for ExResult.
+ * 创建 ExOk 实例的工厂函数 / Factory function to create an Ok instance with custom error type for ExResult.
  * 创建自定义错误类型 ExOk 实例的工厂函数。
 */
 fun <E : Error<ErrorCode>> exOk(): ExResult<Success, ErrorCode, E> = Ok(success)
 
 /**
- * 顺序执行多个扩展操作块
- *
- * Executes multiple extended operation blocks sequentially, returning the first failure or Ok.
+ * 顺序执行多个扩展操作块 / Executes multiple extended operation blocks sequentially, returning the first failure or Ok.
  * Warnings are ignored and execution continues.
  * 顺序执行多个扩展操作块，返回第一个失败或 Ok。警告被忽略并继续执行。
  *
@@ -977,9 +867,7 @@ fun exRun(
 }
 
 /**
- * 异步顺序执行多个扩展操作块
- *
- * Executes multiple suspend extended operation blocks sequentially, returning the first failure or Ok.
+ * 异步顺序执行多个扩展操作块 / Executes multiple suspend extended operation blocks sequentially, returning the first failure or Ok.
  * Warnings are ignored and execution continues.
  * 异步顺序执行多个扩展 suspend 操作块，返回第一个失败或 Ok。警告被忽略并继续执行。
  *
@@ -1001,9 +889,7 @@ suspend fun exSyncRun(
 }
 
 /**
- * 顺序执行 Iterable 中的多个扩展操作块
- *
- * Executes multiple extended operation blocks from an Iterable sequentially, returning the first failure or Ok.
+ * 顺序执行 Iterable 中的多个扩展操作块 / Executes multiple extended operation blocks from an Iterable sequentially, returning the first failure or Ok.
  * Warnings are ignored and execution continues.
  * 顺序执行 Iterable 中的多个扩展操作块，返回第一个失败或 Ok。警告被忽略并继续执行。
  *
@@ -1025,9 +911,7 @@ fun exRun(
 }
 
 /**
- * 异步顺序执行 Iterable 中的多个扩展操作块
- *
- * Executes multiple suspend extended operation blocks from an Iterable sequentially, returning the first failure or Ok.
+ * 异步顺序执行 Iterable 中的多个扩展操作块 / Executes multiple suspend extended operation blocks from an Iterable sequentially, returning the first failure or Ok.
  * Warnings are ignored and execution continues.
  * 异步顺序执行 Iterable 中的多个扩展 suspend 操作块，返回第一个失败或 Ok。警告被忽略并继续执行。
  *
@@ -1049,9 +933,7 @@ suspend fun exSyncRun(
 }
 
 /**
- * 顺序执行多个扩展操作块并返回最终结果
- *
- * Executes multiple extended operation blocks sequentially, then executes lastBlock and returns its result.
+ * 顺序执行多个扩展操作块并返回最终结果 / Executes multiple extended operation blocks sequentially, then executes lastBlock and returns its result.
  * Warnings are ignored and execution continues.
  * 顺序执行多个扩展操作块，然后执行 lastBlock 并返回其结果。警告被忽略并继续执行。
  *
@@ -1076,9 +958,7 @@ fun <T> exRun(
 }
 
 /**
- * 异步顺序执行多个扩展操作块并返回最终结果
- *
- * Executes multiple suspend extended operation blocks sequentially, then executes lastBlock and returns its result.
+ * 异步顺序执行多个扩展操作块并返回最终结果 / Executes multiple suspend extended operation blocks sequentially, then executes lastBlock and returns its result.
  * Warnings are ignored and execution continues.
  * 异步顺序执行多个扩展 suspend 操作块，然后执行 lastBlock 并返回其结果。警告被忽略并继续执行。
  *
@@ -1103,9 +983,7 @@ suspend fun <T> exSyncRun(
 }
 
 /**
- * 顺序执行 Iterable 中的多个扩展操作块并返回最终结果
- *
- * Executes multiple extended operation blocks from an Iterable sequentially, then executes lastBlock and returns its result.
+ * 顺序执行 Iterable 中的多个扩展操作块并返回最终结果 / Executes multiple extended operation blocks from an Iterable sequentially, then executes lastBlock and returns its result.
  * Warnings are ignored and execution continues.
  * 顺序执行 Iterable 中的多个扩展操作块，然后执行 lastBlock 并返回其结果。警告被忽略并继续执行。
  *
@@ -1130,9 +1008,7 @@ fun <T> exRun(
 }
 
 /**
- * 异步顺序执行 Iterable 中的多个扩展操作块并返回最终结果
- *
- * Executes multiple suspend extended operation blocks from an Iterable sequentially, then executes lastBlock and returns its result.
+ * 异步顺序执行 Iterable 中的多个扩展操作块并返回最终结果 / Executes multiple suspend extended operation blocks from an Iterable sequentially, then executes lastBlock and returns its result.
  * Warnings are ignored and execution continues.
  * 异步顺序执行 Iterable 中的多个扩展 suspend 操作块，然后执行 lastBlock 并返回其结果。警告被忽略并继续执行。
  *

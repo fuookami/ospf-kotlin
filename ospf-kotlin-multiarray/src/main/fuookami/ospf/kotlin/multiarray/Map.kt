@@ -1,12 +1,9 @@
 /**
- * Map 扩展操作符函数
- * Map extension operator functions
+ * Map 扩展操作符函数 / Map extension operator functions
  *
- * 为 Map 类型提供多维数组访问的扩展操作符。
- * Provides extension operators for Map types to access multi-dimensional arrays.
+ * 为 Map 类型提供多维数组访问的扩展操作符。 / Provides extension operators for Map types to access multi-dimensional arrays.
  *
- * 支持的功能：
- * Supported features:
+ * 支持的功能： / Supported features:
  * - 使用 All 索引（_a）获取所有值
  *   Get all values using All index (_a)
  * - 通过键和索引访问嵌套的 MultiArray 值
@@ -18,16 +15,13 @@ import fuookami.ospf.kotlin.utils.concept.Indexed
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * Map 获取操作符
- * Map get operators
+ * Map 获取操作符 / Map get operators
  *
- * 通过键和索引从 Map 中的 MultiArray 值获取元素。
- * Get elements from MultiArray values in Map by key and index.
+ * 通过键和索引从 Map 中的 MultiArray 值获取元素。 / Get elements from MultiArray values in Map by key and index.
 */
 
 /**
- * 使用 All 索引获取所有值
- * Get all values using All index
+ * 使用 All 索引获取所有值 / Get all values using All index
  *
  * @param k All 索引，表示获取 Map 中所有键对应的值 / All index, indicating retrieval of values for all keys in the Map
  * @return Map 中所有值的可迭代集合 / Iterable collection of all values in the Map
@@ -135,8 +129,7 @@ operator fun <K, T : Any, S : Shape> Map<K, MultiArray<T, S>>.get(k: K, vararg v
 }
 
 /**
- * Map 设置操作符
- * Map set operators
+ * Map 设置操作符 / Map set operators
  *
  * 通过键和索引设置 Map 中的 MutableMultiArray 值的元素。
  * Set elements in MutableMultiArray values in Map by key and index.
@@ -237,8 +230,7 @@ operator fun <K, T : Any, S : Shape> Map<K, MutableMultiArray<T, S>>.set(k: K, v
 */
 
 /**
- * 使用 All 索引获取所有第一维值
- * Get all first-dimension values using All index
+ * 使用 All 索引获取所有第一维值 / Get all first-dimension values using All index
  *
  * @param k1 第一维的 All 索引 / All index for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -249,8 +241,7 @@ operator fun <K1, K2, T : Any> MultiMap2<K1, K2, T>.get(k1: DummyIndex.All, k2: 
 }
 
 /**
- * 获取指定第一维的所有第二维值
- * Get all second-dimension values for specified first key
+ * 获取指定第一维的所有第二维值 / Get all second-dimension values for specified first key
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的 All 索引 / All index for the second dimension
@@ -261,8 +252,7 @@ operator fun <K1, K2, T : Any> MultiMap2<K1, K2, T>.get(k1: K1, k2: DummyIndex.A
 }
 
 /**
- * 获取所有元素
- * Get all elements
+ * 获取所有元素 / Get all elements
  *
  * @param k1 第一维的 All 索引 / All index for the first dimension
  * @param k2 第二维的 All 索引 / All index for the second dimension
@@ -273,8 +263,7 @@ operator fun <K1, K2, T : Any> MultiMap2<K1, K2, T>.get(k1: DummyIndex.All, k2: 
 }
 
 /**
- * 通过双键和 Int 索引从 MultiArray 值获取元素
- * Get element from MultiArray value by dual keys and Int index
+ * 通过双键和 Int 索引从 MultiArray 值获取元素 / Get element from MultiArray value by dual keys and Int index
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -340,8 +329,7 @@ operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MultiArray<T, S>>.ge
 }
 
 /**
- * 通过双键和 ULong 迭代索引从 MultiArray 值获取元素
- * Get element from MultiArray value by dual keys and ULong iterable index
+ * 通过双键和 ULong 迭代索引从 MultiArray 值获取元素 / Get element from MultiArray value by dual keys and ULong iterable index
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -366,8 +354,7 @@ operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MultiArray<T, S>>.ge
 }
 
 /**
- * 通过双键和 vararg Any 创建视图
- * Create view by dual keys and vararg Any indices
+ * 通过双键和 vararg Any 创建视图 / Create view by dual keys and vararg Any indices
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -488,8 +475,7 @@ operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MutableMultiArray<T,
 */
 
 /**
- * 使用 All 索引获取所有第一维值
- * Get all first-dimension values using All index
+ * 使用 All 索引获取所有第一维值 / Get all first-dimension values using All index
  *
  * @param k1 第一维的 All 索引 / All index for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -501,8 +487,7 @@ operator fun <K1, K2, K3, T : Any> MultiMap3<K1, K2, K3, T>.get(k1: DummyIndex.A
 }
 
 /**
- * 获取指定第一维的所有第二维值
- * Get all second-dimension values for specified first key
+ * 获取指定第一维的所有第二维值 / Get all second-dimension values for specified first key
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的 All 索引 / All index for the second dimension
@@ -514,8 +499,7 @@ operator fun <K1, K2, K3, T : Any> MultiMap3<K1, K2, K3, T>.get(k1: K1, k2: Dumm
 }
 
 /**
- * 获取指定第一、二维的所有第三维值
- * Get all third-dimension values for specified first and second keys
+ * 获取指定第一、二维的所有第三维值 / Get all third-dimension values for specified first and second keys
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -527,8 +511,7 @@ operator fun <K1, K2, K3, T : Any> MultiMap3<K1, K2, K3, T>.get(k1: K1, k2: K2, 
 }
 
 /**
- * 获取指定第三维的所有第一、二维值
- * Get all first and second dimension values for specified third key
+ * 获取指定第三维的所有第一、二维值 / Get all first and second dimension values for specified third key
  *
  * @param k1 第一维的 All 索引 / All index for the first dimension
  * @param k2 第二维的 All 索引 / All index for the second dimension
@@ -540,8 +523,7 @@ operator fun <K1, K2, K3, T : Any> MultiMap3<K1, K2, K3, T>.get(k1: DummyIndex.A
 }
 
 /**
- * 获取指定第一、三维的所有第二维值
- * Get all second-dimension values for specified first and third keys
+ * 获取指定第一、三维的所有第二维值 / Get all second-dimension values for specified first and third keys
  *
  * @param k1 第一维的 All 索引 / All index for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -553,8 +535,7 @@ operator fun <K1, K2, K3, T : Any> MultiMap3<K1, K2, K3, T>.get(k1: DummyIndex.A
 }
 
 /**
- * 获取指定第一维的所有第二、三维值
- * Get all second and third dimension values for specified first key
+ * 获取指定第一维的所有第二、三维值 / Get all second and third dimension values for specified first key
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的 All 索引 / All index for the second dimension
@@ -566,8 +547,7 @@ operator fun <K1, K2, K3, T : Any> MultiMap3<K1, K2, K3, T>.get(k1: K1, k2: Dumm
 }
 
 /**
- * 获取所有元素
- * Get all elements
+ * 获取所有元素 / Get all elements
  *
  * @param k1 第一维的 All 索引 / All index for the first dimension
  * @param k2 第二维的 All 索引 / All index for the second dimension
@@ -579,8 +559,7 @@ operator fun <K1, K2, K3, T : Any> MultiMap3<K1, K2, K3, T>.get(k1: DummyIndex.A
 }
 
 /**
- * 通过三键和 Int 索引从 MultiArray 值获取元素
- * Get element from MultiArray value by triple keys and Int index
+ * 通过三键和 Int 索引从 MultiArray 值获取元素 / Get element from MultiArray value by triple keys and Int index
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -651,8 +630,7 @@ operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MultiArray<T
 }
 
 /**
- * 通过三键和 ULong 迭代索引从 MultiArray 值获取元素
- * Get element from MultiArray value by triple keys and ULong iterable index
+ * 通过三键和 ULong 迭代索引从 MultiArray 值获取元素 / Get element from MultiArray value by triple keys and ULong iterable index
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -679,8 +657,7 @@ operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MultiArray<T
 }
 
 /**
- * 通过三键和 vararg Any 创建视图
- * Create view by triple keys and vararg Any indices
+ * 通过三键和 vararg Any 创建视图 / Create view by triple keys and vararg Any indices
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -809,8 +786,7 @@ operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MutableMulti
 */
 
 /**
- * 使用 All 索引获取所有第一维值
- * Get all first-dimension values using All index
+ * 使用 All 索引获取所有第一维值 / Get all first-dimension values using All index
  *
  * @param k1 第一维的 All 索引 / All index for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -823,8 +799,7 @@ operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: Dumm
 }
 
 /**
- * 获取指定第一维的所有第二维值
- * Get all second-dimension values for specified first key
+ * 获取指定第一维的所有第二维值 / Get all second-dimension values for specified first key
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的 All 索引 / All index for the second dimension
@@ -837,8 +812,7 @@ operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, 
 }
 
 /**
- * 获取指定第一、二维的所有第三维值
- * Get all third-dimension values for specified first and second keys
+ * 获取指定第一、二维的所有第三维值 / Get all third-dimension values for specified first and second keys
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -851,8 +825,7 @@ operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, 
 }
 
 /**
- * 获取指定第一、二、三维的所有第四维值
- * Get all fourth-dimension values for specified first, second and third keys
+ * 获取指定第一、二、三维的所有第四维值 / Get all fourth-dimension values for specified first, second and third keys
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -865,8 +838,7 @@ operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, 
 }
 
 /**
- * 获取指定第三、四维的所有第一、二维值
- * Get all first and second dimension values for specified third and fourth keys
+ * 获取指定第三、四维的所有第一、二维值 / Get all first and second dimension values for specified third and fourth keys
  *
  * @param k1 第一维的 All 索引 / All index for the first dimension
  * @param k2 第二维的 All 索引 / All index for the second dimension
@@ -879,8 +851,7 @@ operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: Dumm
 }
 
 /**
- * 获取指定第二、四维的所有第一、三维值
- * Get all first and third dimension values for specified second and fourth keys
+ * 获取指定第二、四维的所有第一、三维值 / Get all first and third dimension values for specified second and fourth keys
  *
  * @param k1 第一维的 All 索引 / All index for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -893,8 +864,7 @@ operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: Dumm
 }
 
 /**
- * 获取指定第二、三维的所有第一、四维值
- * Get all first and fourth dimension values for specified second and third keys
+ * 获取指定第二、三维的所有第一、四维值 / Get all first and fourth dimension values for specified second and third keys
  *
  * @param k1 第一维的 All 索引 / All index for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -907,8 +877,7 @@ operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: Dumm
 }
 
 /**
- * 获取指定第一维的所有第二、三、四维值
- * Get all second, third and fourth dimension values for specified first key
+ * 获取指定第一维的所有第二、三、四维值 / Get all second, third and fourth dimension values for specified first key
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的 All 索引 / All index for the second dimension
@@ -921,8 +890,7 @@ operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, 
 }
 
 /**
- * 获取指定第一、三维的所有第二、四维值
- * Get all second and fourth dimension values for specified first and third keys
+ * 获取指定第一、三维的所有第二、四维值 / Get all second and fourth dimension values for specified first and third keys
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的 All 索引 / All index for the second dimension
@@ -935,8 +903,7 @@ operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, 
 }
 
 /**
- * 获取指定第一、四维的所有第二、三维值
- * Get all second and third dimension values for specified first and fourth keys
+ * 获取指定第一、四维的所有第二、三维值 / Get all second and third dimension values for specified first and fourth keys
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -949,8 +916,7 @@ operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, 
 }
 
 /**
- * 获取指定第四维的所有第一、二、三维值
- * Get all first, second and third dimension values for specified fourth key
+ * 获取指定第四维的所有第一、二、三维值 / Get all first, second and third dimension values for specified fourth key
  *
  * @param k1 第一维的 All 索引 / All index for the first dimension
  * @param k2 第二维的 All 索引 / All index for the second dimension
@@ -963,8 +929,7 @@ operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: Dumm
 }
 
 /**
- * 获取指定第三维的所有第一、二、四维值
- * Get all first, second and fourth dimension values for specified third key
+ * 获取指定第三维的所有第一、二、四维值 / Get all first, second and fourth dimension values for specified third key
  *
  * @param k1 第一维的 All 索引 / All index for the first dimension
  * @param k2 第二维的 All 索引 / All index for the second dimension
@@ -977,8 +942,7 @@ operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: Dumm
 }
 
 /**
- * 获取指定第二维的所有第一、三、四维值
- * Get all first, third and fourth dimension values for specified second key
+ * 获取指定第二维的所有第一、三、四维值 / Get all first, third and fourth dimension values for specified second key
  *
  * @param k1 第一维的 All 索引 / All index for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -991,8 +955,7 @@ operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: Dumm
 }
 
 /**
- * 获取指定第一维的所有第二、三、四维值
- * Get all second, third and fourth dimension values for specified first key
+ * 获取指定第一维的所有第二、三、四维值 / Get all second, third and fourth dimension values for specified first key
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的 All 索引 / All index for the second dimension
@@ -1005,8 +968,7 @@ operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, 
 }
 
 /**
- * 获取所有元素
- * Get all elements
+ * 获取所有元素 / Get all elements
  *
  * @param k1 第一维的 All 索引 / All index for the first dimension
  * @param k2 第二维的 All 索引 / All index for the second dimension
@@ -1019,8 +981,7 @@ operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: Dumm
 }
 
 /**
- * 通过四键和 Int 索引从 MultiArray 值获取元素
- * Get element from MultiArray value by quadruple keys and Int index
+ * 通过四键和 Int 索引从 MultiArray 值获取元素 / Get element from MultiArray value by quadruple keys and Int index
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -1096,8 +1057,7 @@ operator fun <K1, K2, K3, K4, T : Any, S : Shape> MultiMap4<K1, K2, K3, K4, Mult
 }
 
 /**
- * 通过四键和 ULong 迭代索引从 MultiArray 值获取元素
- * Get element from MultiArray value by quadruple keys and ULong iterable index
+ * 通过四键和 ULong 迭代索引从 MultiArray 值获取元素 / Get element from MultiArray value by quadruple keys and ULong iterable index
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的键 / Key for the second dimension
@@ -1126,8 +1086,7 @@ operator fun <K1, K2, K3, K4, T : Any, S : Shape> MultiMap4<K1, K2, K3, K4, Mult
 }
 
 /**
- * 通过四键和 vararg Any 创建视图
- * Create view by quadruple keys and vararg Any indices
+ * 通过四键和 vararg Any 创建视图 / Create view by quadruple keys and vararg Any indices
  *
  * @param k1 第一维的键 / Key for the first dimension
  * @param k2 第二维的键 / Key for the second dimension

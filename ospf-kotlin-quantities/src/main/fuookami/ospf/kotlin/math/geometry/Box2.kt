@@ -1,9 +1,7 @@
 /**
- * 二维包围盒
- * 2D bounding box
+ * 二维包围盒 / 2D bounding box
  *
- * 由位置坐标和投影形状定义的二维包围盒，支持包含测试、重叠检测和求交运算。
- * A 2D bounding box defined by position coordinates and a projection shape, supporting containment tests, overlap detection, and intersection.
+ * 由位置坐标和投影形状定义的二维包围盒，支持包含测试、重叠检测和求交运算。 / A 2D bounding box defined by position coordinates and a projection shape, supporting containment tests, overlap detection, and intersection.
 */
 package fuookami.ospf.kotlin.math.geometry
 
@@ -17,11 +15,9 @@ import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
- * 二维包围盒
- * 2D bounding box
+ * 二维包围盒 / 2D bounding box
  *
- * 由原点坐标和形状定义的二维包围盒，支持包含测试、重叠检测和求交运算。
- * A 2D bounding box defined by origin coordinates and a shape, supporting containment tests, overlap detection, and intersection.
+ * 由原点坐标和形状定义的二维包围盒，支持包含测试、重叠检测和求交运算。 / A 2D bounding box defined by origin coordinates and a shape, supporting containment tests, overlap detection, and intersection.
  *
  * @property x 原点的 x 坐标 / x coordinate of the origin
  * @property y 原点的 y 坐标 / y coordinate of the origin
@@ -35,8 +31,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
 ) {
     companion object {
         /**
-         * 在原点创建包围盒
-         * Create a bounding box at the origin
+         * 在原点创建包围盒 / Create a bounding box at the origin
          *
          * @param shape 形状 / Shape
          * @param V 数值类型 / Number type
@@ -83,16 +78,14 @@ data class QuantityBox2<V : FloatingNumber<V>>(
     val maxYOrNull: Quantity<V>? get() = maxY().value
 
     /**
-     * 获取 x 方向最大值
-     * Get the maximum x value
+     * 获取 x 方向最大值 / Get the maximum x value
      *
      * @return x 方向最大值 / Maximum x value
     */
     fun maxX(): Ret<Quantity<V>> = quantityPlusSafe(x, width)
 
     /**
-     * 获取 y 方向最大值
-     * Get the maximum y value
+     * 获取 y 方向最大值 / Get the maximum y value
      *
      * @return y 方向最大值 / Maximum y value
     */
@@ -102,8 +95,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
     private val centerYOrNull: Quantity<V>? get() = centerY().value
 
     /**
-     * 计算包围盒中心 X 坐标
-     * Compute bounding box center X coordinate
+     * 计算包围盒中心 X 坐标 / Compute bounding box center X coordinate
      *
      * @return 中心 X 坐标 / Center X coordinate
     */
@@ -115,8 +107,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
     }
 
     /**
-     * 计算包围盒中心 Y 坐标
-     * Compute bounding box center Y coordinate
+     * 计算包围盒中心 Y 坐标 / Compute bounding box center Y coordinate
      *
      * @return 中心 Y 坐标 / Center Y coordinate
     */
@@ -128,8 +119,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
     }
 
     /**
-     * 判断点是否在包围盒内
-     * Check if a point is inside the bounding box
+     * 判断点是否在包围盒内 / Check if a point is inside the bounding box
      *
      * @param x 点的 x 坐标 / x coordinate of the point
      * @param y 点的 y 坐标 / y coordinate of the point
@@ -212,8 +202,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
     }
 
     /**
-     * 判断两个包围盒是否重叠
-     * Check if two bounding boxes overlap
+     * 判断两个包围盒是否重叠 / Check if two bounding boxes overlap
      *
      * @param rhs 另一个包围盒 / Another bounding box
      * @return 是否重叠 / Whether they overlap
@@ -233,8 +222,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
     }
 
     /**
-     * 计算两个包围盒的交集
-     * Compute the intersection of two bounding boxes
+     * 计算两个包围盒的交集 / Compute the intersection of two bounding boxes
      *
      * @param rhs 另一个包围盒 / Another bounding box
      * @return 交集包围盒，如果不相交则返回 null / Intersection box, or null if they don't intersect
@@ -317,8 +305,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
     }
 
     /**
-     * 判断矩形是否重叠
-     * Check if rectangles overlap
+     * 判断矩形是否重叠 / Check if rectangles overlap
      *
      * @param rhs 另一个包围盒 / Another bounding box
      * @return 是否重叠 / Whether they overlap
@@ -380,8 +367,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
     }
 
     /**
-     * 判断矩形与圆形是否重叠
-     * Check if rectangle and circle overlap
+     * 判断矩形与圆形是否重叠 / Check if rectangle and circle overlap
      *
      * @param circleBox 圆形包围盒 / Circle bounding box
      * @param circle 圆形 / Circle
@@ -443,8 +429,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
     }
 
     /**
-     * 判断两个圆形是否重叠
-     * Check if two circles overlap
+     * 判断两个圆形是否重叠 / Check if two circles overlap
      *
      * @param rhs 另一个包围盒 / Another bounding box
      * @param lhs 左侧圆形 / Left-hand side circle
@@ -503,7 +488,6 @@ data class QuantityBox2<V : FloatingNumber<V>>(
 }
 
 /**
- * 二维轴对齐包围盒别名
- * Type alias for 2D axis-aligned bounding box
+ * 二维轴对齐包围盒别名 / Type alias for 2D axis-aligned bounding box
 */
 typealias QuantityAxisAlignedBox2<V> = QuantityBox2<V>

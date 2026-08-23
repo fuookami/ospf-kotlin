@@ -92,8 +92,8 @@ class SSP {
      * Initializes the route and bandwidth contexts from the input data.
      * 从输入数据初始化路由和带宽上下文。
      *
-     * @param input the aggregated input data / 聚合输入数据
-     * @return the initialization result / 初始化结果
+     * @param input 聚合输入数据 / the aggregated input data
+     * @return 初始化结果 / the initialization result
     */
     private fun init(input: Input): Try {
         routeContext = RouteContext()
@@ -129,8 +129,8 @@ class SSP {
      * Constructs the optimization model by registering and building route and bandwidth constraints.
      * 通过注册和构建路由与带宽约束来构建优化模型。
      *
-     * @param model the linear meta model / 线性元模型
-     * @return the construction result / 构建结果
+     * @param model 线性元模型 / the linear meta model
+     * @return 构建结果 / the construction result
     */
     private fun construct(model: LinearMetaModel<Flt64>): Try {
         when (val result = routeContext.register(model)) {
@@ -186,15 +186,15 @@ class SSP {
      * Solves the constructed optimization model using the SCIP linear solver.
      * 使用 SCIP 线性求解器求解已构建的优化模型。
      *
-     * @param metaModel the linear meta model to solve / 待求解的线性元模型
-     * @return the solution values / 求解值列表
+     * @param metaModel 待求解的线性元模型 / the linear meta model to solve
+     * @return 求解值列表 / the solution values
     */
     private suspend fun solve(metaModel: LinearMetaModel<Flt64>): Ret<List<Flt64>> {
         val solver = ScipLinearSolver()
         return when (val ret = solveLinearMetaModel(solver, metaModel)) {
             is Ok -> {
-                metaModel.tokens.setSolution(ret.value.solution)
-                Ok(ret.value.solution)
+                metaModel.tokens.setSolution(ret.value.values)
+                Ok(ret.value.values)
             }
 
             is Failed -> {

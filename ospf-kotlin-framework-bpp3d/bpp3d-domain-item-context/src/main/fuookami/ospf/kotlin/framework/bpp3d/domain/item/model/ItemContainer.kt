@@ -44,14 +44,14 @@ sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S, F
 /**
  * dump.
  * dump。
- * @param offset position offset for the dumped placements / 转储放置的位置偏移
+ * @param offset 转储放置的位置偏移 / position offset for the dumped placements
 */
     fun dump(offset: QuantityPoint3<FltX> = point3FltX()) = units.dump(offset)
 
 /**
  * Dumps absolutely.
  * 转储Absolutely。
- * @param offset position offset for the dumped placements / 转储放置的位置偏移
+ * @param offset 转储放置的位置偏移 / position offset for the dumped placements
 */
     fun dumpAbsolutely(offset: QuantityPoint3<FltX> = point3FltX()) = units.dumpAbsolutely(offset)
 

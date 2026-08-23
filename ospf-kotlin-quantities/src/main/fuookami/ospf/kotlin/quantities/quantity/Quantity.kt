@@ -1,12 +1,9 @@
 /**
- * 物理量类
- * Physical Quantity Class
+ * 物理量类 / Physical Quantity Class
  *
- * 核心物理量类，包含值和单位，支持量纲检查和单位转换。
- * Core quantity class containing value and unit, supporting dimension checking and unit conversion.
+ * 核心物理量类，包含值和单位，支持量纲检查和单位转换。 / Core quantity class containing value and unit, supporting dimension checking and unit conversion.
  *
- * 提供完整的算术运算支持，包括加减乘除、比较、单位转换等。
- * Provides complete arithmetic operation support including addition, subtraction,
+ * 提供完整的算术运算支持，包括加减乘除、比较、单位转换等。 / Provides complete arithmetic operation support including addition, subtraction,
  * multiplication, division, comparison, and unit conversion.
  *
  * 支持的数值类型 / Supported number types:
@@ -25,11 +22,9 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 物理量类
- * Physical Quantity Class
+ * 物理量类 / Physical Quantity Class
  *
- * 包含值和单位，支持量纲检查和单位转换。
- * Contains value and unit, supporting dimension checking and unit conversion.
+ * 包含值和单位，支持量纲检查和单位转换。 / Contains value and unit, supporting dimension checking and unit conversion.
  *
  * 示例 / Example:
  * ```kotlin
@@ -48,8 +43,7 @@ data class Quantity<out V>(
 )
 
 /**
- * 创建指定值的物理量
- * Create a quantity with specified value
+ * 创建指定值的物理量 / Create a quantity with specified value
  *
  * 示例 / Example:
  * ```kotlin
@@ -64,11 +58,9 @@ fun <V> PhysicalUnit.of(amount: V): Quantity<V> {
 }
 
 /**
- * 量纲不匹配异常
- * Dimension Mismatch Exception
+ * 量纲不匹配异常 / Dimension Mismatch Exception
  *
- * 当物理量运算时量纲不匹配时抛出。
- * Thrown when dimensions don't match during quantity operations.
+ * 当物理量运算时量纲不匹配时抛出。 / Thrown when dimensions don't match during quantity operations.
  *
  * @param expected 期望的量纲符号 / Expected dimension symbol
  * @param actual 实际的量纲符号 / Actual dimension symbol
@@ -81,22 +73,18 @@ class DimensionMismatchException(
 ) : Exception("Dimension mismatch: expected $expected, got $actual for $operation")
 
 /**
- * 单位转换异常
- * Unit Conversion Exception
+ * 单位转换异常 / Unit Conversion Exception
  *
- * 当单位转换失败时抛出。
- * Thrown when unit conversion fails.
+ * 当单位转换失败时抛出。 / Thrown when unit conversion fails.
  *
  * @param message 异常信息 / Exception message
 */
 class UnitConversionException(message: String) : Exception(message)
 
 /**
- * 根据值类型尝试单位转换
- * Try unit conversion based on value type
+ * 根据值类型尝试单位转换 / Try unit conversion based on value type
  *
- * 内部方法，根据值的实际类型调用对应的转换函数。
- * Internal method that calls the appropriate conversion function based on the actual value type.
+ * 内部方法，根据值的实际类型调用对应的转换函数。 / Internal method that calls the appropriate conversion function based on the actual value type.
  *
  * @param unit 目标单位 / Target unit
  * @return 转换后的物理量，或 null 如果无法转换 / Converted quantity, or null if conversion failed
@@ -117,11 +105,9 @@ private fun <V> Quantity<V>.tryConvertByValueType(unit: PhysicalUnit): Quantity<
 }
 
 /**
- * 转换已知值类型的物理量
- * Convert quantity with known value type
+ * 转换已知值类型的物理量 / Convert quantity with known value type
  *
- * 内部方法，通过类型擦除转换调用具体的类型化转换函数。
- * Internal method that delegates to typed conversion function via type erasure.
+ * 内部方法，通过类型擦除转换调用具体的类型化转换函数。 / Internal method that delegates to typed conversion function via type erasure.
  *
  * @param unit 目标单位 / Target unit
  * @param convert 类型化转换函数 / Typed conversion function
@@ -138,8 +124,7 @@ private fun <V, T> Quantity<V>.convertKnownValueType(
 }
 
 /**
- * 构建物理量运算失败消息
- * Build quantity operation failure message
+ * 构建物理量运算失败消息 / Build quantity operation failure message
  *
  * @param lhs 左操作数单位 / Left operand unit
  * @param rhs 右操作数单位 / Right operand unit
@@ -171,8 +156,7 @@ private val affineFlt64Tolerance = Flt64(1e-10)
 private val affineFltXTolerance = FltX("1e-12")
 
 /**
- * 将值转换为标准单位值
- * Convert value to standard unit value
+ * 将值转换为标准单位值 / Convert value to standard unit value
  *
  * @param value 要转换的值 / Value to convert
  * @return 标准单位值，或 null 如果无法转换 / Standard unit value, or null if conversion failed
@@ -185,8 +169,7 @@ private fun PhysicalUnit.toStandardValue(value: FltX): FltX? {
 }
 
 /**
- * 转换线性差值为标准单位
- * Convert linear difference value to standard unit
+ * 转换线性差值为标准单位 / Convert linear difference value to standard unit
  *
  * @param value 要转换的值 / Value to convert
  * @param unit 目标单位 / Target unit
@@ -200,8 +183,7 @@ private fun PhysicalUnit.convertLinearDifferenceValue(value: FltX, unit: Physica
 }
 
 /**
- * 获取仿射单位的线性差值单位
- * Get the linear difference unit of an affine unit
+ * 获取仿射单位的线性差值单位 / Get the linear difference unit of an affine unit
  *
  * @return 线性差值单位 / Linear difference unit
 */
@@ -217,8 +199,7 @@ private fun PhysicalUnit.linearDifferenceUnit(): PhysicalUnit {
 }
 
 /**
- * 比较两个 Flt64 值的仿射序关系
- * Compare affine order relation of two Flt64 values
+ * 比较两个 Flt64 值的仿射序关系 / Compare affine order relation of two Flt64 values
  *
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
@@ -236,8 +217,7 @@ private fun affineOrder(lhs: Flt64, rhs: Flt64): Order {
 }
 
 /**
- * 比较两个 FltX 值的仿射序关系
- * Compare affine order relation of two FltX values
+ * 比较两个 FltX 值的仿射序关系 / Compare affine order relation of two FltX values
  *
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
@@ -255,8 +235,7 @@ private fun affineOrder(lhs: FltX, rhs: FltX): Order {
 }
 
 /**
- * 比较两个仿射物理量的序关系
- * Compare order relation of two affine quantities
+ * 比较两个仿射物理量的序关系 / Compare order relation of two affine quantities
  *
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
@@ -284,8 +263,7 @@ private fun affineOrderOf(lhs: Quantity<*>, rhs: Quantity<*>): Order? {
 }
 
 /**
- * 构建仿射运算失败消息（单参数）
- * Build affine operation failure message (single param)
+ * 构建仿射运算失败消息（单参数） / Build affine operation failure message (single param)
  *
  * @param unit 物理单位 / Physical unit
  * @param operation 操作名称 / Operation name
@@ -297,8 +275,7 @@ private fun quantityAffineOperationFailureMessage(unit: PhysicalUnit, operation:
 }
 
 /**
- * 构建仿射运算失败消息（双参数）
- * Build affine operation failure message (dual param)
+ * 构建仿射运算失败消息（双参数） / Build affine operation failure message (dual param)
  *
  * @param lhs 左操作数单位 / Left operand unit
  * @param rhs 右操作数单位 / Right operand unit
@@ -332,8 +309,7 @@ private fun <V> quantityDimensionBinarySafe(
 }
 
 /**
- * Flt64 仿射感知加法
- * Flt64 affine-aware addition
+ * Flt64 仿射感知加法 / Flt64 affine-aware addition
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量，或 null 如果无法执行仿射加法 / Sum quantity, or null if affine addition failed
@@ -353,8 +329,7 @@ private fun Quantity<Flt64>.plusAffineAwareFlt64(other: Quantity<Flt64>): Quanti
 }
 
 /**
- * FltX 仿射感知加法
- * FltX affine-aware addition
+ * FltX 仿射感知加法 / FltX affine-aware addition
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量，或 null 如果无法执行仿射加法 / Sum quantity, or null if affine addition failed
@@ -374,8 +349,7 @@ private fun Quantity<FltX>.plusAffineAwareFltX(other: Quantity<FltX>): Quantity<
 }
 
 /**
- * Flt64 仿射感知减法
- * Flt64 affine-aware subtraction
+ * Flt64 仿射感知减法 / Flt64 affine-aware subtraction
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量，或 null 如果无法执行仿射减法 / Difference quantity, or null if affine subtraction failed
@@ -400,8 +374,7 @@ private fun Quantity<Flt64>.minusAffineAwareFlt64(other: Quantity<Flt64>): Quant
 }
 
 /**
- * FltX 仿射感知减法
- * FltX affine-aware subtraction
+ * FltX 仿射感知减法 / FltX affine-aware subtraction
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量，或 null 如果无法执行仿射减法 / Difference quantity, or null if affine subtraction failed
@@ -450,8 +423,7 @@ private fun <V> Quantity<V>.linearQuantityBinaryOrNull(
 }
 
 /**
- * 用指定值创建物理量
- * Create quantity with specified value
+ * 用指定值创建物理量 / Create quantity with specified value
  *
  * 示例 / Example:
  * ```kotlin
@@ -466,8 +438,7 @@ fun <V> PhysicalUnit.withValue(value: V): Quantity<V> {
 }
 
 /**
- * 创建零值物理量
- * Create zero quantity
+ * 创建零值物理量 / Create zero quantity
  *
  * 示例 / Example:
  * ```kotlin
@@ -482,8 +453,7 @@ fun <V> PhysicalUnit.zero(constants: ArithmeticConstants<V>): Quantity<V> {
 }
 
 /**
- * 创建一值物理量
- * Create one quantity
+ * 创建一值物理量 / Create one quantity
  *
  * 示例 / Example:
  * ```kotlin
@@ -498,8 +468,7 @@ fun <V> PhysicalUnit.one(constants: ArithmeticConstants<V>): Quantity<V> {
 }
 
 /**
- * 创建二值物理量
- * Create two quantity
+ * 创建二值物理量 / Create two quantity
  *
  * 示例 / Example:
  * ```kotlin
@@ -514,8 +483,7 @@ fun <V : RealNumber<V>> PhysicalUnit.two(constants: RealNumberConstants<V>): Qua
 }
 
 /**
- * 创建三值物理量
- * Create three quantity
+ * 创建三值物理量 / Create three quantity
  *
  * @param constants 实数常量 / Real number constants
  * @return 三值物理量 / Three quantity
@@ -525,8 +493,7 @@ fun <V : RealNumber<V>> PhysicalUnit.three(constants: RealNumberConstants<V>): Q
 }
 
 /**
- * 创建五值物理量
- * Create five quantity
+ * 创建五值物理量 / Create five quantity
  *
  * @param constants 实数常量 / Real number constants
  * @return 五值物理量 / Five quantity
@@ -536,8 +503,7 @@ fun <V : RealNumber<V>> PhysicalUnit.five(constants: RealNumberConstants<V>): Qu
 }
 
 /**
- * 创建十值物理量
- * Create ten quantity
+ * 创建十值物理量 / Create ten quantity
  *
  * @param constants 实数常量 / Real number constants
  * @return 十值物理量 / Ten quantity
@@ -547,8 +513,7 @@ fun <V : RealNumber<V>> PhysicalUnit.ten(constants: RealNumberConstants<V>): Qua
 }
 
 /**
- * 创建 pi 值物理量
- * Create pi quantity
+ * 创建 pi 值物理量 / Create pi quantity
  *
  * @param constants 浮点数常量 / Floating number constants
  * @return pi 值物理量 / Pi quantity
@@ -558,8 +523,7 @@ fun <V : FloatingNumber<V>> PhysicalUnit.pi(constants: FloatingNumberConstants<V
 }
 
 /**
- * 创建 e 值物理量
- * Create e quantity
+ * 创建 e 值物理量 / Create e quantity
  *
  * @param constants 浮点数常量 / Floating number constants
  * @return e 值物理量 / e quantity
@@ -576,11 +540,9 @@ fun <V : FloatingNumber<V>> PhysicalUnit.e(constants: FloatingNumberConstants<V>
 // ============================================================================
 
 /**
- * 判断两个物理量是否相等
- * Check if two quantities are equal
+ * 判断两个物理量是否相等 / Check if two quantities are equal
  *
- * 同单位比较值；同量纲异单位尝试转换后比较；异量纲返回 false。
- * Compares values for same unit; tries conversion for same dimension different units;
+ * 同单位比较值；同量纲异单位尝试转换后比较；异量纲返回 false。 / Compares values for same unit; tries conversion for same dimension different units;
  * returns false for different dimensions.
  *
  * 示例 / Example:
@@ -606,8 +568,7 @@ infix fun <V> Quantity<V>.eq(other: Quantity<V>): Boolean where V : Eq<V> {
 }
 
 /**
- * 判断两个物理量是否不相等
- * Check if two quantities are not equal
+ * 判断两个物理量是否不相等 / Check if two quantities are not equal
  *
  * @param other 另一个物理量 / Another quantity
  * @return 是否不相等 / Whether not equal
@@ -625,8 +586,7 @@ infix fun <V> Quantity<V>.neq(other: Quantity<V>): Boolean where V : Eq<V> {
 }
 
 /**
- * 比较两个物理量的部分序关系
- * Compare partial order of two quantities
+ * 比较两个物理量的部分序关系 / Compare partial order of two quantities
  *
  * 返回 Order.Less、Order.Equal、Order.Greater 或 null（无法比较）。
  * Returns Order.Less, Order.Equal, Order.Greater, or null (incomparable).
@@ -647,8 +607,7 @@ infix fun <V> Quantity<V>.partialOrd(other: Quantity<V>): Order? where V : Parti
 }
 
 /**
- * 判断是否小于
- * Check if less than
+ * 判断是否小于 / Check if less than
  *
  * @param other 另一个物理量 / Another quantity
  * @return 是否小于，或 null 如果无法比较 / Whether less than, or null if incomparable
@@ -666,8 +625,7 @@ infix fun <V> Quantity<V>.ls(other: Quantity<V>): Boolean? where V : Ord<V> {
 }
 
 /**
- * 判断是否小于等于
- * Check if less than or equal
+ * 判断是否小于等于 / Check if less than or equal
  *
  * @param other 另一个物理量 / Another quantity
  * @return 是否小于等于，或 null 如果无法比较 / Whether less than or equal, or null if incomparable
@@ -685,8 +643,7 @@ infix fun <V> Quantity<V>.leq(other: Quantity<V>): Boolean? where V : Ord<V> {
 }
 
 /**
- * 判断是否大于
- * Check if greater than
+ * 判断是否大于 / Check if greater than
  *
  * @param other 另一个物理量 / Another quantity
  * @return 是否大于，或 null 如果无法比较 / Whether greater than, or null if incomparable
@@ -704,8 +661,7 @@ infix fun <V> Quantity<V>.gr(other: Quantity<V>): Boolean? where V : Ord<V> {
 }
 
 /**
- * 判断是否大于等于
- * Check if greater than or equal
+ * 判断是否大于等于 / Check if greater than or equal
  *
  * @param other 另一个物理量 / Another quantity
  * @return 是否大于等于，或 null 如果无法比较 / Whether greater than or equal, or null if incomparable
@@ -727,8 +683,7 @@ infix fun <V> Quantity<V>.geq(other: Quantity<V>): Boolean? where V : Ord<V> {
 // ============================================================================
 
 /**
- * 转换为 Int64 物理量
- * Convert to Int64 quantity
+ * 转换为 Int64 物理量 / Convert to Int64 quantity
  *
  * @return Int64 物理量 / Int64 quantity
 */
@@ -737,8 +692,7 @@ fun <V : RealNumber<V>> Quantity<V>.toInt64(): Quantity<Int64> {
 }
 
 /**
- * 转换为 UInt64 物理量
- * Convert to UInt64 quantity
+ * 转换为 UInt64 物理量 / Convert to UInt64 quantity
  *
  * @return UInt64 物理量 / UInt64 quantity
 */
@@ -747,8 +701,7 @@ fun <V : RealNumber<V>> Quantity<V>.toUInt64(): Quantity<UInt64> {
 }
 
 /**
- * 转换为 IntX 物理量
- * Convert to IntX quantity
+ * 转换为 IntX 物理量 / Convert to IntX quantity
  *
  * @return IntX 物理量 / IntX quantity
 */
@@ -757,8 +710,7 @@ fun <V : RealNumber<V>> Quantity<V>.toIntX(): Quantity<IntX> {
 }
 
 /**
- * 转换为 Flt64 物理量
- * Convert to Flt64 quantity
+ * 转换为 Flt64 物理量 / Convert to Flt64 quantity
  *
  * @return Flt64 物理量 / Flt64 quantity
 */
@@ -767,8 +719,7 @@ fun <V : RealNumber<V>> Quantity<V>.toFlt64(): Quantity<Flt64> {
 }
 
 /**
- * 转换为 FltX 物理量
- * Convert to FltX quantity
+ * 转换为 FltX 物理量 / Convert to FltX quantity
  *
  * @return FltX 物理量 / FltX quantity
 */
@@ -777,8 +728,7 @@ fun <V : RealNumber<V>> Quantity<V>.toFltX(): Quantity<FltX> {
 }
 
 /**
- * 向下取整
- * Floor the value
+ * 向下取整 / Floor the value
  *
  * @return 取整后的物理量 / Floored quantity
 */
@@ -787,8 +737,7 @@ fun <F : FloatingImpl<F>> Quantity<F>.floor(): Quantity<F> {
 }
 
 /**
- * 向上取整
- * Ceil the value
+ * 向上取整 / Ceil the value
  *
  * @return 取整后的物理量 / Ceiled quantity
 */
@@ -797,8 +746,7 @@ fun <F : FloatingImpl<F>> Quantity<F>.ceil(): Quantity<F> {
 }
 
 /**
- * 四舍五入
- * Round the value
+ * 四舍五入 / Round the value
  *
  * @return 取整后的物理量 / Rounded quantity
 */
@@ -813,11 +761,9 @@ fun <F : FloatingImpl<F>> Quantity<F>.round(): Quantity<F> {
 // ============================================================================
 
 /**
- * Int64 物理量的单位转换
- * Unit conversion for Int64 quantity
+ * Int64 物理量的单位转换 / Unit conversion for Int64 quantity
  *
- * 如果转换因子不是整数，返回 null。请使用 Flt64 进行精确转换。
- * Returns null if conversion factor is not an integer. Use Flt64 for accurate conversion.
+ * 如果转换因子不是整数，返回 null。请使用 Flt64 进行精确转换。 / Returns null if conversion factor is not an integer. Use Flt64 for accurate conversion.
  *
  * 示例 / Example:
  * ```kotlin
@@ -857,11 +803,9 @@ fun Quantity<Int64>.to(unit: PhysicalUnit): Quantity<Int64>? {
 }
 
 /**
- * UInt64 物理量的单位转换
- * Unit conversion for UInt64 quantity
+ * UInt64 物理量的单位转换 / Unit conversion for UInt64 quantity
  *
- * 如果转换因子不是整数，返回 null。请使用 Flt64 进行精确转换。
- * Returns null if conversion factor is not an integer. Use Flt64 for accurate conversion.
+ * 如果转换因子不是整数，返回 null。请使用 Flt64 进行精确转换。 / Returns null if conversion factor is not an integer. Use Flt64 for accurate conversion.
  *
  * @param unit 目标单位 / Target unit
  * @return 转换后的物理量，或 null 如果无法转换 / Converted quantity, or null if conversion failed
@@ -890,11 +834,9 @@ fun Quantity<UInt64>.to(unit: PhysicalUnit): Quantity<UInt64>? {
 }
 
 /**
- * IntX 物理量的单位转换
- * Unit conversion for IntX quantity
+ * IntX 物理量的单位转换 / Unit conversion for IntX quantity
  *
- * 如果转换因子不是整数，返回 null。请使用 Flt64 进行精确转换。
- * Returns null if conversion factor is not an integer. Use Flt64 for accurate conversion.
+ * 如果转换因子不是整数，返回 null。请使用 Flt64 进行精确转换。 / Returns null if conversion factor is not an integer. Use Flt64 for accurate conversion.
  *
  * @param unit 目标单位 / Target unit
  * @return 转换后的物理量，或 null 如果无法转换 / Converted quantity, or null if conversion failed
@@ -922,8 +864,7 @@ fun Quantity<IntX>.to(unit: PhysicalUnit): Quantity<IntX>? {
 }
 
 /**
- * Flt64 物理量的单位转换
- * Unit conversion for Flt64 quantity
+ * Flt64 物理量的单位转换 / Unit conversion for Flt64 quantity
  *
  * 示例 / Example:
  * ```kotlin
@@ -952,8 +893,7 @@ fun Quantity<Flt64>.to(unit: PhysicalUnit): Quantity<Flt64>? {
 }
 
 /**
- * FltX 物理量的单位转换
- * Unit conversion for FltX quantity
+ * FltX 物理量的单位转换 / Unit conversion for FltX quantity
  *
  * @param unit 目标单位 / Target unit
  * @return 转换后的物理量，或 null 如果无法转换 / Converted quantity, or null if conversion failed
@@ -980,8 +920,7 @@ fun Quantity<FltX>.to(unit: PhysicalUnit): Quantity<FltX>? {
 // ============================================================================
 
 /**
- * 数值与单位的乘法运算符
- * Multiplication operator for number and unit
+ * 数值与单位的乘法运算符 / Multiplication operator for number and unit
  *
  * 示例 / Example:
  * ```kotlin
@@ -996,8 +935,7 @@ operator fun <V : Arithmetic<V>> V.times(unit: PhysicalUnit): Quantity<V> {
 }
 
 /**
- * Int 与单位的乘法运算符（转换为 Int64）
- * Multiplication operator for Int and unit (converts to Int64)
+ * Int 与单位的乘法运算符（转换为 Int64） / Multiplication operator for Int and unit (converts to Int64)
  *
  * 示例 / Example:
  * ```kotlin
@@ -1012,8 +950,7 @@ operator fun Int.times(unit: PhysicalUnit): Quantity<Int64> {
 }
 
 /**
- * UInt 与单位的乘法运算符（转换为 UInt64）
- * Multiplication operator for UInt and unit (converts to UInt64)
+ * UInt 与单位的乘法运算符（转换为 UInt64） / Multiplication operator for UInt and unit (converts to UInt64)
  *
  * @param unit 单位 / Unit
  * @return UInt64 物理量 / UInt64 quantity
@@ -1023,8 +960,7 @@ operator fun UInt.times(unit: PhysicalUnit): Quantity<UInt64> {
 }
 
 /**
- * BigInteger 与单位的乘法运算符（转换为 IntX）
- * Multiplication operator for BigInteger and unit (converts to IntX)
+ * BigInteger 与单位的乘法运算符（转换为 IntX） / Multiplication operator for BigInteger and unit (converts to IntX)
  *
  * @param unit 单位 / Unit
  * @return IntX 物理量 / IntX quantity
@@ -1034,8 +970,7 @@ operator fun BigInteger.times(unit: PhysicalUnit): Quantity<IntX> {
 }
 
 /**
- * Double 与单位的乘法运算符（转换为 Flt64）
- * Multiplication operator for Double and unit (converts to Flt64)
+ * Double 与单位的乘法运算符（转换为 Flt64） / Multiplication operator for Double and unit (converts to Flt64)
  *
  * 示例 / Example:
  * ```kotlin
@@ -1050,8 +985,7 @@ operator fun Double.times(unit: PhysicalUnit): Quantity<Flt64> {
 }
 
 /**
- * BigDecimal 与单位的乘法运算符（转换为 FltX）
- * Multiplication operator for BigDecimal and unit (converts to FltX)
+ * BigDecimal 与单位的乘法运算符（转换为 FltX） / Multiplication operator for BigDecimal and unit (converts to FltX)
  *
  * @param unit 单位 / Unit
  * @return FltX 物理量 / FltX quantity
@@ -1068,8 +1002,7 @@ operator fun BigDecimal.times(unit: PhysicalUnit): Quantity<FltX> {
 // ============================================================================
 
 /**
- * Int64 物理量的加法
- * Addition for Int64 quantities
+ * Int64 物理量的加法 / Addition for Int64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
@@ -1080,8 +1013,7 @@ operator fun Quantity<Int64>.plus(other: Quantity<Int64>): Quantity<Int64>? {
 }
 
 /**
- * Int64 物理量的安全加法
- * Safe addition for Int64 quantities
+ * Int64 物理量的安全加法 / Safe addition for Int64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量结果 / Sum quantity result
@@ -1092,8 +1024,7 @@ fun Quantity<Int64>.plusSafe(other: Quantity<Int64>): Ret<Quantity<Int64>> {
 }
 
 /**
- * Int64 物理量的可空加法
- * Nullable addition for Int64 quantities
+ * Int64 物理量的可空加法 / Nullable addition for Int64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
@@ -1104,8 +1035,7 @@ fun Quantity<Int64>.plusOrNull(other: Quantity<Int64>): Quantity<Int64>? {
 }
 
 /**
- * UInt64 物理量的加法
- * Addition for UInt64 quantities
+ * UInt64 物理量的加法 / Addition for UInt64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
@@ -1116,8 +1046,7 @@ operator fun Quantity<UInt64>.plus(other: Quantity<UInt64>): Quantity<UInt64>? {
 }
 
 /**
- * UInt64 物理量的安全加法
- * Safe addition for UInt64 quantities
+ * UInt64 物理量的安全加法 / Safe addition for UInt64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量结果 / Sum quantity result
@@ -1128,8 +1057,7 @@ fun Quantity<UInt64>.plusSafe(other: Quantity<UInt64>): Ret<Quantity<UInt64>> {
 }
 
 /**
- * UInt64 物理量的可空加法
- * Nullable addition for UInt64 quantities
+ * UInt64 物理量的可空加法 / Nullable addition for UInt64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
@@ -1140,8 +1068,7 @@ fun Quantity<UInt64>.plusOrNull(other: Quantity<UInt64>): Quantity<UInt64>? {
 }
 
 /**
- * IntX 物理量的加法
- * Addition for IntX quantities
+ * IntX 物理量的加法 / Addition for IntX quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
@@ -1152,8 +1079,7 @@ operator fun Quantity<IntX>.plus(other: Quantity<IntX>): Quantity<IntX>? {
 }
 
 /**
- * IntX 物理量的安全加法
- * Safe addition for IntX quantities
+ * IntX 物理量的安全加法 / Safe addition for IntX quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量结果 / Sum quantity result
@@ -1164,8 +1090,7 @@ fun Quantity<IntX>.plusSafe(other: Quantity<IntX>): Ret<Quantity<IntX>> {
 }
 
 /**
- * IntX 物理量的可空加法
- * Nullable addition for IntX quantities
+ * IntX 物理量的可空加法 / Nullable addition for IntX quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
@@ -1176,8 +1101,7 @@ fun Quantity<IntX>.plusOrNull(other: Quantity<IntX>): Quantity<IntX>? {
 }
 
 /**
- * Flt64 物理量的加法
- * Addition for Flt64 quantities
+ * Flt64 物理量的加法 / Addition for Flt64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
@@ -1188,8 +1112,7 @@ operator fun Quantity<Flt64>.plus(other: Quantity<Flt64>): Quantity<Flt64>? {
 }
 
 /**
- * Flt64 物理量的安全加法
- * Safe addition for Flt64 quantities
+ * Flt64 物理量的安全加法 / Safe addition for Flt64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量结果 / Sum quantity result
@@ -1200,8 +1123,7 @@ fun Quantity<Flt64>.plusSafe(other: Quantity<Flt64>): Ret<Quantity<Flt64>> {
 }
 
 /**
- * Flt64 物理量的可空加法
- * Nullable addition for Flt64 quantities
+ * Flt64 物理量的可空加法 / Nullable addition for Flt64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
@@ -1216,8 +1138,7 @@ fun Quantity<Flt64>.plusOrNull(other: Quantity<Flt64>): Quantity<Flt64>? {
 }
 
 /**
- * FltX 物理量的加法
- * Addition for FltX quantities
+ * FltX 物理量的加法 / Addition for FltX quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
@@ -1228,8 +1149,7 @@ operator fun Quantity<FltX>.plus(other: Quantity<FltX>): Quantity<FltX>? {
 }
 
 /**
- * FltX 物理量的安全加法
- * Safe addition for FltX quantities
+ * FltX 物理量的安全加法 / Safe addition for FltX quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量结果 / Sum quantity result
@@ -1240,8 +1160,7 @@ fun Quantity<FltX>.plusSafe(other: Quantity<FltX>): Ret<Quantity<FltX>> {
 }
 
 /**
- * FltX 物理量的可空加法
- * Nullable addition for FltX quantities
+ * FltX 物理量的可空加法 / Nullable addition for FltX quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
@@ -1260,8 +1179,7 @@ fun Quantity<FltX>.plusOrNull(other: Quantity<FltX>): Quantity<FltX>? {
 // ============================================================================
 
 /**
- * Int64 物理量的减法
- * Subtraction for Int64 quantities
+ * Int64 物理量的减法 / Subtraction for Int64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
@@ -1272,8 +1190,7 @@ operator fun Quantity<Int64>.minus(other: Quantity<Int64>): Quantity<Int64>? {
 }
 
 /**
- * Int64 物理量的安全减法
- * Safe subtraction for Int64 quantities
+ * Int64 物理量的安全减法 / Safe subtraction for Int64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量结果 / Difference quantity result
@@ -1284,8 +1201,7 @@ fun Quantity<Int64>.minusSafe(other: Quantity<Int64>): Ret<Quantity<Int64>> {
 }
 
 /**
- * Int64 物理量的可空减法
- * Nullable subtraction for Int64 quantities
+ * Int64 物理量的可空减法 / Nullable subtraction for Int64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
@@ -1296,8 +1212,7 @@ fun Quantity<Int64>.minusOrNull(other: Quantity<Int64>): Quantity<Int64>? {
 }
 
 /**
- * UInt64 物理量的减法
- * Subtraction for UInt64 quantities
+ * UInt64 物理量的减法 / Subtraction for UInt64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
@@ -1308,8 +1223,7 @@ operator fun Quantity<UInt64>.minus(other: Quantity<UInt64>): Quantity<UInt64>? 
 }
 
 /**
- * UInt64 物理量的安全减法
- * Safe subtraction for UInt64 quantities
+ * UInt64 物理量的安全减法 / Safe subtraction for UInt64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量结果 / Difference quantity result
@@ -1320,8 +1234,7 @@ fun Quantity<UInt64>.minusSafe(other: Quantity<UInt64>): Ret<Quantity<UInt64>> {
 }
 
 /**
- * UInt64 物理量的可空减法
- * Nullable subtraction for UInt64 quantities
+ * UInt64 物理量的可空减法 / Nullable subtraction for UInt64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
@@ -1332,8 +1245,7 @@ fun Quantity<UInt64>.minusOrNull(other: Quantity<UInt64>): Quantity<UInt64>? {
 }
 
 /**
- * IntX 物理量的减法
- * Subtraction for IntX quantities
+ * IntX 物理量的减法 / Subtraction for IntX quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
@@ -1344,8 +1256,7 @@ operator fun Quantity<IntX>.minus(other: Quantity<IntX>): Quantity<IntX>? {
 }
 
 /**
- * IntX 物理量的安全减法
- * Safe subtraction for IntX quantities
+ * IntX 物理量的安全减法 / Safe subtraction for IntX quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量结果 / Difference quantity result
@@ -1356,8 +1267,7 @@ fun Quantity<IntX>.minusSafe(other: Quantity<IntX>): Ret<Quantity<IntX>> {
 }
 
 /**
- * IntX 物理量的可空减法
- * Nullable subtraction for IntX quantities
+ * IntX 物理量的可空减法 / Nullable subtraction for IntX quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
@@ -1368,8 +1278,7 @@ fun Quantity<IntX>.minusOrNull(other: Quantity<IntX>): Quantity<IntX>? {
 }
 
 /**
- * Flt64 物理量的减法
- * Subtraction for Flt64 quantities
+ * Flt64 物理量的减法 / Subtraction for Flt64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
@@ -1380,8 +1289,7 @@ operator fun Quantity<Flt64>.minus(other: Quantity<Flt64>): Quantity<Flt64>? {
 }
 
 /**
- * Flt64 物理量的安全减法
- * Safe subtraction for Flt64 quantities
+ * Flt64 物理量的安全减法 / Safe subtraction for Flt64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量结果 / Difference quantity result
@@ -1392,8 +1300,7 @@ fun Quantity<Flt64>.minusSafe(other: Quantity<Flt64>): Ret<Quantity<Flt64>> {
 }
 
 /**
- * Flt64 物理量的可空减法
- * Nullable subtraction for Flt64 quantities
+ * Flt64 物理量的可空减法 / Nullable subtraction for Flt64 quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
@@ -1408,8 +1315,7 @@ fun Quantity<Flt64>.minusOrNull(other: Quantity<Flt64>): Quantity<Flt64>? {
 }
 
 /**
- * FltX 物理量的减法
- * Subtraction for FltX quantities
+ * FltX 物理量的减法 / Subtraction for FltX quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
@@ -1420,8 +1326,7 @@ operator fun Quantity<FltX>.minus(other: Quantity<FltX>): Quantity<FltX>? {
 }
 
 /**
- * FltX 物理量的安全减法
- * Safe subtraction for FltX quantities
+ * FltX 物理量的安全减法 / Safe subtraction for FltX quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量结果 / Difference quantity result
@@ -1432,8 +1337,7 @@ fun Quantity<FltX>.minusSafe(other: Quantity<FltX>): Ret<Quantity<FltX>> {
 }
 
 /**
- * FltX 物理量的可空减法
- * Nullable subtraction for FltX quantities
+ * FltX 物理量的可空减法 / Nullable subtraction for FltX quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
@@ -1454,11 +1358,9 @@ fun Quantity<FltX>.minusOrNull(other: Quantity<FltX>): Quantity<FltX>? {
 // ============================================================================
 
 /**
- * 物理量之间的乘法
- * Multiplication between quantities
+ * 物理量之间的乘法 / Multiplication between quantities
  *
- * 不同量纲相乘，产生新的量纲。
- * Multiplying different dimensions produces a new dimension.
+ * 不同量纲相乘，产生新的量纲。 / Multiplying different dimensions produces a new dimension.
  *
  * 示例 / Example:
  * ```kotlin
@@ -1475,8 +1377,7 @@ operator fun <V> Quantity<V>.times(other: Quantity<V>): Quantity<V>? where V : A
 }
 
 /**
- * 物理量之间的安全乘法
- * Safe multiplication between quantities
+ * 物理量之间的安全乘法 / Safe multiplication between quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相乘后的物理量结果 / Product quantity result
@@ -1491,8 +1392,7 @@ fun <V> Quantity<V>.timesSafe(other: Quantity<V>): Ret<Quantity<V>> where V : Ar
 }
 
 /**
- * 物理量之间的可空乘法
- * Nullable multiplication between quantities
+ * 物理量之间的可空乘法 / Nullable multiplication between quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相乘后的物理量，失败时返回 null / Product quantity, or null on failure
@@ -1505,8 +1405,7 @@ fun <V> Quantity<V>.timesOrNull(other: Quantity<V>): Quantity<V>? where V : Arit
 }
 
 /**
- * 物理量与标量的乘法
- * Multiplication between quantity and scalar
+ * 物理量与标量的乘法 / Multiplication between quantity and scalar
  *
  * @param other 标量值 / Scalar value
  * @return 相乘后的物理量，失败时返回 null / Product quantity, or null on failure
@@ -1516,8 +1415,7 @@ operator fun <V> Quantity<V>.times(other: V): Quantity<V>? where V : Arithmetic<
 }
 
 /**
- * 物理量与标量的安全乘法
- * Safe multiplication between quantity and scalar
+ * 物理量与标量的安全乘法 / Safe multiplication between quantity and scalar
  *
  * @param other 标量值 / Scalar value
  * @return 相乘后的物理量结果 / Product quantity result
@@ -1531,8 +1429,7 @@ fun <V> Quantity<V>.timesSafe(other: V): Ret<Quantity<V>> where V : Arithmetic<V
 }
 
 /**
- * 物理量与标量的可空乘法
- * Nullable multiplication between quantity and scalar
+ * 物理量与标量的可空乘法 / Nullable multiplication between quantity and scalar
  *
  * @param other 标量值 / Scalar value
  * @return 相乘后的物理量，失败时返回 null / Product quantity, or null on failure
@@ -1543,8 +1440,7 @@ fun <V> Quantity<V>.timesOrNull(other: V): Quantity<V>? where V : Arithmetic<V>,
 }
 
 /**
- * 标量与物理量的乘法
- * Multiplication between scalar and quantity
+ * 标量与物理量的乘法 / Multiplication between scalar and quantity
  *
  * @param other 物理量 / Quantity
  * @return 相乘后的物理量，失败时返回 null / Product quantity, or null on failure
@@ -1554,8 +1450,7 @@ operator fun <V> V.times(other: Quantity<V>): Quantity<V>? where V : Arithmetic<
 }
 
 /**
- * 标量与物理量的安全乘法
- * Safe multiplication between scalar and quantity
+ * 标量与物理量的安全乘法 / Safe multiplication between scalar and quantity
  *
  * @param other 物理量 / Quantity
  * @return 相乘后的物理量结果 / Product quantity result
@@ -1569,8 +1464,7 @@ fun <V> V.timesSafe(other: Quantity<V>): Ret<Quantity<V>> where V : Arithmetic<V
 }
 
 /**
- * 标量与物理量的可空乘法
- * Nullable multiplication between scalar and quantity
+ * 标量与物理量的可空乘法 / Nullable multiplication between scalar and quantity
  *
  * @param other 物理量 / Quantity
  * @return 相乘后的物理量，失败时返回 null / Product quantity, or null on failure
@@ -1587,11 +1481,9 @@ fun <V> V.timesOrNull(other: Quantity<V>): Quantity<V>? where V : Arithmetic<V>,
 // ============================================================================
 
 /**
- * 物理量之间的除法
- * Division between quantities
+ * 物理量之间的除法 / Division between quantities
  *
- * 不同量纲相除，产生新的量纲。
- * Dividing different dimensions produces a new dimension.
+ * 不同量纲相除，产生新的量纲。 / Dividing different dimensions produces a new dimension.
  *
  * 示例 / Example:
  * ```kotlin
@@ -1608,8 +1500,7 @@ operator fun <V> Quantity<V>.div(other: Quantity<V>): Quantity<V>? where V : Ari
 }
 
 /**
- * 物理量之间的安全除法
- * Safe division between quantities
+ * 物理量之间的安全除法 / Safe division between quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相除后的物理量结果 / Quotient quantity result
@@ -1624,8 +1515,7 @@ fun <V> Quantity<V>.divSafe(other: Quantity<V>): Ret<Quantity<V>> where V : Arit
 }
 
 /**
- * 物理量之间的可空除法
- * Nullable division between quantities
+ * 物理量之间的可空除法 / Nullable division between quantities
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相除后的物理量，失败时返回 null / Quotient quantity, or null on failure
@@ -1638,8 +1528,7 @@ fun <V> Quantity<V>.divOrNull(other: Quantity<V>): Quantity<V>? where V : Arithm
 }
 
 /**
- * 物理量与标量的除法
- * Division between quantity and scalar
+ * 物理量与标量的除法 / Division between quantity and scalar
  *
  * @param other 标量值 / Scalar value
  * @return 相除后的物理量，失败时返回 null / Quotient quantity, or null on failure
@@ -1649,8 +1538,7 @@ operator fun <V> Quantity<V>.div(other: V): Quantity<V>? where V : Arithmetic<V>
 }
 
 /**
- * 物理量与标量的安全除法
- * Safe division between quantity and scalar
+ * 物理量与标量的安全除法 / Safe division between quantity and scalar
  *
  * @param other 标量值 / Scalar value
  * @return 相除后的物理量结果 / Quotient quantity result
@@ -1664,8 +1552,7 @@ fun <V> Quantity<V>.divSafe(other: V): Ret<Quantity<V>> where V : Arithmetic<V>,
 }
 
 /**
- * 物理量与标量的可空除法
- * Nullable division between quantity and scalar
+ * 物理量与标量的可空除法 / Nullable division between quantity and scalar
  *
  * @param other 标量值 / Scalar value
  * @return 相除后的物理量，失败时返回 null / Quotient quantity, or null on failure
@@ -1676,11 +1563,9 @@ fun <V> Quantity<V>.divOrNull(other: V): Quantity<V>? where V : Arithmetic<V>, V
 }
 
 /**
- * 标量与物理量的除法
- * Division between scalar and quantity
+ * 标量与物理量的除法 / Division between scalar and quantity
  *
- * 结果物理量的单位为原单位的倒数。
- * Result quantity's unit is the reciprocal of the original unit.
+ * 结果物理量的单位为原单位的倒数。 / Result quantity's unit is the reciprocal of the original unit.
  *
  * @param other 物理量 / Quantity
  * @return 相除后的物理量，失败时返回 null / Quotient quantity, or null on failure
@@ -1690,8 +1575,7 @@ operator fun <V> V.div(other: Quantity<V>): Quantity<V>? where V : Arithmetic<V>
 }
 
 /**
- * 标量与物理量的安全除法
- * Safe division between scalar and quantity
+ * 标量与物理量的安全除法 / Safe division between scalar and quantity
  *
  * @param other 物理量 / Quantity
  * @return 相除后的物理量结果 / Quotient quantity result
@@ -1705,11 +1589,9 @@ fun <V> V.divSafe(other: Quantity<V>): Ret<Quantity<V>> where V : Arithmetic<V>,
 }
 
 /**
- * 标量与物理量的可空除法
- * Nullable division between scalar and quantity
+ * 标量与物理量的可空除法 / Nullable division between scalar and quantity
  *
- * 结果物理量的单位为原单位的倒数。
- * Result quantity's unit is the reciprocal of the original unit.
+ * 结果物理量的单位为原单位的倒数。 / Result quantity's unit is the reciprocal of the original unit.
  *
  * @param other 物理量 / Quantity
  * @return 相除后的物理量，失败时返回 null / Quotient quantity, or null on failure
@@ -1724,8 +1606,7 @@ fun <V> V.divOrNull(other: Quantity<V>): Quantity<V>? where V : Arithmetic<V>, V
 // ============================================================================
 
 /**
- * 物理量的负号运算
- * Negation of quantity
+ * 物理量的负号运算 / Negation of quantity
  *
  * @return 负值物理量，失败时返回 null / Negated quantity, or null on failure
 */
@@ -1734,8 +1615,7 @@ operator fun <V> Quantity<V>.unaryMinus(): Quantity<V>? where V : Arithmetic<V>,
 }
 
 /**
- * 物理量的安全负号运算
- * Safe negation of quantity
+ * 物理量的安全负号运算 / Safe negation of quantity
  *
  * @return 负值物理量结果 / Negated quantity result
 */
@@ -1748,8 +1628,7 @@ fun <V> Quantity<V>.unaryMinusSafe(): Ret<Quantity<V>> where V : Arithmetic<V>, 
 }
 
 /**
- * 物理量的可空负号运算
- * Nullable negation of quantity
+ * 物理量的可空负号运算 / Nullable negation of quantity
  *
  * @return 负值物理量，失败时返回 null / Negated quantity, or null on failure
 */
@@ -1763,8 +1642,7 @@ fun <V> Quantity<V>.unaryMinusOrNull(): Quantity<V>? where V : Arithmetic<V>, V 
 // ============================================================================
 
 /**
- * 转换到另一个单位（带错误处理）
- * Convert to another unit (with error handling)
+ * 转换到另一个单位（带错误处理） / Convert to another unit (with error handling)
  *
  * 示例 / Example:
  * ```kotlin
@@ -1787,8 +1665,7 @@ fun <V> Quantity<V>.convertTo(unit: PhysicalUnit): Quantity<V>? {
 }
 
 /**
- * 转换到标准单位
- * Convert to standard unit
+ * 转换到标准单位 / Convert to standard unit
  *
  * 示例 / Example:
  * ```kotlin
@@ -1812,8 +1689,7 @@ fun <V> Quantity<V>.toStandardUnit(system: UnitSystem): Quantity<V>? {
 // ============================================================================
 
 /**
- * 映射值类型
- * Map value type
+ * 映射值类型 / Map value type
  *
  * 示例 / Example:
  * ```kotlin
@@ -1829,8 +1705,7 @@ fun <V, U> Quantity<V>.mapValue(f: (V) -> U): Quantity<U> {
 }
 
 /**
- * 尝试映射值类型
- * Try to map value type
+ * 尝试映射值类型 / Try to map value type
  *
  * 示例 / Example:
  * ```kotlin

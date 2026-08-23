@@ -1,6 +1,5 @@
 /**
- * 池田映射（2D 版本）
- * Ikeda Map (2D version)
+ * 池田映射（2D 版本） / Ikeda Map (2D version)
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -39,8 +38,7 @@ data class IkedaMap<V : FloatingNumber<V>>(val u: V, val t0: V, val t1: V) : Ext
 }
 
 /**
- * 池田映射生成器
- * Ikeda Map Generator
+ * 池田映射生成器 / Ikeda Map Generator
 */
 data class IkedaMapGenerator(
     val map: IkedaMap<Flt64> = IkedaMap(),

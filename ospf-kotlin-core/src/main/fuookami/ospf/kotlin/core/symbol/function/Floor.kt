@@ -24,11 +24,9 @@ import fuookami.ospf.kotlin.utils.functional.*
 */
 
 /**
- * 向下取整函数：y = floor(x)。
- * Floor function: y = floor(x).
+ * 向下取整函数：y = floor(x)。 / Floor function: y = floor(x).
  *
- * 使用整数变量 k = floor(x)，并用 k <= x < k+1 的线性约束近似严格上界。
- * Uses integer variable k = floor(x), with linear constraints for k <= x < k+1.
+ * 使用整数变量 k = floor(x)，并用 k <= x < k+1 的线性约束近似严格上界。 / Uses integer variable k = floor(x), with linear constraints for k <= x < k+1.
  *
  * @property x 输入线性多项式 / Input linear polynomial
  * @property kVar 整数变量 / Integer variable

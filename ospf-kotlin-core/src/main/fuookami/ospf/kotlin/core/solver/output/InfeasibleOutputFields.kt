@@ -7,8 +7,7 @@ import kotlin.time.Duration
 import fuookami.ospf.kotlin.math.algebra.number.*
 
 /**
- * 不可行求解输出的统一字段，用于从求解状态中提取信息。
- * Unified fields for infeasible solver output, used to extract information from solving status.
+ * 不可行求解输出的统一字段，用于从求解状态中提取信息。 / Unified fields for infeasible solver output, used to extract information from solving status.
  *
  * @property iterations 迭代次数（可选）/ Iteration count (optional)
  * @property nodeCount 节点数（可选）/ Node count (optional)
@@ -25,8 +24,7 @@ data class InfeasibleUnifiedFields(
 )
 
 /**
- * 从求解状态中解析不可行统一字段。
- * Resolve infeasible unified fields from solving status.
+ * 从求解状态中解析不可行统一字段。 / Resolve infeasible unified fields from solving status.
  *
  * @param latestStatus 最新求解状态（可选）/ Latest solving status (optional)
  * @param fallbackSolveTime 回退求解时间 / Fallback solve time

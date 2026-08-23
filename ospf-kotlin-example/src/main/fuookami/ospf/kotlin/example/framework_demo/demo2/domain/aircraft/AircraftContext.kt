@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.service.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
@@ -15,22 +16,22 @@ class AircraftContext {
      * Initialize aggregation with input data.
      * 使用输入数据初始化聚合。
      *
-     * @param input The request input data. / 请求输入数据
-     * @return The result of the operation. / 操作结果
+     * @param input 请求输入数据 / The request input data.
+     * @return 操作结果 / The result of the operation.
     */
     fun init(
         input: RequestDTO
     ): Try {
         when (val result = AggregationInitializer(input)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Ok -> {
                 aggregation = result.value!!
             }
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -42,8 +43,8 @@ class AircraftContext {
      * Export loading orders.
      * 导出装载顺序。
      *
-     * @param input The request input data. / 请求输入数据
-     * @return The loading order response. / 装载顺序响应
+     * @param input 请求输入数据 / The request input data.
+     * @return 装载顺序响应 / The loading order response.
     */
     fun exportLoadingOrders(
         input: RequestDTO

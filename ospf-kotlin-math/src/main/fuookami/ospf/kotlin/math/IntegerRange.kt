@@ -1,9 +1,7 @@
 /**
- * 整数区间
- * Integer Range
+ * 整数区间 / Integer Range
  *
- * 为任意整数类型提供可迭代的区间实现，支持指定步长的正向和反向迭代。
- * Provides iterable range implementation for arbitrary integer types, supporting forward and backward iteration with specified steps.
+ * 为任意整数类型提供可迭代的区间实现，支持指定步长的正向和反向迭代。 / Provides iterable range implementation for arbitrary integer types, supporting forward and backward iteration with specified steps.
 */
 package fuookami.ospf.kotlin.math
 
@@ -16,8 +14,7 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
- * 获取区间的最后一个元素
- * Get the last element of the progression
+ * 获取区间的最后一个元素 / Get the last element of the progression
  *
  * @param start 起始值
  * @param end 结束值
@@ -45,8 +42,7 @@ private fun <I> getProgressionLastElementOrNull(
 }
 
 /**
- * 整数迭代器
- * Integer iterator
+ * 整数迭代器 / Integer iterator
  *
  * @param I 整数类型
 */
@@ -88,11 +84,9 @@ internal class IntegerIterator<I>(
 }
 
 /**
- * 整数区间
- * Integer range
+ * 整数区间 / Integer range
  *
- * 表示一个可迭代的整数区间，支持指定步长的正向和反向遍历。
- * Represents an iterable integer range, supporting forward and backward traversal with specified steps.
+ * 表示一个可迭代的整数区间，支持指定步长的正向和反向遍历。 / Represents an iterable integer range, supporting forward and backward traversal with specified steps.
  *
  * @param I 整数类型
  * @property start 起始值
@@ -119,8 +113,7 @@ class IntegerRange<I>(
     }
 
     /**
-     * 指定步长
-     * Specify step size
+     * 指定步长 / Specify step size
      *
      * @param step 步长值 / Step size value
      * @return 指定步长后的新区间 / New range with specified step size
@@ -135,8 +128,7 @@ class IntegerRange<I>(
     }
 
     /**
-     * 指定步长，非法步长返回失败
-     * Specify step size, returning failure for invalid steps
+     * 指定步长，非法步长返回失败 / Specify step size, returning failure for invalid steps
      *
      * @param step 步长值 / Step size value
      * @return 指定步长后的新区间结果 / Result of new range with specified step size
@@ -157,8 +149,7 @@ class IntegerRange<I>(
     }
 
     /**
-     * 指定步长，非法步长返回 null
-     * Specify step size, returning null for invalid steps
+     * 指定步长，非法步长返回 null / Specify step size, returning null for invalid steps
      *
      * @param step 步长值 / Step size value
      * @return 指定步长后的新区间或 null / New range with specified step size, or null
@@ -221,8 +212,7 @@ class IntegerRange<I>(
 }
 
 /**
- * 数值整数迭代器
- * Numeric integer iterator
+ * 数值整数迭代器 / Numeric integer iterator
  *
  * @param NI 数值整数类型
  * @param I 整数类型
@@ -251,11 +241,9 @@ internal class NumericIntegerIterator<NI, I>(
 }
 
 /**
- * 数值无符号整数区间
- * Numeric unsigned integer range
+ * 数值无符号整数区间 / Numeric unsigned integer range
  *
- * 表示一个可迭代的无符号整数区间，支持指定步长的正向遍历。
- * Represents an iterable unsigned integer range, supporting forward traversal with specified steps.
+ * 表示一个可迭代的无符号整数区间，支持指定步长的正向遍历。 / Represents an iterable unsigned integer range, supporting forward traversal with specified steps.
  *
  * @param NI 数值整数类型
  * @param I 整数类型
@@ -285,8 +273,7 @@ class NumericUIntegerRange<NI, I>(
     }
 
     /**
-     * 指定步长
-     * Specify step size
+     * 指定步长 / Specify step size
      *
      * @param step 步长值 / Step size value
      * @return 指定步长后的新区间 / New range with specified step size
@@ -303,8 +290,7 @@ class NumericUIntegerRange<NI, I>(
     }
 
     /**
-     * 指定步长，非法步长返回失败
-     * Specify step size, returning failure for invalid steps
+     * 指定步长，非法步长返回失败 / Specify step size, returning failure for invalid steps
      *
      * @param step 步长值 / Step size value
      * @return 指定步长后的新区间结果 / Result of new range with specified step size
@@ -328,8 +314,7 @@ class NumericUIntegerRange<NI, I>(
     }
 
     /**
-     * 指定步长，非法步长返回 null
-     * Specify step size, returning null for invalid steps
+     * 指定步长，非法步长返回 null / Specify step size, returning null for invalid steps
      *
      * @param step 步长值 / Step size value
      * @return 指定步长后的新区间或 null / New range with specified step size, or null

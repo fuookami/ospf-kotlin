@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.*
@@ -30,9 +31,9 @@ class Stowage(
      * Checks whether stowage is needed for the given item-position pair.
      * 检查给定货物-舱位对是否需要装载决策。
      *
-     * @param item the cargo item / 货物
-     * @param position the stowage position / 舱位
-     * @return true if stowage is needed / 是否需要装载决策
+     * @param item 货物 / the cargo item
+     * @param position 舱位 / the stowage position
+     * @return 是否需要装载决策 / true if stowage is needed
     */
     fun stowageNeeded(item: Item, position: Position): Boolean {
             return item.status.stowageNeeded && position.status.stowageNeeded && position.enabled(item).ok
@@ -42,9 +43,9 @@ class Stowage(
      * Checks whether adjustment is needed for the given item-position pair.
      * 检查给定货物-舱位对是否需要调整决策。
      *
-     * @param item the cargo item / 货物
-     * @param position the stowage position / 舱位
-     * @return true if adjustment is needed / 是否需要调整决策
+     * @param item 货物 / the cargo item
+     * @param position 舱位 / the stowage position
+     * @return 是否需要调整决策 / true if adjustment is needed
     */
     fun adjustmentNeeded(item: Item, position: Position): Boolean {
             if (!item.status.adjustmentNeeded) {
@@ -71,8 +72,8 @@ class Stowage(
      * Registers all stowage variables and intermediate symbols into the model.
      * 将所有装载变量和中间符号注册到模型中。
      *
-     * @param model the linear meta-model to register into / 要注册到的线性元模型
-     * @return success or failure / 成功或失败
+     * @param model 要注册到的线性元模型 / the linear meta-model to register into
+     * @return 成功或失败 / success or failure
     */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
@@ -94,13 +95,13 @@ class Stowage(
             for ((j, position) in positions.withIndex()) {
                 if (stowageNeeded(item, position)) {
                     when (val result = model.add(x[i, j])) {
-                        is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                        is Ok -> {}
 
-                        is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                        is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
                     }
@@ -123,13 +124,13 @@ class Stowage(
             for ((j, position) in positions.withIndex()) {
                 if (adjustmentNeeded(item, position)) {
                     when (val result = model.add(u[i, j])) {
-                        is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                        is Ok -> {}
 
-                        is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                        is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
                     }
@@ -141,12 +142,12 @@ class Stowage(
             stowage = LinearIntermediateSymbols2<Flt64>("stowage", Shape2(items.size, positions.size)) { _, v ->
                 val item = items[v[0]]
                 val position = positions[v[1]]
-                val poly = MutableLinearPolynomial()
+                var poly = LinearPolynomial()
                 if (stowageNeeded(item, position)) {
-                    poly += LinearMonomial(Flt64.one, x[v])
+                    poly += x[v]
                 }
                 if (adjustmentNeeded(item, position)) {
-                    poly += LinearMonomial(Flt64.one, this.u[v])
+                    poly += this.u[v]
                 }
                 if (position.loadedItems.contains(item)) {
                     poly += Flt64.one
@@ -171,13 +172,13 @@ class Stowage(
             }
         }
         when (val result = model.add(stowage)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
@@ -209,13 +210,13 @@ class Stowage(
             }
         }
         when (val result = model.add(loaded)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }

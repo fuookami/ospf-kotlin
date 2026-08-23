@@ -53,7 +53,7 @@ abstract class CoptSolver : AutoCloseable {
             config.set(COPT.Client.Port, port.toString())
             config.set(COPT.Client.Password, password)
             config.set(COPT.Client.WaitTime, connectionTime.toInt(DurationUnit.SECONDS).toString())
-            when (val callbackResult = executeCreatingEnvironmentCallback(config, callBack)) {
+            when (val callbackResult = executeCreatingEnvironmentCallback(config, callBack?.let { it::invoke })) {
                 is Failed -> return callbackResult
                 is Fatal -> return callbackResult
                 else -> {}
@@ -81,7 +81,7 @@ abstract class CoptSolver : AutoCloseable {
     ): Try {
         return try {
             val config = EnvrConfig()
-            when (val callbackResult = executeCreatingEnvironmentCallback(config, callBack)) {
+            when (val callbackResult = executeCreatingEnvironmentCallback(config, callBack?.let { it::invoke })) {
                 is Failed -> return callbackResult
                 is Fatal -> return callbackResult
                 else -> {}

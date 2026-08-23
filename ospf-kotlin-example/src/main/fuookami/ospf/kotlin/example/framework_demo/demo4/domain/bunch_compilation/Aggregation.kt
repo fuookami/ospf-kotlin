@@ -21,12 +21,12 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
  * 束编译聚合，组合任务时间、流、机队平衡、航班连接和航班容量约束用于列生成过程。/ Aggregation for bunch compilation combining task time, flow, fleet balance,
  * flight link, and flight capacity constraints for the column generation process.
  *
- * @property timeWindow Time window for the scheduling period / 调度周期的时间窗口
- * @property recoveryNeededAircrafts Aircrafts that require recovery / 需要恢复的飞机列表
- * @property recoveryNeededFlightTasks Flight tasks that require recovery / 需要恢复的航班任务列表
- * @property originBunches Original flight task bunches / 原始航班任务束列表
- * @property flows Flow control resources / 流量控制资源列表
- * @property links Link map for flight connections / 航班连接映射
+ * @property timeWindow 调度周期的时间窗口 / Time window for the scheduling period
+ * @property recoveryNeededAircrafts 需要恢复的飞机列表 / Aircrafts that require recovery
+ * @property recoveryNeededFlightTasks 需要恢复的航班任务列表 / Flight tasks that require recovery
+ * @property originBunches 原始航班任务束列表 / Original flight task bunches
+ * @property flows 流量控制资源列表 / Flow control resources
+ * @property links 航班连接映射 / Link map for flight connections
 */
 class Aggregation(
     timeWindow: TimeWindow<*>,
@@ -83,8 +83,8 @@ class Aggregation(
     /**
      * 向模型注册所有子聚合组件。/ Registers all sub-aggregation components with the model.
      *
-     * @param model The optimization model to register with / 要注册的优化模型
-     * @return Success or failure / 成功或失败
+     * @param model 要注册的优化模型 / The optimization model to register with
+     * @return 成功或失败 / Success or failure
     */
     override fun register(model: MetaModel<Flt64>): Try {
         model as AbstractLinearMetaModel<Flt64>
@@ -167,10 +167,10 @@ class Aggregation(
     /**
      * 向所有子聚合组件添加新束的列。/ Adds columns for new bunches to all sub-aggregation components.
      *
-     * @param iteration The current column generation iteration / 当前列生成迭代次数
-     * @param newBunches New flight task bunches to add columns for / 要添加列的新航班任务束
-     * @param model The optimization model / 优化模型
-     * @return The unduplicated bunches, or an error / 去重后的束列表，或错误
+     * @param iteration 当前列生成迭代次数 / The current column generation iteration
+     * @param newBunches 要添加列的新航班任务束 / New flight task bunches to add columns for
+     * @param model 优化模型 / The optimization model
+     * @return 去重后的束列表，或错误 / The unduplicated bunches, or an error
     */
     override suspend fun addColumns(
         iteration: UInt64,

@@ -1,9 +1,7 @@
 /**
- * SQL 类型扩展
- * SQL Type Extensions
+ * SQL 类型扩展 / SQL Type Extensions
  *
- * 为 Ktorm 表定义提供自定义数值和日期类型映射。
- * Provides custom numeric and date type mappings for Ktorm table definitions.
+ * 为 Ktorm 表定义提供自定义数值和日期类型映射。 / Provides custom numeric and date type mappings for Ktorm table definitions.
 */
 package fuookami.ospf.kotlin.framework.persistence
 
@@ -19,94 +17,110 @@ import org.ktorm.schema.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 
 /**
- * 定义 UInt32 类型列
- * Define UInt32 type column
+ * 定义 UInt32 类型列 / Define UInt32 type column
  *
  * @param name 列名 / Column name
  * @return UInt32 类型的列 / Column of UInt32 type
 */
 fun BaseTable<*>.ui32(name: String): Column<UInt32> {
-    return int(name).transform({ UInt32(it.toUInt()) }, { it.toInt() })
+    return int(name).transform(
+        { UInt32(it.toUInt()) },
+        { it.toInt() }
+    )
 }
 
 /**
- * 定义 Int32 类型列
- * Define Int32 type column
+ * 定义 Int32 类型列 / Define Int32 type column
  *
  * @param name 列名 / Column name
  * @return Int32 类型的列 / Column of Int32 type
 */
 fun BaseTable<*>.i32(name: String): Column<Int32> {
-    return int(name).transform({ Int32(it) }, { it.toInt() })
+    return int(name).transform(
+        { Int32(it) },
+        { it.toInt() }
+    )
 }
 
 /**
- * 定义 UInt64 类型列
- * Define UInt64 type column
+ * 定义 UInt64 类型列 / Define UInt64 type column
  *
  * @param name 列名 / Column name
  * @return UInt64 类型的列 / Column of UInt64 type
 */
 fun BaseTable<*>.ui64(name: String): Column<UInt64> {
-    return long(name).transform({ UInt64(it.toULong()) }, { it.toLong() })
+    return long(name).transform(
+        { UInt64(it.toULong()) },
+        { it.toLong() }
+    )
 }
 
 /**
- * 定义 Int64 类型列
- * Define Int64 type column
+ * 定义 Int64 类型列 / Define Int64 type column
  *
  * @param name 列名 / Column name
  * @return Int64 类型的列 / Column of Int64 type
 */
 fun BaseTable<*>.i64(name: String): Column<Int64> {
-    return long(name).transform({ Int64(it) }, { it.toLong() })
+    return long(name).transform(
+        { Int64(it) },
+        { it.toLong() }
+    )
 }
 
 /**
- * 定义 Flt32 类型列
- * Define Flt32 type column
+ * 定义 Flt32 类型列 / Define Flt32 type column
  *
  * @param name 列名 / Column name
  * @return Flt32 类型的列 / Column of Flt32 type
 */
 fun BaseTable<*>.f32(name: String): Column<Flt32> {
-    return float(name).transform({ Flt32(it) }, { it.toFloat() })
+    return float(name).transform(
+        { Flt32(it) },
+        { it.toFloat() }
+    )
 }
 
 /**
- * 定义 Flt64 类型列
- * Define Flt64 type column
+ * 定义 Flt64 类型列 / Define Flt64 type column
  *
  * @param name 列名 / Column name
  * @return Flt64 类型的列 / Column of Flt64 type
 */
 fun BaseTable<*>.f64(name: String): Column<Flt64> {
-    return double(name).transform({ Flt64(it) }, { it.toDouble() })
+    return double(name).transform(
+        { Flt64(it) },
+        { it.toDouble() }
+    )
 }
 
 /**
- * 定义 FltX 类型列（默认精度）
- * Define FltX type column (default precision)
+ * 定义 FltX 类型列（默认精度） / Define FltX type column (default precision)
  *
  * @param name 列名 / Column name
- * @param scale 小数精度，默认 2 / Decimal scale, default 2
+ * @param scale 小数精度，默认 18 / Decimal scale, default 18
  * @return FltX 类型的列 / Column of FltX type
 */
-fun BaseTable<*>.fltx(name: String, scale: Int = 2): Column<FltX> {
-    return decimal(name).transform({ FltX(it).withScale(scale) }, { it.toDecimal() })
+fun BaseTable<*>.fltx(name: String, scale: Int = 18): Column<FltX> {
+    return decimal(name).transform(
+        { FltX(it).withScale(scale) },
+        { it.withScale(scale).toDecimal() }
+    )
 }
 
 /**
- * 定义 FltX 类型列（指定舍入模式）
- * Define FltX type column (specified rounding mode)
+ * 定义 FltX 类型列（指定舍入模式） / Define FltX type column (specified rounding mode)
  *
  * @param name 列名 / Column name
  * @param roundingMode 舍入模式 / Rounding mode
- * @param scale 小数精度，默认 2 / Decimal scale, default 2
+ * @param scale 小数精度，默认 18 / Decimal scale, default 18
  * @return FltX 类型的列 / Column of FltX type
 */
-fun BaseTable<*>.fltx(name: String, roundingMode: RoundingMode, scale: Int = 2): Column<FltX> {
-    return decimal(name).transform({ FltX(it).withScale(scale, roundingMode) }, { it.toDecimal() })
+fun BaseTable<*>.fltx(name: String, roundingMode: RoundingMode, scale: Int = 18): Column<FltX> {
+    return decimal(name).transform(
+        { FltX(it).withScale(scale, roundingMode) },
+        { it.withScale(scale, roundingMode).toDecimal() }
+    )
 }
 
 /**
@@ -117,19 +131,25 @@ fun BaseTable<*>.fltx(name: String, roundingMode: RoundingMode, scale: Int = 2):
  * @return LocalDateTime 类型的列 / Column of LocalDateTime type
 */
 fun BaseTable<*>.kotlinDatetime(name: String): Column<LocalDateTime> {
-    return datetime(name).transform({ it.toKotlinLocalDateTime() }, { it.toJavaLocalDateTime() })
+    return datetime(name).transform(
+        { it.toKotlinLocalDateTime() },
+        { it.toJavaLocalDateTime() }
+    )
 }
 
 /**
- * 定义 java.time.Instant 类型列（使用 TIMESTAMP 类型存储）
- * Define java.time.Instant type column (stored as TIMESTAMP)
+ * 定义 kotlin.time.Instant 类型列（使用 TIMESTAMP 类型存储）
+ * Define kotlin.time.Instant type column (stored as TIMESTAMP)
  *
  * @param name 列名 / Column name
  * @return Instant 类型的列 / Column of Instant type
 */
 @OptIn(ExperimentalTime::class)
 fun BaseTable<*>.instant(name: String): Column<Instant> {
-    return timestamp(name).transform({ it.toKotlinInstant() }, { it.toJavaInstant() })
+    return timestamp(name).transform(
+        { it.toKotlinInstant() },
+        { it.toJavaInstant() }
+    )
 }
 
 /**
@@ -140,7 +160,54 @@ fun BaseTable<*>.instant(name: String): Column<Instant> {
  * @return Duration 类型的列 / Column of Duration type
 */
 fun BaseTable<*>.duration(name: String): Column<Duration> {
-    return varchar(name).transform({ Duration.parseIsoString(it) }, { it.toIsoString() })
+    return varchar(name).transform(
+        { Duration.parseIsoString(it) },
+        { it.toIsoString() }
+    )
+}
+
+/**
+ * 定义以长整数存储的 kotlin.time.Duration 类型列
+ * Define a kotlin.time.Duration column stored as a long integer
+ *
+ * @param name 列名 / Column name
+ * @param unit 存储单位，默认毫秒 / Storage unit, default milliseconds
+ * @return Duration 类型的列 / Column of Duration type
+ */
+fun BaseTable<*>.durationLong(name: String, unit: DurationUnit = DurationUnit.MILLISECONDS): Column<Duration> {
+    return long(name).transform(
+        { it.toDuration(unit) },
+        { it.toLong(unit) }
+    )
+}
+
+private val sqlDurationMin = Long.MIN_VALUE.toDuration(DurationUnit.MILLISECONDS)
+private val sqlDurationMax = Long.MAX_VALUE.toDuration(DurationUnit.MILLISECONDS)
+
+private fun Duration.toSqlMilliseconds(): Long {
+    require(
+        this != Duration.INFINITE &&
+            this != -Duration.INFINITE &&
+            this >= sqlDurationMin &&
+            this <= sqlDurationMax
+    ) {
+        "Duration must be representable as a finite Long number of milliseconds"
+    }
+    return inWholeMilliseconds
+}
+
+/**
+ * 定义以毫秒整数存储的 kotlin.time.Duration 类型列
+ * Define a kotlin.time.Duration column stored as an integer number of milliseconds
+ *
+ * @param name 列名 / Column name
+ * @return Duration 类型的列 / Column of Duration type
+ */
+fun BaseTable<*>.durationMs(name: String): Column<Duration> {
+    return long(name).transform(
+        { it.toDuration(DurationUnit.MILLISECONDS) },
+        { it.toSqlMilliseconds() }
+    )
 }
 
 /**
@@ -151,7 +218,10 @@ fun BaseTable<*>.duration(name: String): Column<Duration> {
  * @return ZoneId 类型的列 / Column of ZoneId type
 */
 fun BaseTable<*>.zoneId(name: String): Column<ZoneId> {
-    return varchar(name).transform({ ZoneId.of(it) }, { it.id })
+    return varchar(name).transform(
+        { ZoneId.of(it) },
+        { it.id }
+    )
 }
 
 /**
@@ -162,7 +232,10 @@ fun BaseTable<*>.zoneId(name: String): Column<ZoneId> {
  * @return ZoneOffset 类型的列 / Column of ZoneOffset type
 */
 fun BaseTable<*>.zoneOffset(name: String): Column<ZoneOffset> {
-    return varchar(name).transform({ ZoneOffset.of(it) }, { it.id })
+    return varchar(name).transform(
+        { ZoneOffset.of(it) },
+        { it.id }
+    )
 }
 
 /**
@@ -173,17 +246,26 @@ fun BaseTable<*>.zoneOffset(name: String): Column<ZoneOffset> {
  * @return TimeZone 类型的列 / Column of TimeZone type
 */
 fun BaseTable<*>.kotlinTimeZone(name: String): Column<TimeZone> {
-    return varchar(name).transform({ TimeZone.of(it) }, { it.id })
+    return varchar(name).transform(
+        { TimeZone.of(it) },
+        { it.id }
+    )
 }
 
 /**
- * 定义枚举列表类型列（逗号分隔存储）
- * Define enum list type column (comma-separated storage)
+ * 定义枚举列表类型列（逗号分隔存储） / Define enum list type column (comma-separated storage)
  *
  * @param name 列名 / Column name
  * @param T 枚举类型 / Enum type
  * @return 枚举列表类型的列 / Column of enum list type
 */
 inline fun <reified T : Enum<T>> BaseTable<*>.enums(name: String): Column<List<T>> {
-    return varchar(name).transform({ it.split(',').map { value -> java.lang.Enum.valueOf(T::class.java, value) } }, { it.joinToString(",") { value -> value.name } })
+    return varchar(name).transform(
+        {
+            it.split(',').map { value ->
+                java.lang.Enum.valueOf(T::class.java, value)
+            }
+        },
+        { it.joinToString(",") { value -> value.name } }
+    )
 }

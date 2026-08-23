@@ -54,8 +54,7 @@ class TaskOverMaxDelayTimeConstraint<
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
 
     /**
-     * 通过 solver 时间窗口边界创建任务超最大延迟时间约束 /
-     * Create task over-max delay time constraint from a solver time-window boundary
+     * 通过 solver 时间窗口边界创建任务超最大延迟时间约束 / / Create task over-max delay time constraint from a solver time-window boundary
      *
      * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
      * @param tasks 任务列表 / List of tasks
@@ -111,7 +110,7 @@ class TaskOverMaxDelayTimeConstraint<
     }
 
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
-        return { map, args ->
+        return AbstractGanttSchedulingShadowPriceExtractor { map, args ->
             shadowPriceExtractor?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
                     args.task?.let { task ->

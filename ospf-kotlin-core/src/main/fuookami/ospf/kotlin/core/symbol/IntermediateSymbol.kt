@@ -3,8 +3,7 @@
 /**
  * 中间符号 / Intermediate symbols
  *
- * 定义数学优化模型中的中间符号核心接口与实现。
- * Defines core interfaces and implementations for intermediate symbols in mathematical optimization models.
+ * 定义数学优化模型中的中间符号核心接口与实现。 / Defines core interfaces and implementations for intermediate symbols in mathematical optimization models.
 */
 package fuookami.ospf.kotlin.core.symbol
 
@@ -34,9 +33,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
  * 中间符号核心接口定义 / Core intermediate symbol interface definitions
  *
  * 提供 [IntermediateSymbol]、[LinearIntermediateSymbol]、[QuadraticIntermediateSymbol] 等
- * 中间符号的基础接口，用于数学优化模型中的符号表达式求值与管理。
- *
- * Provides base interfaces for intermediate symbols such as [IntermediateSymbol],
+ * 中间符号的基础接口，用于数学优化模型中的符号表达式求值与管理。 / Provides base interfaces for intermediate symbols such as [IntermediateSymbol],
  * [LinearIntermediateSymbol], and [QuadraticIntermediateSymbol], used for symbolic
  * expression evaluation and management in mathematical optimization models.
 */
@@ -45,9 +42,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
  * 中间符号接口 / Intermediate symbol interface
  *
  * 数学优化模型中所有中间符号的基础接口。中间符号封装了表达式求值逻辑，
- * 支持缓存、依赖追踪和边界管理。
- *
- * Base interface for all intermediate symbols in mathematical optimization models.
+ * 支持缓存、依赖追踪和边界管理。 / Base interface for all intermediate symbols in mathematical optimization models.
  * Intermediate symbols encapsulate expression evaluation logic and support caching,
  * dependency tracking, and bound management.
  *
@@ -84,8 +79,7 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
     // --- V-generic primary path (abstract) ---
 
     /**
-     * 准备符号值，根据固定值和令牌表进行求值。
-     * Prepare symbol value by evaluating with fixed values and token table.
+     * 准备符号值，根据固定值和令牌表进行求值。 / Prepare symbol value by evaluating with fixed values and token table.
      *
      * @param values 固定值映射（可空） / Fixed values map (nullable)
      * @param tokenTable 令牌表 / Token table
@@ -95,8 +89,7 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
     fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V?
 
     /**
-     * 准备符号值并缓存结果。
-     * Prepare symbol value and cache the result.
+     * 准备符号值并缓存结果。 / Prepare symbol value and cache the result.
      *
      * @param values 固定值映射（可空） / Fixed values map (nullable)
      * @param tokenTable 令牌表 / Token table
@@ -115,8 +108,7 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
     }
 
     /**
-     * 使用令牌表求值符号表达式。
-     * Evaluate symbol expression using token table.
+     * 使用令牌表求值符号表达式。 / Evaluate symbol expression using token table.
      *
      * @param tokenTable 令牌表 / Token table
      * @param converter 值转换器 / Value converter
@@ -126,8 +118,7 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
     fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean = false): V?
 
     /**
-     * 使用求解器结果列表和令牌表求值符号表达式。
-     * Evaluate symbol expression using solver results list and token table.
+     * 使用求解器结果列表和令牌表求值符号表达式。 / Evaluate symbol expression using solver results list and token table.
      *
      * @param results 求解器结果列表 / Solver results list
      * @param tokenTable 令牌表 / Token table
@@ -138,8 +129,7 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
     fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean = false): V?
 
     /**
-     * 使用固定值映射和令牌表求值符号表达式。
-     * Evaluate symbol expression using fixed values map and token table.
+     * 使用固定值映射和令牌表求值符号表达式。 / Evaluate symbol expression using fixed values map and token table.
      *
      * @param values 固定值映射 / Fixed values map
      * @param tokenTable 令牌表（可空） / Token table (nullable)
@@ -150,8 +140,7 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
     fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean = false): V?
 
     /**
-     * 从令牌表直接求值符号表达式。
-     * Evaluate symbol expression directly from token table.
+     * 从令牌表直接求值符号表达式。 / Evaluate symbol expression directly from token table.
      *
      * @param tokenTable 令牌表 / Token table
      * @param converter 值转换器 / Value converter
@@ -173,16 +162,14 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
     val index: Int
 
     /**
-     * 刷新符号缓存。
-     * Flush symbol cache.
+     * 刷新符号缓存。 / Flush symbol cache.
      *
      * @param force 是否强制刷新 / Whether to force flush
     */
     fun flush(force: Boolean = false)
 
     /**
-     * 注册辅助令牌到令牌集合。
-     * Register auxiliary tokens to the token collection.
+     * 注册辅助令牌到令牌集合。 / Register auxiliary tokens to the token collection.
      *
      * @param tokens 可添加的令牌集合 / Addable token collection
      * @return 操作结果 / Operation result
@@ -190,8 +177,7 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
     fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try = ok
 
     /**
-     * 获取符号的原始字符串表示。
-     * Get raw string representation of the symbol.
+     * 获取符号的原始字符串表示。 / Get raw string representation of the symbol.
      *
      * @param unfold 展开深度 / Unfold depth
      * @return 原始字符串 / Raw string
@@ -202,9 +188,7 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
 /**
  * 线性中间符号接口 / Linear intermediate symbol interface
  *
- * 表示可转换为线性多项式的中间符号。支持可变与不可变多项式访问。
- *
- * Represents an intermediate symbol that can be converted to a linear polynomial.
+ * 表示可转换为线性多项式的中间符号。支持可变与不可变多项式访问。 / Represents an intermediate symbol that can be converted to a linear polynomial.
  * Supports both mutable and immutable polynomial access.
  *
  * @property polynomial 对应的线性多项式 / The associated linear polynomial
@@ -212,8 +196,7 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
 interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToLinearPolynomial<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     companion object {
         /**
-         * 创建空的线性中间符号。
-         * Create an empty linear intermediate symbol.
+         * 创建空的线性中间符号。 / Create an empty linear intermediate symbol.
          *
          * @param constants 实数常量定义 / Real number constants definition
          * @param parent 父级符号（可空） / Parent symbol (nullable)
@@ -242,8 +225,7 @@ interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToLinearPolynomia
     val polynomial: LinearPolynomial<V>
 
     /**
-     * 获取可变线性多项式表示。
-     * Get mutable linear polynomial representation.
+     * 获取可变线性多项式表示。 / Get mutable linear polynomial representation.
      *
      * @return 可变线性多项式 / Mutable linear polynomial
     */
@@ -255,9 +237,7 @@ interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToLinearPolynomia
 /**
  * 二次中间符号接口 / Quadratic intermediate symbol interface
  *
- * 表示可转换为二次多项式的中间符号。支持可变与不可变多项式访问。
- *
- * Represents an intermediate symbol that can be converted to a quadratic polynomial.
+ * 表示可转换为二次多项式的中间符号。支持可变与不可变多项式访问。 / Represents an intermediate symbol that can be converted to a quadratic polynomial.
  * Supports both mutable and immutable polynomial access.
  *
  * @property polynomial 对应的二次多项式 / The associated quadratic polynomial
@@ -265,8 +245,7 @@ interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToLinearPolynomia
 interface QuadraticIntermediateSymbol<V> : IntermediateSymbol<V>, ToQuadraticPolynomial<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     companion object {
         /**
-         * 创建空的二次中间符号。
-         * Create an empty quadratic intermediate symbol.
+         * 创建空的二次中间符号。 / Create an empty quadratic intermediate symbol.
          *
          * @param constants 实数常量定义 / Real number constants definition
          * @param parent 父级符号（可空） / Parent symbol (nullable)
@@ -296,8 +275,7 @@ interface QuadraticIntermediateSymbol<V> : IntermediateSymbol<V>, ToQuadraticPol
     val polynomial: QuadraticPolynomial<V>
 
     /**
-     * 获取可变二次多项式表示。
-     * Get mutable quadratic polynomial representation.
+     * 获取可变二次多项式表示。 / Get mutable quadratic polynomial representation.
      *
      * @return 可变二次多项式 / Mutable quadratic polynomial
     */

@@ -1,6 +1,5 @@
 /**
- * 值特怌
- * Value Traits
+ * 值特怌 / Value Traits
  *
  * 定义数值类型的特性接口，包括不变怌(Invariant)、可变怌(Variant)、有界怌(Bounded)、无穷怌(Infinite)、定点怌(Fixed) 和精度特怌(Epsilon)。
  * Defines trait interfaces for numeric types, including invariance (Invariant), variance (Variant), boundedness (Bounded), infinity support (Infinite), fixed-point property (Fixed), and precision characteristics (Epsilon).
@@ -8,19 +7,16 @@
 package fuookami.ospf.kotlin.math.algebra.concept
 
 /**
- * 不变性接口
- * Invariance interface
+ * 不变性接口 / Invariance interface
  *
- * 表示值类型与内部值类型相同，可直接获取值。
- * Indicates the value type is identical to the internal value type, allowing direct value retrieval.
+ * 表示值类型与内部值类型相同，可直接获取值。 / Indicates the value type is identical to the internal value type, allowing direct value retrieval.
  *
  * @param T 内部值类垌
 */
 interface Invariant<T> {
 
     /**
-     * 获取内部倌
-     * Get the internal value
+     * 获取内部倌 / Get the internal value
      *
      * @return 内部倌
      * @return The internal value
@@ -34,19 +30,16 @@ interface Invariant<T> {
 }
 
 /**
- * 可变性接口
- * Variance interface
+ * 可变性接口 / Variance interface
  *
- * 表示值类型可能与内部值类型不同，内部值可能为空。
- * Indicates the value type may differ from the internal value type, and the internal value may be null.
+ * 表示值类型可能与内部值类型不同，内部值可能为空。 / Indicates the value type may differ from the internal value type, and the internal value may be null.
  *
  * @param T 内部值类垌
 */
 interface Variant<T> {
 
     /**
-     * 获取内部倌
-     * Get the internal value
+     * 获取内部倌 / Get the internal value
      *
      * @return 内部值，可能为空
      * @return The internal value, may be null
@@ -55,11 +48,9 @@ interface Variant<T> {
 }
 
 /**
- * 有界性接口
- * Boundedness interface
+ * 有界性接口 / Boundedness interface
  *
- * 表示数值类型具有上下界。
- * Indicates the numeric type has lower and upper bounds.
+ * 表示数值类型具有上下界。 / Indicates the numeric type has lower and upper bounds.
  *
  * @param Self 有界类型
 */
@@ -83,8 +74,7 @@ interface Bounded<Self : Comparable<Self>> {
         get() = maxBound != null
 
     /**
-     * 判断值是否在边界册
-     * Check if a value is within bounds
+     * 判断值是否在边界册 / Check if a value is within bounds
      *
      * @param value 待检查的倌
      * @return 是否在边界内
@@ -97,8 +87,7 @@ interface Bounded<Self : Comparable<Self>> {
     }
 
     /**
-     * 将值限制在边界册
-     * Clamp a value to within bounds
+     * 将值限制在边界册 / Clamp a value to within bounds
      *
      * @param value 待限制的倌
      * @return 限制后的倌
@@ -114,11 +103,9 @@ interface Bounded<Self : Comparable<Self>> {
 }
 
 /**
- * 无穷性接口
- * Infinity interface
+ * 无穷性接口 / Infinity interface
  *
- * 表示数值类型支持正无穷和负无穷。
- * Indicates the numeric type supports positive and negative infinity.
+ * 表示数值类型支持正无穷和负无穷。 / Indicates the numeric type supports positive and negative infinity.
  *
  * @param Self 无穷类型
 */
@@ -142,8 +129,7 @@ interface Infinite<Self> {
         get() = negativeInfinityValue != null
 
     /**
-     * 判断是否为正无穷
-     * Check if the value is positive infinity
+     * 判断是否为正无穷 / Check if the value is positive infinity
      *
      * @param value 待判断的值
      * @return 是否为正无穷
@@ -154,8 +140,7 @@ interface Infinite<Self> {
     }
 
     /**
-     * 判断是否为负无穷
-     * Check if the value is negative infinity
+     * 判断是否为负无穷 / Check if the value is negative infinity
      *
      * @param value 待判断的值
      * @return 是否为负无穷
@@ -166,8 +151,7 @@ interface Infinite<Self> {
     }
 
     /**
-     * 判断是否为无穷
-     * Check if the value is infinite
+     * 判断是否为无穷 / Check if the value is infinite
      *
      * @param value 待判断的值
      * @return 是否为无穷
@@ -178,8 +162,7 @@ interface Infinite<Self> {
     }
 
     /**
-     * 判断是否为有限值
-     * Check if the value is finite
+     * 判断是否为有限值 / Check if the value is finite
      *
      * @param value 待判断的值
      * @return 是否为有限值
@@ -191,11 +174,9 @@ interface Infinite<Self> {
 }
 
 /**
- * 定点性接口
- * Fixed-point interface
+ * 定点性接口 / Fixed-point interface
  *
- * 表示数值类型具有定点精度特性。
- * Indicates the numeric type has fixed-point precision characteristics.
+ * 表示数值类型具有定点精度特性。 / Indicates the numeric type has fixed-point precision characteristics.
  *
  * @param Self 定点类型
 */
@@ -224,11 +205,9 @@ interface Fixed<Self> {
 }
 
 /**
- * 精度误差接口
- * Epsilon interface
+ * 精度误差接口 / Epsilon interface
  *
- * 表示数值类型具有精度误差。
- * Indicates the numeric type has a precision epsilon.
+ * 表示数值类型具有精度误差。 / Indicates the numeric type has a precision epsilon.
  *
  * @param Self 精度误差类型
 */

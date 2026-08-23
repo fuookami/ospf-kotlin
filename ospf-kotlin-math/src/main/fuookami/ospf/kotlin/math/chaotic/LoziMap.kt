@@ -1,12 +1,9 @@
 /**
- * 洛兹映射
- * Lozi Map
+ * 洛兹映射 / Lozi Map
  *
  * 洛兹映射是埃农映射的分段线性简化版本，由 Rene Lozi 提出。
  * 该映射用绝对值替代平方运算，产生类似的混沌行为但更易于分析。
- * 常用于混沌理论研究和分形几何教学。
- *
- * The Lozi map is a piecewise linear simplification of the Henon map, proposed by Rene Lozi.
+ * 常用于混沌理论研究和分形几何教学。 / The Lozi map is a piecewise linear simplification of the Henon map, proposed by Rene Lozi.
  * This map replaces the squared term with an absolute value, producing similar chaotic behavior but is easier to analyze.
  * Commonly used for chaos theory research and fractal geometry education.
 */
@@ -20,8 +17,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 洛兹映射
- * Lozi Map
+ * 洛兹映射 / Lozi Map
  *
  * 公式 / Formula:
  * x_{n+1} = 1 + y - a * |x|
@@ -51,8 +47,7 @@ data class LoziMap<V : FloatingNumber<V>>(
 }
 
 /**
- * 洛兹映射生成器
- * Lozi Map Generator
+ * 洛兹映射生成器 / Lozi Map Generator
 */
 data class LoziMapGenerator(
     val loziMap: LoziMap<Flt64> = LoziMap(),

@@ -9,9 +9,7 @@
  * 指数函数 exp(x)：泰勒级数展开 exp(x) = 1 + x + x^2/2! + x^3/3! + ...
  * 幂函数 pow(base, index)：通过 ln 和 exp 实现，pow(base, index) = exp(index * ln(base))。
  * 边界情况：ln(x <= 0) 返回 null（对数未定义），负指数幂在整数类型时会抛出异常。
- * FltXSeriesResult 包含计算结果、迭代次数和收敛状态，便于调试和分析。
- *
- * Provides high-precision implementation of power, exponential, and logarithm operations for FltX.
+ * FltXSeriesResult 包含计算结果、迭代次数和收敛状态，便于调试和分析。 / Provides high-precision implementation of power, exponential, and logarithm operations for FltX.
  * Uses Taylor series expansion for numerical computation with configurable precision and iteration limits.
  * Natural logarithm ln(x): uses transformation y = (x-1)/(x+1) converging to Taylor series,
  * formula: ln(x) = 2 * [y + y^3/3 + y^5/5 + ...], pre-processing adjusts x to [1, 2) for optimal convergence.
@@ -30,8 +28,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * FltX 级数计算结果
- * FltX series computation result
+ * FltX 级数计算结果 / FltX series computation result
  *
  * @param value 计算结果值 / Computed value
  * @param iterations 迭代次数 / Number of iterations
@@ -44,17 +41,14 @@ data class FltXSeriesResult(
 )
 
 /**
- * FltX 幂运算策略
- * FltX power strategy
+ * FltX 幂运算策略 / FltX power strategy
  *
- * 提供 FltX 高精度浮点数的幂运算、指数和对数计算。
- * Provides high-precision power, exponential, and logarithm operations for FltX.
+ * 提供 FltX 高精度浮点数的幂运算、指数和对数计算。 / Provides high-precision power, exponential, and logarithm operations for FltX.
 */
 object FltXPowerStrategy {
 
     /**
-     * 根据精度位数计算默认精度阈值
-     * Compute default precision threshold from digit count
+     * 根据精度位数计算默认精度阈值 / Compute default precision threshold from digit count
      *
      * @param digits 精度位数 / Number of precision digits
      * @return 默认精度阈值 / Default precision threshold
@@ -75,8 +69,7 @@ object FltXPowerStrategy {
     }
 
     /**
-     * 计算 FltX 自然对数
-     * Compute FltX natural logarithm
+     * 计算 FltX 自然对数 / Compute FltX natural logarithm
      *
      * @param x 真数 / Argument
      * @param digits 精度位数 / Number of precision digits
@@ -92,8 +85,7 @@ object FltXPowerStrategy {
     ): FltX? = lnWithStats(x, digits, precision, maxIterations)?.value
 
     /**
-     * 计算 FltX 自然对数，返回包含迭代统计的结果
-     * Compute FltX natural logarithm with iteration statistics
+     * 计算 FltX 自然对数，返回包含迭代统计的结果 / Compute FltX natural logarithm with iteration statistics
      *
      * @param x 真数 / Argument
      * @param digits 精度位数 / Number of precision digits
@@ -136,10 +128,10 @@ object FltXPowerStrategy {
      * 通过泰勒级数计算 [1, 2) 区间内 FltX 的自然对数。
      *
      * @param x the value in [1, 2) / [1, 2) 区间内的值
-     * @param scale the decimal scale for intermediate rounding / 中间舍入的小数位数
-     * @param precision the convergence precision threshold / 收敛精度阈值
-     * @param maxIterations the maximum number of iterations / 最大迭代次数
-     * @return the series computation result / 级数计算结果
+     * @param scale 中间舍入的小数位数 / the decimal scale for intermediate rounding
+     * @param precision 收敛精度阈值 / the convergence precision threshold
+     * @param maxIterations 最大迭代次数 / the maximum number of iterations
+     * @return 级数计算结果 / the series computation result
     */
     private fun lnUnitInterval(
         x: FltX,
@@ -167,8 +159,7 @@ object FltXPowerStrategy {
     }
 
     /**
-     * 计算 FltX 指数函数
-     * Compute FltX exponential function
+     * 计算 FltX 指数函数 / Compute FltX exponential function
      *
      * @param index 指数 / Exponent
      * @param digits 精度位数 / Number of precision digits
@@ -184,8 +175,7 @@ object FltXPowerStrategy {
     ): FltX = expWithStats(index, digits, precision, maxIterations).value
 
     /**
-     * 计算 FltX 指数函数，返回包含迭代统计的结果
-     * Compute FltX exponential with iteration statistics
+     * 计算 FltX 指数函数，返回包含迭代统计的结果 / Compute FltX exponential with iteration statistics
      *
      * @param index 指数 / Exponent
      * @param digits 精度位数 / Number of precision digits
@@ -223,8 +213,7 @@ object FltXPowerStrategy {
     }
 
     /**
-     * 计算 FltX 幂函数，通过 ln 和 exp 实现
-     * Compute FltX power function via ln and exp
+     * 计算 FltX 幂函数，通过 ln 和 exp 实现 / Compute FltX power function via ln and exp
      *
      * @param base 底数 / Base
      * @param index 指数 / Exponent
@@ -250,8 +239,7 @@ object FltXPowerStrategy {
     }
 
     /**
-     * 安全计算 FltX 幂函数，通过 ln 和 exp 实现
-     * Safely compute FltX power function via ln and exp
+     * 安全计算 FltX 幂函数，通过 ln 和 exp 实现 / Safely compute FltX power function via ln and exp
      *
      * @param base 底数 / Base
      * @param index 指数 / Exponent
@@ -281,8 +269,7 @@ object FltXPowerStrategy {
     }
 
     /**
-     * 尝试计算 FltX 幂函数，通过 ln 和 exp 实现
-     * Tries to compute FltX power function via ln and exp
+     * 尝试计算 FltX 幂函数，通过 ln 和 exp 实现 / Tries to compute FltX power function via ln and exp
      *
      * @param base 底数 / Base
      * @param index 指数 / Exponent

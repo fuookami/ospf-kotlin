@@ -55,29 +55,39 @@ data object LinearSolverBuilder {
             }
         } else {
             null
-        }) ?: if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")) {
-            SerialCombinatorialLinearSolver(
-                solvers = listOf(
-                    GurobiLinearSolver(
-                        config = config.copy(extraConfig = gurobiConfig)
-                    ),
-                    ScipLinearSolver(
-                        config = config,
-                    )
-                )
-            )
+        }) ?: defaultSolver(
+            config = config,
+            gurobiConfig = gurobiConfig
+        )
+    }
 
-        } else {
-            SerialCombinatorialLinearSolver(
-                solvers = listOf(
-                    GurobiLinearSolver(
-                        config = config
-                    ),
-                    ScipLinearSolver(
-                        config = config,
-                    )
-                )
-            )
+    private fun defaultSolver(
+        config: SolverConfig,
+        gurobiConfig: GurobiSolverConfig?
+    ): AbstractLinearSolver {
+        val solvers = ArrayList<AbstractLinearSolver>()
+        if (backendClassAvailable("gurobi.GRBException")) {
+            val gurobiSolverConfig = if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")) {
+                config.copy(backendConfiguration = gurobiConfig)
+            } else {
+                config
+            }
+            solvers.add(GurobiLinearSolver(config = gurobiSolverConfig))
+        }
+        if (backendClassAvailable("jscip.Scip")) {
+            solvers.add(ScipLinearSolver(config = config))
+        }
+        return SerialCombinatorialLinearSolver(solvers = solvers)
+    }
+
+    private fun backendClassAvailable(className: String): Boolean {
+        return try {
+            Class.forName(className, false, LinearSolverBuilder::class.java.classLoader)
+            true
+        } catch (_: ClassNotFoundException) {
+            false
+        } catch (_: LinkageError) {
+            false
         }
     }
 }

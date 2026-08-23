@@ -5,28 +5,43 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.hexaly
 
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import com.hexaly.optimizer.*
 
 /**
  * Hexaly quadratic solver
  * Hexaly 二次求解器
  *
- * @property config solver configuration / 中文 求解器配置
- * @property callBack Hexaly solver callback manager / 中文 Hexaly 求解器回调管理器
+ * @property config 中文 求解器配置 / solver configuration
+ * @property callBack 中文 Hexaly 求解器回调管理器 / Hexaly solver callback manager
 */
 class HexalyQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -37,7 +52,12 @@ class HexalyQuadraticSolver(
     override suspend operator fun invoke(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput<Flt64>> {
+    ): Ret<SolveReport<Flt64>> {
+        when (val validation = model.identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         return HexalyQuadraticSolverImpl(
             config = config,
             callBack = callBack,
@@ -53,7 +73,12 @@ class HexalyQuadraticSolver(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
+    ): Ret<Pair<SolveReport<Flt64>, List<List<Flt64>>>> {
+        when (val validation = model.identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
         } else {
@@ -82,9 +107,9 @@ class HexalyQuadraticSolver(
  * Hexaly quadratic solver implementation
  * Hexaly 二次求解器实现
  *
- * @property config solver configuration / 中文 求解器配置
- * @property callBack Hexaly solver callback manager / 中文 Hexaly 求解器回调管理器
- * @property statusCallBack solving status callback / 中文 求解状态回调
+ * @property config 中文 求解器配置 / solver configuration
+ * @property callBack 中文 Hexaly 求解器回调管理器 / Hexaly solver callback manager
+ * @property statusCallBack 中文 求解状态回调 / solving status callback
 */
 private class HexalyQuadraticSolverImpl(
     private val config: SolverConfig,
@@ -94,14 +119,14 @@ private class HexalyQuadraticSolverImpl(
     private lateinit var hexalyVars: List<HxExpression>
     private lateinit var hexalyConstraints: List<HxExpression>
     private lateinit var hexalyObjective: HxExpression
-    private lateinit var output: FeasibleSolverOutput<Flt64>
+    private lateinit var output: SolveReport<Flt64>
 
     private var initialBestObj: Flt64? = null
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
 
-    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput<Flt64>> {
+    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<SolveReport<Flt64>> {
         val processes = arrayOf(
             { it.init(model.name, callBack?.creatingEnvironmentFunction) },
             { it.dump(model) },
@@ -130,8 +155,8 @@ private class HexalyQuadraticSolverImpl(
      * Dump quadratic model into Hexaly model
      * 将二次模型转储到 Hexaly 模型
      *
-     * @param model quadratic tetrad model view / 中文 二次四元组模型视图
-     * @return operation result / 中文 操作结果
+     * @param model 中文 二次四元组模型视图 / quadratic tetrad model view
+     * @return 中文 操作结果 / operation result
     */
     private suspend fun dump(model: QuadraticTetradModelView): Try {
         return try {
@@ -298,8 +323,8 @@ private class HexalyQuadraticSolverImpl(
      * Configure Hexaly optimizer parameters
      * 配置 Hexaly 优化器参数
      *
-     * @param model quadratic tetrad model view / 中文 二次四元组模型视图
-     * @return operation result / 中文 操作结果
+     * @param model 中文 二次四元组模型视图 / quadratic tetrad model view
+     * @return 中文 操作结果 / operation result
     */
     @OptIn(ExperimentalTime::class)
     private suspend fun configure(model: QuadraticTetradModelView): Try {
@@ -332,7 +357,10 @@ private class HexalyQuadraticSolverImpl(
                                 bestObj = currentObj
                                 bestBound = currentBound
                                 bestTime = currentTime
-                            } else if (currentTime - bestTime >= config.notImprovementTime!!) {
+                            } else if (currentTime - bestTime >= config.notImprovementTime!!
+                                && config.interruptibleTime?.let { currentTime >= it } ?: true
+                                && config.interruptibleGap?.let { (currentObj - currentBound).abs() ls it } ?: true
+                            ) {
                                 optimizer.stop()
                             }
                         }
@@ -411,7 +439,7 @@ private class HexalyQuadraticSolverImpl(
      * Analyze solution from Hexaly solver
      * 分析 Hexaly 求解器的解
      *
-     * @return operation result / 中文 操作结果
+     * @return 中文 操作结果 / operation result
     */
     private suspend fun analyzeSolution(): Try {
         return try {
@@ -420,11 +448,11 @@ private class HexalyQuadraticSolverImpl(
                 for (hexalyVar in hexalyVars) {
                     results.add(Flt64(hexalyVar.doubleValue))
                 }
-                output = FeasibleSolverOutput<Flt64>(
-                    obj = Flt64(hexalyObjective.doubleValue),
-                    solution = results,
-                    time = solvingTime!!,
-                    possibleBestObj = Flt64(hexalySolution.getDoubleObjectiveBound(0)),
+                output = status.toSolveReport(
+                    objective = Flt64(hexalyObjective.doubleValue),
+                    values = results,
+                    solveTime = solvingTime!!,
+                    bestBound = Flt64(hexalySolution.getDoubleObjectiveBound(0)),
                     gap = Flt64(hexalySolution.getObjectiveGap(0))
                 )
 

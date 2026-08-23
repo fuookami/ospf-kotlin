@@ -41,10 +41,9 @@ abstract class MosekSolver : AutoCloseable {
     }
 
     /**
-     * 执行 MOSEK 求解（尚未实现）
-     * Execute MOSEK solving (not implemented yet)
+     * 执行 MOSEK 求解（尚未实现） / Execute MOSEK solving (not implemented yet)
      *
-     * @return the solve result as Try / 以Try包装的求解结果
+     * @return 以Try包装的求解结果 / the solve result as Try
     */
     protected suspend fun solve(): Try {
         return Failed(
@@ -56,10 +55,9 @@ abstract class MosekSolver : AutoCloseable {
     }
 
     /**
-     * 分析 MOSEK 求解状态
-     * Analyze MOSEK solving status
+     * 分析 MOSEK 求解状态 / Analyze MOSEK solving status
      *
-     * @return the status analysis result as Try / 以Try包装的状态分析结果
+     * @return 以Try包装的状态分析结果 / the status analysis result as Try
     */
     protected suspend fun analyzeStatus(): Try {
         return try {

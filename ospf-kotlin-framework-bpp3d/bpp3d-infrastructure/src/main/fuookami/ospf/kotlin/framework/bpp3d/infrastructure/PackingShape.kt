@@ -1,6 +1,5 @@
 /**
- * 三维装载形状基础抽象。
- * Core abstractions for 3D packing shapes.
+ * 三维装载形状基础抽象。 / Core abstractions for 3D packing shapes.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
@@ -140,7 +139,7 @@ interface PackingShape3<V : FloatingNumber<V>> {
      * Compute the 2D footprint of this packing shape.
      * 计算此装载形状的二维占位。
      *
-     * @return 2D footprint of this packing shape / 此装载形状的二维占位
+     * @return 此装载形状的二维占位 / 2D footprint of this packing shape
     */
     fun footprint(): ShapeFootprint2<V>
 }
@@ -216,7 +215,7 @@ data class CylinderPackingShape3(
  * Wrap a cuboid as a PackingShape3.
  * 将长方体包装为 PackingShape3。
  *
- * @return cuboid wrapped as a PackingShape3 / 包装为 PackingShape3 的长方体
+ * @return 包装为 PackingShape3 的长方体 / cuboid wrapped as a PackingShape3
 */
 fun <V : FloatingNumber<V>> AbstractCuboid<V>.asPackingShape3(): PackingShape3<V> {
     return CuboidPackingShape3(this)
@@ -226,7 +225,7 @@ fun <V : FloatingNumber<V>> AbstractCuboid<V>.asPackingShape3(): PackingShape3<V
  * Wrap a cylinder as a PackingShape3.
  * 将圆柱包装为 PackingShape3。
  *
- * @return cylinder wrapped as a PackingShape3 / 包装为 PackingShape3 的圆柱
+ * @return 包装为 PackingShape3 的圆柱 / cylinder wrapped as a PackingShape3
 */
 fun AbstractCylinder<FltX>.asPackingShape3(): PackingShape3<FltX> {
     return CylinderPackingShape3(this)
@@ -236,7 +235,7 @@ fun AbstractCylinder<FltX>.asPackingShape3(): PackingShape3<FltX> {
  * Convert Axis3 to PackingAxis3.
  * 将 Axis3 转换为 PackingAxis3。
  *
- * @return corresponding PackingAxis3 enum value / 对应的 PackingAxis3 枚举值
+ * @return 对应的 PackingAxis3 枚举值 / corresponding PackingAxis3 enum value
 */
 fun Axis3.asPackingAxis3(): PackingAxis3 {
     return when (this) {

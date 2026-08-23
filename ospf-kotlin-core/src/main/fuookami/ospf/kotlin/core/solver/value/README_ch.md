@@ -46,5 +46,5 @@ value/
 
 - **token** — `Token<V>` 使用 `IntoValue<V>` 提供 V 类型的 `result` 视图
 - **symbol** — 中间符号求值使用 `IntoValue<V>` 进行值转换
-- **solver/output** — `FeasibleSolverOutput` 提供 `convertTo(converter)` 方法使用 `IntoValue<V>`
+- **solver.report** — `SolveReport<Flt64>.convertTo(converter)` 使用 `IntoValue<V>` 转换解和诊断值类型
 - **solver** — 求解器 `solve()` 方法接受 `IntoValue<V>` 进行泛型求解

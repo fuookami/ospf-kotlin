@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -14,9 +15,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
  * Enforces that positions marked as empty-forbidden must be loaded.
  * 强制执行标记为禁止空载的位置必须被装载。
  *
- * @property items the list of cargo items to be stowed / 待装载的货物项目列表
- * @property positions the list of available stowage positions / 可用装载位置列表
- * @property load the load decision variables / 装载决策变量
+ * @property items 待装载的货物项目列表 / the list of cargo items to be stowed
+ * @property positions 可用装载位置列表 / the list of available stowage positions
+ * @property load 装载决策变量 / the load decision variables
 */
 class EmptyForbiddenLimit(
     private val items: List<Item>,
@@ -31,13 +32,13 @@ class EmptyForbiddenLimit(
                     relation = load.estimateLoaded[j] eq true,
                     name = "${name}_${position}"
                 )) {
-                    is Ok<fuookami.ospf.kotlin.utils.functional.Success, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                    is Ok -> {}
 
-                    is Failed<fuookami.ospf.kotlin.utils.functional.Success, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                    is Failed -> {
                     return result
                 }
 
-                is Fatal<fuookami.ospf.kotlin.utils.functional.Success, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return result
                 }
                 }

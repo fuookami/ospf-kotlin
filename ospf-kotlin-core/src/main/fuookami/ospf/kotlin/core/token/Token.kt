@@ -1,10 +1,8 @@
 /**
- * Token 数据结构，持有变量求解结果的双视图访问。
- * Token data structure holding dual-view access to variable solve results.
+ * Token 数据结构，持有变量求解结果的双视图访问。 / Token data structure holding dual-view access to variable solve results.
  *
  * 内部存储为 Flt64?（求解器后端始终产出 Flt64），公开 API 通过 IntoValue<V> 转换器
- * 提供类型安全的 V? 视图，同时保留 resultFlt64 供求解器内部使用。
- * Internally stores Flt64? (solver backends always produce Flt64); the public API
+ * 提供类型安全的 V? 视图，同时保留 resultFlt64 供求解器内部使用。 / Internally stores Flt64? (solver backends always produce Flt64); the public API
  * provides a type-safe V? view via IntoValue<V> converter while retaining resultFlt64
  * for solver-internal use.
 */
@@ -18,12 +16,10 @@ import fuookami.ospf.kotlin.core.solver.value.*
 import fuookami.ospf.kotlin.core.variable.*
 
 /**
- * 泛型 Token<V>，提供双视图访问变量求解结果。
- * Generic Token<V> with dual-view access to variable solve results.
+ * 泛型 Token<V>，提供双视图访问变量求解结果。 / Generic Token<V> with dual-view access to variable solve results.
  *
  * 内部存储为 Flt64?（求解器后端始终产出 Flt64），公开 API 通过 IntoValue<V> 转换器
- * 提供类型安全的 V? 视图，同时保留 resultFlt64 供求解器内部使用。
- * Internally stores Flt64? (solver backends always produce Flt64); the public API
+ * 提供类型安全的 V? 视图，同时保留 resultFlt64 供求解器内部使用。 / Internally stores Flt64? (solver backends always produce Flt64); the public API
  * provides a type-safe V? view via IntoValue<V> converter while retaining resultFlt64
  * for solver-internal use.
  *
@@ -60,8 +56,7 @@ data class Token<V : RealNumber<V>>(
     val doubleResult get() = _result?.toSolverDouble("token.result")
 
     /**
-     * 结果的 V 类型视图（主要公开 API）
-     * V-type view of result (primary public API)
+     * 结果的 V 类型视图（主要公开 API） / V-type view of result (primary public API)
      *
      * 设置 converter 时通过 IntoValue<V> 将 Flt64 转换为 V；
      * converter 为 null（V = Flt64）时通过 unchecked cast 返回 _result。
@@ -77,8 +72,7 @@ data class Token<V : RealNumber<V>>(
         }
 
     /**
-     * 设置泛型结果值
-     * Set result from the generic value
+     * 设置泛型结果值 / Set result from the generic value
      *
      * @param value 要设置的值 / Value to set
     */
@@ -87,8 +81,7 @@ data class Token<V : RealNumber<V>>(
     }
 
     /**
-     * 通过给定转换器显式获取类型化结果
-     * Explicit generic result conversion through the supplied converter
+     * 通过给定转换器显式获取类型化结果 / Explicit generic result conversion through the supplied converter
      *
      * @param converter 值转换器 / Value converter
      * @return 类型化的结果值 / Generic result value
@@ -114,11 +107,9 @@ data class Token<V : RealNumber<V>>(
         }
 
     /**
-     * 检查 V 类型值是否在此 token 的边界范围内
-     * Check if a V-type value is within this token's bounds
+     * 检查 V 类型值是否在此 token 的边界范围内 / Check if a V-type value is within this token's bounds
      *
-     * 内部将 V 转换为 Flt64 进行范围检查。未设置边界时返回 true。
-     * Converts V to Flt64 internally for range checking. Returns true if no bounds are set.
+     * 内部将 V 转换为 Flt64 进行范围检查。未设置边界时返回 true。 / Converts V to Flt64 internally for range checking. Returns true if no bounds are set.
      *
      * @param value 待检查的值 / Value to check
      * @param converter 值转换器 / Value converter
@@ -136,8 +127,7 @@ data class Token<V : RealNumber<V>>(
     val upperBound by variable::upperBound
 
     /**
-     * 获取下界的类型化视图
-     * Get generic view of lower bound
+     * 获取下界的类型化视图 / Get generic view of lower bound
      *
      * @param converter 值转换器 / Value converter
      * @return 类型化的下界值 / Typed lower bound value
@@ -145,8 +135,7 @@ data class Token<V : RealNumber<V>>(
     fun lowerBound(converter: IntoValue<V>): V? = lowerBound?.value?.toFlt64()?.let { converter.intoValue(it) }
 
     /**
-     * 获取上界的类型化视图
-     * Get generic view of upper bound
+     * 获取上界的类型化视图 / Get generic view of upper bound
      *
      * @param converter 值转换器 / Value converter
      * @return 类型化的上界值 / Typed upper bound value
@@ -154,8 +143,7 @@ data class Token<V : RealNumber<V>>(
     fun upperBound(converter: IntoValue<V>): V? = upperBound?.value?.toFlt64()?.let { converter.intoValue(it) }
 
     /**
-     * 判断是否属于同一变量组
-     * Check if this token belongs to the same group as a variable
+     * 判断是否属于同一变量组 / Check if this token belongs to the same group as a variable
      *
      * @param item 变量项 / Variable item
      * @return 是否属于同一组 / Whether in the same group
@@ -165,8 +153,7 @@ data class Token<V : RealNumber<V>>(
     }
 
     /**
-     * 判断是否属于指定组合
-     * Check if this token belongs to the specified combination
+     * 判断是否属于指定组合 / Check if this token belongs to the specified combination
      *
      * @param combination 变量组合 / Variable combination
      * @return 是否属于该组合 / Whether belongs to the combination
@@ -176,8 +163,7 @@ data class Token<V : RealNumber<V>>(
     }
 
     /**
-     * 在边界范围内生成随机值
-     * Generate a random value within bounds
+     * 在边界范围内生成随机值 / Generate a random value within bounds
      *
      * @param rng 随机数生成器 / Random number generator
      * @return 随机 Flt64 值 / Random Flt64 value

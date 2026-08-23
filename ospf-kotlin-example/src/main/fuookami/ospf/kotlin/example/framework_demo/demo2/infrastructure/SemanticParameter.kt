@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  * Represents a minor aircraft model variant identifier.
  * 表示航空器子型号标识。
  *
- * @property model The minor model identifier string. / 子型号标识字符串
+ * @property model 子型号标识字符串 / The minor model identifier string.
 */
 @JvmInline
 value class AircraftMinorModel(val model: String)
@@ -17,7 +17,7 @@ value class AircraftMinorModel(val model: String)
  * Represents an aircraft registration number.
  * 表示航空器注册号。
  *
- * @property no The registration number string. / 注册号字符串
+ * @property no 注册号字符串 / The registration number string.
 */
 @JvmInline
 value class RegNo(val no: String)
@@ -26,7 +26,7 @@ value class RegNo(val no: String)
  * Represents a flight number.
  * 表示航班号。
  *
- * @property no The flight number string. / 航班号字符串
+ * @property no 航班号字符串 / The flight number string.
 */
 @JvmInline
 value class FlightNo(val no: String)
@@ -69,7 +69,7 @@ value class MAC(val mac: Flt64): PartialOrd<MAC>, Ord<MAC> {
  * Represents a horizontal stabilizer angle setting.
  * 表示水平安定面角度设置。
  *
- * @property angle The stabilizer angle as a string. / 安定面角度字符串
+ * @property angle 安定面角度字符串 / The stabilizer angle as a string.
 */
 @JvmInline
 value class HorizontalStabilizerAngle(val angle: String)
@@ -78,7 +78,7 @@ value class HorizontalStabilizerAngle(val angle: String)
  * Represents a horizontal stabilizer thrust derate modifier.
  * 表示水平安定面推力减额修正量。
  *
- * @property mod The thrust derate modifier as a string. / 推力减额修正量字符串
+ * @property mod 推力减额修正量字符串 / The thrust derate modifier as a string.
 */
 @JvmInline
 value class HorizontalStabilizerThrustDrate(val mod: String)

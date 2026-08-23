@@ -1,6 +1,5 @@
 /**
- * 层放置适配器。
- * Layer placement adapter.
+ * 层放置适配器。 / Layer placement adapter.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.CirclePackingLayerGenerator
 
 /**
- * 统一创建 BinLayer 的放置对象。
- * Create BinLayer placement via a unified adapter.
+ * 统一创建 BinLayer 的放置对象。 / Create BinLayer placement via a unified adapter.
  *
  * @param z 层深度坐标，默认为原点 / layer depth coordinate, defaults to origin
  * @return 层放置 / layer placement
@@ -30,8 +28,7 @@ internal fun BinLayer.toLayerPlacement(z: Quantity<FltX>? = null): Ret<QuantityP
 }
 
 /**
- * 已知坐标层放置构造，不执行默认候选路径的圆柱轴向门禁。
- * Known-coordinate layer placement builder, without the default candidate-path cylinder-axis guard.
+ * 已知坐标层放置构造，不执行默认候选路径的圆柱轴向门禁。 / Known-coordinate layer placement builder, without the default candidate-path cylinder-axis guard.
  *
  * @param z 层深度坐标 / layer depth coordinate
  * @return 层放置 / layer placement
@@ -49,8 +46,7 @@ internal fun BinLayer.toKnownCoordinateLayerPlacement(z: Quantity<FltX>? = null)
 }
 
 /**
- * 统一创建空层箱体，避免业务处散落 QuantityPlacement3 构造。
- * Build a bin with one placed layer via adapter.
+ * 统一创建空层箱体，避免业务处散落 QuantityPlacement3 构造。 / Build a bin with one placed layer via adapter.
  *
  * @param layer 待放置的箱层 / bin layer to place
  * @param z 层深度坐标，默认为原点 / layer depth coordinate, defaults to origin
@@ -70,8 +66,7 @@ internal fun Bin<BinLayer, FltX>.withPlacedLayer(layer: BinLayer, z: Quantity<Fl
 }
 
 /**
- * 统一创建 item 放置对象，避免测试夹具散落构造。
- * Create item placement via a unified adapter for fixtures.
+ * 统一创建 item 放置对象，避免测试夹具散落构造。 / Create item placement via a unified adapter for fixtures.
  *
  * @param x X 坐标，默认为原点 / X coordinate, defaults to origin
  * @param y Y 坐标，默认为原点 / Y coordinate, defaults to origin
@@ -99,8 +94,7 @@ internal fun Item.toItemPlacement(
 }
 
 /**
- * 应用层使用共享圆柱契约校验生成候选能力。
- * Application layer uses the shared cylinder contract to validate generated candidate capability.
+ * 应用层使用共享圆柱契约校验生成候选能力。 / Application layer uses the shared cylinder contract to validate generated candidate capability.
  *
  * @param layer 待校验的箱层 / bin layer to validate
  * @return 校验结果 / validation result

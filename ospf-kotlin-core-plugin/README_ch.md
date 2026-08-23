@@ -47,6 +47,15 @@ ospf-kotlin-core-plugin 是 OSPF（Open Solver Platform Framework）Kotlin 项�
 | `ospf-kotlin-core-plugin-lingo` | LINGO | :construction: | — | — | — | — |
 | `ospf-kotlin-core-plugin-optverse` | OPTVerse | :construction: | — | — | — | — |
 
+### CP 与不可行诊断能力矩阵
+
+| 插件 | 原生 CP | 精确 MIP-backed CP | 原生 IIS | LP Farkas |
+| --- | --- | --- | --- | --- |
+| SCIP | 整数逻辑、table、固定 duration interval、no-overlap、cumulative | 注入线性求解器后使用 core lowerer | — | 是 |
+| Gurobi | — | 通过 `MipBackedConstraintProgrammingSolver` | 是（LP/MIP/QP） | 是（连续 LP） |
+
+Optional interval 和 variable duration 在 MIP-backed 路径上是精确支持；SCIP native 对这些 formulation 返回结构化 unsupported 结果。
+
 ### 元启发式算法
 
 | 模块 | 算法 | 状态 | 说明 |

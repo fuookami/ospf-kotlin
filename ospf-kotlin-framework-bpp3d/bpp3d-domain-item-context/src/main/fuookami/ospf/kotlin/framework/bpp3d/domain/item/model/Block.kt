@@ -11,8 +11,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemMerger
 
 /**
- * Block 的基类，表示由多个物品放置单元组成的块。
- * Base class for Block, representing a block composed of multiple item placement units.
+ * Block 的基类，表示由多个物品放置单元组成的块。 / Base class for Block, representing a block composed of multiple item placement units.
  *
  * @property units 物品放置单元列表 / List of item placement units
 */
@@ -43,8 +42,7 @@ sealed class Block(
 }
 
 /**
- * 通用块，无特殊约束的 Block 实现。
- * Common block, a Block implementation with no special constraints.
+ * 通用块，无特殊约束的 Block 实现。 / Common block, a Block implementation with no special constraints.
 */
 class CommonBlock(
     units: List<QuantityPlacement3<Item, FltX>>
@@ -53,8 +51,7 @@ class CommonBlock(
 }
 
 /**
- * 简单块，所有放置单元属于同一个物品。
- * Simple block where all placement units belong to the same item.
+ * 简单块，所有放置单元属于同一个物品。 / Simple block where all placement units belong to the same item.
  *
  * @property item 物品 / Item
  * @property itemView 物品视图 / Item view
@@ -87,8 +84,7 @@ class SimpleBlock(
 }
 
 /**
- * 空心方框块，由两种方向（原始和旋转）的物品放置单元组成。
- * Hollow square block, composed of item placement units in two orientations (original and rotated).
+ * 空心方框块，由两种方向（原始和旋转）的物品放置单元组成。 / Hollow square block, composed of item placement units in two orientations (original and rotated).
  *
  * @property item 物品 / Item
  * @property itemView 物品视图 / Item view
@@ -153,8 +149,7 @@ class HollowSquareBlock(
 }
 
 /**
- * 堆叠块，由多个物品视图沿 Y 轴堆叠而成。
- * Pile block, composed of multiple item views stacked along the Y axis.
+ * 堆叠块，由多个物品视图沿 Y 轴堆叠而成。 / Pile block, composed of multiple item views stacked along the Y axis.
  *
  * @property itemViews 物品视图列表 / List of item views
  * @property bottomItem 底部物品 / Bottom item
@@ -171,8 +166,7 @@ class Pile(
 ) : Block(dump(itemViews)) {
     companion object {
         /**
-         * 将物品视图列表转储为放置单元列表。
-         * Dump the list of item views into a list of placement units.
+         * 将物品视图列表转储为放置单元列表。 / Dump the list of item views into a list of placement units.
          *
          * @param items 物品视图列表 / List of item views
          * @return 放置单元列表 / List of placement units
@@ -197,8 +191,7 @@ class Pile(
         }
 
         /**
-         * 计算物品在底部物品上的层数信息。
-         * Calculate the layer information for an item on bottom items.
+         * 计算物品在底部物品上的层数信息。 / Calculate the layer information for an item on bottom items.
          *
          * @param item 物品 / Item
          * @param bottomItems 底部物品列表 / List of bottom items
@@ -212,8 +205,7 @@ class Pile(
         }
 
         /**
-         * 计算物品视图在底部物品视图上的层数信息。
-         * Calculate the layer information for an item view on bottom item views.
+         * 计算物品视图在底部物品视图上的层数信息。 / Calculate the layer information for an item view on bottom item views.
          *
          * @param item 物品视图 / Item view
          * @param bottomItems 底部物品视图列表 / List of bottom item views
@@ -275,8 +267,7 @@ class Pile(
 }
 
 /**
- * 分层块，由多个 SimpleBlock 沿 Y 轴堆叠而成。
- * Layered block, composed of multiple SimpleBlocks stacked along the Y axis.
+ * 分层块，由多个 SimpleBlock 沿 Y 轴堆叠而成。 / Layered block, composed of multiple SimpleBlocks stacked along the Y axis.
  *
  * @property blocks 简单块列表 / List of simple blocks
  * @property bottomItem 底部物品 / Bottom item
@@ -294,8 +285,7 @@ class LayeredBlock(
 ) : Block(dump(blocks)) {
     companion object {
         /**
-         * 将 SimpleBlock 列表转储为放置单元列表。
-         * Dump the list of SimpleBlocks into a list of placement units.
+         * 将 SimpleBlock 列表转储为放置单元列表。 / Dump the list of SimpleBlocks into a list of placement units.
          *
          * @param blocks 简单块列表 / List of simple blocks
          * @return 放置单元列表 / List of placement units
@@ -342,8 +332,7 @@ class LayeredBlock(
 }
 
 /**
- * 复杂块，由多个子块通过三维空间放置组合而成。
- * Complex block, composed of multiple sub-blocks placed in 3D space.
+ * 复杂块，由多个子块通过三维空间放置组合而成。 / Complex block, composed of multiple sub-blocks placed in 3D space.
  *
  * @property blocks 子块放置列表 / List of sub-block placements
 */
@@ -353,8 +342,7 @@ class ComplexBlock(
 ) : Block(dump(blocks)) {
     companion object {
         /**
-         * 将 Block 放置列表转储为物品放置单元列表。
-         * Dump the list of Block placements into a list of item placement units.
+         * 将 Block 放置列表转储为物品放置单元列表。 / Dump the list of Block placements into a list of item placement units.
          *
          * @param blocks 块放置列表 / List of block placements
          * @return 物品放置单元列表 / List of item placement units

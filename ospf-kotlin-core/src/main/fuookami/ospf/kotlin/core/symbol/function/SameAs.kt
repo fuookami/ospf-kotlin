@@ -18,18 +18,14 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 相同满足函数符号 / Same-as function symbol
  *
- * 提供 [SameAsFunction]，当所有不等式满足状态一致时返回 1。
- *
- * Provides [SameAsFunction] that returns 1 when all inequalities have the same satisfaction status.
+ * 提供 [SameAsFunction]，当所有不等式满足状态一致时返回 1。 / Provides [SameAsFunction] that returns 1 when all inequalities have the same satisfaction status.
 */
 
 /**
- * 相等函数符号：当所有不等式具有相同的满足状态时返回 1（全满足或全不满足），否则返回 0。
- * SameAs function symbol: returns 1 if all inequalities have the same satisfaction status
+ * 相等函数符号：当所有不等式具有相同的满足状态时返回 1（全满足或全不满足），否则返回 0。 / SameAs function symbol: returns 1 if all inequalities have the same satisfaction status
  * (all true or all false), returns 0 otherwise.
  *
- * 约束模式：
- * Constraint pattern:
+ * 约束模式： / Constraint pattern:
  * - 每个输入不等式获得二值标志 `u[i]`（满足时为 1，不满足时为 0）
  * - Each input inequality gets a binary flag `u[i]` (1 if satisfied, 0 if not)
  * - BigM 约束将每个标志链接到其不等式

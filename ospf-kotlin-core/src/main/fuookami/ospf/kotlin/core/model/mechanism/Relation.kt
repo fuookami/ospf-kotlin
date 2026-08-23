@@ -1,6 +1,5 @@
 /**
- * 约束关系
- * Constraint relation
+ * 约束关系 / Constraint relation
 */
 package fuookami.ospf.kotlin.core.model.mechanism
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 线性约束关系密封接口，封装线性展平数据和比较符号。
- * Sealed interface for linear constraint relations, encapsulating linear flatten data and comparison sign.
+ * 线性约束关系密封接口，封装线性展平数据和比较符号。 / Sealed interface for linear constraint relations, encapsulating linear flatten data and comparison sign.
 */
 sealed interface LinearRelation<V> where V : RealNumber<V>, V : NumberField<V> {
 
@@ -44,8 +42,7 @@ sealed interface LinearRelation<V> where V : RealNumber<V>, V : NumberField<V> {
 }
 
 /**
- * 二次约束关系密封接口，封装二次展平数据和比较符号。
- * Sealed interface for quadratic constraint relations, encapsulating quadratic flatten data and comparison sign.
+ * 二次约束关系密封接口，封装二次展平数据和比较符号。 / Sealed interface for quadratic constraint relations, encapsulating quadratic flatten data and comparison sign.
 */
 sealed interface QuadraticRelation<V> where V : RealNumber<V>, V : NumberField<V> {
 
@@ -76,8 +73,7 @@ sealed interface QuadraticRelation<V> where V : RealNumber<V>, V : NumberField<V
 }
 
 /**
- * 线性约束关系实现
- * Linear constraint relation implementation
+ * 线性约束关系实现 / Linear constraint relation implementation
  *
  * @param V 数值类型 / The number type
  * @property flattenData 扁平化的线性数据 / Flattened linear data
@@ -118,8 +114,7 @@ data class LinearRelationImpl<V>(
 }
 
 /**
- * 二次约束关系实现
- * Quadratic constraint relation implementation
+ * 二次约束关系实现 / Quadratic constraint relation implementation
  *
  * @param V 数值类型 / The number type
  * @property flattenData 扁平化的二次数据 / Flattened quadratic data

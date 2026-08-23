@@ -23,8 +23,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 将资源 slack 变量范围收敛为 Flt64 表达式范围并设置上限 / Narrows resource slack-variable ranges to Flt64 expression ranges and sets upper bounds
  *
- * 资源变量范围由 Flt64 表达式变量构造，运行期类型不变量由资源建模路径保证。
- * Resource variable ranges are built from Flt64 expression variables; the resource modeling path owns the runtime type invariant.
+ * 资源变量范围由 Flt64 表达式变量构造，运行期类型不变量由资源建模路径保证。 / Resource variable ranges are built from Flt64 expression variables; the resource modeling path owns the runtime type invariant.
  *
  * @param range 表达式范围 / Expression range
  * @param upperBound 上界 / Upper bound

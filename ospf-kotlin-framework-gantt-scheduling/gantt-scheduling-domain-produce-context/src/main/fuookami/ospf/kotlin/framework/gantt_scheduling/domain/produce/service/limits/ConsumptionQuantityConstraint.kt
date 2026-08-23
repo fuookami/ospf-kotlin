@@ -1,8 +1,7 @@
 /**
  * 消耗数量约束服务 / Consumption quantity constraint service
  *
- * 本文件定义消耗数量约束管道及影子价格键，用于建模原料消耗的上下限约束。
- * This file defines consumption quantity constraint pipeline and shadow price key for modeling material consumption lower/upper bound constraints.
+ * 本文件定义消耗数量约束管道及影子价格键，用于建模原料消耗的上下限约束。 / This file defines consumption quantity constraint pipeline and shadow price key for modeling material consumption lower/upper bound constraints.
 */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
@@ -176,7 +175,7 @@ class ConsumptionQuantityConstraint<
     }
 
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
-        return { map, args ->
+        return AbstractGanttSchedulingShadowPriceExtractor { map, args ->
             shadowPriceArguments?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
                     when (val task = args.task) {

@@ -21,33 +21,27 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * 提供 [SatisfiedAmountInequalityFunction]、[AnyFunction]、[AllFunction]、
  * [AtLeastInequalityFunction]、[NotAllFunction]、[NumeratorFunction] 等
- * 用于不等式满足数量的线性化建模。
- *
- * Provides [SatisfiedAmountInequalityFunction], [AnyFunction], [AllFunction],
+ * 用于不等式满足数量的线性化建模。 / Provides [SatisfiedAmountInequalityFunction], [AnyFunction], [AllFunction],
  * [AtLeastInequalityFunction], [NotAllFunction], [NumeratorFunction] and more
  * for linearized modeling of inequality satisfaction counts.
 */
 
 /**
- * 满足数量函数：统计列表中有多少不等式被满足。
- * Satisfied Amount function: counts how many inequalities in a list are satisfied.
+ * 满足数量函数：统计列表中有多少不等式被满足。 / Satisfied Amount function: counts how many inequalities in a list are satisfied.
  *
- * 给定线性约束列表，此函数：
- * Given a list of linear constraints, this function:
+ * 给定线性约束列表，此函数： / Given a list of linear constraints, this function:
  * - 为每个约束创建二值标志 `u[i]` 表示是否满足
  * - Creates a binary flag `u[i]` for each constraint indicating satisfaction
  * - 返回 `y = sum(u[i])` 作为满足约束的计数
  * - Returns `y = sum(u[i])` as the count of satisfied constraints
  *
- * 当指定 `amount` 时，返回二值指示器：
- * When `amount` is specified, returns a binary indicator:
+ * 当指定 `amount` 时，返回二值指示器： / When `amount` is specified, returns a binary indicator:
  * - 若满足约束的数量在 `amount` 范围内则 `y = 1`
  * - `y = 1` if the count of satisfied constraints is within `amount` range
  * - 否则 `y = 0`
  * - `y = 0` otherwise
  *
- * 约束满足度使用 PCT（百分比）公式编码：
- * The constraint satisfaction is encoded using the PCT (Percentage) formulation:
+ * 约束满足度使用 PCT（百分比）公式编码： / The constraint satisfaction is encoded using the PCT (Percentage) formulation:
  * 对每个约束，创建 3 个百分比变量 [k0, k1, k2] 在 [lowerBound, 0, upperBound] 之间插值，
  * For each constraint, 3 percentage variables [k0, k1, k2] are created to interpolate
  * between [lowerBound, 0, upperBound], with a binary flag indicating whether 0 is in range.
@@ -87,10 +81,8 @@ open class SatisfiedAmountInequalityFunction<V>(
     }
 
     /**
-     * 结果：满足约束标志之和。
-     * Result: sum of satisfied constraint flags.
-     * 若指定了 amount，则为二值指示器（0 或 1）。
-     * If amount is specified, this is a binary indicator (0 or 1).
+     * 结果：满足约束标志之和。 / Result: sum of satisfied constraint flags.
+     * 若指定了 amount，则为二值指示器（0 或 1）。 / If amount is specified, this is a binary indicator (0 or 1).
     */
     val result: LinearPolynomial<V> by lazy {
         val currentAmount = amount
@@ -123,12 +115,10 @@ open class SatisfiedAmountInequalityFunction<V>(
     }
 
     /**
-     * 检查给定当前值下单个输入约束是否满足。
-     * Check whether a single input constraint is satisfied given the current values.
+     * 检查给定当前值下单个输入约束是否满足。 / Check whether a single input constraint is satisfied given the current values.
     */
     /**
-     * 检查给定当前值下单个输入约束是否满足。
-     * Check whether a single input constraint is satisfied given the current values.
+     * 检查给定当前值下单个输入约束是否满足。 / Check whether a single input constraint is satisfied given the current values.
      *
      * @param input 约束输入 / the constraint input
      * @param values 符号到值的映射 / symbol-to-value map
@@ -291,8 +281,7 @@ open class SatisfiedAmountInequalityFunction<V>(
 }
 
 /**
- * 任一满足函数：至少一个不等式必须满足。
- * AnyFunction: at least one inequality must be satisfied.
+ * 任一满足函数：至少一个不等式必须满足。 / AnyFunction: at least one inequality must be satisfied.
  *
  * 别名：`amount = [1, n]`
  * Alias: `amount = [1, n]`
@@ -336,8 +325,7 @@ class AnyFunction<V>(
 }
 
 /**
- * 全部满足函数：所有不等式必须满足。
- * AllFunction: all inequalities must be satisfied.
+ * 全部满足函数：所有不等式必须满足。 / AllFunction: all inequalities must be satisfied.
  *
  * 别名：`amount = [n, n]`
  * Alias: `amount = [n, n]`
@@ -381,8 +369,7 @@ class AllFunction<V>(
 }
 
 /**
- * 至少满足函数：至少 k 个不等式必须满足。
- * AtLeastInequalityFunction: at least k inequalities must be satisfied.
+ * 至少满足函数：至少 k 个不等式必须满足。 / AtLeastInequalityFunction: at least k inequalities must be satisfied.
  *
  * 别名：`amount = [k, n]`
  * Alias: `amount = [k, n]`
@@ -435,8 +422,7 @@ class AtLeastInequalityFunction<V>(
 }
 
 /**
- * 非全满足函数：不能同时满足所有不等式。
- * NotAllFunction: not all inequalities can be satisfied simultaneously.
+ * 非全满足函数：不能同时满足所有不等式。 / NotAllFunction: not all inequalities can be satisfied simultaneously.
  *
  * 别名：`amount = [1, n-1]`
  * Alias: `amount = [1, n-1]`
@@ -480,8 +466,7 @@ class NotAllFunction<V>(
 }
 
 /**
- * 可计数函数：满足的不等式数量必须在指定范围内。
- * NumerableFunction: the count of satisfied inequalities must be within a specified range.
+ * 可计数函数：满足的不等式数量必须在指定范围内。 / NumerableFunction: the count of satisfied inequalities must be within a specified range.
  *
  * @param inputs 要检查的约束输入列表 / list of constraint inputs to check
  * @property amount 满足数量的目标范围 / target range of satisfied count

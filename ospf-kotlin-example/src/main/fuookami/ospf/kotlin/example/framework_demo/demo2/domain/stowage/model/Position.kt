@@ -34,12 +34,12 @@ enum class PositionStatusCode {
  * Position status describing availability, stowage requirements, and weight needs.
  * 舱位状态，描述可用性、装载需求和重量需求。
  *
- * @property code the position status code / 舱位状态码
- * @property available whether the position is available for stowage / 舱位是否可用于装载
- * @property stowageNeeded whether the position requires stowage decision / 舱位是否需要装载决策
- * @property adjustmentNeeded whether the position requires adjustment / 舱位是否需要调整
- * @property predicateWeightNeeded whether the position requires predicate weight variable / 舱位是否需要谓词重量变量
- * @property recommendedWeightNeeded whether the position requires recommended weight variable / 舱位是否需要推荐重量变量
+ * @property code 舱位状态码 / the position status code
+ * @property available 舱位是否可用于装载 / whether the position is available for stowage
+ * @property stowageNeeded 舱位是否需要装载决策 / whether the position requires stowage decision
+ * @property adjustmentNeeded 舱位是否需要调整 / whether the position requires adjustment
+ * @property predicateWeightNeeded 舱位是否需要谓词重量变量 / whether the position requires predicate weight variable
+ * @property recommendedWeightNeeded 舱位是否需要推荐重量变量 / whether the position requires recommended weight variable
 */
 data class PositionStatus(
     val code: PositionStatusCode,
@@ -55,7 +55,17 @@ data class PositionStatus(
             code: PositionStatusCode,
             stowageMode: StowageMode
         ): PositionStatus {
-            TODO("not implemented yet")
+            val available = code != PositionStatusCode.Loaded && code != PositionStatusCode.Reserved
+            val stowageNeeded = code == PositionStatusCode.Unloaded || code == PositionStatusCode.Preassigned
+            val additionalWeightNeeded = available && stowageNeeded && location.main
+            return PositionStatus(
+                code = code,
+                available = available,
+                stowageNeeded = stowageNeeded,
+                adjustmentNeeded = code == PositionStatusCode.Preassigned,
+                predicateWeightNeeded = additionalWeightNeeded && stowageMode == StowageMode.Predistribution,
+                recommendedWeightNeeded = additionalWeightNeeded && stowageMode == StowageMode.WeightRecommendation
+            )
         }
     }
 
@@ -84,7 +94,7 @@ enum class PositionTypeCode {
  * Position type combining a set of position type codes.
  * 舱位类型，包含一组舱位类型码集合。
  *
- * @property codes the set of position type codes / 舱位类型码集合
+ * @property codes 舱位类型码集合 / the set of position type codes
 */
 data class PositionType(
     val codes: Set<PositionTypeCode>
@@ -105,9 +115,9 @@ data class PositionType(
  * Predicate load weight specification for positions requiring predicate weight validation.
  * 需要谓词重量验证的舱位的谓词装载重量规格。
  *
- * @property plw the predicate load weight / 谓词装载重量
- * @property min the minimum load weight / 最小装载重量
- * @property max the maximum load weight / 最大装载重量
+ * @property plw 谓词装载重量 / the predicate load weight
+ * @property min 最小装载重量 / the minimum load weight
+ * @property max 最大装载重量 / the maximum load weight
 */
 data class PositionPredicateLoadWeight(
     val plw: Quantity<Flt64>,
@@ -119,8 +129,8 @@ data class PositionPredicateLoadWeight(
  * Maximum load weight for a position, supporting piecewise-linear limits based on zero-fuel weight.
  * 舱位的最大装载重量，支持基于零油重的分段线性限制。
  *
- * @property mlw the maximum load weight / 最大装载重量
- * @property segments the piecewise-linear segments / 分段线性段
+ * @property mlw 最大装载重量 / the maximum load weight
+ * @property segments 分段线性段 / the piecewise-linear segments
 */
 class PositionMaximumLoadWeight(
     private val aircraftModel: AircraftModel,
@@ -134,9 +144,9 @@ class PositionMaximumLoadWeight(
      * A segment in the piecewise-linear maximum load weight function.
      * 分段线性最大装载重量函数中的一个段。
      *
-     * @property mlw the maximum load weight for this segment / 此段的最大装载重量
-     * @property minZFW the minimum zero-fuel weight for this segment / 此段的最小零油重
-     * @property maxZFW the maximum zero-fuel weight for this segment, or null if unbounded / 此段的最大零油重，无上界时为 null
+     * @property mlw 此段的最大装载重量 / the maximum load weight for this segment
+     * @property minZFW 此段的最小零油重 / the minimum zero-fuel weight for this segment
+     * @property maxZFW 此段的最大零油重，无上界时为 null / the maximum zero-fuel weight for this segment, or null if unbounded
     */
     data class Segment(
         val mlw: Quantity<Flt64>,
@@ -148,8 +158,8 @@ class PositionMaximumLoadWeight(
      * A point in the piecewise-linear maximum load weight function.
      * 分段线性最大装载重量函数中的一个点。
      *
-     * @property mlw the maximum load weight at this point / 此点的最大装载重量
-     * @property zfw the zero-fuel weight at this point / 此点的零油重
+     * @property mlw 此点的最大装载重量 / the maximum load weight at this point
+     * @property zfw 此点的零油重 / the zero-fuel weight at this point
     */
     data class Point(
         val mlw: Quantity<Flt64>,
@@ -248,7 +258,7 @@ class PositionMaximumLoadWeight(
  * Stowage taboo for a position, defining ULD ranges that are prohibited.
  * 舱位的装载禁忌，定义禁止装载的 ULD 范围。
  *
- * @property taboos the list of taboo ranges / 禁忌范围列表
+ * @property taboos 禁忌范围列表 / the list of taboo ranges
 */
 data class PositionStowageTaboo(
     val taboos: List<TabooRange>
@@ -259,8 +269,8 @@ data class PositionStowageTaboo(
      * 定义禁止 ULD 编号范围的禁忌范围。
      *
      * @property uld the ULD code / ULD 代码
-     * @property noRange the prohibited ULD number range / 禁止的 ULD 编号范围
-     * @property com the commodity description / 商品描述
+     * @property noRange 禁止的 ULD 编号范围 / the prohibited ULD number range
+     * @property com 商品描述 / the commodity description
     */
     data class TabooRange(
         val uld: ULDCode,
@@ -270,7 +280,7 @@ data class PositionStowageTaboo(
 
     operator fun get(item: Item): TabooRange? {
         return taboos.find {
-            item.uld?.code == it.uld && it.noRange.contains(fuookami.ospf.kotlin.math.algebra.number.UInt64(item.uld.name.substring(3, 8).toULong()))
+            item.uld?.code == it.uld && it.noRange.contains(UInt64(item.uld.name.substring(3, 8).toULong()))
         }
     }
 
@@ -283,16 +293,16 @@ data class PositionStowageTaboo(
  * Stowage position combining aircraft base position with loading constraints and status.
  * 配载舱位，结合飞机基础舱位与装载约束和状态。
  *
- * @property base the aircraft base position / 飞机基础舱位
- * @property loadedItems the set of items already loaded in this position / 此舱位已装载的货物集合
- * @property ala the actual load amount, or null if not applicable / 实际装载量，不适用时为 null
- * @property mla the maximum load amount / 最大装载量
- * @property alw the actual load weight, or null if not applicable / 实际装载重量，不适用时为 null
- * @property mlw the maximum load weight specification / 最大装载重量规格
- * @property plw the predicate load weight specification, or null if not applicable / 谓词装载重量规格，不适用时为 null
- * @property type the position type with constraint codes / 带约束码的舱位类型
- * @property taboo the stowage taboo restrictions / 装载禁忌限制
- * @property status the position status / 舱位状态
+ * @property base 飞机基础舱位 / the aircraft base position
+ * @property loadedItems 此舱位已装载的货物集合 / the set of items already loaded in this position
+ * @property ala 实际装载量，不适用时为 null / the actual load amount, or null if not applicable
+ * @property mla 最大装载量 / the maximum load amount
+ * @property alw 实际装载重量，不适用时为 null / the actual load weight, or null if not applicable
+ * @property mlw 最大装载重量规格 / the maximum load weight specification
+ * @property plw 谓词装载重量规格，不适用时为 null / the predicate load weight specification, or null if not applicable
+ * @property type 带约束码的舱位类型 / the position type with constraint codes
+ * @property taboo 装载禁忌限制 / the stowage taboo restrictions
+ * @property status 舱位状态 / the position status
 */
 data class Position(
     val base: BasePosition,
@@ -322,8 +332,8 @@ data class Position(
      * Checks whether the given item is enabled for stowage at this position.
      * 检查给定货物是否允许在此舱位装载。
      *
-     * @param item the cargo item to check / 要检查的货物
-     * @return ok if enabled, or a failure with the reason / 允许时返回 ok，否则返回失败原因
+     * @param item 要检查的货物 / the cargo item to check
+     * @return 允许时返回 ok，否则返回失败原因 / ok if enabled, or a failure with the reason
     */
     fun enabled(item: Item): Try {
         // 舱位位置限制
@@ -391,7 +401,7 @@ data class Position(
         }
 
         // 舱位集装箱限制
-        if (item.uld?.code !in enabledULDs) {
+        if (item.uld?.code != null && item.uld.code !in enabledULDs) {
             return Failed(
                 ErrorCode.ApplicationFailed,
                 "不支持该集装器类型"

@@ -32,15 +32,22 @@ class FullLoadPipelineContext {
      * Initializes all eight domain contexts in sequence, returning early on failure.
      * 按顺序初始化所有八个域上下文，失败时提前返回。
      *
-     * @param request The request DTO containing problem input data. / 包含问题输入数据的请求 DTO
-     * @return Initialization result, ok on success or error on failure. / 初始化结果，成功返回 ok，失败返回错误
+     * @param request 包含问题输入数据的请求 DTO / The request DTO containing problem input data.
+     * @return 初始化结果，成功返回 ok，失败返回错误 / Initialization result, ok on success or error on failure.
     */
-    fun init(request: RequestDTO): Try {
+    fun init(
+        request: RequestDTO,
+        stowageMode: StowageMode = StowageMode.FullLoad
+    ): Try {
         aircraftContext.init(input = request).orReturn(
             failedHandler = { return Failed(it) },
             fatalHandler = { return Fatal(it) }
         )
-        stowageContext.init(aircraftContext = aircraftContext, input = request).orReturn(
+        stowageContext.init(
+            aircraftContext = aircraftContext,
+            input = request,
+            stowageMode = stowageMode
+        ).orReturn(
             failedHandler = { return Failed(it) },
             fatalHandler = { return Fatal(it) }
         )
@@ -60,11 +67,21 @@ class FullLoadPipelineContext {
             failedHandler = { return Failed(it) },
             fatalHandler = { return Fatal(it) }
         )
-        expressEffectivenessContext.init(aircraftContext = aircraftContext, stowageContext = stowageContext, input = request).orReturn(
+        expressEffectivenessContext.init(
+            aircraftContext = aircraftContext,
+            stowageContext = stowageContext,
+            input = request,
+            stowageMode = stowageMode
+        ).orReturn(
             failedHandler = { return Failed(it) },
             fatalHandler = { return Fatal(it) }
         )
-        loadingEffectivenessContext.init(aircraftContext = aircraftContext, stowageContext = stowageContext, input = request).orReturn(
+        loadingEffectivenessContext.init(
+            aircraftContext = aircraftContext,
+            stowageContext = stowageContext,
+            input = request,
+            stowageMode = stowageMode
+        ).orReturn(
             failedHandler = { return Failed(it) },
             fatalHandler = { return Fatal(it) }
         )
@@ -75,10 +92,10 @@ class FullLoadPipelineContext {
      * Registers all eight domain contexts into the optimization model with the given stowage mode and parameters.
      * 将所有八个域上下文注册到优化模型中，使用给定的配载模式和参数。
      *
-     * @param stowageMode The stowage mode for registration. / 注册使用的配载模式
-     * @param parameter The solving parameters. / 求解参数
-     * @param model The linear meta-model to register constraints and variables into. / 要注册约束和变量的线性元模型
-     * @return Registration result, ok on success or error on failure. / 注册结果，成功返回 ok，失败返回错误
+     * @param stowageMode 注册使用的配载模式 / The stowage mode for registration.
+     * @param parameter 求解参数 / The solving parameters.
+     * @param model 要注册约束和变量的线性元模型 / The linear meta-model to register constraints and variables into.
+     * @return 注册结果，成功返回 ok，失败返回错误 / Registration result, ok on success or error on failure.
     */
     fun register(stowageMode: StowageMode, parameter: Parameter, model: AbstractLinearMetaModel<Flt64>): Try {
         stowageContext.register(stowageMode = stowageMode, model = model).orReturn(
@@ -134,11 +151,14 @@ class PredistributionPipelineContext {
      * Initializes the FullLoad pipeline contexts and the redundancy context, returning early on failure.
      * 初始化 FullLoad 管线上下文和余度上下文，失败时提前返回。
      *
-     * @param request The request DTO containing problem input data. / 包含问题输入数据的请求 DTO
-     * @return Initialization result, ok on success or error on failure. / 初始化结果，成功返回 ok，失败返回错误
+     * @param request 包含问题输入数据的请求 DTO / The request DTO containing problem input data.
+     * @return 初始化结果，成功返回 ok，失败返回错误 / Initialization result, ok on success or error on failure.
     */
     fun init(request: RequestDTO): Try {
-        fullLoad.init(request).orReturn(
+        fullLoad.init(
+            request = request,
+            stowageMode = StowageMode.Predistribution
+        ).orReturn(
             failedHandler = { return Failed(it) },
             fatalHandler = { return Fatal(it) }
         )
@@ -153,10 +173,10 @@ class PredistributionPipelineContext {
      * Registers the FullLoad pipeline contexts and the redundancy context into the optimization model.
      * 将 FullLoad 管线上下文和余度上下文注册到优化模型中。
      *
-     * @param stowageMode The stowage mode for registration. / 注册使用的配载模式
-     * @param parameter The solving parameters. / 求解参数
-     * @param model The linear meta-model to register constraints and variables into. / 要注册约束和变量的线性元模型
-     * @return Registration result, ok on success or error on failure. / 注册结果，成功返回 ok，失败返回错误
+     * @param stowageMode 注册使用的配载模式 / The stowage mode for registration.
+     * @param parameter 求解参数 / The solving parameters.
+     * @param model 要注册约束和变量的线性元模型 / The linear meta-model to register constraints and variables into.
+     * @return 注册结果，成功返回 ok，失败返回错误 / Registration result, ok on success or error on failure.
     */
     fun register(stowageMode: StowageMode, parameter: Parameter, model: AbstractLinearMetaModel<Flt64>): Try {
         fullLoad.register(stowageMode = stowageMode, parameter = parameter, model = model).orReturn(

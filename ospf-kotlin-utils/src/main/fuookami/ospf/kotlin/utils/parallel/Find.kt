@@ -1,7 +1,5 @@
 /**
- * 并行查找操作
- *
- * Parallel find operations (first, firstOrNull, last, lastOrNull) with concurrency control.
+ * 并行查找操作 / Parallel find operations (first, firstOrNull, last, lastOrNull) with concurrency control.
 */
 package fuookami.ospf.kotlin.utils.parallel
 
@@ -14,9 +12,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 // ============================================================================
 
 /**
- * 并行查找第一个满足条件的元素（带错误处理）
- *
- * Find the first element that satisfies the predicate in parallel with error handling.
+ * 并行查找第一个满足条件的元素（带错误处理） / Find the first element that satisfies the predicate in parallel with error handling.
  * 并发查找第一个满足条件的元素，支持错误处理。
  *
  * @param T 元素类型 / Element type
@@ -37,9 +33,7 @@ suspend inline fun <T> Iterable<T>.tryFirstParallelly(
 }
 
 /**
- * 并行查找第一个满足条件的元素（带错误收集）
- *
- * Find the first element that satisfies the predicate in parallel with error collection.
+ * 并行查找第一个满足条件的元素（带错误收集） / Find the first element that satisfies the predicate in parallel with error collection.
  * 并发查找第一个满足条件的元素，收集所有错误。
  *
  * @param T 元素类型 / Element type
@@ -62,9 +56,7 @@ suspend inline fun <T> Iterable<T>.exTryFirstParallelly(
 }
 
 /**
- * 并行查找第一个满足条件的元素（可能为空）
- *
- * Find the first element that satisfies the predicate in parallel, or null if not found.
+ * 并行查找第一个满足条件的元素（可能为空） / Find the first element that satisfies the predicate in parallel, or null if not found.
  * 并发查找第一个满足条件的元素，如果未找到则返回 null。
  *
  * @param T 元素类型 / Element type
@@ -86,9 +78,7 @@ suspend inline fun <T> Iterable<T>.firstOrNullParallelly(
 }
 
 /**
- * 并行查找第一个满足条件的元素（带错误处理，可能为空）
- *
- * Find the first element that satisfies the predicate in parallel with error handling, or null if not found.
+ * 并行查找第一个满足条件的元素（带错误处理，可能为空） / Find the first element that satisfies the predicate in parallel with error handling, or null if not found.
  * 并发查找第一个满足条件的元素，支持错误处理，如果未找到则返回 null。
  *
  * @param T 元素类型 / Element type
@@ -116,9 +106,7 @@ suspend inline fun <T> Iterable<T>.tryFirstOrNullParallelly(
 }
 
 /**
- * 并行查找第一个满足条件的元素（带错误收集，可能为空）
- *
- * Find the first element that satisfies the predicate in parallel with error collection, or null if not found.
+ * 并行查找第一个满足条件的元素（带错误收集，可能为空） / Find the first element that satisfies the predicate in parallel with error collection, or null if not found.
  * 并发查找第一个满足条件的元素，收集所有错误，如果未找到则返回 null。
  *
  * @param T 元素类型 / Element type
@@ -159,9 +147,7 @@ suspend inline fun <T> Iterable<T>.exTryFirstOrNullParallelly(
 // ============================================================================
 
 /**
- * 并行查找第一个非空转换结果（带错误处理）
- *
- * Find the first non-null result from transforming elements in parallel with error handling.
+ * 并行查找第一个非空转换结果（带错误处理） / Find the first non-null result from transforming elements in parallel with error handling.
  * 并发查找第一个非空的元素转换结果，支持错误处理。
  *
  * @param R 结果类型 / Result type
@@ -183,9 +169,7 @@ suspend inline fun <R, T> Iterable<T>.tryFirstNotNullOfParallelly(
 }
 
 /**
- * 并行查找第一个非空转换结果（带错误收集）
- *
- * Find the first non-null result from transforming elements in parallel with error collection.
+ * 并行查找第一个非空转换结果（带错误收集） / Find the first non-null result from transforming elements in parallel with error collection.
  * 并发查找第一个非空的元素转换结果，收集所有错误。
  *
  * @param R 结果类型 / Result type
@@ -209,9 +193,7 @@ suspend inline fun <R, T> Iterable<T>.exTryFirstNotNullOfParallelly(
 }
 
 /**
- * 并行查找第一个非空转换结果（可能为空）
- *
- * Find the first non-null result from transforming elements in parallel, or null if not found.
+ * 并行查找第一个非空转换结果（可能为空） / Find the first non-null result from transforming elements in parallel, or null if not found.
  * 并发查找第一个非空的元素转换结果，如果未找到则返回 null。
  *
  * @param R 结果类型 / Result type
@@ -234,9 +216,7 @@ suspend inline fun <R, T> Iterable<T>.firstNotNullOfOrNullParallelly(
 }
 
 /**
- * 并行查找第一个非空转换结果（带错误处理，可能为空）
- *
- * Find the first non-null result from transforming elements in parallel with error handling, or null if not found.
+ * 并行查找第一个非空转换结果（带错误处理，可能为空） / Find the first non-null result from transforming elements in parallel with error handling, or null if not found.
  * 并发查找第一个非空的元素转换结果，支持错误处理，如果未找到则返回 null。
  *
  * @param R 结果类型 / Result type
@@ -265,9 +245,7 @@ suspend inline fun <R, T> Iterable<T>.tryFirstNotNullOfOrNullParallelly(
 }
 
 /**
- * 并行查找第一个非空转换结果（带错误收集，可能为空）
- *
- * Find the first non-null result from transforming elements in parallel with error collection, or null if not found.
+ * 并行查找第一个非空转换结果（带错误收集，可能为空） / Find the first non-null result from transforming elements in parallel with error collection, or null if not found.
  * 并发查找第一个非空的元素转换结果，收集所有错误，如果未找到则返回 null。
  *
  * @param R 结果类型 / Result type
@@ -309,9 +287,7 @@ suspend inline fun <R, T> Iterable<T>.exTryFirstNotNullOfOrNullParallelly(
 // ============================================================================
 
 /**
- * 并行查找最后一个满足条件的元素（带错误处理）
- *
- * Find the last element that satisfies the predicate in parallel with error handling.
+ * 并行查找最后一个满足条件的元素（带错误处理） / Find the last element that satisfies the predicate in parallel with error handling.
  * 并发查找最后一个满足条件的元素，支持错误处理。
  *
  * @param T 元素类型 / Element type
@@ -332,9 +308,7 @@ suspend inline fun <T> Iterable<T>.tryLastParallelly(
 }
 
 /**
- * 并行查找最后一个满足条件的元素（带错误收集）
- *
- * Find the last element that satisfies the predicate in parallel with error collection.
+ * 并行查找最后一个满足条件的元素（带错误收集） / Find the last element that satisfies the predicate in parallel with error collection.
  * 并发查找最后一个满足条件的元素，收集所有错误。
  *
  * @param T 元素类型 / Element type
@@ -357,9 +331,7 @@ suspend inline fun <T> Iterable<T>.exTryLastParallelly(
 }
 
 /**
- * 并行查找最后一个满足条件的元素（可能为空）
- *
- * Find the last element that satisfies the predicate in parallel, or null if not found.
+ * 并行查找最后一个满足条件的元素（可能为空） / Find the last element that satisfies the predicate in parallel, or null if not found.
  * 并发查找最后一个满足条件的元素，如果未找到则返回 null。
  *
  * @param T 元素类型 / Element type
@@ -381,9 +353,7 @@ suspend inline fun <T> Iterable<T>.lastOrNullParallelly(
 }
 
 /**
- * 并行查找最后一个满足条件的元素（带错误处理，可能为空）
- *
- * Find the last element that satisfies the predicate in parallel with error handling, or null if not found.
+ * 并行查找最后一个满足条件的元素（带错误处理，可能为空） / Find the last element that satisfies the predicate in parallel with error handling, or null if not found.
  * 并发查找最后一个满足条件的元素，支持错误处理，如果未找到则返回 null。
  *
  * @param T 元素类型 / Element type
@@ -411,9 +381,7 @@ suspend inline fun <T> Iterable<T>.tryLastOrNullParallelly(
 }
 
 /**
- * 并行查找最后一个满足条件的元素（带错误收集，可能为空）
- *
- * Find the last element that satisfies the predicate in parallel with error collection, or null if not found.
+ * 并行查找最后一个满足条件的元素（带错误收集，可能为空） / Find the last element that satisfies the predicate in parallel with error collection, or null if not found.
  * 并发查找最后一个满足条件的元素，收集所有错误，如果未找到则返回 null。
  *
  * @param T 元素类型 / Element type
@@ -454,9 +422,7 @@ suspend inline fun <T> Iterable<T>.exTryLastOrNullParallelly(
 // ============================================================================
 
 /**
- * 并行查找最后一个非空转换结果（带错误处理）
- *
- * Find the last non-null result from transforming elements in parallel with error handling.
+ * 并行查找最后一个非空转换结果（带错误处理） / Find the last non-null result from transforming elements in parallel with error handling.
  * 并发查找最后一个非空的元素转换结果，支持错误处理。
  *
  * @param R 结果类型 / Result type
@@ -478,9 +444,7 @@ suspend inline fun <R, T> Iterable<T>.tryLastNotNullOfParallelly(
 }
 
 /**
- * 并行查找最后一个非空转换结果（带错误收集）
- *
- * Find the last non-null result from transforming elements in parallel with error collection.
+ * 并行查找最后一个非空转换结果（带错误收集） / Find the last non-null result from transforming elements in parallel with error collection.
  * 并发查找最后一个非空的元素转换结果，收集所有错误。
  *
  * @param R 结果类型 / Result type
@@ -504,9 +468,7 @@ suspend inline fun <R, T> Iterable<T>.exTryLastNotNullOfParallelly(
 }
 
 /**
- * 并行查找最后一个非空转换结果（可能为空）
- *
- * Find the last non-null result from transforming elements in parallel, or null if not found.
+ * 并行查找最后一个非空转换结果（可能为空） / Find the last non-null result from transforming elements in parallel, or null if not found.
  * 并发查找最后一个非空的元素转换结果，如果未找到则返回 null。
  *
  * @param R 结果类型 / Result type
@@ -530,9 +492,7 @@ suspend inline fun <R, T> Iterable<T>.lastNotNullOfOrNullParallelly(
 }
 
 /**
- * 并行查找最后一个非空转换结果（带错误处理，可能为空）
- *
- * Find the last non-null result from transforming elements in parallel with error handling, or null if not found.
+ * 并行查找最后一个非空转换结果（带错误处理，可能为空） / Find the last non-null result from transforming elements in parallel with error handling, or null if not found.
  * 并发查找最后一个非空的元素转换结果，支持错误处理，如果未找到则返回 null。
  *
  * @param R 结果类型 / Result type
@@ -562,9 +522,7 @@ suspend inline fun <R, T> Iterable<T>.tryLastNotNullOfOrNullParallelly(
 }
 
 /**
- * 并行查找最后一个非空转换结果（带错误收集，可能为空）
- *
- * Find the last non-null result from transforming elements in parallel with error collection, or null if not found.
+ * 并行查找最后一个非空转换结果（带错误收集，可能为空） / Find the last non-null result from transforming elements in parallel with error collection, or null if not found.
  * 并发查找最后一个非空的元素转换结果，收集所有错误，如果未找到则返回 null。
  *
  * @param R 结果类型 / Result type
@@ -608,9 +566,7 @@ suspend inline fun <R, T> Iterable<T>.exTryLastNotNullOfOrNullParallelly(
 // ============================================================================
 
 /**
- * 并行查找满足条件的元素（firstOrNull 的别名）
- *
- * Find an element that satisfies the predicate in parallel (alias for firstOrNullParallelly).
+ * 并行查找满足条件的元素（firstOrNull 的别名） / Find an element that satisfies the predicate in parallel (alias for firstOrNullParallelly).
  * 并发查找满足条件的元素（firstOrNullParallelly 的别名）。
  *
  * @param T 元素类型 / Element type
@@ -626,9 +582,7 @@ suspend inline fun <T> Iterable<T>.findParallelly(
 }
 
 /**
- * 并行查找满足条件的元素（带错误处理，tryFirstOrNull 的别名）
- *
- * Find an element that satisfies the predicate in parallel with error handling (alias for tryFirstOrNullParallelly).
+ * 并行查找满足条件的元素（带错误处理，tryFirstOrNull 的别名） / Find an element that satisfies the predicate in parallel with error handling (alias for tryFirstOrNullParallelly).
  * 并发查找满足条件的元素，支持错误处理（tryFirstOrNullParallelly 的别名）。
  *
  * @param T 元素类型 / Element type
@@ -644,9 +598,7 @@ suspend inline fun <T> Iterable<T>.tryFindParallelly(
 }
 
 /**
- * 并行查找满足条件的元素（带错误收集，exTryFirstOrNull 的别名）
- *
- * Find an element that satisfies the predicate in parallel with error collection (alias for exTryFirstOrNullParallelly).
+ * 并行查找满足条件的元素（带错误收集，exTryFirstOrNull 的别名） / Find an element that satisfies the predicate in parallel with error collection (alias for exTryFirstOrNullParallelly).
  * 并发查找满足条件的元素，收集所有错误（exTryFirstOrNullParallelly 的别名）。
  *
  * @param T 元素类型 / Element type
@@ -662,9 +614,7 @@ suspend inline fun <T> Iterable<T>.exTryFindParallelly(
 }
 
 /**
- * 并行查找最后一个满足条件的元素（lastOrNull 的别名）
- *
- * Find the last element that satisfies the predicate in parallel (alias for lastOrNullParallelly).
+ * 并行查找最后一个满足条件的元素（lastOrNull 的别名） / Find the last element that satisfies the predicate in parallel (alias for lastOrNullParallelly).
  * 并发查找最后一个满足条件的元素（lastOrNullParallelly 的别名）。
  *
  * @param T 元素类型 / Element type
@@ -680,9 +630,7 @@ suspend inline fun <T> Iterable<T>.findLastParallelly(
 }
 
 /**
- * 并行查找最后一个满足条件的元素（带错误处理，tryLastOrNull 的别名）
- *
- * Find the last element that satisfies the predicate in parallel with error handling (alias for tryLastOrNullParallelly).
+ * 并行查找最后一个满足条件的元素（带错误处理，tryLastOrNull 的别名） / Find the last element that satisfies the predicate in parallel with error handling (alias for tryLastOrNullParallelly).
  * 并发查找最后一个满足条件的元素，支持错误处理（tryLastOrNullParallelly 的别名）。
  *
  * @param T 元素类型 / Element type
@@ -698,9 +646,7 @@ suspend inline fun <T> Iterable<T>.tryFindLastParallelly(
 }
 
 /**
- * 并行查找最后一个满足条件的元素（带错误收集，exTryLastOrNull 的别名）
- *
- * Find the last element that satisfies the predicate in parallel with error collection (alias for exTryLastOrNullParallelly).
+ * 并行查找最后一个满足条件的元素（带错误收集，exTryLastOrNull 的别名） / Find the last element that satisfies the predicate in parallel with error collection (alias for exTryLastOrNullParallelly).
  * 并发查找最后一个满足条件的元素，收集所有错误（exTryLastOrNullParallelly 的别名）。
  *
  * @param T 元素类型 / Element type

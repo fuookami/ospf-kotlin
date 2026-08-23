@@ -1,11 +1,8 @@
 /**
- * 幂运算符
- * Power Operator
+ * 幂运算符 / Power Operator
  *
  * 定义幂运算相关接口，支持整数幂和浮点幂运算，包括平方、立方、平方根和立方根。
- * 幂运算是将一个数乘以自身若干次的运算。
- *
- * Defines interfaces related to power operations, supporting both integer and floating-point
+ * 幂运算是将一个数乘以自身若干次的运算。 / Defines interfaces related to power operations, supporting both integer and floating-point
  * exponentiation, including square, cube, square root, and cube root.
  * Power operation is the computation of a number multiplied by itself a given number of times.
  *
@@ -25,13 +22,10 @@
 package fuookami.ospf.kotlin.math.operator
 
 /**
- * 整数幂运算接双
- * Integer Power Operation Interface
+ * 整数幂运算接双 / Integer Power Operation Interface
  *
  * 定义整数幂运算，支持 pow、sqr 和cub 函数。
- * 整数幂运算使用整数作为指数，适用于精确计算。
- *
- * Defines integer power operations, supporting pow, sqr, and cub functions.
+ * 整数幂运算使用整数作为指数，适用于精确计算。 / Defines integer power operations, supporting pow, sqr, and cub functions.
  * Integer power operations use integers as exponents, suitable for exact calculations.
  *
  * @param Ret 幂运算的结果类型
@@ -40,8 +34,7 @@ package fuookami.ospf.kotlin.math.operator
 interface Pow<out Ret> {
 
     /**
-     * 计算整数幌x^n
-     * Calculates integer power x^n
+     * 计算整数幌x^n / Calculates integer power x^n
      *
      * @param index 指数（整数）
      * @return 幂运算结枌x^index
@@ -51,8 +44,7 @@ interface Pow<out Ret> {
     fun pow(index: Int): Ret
 
     /**
-     * 计算平方 x²
-     * Calculates the square x²
+     * 计算平方 x² / Calculates the square x²
      *
      * @return 平方倌
      *
@@ -61,8 +53,7 @@ interface Pow<out Ret> {
     fun sqr(): Ret
 
     /**
-     * 计算立方 x³
-     * Calculates the cube x³
+     * 计算立方 x³ / Calculates the cube x³
      *
      * @return 立方倌
      *
@@ -72,12 +63,9 @@ interface Pow<out Ret> {
 }
 
 /**
- * 带精度的整数幂运算接双
- * Precision-aware Integer Power Operation Interface
+ * 带精度的整数幂运算接双 / Precision-aware Integer Power Operation Interface
  *
- * 扩展 Pow 接口，支持指定精度参数的幂运算。
- *
- * Extends the Pow interface, supporting power operations with specified precision parameters.
+ * 扩展 Pow 接口，支持指定精度参数的幂运算。 / Extends the Pow interface, supporting power operations with specified precision parameters.
  *
  * @param Ret 幂运算的结果类型
  *
@@ -85,8 +73,7 @@ interface Pow<out Ret> {
 interface PowP<Ret> : Pow<Ret> {
 
     /**
-     * 计算整数幌x^n，带精度参数
-     * Calculates integer power x^n, with precision parameters
+     * 计算整数幌x^n，带精度参数 / Calculates integer power x^n, with precision parameters
      *
      * @param index 指数（整数）
      * @param digits 有效数字位数
@@ -101,12 +88,9 @@ interface PowP<Ret> : Pow<Ret> {
 }
 
 /**
- * 整数幂运算函数扩展接双
- * Integer Power Operation Function Extension Interface
+ * 整数幂运算函数扩展接双 / Integer Power Operation Function Extension Interface
  *
- * 提供整数幂运算的扩展函数，用于在特定类型上添加幂运算功能。
- *
- * Provides extension functions for integer power operations, used to add power functionality to specific types.
+ * 提供整数幂运算的扩展函数，用于在特定类型上添加幂运算功能。 / Provides extension functions for integer power operations, used to add power functionality to specific types.
  *
  * @param Self 接收者类垌
  * @param Ret 幂运算的结果类型
@@ -115,8 +99,7 @@ interface PowP<Ret> : Pow<Ret> {
 interface PowFun<in Self, out Ret> {
 
     /**
-     * 计算整数幌x^n（扩展函数）
-     * Calculates integer power x^n (extension function)
+     * 计算整数幌x^n（扩展函数） / Calculates integer power x^n (extension function)
      *
      * @param index 指数（整数）
      * @return 幂运算结枌
@@ -126,8 +109,7 @@ interface PowFun<in Self, out Ret> {
     fun Self.pow(index: Int): Ret
 
     /**
-     * 计算平方 x²（扩展函数）
-     * Calculates the square x² (extension function)
+     * 计算平方 x²（扩展函数） / Calculates the square x² (extension function)
      *
      * @return 平方倌
      *
@@ -136,8 +118,7 @@ interface PowFun<in Self, out Ret> {
     fun Self.sqr(): Ret
 
     /**
-     * 计算立方 x³（扩展函数）
-     * Calculates the cube x³ (extension function)
+     * 计算立方 x³（扩展函数） / Calculates the cube x³ (extension function)
      *
      * @return 立方倌
      *
@@ -147,12 +128,9 @@ interface PowFun<in Self, out Ret> {
 }
 
 /**
- * 带精度的整数幂运算函数扩展接双
- * Precision-aware Integer Power Operation Function Extension Interface
+ * 带精度的整数幂运算函数扩展接双 / Precision-aware Integer Power Operation Function Extension Interface
  *
- * 提供带精度参数的整数幂运算扩展函数。
- *
- * Provides extension functions for integer power operations with precision parameters.
+ * 提供带精度参数的整数幂运算扩展函数。 / Provides extension functions for integer power operations with precision parameters.
  *
  * @param Self 接收者类垌
  * @param Ret 幂运算的结果类型
@@ -161,8 +139,7 @@ interface PowFun<in Self, out Ret> {
 interface PowFunP<in Self, Ret> {
 
     /**
-     * 计算整数幌x^n，带精度参数（扩展函数）
-     * Calculates integer power x^n, with precision parameters (extension function)
+     * 计算整数幌x^n，带精度参数（扩展函数） / Calculates integer power x^n, with precision parameters (extension function)
      *
      * @param index 指数（整数）
      * @param digits 有效数字位数
@@ -194,8 +171,7 @@ fun <Base : Pow<Ret>, Ret> pow(
 }
 
 /**
- * 使用扩展函数计算整数幌base^index
- * Calculates integer power base^index using extension function
+ * 使用扩展函数计算整数幌base^index / Calculates integer power base^index using extension function
  *
  * @param Base 底数类型
  * @param Ret 返回值类垌
@@ -218,8 +194,7 @@ fun <Base, Ret, Func : PowFun<Base, Ret>> pow(
 }
 
 /**
- * 计算平方 base²
- * Calculates the square base²
+ * 计算平方 base² / Calculates the square base²
  *
  * @param Base 底数类型，必须实玌Pow 接口
  * @param Ret 返回值类垌
@@ -233,8 +208,7 @@ fun <Base : Pow<Ret>, Ret> sqr(base: Base): Ret {
 }
 
 /**
- * 使用扩展函数计算平方 base²
- * Calculates the square base² using extension function
+ * 使用扩展函数计算平方 base² / Calculates the square base² using extension function
  *
  * @param Base 底数类型
  * @param Ret 返回值类垌
@@ -255,8 +229,7 @@ fun <Base, Ret, Func : PowFun<Base, Ret>> sqr(
 }
 
 /**
- * 计算立方 base³
- * Calculates the cube base³
+ * 计算立方 base³ / Calculates the cube base³
  *
  * @param Base 底数类型，必须实玌Pow 接口
  * @param Ret 返回值类垌
@@ -270,8 +243,7 @@ fun <Base : Pow<Ret>, Ret> cub(base: Base): Ret {
 }
 
 /**
- * 使用扩展函数计算立方 base³
- * Calculates the cube base³ using extension function
+ * 使用扩展函数计算立方 base³ / Calculates the cube base³ using extension function
  *
  * @param Base 底数类型
  * @param Ret 返回值类垌
@@ -292,13 +264,10 @@ fun <Base, Ret, Func : PowFun<Base, Ret>> cub(
 }
 
 /**
- * 浮点幂运算接双
- * Floating-point Power Operation Interface
+ * 浮点幂运算接双 / Floating-point Power Operation Interface
  *
  * 定义浮点幂运算，支持 pow、sqrt 和cbrt 函数。
- * 浮点幂运算使用泛型作为指数，支持非整数指数。
- *
- * Defines floating-point power operations, supporting pow, sqrt, and cbrt functions.
+ * 浮点幂运算使用泛型作为指数，支持非整数指数。 / Defines floating-point power operations, supporting pow, sqrt, and cbrt functions.
  * Floating-point power operations use generic types as exponents, supporting non-integer exponents.
  *
  * @param Index 指数类型
@@ -319,8 +288,7 @@ interface PowF<in Index, out Ret> {
     fun pow(index: Index): Ret
 
     /**
-     * 计算平方栌x^(1/2)
-     * Calculates the square root x^(1/2)
+     * 计算平方栌x^(1/2) / Calculates the square root x^(1/2)
      *
      * @return 平方根倌
      *
@@ -329,8 +297,7 @@ interface PowF<in Index, out Ret> {
     fun sqrt(): Ret
 
     /**
-     * 计算立方栌x^(1/3)
-     * Calculates the cube root x^(1/3)
+     * 计算立方栌x^(1/3) / Calculates the cube root x^(1/3)
      *
      * @return 立方根倌
      *
@@ -340,12 +307,9 @@ interface PowF<in Index, out Ret> {
 }
 
 /**
- * 浮点幂运算函数扩展接双
- * Floating-point Power Operation Function Extension Interface
+ * 浮点幂运算函数扩展接双 / Floating-point Power Operation Function Extension Interface
  *
- * 提供浮点幂运算的扩展函数，用于在特定类型上添加幂运算功能。
- *
- * Provides extension functions for floating-point power operations, used to add power functionality to specific types.
+ * 提供浮点幂运算的扩展函数，用于在特定类型上添加幂运算功能。 / Provides extension functions for floating-point power operations, used to add power functionality to specific types.
  *
  * @param Self 接收者类垌
  * @param Index 指数类型
@@ -355,8 +319,7 @@ interface PowF<in Index, out Ret> {
 interface PowFFun<in Self, in Index, out Ret> {
 
     /**
-     * 计算浮点幌x^index（扩展函数）
-     * Calculates floating-point power x^index (extension function)
+     * 计算浮点幌x^index（扩展函数） / Calculates floating-point power x^index (extension function)
      *
      * @param index 指数
      * @return 幂运算结枌
@@ -366,8 +329,7 @@ interface PowFFun<in Self, in Index, out Ret> {
     fun Self.pow(index: Index): Ret
 
     /**
-     * 计算平方栌x^(1/2)（扩展函数）
-     * Calculates the square root x^(1/2) (extension function)
+     * 计算平方栌x^(1/2)（扩展函数） / Calculates the square root x^(1/2) (extension function)
      *
      * @return 平方根倌
      *
@@ -376,8 +338,7 @@ interface PowFFun<in Self, in Index, out Ret> {
     fun Self.sqrt(): Ret
 
     /**
-     * 计算立方栌x^(1/3)（扩展函数）
-     * Calculates the cube root x^(1/3) (extension function)
+     * 计算立方栌x^(1/3)（扩展函数） / Calculates the cube root x^(1/3) (extension function)
      *
      * @return 立方根倌
      *
@@ -387,12 +348,9 @@ interface PowFFun<in Self, in Index, out Ret> {
 }
 
 /**
- * 带精度的浮点幂运算接双
- * Precision-aware Floating-point Power Operation Interface
+ * 带精度的浮点幂运算接双 / Precision-aware Floating-point Power Operation Interface
  *
- * 扩展 PowF 接口，支持指定精度参数的幂运算。
- *
- * Extends the PowF interface, supporting power operations with specified precision parameters.
+ * 扩展 PowF 接口，支持指定精度参数的幂运算。 / Extends the PowF interface, supporting power operations with specified precision parameters.
  *
  * @param Index 指数类型
  * @param Ret 幂运算的结果类型
@@ -401,8 +359,7 @@ interface PowFFun<in Self, in Index, out Ret> {
 interface PowFP<in Index, Ret> : PowF<Index, Ret> {
 
     /**
-     * 计算浮点幌x^index，带精度参数
-     * Calculates floating-point power x^index, with precision parameters
+     * 计算浮点幌x^index，带精度参数 / Calculates floating-point power x^index, with precision parameters
      *
      * @param index 指数
      * @param digits 有效数字位数
@@ -416,8 +373,7 @@ interface PowFP<in Index, Ret> : PowF<Index, Ret> {
     }
 
     /**
-     * 计算平方栌x^(1/2)，带精度参数
-     * Calculates the square root x^(1/2), with precision parameters
+     * 计算平方栌x^(1/2)，带精度参数 / Calculates the square root x^(1/2), with precision parameters
      *
      * @param digits 有效数字位数
      * @param precision 精度倌
@@ -430,8 +386,7 @@ interface PowFP<in Index, Ret> : PowF<Index, Ret> {
     }
 
     /**
-     * 计算立方栌x^(1/3)，带精度参数
-     * Calculates the cube root x^(1/3), with precision parameters
+     * 计算立方栌x^(1/3)，带精度参数 / Calculates the cube root x^(1/3), with precision parameters
      *
      * @param digits 有效数字位数
      * @param precision 精度倌
@@ -445,12 +400,9 @@ interface PowFP<in Index, Ret> : PowF<Index, Ret> {
 }
 
 /**
- * 带精度的浮点幂运算函数扩展接双
- * Precision-aware Floating-point Power Operation Function Extension Interface
+ * 带精度的浮点幂运算函数扩展接双 / Precision-aware Floating-point Power Operation Function Extension Interface
  *
- * 提供带精度参数的浮点幂运算扩展函数。
- *
- * Provides extension functions for floating-point power operations with precision parameters.
+ * 提供带精度参数的浮点幂运算扩展函数。 / Provides extension functions for floating-point power operations with precision parameters.
  *
  * @param Self 接收者类垌
  * @param Index 指数类型
@@ -460,8 +412,7 @@ interface PowFP<in Index, Ret> : PowF<Index, Ret> {
 interface PowFPFun<in Self, in Index, Ret> {
 
     /**
-     * 计算浮点幌x^index，带精度参数（扩展函数）
-     * Calculates floating-point power x^index, with precision parameters (extension function)
+     * 计算浮点幌x^index，带精度参数（扩展函数） / Calculates floating-point power x^index, with precision parameters (extension function)
      *
      * @param index 指数
      * @param digits 有效数字位数
@@ -473,8 +424,7 @@ interface PowFPFun<in Self, in Index, Ret> {
     fun Self.pow(index: Index, digits: Int, precision: Ret): Ret
 
     /**
-     * 计算平方栌x^(1/2)，带精度参数（扩展函数）
-     * Calculates the square root x^(1/2), with precision parameters (extension function)
+     * 计算平方栌x^(1/2)，带精度参数（扩展函数） / Calculates the square root x^(1/2), with precision parameters (extension function)
      *
      * @param digits 有效数字位数
      * @param precision 精度倌
@@ -485,8 +435,7 @@ interface PowFPFun<in Self, in Index, Ret> {
     fun Self.sqrt(digits: Int, precision: Ret): Ret
 
     /**
-     * 计算立方栌x^(1/3)，带精度参数（扩展函数）
-     * Calculates the cube root x^(1/3), with precision parameters (extension function)
+     * 计算立方栌x^(1/3)，带精度参数（扩展函数） / Calculates the cube root x^(1/3), with precision parameters (extension function)
      *
      * @param digits 有效数字位数
      * @param precision 精度倌
@@ -518,8 +467,7 @@ fun <Base : PowF<Index, Ret>, Index, Ret> pow(
 }
 
 /**
- * 使用扩展函数计算浮点幌base^index
- * Calculates floating-point power base^index using extension function
+ * 使用扩展函数计算浮点幌base^index / Calculates floating-point power base^index using extension function
  *
  * @param Base 底数类型
  * @param Index 指数类型
@@ -543,8 +491,7 @@ fun <Base, Index, Ret, Func : PowFFun<Base, Index, Ret>> pow(
 }
 
 /**
- * 计算浮点幌base^index，带精度参数
- * Calculates floating-point power base^index, with precision parameters
+ * 计算浮点幌base^index，带精度参数 / Calculates floating-point power base^index, with precision parameters
  *
  * @param Base 底数类型，必须实玌PowFP 接口
  * @param Index 指数类型
@@ -571,8 +518,7 @@ fun <Base : PowFP<Index, Ret>, Index, Ret> pow(
 }
 
 /**
- * 使用扩展函数计算浮点幌base^index，带精度参数
- * Calculates floating-point power base^index using extension function, with precision parameters
+ * 使用扩展函数计算浮点幌base^index，带精度参数 / Calculates floating-point power base^index using extension function, with precision parameters
  *
  * @param Base 底数类型
  * @param Index 指数类型
@@ -604,8 +550,7 @@ fun <Base, Index, Ret, Func : PowFPFun<Base, Index, Ret>> pow(
 }
 
 /**
- * 计算平方栌base^(1/2)
- * Calculates the square root base^(1/2)
+ * 计算平方栌base^(1/2) / Calculates the square root base^(1/2)
  *
  * @param Base 底数类型，必须实玌PowF 接口
  * @param Index 指数类型
@@ -620,8 +565,7 @@ fun <Base : PowF<Index, Ret>, Index, Ret> sqrt(base: Base): Ret {
 }
 
 /**
- * 使用扩展函数计算平方栌base^(1/2)
- * Calculates the square root base^(1/2) using extension function
+ * 使用扩展函数计算平方栌base^(1/2) / Calculates the square root base^(1/2) using extension function
  *
  * @param Base 底数类型
  * @param Index 指数类型
@@ -643,8 +587,7 @@ fun <Base, Index, Ret, Func : PowFFun<Base, Index, Ret>> sqrt(
 }
 
 /**
- * 计算平方栌base^(1/2)，带精度参数
- * Calculates the square root base^(1/2), with precision parameters
+ * 计算平方栌base^(1/2)，带精度参数 / Calculates the square root base^(1/2), with precision parameters
  *
  * @param Base 底数类型，必须实玌PowFP 接口
  * @param Index 指数类型
@@ -665,8 +608,7 @@ fun <Base : PowFP<Index, Ret>, Index, Ret> sqrt(
 }
 
 /**
- * 使用扩展函数计算平方栌base^(1/2)，带精度参数
- * Calculates the square root base^(1/2) using extension function, with precision parameters
+ * 使用扩展函数计算平方栌base^(1/2)，带精度参数 / Calculates the square root base^(1/2) using extension function, with precision parameters
  *
  * @param Base 底数类型
  * @param Index 指数类型
@@ -692,8 +634,7 @@ fun <Base, Index, Ret, Func : PowFPFun<Base, Index, Ret>> sqrt(
 }
 
 /**
- * 计算立方栌base^(1/3)
- * Calculates the cube root base^(1/3)
+ * 计算立方栌base^(1/3) / Calculates the cube root base^(1/3)
  *
  * @param Base 底数类型，必须实玌PowF 接口
  * @param Index 指数类型
@@ -708,8 +649,7 @@ fun <Base : PowF<Index, Ret>, Index, Ret> cbrt(base: Base): Ret {
 }
 
 /**
- * 使用扩展函数计算立方栌base^(1/3)
- * Calculates the cube root base^(1/3) using extension function
+ * 使用扩展函数计算立方栌base^(1/3) / Calculates the cube root base^(1/3) using extension function
  *
  * @param Base 底数类型
  * @param Index 指数类型
@@ -731,8 +671,7 @@ fun <Base, Index, Ret, Func : PowFFun<Base, Index, Ret>> cbrt(
 }
 
 /**
- * 计算立方栌base^(1/3)，带精度参数
- * Calculates the cube root base^(1/3), with precision parameters
+ * 计算立方栌base^(1/3)，带精度参数 / Calculates the cube root base^(1/3), with precision parameters
  *
  * @param Base 底数类型，必须实玌PowFP 接口
  * @param Index 指数类型
@@ -753,8 +692,7 @@ fun <Base : PowFP<Index, Ret>, Index, Ret> cbrt(
 }
 
 /**
- * 使用扩展函数计算立方栌base^(1/3)，带精度参数
- * Calculates the cube root base^(1/3) using extension function, with precision parameters
+ * 使用扩展函数计算立方栌base^(1/3)，带精度参数 / Calculates the cube root base^(1/3) using extension function, with precision parameters
  *
  * @param Base 底数类型
  * @param Index 指数类型

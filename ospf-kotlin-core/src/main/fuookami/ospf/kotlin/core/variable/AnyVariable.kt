@@ -1,9 +1,7 @@
 /**
- * 类型擦除的变量包装器
- * Type-erased variable wrapper
+ * 类型擦除的变量包装器 / Type-erased variable wrapper
  *
- * 将所有 VariableType 变体统一为单一类型参数 V，通过 IntoValue<V> 提供 V 类型的访问器。
- * Unifies all VariableType variants into a single type parameter V,
+ * 将所有 VariableType 变体统一为单一类型参数 V，通过 IntoValue<V> 提供 V 类型的访问器。 / Unifies all VariableType variants into a single type parameter V,
  * providing V-type accessors via IntoValue<V> conversion.
 */
 package fuookami.ospf.kotlin.core.variable
@@ -13,8 +11,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 /**
- * 类型擦除的变量包装器
- * Type-erased variable wrapper
+ * 类型擦除的变量包装器 / Type-erased variable wrapper
  *
  * 将所有 VariableType 变体统一为单一类型参数 V。
  * 在 Kotlin 中委托给 AbstractVariableItem 持有元数据，并通过 IntoValue<V> 转换提供 V 类型访问器。
@@ -58,8 +55,7 @@ class AnyVariable<V : RealNumber<V>>(
     val upperBoundFlt64: Flt64? get() = data.upperBound?.value?.toFlt64()
 
     /**
-     * 获取 V 类型下界
-     * Get V-type lower bound
+     * 获取 V 类型下界 / Get V-type lower bound
      *
      * @param converter 值转换器 / Value converter
      * @return V 类型下界，如果无界返回 null / V-type lower bound, or null if unbounded
@@ -67,8 +63,7 @@ class AnyVariable<V : RealNumber<V>>(
     fun lowerBound(converter: IntoValue<V>): V? = lowerBoundFlt64?.let { converter.intoValue(it) }
 
     /**
-     * 获取 V 类型上界
-     * Get V-type upper bound
+     * 获取 V 类型上界 / Get V-type upper bound
      *
      * @param converter 值转换器 / Value converter
      * @return V 类型上界，如果无界返回 null / V-type upper bound, or null if unbounded
@@ -76,8 +71,7 @@ class AnyVariable<V : RealNumber<V>>(
     fun upperBound(converter: IntoValue<V>): V? = upperBoundFlt64?.let { converter.intoValue(it) }
 
     /**
-     * 检查 Flt64 值是否在有效范围内
-     * Check if a Flt64 value is within valid range
+     * 检查 Flt64 值是否在有效范围内 / Check if a Flt64 value is within valid range
      *
      * @param value 待检查的值 / Value to check
      * @return 是否有效 / Whether valid
@@ -91,8 +85,7 @@ class AnyVariable<V : RealNumber<V>>(
     }
 
     /**
-     * 检查 V 值是否在有效范围内
-     * Check if a V value is within valid range
+     * 检查 V 值是否在有效范围内 / Check if a V value is within valid range
      *
      * @param value 待检查的值 / Value to check
      * @return 是否有效 / Whether valid

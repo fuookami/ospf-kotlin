@@ -30,8 +30,7 @@ class SymbolicLinearInequality<V : Ring<V>>(val inequality: LinearInequality<V>)
 class SymbolicQuadraticInequality<V : Ring<V>>(val inequality: QuadraticInequalityOf<V>)
 
 /**
- * 约束接口，定义约束的基本结构与判定能力。
- * Constraint interface defining the basic structure and evaluation capability of a constraint.
+ * 约束接口，定义约束的基本结构与判定能力。 / Constraint interface defining the basic structure and evaluation capability of a constraint.
  *
  * @param V 数值类型 / The numeric type
  * @param P 约束类别 / The constraint category
@@ -58,16 +57,14 @@ interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : Cate
     val from: Pair<IntermediateSymbol<*>, Boolean>?
 
     /**
-     * 判定约束是否成立。
-     * Checks whether the constraint is satisfied.
+     * 判定约束是否成立。 / Checks whether the constraint is satisfied.
      *
      * @return 约束是否成立，若无法求值则返回 null / Whether the constraint holds, or null if evaluation is not possible
     */
     fun isTrue(): Boolean?
 
     /**
-     * 使用给定求解结果判定约束是否成立。
-     * Checks whether the constraint is satisfied using the given solution results.
+     * 使用给定求解结果判定约束是否成立。 / Checks whether the constraint is satisfied using the given solution results.
      *
      * @param results 求解结果列表 / The solution result values
      * @return 约束是否成立，若无法求值则返回 null / Whether the constraint holds, or null if evaluation is not possible
@@ -76,8 +73,7 @@ interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : Cate
 }
 
 /**
- * 元对偶解，包含按数学约束和中间符号分组的对偶价格。
- * Meta dual solution containing dual prices grouped by math constraint and intermediate symbol.
+ * 元对偶解，包含按数学约束和中间符号分组的对偶价格。 / Meta dual solution containing dual prices grouped by math constraint and intermediate symbol.
  *
  * @property constraints 按数学约束分组的对偶价格 / Dual prices grouped by math constraint
  * @property symbols     按中间符号分组的对偶价格 / Dual prices grouped by intermediate symbol
@@ -88,8 +84,7 @@ data class MetaDualSolution(
 )
 
 /**
- * 将线性约束对偶解映射转换为元对偶解。
- * Converts a map of linear constraint dual solutions to a meta dual solution.
+ * 将线性约束对偶解映射转换为元对偶解。 / Converts a map of linear constraint dual solutions to a meta dual solution.
  *
  * @return 元对偶解 / The meta dual solution
 */
@@ -108,8 +103,7 @@ fun kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>.toMeta(): MetaDualS
 }
 
 /**
- * 将二次约束对偶解映射转换为元对偶解。
- * Converts a map of quadratic constraint dual solutions to a meta dual solution.
+ * 将二次约束对偶解映射转换为元对偶解。 / Converts a map of quadratic constraint dual solutions to a meta dual solution.
  *
  * @return 元对偶解 / The meta dual solution
 */
@@ -128,8 +122,7 @@ fun Map<Constraint<Flt64, Quadratic>, Flt64>.toMeta(): MetaDualSolution {
 }
 
 /**
- * 约束实现的密封基类，提供约束求值和判定的通用逻辑。
- * Sealed base class for constraint implementations providing common evaluation and checking logic.
+ * 约束实现的密封基类，提供约束求值和判定的通用逻辑。 / Sealed base class for constraint implementations providing common evaluation and checking logic.
  *
  * @param V 数值类型 / The numeric type
  * @param P 约束类别（线性或二次） / The constraint category (linear or quadratic)
@@ -169,8 +162,7 @@ sealed class ConstraintImpl<V, P : Category>(
 }
 
 /**
- * 线性约束实现，基于线性单元列表表示约束左端项。
- * Linear constraint implementation representing the left-hand side with a list of linear cells.
+ * 线性约束实现，基于线性单元列表表示约束左端项。 / Linear constraint implementation representing the left-hand side with a list of linear cells.
  *
  * @param V 数值类型 / The numeric type
 */
@@ -224,8 +216,7 @@ class LinearConstraintImpl<V>(
 }
 
 /**
- * 二次约束实现，基于二次单元列表表示约束左端项。
- * Quadratic constraint implementation representing the left-hand side with a list of quadratic cells.
+ * 二次约束实现，基于二次单元列表表示约束左端项。 / Quadratic constraint implementation representing the left-hand side with a list of quadratic cells.
  *
  * @param V 数值类型 / The numeric type
 */
@@ -283,9 +274,9 @@ class QuadraticConstraintImpl<V>(
  * 使用符号表和值转换器从单项式创建线性单元列表。
  *
  * @param monomials Linear monomials with Flt64 coefficients / Flt64 系数的线性单项式列表
- * @param tokens Token table for variable lookup / 用于变量查找的符号表
- * @param converter Value converter from Flt64 to V / 从 Flt64 到 V 的值转换器
- * @return ArrayList of linear cells / 线性单元列表
+ * @param tokens 用于变量查找的符号表 / Token table for variable lookup
+ * @param converter 从 Flt64 到 V 的值转换器 / Value converter from Flt64 to V
+ * @return 线性单元列表 / ArrayList of linear cells
 */
 internal fun <V> createLinearCells(
     monomials: List<LinearMonomial<Flt64>>,
@@ -308,9 +299,9 @@ internal fun <V> createLinearCells(
  * 使用符号表和值转换器从单项式创建二次单元列表。
  *
  * @param monomials Quadratic monomials with Flt64 coefficients / Flt64 系数的二次单项式列表
- * @param tokens Token table for variable lookup / 用于变量查找的符号表
- * @param converter Value converter from Flt64 to V / 从 Flt64 到 V 的值转换器
- * @return ArrayList of quadratic cells / 二次单元列表
+ * @param tokens 用于变量查找的符号表 / Token table for variable lookup
+ * @param converter 从 Flt64 到 V 的值转换器 / Value converter from Flt64 to V
+ * @return 二次单元列表 / ArrayList of quadratic cells
 */
 internal fun <V> createQuadraticCells(
     monomials: List<QuadraticMonomial<Flt64>>,

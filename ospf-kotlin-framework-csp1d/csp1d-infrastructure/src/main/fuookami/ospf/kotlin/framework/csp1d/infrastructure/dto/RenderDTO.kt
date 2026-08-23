@@ -19,10 +19,10 @@ enum class RenderProductionType {
  * 渲染切割方案生产项DTO
  *
  * @property x X coordinate / X坐标
- * @property width Width / 宽度
- * @property unitLength Unit length / 单位长度
- * @property productionType Production type / 生产类型
- * @property info Additional info / 附加信息
+ * @property width 宽度 / Width
+ * @property unitLength 单位长度 / Unit length
+ * @property productionType 生产类型 / Production type
+ * @property info 附加信息 / Additional info
 */
 @Serializable
 data class RenderCuttingPlanProductionDTO(
@@ -38,12 +38,12 @@ data class RenderCuttingPlanProductionDTO(
  * Render cutting plan DTO.
  * 渲染切割方案DTO
  *
- * @property group Group identifiers / 分组标识
- * @property productions List of productions / 生产项列表
- * @property width Width / 宽度
- * @property standardWidth Standard width / 标准宽度
- * @property amount Amount / 数量
- * @property info Additional info / 附加信息
+ * @property group 分组标识 / Group identifiers
+ * @property productions 生产项列表 / List of productions
+ * @property width 宽度 / Width
+ * @property standardWidth 标准宽度 / Standard width
+ * @property amount 数量 / Amount
+ * @property info 附加信息 / Additional info
 */
 @Serializable
 data class RenderCuttingPlanDTO(
@@ -60,7 +60,7 @@ data class RenderCuttingPlanDTO(
  * 渲染方案DTO
  *
  * @property kpi KPI metrics / KPI指标
- * @property cuttingPlans List of cutting plans / 切割方案列表
+ * @property cuttingPlans 切割方案列表 / List of cutting plans
 */
 @Serializable
 data class RenderSchemaDTO(

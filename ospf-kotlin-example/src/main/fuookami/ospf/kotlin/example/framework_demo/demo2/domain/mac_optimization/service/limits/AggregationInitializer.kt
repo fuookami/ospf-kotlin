@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimizatio
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.service.AggregationInitializer as ServiceAggregationInitializer
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 
 /**
@@ -15,6 +16,11 @@ data object AggregationInitializer {
         macAggregation: MACAggregation,
         input: RequestDTO
     ): Ret<Aggregation> {
-        TODO("not implemented yet")
+        return ServiceAggregationInitializer(
+            aircraftAggregation = aircraftAggregation,
+            stowageAggregation = stowageAggregation,
+            macAggregation = macAggregation,
+            input = input
+        )
     }
 }

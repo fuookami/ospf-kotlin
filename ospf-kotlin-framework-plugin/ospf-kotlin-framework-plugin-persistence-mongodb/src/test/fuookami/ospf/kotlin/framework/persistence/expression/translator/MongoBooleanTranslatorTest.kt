@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicat
 class MongoBooleanTranslatorTest {
     data class Entity(val age: Int)
 
-    private val resolver: MongoFieldNameResolver = { path: String ->
+    private val resolver = MongoFieldNameResolver { path: String ->
         when (path.substringAfterLast(".")) {
             "id", "name", "age", "status", "price", "quantity" -> path.substringAfterLast(".")
             "widthValue" -> "width_value"
@@ -216,7 +216,7 @@ class MongoBooleanTranslatorTest {
         val result = failFastTranslator.translate(BooleanCustom("x"))
 
         assertTrue(result.failed)
-        assertTrue(result is Failed<*, *, *>)
+        assertTrue(result is Failed)
 
         val failed = result as Failed<*, *, *>
         val error = failed.error

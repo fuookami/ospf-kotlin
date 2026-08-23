@@ -65,6 +65,25 @@ import fuookami.ospf.kotlin.math.symbol.expression.operation.*
 val normalized = normalize(complexExpr)
 ```
 
+### 结构保持的表达式变换
+
+`ScalarExpression.transform` 和 `BooleanExpression.transform` 提供后序、结构保持的表达式重写。使用 `transformScalars` 改写布尔树中的标量节点，使用 `transformBooleans` 改写布尔节点：
+
+```kotlin
+val rewritten = predicate.transformScalars { scalar ->
+    when (scalar) {
+        is ScalarConstant<*> -> ScalarConstant(rewriteValue(scalar.value))
+        else -> scalar
+    }
+}
+
+val renamed = rewritten.transformBooleans { boolean ->
+    rewriteBoolean(boolean)
+}
+```
+
+回调接收子节点重建后的当前节点，包括 `ScalarConditional` 和 `ScalarBoolean` 中的标量分支。工具只重建共享 AST，不求值，也不修改原表达式。
+
 ### 本地求值
 
 ```kotlin

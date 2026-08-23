@@ -1,9 +1,7 @@
 /**
- * 数值运算分派层
- * Numeric Operations Dispatch Layer
+ * 数值运算分派层 / Numeric Operations Dispatch Layer
  *
- * 抽象数值类型的一元和二元运算，替仌EvaluateBoolean.kt 中的硬编码类型分支。
- * Abstracts numeric operations for unary and binary operators, replacing hardcoded type branches.
+ * 抽象数值类型的一元和二元运算，替仌EvaluateBoolean.kt 中的硬编码类型分支。 / Abstracts numeric operations for unary and binary operators, replacing hardcoded type branches.
 */
 package fuookami.ospf.kotlin.math.symbol.expression.operation
 
@@ -11,11 +9,9 @@ import kotlin.reflect.KClass
 import fuookami.ospf.kotlin.math.symbol.expression.*
 
 /**
- * 数值运算接双
- * Numeric Operations Interface
+ * 数值运算接双 / Numeric Operations Interface
  *
- * 为特定数值类型提供一元和二元运算的实现。
- * Provides unary and binary operation implementations for a specific numeric type.
+ * 为特定数值类型提供一元和二元运算的实现。 / Provides unary and binary operation implementations for a specific numeric type.
  *
  * @param T 数值类垌/ Numeric type
 */
@@ -96,11 +92,9 @@ interface NumericOps<T : Any> {
 }
 
 /**
- * 数值分派器
- * Numeric Dispatcher
+ * 数值分派器 / Numeric Dispatcher
  *
- * 管理注册皌NumericOps 实例，根据运行时类型分派运算。
- * Manages registered NumericOps instances and dispatches operations based on runtime type.
+ * 管理注册皌NumericOps 实例，根据运行时类型分派运算。 / Manages registered NumericOps instances and dispatches operations based on runtime type.
 */
 object NumericDispatcher {
     private val registry = mutableMapOf<KClass<out Any>, NumericOps<out Any>>()
@@ -259,8 +253,7 @@ private object DoubleOps : NumericOps<Double> {
 }
 
 /**
- * 注册内置数值类垌
- * Register built-in numeric types
+ * 注册内置数值类垌 / Register built-in numeric types
 */
 fun registerBuiltInNumericOps() {
     NumericDispatcher.register(IntOps)

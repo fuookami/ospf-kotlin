@@ -1,10 +1,8 @@
 /**
- * 四边形
- * Quadrilateral
+ * 四边形 / Quadrilateral
  *
  * 定义几何空间中的四边形数据结构，由四个顶点构成。
- * 支持边、对角线、周长、质心、面积、凸性检测等操作。
- * Defines quadrilateral data structure in geometric space, composed of four vertices.
+ * 支持边、对角线、周长、质心、面积、凸性检测等操作。 / Defines quadrilateral data structure in geometric space, composed of four vertices.
  * Supports edges, diagonals, perimeter, centroid, area, convexity detection, etc.
 */
 package fuookami.ospf.kotlin.math.geometry
@@ -13,12 +11,10 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 /**
- * 四边形数据类
- * Quadrilateral data class
+ * 四边形数据类 / Quadrilateral data class
  *
  * 由四个顶点定义的四边形，支持任意维度和浮点数类型。
- * 提供边、对角线、周长、质心、面积（三角形分解）等计算功能。
- * A quadrilateral defined by four vertices, supporting arbitrary dimensions and floating-point types.
+ * 提供边、对角线、周长、质心、面积（三角形分解）等计算功能。 / A quadrilateral defined by four vertices, supporting arbitrary dimensions and floating-point types.
  * Provides functionality for edges, diagonals, perimeter, centroid, area (triangle decomposition), etc.
  *
  * @param P 点类型 / Point type
@@ -79,8 +75,7 @@ class Quadrilateral<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
 }
 
 /**
- * 二维四边形面积（鞋带公式）
- * 2D quadrilateral area (Shoelace formula)
+ * 二维四边形面积（鞋带公式） / 2D quadrilateral area (Shoelace formula)
 */
 val Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64>.area: Flt64
     get() {
@@ -96,8 +91,7 @@ val Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64>.area: Flt64
     }
 
 /**
- * 判断二维四边形是否为凸四边形
- * Check whether a 2D quadrilateral is convex
+ * 判断二维四边形是否为凸四边形 / Check whether a 2D quadrilateral is convex
  *
  * @return 是否为凸四边形 / Whether the quadrilateral is convex
 */
@@ -107,10 +101,10 @@ fun Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64>.isConvex(): Boolean {
      * Compute the cross product sign for three 2D points.
      * 计算三个二维点的叉积符号。
      *
-     * @param a the first point / 第一个点
-     * @param b the second point / 第二个点
-     * @param c the third point / 第三个点
-     * @return the cross product value / 叉积值
+     * @param a 第一个点 / the first point
+     * @param b 第二个点 / the second point
+     * @param c 第三个点 / the third point
+     * @return 叉积值 / the cross product value
     */
     fun crossSign(a: Point<Dim2, Flt64>, b: Point<Dim2, Flt64>, c: Point<Dim2, Flt64>): Flt64 {
         val v1 = vector2(b.x - a.x, b.y - a.y)
@@ -133,8 +127,7 @@ val Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64>.illegal: Boolean
     get() = area eq Flt64.zero
 
 /**
- * 创建二维四边形
- * Create a 2D quadrilateral
+ * 创建二维四边形 / Create a 2D quadrilateral
  *
  * @param p1 第一个顶点 / First vertex
  * @param p2 第二个顶点 / Second vertex

@@ -24,11 +24,9 @@ import fuookami.ospf.kotlin.utils.functional.*
 */
 
 /**
- * 条件函数：当 condition > 0 时 y = 1，否则 y = 0。
- * If function: `y = 1 if condition > 0, else y = 0`.
+ * 条件函数：当 condition > 0 时 y = 1，否则 y = 0。 / If function: `y = 1 if condition > 0, else y = 0`.
  *
- * 使用 Big-M 线性化与正数指示变量。
- * Uses Big-M linearization with a positive-value indicator.
+ * 使用 Big-M 线性化与正数指示变量。 / Uses Big-M linearization with a positive-value indicator.
  *
  * @property condition 条件线性多项式 / the condition linear polynomial
  * @param converter 值类型转换器 / value type converter
@@ -77,8 +75,7 @@ class IfFunction<V>(
     }
 
     /**
-     * 构建条件指示约束列表。
-     * Build the list of condition indicator constraints.
+     * 构建条件指示约束列表。 / Build the list of condition indicator constraints.
      *
      * @return 线性不等式约束列表 / list of linear inequality constraints
     */
@@ -128,8 +125,7 @@ class IfFunction<V>(
             IfFunction(condition, converter, bigM, name = name, displayName = displayName)
 
         /**
-         * 约束输入工厂：从约束输入提取条件多项式。
-         * Constraint-input factory: extracts the condition polynomial from the constraint input.
+         * 约束输入工厂：从约束输入提取条件多项式。 / Constraint-input factory: extracts the condition polynomial from the constraint input.
          * @param inequality 约束输入 / constraint input
          * @param converter 值类型转换器 / value type converter
          * @param bigM Big-M 界限 / Big-M bound

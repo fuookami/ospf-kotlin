@@ -1,6 +1,5 @@
 /**
- * 四涡卷超混沌吸引子
- * Four-Scroll Hyper-Chaotic Attractor
+ * 四涡卷超混沌吸引子 / Four-Scroll Hyper-Chaotic Attractor
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 四涡卷超混沌吸引子
- * Four-Scroll Hyper-Chaotic Attractor
+ * 四涡卷超混沌吸引子 / Four-Scroll Hyper-Chaotic Attractor
  *
  * @property a 系统参数 a / System parameter a
  * @property b 系统参数 b / System parameter b
@@ -47,8 +45,7 @@ data class FourScrollHyperChaoticAttractor<V : FloatingNumber<V>>(val a: V, val 
 }
 
 /**
- * 四涡卷超混沌吸引子生成器
- * Four-Scroll Hyper-Chaotic Attractor Generator
+ * 四涡卷超混沌吸引子生成器 / Four-Scroll Hyper-Chaotic Attractor Generator
 */
 data class FourScrollHyperChaoticAttractorGenerator(
     val attractor: FourScrollHyperChaoticAttractor<Flt64> = FourScrollHyperChaoticAttractor(),

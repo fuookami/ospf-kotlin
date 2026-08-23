@@ -1,47 +1,35 @@
 /**
- * 多维列表和查找结果
- *
- * Multi-dimensional list type aliases and extension functions.
+ * 多维列表和查找结果 / Multi-dimensional list type aliases and extension functions.
  * 多维列表类型别名和扩展函数。
 */
 package fuookami.ospf.kotlin.utils.functional
 
 /**
- * 二维列表类型别名
- *
- * Type alias for a 2-dimensional list (List of List).
+ * 二维列表类型别名 / Type alias for a 2-dimensional list (List of List).
  * 二维列表的类型别名（列表的列表）。
 */
 typealias List2<T> = List<List<T>>
 
 /**
- * 二维可变列表类型别名
- *
- * Type alias for a 2-dimensional mutable list.
+ * 二维可变列表类型别名 / Type alias for a 2-dimensional mutable list.
  * 二维可变列表的类型别名。
 */
 typealias MutableList2<T> = MutableList<MutableList<T>>
 
 /**
- * 三维列表类型别名
- *
- * Type alias for a 3-dimensional list.
+ * 三维列表类型别名 / Type alias for a 3-dimensional list.
  * 三维列表的类型别名。
 */
 typealias List3<T> = List<List<List<T>>>
 
 /**
- * 三维可变列表类型别名
- *
- * Type alias for a 3-dimensional mutable list.
+ * 三维可变列表类型别名 / Type alias for a 3-dimensional mutable list.
  * 三维可变列表的类型别名。
 */
 typealias MutableList3<T> = MutableList<MutableList<MutableList<T>>>
 
 /**
- * 二维列表的双索引获取操作
- *
- * Dual-index access operator for 2-dimensional lists.
+ * 二维列表的双索引获取操作 / Dual-index access operator for 2-dimensional lists.
  * 二维列表的双索引获取操作符。
  *
  * @param T 列表元素的类型 / The type of list elements
@@ -54,9 +42,7 @@ operator fun <T> List<List<T>>.get(i: Int, j: Int): T {
 }
 
 /**
- * 二维列表的安全双索引获取操作
- *
- * Safe dual-index access for 2-dimensional lists, returning null if indices are out of bounds.
+ * 二维列表的安全双索引获取操作 / Safe dual-index access for 2-dimensional lists, returning null if indices are out of bounds.
  * 二维列表的安全双索引获取，如果索引越界则返回 null。
  *
  * @param T 列表元素的类型 / The type of list elements
@@ -69,9 +55,7 @@ fun <T> List<List<T>>.getOrNull(i: Int, j: Int): T? {
 }
 
 /**
- * 二维可变列表的双索引设置操作
- *
- * Dual-index set operator for 2-dimensional mutable lists.
+ * 二维可变列表的双索引设置操作 / Dual-index set operator for 2-dimensional mutable lists.
  * 二维可变列表的双索引设置操作符。
  *
  * @param T 列表元素的类型 / The type of list elements
@@ -84,9 +68,7 @@ operator fun <T> List<MutableList<T>>.set(i: Int, j: Int, value: T) {
 }
 
 /**
- * 三维列表的三索引获取操作
- *
- * Triple-index access operator for 3-dimensional lists.
+ * 三维列表的三索引获取操作 / Triple-index access operator for 3-dimensional lists.
  * 三维列表的三索引获取操作符。
  *
  * @param T 列表元素的类型 / The type of list elements
@@ -100,9 +82,7 @@ operator fun <T> List3<T>.get(i: Int, j: Int, k: Int): T {
 }
 
 /**
- * 三维列表的安全三索引获取操作
- *
- * Safe triple-index access for 3-dimensional lists, returning null if indices are out of bounds.
+ * 三维列表的安全三索引获取操作 / Safe triple-index access for 3-dimensional lists, returning null if indices are out of bounds.
  * 三维列表的安全三索引获取，如果索引越界则返回 null。
  *
  * @param T 列表元素的类型 / The type of list elements
@@ -116,9 +96,7 @@ fun <T> List3<T>.getOrNull(i: Int, j: Int, k: Int): T? {
 }
 
 /**
- * 三维可变列表的三索引设置操作
- *
- * Triple-index set operator for 3-dimensional mutable lists.
+ * 三维可变列表的三索引设置操作 / Triple-index set operator for 3-dimensional mutable lists.
  * 三维可变列表的三索引设置操作符。
  *
  * @param T 列表元素的类型 / The type of list elements
@@ -132,9 +110,7 @@ operator fun <T> List<List<MutableList<T>>>.set(i: Int, j: Int, k: Int, value: T
 }
 
 /**
- * 列表查找结果
- *
- * Result of finding an element in a mutable list, supporting default value handling.
+ * 列表查找结果 / Result of finding an element in a mutable list, supporting default value handling.
  * 在可变列表中查找元素的结果，支持默认值处理。
  *
  * @param T 列表元素的类型 / The type of list elements
@@ -147,9 +123,7 @@ data class ListFindResult<T>(
 ) {
 
     /**
-     * 如果找到则返回结果，否则添加默认值并返回
-     *
-     * Returns the found result if present, otherwise adds a new value from the default provider and returns it.
+     * 如果找到则返回结果，否则添加默认值并返回 / Returns the found result if present, otherwise adds a new value from the default provider and returns it.
      * 如果找到结果则返回，否则添加来自默认提供者的新值并返回。
      *
      * @param default 默认值提供者 / The default value provider
@@ -166,9 +140,7 @@ data class ListFindResult<T>(
     }
 
     /**
-     * 如果找到则返回结果，否则返回默认值
-     *
-     * Returns the found result if present, otherwise returns a value from the default provider.
+     * 如果找到则返回结果，否则返回默认值 / Returns the found result if present, otherwise returns a value from the default provider.
      * 如果找到结果则返回，否则返回来自默认提供者的值。
      *
      * @param default 默认值提供者 / The default value provider
@@ -180,9 +152,7 @@ data class ListFindResult<T>(
 }
 
 /**
- * 查找元素或返回查找结果对象
- *
- * Finds an element in the mutable list matching the predicate, returning a ListFindResult.
+ * 查找元素或返回查找结果对象 / Finds an element in the mutable list matching the predicate, returning a ListFindResult.
  * 在可变列表中查找匹配谓词的元素，返回 ListFindResult。
  *
  * @param T 列表元素的类型 / The type of list elements

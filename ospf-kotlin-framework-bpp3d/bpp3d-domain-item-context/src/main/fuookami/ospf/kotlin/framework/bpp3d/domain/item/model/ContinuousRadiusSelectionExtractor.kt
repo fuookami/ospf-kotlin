@@ -10,8 +10,7 @@ import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 /**
- * 从 solver 变量原型和选出结果构建连续半径已选择结果列表（native 路径）。
- * Build continuous-radius selection results from solver prototypes and solver-selected values (native path).
+ * 从 solver 变量原型和选出结果构建连续半径已选择结果列表（native 路径）。 / Build continuous-radius selection results from solver prototypes and solver-selected values (native path).
  *
  * @param prototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
  * @param solverResults solver 选出半径映射 / solver-selected radius map
@@ -34,8 +33,7 @@ fun buildNativeContinuousRadiusSelectionResults(
 }
 
 /**
- * 从 PWL solver 变量原型和 opaque Map 结果构建连续半径已选择结果列表。
- * Build continuous-radius selection results from PWL solver prototypes and opaque Map results.
+ * 从 PWL solver 变量原型和 opaque Map 结果构建连续半径已选择结果列表。 / Build continuous-radius selection results from PWL solver prototypes and opaque Map results.
  *
  * @param prototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
  * @param pwlContinuousRadiusResults PWL 连续半径结果 opaque Map / PWL continuous-radius results opaque Map
@@ -78,8 +76,7 @@ fun buildPWLContinuousRadiusSelectionResults(
 }
 
 /**
- * 从 PWL 提取结果列表直接构建连续半径已选择结果列表（结构化路径，无需 opaque Map）。
- * Build continuous-radius selection results directly from PWL extracted results (structured path, no opaque Map needed).
+ * 从 PWL 提取结果列表直接构建连续半径已选择结果列表（结构化路径，无需 opaque Map）。 / Build continuous-radius selection results directly from PWL extracted results (structured path, no opaque Map needed).
  *
  * @param prototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
  * @param extractedResults PWL 提取结果列表 / PWL extracted results

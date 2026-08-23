@@ -46,7 +46,7 @@ data class RabinovichFabrikantEquation<V : FloatingNumber<V>>(val a: V, val b: V
  * Rabinovich-Fabrikant 方程生成器，通过迭代产生混沌序列。
  *
  * @property attractor the Rabinovich-Fabrikant equation instance / Rabinovich-Fabrikant 方程实例
- * @property _x the internal state variable for iteration / 迭代用的内部状态变量
+ * @property _x 迭代用的内部状态变量 / the internal state variable for iteration
 */
 data class RabinovichFabrikantEquationGenerator(
     val attractor: RabinovichFabrikantEquation<Flt64> = RabinovichFabrikantEquation(),

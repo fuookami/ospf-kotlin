@@ -4,13 +4,13 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.AbstractLinearSolver
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.report.SolveReport
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
@@ -36,7 +36,7 @@ internal fun flt64Constant(value: Flt64): LinearPolynomial<Flt64> {
  * @return 线性多项式 / Linear polynomial
 */
 internal fun flt64Linear(symbol: Symbol): LinearPolynomial<Flt64> {
-    return LinearPolynomial(listOf(LinearMonomial(Flt64.one, symbol)), Flt64.zero)
+    return LinearPolynomial(symbol)
 }
 
 /**
@@ -51,8 +51,7 @@ internal fun flt64Linear(variable: AbstractVariableItem<*, *>): LinearPolynomial
 }
 
 /**
- * 创建基于阈值的松弛函数适配器，用于惩罚约束违反。
- * Creates a threshold-based slack function adapter for penalizing constraint violations.
+ * 创建基于阈值的松弛函数适配器，用于惩罚约束违反。 / Creates a threshold-based slack function adapter for penalizing constraint violations.
  *
  * @param x 输入表达式 / Input expression
  * @param threshold 阈值 / Threshold value
@@ -89,8 +88,7 @@ internal fun exampleThresholdSlack(
 }
 
 /**
- * 创建绝对差值松弛函数适配器，用于惩罚两个表达式之间的偏差。
- * Creates an absolute-difference slack function adapter for penalizing deviations between two expressions.
+ * 创建绝对差值松弛函数适配器，用于惩罚两个表达式之间的偏差。 / Creates an absolute-difference slack function adapter for penalizing deviations between two expressions.
  *
  * @param x 第一个表达式 / First expression
  * @param y 第二个表达式 / Second expression
@@ -123,8 +121,7 @@ internal fun exampleAbsoluteSlack(
 }
 
 /**
- * 将 [LinearMetaModel] 转储为机制模型，然后使用给定的求解器求解。
- * Dumps a [LinearMetaModel] into a mechanism model, then solves it with the given solver.
+ * 将 [LinearMetaModel] 转储为机制模型，然后使用给定的求解器求解。 / Dumps a [LinearMetaModel] into a mechanism model, then solves it with the given solver.
  *
  * @param solver 线性求解器 / Linear solver
  * @param metaModel 线性元模型 / Linear meta model
@@ -139,7 +136,7 @@ internal suspend fun solveLinearMetaModel(
     registrationStatusCallBack: RegistrationStatusCallBack? = null,
     dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
     solvingStatusCallBack: SolvingStatusCallBack? = null
-): Ret<FeasibleSolverOutput<Flt64>> {
+): Ret<SolveReport<Flt64>> {
     val mechanism = when (val result = solver.dump(
         model = metaModel,
         registrationStatusCallBack = registrationStatusCallBack,

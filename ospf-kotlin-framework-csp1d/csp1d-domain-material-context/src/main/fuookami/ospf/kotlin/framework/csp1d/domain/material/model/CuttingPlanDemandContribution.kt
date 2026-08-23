@@ -48,8 +48,7 @@ data class CuttingPlanDemandContribution<V : RealNumber<V>>(
         /**
          * 按指定需求单位创建贡献 / Build contribution by a demand unit
          *
-         * 离散单位按切片份数贡献；当需求单位等于产品单位重量单位且长度存在时，按 width * length * unitWeight 贡献。
-         * Discrete units contribute by slice amount; when demand unit equals product unit-weight unit and length exists, contribution uses width * length * unitWeight.
+         * 离散单位按切片份数贡献；当需求单位等于产品单位重量单位且长度存在时，按 width * length * unitWeight 贡献。 / Discrete units contribute by slice amount; when demand unit equals product unit-weight unit and length exists, contribution uses width * length * unitWeight.
          *
          * @param product 产品 / Product
          * @param width 切片宽度 / Slice width

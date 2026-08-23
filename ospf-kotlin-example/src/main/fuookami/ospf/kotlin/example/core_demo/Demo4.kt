@@ -27,24 +27,21 @@ private val flt64Converter = object : IntoValue<Flt64> {
 }
 
 /**
- * 生产优化：在物料和产量差异约束下最大化利润。
- * Production optimization: maximize profit with material and production difference constraints.
+ * 生产优化：在物料和产量差异约束下最大化利润。 / Production optimization: maximize profit with material and production difference constraints.
  *
  * @see     https://fuookami.github.io/ospf/examples/example4.html
 */
 data object Demo4 {
 
     /**
-     * 具有可用数量的物料。
-     * A material with an available quantity.
+     * 具有可用数量的物料。 / A material with an available quantity.
      *
      * @property available 可用数量。
     */
     data class Material(val available: Flt64) : AutoIndexed(Material::class)
 
     /**
-     * 具有利润、最大产量和物料使用的产品。
-     * A product with profit, max yield, and material usage.
+     * 具有利润、最大产量和物料使用的产品。 / A product with profit, max yield, and material usage.
      *
      * @property profit 利润。
      * @property maxYield 最大产量。
@@ -197,7 +194,7 @@ data object Demo4 {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
             is Ok -> {
-                metaModel.tokens.setSolution(ret.value.solution)
+                metaModel.tokens.setSolution(ret.value.values)
             }
 
             is Failed -> {

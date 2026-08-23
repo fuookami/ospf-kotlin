@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -19,10 +20,10 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 /**
  * 约束每个限制区内左右位置之间的不对称线性密度。Constrains unsymmetrical linear density between left and right positions within each limit zone.
  *
- * @property aircraftModel The aircraft model providing unit configuration / 提供单位配置的飞机型号
- * @property maxUnsymmetricalLinearDensity The maximum unsymmetrical linear density limits / 最大不对称线性密度限制
- * @property linearDensity The linear density estimation model / 线性密度估算模型
- * @property positions The list of cargo positions / 货物位置列表
+ * @property aircraftModel 提供单位配置的飞机型号 / The aircraft model providing unit configuration
+ * @property maxUnsymmetricalLinearDensity 最大不对称线性密度限制 / The maximum unsymmetrical linear density limits
+ * @property linearDensity 线性密度估算模型 / The linear density estimation model
+ * @property positions 货物位置列表 / The list of cargo positions
 */
 class UnsymmetricalLinearDensityLimit(
     private val aircraftModel: AircraftModel,
@@ -40,32 +41,27 @@ class UnsymmetricalLinearDensityLimit(
 
                 assert(line.positions.size == 2)
                 for ((l, limit) in zone.limits.withIndex()) {
-                    val poly = MutableLinearPolynomial()
-                    if (limit.leftCoefficient != null) {
-                        val j = positions.indexOf(line.positions.find { it.coordinate.onLeft })
-                        poly += LinearMonomial(
-                            limit.leftCoefficient,
-                            linearDensity.linearDensity[j].value
-                        )
-                    }
-                    if (limit.rightCoefficient != null) {
-                        val j = positions.indexOf(line.positions.find { it.coordinate.onRight })
-                        poly += LinearMonomial(
-                            limit.rightCoefficient,
-                            linearDensity.linearDensity[j].value
-                        )
-                    }
+                    val poly = sum(listOfNotNull(
+                        limit.leftCoefficient?.let { coefficient ->
+                            val j = positions.indexOf(line.positions.find { it.coordinate.onLeft })
+                            coefficient * linearDensity.linearDensity[j].value
+                        },
+                        limit.rightCoefficient?.let { coefficient ->
+                            val j = positions.indexOf(line.positions.find { it.coordinate.onRight })
+                            coefficient * linearDensity.linearDensity[j].value
+                        }
+                    ))
                     when (val result = model.addConstraint(
-                        relation = LinearPolynomial(poly.monomials, poly.constant) leq limit.maxSum.to(aircraftModel.linearDensityUnit)!!.value,
+                        relation = poly leq limit.maxSum.to(aircraftModel.linearDensityUnit)!!.value,
                         name = "${name}_${line.zone.name}_${line.arm.value}_${l}"
                     )) {
-                        is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                        is Ok -> {}
 
-                        is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                        is Failed -> {
                             return Failed(result.error)
                         }
 
-                        is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                        is Fatal -> {
                             return Fatal(result.errors)
                         }
                     }

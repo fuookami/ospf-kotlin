@@ -1,7 +1,5 @@
 /**
- * 并行最大/最小值操作
- *
- * Parallel max/min operations with concurrency control.
+ * 并行最大/最小值操作 / Parallel max/min operations with concurrency control.
 */
 package fuookami.ospf.kotlin.utils.parallel
 
@@ -9,9 +7,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 并行查找最小最大值元素（按选择器，带错误处理）
- *
- * Find both minimum and maximum elements by selector in a single pass in parallel with error handling.
+ * 并行查找最小最大值元素（按选择器，带错误处理） / Find both minimum and maximum elements by selector in a single pass in parallel with error handling.
  * 并发单次遍历查找最小和最大元素，支持错误处理。
  *
  * @param T 元素类型 / Element type
@@ -33,9 +29,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinMaxByParallelly(
 }
 
 /**
- * 并行查找最小最大值元素（按选择器，带错误收集）
- *
- * Find both minimum and maximum elements by selector in a single pass in parallel with error collection.
+ * 并行查找最小最大值元素（按选择器，带错误收集） / Find both minimum and maximum elements by selector in a single pass in parallel with error collection.
  * 并发单次遍历查找最小和最大元素，收集所有错误。
  *
  * @param T 元素类型 / Element type
@@ -59,9 +53,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMinMaxByParallelly(
 }
 
 /**
- * 并行查找最小最大值元素（按选择器，可能为空）
- *
- * Find both minimum and maximum elements by selector in a single pass in parallel, or null if empty.
+ * 并行查找最小最大值元素（按选择器，可能为空） / Find both minimum and maximum elements by selector in a single pass in parallel, or null if empty.
  * 并发单次遍历查找最小和最大元素，如果集合为空则返回 null。
  *
  * @param T 元素类型 / Element type
@@ -100,9 +92,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.minMaxByOrNullParallelly(
 }
 
 /**
- * 并行查找最小最大值元素（按选择器，带错误处理，可能为空）
- *
- * Find both minimum and maximum elements by selector in a single pass in parallel with error handling, or null if empty.
+ * 并行查找最小最大值元素（按选择器，带错误处理，可能为空） / Find both minimum and maximum elements by selector in a single pass in parallel with error handling, or null if empty.
  * 并发单次遍历查找最小和最大元素，支持错误处理，如果集合为空则返回 null。
  *
  * @param T 元素类型 / Element type
@@ -147,9 +137,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinMaxByOrNullParallell
 }
 
 /**
- * 并行查找最小最大值元素（按选择器，带错误收集，可能为空）
- *
- * Find both minimum and maximum elements by selector in a single pass in parallel with error collection, or null if empty.
+ * 并行查找最小最大值元素（按选择器，带错误收集，可能为空） / Find both minimum and maximum elements by selector in a single pass in parallel with error collection, or null if empty.
  * 并发单次遍历查找最小和最大元素，收集所有错误，如果集合为空则返回 null。
  *
  * @param T 元素类型 / Element type

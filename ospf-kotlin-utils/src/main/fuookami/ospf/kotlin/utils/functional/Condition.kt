@@ -1,15 +1,11 @@
 /**
- * 条件类
- *
- * Condition class for lazy predicate evaluation.
+ * 条件类 / Condition class for lazy predicate evaluation.
  * 条件类，用于延迟谓词求值。
 */
 package fuookami.ospf.kotlin.utils.functional
 
 /**
- * 条件数据类
- *
- * Represents a value with an associated predicate for lazy evaluation.
+ * 条件数据类 / Represents a value with an associated predicate for lazy evaluation.
  * 表示一个带有关联谓词的值，用于延迟求值。
  *
  * @param T 值的类型 / The type of the value
@@ -22,17 +18,13 @@ data class Condition<T>(
 ) {
 
     /**
-     * 谓词对值求值的惰性结果
-     *
-     * Lazy result of applying the predicate to the value.
+     * 谓词对值求值的惰性结果 / Lazy result of applying the predicate to the value.
      * 对值应用谓词的惰性结果。
     */
     val result: Boolean by lazy { predicate(value) }
 
     /**
-     * 将条件转换为可空值
-     *
-     * Converts the condition to a nullable value.
+     * 将条件转换为可空值 / Converts the condition to a nullable value.
      * Returns null if the predicate is true, otherwise returns the value.
      * 将条件转换为可空值。如果谓词为真则返回 null，否则返回值。
      *
@@ -42,9 +34,7 @@ data class Condition<T>(
 }
 
 /**
- * 创建条件对象
- *
- * Creates a Condition object for a value with the given predicate.
+ * 创建条件对象 / Creates a Condition object for a value with the given predicate.
  * 使用给定谓词为值创建 Condition 对象。
  *
  * @param T 值的类型 / The type of the value

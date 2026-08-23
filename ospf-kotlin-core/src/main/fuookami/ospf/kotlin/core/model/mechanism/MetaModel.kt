@@ -1,10 +1,11 @@
 /**
- * 元模型
- * Meta model
+ * 元模型 / Meta model
 */
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintGroupRegistry
+import fuookami.ospf.kotlin.core.solver.report.ModelElementIdentityRegistry
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.MathFunctionSymbol
@@ -18,6 +19,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -53,12 +55,10 @@ private fun <V> createTokenTable(
 }
 
 /**
- * 元模型密封接口
- * Sealed interface for meta models
+ * 元模型密封接口 / Sealed interface for meta models
  *
  * 元模型是优化模型的高层表示，包含约束、子目标和符号表。
- * 用户通过元模型定义优化问题，然后展开为机制模型进行求解。
- * A meta model is a high-level representation of an optimization problem,
+ * 用户通过元模型定义优化问题，然后展开为机制模型进行求解。 / A meta model is a high-level representation of an optimization problem,
  * containing constraints, sub-objectives, and token table.
  * Users define optimization problems through meta models, then unfold them into mechanism models for solving.
  *
@@ -70,13 +70,16 @@ private fun <V> createTokenTable(
  * @property subObjects 子目标列表 / Sub-objective list
  * @property tokens 可变符号表 / Mutable token table
  * @property symbolDependencies 符号依赖关系 / Symbol dependency map
+ * @property identityRegistry 可选的稳定身份注册表 / Optional stable identity registry
 */
-sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
+sealed interface MetaModel<V> : Model<V>, ConstraintGroupRegistry, AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
     val converter: IntoValue<V>
 
+    /** 可选的稳定身份注册表 / Optional stable identity registry. */
+    val identityRegistry: ModelElementIdentityRegistry?
+
     /**
-     * 元模型子目标
-     * Meta model sub-objective
+     * 元模型子目标 / Meta model sub-objective
      *
      * @param V 数值类型 / The number type
      * @property parent 父元模型 / Parent meta model
@@ -93,8 +96,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         val polynomial: LinearPolynomial<V>
     ) where V : RealNumber<V>, V : NumberField<V> {
         /**
-         * 使用父模型符号表求值。
-         * Evaluate using the parent model token table.
+         * 使用父模型符号表求值。 / Evaluate using the parent model token table.
          *
          * @param zeroIfNone 当结果未知时是否返回零 / Whether to return zero when result is unknown
          * @return 求值结果（含常数项），若任一变量结果未知且 zeroIfNone 为 false 则返回 null / The evaluation result (including constant), or null if any variable result is unknown and zeroIfNone is false
@@ -107,8 +109,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         }
 
         /**
-         * 使用指定符号表求值。
-         * Evaluate using the specified token table.
+         * 使用指定符号表求值。 / Evaluate using the specified token table.
          *
          * @param tokenTable 符号表 / The token table
          * @param zeroIfNone 当结果未知时是否返回零 / Whether to return zero when result is unknown
@@ -128,8 +129,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         }
 
         /**
-         * 使用解向量按索引求值。
-         * Evaluate using a solution vector by index lookup.
+         * 使用解向量按索引求值。 / Evaluate using a solution vector by index lookup.
          *
          * @param results    解向量 / The solution vector
          * @param zeroIfNone 当结果未知时是否返回零 / Whether to return zero when result is unknown
@@ -144,8 +144,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         }
 
         /**
-         * 使用解向量和指定符号表按索引求值。
-         * Evaluate using a solution vector and specified token table by index lookup.
+         * 使用解向量和指定符号表按索引求值。 / Evaluate using a solution vector and specified token table by index lookup.
          *
          * @param results    解向量 / The solution vector
          * @param tokenTable 符号表 / The token table
@@ -166,8 +165,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         }
 
         /**
-         * 刷新子目标缓存状态。
-         * Flush the sub-objective cache state.
+         * 刷新子目标缓存状态。 / Flush the sub-objective cache state.
          *
          * @param force 是否强制清除缓存 / Whether to force clear the cache
         */
@@ -198,8 +196,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
     }
 
     /**
-     * 添加中间符号到符号表。
-     * Add an intermediate symbol to the token table.
+     * 添加中间符号到符号表。 / Add an intermediate symbol to the token table.
      *
      * @param symbol 中间符号 / The intermediate symbol
      * @return 操作结果 / The operation result
@@ -209,8 +206,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
     }
 
     /**
-     * 批量添加中间符号到符号表。
-     * Add multiple intermediate symbols to the token table.
+     * 批量添加中间符号到符号表。 / Add multiple intermediate symbols to the token table.
      *
      * @param symbols 中间符号迭代器 / The intermediate symbols
      * @return 操作结果 / The operation result
@@ -361,8 +357,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
     }
 
     /**
-     * 从符号表中移除中间符号。
-     * Remove an intermediate symbol from the token table.
+     * 从符号表中移除中间符号。 / Remove an intermediate symbol from the token table.
      *
      * @param symbol 中间符号 / The intermediate symbol
     */
@@ -371,16 +366,14 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
     }
 
     /**
-     * 注册约束组，后续添加的约束将归属该组。
-     * Register a constraint group; subsequently added constraints will belong to this group.
+     * 注册约束组，后续添加的约束将归属该组。 / Register a constraint group; subsequently added constraints will belong to this group.
      *
      * @param group 约束组 / The constraint group
     */
-    fun registerConstraintGroup(group: MetaConstraintGroup)
+    override fun registerConstraintGroup(group: MetaConstraintGroup)
 
     /**
-     * 获取指定约束组在约束列表中的索引范围。
-     * Get the index range of the specified constraint group in the constraint list.
+     * 获取指定约束组在约束列表中的索引范围。 / Get the index range of the specified constraint group in the constraint list.
      *
      * @param group 约束组 / The constraint group
      * @return 索引范围，若不存在则返回 null / The index range, or null if not found
@@ -388,8 +381,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
     fun indicesOfConstraintGroup(group: MetaConstraintGroup): IntRange?
 
     /**
-     * 获取指定约束组的所有约束。
-     * Get all constraints of the specified constraint group.
+     * 获取指定约束组的所有约束。 / Get all constraints of the specified constraint group.
      *
      * @param group 约束组 / The constraint group
      * @return 约束列表 / The constraint list
@@ -413,8 +405,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
     }
 
     /**
-     * 刷新元模型状态；当 force 为 true 时同时清除已缓存的求解结果。
-     * Flush the meta model state; when [force] is `true`, also clear cached solution data.
+     * 刷新元模型状态；当 force 为 true 时同时清除已缓存的求解结果。 / Flush the meta model state; when [force] is `true`, also clear cached solution data.
      *
      * @param force 是否强制清除缓存 / Whether to force clear the cache
     */
@@ -436,8 +427,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
     }
 
     /**
-     * 导出模型到当前目录默认文件。
-     * Export the model to the default file in the current directory.
+     * 导出模型到当前目录默认文件。 / Export the model to the default file in the current directory.
      *
      * @return 操作结果 / The operation result
     */
@@ -446,8 +436,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
     }
 
     /**
-     * 导出模型到指定文件名。
-     * Export the model to the specified file name.
+     * 导出模型到指定文件名。 / Export the model to the specified file name.
      *
      * @param name 文件名 / The file name
      * @return 操作结果 / The operation result
@@ -457,8 +446,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
     }
 
     /**
-     * 导出模型到指定路径，可选择是否展开。
-     * Export the model to the specified path with optional unfolding.
+     * 导出模型到指定路径，可选择是否展开。 / Export the model to the specified path with optional unfolding.
      *
      * @param path   文件路径 / The file path
      * @param unfold 是否展开模型 / Whether to unfold the model
@@ -475,8 +463,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
     }
 
     /**
-     * 导出模型到指定路径，指定展开层级。
-     * Export the model to the specified path with the given unfold level.
+     * 导出模型到指定路径，指定展开层级。 / Export the model to the specified path with the given unfold level.
      *
      * @param path   文件路径 / The file path
      * @param unfold 展开层级 / The unfold level
@@ -487,8 +474,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
     }
 
     /**
-     * 导出模型到指定路径对象。
-     * Export the model to the specified path object.
+     * 导出模型到指定路径对象。 / Export the model to the specified path object.
      *
      * @param path   文件路径对象 / The file path object
      * @param unfold 展开层级 / The unfold level
@@ -504,19 +490,16 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
 }
 
 /**
- * 线性元模型抽象接口
- * Abstract linear meta model interface
+ * 线性元模型抽象接口 / Abstract linear meta model interface
  *
- * 支持添加线性约束和分区约束。
- * Supports adding linear constraints and partition constraints.
+ * 支持添加线性约束和分区约束。 / Supports adding linear constraints and partition constraints.
  *
  * @param V 数值类型 / The number type
 */
 interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : RealNumber<V>, V : NumberField<V> {
 
     /**
-     * 使用变量添加约束。
-     * Add a constraint using a variable.
+     * 使用变量添加约束。 / Add a constraint using a variable.
      *
      * @param constraint   变量 / The variable
      * @param group        约束组 / The constraint group
@@ -553,8 +536,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
     }
 
     /**
-     * 使用线性多项式添加约束。
-     * Add a constraint using a linear polynomial.
+     * 使用线性多项式添加约束。 / Add a constraint using a linear polynomial.
      *
      * @param constraint   线性多项式 / The linear polynomial
      * @param group        约束组 / The constraint group
@@ -589,8 +571,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
     }
 
     /**
-     * 使用线性中间符号添加约束。
-     * Add a constraint using a linear intermediate symbol.
+     * 使用线性中间符号添加约束。 / Add a constraint using a linear intermediate symbol.
      *
      * @param constraint   线性中间符号 / The linear intermediate symbol
      * @param group        约束组 / The constraint group
@@ -650,8 +631,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
     ): Try
 
     /**
-     * 使用变量迭代器添加分区约束。
-     * Add a partition constraint using an iterable of variables.
+     * 使用变量迭代器添加分区约束。 / Add a partition constraint using an iterable of variables.
      *
      * @param variables   变量迭代器 / The variables
      * @param group       约束组 / The constraint group
@@ -685,8 +665,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
     }
 
     /**
-     * 使用线性中间符号迭代器添加分区约束。
-     * Add a partition constraint using an iterable of linear intermediate symbols.
+     * 使用线性中间符号迭代器添加分区约束。 / Add a partition constraint using an iterable of linear intermediate symbols.
      *
      * @param symbols     线性中间符号迭代器 / The linear intermediate symbols
      * @param group       约束组 / The constraint group
@@ -720,8 +699,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
     }
 
     /**
-     * 使用线性多项式添加分区约束。
-     * Add a partition constraint using a linear polynomial.
+     * 使用线性多项式添加分区约束。 / Add a partition constraint using a linear polynomial.
      *
      * @param polynomial  线性多项式 / The linear polynomial
      * @param group       约束组 / The constraint group
@@ -752,19 +730,16 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
 }
 
 /**
- * 二次元模型抽象接口
- * Abstract quadratic meta model interface
+ * 二次元模型抽象接口 / Abstract quadratic meta model interface
  *
- * 扩展线性元模型，支持添加二次约束和分区约束。
- * Extends linear meta model, supports adding quadratic constraints and partition constraints.
+ * 扩展线性元模型，支持添加二次约束和分区约束。 / Extends linear meta model, supports adding quadratic constraints and partition constraints.
  *
  * @param V 数值类型 / The number type
 */
 interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where V : RealNumber<V>, V : NumberField<V> {
 
     /**
-     * 使用二次多项式添加约束。
-     * Add a constraint using a quadratic polynomial.
+     * 使用二次多项式添加约束。 / Add a constraint using a quadratic polynomial.
      *
      * @param constraint   二次多项式 / The quadratic polynomial
      * @param group        约束组 / The constraint group
@@ -797,8 +772,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
     }
 
     /**
-     * 使用二次中间符号添加约束。
-     * Add a constraint using a quadratic intermediate symbol.
+     * 使用二次中间符号添加约束。 / Add a constraint using a quadratic intermediate symbol.
      *
      * @param constraint   二次中间符号 / The quadratic intermediate symbol
      * @param group        约束组 / The constraint group
@@ -857,8 +831,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
     ): Try
 
     /**
-     * 使用二次中间符号迭代器添加分区约束。
-     * Add a partition constraint using an iterable of quadratic intermediate symbols.
+     * 使用二次中间符号迭代器添加分区约束。 / Add a partition constraint using an iterable of quadratic intermediate symbols.
      *
      * @param symbols     二次中间符号迭代器 / The quadratic intermediate symbols
      * @param group       约束组 / The constraint group
@@ -892,8 +865,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
     }
 
     /**
-     * 使用二次多项式添加分区约束。
-     * Add a partition constraint using a quadratic polynomial.
+     * 使用二次多项式添加分区约束。 / Add a partition constraint using a quadratic polynomial.
      *
      * @param polynomial  二次多项式 / The quadratic polynomial
      * @param group       约束组 / The constraint group
@@ -924,8 +896,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
 }
 
 /**
- * 元模型配置
- * Meta model configuration
+ * 元模型配置 / Meta model configuration
  *
  * @property manualTokenAddition 是否手动添加符号 / Whether to manually add tokens
  * @property concurrent 是否并发 / Whether to use concurrency
@@ -942,21 +913,21 @@ data class MetaModelConfiguration(
 )
 
 /**
- * 元模型抽象基类
- * Abstract meta model base class
+ * 元模型抽象基类 / Abstract meta model base class
  *
- * 提供元模型的通用实现，包括约束组管理和符号表操作。
- * Provides common implementation for meta models, including constraint group management and token table operations.
+ * 提供元模型的通用实现，包括约束组管理和符号表操作。 / Provides common implementation for meta models, including constraint group management and token table operations.
  *
  * @param V 数值类型 / The number type
  * @property category 模型类别（线性/二次）/ Model category (linear/quadratic)
  * @property configuration 元模型配置 / Meta model configuration
  * @property converter 值转换器 / Value converter
+ * @property identityRegistry 可选的稳定身份注册表 / Optional stable identity registry
 */
 abstract class AbstractMetaModel<V>(
     val category: Category,
     internal val configuration: MetaModelConfiguration,
-    override val converter: IntoValue<V>
+    override val converter: IntoValue<V>,
+    override val identityRegistry: ModelElementIdentityRegistry? = null
 ) : BasicModel<V>(
     name = "",
     tokens = createTokenTable<V>(category, configuration.concurrent, configuration.manualTokenAddition, configuration.checkTokenExists)
@@ -1016,24 +987,24 @@ abstract class AbstractMetaModel<V>(
 }
 
 /**
- * 线性元模型
- * Linear meta model
+ * 线性元模型 / Linear meta model
  *
- * 用于定义线性优化问题，支持线性约束和线性目标函数。
- * Used to define linear optimization problems, supporting linear constraints and linear objective functions.
+ * 用于定义线性优化问题，支持线性约束和线性目标函数。 / Used to define linear optimization problems, supporting linear constraints and linear objective functions.
  *
  * @param V 数值类型 / The number type
  * @property name 模型名称 / Model name
  * @property objectCategory 目标类型（最小化/最大化）/ Objective category (minimize/maximize)
  * @param configuration 元模型配置 / Meta model configuration
  * @param converter 值转换器 / Value converter
+ * @param identityRegistry 可选的稳定身份注册表 / Optional stable identity registry
 */
 class LinearMetaModel<V>(
     override var name: String = "",
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     configuration: MetaModelConfiguration = MetaModelConfiguration(),
-    converter: IntoValue<V>
-) : AbstractMetaModel<V>(fuookami.ospf.kotlin.math.symbol.Linear, configuration, converter), AbstractLinearMetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
+    converter: IntoValue<V>,
+    identityRegistry: ModelElementIdentityRegistry? = null
+) : AbstractMetaModel<V>(Linear, configuration, converter, identityRegistry), AbstractLinearMetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
     // Math inequality-based constraints storage
     internal val _relationConstraints: MutableList<LinearInequalityConstraint<V>> = ArrayList()
     override val constraints: List<MathConstraint> get() = _relationConstraints
@@ -1047,8 +1018,7 @@ class LinearMetaModel<V>(
     internal val flattenSubObjects: List<LinearSubObject<V>> by ::_flattenSubObjects
 
     /**
-     * 使用线性多项式添加目标子项。
-     * Add an objective sub-item using a linear polynomial.
+     * 使用线性多项式添加目标子项。 / Add an objective sub-item using a linear polynomial.
      *
      * @param category    目标类别（最小化/最大化） / The objective category (minimize/maximize)
      * @param polynomial  线性多项式 / The linear polynomial
@@ -1084,9 +1054,15 @@ class LinearMetaModel<V>(
         name: String,
         displayName: String?
     ): Try {
+        val expandedFlattenData = flattenData.expandIntermediateSymbols().getOrElse {
+            return Failed(Err(
+                ErrorCode.IllegalArgument,
+                "目标函数注册失败：无法展开线性表达式 / Objective registration failed: unable to expand linear expression: ${it.message}"
+            ))
+        }
         val subObject = LinearSubObject.invoke(
             category = category,
-            flattenData = flattenData,
+            flattenData = expandedFlattenData,
             tokens = tokens,
             name = name,
             converter = converter
@@ -1153,68 +1129,72 @@ class LinearMetaModel<V>(
 
     companion object {
         /**
-         * 创建默认 Flt64 类型的线性元模型。
-         * Create a linear meta model with default Flt64 type.
+         * 创建默认 Flt64 类型的线性元模型。 / Create a linear meta model with default Flt64 type.
          *
          * @param name            模型名称 / The model name
          * @param objectCategory  优化方向 / The optimization direction
          * @param configuration   元模型配置 / The meta model configuration
+         * @param identityRegistry 可选的稳定身份注册表 / Optional stable identity registry
          * @return 线性元模型实例 / The linear meta model instance
         */
         operator fun invoke(
             name: String = "",
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
-            configuration: MetaModelConfiguration = MetaModelConfiguration()
+            configuration: MetaModelConfiguration = MetaModelConfiguration(),
+            identityRegistry: ModelElementIdentityRegistry? = null
         ): LinearMetaModel<Flt64> = LinearMetaModel(
             name = name,
             objectCategory = objectCategory,
             configuration = configuration,
-            converter = solverValueConverter
+            converter = solverValueConverter,
+            identityRegistry = identityRegistry
         )
 
         /**
-         * 创建自定义类型的线性元模型。
-         * Create a linear meta model with custom type.
+         * 创建自定义类型的线性元模型。 / Create a linear meta model with custom type.
          *
          * @param name            模型名称 / The model name
          * @param converter       Flt64 值转换器 / The Flt64 value converter
          * @param objectCategory  优化方向 / The optimization direction
          * @param configuration   元模型配置 / The meta model configuration
+         * @param identityRegistry 可选的稳定身份注册表 / Optional stable identity registry
          * @return 线性元模型实例 / The linear meta model instance
         */
         operator fun <V> invoke(
             name: String,
             converter: Flt64ValueConverter<V>,
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
-            configuration: MetaModelConfiguration = MetaModelConfiguration()
+            configuration: MetaModelConfiguration = MetaModelConfiguration(),
+            identityRegistry: ModelElementIdentityRegistry? = null
         ): LinearMetaModel<V> where V : RealNumber<V>, V : NumberField<V> = LinearMetaModel(
             name = name,
             objectCategory = objectCategory,
             configuration = configuration,
-            converter = IntoValue.fromConverter(converter)
+            converter = IntoValue.fromConverter(converter),
+            identityRegistry = identityRegistry
         )
     }
 }
 
 /**
- * 二次元模型
- * Quadratic meta model
+ * 二次元模型 / Quadratic meta model
  *
- * 用于定义二次优化问题，支持线性和二次约束以及二次目标函数。
- * Used to define quadratic optimization problems, supporting linear and quadratic constraints and quadratic objective functions.
+ * 用于定义二次优化问题，支持线性和二次约束以及二次目标函数。 / Used to define quadratic optimization problems, supporting linear and quadratic constraints and quadratic objective functions.
  *
  * @param V 数值类型 / The number type
  * @property name 模型名称 / Model name
  * @property objectCategory 目标类型（最小化/最大化）/ Objective category (minimize/maximize)
  * @param configuration 元模型配置 / Meta model configuration
  * @param converter 值转换器 / Value converter
+ * @param identityRegistry 可选的稳定身份注册表 / Optional stable identity registry
 */
 class QuadraticMetaModel<V>(
     override var name: String = "",
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     configuration: MetaModelConfiguration = MetaModelConfiguration(),
-    converter: IntoValue<V>
-) : AbstractMetaModel<V>(fuookami.ospf.kotlin.math.symbol.Quadratic, configuration, converter), AbstractLinearMetaModel<V>, AbstractQuadraticMetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
+    converter: IntoValue<V>,
+    identityRegistry: ModelElementIdentityRegistry? = null
+) : AbstractMetaModel<V>(Quadratic, configuration, converter, identityRegistry), AbstractLinearMetaModel<V>, AbstractQuadraticMetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
     // Math inequality-based constraints storage
     internal val _relationConstraints: MutableList<QuadraticInequalityConstraint<V>> = ArrayList()
     override val constraints: List<MathConstraint> get() = _relationConstraints
@@ -1360,8 +1340,7 @@ class QuadraticMetaModel<V>(
     }
 
     /**
-     * 使用二次多项式添加目标子项。
-     * Add an objective sub-item using a quadratic polynomial.
+     * 使用二次多项式添加目标子项。 / Add an objective sub-item using a quadratic polynomial.
      *
      * @param category    目标类别（最小化/最大化） / The objective category (minimize/maximize)
      * @param polynomial  二次多项式 / The quadratic polynomial
@@ -1408,8 +1387,7 @@ class QuadraticMetaModel<V>(
 
     /**
      * 使用 QuadraticFlattenData 添加目标函数（新 API），
-     * 使用转换器将 Flt64 系数转换为 V 类型。
-     * Add objective using QuadraticFlattenData (new API).
+     * 使用转换器将 Flt64 系数转换为 V 类型。 / Add objective using QuadraticFlattenData (new API).
      * Converts Flt64 coefficients to V values using converter.
     */
     override fun addObject(
@@ -1431,45 +1409,49 @@ class QuadraticMetaModel<V>(
 
     companion object {
         /**
-         * 创建默认 Flt64 类型的二次元模型。
-         * Create a quadratic meta model with default Flt64 type.
+         * 创建默认 Flt64 类型的二次元模型。 / Create a quadratic meta model with default Flt64 type.
          *
          * @param name            模型名称 / The model name
          * @param objectCategory  优化方向 / The optimization direction
          * @param configuration   元模型配置 / The meta model configuration
+         * @param identityRegistry 可选的稳定身份注册表 / Optional stable identity registry
          * @return 二次元模型实例 / The quadratic meta model instance
         */
         operator fun invoke(
             name: String = "",
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
-            configuration: MetaModelConfiguration = MetaModelConfiguration()
+            configuration: MetaModelConfiguration = MetaModelConfiguration(),
+            identityRegistry: ModelElementIdentityRegistry? = null
         ): QuadraticMetaModel<Flt64> = QuadraticMetaModel(
             name = name,
             objectCategory = objectCategory,
             configuration = configuration,
-            converter = solverValueConverter
+            converter = solverValueConverter,
+            identityRegistry = identityRegistry
         )
 
         /**
-         * 创建自定义类型的二次元模型。
-         * Create a quadratic meta model with custom type.
+         * 创建自定义类型的二次元模型。 / Create a quadratic meta model with custom type.
          *
          * @param name            模型名称 / The model name
          * @param converter       Flt64 值转换器 / The Flt64 value converter
          * @param objectCategory  优化方向 / The optimization direction
          * @param configuration   元模型配置 / The meta model configuration
+         * @param identityRegistry 可选的稳定身份注册表 / Optional stable identity registry
          * @return 二次元模型实例 / The quadratic meta model instance
         */
         operator fun <V> invoke(
             name: String,
             converter: Flt64ValueConverter<V>,
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
-            configuration: MetaModelConfiguration = MetaModelConfiguration()
+            configuration: MetaModelConfiguration = MetaModelConfiguration(),
+            identityRegistry: ModelElementIdentityRegistry? = null
         ): QuadraticMetaModel<V> where V : RealNumber<V>, V : NumberField<V> = QuadraticMetaModel(
             name = name,
             objectCategory = objectCategory,
             configuration = configuration,
-            converter = IntoValue.fromConverter(converter)
+            converter = IntoValue.fromConverter(converter),
+            identityRegistry = identityRegistry
         )
     }
 }

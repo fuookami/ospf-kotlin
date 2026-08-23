@@ -24,11 +24,9 @@ import fuookami.ospf.kotlin.utils.functional.*
 */
 
 /**
- * 四舍五入函数：y = round(x)。
- * Rounding function: y = round(x).
+ * 四舍五入函数：y = round(x)。 / Rounding function: y = round(x).
  *
- * 使用整数变量 k、连续小数变量 b 和二值变量 r 处理 0.5 的情况。
- * Uses integer variable k, continuous fractional variable b, and binary r to handle the 0.5 case.
+ * 使用整数变量 k、连续小数变量 b 和二值变量 r 处理 0.5 的情况。 / Uses integer variable k, continuous fractional variable b, and binary r to handle the 0.5 case.
  *
  * @property x 输入线性多项式 / the input linear polynomial
  * @param bigM 小数指示 Big-M（默认 1）/ Big-M for fractional indicator (default 1)

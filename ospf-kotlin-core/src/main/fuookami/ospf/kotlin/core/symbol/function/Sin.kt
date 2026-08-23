@@ -17,19 +17,15 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 正弦函数符号 / Sine function symbol
  *
- * 提供 [SinFunction]，使用分段线性插值近似正弦函数。
- *
- * Provides [SinFunction] for piecewise linear approximation of the sine function.
+ * 提供 [SinFunction]，使用分段线性插值近似正弦函数。 / Provides [SinFunction] for piecewise linear approximation of the sine function.
 */
 
 /**
- * 通过分段线性插值近似的正弦函数。
- * Sine function approximated by piecewise linear interpolation.
+ * 通过分段线性插值近似的正弦函数。 / Sine function approximated by piecewise linear interpolation.
  *
  * 这是 [UnivariateLinearPiecewiseFunction] 的薄包装。
  * This is a thin wrapper around [UnivariateLinearPiecewiseFunction].
- * 正弦函数 sin(v) 在关键点处采样用于 MIP 编码。
- * The sine function sin(v) is sampled at strategic points for MIP encoding.
+ * 正弦函数 sin(v) 在关键点处采样用于 MIP 编码。 / The sine function sin(v) is sampled at strategic points for MIP encoding.
  *
  * @property x 输入线性多项式 / the input linear polynomial
  * @property samplingPoints 预计算的 (x, sin(x)) 断点 / pre-computed (x, sin(x)) break points
@@ -99,8 +95,7 @@ class SinFunction<V>(
             SinFunction(x = x, samplingPoints = samplingPoints, converter = converter, name = name, displayName = displayName)
 
         /**
-         * 默认正弦采样点 [-pi, pi]。
-         * Default sine sampling points [-pi, pi].
+         * 默认正弦采样点 [-pi, pi]。 / Default sine sampling points [-pi, pi].
          *
          * @return (x, sin(x)) 断点列表 / list of (x, sin(x)) break points
         */

@@ -14,8 +14,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Meter
 
 /**
- * 获取物品视图的支撑包装形状，圆柱件不满足直立垂直支撑条件时返回 null。
- * Get the support packing shape of the item view; returns null when a cylinder item does not satisfy upright-vertical support conditions.
+ * 获取物品视图的支撑包装形状，圆柱件不满足直立垂直支撑条件时返回 null。 / Get the support packing shape of the item view; returns null when a cylinder item does not satisfy upright-vertical support conditions.
  *
  * @return 支撑包装形状或 null / the support packing shape or null
 */
@@ -35,8 +34,7 @@ private fun ItemView.supportPackingShapeOrNull(): PackingShape3<FltX>? {
 }
 
 /**
- * 计算物品视图底部投影面积，若无法获取支撑包装形状则返回 null。
- * Calculate the bottom footprint area of the item view; returns null if the support packing shape is unavailable.
+ * 计算物品视图底部投影面积，若无法获取支撑包装形状则返回 null。 / Calculate the bottom footprint area of the item view; returns null if the support packing shape is unavailable.
  *
  * @return 底部投影面积或 null / the bottom footprint area or null
 */
@@ -50,8 +48,7 @@ private fun ItemView.bottomFootprintAreaOrNull(): Quantity<FltX>? {
 }
 
 /**
- * 获取物品视图底部投影的最小跨度（圆柱取直径、矩形取宽深较小值），无法获取形状时返回 null。
- * Get the minimum span of the item view's bottom footprint (diameter for circles, lesser of width/depth for rectangles); returns null if the shape is unavailable.
+ * 获取物品视图底部投影的最小跨度（圆柱取直径、矩形取宽深较小值），无法获取形状时返回 null。 / Get the minimum span of the item view's bottom footprint (diameter for circles, lesser of width/depth for rectangles); returns null if the shape is unavailable.
  *
  * @return 底部投影最小跨度或 null / the minimum bottom footprint span or null
 */
@@ -66,8 +63,7 @@ private fun ItemView.bottomFootprintMinSpanOrNull(): Quantity<FltX>? {
 interface AbstractCargoAttribute
 
 /**
- * 过滤堆叠策略，用于填充物在任意包装类型上的堆叠判断。
- * Filter stacking on policy, used to determine whether fillers can stack on any package type.
+ * 过滤堆叠策略，用于填充物在任意包装类型上的堆叠判断。 / Filter stacking on policy, used to determine whether fillers can stack on any package type.
  *
  * @property maxOverWeight 最大允许超重 / maximum allowed overweight
  * @property extraStackingOnRule 额外堆叠规则 / extra stacking on rule
@@ -108,8 +104,7 @@ data class FilterStackingOnPolicy(
 }
 
 /**
- * 纸箱容器堆叠策略，用于软箱包装类型之间的堆叠判断。
- * Carton container stacking on policy, used to determine stacking between soft box package types.
+ * 纸箱容器堆叠策略，用于软箱包装类型之间的堆叠判断。 / Carton container stacking on policy, used to determine stacking between soft box package types.
  *
  * @property maxDifference 最大允许尺寸差 / maximum allowed dimension difference
  * @property maxOverWeight 最大允许超重 / maximum allowed overweight
@@ -158,8 +153,7 @@ data class CartonContainerStackingOnPolicy(
 }
 
 /**
- * 箱式堆叠策略，用于普通包装类型之间的堆叠判断。
- * Box stacking on policy, used to determine stacking between general package types.
+ * 箱式堆叠策略，用于普通包装类型之间的堆叠判断。 / Box stacking on policy, used to determine stacking between general package types.
  *
  * @property maxDifference 最大允许尺寸差 / maximum allowed dimension difference
  * @property maxOverWeight 最大允许超重 / maximum allowed overweight
@@ -218,16 +212,14 @@ data class BoxStackingOnPolicy(
 }
 
 /**
- * 堆叠策略接口，定义货物堆叠在另一货物上的判断逻辑。
- * Stacking on policy interface, defining the logic to determine whether an item can stack on another item.
+ * 堆叠策略接口，定义货物堆叠在另一货物上的判断逻辑。 / Stacking on policy interface, defining the logic to determine whether an item can stack on another item.
  *
  * @property T 具体的堆叠策略类型 / the specific stacking on policy type
 */
 interface AbstractStackingOnPolicy {
 
     /**
-     * 判断物品视图是否可以在指定底部物品视图上堆叠。
-     * Determine whether an item view can be stacked on a specified bottom item view.
+     * 判断物品视图是否可以在指定底部物品视图上堆叠。 / Determine whether an item view can be stacked on a specified bottom item view.
      *
      * @param item 待堆叠物品视图 / the item view to stack
      * @param bottomItem 底部物品视图 / the bottom item view
@@ -244,8 +236,7 @@ interface AbstractStackingOnPolicy {
 }
 
 /**
- * 相对悬挂策略，基于悬挂面积占底部投影面积的比例判断。
- * Relative hanging policy, determining based on the ratio of hanging area to bottom footprint area.
+ * 相对悬挂策略，基于悬挂面积占底部投影面积的比例判断。 / Relative hanging policy, determining based on the ratio of hanging area to bottom footprint area.
  *
  * @property hangingPercentage 允许的悬挂百分比 / allowed hanging percentage
  * @property withWeight 是否考虑重量 / whether to consider weight
@@ -288,8 +279,7 @@ data class RelativeHangingPolicy(
 }
 
 /**
- * 绝对悬挂策略，基于悬挂面积与最大允许悬挂面积的比较判断。
- * Absolute hanging policy, determining based on comparison of hanging area to maximum allowed hanging area.
+ * 绝对悬挂策略，基于悬挂面积与最大允许悬挂面积的比较判断。 / Absolute hanging policy, determining based on comparison of hanging area to maximum allowed hanging area.
  *
  * @property maxDifference 最大允许差值 / maximum allowed difference
  * @property withWeight 是否考虑重量 / whether to consider weight
@@ -334,14 +324,12 @@ data class AbsoluteHangingPolicy(
 }
 
 /**
- * 悬挂策略接口，定义货物悬挂支撑的判断逻辑。
- * Hanging policy interface, defining the logic to determine item hanging support.
+ * 悬挂策略接口，定义货物悬挂支撑的判断逻辑。 / Hanging policy interface, defining the logic to determine item hanging support.
 */
 interface AbstractHangingPolicy {
 
     /**
-     * 判断物品视图是否可以在指定底部支撑上堆叠。
-     * Determine whether an item view can be stacked on the specified bottom support.
+     * 判断物品视图是否可以在指定底部支撑上堆叠。 / Determine whether an item view can be stacked on the specified bottom support.
      *
      * @param item 待堆叠物品视图 / the item view to stack
      * @param bottomSupport 底部支撑 / the bottom support
@@ -354,8 +342,7 @@ interface AbstractHangingPolicy {
 }
 
 /**
- * 线性变形属性，基于体积乘以变形系数计算各维度变形量。
- * Linear deformation attribute, calculating deformation in each dimension as volume multiplied by the deformation coefficient.
+ * 线性变形属性，基于体积乘以变形系数计算各维度变形量。 / Linear deformation attribute, calculating deformation in each dimension as volume multiplied by the deformation coefficient.
  *
  * @property deformationCoefficient 变形系数 / deformation coefficient
 */
@@ -383,14 +370,12 @@ data class LinearDeformationAttribute(
 }
 
 /**
- * 变形属性接口，定义货物变形的计算逻辑。
- * Deformation attribute interface, defining the logic for calculating item deformation.
+ * 变形属性接口，定义货物变形的计算逻辑。 / Deformation attribute interface, defining the logic for calculating item deformation.
 */
 interface AbstractDeformationAttribute {
 
     /**
-     * 根据体积计算变形量。
-     * Calculate the deformation quantity based on volume.
+     * 根据体积计算变形量。 / Calculate the deformation quantity based on volume.
      *
      * @param volume 体积 / the volume
      * @return 三维变形向量 / the 3D deformation vector
@@ -398,8 +383,7 @@ interface AbstractDeformationAttribute {
     fun deformationQuantity(volume: FltX): Vector<Dim3, FltX>
 
     /**
-     * 根据物品计算变形量。
-     * Calculate the deformation quantity based on an item.
+     * 根据物品计算变形量。 / Calculate the deformation quantity based on an item.
      *
      * @param item 物品 / the item
      * @return 三维变形向量 / the 3D deformation vector
@@ -407,8 +391,7 @@ interface AbstractDeformationAttribute {
     fun deformationQuantity(item: Item) = deformationQuantity(item.volume.value)
 
     /**
-     * 根据物品视图计算变形量。
-     * Calculate the deformation quantity based on an item view.
+     * 根据物品视图计算变形量。 / Calculate the deformation quantity based on an item view.
      *
      * @param item 物品视图 / the item view
      * @return 三维变形向量 / the 3D deformation vector
@@ -417,8 +400,7 @@ interface AbstractDeformationAttribute {
 }
 
 /**
- * 重量属性，定义货物的最大堆叠层数限制。
- * Weight attribute, defining the maximum stacking layer limit for items.
+ * 重量属性，定义货物的最大堆叠层数限制。 / Weight attribute, defining the maximum stacking layer limit for items.
  *
  * @property maxLayer 最大堆叠层数 / maximum stacking layer count
 */
@@ -440,16 +422,14 @@ data class WeightAttribute(
 }
 
 /**
- * 重量属性接口，定义货物重量相关的堆叠限制。
- * Weight attribute interface, defining weight-related stacking constraints for items.
+ * 重量属性接口，定义货物重量相关的堆叠限制。 / Weight attribute interface, defining weight-related stacking constraints for items.
 */
 interface AbstractWeightAttribute {
     val maxLayer: UInt64
 }
 
 /**
- * 包装属性，定义货物的堆叠、变形、悬挂等约束规则。
- * Package attribute, defining stacking, deformation, hanging and other constraint rules for items.
+ * 包装属性，定义货物的堆叠、变形、悬挂等约束规则。 / Package attribute, defining stacking, deformation, hanging and other constraint rules for items.
  *
  * @property packageType 包装类型 / package type
  * @property packageMaxLayer 最大堆叠层数 / maximum stacking layer count
@@ -500,8 +480,7 @@ data class PackageAttribute(
 
     companion object {
         /**
-         * 递归计算货物在底部货物集合中的堆叠层数。
-         * Recursively calculate the stacking layer count of the item within a set of bottom items.
+         * 递归计算货物在底部货物集合中的堆叠层数。 / Recursively calculate the stacking layer count of the item within a set of bottom items.
          *
          * @param item 待计算货物 / the item to calculate
          * @param bottomItems 底部货物集合 / the set of bottom items
@@ -540,8 +519,7 @@ data class PackageAttribute(
         }
 
         /**
-         * 递归计算货物在底部货物集合中的堆叠高度。
-         * Recursively calculate the stacking height of the item within a set of bottom items.
+         * 递归计算货物在底部货物集合中的堆叠高度。 / Recursively calculate the stacking height of the item within a set of bottom items.
          *
          * @param item 待计算货物 / the item to calculate
          * @param bottomItems 底部货物集合 / the set of bottom items
@@ -580,8 +558,7 @@ data class PackageAttribute(
         }
 
         /**
-         * 计算货物在底部货物集合中的层数和高度。
-         * Calculate the layer and height of the item within a set of bottom items.
+         * 计算货物在底部货物集合中的层数和高度。 / Calculate the layer and height of the item within a set of bottom items.
          *
          * @param item 待计算货物 / the item to calculate
          * @param bottomItems 底部货物集合 / the set of bottom items
@@ -604,8 +581,7 @@ data class PackageAttribute(
     }
 
     /**
-     * 判断物品视图是否可以在指定底部支撑上堆叠（悬挂策略）。
-     * Determine whether an item view can be stacked on the specified bottom support (hanging policy).
+     * 判断物品视图是否可以在指定底部支撑上堆叠（悬挂策略）。 / Determine whether an item view can be stacked on the specified bottom support (hanging policy).
      *
      * @param item 待堆叠物品视图 / the item view to stack
      * @param bottomSupport 底部支撑 / the bottom support
@@ -622,8 +598,7 @@ data class PackageAttribute(
     }
 
     /**
-     * 判断物品是否可以在指定底部物品上堆叠。
-     * Determine whether an item can be stacked on a specified bottom item.
+     * 判断物品是否可以在指定底部物品上堆叠。 / Determine whether an item can be stacked on a specified bottom item.
      *
      * @param item 待堆叠物品 / the item to stack
      * @param bottomItem 底部物品 / the bottom item
@@ -649,8 +624,7 @@ data class PackageAttribute(
     }
 
     /**
-     * 判断物品视图是否可以在指定底部物品视图上堆叠。
-     * Determine whether an item view can be stacked on a specified bottom item view.
+     * 判断物品视图是否可以在指定底部物品视图上堆叠。 / Determine whether an item view can be stacked on a specified bottom item view.
      *
      * @param item 待堆叠物品视图 / the item view to stack
      * @param bottomItem 底部物品视图 / the bottom item view
@@ -698,8 +672,7 @@ data class PackageAttribute(
     }
 
     /**
-     * 判断货物是否可以在指定底部货物集合上堆叠。
-     * Determine whether the item can be stacked on the specified set of bottom items.
+     * 判断货物是否可以在指定底部货物集合上堆叠。 / Determine whether the item can be stacked on the specified set of bottom items.
      *
      * @param item 待堆叠货物 / the item to stack
      * @param bottomItems 底部货物集合 / the set of bottom items

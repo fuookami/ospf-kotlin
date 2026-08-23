@@ -1,9 +1,7 @@
 /**
- * 随机数生成
- * Random Number Generation
+ * 随机数生成 / Random Number Generation
  *
- * 为 Kotlin Random 类提供扩展函数，支持生成 Int64、UInt64 和 Flt64 等类型的随机数，可指定范围或边界。
- * Provides extension functions for Kotlin Random class, supporting generation of random numbers in Int64, UInt64, and Flt64 types, with optional range or bound specifications.
+ * 为 Kotlin Random 类提供扩展函数，支持生成 Int64、UInt64 和 Flt64 等类型的随机数，可指定范围或边界。 / Provides extension functions for Kotlin Random class, supporting generation of random numbers in Int64, UInt64, and Flt64 types, with optional range or bound specifications.
 */
 package fuookami.ospf.kotlin.math
 
@@ -23,8 +21,7 @@ fun Random.nextInt64() = Int64(nextLong())
 fun Random.nextInt64(until: Int64) = Int64(nextLong(until.value))
 
 /**
- * 生成指定区间内的随机 Int64
- * Generate random Int64 in specified range
+ * 生成指定区间内的随机 Int64 / Generate random Int64 in specified range
  *
  * @param range 整数区间 / Integer range
  * @return 随机 Int64 值 / Random Int64 value
@@ -54,8 +51,7 @@ fun Random.nextUInt64() = UInt64(nextULong())
 fun Random.nextUInt64(until: UInt64) = UInt64(nextULong(until.value))
 
 /**
- * 生成指定区间内的随机 UInt64
- * Generate random UInt64 in specified range
+ * 生成指定区间内的随机 UInt64 / Generate random UInt64 in specified range
  *
  * @param range 整数区间 / Integer range
  * @return 随机 UInt64 值 / Random UInt64 value

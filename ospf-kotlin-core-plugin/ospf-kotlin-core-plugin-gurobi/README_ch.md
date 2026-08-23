@@ -69,9 +69,9 @@ implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plug
 
 ```kotlin
 val solver = GurobiLinearSolver(
-    config = SolverConfig(timeLimit = 60.seconds)
+    config = SolverConfig(time = 60.seconds)
 )
-val result: Ret<FeasibleSolverOutput<Flt64>> = solver(model)
+val result: Ret<SolveReport<Flt64>> = solver(model)
 ```
 
 ### 使用回调
@@ -92,13 +92,19 @@ val solver = GurobiLinearSolver(
 ```kotlin
 val solver = GurobiLinearSolver(
     config = SolverConfig(
-        serverConfig = ServerConfig(
+        backendConfiguration = GurobiSolverConfig(
             server = "gurobi-server.example.com",
             password = "secret"
         )
     )
 )
 ```
+
+### SolveReport 迁移与后续范围
+
+`Ret<SolveReport<Flt64>>` 是主结果契约。请使用 `SolverConfig(time = ...)` 和类型化的
+`backendConfiguration = GurobiSolverConfig(...)`；`timeLimit` 与 `serverConfig` 构造参数不属于
+1.1.0 源码线。其余插件迁移和能力门禁见 [`plans/solver_cp.md`](../../plans/solver_cp.md)。
 
 ## 依赖
 

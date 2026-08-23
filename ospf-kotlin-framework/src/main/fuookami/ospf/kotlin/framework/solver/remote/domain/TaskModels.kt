@@ -1,6 +1,5 @@
 /**
- * 远程求解任务模型
- * Remote solve task models
+ * 远程求解任务模型 / Remote solve task models
 */
 package fuookami.ospf.kotlin.framework.solver.remote.domain
 
@@ -10,8 +9,7 @@ import kotlinx.serialization.Serializable
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
- * 任务复杂度。
- * Task complexity.
+ * 任务复杂度。 / Task complexity.
 */
 @Serializable
 enum class TaskComplexity {
@@ -23,8 +21,7 @@ enum class TaskComplexity {
 }
 
 /**
- * 时间敏感度。
- * Time sensitivity.
+ * 时间敏感度。 / Time sensitivity.
 */
 @Serializable
 enum class TimeSensitivity {
@@ -36,8 +33,7 @@ enum class TimeSensitivity {
 }
 
 /**
- * 任务状态。
- * Task status.
+ * 任务状态。 / Task status.
 */
 @Serializable
 enum class TaskStatus {
@@ -76,8 +72,7 @@ enum class TaskStatus {
 }
 
 /**
- * 切片状态。
- * Slice status.
+ * 切片状态。 / Slice status.
 */
 @Serializable
 enum class SliceStatus {
@@ -101,8 +96,7 @@ enum class SliceStatus {
 }
 
 /**
- * 任务元数据。
- * Task metadata.
+ * 任务元数据。 / Task metadata.
  *
  * @property solverType 求解器类型偏好 / Solver type preference
  * @property targetType 目标类型 / Target type
@@ -130,8 +124,7 @@ data class TaskMeta(
 )
 
 /**
- * 模型数据。
- * Model data.
+ * 模型数据。 / Model data.
  *
  * @property ref 模型对象引用 / Model object reference
  * @property linearModel 内联线性模型 / Inline linear model
@@ -159,13 +152,13 @@ data class ModelData(
         get() = when {
             quadraticModel != null -> NormalizedModelType.QUADRATIC
             linearModel != null -> NormalizedModelType.LINEAR
+            format == "ospf-cp-snapshot-json" -> NormalizedModelType.CP
             else -> NormalizedModelType.UNKNOWN
         }
 
     companion object {
         /**
-         * 创建引用模型数据。
-         * Create reference model data.
+         * 创建引用模型数据。 / Create reference model data.
          *
          * @param ref 对象引用 / Object reference
          * @return 模型数据 / Model data
@@ -175,8 +168,7 @@ data class ModelData(
         }
 
         /**
-         * 创建线性模型数据。
-         * Create linear model data.
+         * 创建线性模型数据。 / Create linear model data.
          *
          * @param model 线性模型 / Linear model
          * @return 模型数据 / Model data
@@ -186,8 +178,7 @@ data class ModelData(
         }
 
         /**
-         * 创建二次模型数据。
-         * Create quadratic model data.
+         * 创建二次模型数据。 / Create quadratic model data.
          *
          * @param model 二次模型 / Quadratic model
          * @return 模型数据 / Model data
@@ -197,8 +188,7 @@ data class ModelData(
         }
 
         /**
-         * 创建原始字节模型数据。
-         * Create raw bytes model data.
+         * 创建原始字节模型数据。 / Create raw bytes model data.
          *
          * @param bytes 字节内容 / Bytes
          * @param format 字节格式 / Bytes format
@@ -236,8 +226,7 @@ data class ModelData(
 }
 
 /**
- * 求解配置。
- * Solver config.
+ * 求解配置。 / Solver config.
  *
  * @property timeLimit 时间限制 / Time limit
  * @property solutionLimit 解数量限制 / Solution count limit
@@ -257,8 +246,7 @@ data class SolverConfig(
 )
 
 /**
- * 求解载荷。
- * Solve payload.
+ * 求解载荷。 / Solve payload.
  *
  * @property modelData 模型数据 / Model data
  * @property configRef 配置引用 / Config reference
@@ -278,8 +266,13 @@ data class SolvePayload(
 ) {
 
     /**
-     * 引用模式便捷构造器。
-     * Reference mode convenience constructor.
+     * 引用模式便捷构造器。 / Reference mode convenience constructor.
+     *
+     * @param modelRef Model object reference. / 模型对象引用。
+     * @param configRef Optional solver configuration reference. / 可选求解配置引用。
+     * @param snapshotRef Optional snapshot reference. / 可选快照引用。
+     * @param taskMeta Task metadata. / 任务元数据。
+     * @param extension Extension fields. / 扩展字段。
     */
     constructor(
         modelRef: ObjectRef,
@@ -296,8 +289,12 @@ data class SolvePayload(
     )
 
     /**
-     * 内联线性模型便捷构造器。
-     * Inline linear model convenience constructor.
+     * 内联线性模型便捷构造器。 / Inline linear model convenience constructor.
+     *
+     * @param linearModel Inline serialized linear model. / 内联序列化线性模型。
+     * @param config Optional inline solver configuration. / 可选内联求解配置。
+     * @param taskMeta Task metadata. / 任务元数据。
+     * @param extension Extension fields. / 扩展字段。
     */
     constructor(
         linearModel: SerializedLinearModel,
@@ -311,6 +308,9 @@ data class SolvePayload(
         extension = extension
     )
 
-    /** 模型引用 / Model reference */
+    /** Model reference carried by the payload. / 载荷携带的模型引用。
+     *
+     * @return Referenced object or null for inline payloads. / 引用对象；内联载荷时为 null。
+     */
     val modelRef: ObjectRef? get() = modelData.ref
 }

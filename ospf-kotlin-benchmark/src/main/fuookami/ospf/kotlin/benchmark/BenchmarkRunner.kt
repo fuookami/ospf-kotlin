@@ -10,12 +10,10 @@ import java.net.URLClassLoader
  * Benchmark 运行入口（small 默认配置）
  * Benchmark runner entry (small default configuration)
  *
- * 用法：
- * Usage:
+ * 用法： / Usage:
  * `mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".* small 1 1"`
  *
- * 可选参数：
- * Optional arguments:
+ * 可选参数： / Optional arguments:
  * 1) include regex
  * 2) dataset (`small` / `medium` / `large`)
  * 3) forks
@@ -69,8 +67,7 @@ private fun patchJavaClassPathForForkedJmh() {
 }
 
 /**
- * 解析结果格式，异常值回退到 JSON。
- * Parse result format and fallback to JSON on invalid input.
+ * 解析结果格式，异常值回退到 JSON。 / Parse result format and fallback to JSON on invalid input.
  *
  * @param format 结果格式的字符串表示 / string representation of the result format
  * @return 对应的 [ResultFormatType] 枚举值 / the corresponding [ResultFormatType] enum value
@@ -84,8 +81,7 @@ private fun parseResultFormat(format: String): ResultFormatType {
 }
 
 /**
- * 过滤 regex 以生成稳定可读的文件名。
- * Sanitize regex text for stable and readable file names.
+ * 过滤 regex 以生成稳定可读的文件名。 / Sanitize regex text for stable and readable file names.
  *
  * @param raw 原始正则表达式字符串 / raw regex string
  * @return 经过清理的文件名安全字符串 / sanitized file-name-safe string

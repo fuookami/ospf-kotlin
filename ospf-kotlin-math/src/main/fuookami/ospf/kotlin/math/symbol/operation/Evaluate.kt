@@ -11,12 +11,10 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * Flt64 求值快捷函数
- * Flt64 Evaluation Convenience Functions
+ * Flt64 求值快捷函数 / Flt64 Evaluation Convenience Functions
  *
  * 提供 Flt64 单项式和多项式的求值、有序求值、部分求值和区间极值计算。
- * 封装通用求值运算，支持 ValueProvider 和 Map 两种值来源。
- * Provides Flt64 monomial and polynomial evaluation, ordered evaluation,
+ * 封装通用求值运算，支持 ValueProvider 和 Map 两种值来源。 / Provides Flt64 monomial and polynomial evaluation, ordered evaluation,
  * partial evaluation, and interval extremum computation.
  * Wraps generic evaluation operations with ValueProvider and Map value sources.
 */
@@ -30,8 +28,7 @@ private fun missingValueFailed(symbol: Symbol): Ret<Flt64> {
 }
 
 /**
- * 根据值提供者和缺失值策略解析符号的值
- * Resolve a symbol's value from the provider according to the missing-value policy
+ * 根据值提供者和缺失值策略解析符号的值 / Resolve a symbol's value from the provider according to the missing-value policy
  *
  * @param symbol 目标符号 / Target symbol
  * @param provider 值提供者 / Value provider
@@ -55,8 +52,7 @@ private fun resolveValue(
 }
 
 /**
- * 根据值提供者和缺失值策略解析符号的值，返回 Ret 包装结果
- * Resolve a symbol's value from the provider, returning a Ret-wrapped result
+ * 根据值提供者和缺失值策略解析符号的值，返回 Ret 包装结果 / Resolve a symbol's value from the provider, returning a Ret-wrapped result
  *
  * @param symbol 目标符号 / Target symbol
  * @param provider 值提供者 / Value provider
@@ -80,8 +76,7 @@ private fun resolveValueRet(
 }
 
 /**
- * 使用值提供者求值 Flt64 线性单项式
- * Evaluate a Flt64 linear monomial using a value provider
+ * 使用值提供者求值 Flt64 线性单项式 / Evaluate a Flt64 linear monomial using a value provider
  *
  * @param provider 值提供者 / Value provider
  * @param policy 缺失值策略 / Missing value policy
@@ -100,8 +95,7 @@ fun LinearMonomial<Flt64>.evaluate(
 }
 
 /**
- * 使用 Map 求值 Flt64 线性单项式
- * Evaluate a Flt64 linear monomial using a Map
+ * 使用 Map 求值 Flt64 线性单项式 / Evaluate a Flt64 linear monomial using a Map
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @param policy 缺失值策略 / Missing value policy
@@ -115,8 +109,7 @@ fun LinearMonomial<Flt64>.evaluate(
 }
 
 /**
- * 使用值提供者求值 Flt64 线性单项式（Ret 安全版本）
- * Evaluate a Flt64 linear monomial using a value provider (Ret-safe version)
+ * 使用值提供者求值 Flt64 线性单项式（Ret 安全版本） / Evaluate a Flt64 linear monomial using a value provider (Ret-safe version)
  *
  * @param provider 值提供者 / Value provider
  * @param policy 缺失值策略 / Missing value policy
@@ -134,8 +127,7 @@ fun LinearMonomial<Flt64>.evaluateRet(
 }
 
 /**
- * 使用 Map 求值 Flt64 线性单项式（Ret 安全版本）
- * Evaluate a Flt64 linear monomial using a Map (Ret-safe version)
+ * 使用 Map 求值 Flt64 线性单项式（Ret 安全版本） / Evaluate a Flt64 linear monomial using a Map (Ret-safe version)
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @param policy 缺失值策略 / Missing value policy
@@ -149,8 +141,7 @@ fun LinearMonomial<Flt64>.evaluateRet(
 }
 
 /**
- * 使用有序值求值 Flt64 线性单项式
- * Evaluate a Flt64 linear monomial using ordered values
+ * 使用有序值求值 Flt64 线性单项式 / Evaluate a Flt64 linear monomial using ordered values
  *
  * @param order 符号顺序 / Symbol order
  * @param values 对应值列表 / Corresponding value list
@@ -176,8 +167,7 @@ fun LinearMonomial<Flt64>.evaluateOrdered(
 }
 
 /**
- * 部分求值 Flt64 线性单项式
- * Partially evaluate a Flt64 linear monomial
+ * 部分求值 Flt64 线性单项式 / Partially evaluate a Flt64 linear monomial
  *
  * @param provider 值提供者 / Value provider
  * @return 部分求值后的线性多项式 / Partially evaluated linear polynomial
@@ -198,8 +188,7 @@ fun LinearMonomial<Flt64>.partialEvaluate(provider: ValueProvider): LinearPolyno
 }
 
 /**
- * 使用 Map 部分求值 Flt64 线性单项式
- * Partially evaluate a Flt64 linear monomial using a Map
+ * 使用 Map 部分求值 Flt64 线性单项式 / Partially evaluate a Flt64 linear monomial using a Map
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @return 部分求值后的线性多项式 / Partially evaluated linear polynomial
@@ -209,8 +198,7 @@ fun LinearMonomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): LinearPol
 }
 
 /**
- * 使用值提供者求值 Flt64 二次单项式
- * Evaluate a Flt64 quadratic monomial using a value provider
+ * 使用值提供者求值 Flt64 二次单项式 / Evaluate a Flt64 quadratic monomial using a value provider
  *
  * @param provider 值提供者 / Value provider
  * @param policy 缺失值策略 / Missing value policy
@@ -220,8 +208,7 @@ fun QuadraticMonomial<Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
 ): Flt64? {
-    val v1 = resolveValue(symbol1, provider, policy)
-    if (v1 == null) return null
+    val v1 = resolveValue(symbol1, provider, policy) ?: return null
 
     if (symbol2 == null) {
         return coefficient * v1
@@ -236,8 +223,7 @@ fun QuadraticMonomial<Flt64>.evaluate(
 }
 
 /**
- * 使用 Map 求值 Flt64 二次单项式
- * Evaluate a Flt64 quadratic monomial using a Map
+ * 使用 Map 求值 Flt64 二次单项式 / Evaluate a Flt64 quadratic monomial using a Map
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @param policy 缺失值策略 / Missing value policy
@@ -251,8 +237,7 @@ fun QuadraticMonomial<Flt64>.evaluate(
 }
 
 /**
- * 使用值提供者求值 Flt64 二次单项式（Ret 安全版本）
- * Evaluate a Flt64 quadratic monomial using a value provider (Ret-safe version)
+ * 使用值提供者求值 Flt64 二次单项式（Ret 安全版本） / Evaluate a Flt64 quadratic monomial using a value provider (Ret-safe version)
  *
  * @param provider 值提供者 / Value provider
  * @param policy 缺失值策略 / Missing value policy
@@ -284,8 +269,7 @@ fun QuadraticMonomial<Flt64>.evaluateRet(
 }
 
 /**
- * 使用 Map 求值 Flt64 二次单项式（Ret 安全版本）
- * Evaluate a Flt64 quadratic monomial using a Map (Ret-safe version)
+ * 使用 Map 求值 Flt64 二次单项式（Ret 安全版本） / Evaluate a Flt64 quadratic monomial using a Map (Ret-safe version)
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @param policy 缺失值策略 / Missing value policy
@@ -299,8 +283,7 @@ fun QuadraticMonomial<Flt64>.evaluateRet(
 }
 
 /**
- * 使用有序值求值 Flt64 二次单项式
- * Evaluate a Flt64 quadratic monomial using ordered values
+ * 使用有序值求值 Flt64 二次单项式 / Evaluate a Flt64 quadratic monomial using ordered values
  *
  * @param order 符号顺序 / Symbol order
  * @param values 对应值列表 / Corresponding value list
@@ -332,8 +315,7 @@ fun QuadraticMonomial<Flt64>.evaluateOrdered(
 }
 
 /**
- * 部分求值 Flt64 二次单项式
- * Partially evaluate a Flt64 quadratic monomial
+ * 部分求值 Flt64 二次单项式 / Partially evaluate a Flt64 quadratic monomial
  *
  * @param provider 值提供者 / Value provider
  * @return 部分求值后的二次多项式 / Partially evaluated quadratic polynomial
@@ -385,8 +367,7 @@ fun QuadraticMonomial<Flt64>.partialEvaluate(provider: ValueProvider): Quadratic
 }
 
 /**
- * 使用 Map 部分求值 Flt64 二次单项式
- * Partially evaluate a Flt64 quadratic monomial using a Map
+ * 使用 Map 部分求值 Flt64 二次单项式 / Partially evaluate a Flt64 quadratic monomial using a Map
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @return 部分求值后的二次多项式 / Partially evaluated quadratic polynomial
@@ -396,8 +377,7 @@ fun QuadraticMonomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): Quadra
 }
 
 /**
- * 使用值提供者求值 Flt64 规范单项式
- * Evaluate a Flt64 canonical monomial using a value provider
+ * 使用值提供者求值 Flt64 规范单项式 / Evaluate a Flt64 canonical monomial using a value provider
  *
  * @param provider 值提供者 / Value provider
  * @param policy 缺失值策略 / Missing value policy
@@ -409,16 +389,14 @@ fun CanonicalMonomial<Flt64>.evaluate(
 ): Flt64? {
     var result = coefficient
     for ((symbol, power) in powers) {
-        val symbolValue = resolveValue(symbol, provider, policy)
-        if (symbolValue == null) return null
+        val symbolValue = resolveValue(symbol, provider, policy) ?: return null
         result *= computeRingPowerOrNull(symbolValue, power.toInt(), Flt64.one) ?: return null
     }
     return result
 }
 
 /**
- * 使用 Map 求值 Flt64 规范单项式
- * Evaluate a Flt64 canonical monomial using a Map
+ * 使用 Map 求值 Flt64 规范单项式 / Evaluate a Flt64 canonical monomial using a Map
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @param policy 缺失值策略 / Missing value policy
@@ -432,8 +410,7 @@ fun CanonicalMonomial<Flt64>.evaluate(
 }
 
 /**
- * 使用值提供者求值 Flt64 规范单项式（Ret 安全版本）
- * Evaluate a Flt64 canonical monomial using a value provider (Ret-safe version)
+ * 使用值提供者求值 Flt64 规范单项式（Ret 安全版本） / Evaluate a Flt64 canonical monomial using a value provider (Ret-safe version)
  *
  * @param provider 值提供者 / Value provider
  * @param policy 缺失值策略 / Missing value policy
@@ -463,8 +440,7 @@ fun CanonicalMonomial<Flt64>.evaluateRet(
 }
 
 /**
- * 使用 Map 求值 Flt64 规范单项式（Ret 安全版本）
- * Evaluate a Flt64 canonical monomial using a Map (Ret-safe version)
+ * 使用 Map 求值 Flt64 规范单项式（Ret 安全版本） / Evaluate a Flt64 canonical monomial using a Map (Ret-safe version)
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @param policy 缺失值策略 / Missing value policy
@@ -478,8 +454,7 @@ fun CanonicalMonomial<Flt64>.evaluateRet(
 }
 
 /**
- * 使用有序值求值 Flt64 规范单项式
- * Evaluate a Flt64 canonical monomial using ordered values
+ * 使用有序值求值 Flt64 规范单项式 / Evaluate a Flt64 canonical monomial using ordered values
  *
  * @param order 符号顺序 / Symbol order
  * @param values 对应值列表 / Corresponding value list
@@ -514,8 +489,7 @@ fun CanonicalMonomial<Flt64>.evaluateOrdered(
 }
 
 /**
- * 部分求值 Flt64 规范单项式
- * Partially evaluate a Flt64 canonical monomial
+ * 部分求值 Flt64 规范单项式 / Partially evaluate a Flt64 canonical monomial
  *
  * @param provider 值提供者 / Value provider
  * @return 部分求值后的规范单项式 / Partially evaluated canonical monomial
@@ -543,8 +517,7 @@ fun CanonicalMonomial<Flt64>.partialEvaluate(provider: ValueProvider): Ret<Canon
 }
 
 /**
- * 使用 Map 部分求值 Flt64 规范单项式
- * Partially evaluate a Flt64 canonical monomial using a Map
+ * 使用 Map 部分求值 Flt64 规范单项式 / Partially evaluate a Flt64 canonical monomial using a Map
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @return 部分求值后的规范单项式 / Partially evaluated canonical monomial
@@ -554,8 +527,7 @@ fun CanonicalMonomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): Ret<Ca
 }
 
 /**
- * 使用值提供者求值 Flt64 线性多项式
- * Evaluate a Flt64 linear polynomial using a value provider
+ * 使用值提供者求值 Flt64 线性多项式 / Evaluate a Flt64 linear polynomial using a value provider
  *
  * @param provider 值提供者 / Value provider
  * @param policy 缺失值策略 / Missing value policy
@@ -574,8 +546,7 @@ fun LinearPolynomial<Flt64>.evaluate(
 }
 
 /**
- * 使用值提供者求值 Flt64 线性多项式（Ret 安全版本）
- * Evaluate a Flt64 linear polynomial using a value provider (Ret-safe version)
+ * 使用值提供者求值 Flt64 线性多项式（Ret 安全版本） / Evaluate a Flt64 linear polynomial using a value provider (Ret-safe version)
  *
  * @param provider 值提供者 / Value provider
  * @param policy 缺失值策略 / Missing value policy
@@ -612,8 +583,7 @@ fun LinearPolynomial<Flt64>.evaluateRet(
 }
 
 /**
- * 使用 Map 求值 Flt64 线性多项式（Ret 安全版本）
- * Evaluate a Flt64 linear polynomial using a Map (Ret-safe version)
+ * 使用 Map 求值 Flt64 线性多项式（Ret 安全版本） / Evaluate a Flt64 linear polynomial using a Map (Ret-safe version)
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @param policy 缺失值策略 / Missing value policy
@@ -627,8 +597,7 @@ fun LinearPolynomial<Flt64>.evaluateRet(
 }
 
 /**
- * 使用有序值求值 Flt64 线性多项式
- * Evaluate a Flt64 linear polynomial using ordered values
+ * 使用有序值求值 Flt64 线性多项式 / Evaluate a Flt64 linear polynomial using ordered values
  *
  * @param order 符号顺序 / Symbol order
  * @param values 对应值列表 / Corresponding value list
@@ -642,8 +611,7 @@ fun LinearPolynomial<Flt64>.evaluateOrdered(
 }
 
 /**
- * 部分求值 Flt64 线性多项式
- * Partially evaluate a Flt64 linear polynomial
+ * 部分求值 Flt64 线性多项式 / Partially evaluate a Flt64 linear polynomial
  *
  * @param provider 值提供者 / Value provider
  * @return 部分求值后的线性多项式 / Partially evaluated linear polynomial
@@ -661,8 +629,7 @@ fun LinearPolynomial<Flt64>.partialEvaluate(provider: ValueProvider): LinearPoly
 }
 
 /**
- * 使用 Map 部分求值 Flt64 线性多项式
- * Partially evaluate a Flt64 linear polynomial using a Map
+ * 使用 Map 部分求值 Flt64 线性多项式 / Partially evaluate a Flt64 linear polynomial using a Map
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @return 部分求值后的线性多项式 / Partially evaluated linear polynomial
@@ -676,8 +643,7 @@ fun LinearPolynomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): LinearP
 }
 
 /**
- * 计算 Flt64 线性多项式在区间上的极值范围
- * Compute the extremum range of a Flt64 linear polynomial over intervals
+ * 计算 Flt64 线性多项式在区间上的极值范围 / Compute the extremum range of a Flt64 linear polynomial over intervals
  *
  * @param intervals 符号到值区间的映射 / Symbol-to-value-range mapping
  * @return 极值范围，若缺少区间则返回 null / Extremum range, or null if interval is missing
@@ -721,8 +687,7 @@ fun LinearPolynomial<Flt64>.evaluateIntervalExtremum(
 }
 
 /**
- * 使用值提供者求值 Flt64 二次多项式
- * Evaluate a Flt64 quadratic polynomial using a value provider
+ * 使用值提供者求值 Flt64 二次多项式 / Evaluate a Flt64 quadratic polynomial using a value provider
  *
  * @param provider 值提供者 / Value provider
  * @param policy 缺失值策略 / Missing value policy
@@ -741,8 +706,7 @@ fun QuadraticPolynomial<Flt64>.evaluate(
 }
 
 /**
- * 使用值提供者求值 Flt64 二次多项式（Ret 安全版本）
- * Evaluate a Flt64 quadratic polynomial using a value provider (Ret-safe version)
+ * 使用值提供者求值 Flt64 二次多项式（Ret 安全版本） / Evaluate a Flt64 quadratic polynomial using a value provider (Ret-safe version)
  *
  * @param provider 值提供者 / Value provider
  * @param policy 缺失值策略 / Missing value policy
@@ -779,8 +743,7 @@ fun QuadraticPolynomial<Flt64>.evaluateRet(
 }
 
 /**
- * 使用 Map 求值 Flt64 二次多项式（Ret 安全版本）
- * Evaluate a Flt64 quadratic polynomial using a Map (Ret-safe version)
+ * 使用 Map 求值 Flt64 二次多项式（Ret 安全版本） / Evaluate a Flt64 quadratic polynomial using a Map (Ret-safe version)
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @param policy 缺失值策略 / Missing value policy
@@ -794,8 +757,7 @@ fun QuadraticPolynomial<Flt64>.evaluateRet(
 }
 
 /**
- * 使用有序值求值 Flt64 二次多项式
- * Evaluate a Flt64 quadratic polynomial using ordered values
+ * 使用有序值求值 Flt64 二次多项式 / Evaluate a Flt64 quadratic polynomial using ordered values
  *
  * @param order 符号顺序 / Symbol order
  * @param values 对应值列表 / Corresponding value list
@@ -809,8 +771,7 @@ fun QuadraticPolynomial<Flt64>.evaluateOrdered(
 }
 
 /**
- * 部分求值 Flt64 二次多项式
- * Partially evaluate a Flt64 quadratic polynomial
+ * 部分求值 Flt64 二次多项式 / Partially evaluate a Flt64 quadratic polynomial
  *
  * @param provider 值提供者 / Value provider
  * @return 部分求值后的二次多项式 / Partially evaluated quadratic polynomial
@@ -831,8 +792,7 @@ fun QuadraticPolynomial<Flt64>.partialEvaluate(provider: ValueProvider): Quadrat
 }
 
 /**
- * 使用 Map 部分求值 Flt64 二次多项式
- * Partially evaluate a Flt64 quadratic polynomial using a Map
+ * 使用 Map 部分求值 Flt64 二次多项式 / Partially evaluate a Flt64 quadratic polynomial using a Map
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @return 部分求值后的二次多项式 / Partially evaluated quadratic polynomial
@@ -846,8 +806,7 @@ fun QuadraticPolynomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): Quad
 }
 
 /**
- * 使用值提供者求值 Flt64 规范多项式
- * Evaluate a Flt64 canonical polynomial using a value provider
+ * 使用值提供者求值 Flt64 规范多项式 / Evaluate a Flt64 canonical polynomial using a value provider
  *
  * @param provider 值提供者 / Value provider
  * @param policy 缺失值策略 / Missing value policy
@@ -867,8 +826,7 @@ fun CanonicalPolynomial<Flt64>.evaluate(
 }
 
 /**
- * 使用值提供者求值 Flt64 规范多项式（Ret 安全版本）
- * Evaluate a Flt64 canonical polynomial using a value provider (Ret-safe version)
+ * 使用值提供者求值 Flt64 规范多项式（Ret 安全版本） / Evaluate a Flt64 canonical polynomial using a value provider (Ret-safe version)
  *
  * @param provider 值提供者 / Value provider
  * @param policy 缺失值策略 / Missing value policy
@@ -906,8 +864,7 @@ fun CanonicalPolynomial<Flt64>.evaluateRet(
 }
 
 /**
- * 使用 Map 求值 Flt64 规范多项式（Ret 安全版本）
- * Evaluate a Flt64 canonical polynomial using a Map (Ret-safe version)
+ * 使用 Map 求值 Flt64 规范多项式（Ret 安全版本） / Evaluate a Flt64 canonical polynomial using a Map (Ret-safe version)
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @param policy 缺失值策略 / Missing value policy
@@ -921,8 +878,7 @@ fun CanonicalPolynomial<Flt64>.evaluateRet(
 }
 
 /**
- * 使用有序值求值 Flt64 规范多项式
- * Evaluate a Flt64 canonical polynomial using ordered values
+ * 使用有序值求值 Flt64 规范多项式 / Evaluate a Flt64 canonical polynomial using ordered values
  *
  * @param order 符号顺序 / Symbol order
  * @param values 对应值列表 / Corresponding value list
@@ -936,8 +892,7 @@ fun CanonicalPolynomial<Flt64>.evaluateOrdered(
 }
 
 /**
- * 部分求值 Flt64 规范多项式
- * Partially evaluate a Flt64 canonical polynomial
+ * 部分求值 Flt64 规范多项式 / Partially evaluate a Flt64 canonical polynomial
  *
  * @param provider 值提供者 / Value provider
  * @param symbolComparator 符号比较器 / Symbol comparator
@@ -963,8 +918,7 @@ fun CanonicalPolynomial<Flt64>.partialEvaluate(
 }
 
 /**
- * 使用 Map 部分求值 Flt64 规范多项式
- * Partially evaluate a Flt64 canonical polynomial using a Map
+ * 使用 Map 部分求值 Flt64 规范多项式 / Partially evaluate a Flt64 canonical polynomial using a Map
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @param symbolComparator 符号比较器 / Symbol comparator

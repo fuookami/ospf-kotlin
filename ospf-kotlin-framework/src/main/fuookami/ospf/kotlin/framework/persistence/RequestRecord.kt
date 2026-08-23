@@ -1,11 +1,9 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /**
- * 请求/响应记录数据模型
- * Request/Response Record Data Model
+ * 请求/响应记录数据模型 / Request/Response Record Data Model
  *
- * 提供请求和响应记录的纯数据类定义。
- * Provides pure data class definitions for request and response records.
+ * 提供请求和响应记录的纯数据类定义。 / Provides pure data class definitions for request and response records.
  *
  * ORM 特有的 Entity/Table/DAO 实现已迁移至 plugin-persistence-ktorm 模块。
  * ORM-specific Entity/Table/DAO implementations have been migrated to the plugin-persistence-ktorm module.
@@ -23,8 +21,7 @@ import fuookami.ospf.kotlin.utils.serialization.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 
 /**
- * 获取运行时请求序列化器
- * Get runtime request serializer
+ * 获取运行时请求序列化器 / Get runtime request serializer
  *
  * @param request 请求对象 / Request object
  * @param T 请求 DTO 类型 / Request DTO type
@@ -39,8 +36,7 @@ private fun <T : RequestDTO<T>> runtimeRequestSerializer(request: T): KSerialize
 }
 
 /**
- * 获取运行时响应序列化器
- * Get runtime response serializer
+ * 获取运行时响应序列化器 / Get runtime response serializer
  *
  * @param response 响应对象 / Response object
  * @param T 响应 DTO 类型 / Response DTO type
@@ -55,8 +51,7 @@ private fun <T : ResponseDTO<T>> runtimeResponseSerializer(response: T): KSerial
 }
 
 /**
- * 请求记录持久化数据类
- * Request record persistence data class
+ * 请求记录持久化数据类 / Request record persistence data class
  *
  * @property requestId 请求标识 / Request identifier
  * @property app 应用名 / Application name
@@ -75,8 +70,7 @@ data class RequestRecordPO(
 ) {
     companion object {
         /**
-         * 从请求记录创建 PO
-         * Create PO from request record
+         * 从请求记录创建 PO / Create PO from request record
          *
          * @param record 请求记录 / Request record
          * @param serializer 序列化函数 / Serialization function
@@ -121,8 +115,7 @@ data class RequestRecordPO(
 }
 
 /**
- * 响应记录持久化数据类
- * Response record persistence data class
+ * 响应记录持久化数据类 / Response record persistence data class
  *
  * @property requestId 请求标识 / Request identifier
  * @property app 应用名 / Application name
@@ -145,8 +138,7 @@ data class ResponseRecordPO(
 ) {
     companion object {
         /**
-         * 从响应记录创建 PO
-         * Create PO from response record
+         * 从响应记录创建 PO / Create PO from response record
          *
          * @param record 响应记录 / Response record
          * @param serializer 序列化函数 / Serialization function
@@ -197,8 +189,7 @@ data class ResponseRecordPO(
 }
 
 /**
- * 请求记录
- * Request record
+ * 请求记录 / Request record
  *
  * @property id 请求标识 / Request identifier
  * @property app 应用名 / Application name
@@ -290,8 +281,7 @@ data class RequestRecord<T>(
 }
 
 /**
- * 响应记录
- * Response record
+ * 响应记录 / Response record
  *
  * @property id 响应标识 / Response identifier
  * @property app 应用名 / Application name

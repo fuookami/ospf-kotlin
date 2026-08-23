@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -20,9 +21,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
  * Constrains load weights between positions to equalize recommended weight distribution.
  * 约束位置之间的载荷重量以均衡推荐重量分布。
  *
- * @property aircraftModel The aircraft model reference / 飞机模型引用
- * @property positions The list of stowage positions / 装载位置列表
- * @property load The load distribution data / 载荷分布数据
+ * @property aircraftModel 飞机模型引用 / The aircraft model reference
+ * @property positions 装载位置列表 / The list of stowage positions
+ * @property load 载荷分布数据 / The load distribution data
 */
 class RecommendedWeightEqualizationLimit(
     private val aircraftModel: AircraftModel,
@@ -41,28 +42,26 @@ class RecommendedWeightEqualizationLimit(
                     continue
                 }
 
-                val rhs1 = MutableLinearPolynomial()
-                rhs1 += LinearMonomial(Flt64.one, load.z[j2].value)
-                rhs1 += LinearMonomial(position1.mlw.mlw.value, load.actualLoaded[j2])
                 when (val result = model.addConstraint(
-                    relation = load.z[j1].value leq LinearPolynomial(rhs1.monomials, rhs1.constant),
+                    relation = load.z[j1].value leq (
+                        load.z[j2].value + position1.mlw.mlw.value * load.actualLoaded[j2]
+                    ),
                     name = "${name}_${position1}_${position2}"
                 )) {
-                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
-                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
-                    is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
+                    is Ok -> {}
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
 
-                val rhs2 = MutableLinearPolynomial()
-                rhs2 += LinearMonomial(Flt64.one, load.z[j1].value)
-                rhs2 += LinearMonomial(position2.mlw.mlw.value, load.actualLoaded[j1])
                 when (val result = model.addConstraint(
-                    relation = load.z[j2].value leq LinearPolynomial(rhs2.monomials, rhs2.constant),
+                    relation = load.z[j2].value leq (
+                        load.z[j1].value + position2.mlw.mlw.value * load.actualLoaded[j1]
+                    ),
                     name = "${name}_${position2}_${position1}"
                 )) {
-                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
-                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
-                    is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
+                    is Ok -> {}
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
             }
         }

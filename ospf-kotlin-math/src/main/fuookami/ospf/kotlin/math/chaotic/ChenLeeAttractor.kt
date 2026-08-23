@@ -4,9 +4,7 @@
  *
  * Chen-Lee 吸引子是甌Chen 和Lee 提出的三维混沌系统。
  * 该系统具有独特的非线性结构，展现出丰富的混沌动力学行为。
- * 常用于混沌动力学研究、混沌加密和混沌同步应用。
- *
- * The Chen-Lee attractor is a three-dimensional chaotic system proposed by Chen and Lee.
+ * 常用于混沌动力学研究、混沌加密和混沌同步应用。 / The Chen-Lee attractor is a three-dimensional chaotic system proposed by Chen and Lee.
  * This system features unique nonlinear structures, exhibiting rich chaotic dynamical behavior.
  * Commonly used for chaos dynamics research, chaos encryption, and chaos synchronization applications.
 */

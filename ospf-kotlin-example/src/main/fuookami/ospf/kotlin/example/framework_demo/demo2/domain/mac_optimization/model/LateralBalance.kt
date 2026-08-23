@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.model
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -20,7 +21,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
  * Lateral balance slack variable for wide-body aircraft torque optimization.
  * 宽体飞机扭矩优化的横向平衡松弛变量。
  *
- * @property slack The linear intermediate symbol representing lateral balance slack / 表示横向平衡松弛的线性中间符号
+ * @property slack 表示横向平衡松弛的线性中间符号 / The linear intermediate symbol representing lateral balance slack
 */
 class LateralBalance(
     private val aircraftModel: AircraftModel,
@@ -32,8 +33,8 @@ class LateralBalance(
      * Registers the lateral balance slack symbol into the optimization model.
      * 将横向平衡松弛符号注册到优化模型中。
      *
-     * @param model The linear meta-model to register the slack into / 要注册松弛符号的线性元模型
-     * @return [Try] indicating success or failure / 表示成功或失败
+     * @param model 要注册松弛符号的线性元模型 / The linear meta-model to register the slack into
+     * @return 表示成功或失败 / [Try] indicating success or failure
     */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
@@ -45,13 +46,13 @@ class LateralBalance(
             )
         }
         when (val result = model.add(slack)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                 return Failed(result.error)
             }
 
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Fatal -> {
                 return Fatal(result.errors)
             }
         }

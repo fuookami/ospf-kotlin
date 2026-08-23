@@ -35,7 +35,7 @@ class MybatisRepositoryTest {
 
     private class TestRepository(
         mapper: BaseMapper<TestEntity>,
-        resolver: MybatisColumnNameResolver = { it },
+        resolver: MybatisColumnNameResolver = MybatisColumnNameResolver { it },
         unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
     ) : MybatisRepository<TestEntity, BaseMapper<TestEntity>>(
         mapper,

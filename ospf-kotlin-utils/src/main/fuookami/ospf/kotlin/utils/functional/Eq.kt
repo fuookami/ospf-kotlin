@@ -1,12 +1,8 @@
 /**
- * 相等性接口
- *
- * Interfaces for defining custom equality comparison.
+ * 相等性接口 / Interfaces for defining custom equality comparison.
  * Similar to Haskell's Eq typeclass for type-safe equality operations.
  * 定义自定义相等性比较的接口。
- * 类似于 Haskell 的 Eq 类型类，用于类型安全的相等性操作。
- *
- * Key interfaces:
+ * 类似于 Haskell 的 Eq 类型类，用于类型安全的相等性操作。 / Key interfaces:
  * - [PartialEq]: Partial equality with nullable result (for values that may not be comparable)
  * - [Eq]: Total equality with definite result
  *
@@ -17,12 +13,8 @@
 package fuookami.ospf.kotlin.utils.functional
 
 /**
- * 部分相等接口
- *
- * Interface for partial equality comparison. Returns null if values cannot be compared.
- * 部分相等性比较接口。如果值无法比较则返回 null。
- *
- * Similar to Haskell's Eq typeclass with partial comparison support.
+ * 部分相等接口 / Interface for partial equality comparison. Returns null if values cannot be compared.
+ * 部分相等性比较接口。如果值无法比较则返回 null。 / Similar to Haskell's Eq typeclass with partial comparison support.
  * 类似于 Haskell 的 Eq 类型类，支持部分比较。
  *
  * @param Self 实现此接口的类型 / The type implementing this interface
@@ -30,9 +22,7 @@ package fuookami.ospf.kotlin.utils.functional
 interface PartialEq<in Self> {
 
     /**
-     * 部分相等比较
-     *
-     * Compares this value with another for equality.
+     * 部分相等比较 / Compares this value with another for equality.
      * Returns null if the values cannot be meaningfully compared.
      * 比较此值与另一个值是否相等。如果值无法有意义地比较则返回 null。
      *
@@ -43,9 +33,7 @@ interface PartialEq<in Self> {
 }
 
 /**
- * 完全相等接口
- *
- * Interface for total equality comparison.
+ * 完全相等接口 / Interface for total equality comparison.
  * Extends [PartialEq] with guaranteed non-null results.
  * 完全相等性比较接口。
  * 扩展 [PartialEq] 并保证结果非空。
@@ -55,9 +43,7 @@ interface PartialEq<in Self> {
 interface Eq<in Self> : PartialEq<Self> {
 
     /**
-     * 相等比较
-     *
-     * Compares this value with another for equality.
+     * 相等比较 / Compares this value with another for equality.
      * 比较此值与另一个值是否相等。
      *
      * @param rhs 要比较的值 / The value to compare with
@@ -68,9 +54,7 @@ interface Eq<in Self> : PartialEq<Self> {
     }
 
     /**
-     * 不相等比较
-     *
-     * Compares this value with another for inequality.
+     * 不相等比较 / Compares this value with another for inequality.
      * 比较此值与另一个值是否不相等。
      *
      * @param rhs 要比较的值 / The value to compare with
@@ -82,9 +66,7 @@ interface Eq<in Self> : PartialEq<Self> {
 }
 
 /**
- * 非空值与可空值的部分相等比较
- *
- * Compares a non-null value with a nullable value for partial equality.
+ * 非空值与可空值的部分相等比较 / Compares a non-null value with a nullable value for partial equality.
  * 非空值与可空值的部分相等比较。
  *
  * @param T 实现 PartialEq 的类型 / The type implementing PartialEq
@@ -101,9 +83,7 @@ infix fun <T : PartialEq<T>> T.partialEq(rhs: T?): Boolean? {
 }
 
 /**
- * 可空值与非空值的部分相等比较
- *
- * Compares a nullable value with a non-null value for partial equality.
+ * 可空值与非空值的部分相等比较 / Compares a nullable value with a non-null value for partial equality.
  * 可空值与非空值的部分相等比较。
  *
  * @param T 实现 PartialEq 的类型 / The type implementing PartialEq
@@ -120,9 +100,7 @@ infix fun <T : PartialEq<T>> T?.partialEq(rhs: T): Boolean? {
 }
 
 /**
- * 两个可空值之间的部分相等比较
- *
- * Compares two nullable values for partial equality.
+ * 两个可空值之间的部分相等比较 / Compares two nullable values for partial equality.
  * 两个可空值之间的部分相等比较。
  *
  * @param T 实现 PartialEq 的类型 / The type implementing PartialEq
@@ -141,9 +119,7 @@ infix fun <T : PartialEq<T>> T?.partialEq(rhs: T?): Boolean? {
 }
 
 /**
- * 非空值与可空值的完全相等比较
- *
- * Compares a non-null value with a nullable value for total equality.
+ * 非空值与可空值的完全相等比较 / Compares a non-null value with a nullable value for total equality.
  * 非空值与可空值的完全相等比较。
  *
  * @param T 实现 Eq 的类型 / The type implementing Eq
@@ -160,9 +136,7 @@ infix fun <T : Eq<T>> T.eq(rhs: T?): Boolean {
 }
 
 /**
- * 可空值与非空值的完全相等比较
- *
- * Compares a nullable value with a non-null value for total equality.
+ * 可空值与非空值的完全相等比较 / Compares a nullable value with a non-null value for total equality.
  * 可空值与非空值的完全相等比较。
  *
  * @param T 实现 Eq 的类型 / The type implementing Eq
@@ -175,9 +149,7 @@ infix fun <T : Eq<T>> T?.eq(rhs: T): Boolean {
 }
 
 /**
- * 两个可空值之间的完全相等比较
- *
- * Compares two nullable values for total equality.
+ * 两个可空值之间的完全相等比较 / Compares two nullable values for total equality.
  * 两个可空值之间的完全相等比较。
  *
  * @param T 实现 Eq 的类型 / The type implementing Eq
@@ -196,9 +168,7 @@ infix fun <T : Eq<T>> T?.eq(rhs: T?): Boolean {
 }
 
 /**
- * 可空值与非空值的不相等比较
- *
- * Compares a nullable value with a non-null value for inequality.
+ * 可空值与非空值的不相等比较 / Compares a nullable value with a non-null value for inequality.
  * 可空值与非空值的不相等比较。
  *
  * @param T 实现 Eq 的类型 / The type implementing Eq
@@ -211,9 +181,7 @@ infix fun <T : Eq<T>> T?.neq(rhs: T): Boolean {
 }
 
 /**
- * 非空值与可空值的不相等比较
- *
- * Compares a non-null value with a nullable value for inequality.
+ * 非空值与可空值的不相等比较 / Compares a non-null value with a nullable value for inequality.
  * 非空值与可空值的不相等比较。
  *
  * @param T 实现 Eq 的类型 / The type implementing Eq
@@ -230,9 +198,7 @@ infix fun <T : Eq<T>> T.neq(rhs: T?): Boolean {
 }
 
 /**
- * 两个可空值之间的不相等比较
- *
- * Compares two nullable values for inequality.
+ * 两个可空值之间的不相等比较 / Compares two nullable values for inequality.
  * 两个可空值之间的不相等比较。
  *
  * @param T 实现 Eq 的类型 / The type implementing Eq

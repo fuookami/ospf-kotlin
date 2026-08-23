@@ -1,9 +1,7 @@
 /**
- * 值包装器
- * Value Wrapper
+ * 值包装器 / Value Wrapper
  *
- * 定义值包装器类，用于处理值范围边界中的普通值、正无穷和负无穷，支持序列化、算术运算和比较操作。
- * Defines value wrapper class for handling normal values, positive infinity, and negative infinity in value range boundaries, with support for serialization, arithmetic operations, and comparison operations.
+ * 定义值包装器类，用于处理值范围边界中的普通值、正无穷和负无穷，支持序列化、算术运算和比较操作。 / Defines value wrapper class for handling normal values, positive infinity, and negative infinity in value range boundaries, with support for serialization, arithmetic operations, and comparison operations.
 */
 package fuookami.ospf.kotlin.math.algebra.value_range
 
@@ -20,47 +18,37 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 正无穷标记对豌
- * Positive Infinity Marker Object
+ * 正无穷标记对豌 / Positive Infinity Marker Object
  *
- * 用于在全局范围内标识正无穷值。
- * Used to identify positive infinity values globally.
+ * 用于在全局范围内标识正无穷值。 / Used to identify positive infinity values globally.
 */
 data object Infinity
 
 /**
- * 负无穷标记对豌
- * Negative Infinity Marker Object
+ * 负无穷标记对豌 / Negative Infinity Marker Object
  *
- * 用于在全局范围内标识负无穷值。
- * Used to identify negative infinity values globally.
+ * 用于在全局范围内标识负无穷值。 / Used to identify negative infinity values globally.
 */
 data object NegativeInfinity
 
 /**
- * 全局正无穷类型别同
- * Global Positive Infinity Type Alias
+ * 全局正无穷类型别同 / Global Positive Infinity Type Alias
  *
- * 内部使用的全局正无穷类型别名。
- * Internal global positive infinity type alias.
+ * 内部使用的全局正无穷类型别名。 / Internal global positive infinity type alias.
 */
 internal typealias GlobalInfinity = Infinity
 
 /**
- * 全局负无穷类型别同
- * Global Negative Infinity Type Alias
+ * 全局负无穷类型别同 / Global Negative Infinity Type Alias
  *
- * 内部使用的全局负无穷类型别名。
- * Internal global negative infinity type alias.
+ * 内部使用的全局负无穷类型别名。 / Internal global negative infinity type alias.
 */
 internal typealias GlobalNegativeInfinity = NegativeInfinity
 
 /**
- * 值包装器序列化器
- * Value Wrapper Serializer
+ * 值包装器序列化器 / Value Wrapper Serializer
  *
- * 用于尌ValueWrapper 序列化和反序列化丌JSON 格式，支持普通值、正无穷和负无穷的表示。
- * Used to serialize and deserialize ValueWrapper to/from JSON format, supporting representation of normal values, positive infinity, and negative infinity.
+ * 用于尌ValueWrapper 序列化和反序列化丌JSON 格式，支持普通值、正无穷和负无穷的表示。 / Used to serialize and deserialize ValueWrapper to/from JSON format, supporting representation of normal values, positive infinity, and negative infinity.
  *
  * @param T 数值类型，必须是实数和数域
  * @property valueSerializer 基础值的序列化器
@@ -72,8 +60,7 @@ class ValueWrapperSerializer<T>(
 ) : KSerializer<ValueWrapper<T>> where T : RealNumber<T>, T : NumberField<T> {
     companion object {
         /**
-         * 创建值包装器序列化器的便捷方泌
-         * Convenience method to create value wrapper serializer
+         * 创建值包装器序列化器的便捷方泌 / Convenience method to create value wrapper serializer
          *
          * @param constants 数值常量对豌
          * @return 新的 ValueWrapperSerializer 实例
@@ -86,8 +73,7 @@ class ValueWrapperSerializer<T>(
         }
 
         /**
-         * 创建值包装器序列化器的便捷方法（自动解析常量，
-         * Convenience method to create value wrapper serializer (auto-resolves constants)
+         * 创建值包装器序列化器的便捷方法（自动解析常量， / Convenience method to create value wrapper serializer (auto-resolves constants)
          *
          * @return 新的 ValueWrapperSerializer 实例解析结果
          * @return The ValueWrapperSerializer resolution result
@@ -101,8 +87,7 @@ class ValueWrapperSerializer<T>(
     }
 
     /**
-     * 序列化描述符
-     * Serialization descriptor
+     * 序列化描述符 / Serialization descriptor
      *
      * 定义了三种可能的序列化形式：Value、Infinity 和NegativeInfinity。
      * Defines three possible serialization forms: Value, Infinity, and NegativeInfinity.
@@ -115,8 +100,7 @@ class ValueWrapperSerializer<T>(
     }
 
     /**
-     * 序列化值包装器
-     * Serializes value wrapper
+     * 序列化值包装器 / Serializes value wrapper
      *
      * 将值包装器转换丌JSON 元素，
      * - 普通值：序列化为对应数倌
@@ -142,8 +126,7 @@ class ValueWrapperSerializer<T>(
     }
 
     /**
-     * 反序列化值包装器
-     * Deserializes value wrapper
+     * 反序列化值包装器 / Deserializes value wrapper
      *
      * 仌JSON 元素解析值包装器，
      * - Double.POSITIVE_INFINITY：解析为正无穌
@@ -178,8 +161,7 @@ class ValueWrapperSerializer<T>(
 }
 
 /**
- * 值包装器
- * Value Wrapper
+ * 值包装器 / Value Wrapper
  *
  * 密封类，用于包装值范围边界中的值，支持三种情况，
  * - Value：普通数倌
@@ -202,8 +184,7 @@ sealed class ValueWrapper<T>(
         where T : RealNumber<T>, T : NumberField<T> {
     companion object {
         /**
-         * 从数值创建值包装器（自动解析常量）
-         * Creates value wrapper from number (auto-resolves constants)
+         * 从数值创建值包装器（自动解析常量） / Creates value wrapper from number (auto-resolves constants)
          *
          * @param value 要包装的数倌
          * @return 创建结果（成功返回值包装器，失败返回错误）
@@ -217,8 +198,7 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 从数值创建值包装器
-         * Creates value wrapper from number
+         * 从数值创建值包装器 / Creates value wrapper from number
          *
          * 根据输入值自动判断类型：
          * - 正无穷：返回 Infinity
@@ -249,8 +229,7 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 创建正无穷值包装器（自动解析常量）
-         * Creates positive infinity value wrapper (auto-resolves constants)
+         * 创建正无穷值包装器（自动解析常量） / Creates positive infinity value wrapper (auto-resolves constants)
          *
          * @return 正无穷值包装器解析结果
          * @return The positive infinity value wrapper resolution result
@@ -264,8 +243,7 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 创建正无穷值包装器
-         * Creates positive infinity value wrapper
+         * 创建正无穷值包装器 / Creates positive infinity value wrapper
          *
          * @param _inf 正无穷标讌
          * @param constants 数值常量对豌
@@ -279,8 +257,7 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 创建负无穷值包装器（自动解析常量）
-         * Creates negative infinity value wrapper (auto-resolves constants)
+         * 创建负无穷值包装器（自动解析常量） / Creates negative infinity value wrapper (auto-resolves constants)
          *
          * @return 负无穷值包装器解析结果
          * @return The negative infinity value wrapper resolution result
@@ -295,8 +272,7 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 创建负无穷值包装器
-         * Creates negative infinity value wrapper
+         * 创建负无穷值包装器 / Creates negative infinity value wrapper
          *
          * @param _negInf 负无穷标讌
          * @param constants 数值常量对豌
@@ -311,26 +287,22 @@ sealed class ValueWrapper<T>(
     }
 
     /**
-     * 是否为正无穷
-     * Whether is positive infinity
+     * 是否为正无穷 / Whether is positive infinity
     */
     val isInfinity get() = this is Infinity
 
     /**
-     * 是否为负无穷
-     * Whether is negative infinity
+     * 是否为负无穷 / Whether is negative infinity
     */
     val isNegativeInfinity get() = this is NegativeInfinity
 
     /**
-     * 是否为无穷（正无穷或负无穷）
-     * Whether is infinity (positive or negative infinity)
+     * 是否为无穷（正无穷或负无穷） / Whether is infinity (positive or negative infinity)
     */
     val isInfinityOrNegativeInfinity by lazy { isInfinity || isNegativeInfinity }
 
     /**
-     * 与数值相劌
-     * Adds with a number
+     * 与数值相劌 / Adds with a number
      *
      * @param rhs 要添加的数倌
      * @return 新的值包装器
@@ -338,8 +310,7 @@ sealed class ValueWrapper<T>(
     abstract operator fun plus(rhs: T): ValueWrapper<T>?
 
     /**
-     * 与数值相凌
-     * Subtracts with a number
+     * 与数值相凌 / Subtracts with a number
      *
      * @param rhs 要减去的数倌
      * @return 新的值包装器
@@ -347,8 +318,7 @@ sealed class ValueWrapper<T>(
     abstract operator fun minus(rhs: T): ValueWrapper<T>?
 
     /**
-     * 与数值相乌
-     * Multiplies with a number
+     * 与数值相乌 / Multiplies with a number
      *
      * @param rhs 要乘的数倌
      * @return 新的值包装器
@@ -356,8 +326,7 @@ sealed class ValueWrapper<T>(
     abstract operator fun times(rhs: T): ValueWrapper<T>?
 
     /**
-     * 与数值相陌
-     * Divides with a number
+     * 与数值相陌 / Divides with a number
      *
      * @param rhs 要除的数倌
      * @return 新的值包装器
@@ -365,19 +334,16 @@ sealed class ValueWrapper<T>(
     abstract operator fun div(rhs: T): ValueWrapper<T>?
 
     /**
-     * 转换丌Flt64 类型
-     * Converts to Flt64 type
+     * 转换丌Flt64 类型 / Converts to Flt64 type
      *
      * @return Flt64 类型的数倌
     */
     abstract fun toFlt64(): Flt64
 
     /**
-     * 解包获取实际数倌
-     * Unwraps to get actual number
+     * 解包获取实际数倌 / Unwraps to get actual number
      *
-     * 如果是无穷值，返回对应的数值常量（可能丌null）。
-     * If it's an infinity value, returns corresponding number constant (may be null).
+     * 如果是无穷值，返回对应的数值常量（可能丌null）。 / If it's an infinity value, returns corresponding number constant (may be null).
      *
      * @return 实际数倌
     */
@@ -398,11 +364,9 @@ sealed class ValueWrapper<T>(
     }
 
     /**
-     * 解包获取实际数值（可空，
-     * Unwraps to get actual number (nullable)
+     * 解包获取实际数值（可空， / Unwraps to get actual number (nullable)
      *
-     * 如果是无穷值且常量丌null，返囌null。
-     * If it's an infinity value and constant is null, returns null.
+     * 如果是无穷值且常量丌null，返囌null。 / If it's an infinity value and constant is null, returns null.
      *
      * @return 实际数值，戌null
     */
@@ -423,8 +387,7 @@ sealed class ValueWrapper<T>(
     }
 
     /**
-     * 判断是否等于指定数倌
-     * Determines if equals specified number
+     * 判断是否等于指定数倌 / Determines if equals specified number
      *
      * @param rhs 要比较的数倌
      * @return 是否相等
@@ -439,8 +402,7 @@ sealed class ValueWrapper<T>(
     }
 
     /**
-     * 判断是否等于指定数值
-     * Determines if equals specified number
+     * 判断是否等于指定数值 / Determines if equals specified number
      *
      * @param rhs 要比较的数值
      * @return 是否相等，NaN 返回 false
@@ -450,11 +412,9 @@ sealed class ValueWrapper<T>(
     }
 
     /**
-     * 普通值包装器
-     * Normal Value Wrapper
+     * 普通值包装器 / Normal Value Wrapper
      *
-     * 包装一个普通的数值，不能是无穷或 NaN。
-     * Wraps a normal number, cannot be infinity or NaN.
+     * 包装一个普通的数值，不能是无穷或 NaN。 / Wraps a normal number, cannot be infinity or NaN.
      *
      * @param T 数值类垌
      * @property value 包装的数倌
@@ -468,24 +428,21 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 复制值包装器
-         * Copies value wrapper
+         * 复制值包装器 / Copies value wrapper
          *
          * @return 新的值包装器副本
         */
         override fun copy() = Value(value.copy(), constants)
 
         /**
-         * 克隆值包装器
-         * Clones value wrapper
+         * 克隆值包装器 / Clones value wrapper
          *
          * @return 克隆的值包装器
         */
         public override fun clone() = copy()
 
         /**
-         * 部分相等比较
-         * Partial equality comparison
+         * 部分相等比较 / Partial equality comparison
          *
          * @param rhs 另一个值包装器
          * @return 是否相等
@@ -496,11 +453,9 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 部分序比辌
-         * Partial order comparison
+         * 部分序比辌 / Partial order comparison
          *
-         * 普通值小于正无穷，大于负无穷。
-         * Normal values are less than positive infinity, greater than negative infinity.
+         * 普通值小于正无穷，大于负无穷。 / Normal values are less than positive infinity, greater than negative infinity.
          *
          * @param rhs 另一个值包装器
          * @return 比较结果
@@ -512,8 +467,7 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与数值相劌
-         * Adds with a number
+         * 与数值相劌 / Adds with a number
          *
          * @param rhs 要添加的数倌
          * @return 新的值包装器
@@ -521,8 +475,7 @@ sealed class ValueWrapper<T>(
         override fun plus(rhs: T): ValueWrapper<T>? = ValueWrapper(value + rhs, constants).value
 
         /**
-         * 与值包装器相加
-         * Adds with a value wrapper
+         * 与值包装器相加 / Adds with a value wrapper
          *
          * @param rhs 另一个值包装器
          * @return 新的值包装器
@@ -534,8 +487,7 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与数值相凌
-         * Subtracts with a number
+         * 与数值相凌 / Subtracts with a number
          *
          * @param rhs 要减去的数倌
          * @return 新的值包装器
@@ -543,8 +495,7 @@ sealed class ValueWrapper<T>(
         override fun minus(rhs: T): ValueWrapper<T>? = ValueWrapper(value - rhs, constants).value
 
         /**
-         * 与值包装器相减
-         * Subtracts with a value wrapper
+         * 与值包装器相减 / Subtracts with a value wrapper
          *
          * @param rhs 另一个值包装器
          * @return 新的值包装器
@@ -556,8 +507,7 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与数值相乌
-         * Multiplies with a number
+         * 与数值相乌 / Multiplies with a number
          *
          * @param rhs 要乘的数倌
          * @return 新的值包装器
@@ -565,8 +515,7 @@ sealed class ValueWrapper<T>(
         override fun times(rhs: T): ValueWrapper<T>? = ValueWrapper(value * rhs, constants).value
 
         /**
-         * 与值包装器相乘
-         * Multiplies with a value wrapper
+         * 与值包装器相乘 / Multiplies with a value wrapper
          *
          * @param rhs 另一个值包装器
          * @return 新的值包装器
@@ -591,8 +540,7 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与数值相陌
-         * Divides with a number
+         * 与数值相陌 / Divides with a number
          *
          * @param rhs 要除的数倌
          * @return 新的值包装器
@@ -600,11 +548,9 @@ sealed class ValueWrapper<T>(
         override fun div(rhs: T): ValueWrapper<T>? = ValueWrapper(value / rhs, constants).value
 
         /**
-         * 与值包装器相除
-         * Divides with a value wrapper
+         * 与值包装器相除 / Divides with a value wrapper
          *
-         * 除以无穷大时，结果趋近于零（使用 epsilon 表示）。
-         * When dividing by infinity, result approaches zero (represented using epsilon).
+         * 除以无穷大时，结果趋近于零（使用 epsilon 表示）。 / When dividing by infinity, result approaches zero (represented using epsilon).
          *
          * @param rhs 另一个值包装器
          * @return 新的值包装器
@@ -629,16 +575,14 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 获取字符串表礌
-         * Gets string representation
+         * 获取字符串表礌 / Gets string representation
          *
          * @return 数值的字符串形弌
         */
         override fun toString() = "$value"
 
         /**
-         * 转换丌Flt64 类型
-         * Converts to Flt64 type
+         * 转换丌Flt64 类型 / Converts to Flt64 type
          *
          * @return Flt64 类型的数倌
         */
@@ -646,38 +590,32 @@ sealed class ValueWrapper<T>(
     }
 
     /**
-     * 正无穷值包装器
-     * Positive Infinity Value Wrapper
+     * 正无穷值包装器 / Positive Infinity Value Wrapper
      *
-     * 表示正无穷大，大于任何普通值。
-     * Represents positive infinity, greater than any normal value.
+     * 表示正无穷大，大于任何普通值。 / Represents positive infinity, greater than any normal value.
      *
      * @param T 数值类垌
     */
     class Infinity<T>(constants: RealNumberConstants<T>) :
         ValueWrapper<T>(constants) where T : RealNumber<T>, T : NumberField<T> {
         /**
-         * 复制值包装器
-         * Copies value wrapper
+         * 复制值包装器 / Copies value wrapper
          *
          * @return 新的正无穷值包装器副本
         */
         override fun copy() = Infinity(constants)
 
         /**
-         * 克隆值包装器
-         * Clones value wrapper
+         * 克隆值包装器 / Clones value wrapper
          *
          * @return 克隆的正无穷值包装器
         */
         public override fun clone() = copy()
 
         /**
-         * 部分相等比较
-         * Partial equality comparison
+         * 部分相等比较 / Partial equality comparison
          *
-         * 只有另一个正无穷才相等。
-         * Only equals another positive infinity.
+         * 只有另一个正无穷才相等。 / Only equals another positive infinity.
          *
          * @param rhs 另一个值包装器
          * @return 是否相等
@@ -685,11 +623,9 @@ sealed class ValueWrapper<T>(
         override fun partialEq(rhs: ValueWrapper<T>): Boolean = rhs is Infinity
 
         /**
-         * 部分序比辌
-         * Partial order comparison
+         * 部分序比辌 / Partial order comparison
          *
-         * 正无穷大于任何其他值。
-         * Positive infinity is greater than any other value.
+         * 正无穷大于任何其他值。 / Positive infinity is greater than any other value.
          *
          * @param rhs 另一个值包装器
          * @return 比较结果
@@ -700,11 +636,9 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与数值相劌
-         * Adds with a number
+         * 与数值相劌 / Adds with a number
          *
-         * 正无穷加丌NaN 或负无穷会抛出异常。
-         * Adding NaN or negative infinity to positive infinity throws exception.
+         * 正无穷加丌NaN 或负无穷会抛出异常。 / Adding NaN or negative infinity to positive infinity throws exception.
          *
          * @param rhs 要添加的数倌
          * @return 正无穷值包装器
@@ -717,11 +651,9 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与值包装器相加
-         * Adds with a value wrapper
+         * 与值包装器相加 / Adds with a value wrapper
          *
-         * 正无穷加上负无穷会抛出异常。
-         * Adding negative infinity to positive infinity throws exception.
+         * 正无穷加上负无穷会抛出异常。 / Adding negative infinity to positive infinity throws exception.
          *
          * @param rhs 另一个值包装器
          * @return 新的值包装器
@@ -734,11 +666,9 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与数值相凌
-         * Subtracts with a number
+         * 与数值相凌 / Subtracts with a number
          *
-         * 正无穷减厌NaN 或正无穷会抛出异常。
-         * Subtracting NaN or positive infinity from positive infinity throws exception.
+         * 正无穷减厌NaN 或正无穷会抛出异常。 / Subtracting NaN or positive infinity from positive infinity throws exception.
          *
          * @param rhs 要减去的数倌
          * @return 正无穷值包装器
@@ -751,11 +681,9 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与值包装器相减
-         * Subtracts with a value wrapper
+         * 与值包装器相减 / Subtracts with a value wrapper
          *
-         * 正无穷减去正无穷会抛出异常。
-         * Subtracting positive infinity from positive infinity throws exception.
+         * 正无穷减去正无穷会抛出异常。 / Subtracting positive infinity from positive infinity throws exception.
          *
          * @param rhs 另一个值包装器
          * @return 新的值包装器
@@ -768,11 +696,9 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与数值相乌
-         * Multiplies with a number
+         * 与数值相乌 / Multiplies with a number
          *
-         * 正无穷乘以零返回零，乘以负数返回负无穷。
-         * Positive infinity multiplied by zero returns zero, multiplied by negative number returns negative infinity.
+         * 正无穷乘以零返回零，乘以负数返回负无穷。 / Positive infinity multiplied by zero returns zero, multiplied by negative number returns negative infinity.
          *
          * @param rhs 要乘的数倌
          * @return 新的值包装器
@@ -791,11 +717,9 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与值包装器相乘
-         * Multiplies with a value wrapper
+         * 与值包装器相乘 / Multiplies with a value wrapper
          *
-         * 正无穷乘以零返回零，乘以负值返回负无穷。
-         * Positive infinity multiplied by zero returns zero, multiplied by negative value returns negative infinity.
+         * 正无穷乘以零返回零，乘以负值返回负无穷。 / Positive infinity multiplied by zero returns zero, multiplied by negative value returns negative infinity.
          *
          * @param rhs 另一个值包装器
          * @return 新的值包装器
@@ -815,11 +739,9 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与数值相陌
-         * Divides with a number
+         * 与数值相陌 / Divides with a number
          *
-         * 正无穷除以无穷或零会抛出异常，除以负数返回负无穷。
-         * Dividing positive infinity by infinity or zero throws exception, by negative number returns negative infinity.
+         * 正无穷除以无穷或零会抛出异常，除以负数返回负无穷。 / Dividing positive infinity by infinity or zero throws exception, by negative number returns negative infinity.
          *
          * @param rhs 要除的数倌
          * @return 新的值包装器
@@ -838,11 +760,9 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与值包装器相除
-         * Divides with a value wrapper
+         * 与值包装器相除 / Divides with a value wrapper
          *
-         * 正无穷除以无穷会抛出异常，除以零也会抛出异常。
-         * Dividing positive infinity by infinity throws exception, dividing by zero also throws exception.
+         * 正无穷除以无穷会抛出异常，除以零也会抛出异常。 / Dividing positive infinity by infinity throws exception, dividing by zero also throws exception.
          *
          * @param rhs 另一个值包装器
          * @return 新的值包装器
@@ -862,16 +782,14 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 获取字符串表礌
-         * Gets string representation
+         * 获取字符串表礌 / Gets string representation
          *
          * @return "inf"
         */
         override fun toString() = "inf"
 
         /**
-         * 转换丌Flt64 类型
-         * Converts to Flt64 type
+         * 转换丌Flt64 类型 / Converts to Flt64 type
          *
          * @return Flt64 类型的正无穷
         */
@@ -879,38 +797,32 @@ sealed class ValueWrapper<T>(
     }
 
     /**
-     * 负无穷值包装器
-     * Negative Infinity Value Wrapper
+     * 负无穷值包装器 / Negative Infinity Value Wrapper
      *
-     * 表示负无穷大，小于任何普通值。
-     * Represents negative infinity, less than any normal value.
+     * 表示负无穷大，小于任何普通值。 / Represents negative infinity, less than any normal value.
      *
      * @param T 数值类垌
     */
     class NegativeInfinity<T>(constants: RealNumberConstants<T>) :
         ValueWrapper<T>(constants) where T : RealNumber<T>, T : NumberField<T> {
         /**
-         * 复制值包装器
-         * Copies value wrapper
+         * 复制值包装器 / Copies value wrapper
          *
          * @return 新的负无穷值包装器副本
         */
         override fun copy() = NegativeInfinity(constants)
 
         /**
-         * 克隆值包装器
-         * Clones value wrapper
+         * 克隆值包装器 / Clones value wrapper
          *
          * @return 克隆的负无穷值包装器
         */
         public override fun clone() = copy()
 
         /**
-         * 部分相等比较
-         * Partial equality comparison
+         * 部分相等比较 / Partial equality comparison
          *
-         * 只有另一个负无穷才相等。
-         * Only equals another negative infinity.
+         * 只有另一个负无穷才相等。 / Only equals another negative infinity.
          *
          * @param rhs 另一个值包装器
          * @return 是否相等
@@ -918,11 +830,9 @@ sealed class ValueWrapper<T>(
         override fun partialEq(rhs: ValueWrapper<T>): Boolean = rhs is NegativeInfinity
 
         /**
-         * 部分序比辌
-         * Partial order comparison
+         * 部分序比辌 / Partial order comparison
          *
-         * 负无穷小于任何其他值。
-         * Negative infinity is less than any other value.
+         * 负无穷小于任何其他值。 / Negative infinity is less than any other value.
          *
          * @param rhs 另一个值包装器
          * @return 比较结果
@@ -933,11 +843,9 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与数值相劌
-         * Adds with a number
+         * 与数值相劌 / Adds with a number
          *
-         * 负无穷加丌NaN 或正无穷会抛出异常。
-         * Adding NaN or positive infinity to negative infinity throws exception.
+         * 负无穷加丌NaN 或正无穷会抛出异常。 / Adding NaN or positive infinity to negative infinity throws exception.
          *
          * @param rhs 要添加的数倌
          * @return 负无穷值包装器
@@ -950,11 +858,9 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与值包装器相加
-         * Adds with a value wrapper
+         * 与值包装器相加 / Adds with a value wrapper
          *
-         * 负无穷加上正无穷会抛出异常。
-         * Adding positive infinity to negative infinity throws exception.
+         * 负无穷加上正无穷会抛出异常。 / Adding positive infinity to negative infinity throws exception.
          *
          * @param rhs 另一个值包装器
          * @return 新的值包装器
@@ -967,11 +873,9 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与数值相凌
-         * Subtracts with a number
+         * 与数值相凌 / Subtracts with a number
          *
-         * 负无穷减厌NaN 或负无穷会抛出异常。
-         * Subtracting NaN or negative infinity from negative infinity throws exception.
+         * 负无穷减厌NaN 或负无穷会抛出异常。 / Subtracting NaN or negative infinity from negative infinity throws exception.
          *
          * @param rhs 要减去的数倌
          * @return 负无穷值包装器
@@ -984,11 +888,9 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与值包装器相减
-         * Subtracts with a value wrapper
+         * 与值包装器相减 / Subtracts with a value wrapper
          *
-         * 负无穷减去负无穷会抛出异常。
-         * Subtracting negative infinity from negative infinity throws exception.
+         * 负无穷减去负无穷会抛出异常。 / Subtracting negative infinity from negative infinity throws exception.
          *
          * @param rhs 另一个值包装器
          * @return 新的值包装器
@@ -1001,11 +903,9 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与数值相乌
-         * Multiplies with a number
+         * 与数值相乌 / Multiplies with a number
          *
-         * 负无穷乘以零返回零，乘以负数返回正无穷。
-         * Negative infinity multiplied by zero returns zero, multiplied by negative number returns positive infinity.
+         * 负无穷乘以零返回零，乘以负数返回正无穷。 / Negative infinity multiplied by zero returns zero, multiplied by negative number returns positive infinity.
          *
          * @param rhs 要乘的数倌
          * @return 新的值包装器
@@ -1024,11 +924,9 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与值包装器相乘
-         * Multiplies with a value wrapper
+         * 与值包装器相乘 / Multiplies with a value wrapper
          *
-         * 负无穷乘以零返回零，乘以负值返回正无穷。
-         * Negative infinity multiplied by zero returns zero, multiplied by negative value returns positive infinity.
+         * 负无穷乘以零返回零，乘以负值返回正无穷。 / Negative infinity multiplied by zero returns zero, multiplied by negative value returns positive infinity.
          *
          * @param rhs 另一个值包装器
          * @return 新的值包装器
@@ -1048,11 +946,9 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与数值相陌
-         * Divides with a number
+         * 与数值相陌 / Divides with a number
          *
-         * 负无穷除以无穷或零会抛出异常，除以负数返回正无穷。
-         * Dividing negative infinity by infinity or zero throws exception, by negative number returns positive infinity.
+         * 负无穷除以无穷或零会抛出异常，除以负数返回正无穷。 / Dividing negative infinity by infinity or zero throws exception, by negative number returns positive infinity.
          *
          * @param rhs 要除的数倌
          * @return 新的值包装器
@@ -1071,11 +967,9 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 与值包装器相除
-         * Divides with a value wrapper
+         * 与值包装器相除 / Divides with a value wrapper
          *
-         * 负无穷除以无穷会抛出异常，除以零也会抛出异常。
-         * Dividing negative infinity by infinity throws exception, dividing by zero also throws exception.
+         * 负无穷除以无穷会抛出异常，除以零也会抛出异常。 / Dividing negative infinity by infinity throws exception, dividing by zero also throws exception.
          *
          * @param rhs 另一个值包装器
          * @return 新的值包装器
@@ -1095,16 +989,14 @@ sealed class ValueWrapper<T>(
         }
 
         /**
-         * 获取字符串表礌
-         * Gets string representation
+         * 获取字符串表礌 / Gets string representation
          *
          * @return "-inf"
         */
         override fun toString() = "-inf"
 
         /**
-         * 转换丌Flt64 类型
-         * Converts to Flt64 type
+         * 转换丌Flt64 类型 / Converts to Flt64 type
          *
          * @return Flt64 类型的负无穷
         */
@@ -1113,8 +1005,7 @@ sealed class ValueWrapper<T>(
 }
 
 /**
- * Flt32 类型值包装器的取负操佌
- * Negation operation for Flt32 typed value wrapper
+ * Flt32 类型值包装器的取负操佌 / Negation operation for Flt32 typed value wrapper
  *
  * @return 取负后的新值包装器
 */
@@ -1126,8 +1017,7 @@ operator fun ValueWrapper<Flt32>.unaryMinus() = when (this) {
 }
 
 /**
- * Flt64 类型值包装器的取负操佌
- * Negation operation for Flt64 typed value wrapper
+ * Flt64 类型值包装器的取负操佌 / Negation operation for Flt64 typed value wrapper
  *
  * @return 取负后的新值包装器
 */
@@ -1139,8 +1029,7 @@ operator fun ValueWrapper<Flt64>.unaryMinus() = when (this) {
 }
 
 /**
- * FltX 类型值包装器的取负操佌
- * Negation operation for FltX typed value wrapper
+ * FltX 类型值包装器的取负操佌 / Negation operation for FltX typed value wrapper
  *
  * @return 取负后的新值包装器
 */
@@ -1152,8 +1041,7 @@ operator fun ValueWrapper<FltX>.unaryMinus() = when (this) {
 }
 
 /**
- * Int8 类型值包装器的取负操佌
- * Negation operation for Int8 typed value wrapper
+ * Int8 类型值包装器的取负操佌 / Negation operation for Int8 typed value wrapper
  *
  * @return 取负后的新值包装器
 */
@@ -1165,8 +1053,7 @@ operator fun ValueWrapper<Int8>.unaryMinus() = when (this) {
 }
 
 /**
- * Int16 类型值包装器的取负操佌
- * Negation operation for Int16 typed value wrapper
+ * Int16 类型值包装器的取负操佌 / Negation operation for Int16 typed value wrapper
  *
  * @return 取负后的新值包装器
 */
@@ -1178,8 +1065,7 @@ operator fun ValueWrapper<Int16>.unaryMinus() = when (this) {
 }
 
 /**
- * Int32 类型值包装器的取负操佌
- * Negation operation for Int32 typed value wrapper
+ * Int32 类型值包装器的取负操佌 / Negation operation for Int32 typed value wrapper
  *
  * @return 取负后的新值包装器
 */
@@ -1191,8 +1077,7 @@ operator fun ValueWrapper<Int32>.unaryMinus() = when (this) {
 }
 
 /**
- * Int64 类型值包装器的取负操佌
- * Negation operation for Int64 typed value wrapper
+ * Int64 类型值包装器的取负操佌 / Negation operation for Int64 typed value wrapper
  *
  * @return 取负后的新值包装器
 */
@@ -1204,8 +1089,7 @@ operator fun ValueWrapper<Int64>.unaryMinus() = when (this) {
 }
 
 /**
- * IntX 类型值包装器的取负操佌
- * Negation operation for IntX typed value wrapper
+ * IntX 类型值包装器的取负操佌 / Negation operation for IntX typed value wrapper
  *
  * @return 取负后的新值包装器
 */

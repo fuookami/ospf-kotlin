@@ -13,8 +13,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * - 提供解值舍入、下取整等调度专用转换 / Provide scheduling-specific conversions like rounding and floor
  * - 集中非有限值、溢出、精度损失处理 / Centralize handling of non-finite values, overflow, and precision loss
  *
- * 所有 V 与 Flt64 的转换应通过此 adapter 进行，避免各子模块自行转换或散落 converter 逻辑。
- * All V-to-Flt64 conversions should go through this adapter to avoid scattered converter logic across sub-modules.
+ * 所有 V 与 Flt64 的转换应通过此 adapter 进行，避免各子模块自行转换或散落 converter 逻辑。 / All V-to-Flt64 conversions should go through this adapter to avoid scattered converter logic across sub-modules.
 */
 interface SchedulingSolverValueAdapter<V : RealNumber<V>> : IntoValue<V> {
 
@@ -89,7 +88,7 @@ private object Flt64SolverValueAdapter : SchedulingSolverValueAdapter<Flt64> {
  * @property delegate The Flt64 value converter delegate / Flt64值转换器委托
 */
 class GenericSolverValueAdapter<V : RealNumber<V>>(
-    private val delegate: fuookami.ospf.kotlin.math.algebra.concept.Flt64ValueConverter<V>
+    private val delegate: Flt64ValueConverter<V>
 ) : SchedulingSolverValueAdapter<V> {
     override val converter: IntoValue<V> get() = IntoValue.fromConverter(delegate)
     override fun intoValue(value: Flt64): V = delegate.intoValue(value)
@@ -104,7 +103,7 @@ class GenericSolverValueAdapter<V : RealNumber<V>>(
 /**
  * solver 边界：UInt64 到 Flt64 的集中转换 / Solver boundary: centralized UInt64-to-Flt64 conversion
  *
- * @return The Flt64 representation of this UInt64 value / 此UInt64值的Flt64浮点数表示
+ * @return 此UInt64值的Flt64浮点数表示 / The Flt64 representation of this UInt64 value
 */
 fun UInt64.toSolverFlt64(): Flt64 = Flt64(toLong().toDouble())
 

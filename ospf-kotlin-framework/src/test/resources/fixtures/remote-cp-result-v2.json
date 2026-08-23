@@ -1,0 +1,43 @@
+{
+  "feasible": true,
+  "optimal": false,
+  "objectiveValue": null,
+  "gap": null,
+  "variableValues": [],
+  "variableValuesById": {
+    "x": 9007199254740993
+  },
+  "intervalValues": {
+    "job": {
+      "start": 1,
+      "size": 2,
+      "end": 3,
+      "present": true
+    }
+  },
+  "problemStatus": "FEASIBLE",
+  "solutionPresence": "INCUMBENT",
+  "proofStatus": "NONE",
+  "terminationReason": "TIME_LIMIT",
+  "schemaVersion": "2.0",
+  "provenance": {
+    "descriptor": "scip-cp"
+  },
+  "fingerprints": {
+    "model": "model-sha"
+  },
+  "fingerprintSchemas": {
+    "model": "1.0"
+  },
+  "elapsedMs": 17,
+  "solverStatus": "LIMIT",
+  "message": "slice",
+  "statistics": {
+    "bestBound": "0.5"
+  },
+  "diagnostics": {},
+  "runId": "task-1",
+  "attemptId": "slice-1",
+  "artifactDigest": "artifact-sha",
+  "objectiveValueInt64": 9007199254740993
+}

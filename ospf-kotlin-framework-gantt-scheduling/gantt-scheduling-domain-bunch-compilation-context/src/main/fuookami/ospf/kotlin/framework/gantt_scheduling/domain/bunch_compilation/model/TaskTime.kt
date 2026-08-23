@@ -10,8 +10,7 @@ import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
@@ -187,7 +186,7 @@ open class BunchSchedulingTaskTime<
                 val task = tasks[i]
                 LinearExpressionSymbol(
                     polynomial = if (::estRedundancy.isInitialized) {
-                        LinearPolynomial(listOf(LinearMonomial(Flt64.one, estRedundancy[task])), Flt64.zero)
+                        LinearPolynomial(estRedundancy[task])
                     } else {
                         LinearPolynomial(emptyList(), Flt64.zero)
                     },
@@ -215,7 +214,7 @@ open class BunchSchedulingTaskTime<
                 val task = tasks[i]
                 LinearExpressionSymbol(
                     polynomial = if (::estRedundancy.isInitialized) {
-                        LinearPolynomial(listOf(LinearMonomial(Flt64.one, estRedundancy[task])), Flt64.zero)
+                        LinearPolynomial(estRedundancy[task])
                     } else {
                         LinearPolynomial(emptyList(), Flt64.zero)
                     },
@@ -326,8 +325,8 @@ open class BunchSchedulingTaskTime<
                 for (bunch in thisBunches) {
                     val actualTask = bunch.get(task) ?: continue
                     val time = actualTask.time!!
-                    est.asMutable() += LinearMonomial(timeBoundary.valueOf(time.start), xi[bunch])
-                    eet.asMutable() += LinearMonomial(timeBoundary.valueOf(time.end), xi[bunch])
+                    est.asMutable() += timeBoundary.valueOf(time.start) * xi[bunch]
+                    eet.asMutable() += timeBoundary.valueOf(time.end) * xi[bunch]
                 }
             }
         }

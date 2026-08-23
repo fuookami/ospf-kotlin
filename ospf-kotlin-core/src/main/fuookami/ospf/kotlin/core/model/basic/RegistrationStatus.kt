@@ -1,6 +1,5 @@
 /**
- * 注册状态
- * Registration status
+ * 注册状态 / Registration status
 */
 package fuookami.ospf.kotlin.core.model.basic
 
@@ -8,8 +7,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.number.*
 
 /**
- * 符号注册状态，跟踪符号注册进度。
- * Symbol registration status tracking registration progress.
+ * 符号注册状态，跟踪符号注册进度。 / Symbol registration status tracking registration progress.
  *
  * @property emptySymbolAmount  空符号数量 / Number of empty symbols
  * @property readySymbolAmount  已就绪符号数量 / Number of ready symbols
@@ -45,11 +43,12 @@ data class RegistrationStatus(
 }
 
 /** 注册状态回调 / Registration status callback */
-typealias RegistrationStatusCallBack = (RegistrationStatus) -> Try
+fun interface RegistrationStatusCallBack {
+    operator fun invoke(status: RegistrationStatus): Try
+}
 
 /**
- * 将注册状态转换为模型构建状态。
- * Convert registration status to model building status.
+ * 将注册状态转换为模型构建状态。 / Convert registration status to model building status.
  *
  * @param modelName 模型名称 / The model name
  * @return 模型构建状态 / The model building status

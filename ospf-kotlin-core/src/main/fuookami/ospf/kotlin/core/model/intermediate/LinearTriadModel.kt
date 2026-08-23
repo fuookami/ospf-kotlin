@@ -1,11 +1,28 @@
 /**
- * 线性三元模型
- * Linear triad model
+ * 线性三元模型 / Linear triad model
 */
 package fuookami.ospf.kotlin.core.model.intermediate
 
+import java.io.OutputStreamWriter
+import kotlinx.coroutines.*
+import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.operator.abs
+import fuookami.ospf.kotlin.math.ordinary.*
+import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.report.ModelElementKind
+import fuookami.ospf.kotlin.core.solver.report.ModelElementIdentityRegistry
+import fuookami.ospf.kotlin.core.solver.report.ModelElementOrigin
+import fuookami.ospf.kotlin.core.solver.report.ModelElementScope
+import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
+import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.derivedModelElementIdentity
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.token.Token
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -17,20 +34,9 @@ import fuookami.ospf.kotlin.core.variable.Percentage
 import fuookami.ospf.kotlin.core.variable.Ternary
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.core.variable.UInteger
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.operator.abs
-import fuookami.ospf.kotlin.math.ordinary.*
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.functional.*
-import java.io.OutputStreamWriter
-import kotlinx.coroutines.*
-import org.apache.logging.log4j.kotlin.logger
 
 /**
- * 将任意数值类型转换为 Flt64（求解器边界用）
- * Convert any numeric value to Flt64 (for solver boundary use)
+ * 将任意数值类型转换为 Flt64（求解器边界用） / Convert any numeric value to Flt64 (for solver boundary use)
  *
  * @return 转换后的 Flt64 值 / The converted Flt64 value
 */
@@ -43,8 +49,7 @@ private fun Any?.toSolverFlt64(): Flt64 {
 }
 
 /**
- * 判断此线性约束是否为单变量边界约束（系数为1的单项约束）
- * Check whether this linear constraint is a single-variable bound constraint (single term with coefficient 1)
+ * 判断此线性约束是否为单变量边界约束（系数为1的单项约束） / Check whether this linear constraint is a single-variable bound constraint (single term with coefficient 1)
  *
  * @return 是否为边界约束 / Whether this is a bound constraint
 */
@@ -56,8 +61,7 @@ private fun LinearConstraintImpl<Flt64>.isBound(): Boolean {
 }
 
 /**
- * 将求解器边界单元格令牌视为 Flt64 令牌
- * Treat a solver-boundary cell token as an Flt64 token
+ * 将求解器边界单元格令牌视为 Flt64 令牌 / Treat a solver-boundary cell token as an Flt64 token
  *
  * @return 转型后的 Flt64 令牌 / The cast Flt64 token
 */
@@ -67,11 +71,9 @@ private fun LinearCell<*>.tokenAsFlt64(): Token<Flt64> {
 }
 
 /**
- * 线性约束单元
- * Linear constraint cell
+ * 线性约束单元 / Linear constraint cell
  *
- * 表示线性约束矩阵中的一个非零元素，包含行索引、列索引和系数。
- * Represents a non-zero element in the linear constraint matrix,
+ * 表示线性约束矩阵中的一个非零元素，包含行索引、列索引和系数。 / Represents a non-zero element in the linear constraint matrix,
  * containing row index, column index, and coefficient.
  *
  * @property rowIndex 行索引 / Row index
@@ -108,11 +110,9 @@ class LinearConstraintCell(
 }
 
 /**
- * 线性约束批次
- * Linear constraint batch
+ * 线性约束批次 / Linear constraint batch
  *
- * 存储一组线性约束的稀疏矩阵表示，包括约束符号、右侧常量和约束来源。
- * Stores a batch of linear constraints in sparse matrix representation,
+ * 存储一组线性约束的稀疏矩阵表示，包括约束符号、右侧常量和约束来源。 / Stores a batch of linear constraints in sparse matrix representation,
  * including constraint signs, right-hand side constants, and constraint sources.
  *
  * @property sparseLhs 稀疏矩阵（左侧）/ Sparse matrix (left-hand side)
@@ -123,6 +123,11 @@ class LinearConstraintCell(
  * @param origins 约束来源列表 / Constraint origin list
  * @param froms 约束来源符号列表 / Constraint from-symbol list
  * @param priorities 约束优先级列表 / Constraint priority list
+ * @param ids 稳定约束 ID 列表 / Stable constraint ID list
+ * @param identityScopes 每行身份作用域 / Identity scope for each row
+ * @param identityOrigins 每行稳定身份来源 / Stable identity origin for each row
+ * @param identityProvenance 每行完整身份来源集合 / Complete identity provenance for each row
+ * @param identityMetadataValidationOverride 复制或过滤时保留的身份元数据校验结果 / Identity metadata validation result preserved across copies or filters
 */
 class LinearConstraintBatch(
     val sparseLhs: SparseMatrix<Flt64>,
@@ -132,15 +137,33 @@ class LinearConstraintBatch(
     sources: List<ConstraintSource>,
     origins: List<LinearConstraintImpl<Flt64>?> = (0 until sparseLhs.numRows()).map { null },
     froms: List<Pair<IntermediateSymbol<*>, Boolean>?> = (0 until sparseLhs.numRows()).map { null },
-    priorities: List<Int?> = (0 until sparseLhs.numRows()).map { null }
-) : ModelConstraint<LinearConstraintCell>(sparseLhs.numRows(), signs, rhs, names, sources) {
+    priorities: List<Int?> = (0 until sparseLhs.numRows()).map { null },
+    ids: List<ConstraintId> = emptyList(),
+    identityNamespace: String? = null,
+    identitySchemaVersion: String? = null,
+    identityScopes: List<ModelElementScope> = emptyList(),
+    identityOrigins: List<ModelElementOrigin?> = emptyList(),
+    identityProvenance: List<List<ModelElementOrigin>> = emptyList(),
+    identityMetadataValidationOverride: Try? = null
+) : ModelConstraint<LinearConstraintCell>(
+    sparseLhs.numRows(),
+    signs,
+    rhs,
+    names,
+    sources,
+    ids,
+    identityNamespace,
+    identitySchemaVersion,
+    identityScopes,
+    identityOrigins,
+    identityProvenance,
+    identityMetadataValidationOverride
+) {
 
     /**
      * 稀疏矩阵（左侧）的稀疏表示。
      * 每行为一个 SparseVector<Flt64>，其中 entry.index = 列索引，entry.value = 系数。
-     * 这是主要的约束表示形式。
-     *
-     * Sparse representation of the LHS matrix.
+     * 这是主要的约束表示形式。 / Sparse representation of the LHS matrix.
      * Each row is a SparseVector<Flt64> where entry.index = colIndex, entry.value = coefficient.
      * This is the primary constraint representation.
     */
@@ -166,8 +189,7 @@ class LinearConstraintBatch(
     val priorities: List<Int?> by ::_priorities
 
     /**
-     * 按条件过滤约束批次
-     * Filter constraint batch by condition
+     * 按条件过滤约束批次 / Filter constraint batch by condition
      *
      * @param condition 过滤条件，参数为行索引 / Filter condition, parameter is row index
      * @return 过滤后的约束批次 / Filtered constraint batch
@@ -187,7 +209,14 @@ class LinearConstraintBatch(
             sources = sources.filterIndexed { i, _ -> condition(i) },
             origins = origins.filterIndexed { i, _ -> condition(i) },
             froms = froms.filterIndexed { i, _ -> condition(i) },
-            priorities = priorities.filterIndexed { i, _ -> condition(i) }
+            priorities = priorities.filterIndexed { i, _ -> condition(i) },
+            ids = ids.filterIndexed { i, _ -> condition(i) },
+            identityNamespace = identityNamespace,
+            identitySchemaVersion = identitySchemaVersion,
+            identityScopes = identityScopes.filterIndexed { i, _ -> condition(i) },
+            identityOrigins = identityOrigins.filterIndexed { i, _ -> condition(i) },
+            identityProvenance = identityProvenance.filterIndexed { i, _ -> condition(i) },
+            identityMetadataValidationOverride = identityMetadataValidation
         )
     }
 
@@ -207,7 +236,14 @@ class LinearConstraintBatch(
         sources.toList(),
         origins.toList(),
         froms.toList(),
-        priorities.toList()
+        priorities.toList(),
+        ids.toList(),
+        identityNamespace,
+        identitySchemaVersion,
+        identityScopes.toList(),
+        identityOrigins.toList(),
+        identityProvenance.map { it.toList() },
+        identityMetadataValidation
     )
 
     override fun close() {
@@ -219,11 +255,9 @@ class LinearConstraintBatch(
 }
 
 /**
- * 线性目标单元
- * Linear objective cell
+ * 线性目标单元 / Linear objective cell
  *
- * 表示线性目标函数中的一个非零元素，包含列索引和系数。
- * Represents a non-zero element in the linear objective function,
+ * 表示线性目标函数中的一个非零元素，包含列索引和系数。 / Represents a non-zero element in the linear objective function,
  * containing column index and coefficient.
  *
  * @property colIndex 列索引 / Column index
@@ -249,24 +283,20 @@ class LinearObjectiveCell(
 }
 
 /**
- * 线性目标函数类型别名
- * Type alias for linear objective function
+ * 线性目标函数类型别名 / Type alias for linear objective function
 */
 typealias LinearObjective = Objective<LinearObjectiveCell>
 
 /**
- * 基础线性三元模型视图类型别名
- * Type alias for basic linear triad model view
+ * 基础线性三元模型视图类型别名 / Type alias for basic linear triad model view
 */
 typealias BasicLinearTriadModelView = BasicModelView<LinearConstraintCell>
 
 /**
- * 基础线性三元模型
- * Basic linear triad model
+ * 基础线性三元模型 / Basic linear triad model
  *
  * 线性问题的求解器标准形式（三元：变量 + 约束，无目标函数）。
- * 直接用于 IIS（不可约不可行子系统）计算，以及作为 [LinearTriadModel] 的 [impl] 委托。
- * Solver-standard form for linear problems (triad: variables + constraints, no objective).
+ * 直接用于 IIS（不可约不可行子系统）计算，以及作为 [LinearTriadModel] 的 [impl] 委托。 / Solver-standard form for linear problems (triad: variables + constraints, no objective).
  * Used directly by IIS (Irreducible Infeasible Subsystem) computation and
  * as the [impl] delegate inside [LinearTriadModel].
  *
@@ -305,9 +335,7 @@ class BasicLinearTriadModel(
          * 将变量和约束提取为求解器标准形式。
          *
          * 这是一个便捷工厂方法，复用 [LinearTriadModel.invoke] 中的变量/约束提取逻辑，
-         * 但不包含目标函数步骤。
-         *
-         * Create a [BasicLinearTriadModel] from a [LinearMechanismModel<Flt64>] by
+         * 但不包含目标函数步骤。 / Create a [BasicLinearTriadModel] from a [LinearMechanismModel<Flt64>] by
          * extracting variables and constraints into solver-standard form.
          *
          * This is a convenience factory that mirrors the variable/constraint extraction
@@ -317,23 +345,27 @@ class BasicLinearTriadModel(
          * @param tokenIndexMap   符号到求解器列索引的映射 / mapping from tokens to solver column indices
          * @param bounds          每个符号的预计算边界约束 / pre-computed bound constraints per token
          * @param fixedVariables  固定为常量值的变量（将被代换消除）/ variables fixed to constant values (substituted out)
+         * @param identityRegistry 可选的稳定身份注册表 / optional stable identity registry
          * @return 包含提取的变量和约束的 [BasicLinearTriadModel] / a [BasicLinearTriadModel] containing the extracted variables and constraints
         */
         fun from(
             model: LinearMechanismModel<Flt64>,
             tokenIndexMap: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<LinearConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
-            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
+            identityRegistry: ModelElementIdentityRegistry? = model.identityRegistry
         ): BasicLinearTriadModel {
             val variables = dumpLinearTriadVariables(
                 tokenIndexes = tokenIndexMap,
-                bounds = bounds
+                bounds = bounds,
+                identityRegistry = identityRegistry
             )
             val constraints = dumpLinearTriadConstraints(
                 model = model,
                 tokenIndexes = tokenIndexMap,
                 bounds = bounds,
-                fixedVariables = fixedVariables
+                fixedVariables = fixedVariables,
+                identityRegistry = identityRegistry
             )
             return BasicLinearTriadModel(variables, constraints, model.name)
         }
@@ -347,8 +379,7 @@ class BasicLinearTriadModel(
     override fun clone() = copy()
 
     /**
-     * 就地线性松弛
-     * In-place linear relaxation
+     * 就地线性松弛 / In-place linear relaxation
      *
      * 将整数变量类型松弛为连续类型（Binary->Percentage, Integer->Continuous 等）。
      * Relaxes integer variable types to continuous types (Binary->Percentage, Integer->Continuous, etc.).
@@ -374,8 +405,7 @@ class BasicLinearTriadModel(
     }
 
     /**
-     * 返回线性松弛后的副本
-     * Return a linearly relaxed copy
+     * 返回线性松弛后的副本 / Return a linearly relaxed copy
      *
      * @return 线性松弛后的模型副本 / Linearly relaxed model copy
     */
@@ -491,12 +521,10 @@ class BasicLinearTriadModel(
 }
 
 /**
- * 线性三元模型视图
- * Linear triad model view
+ * 线性三元模型视图 / Linear triad model view
  *
  * 线性优化模型的视图接口，提供变量、约束、目标函数的统一访问，
- * 以及线性松弛、对偶模型、可行性模型、弹性模型等变换操作。
- * View interface for linear optimization models, providing unified access
+ * 以及线性松弛、对偶模型、可行性模型、弹性模型等变换操作。 / View interface for linear optimization models, providing unified access
  * to variables, constraints, and objective function, as well as transformation
  * operations such as linear relaxation, dual model, feasibility model, and elastic model.
  *
@@ -508,40 +536,42 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
     val dual: Boolean
 
     /**
-     * 就地线性松弛（修改当前模型）
-     * In-place linear relaxation (modifies the current model)
+     * Identity validation captured while building the intermediate model.
+     * 中间模型构建期间捕获的身份校验结果。
+     */
+    val identityValidation: Try
+        get() = ok
+
+    /**
+     * 就地线性松弛（修改当前模型） / In-place linear relaxation (modifies the current model)
      *
      * @return 松弛后的自身引用 / Self reference after relaxation
     */
     fun linearRelax(): LinearTriadModelView
 
     /**
-     * 返回线性松弛后的副本
-     * Return a linearly relaxed copy
+     * 返回线性松弛后的副本 / Return a linearly relaxed copy
      *
      * @return 线性松弛后的模型视图副本 / Linearly relaxed model view copy
     */
     fun linearRelaxed(): LinearTriadModelView
 
     /**
-     * 构建 Farkas 对偶模型
-     * Build Farkas dual model
+     * 构建 Farkas 对偶模型 / Build Farkas dual model
      *
      * @return Farkas 对偶线性三元模型视图 / Farkas dual linear triad model view
     */
     suspend fun farkasDual(): LinearTriadModelView
 
     /**
-     * 构建可行性模型（最小化人工变量）
-     * Build feasibility model (minimize artificial variables)
+     * 构建可行性模型（最小化人工变量） / Build feasibility model (minimize artificial variables)
      *
      * @return 可行性线性三元模型视图 / Feasibility linear triad model view
     */
     fun feasibility(): LinearTriadModelView
 
     /**
-     * 构建弹性模型（允许约束松弛）
-     * Build elastic model (allow constraint relaxation)
+     * 构建弹性模型（允许约束松弛） / Build elastic model (allow constraint relaxation)
      *
      * @param minmaxSlack  是否启用最小-最大松弛 / Whether to enable min-max slack
      * @param minSlackAmount  最小松弛量限制 / Minimum slack amount limit
@@ -553,8 +583,7 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
     ): LinearTriadModelView
 
     /**
-     * 整理对偶解，将完整对偶值（包括零值）映射回原始约束
-     * Tidy dual solution, mapping complete dual values (including zero) back to original constraints
+     * 整理对偶解，将完整对偶值（包括零值）映射回原始约束 / Tidy dual solution, mapping complete dual values (including zero) back to original constraints
      *
      * @param solution 求解器返回的对偶解向量 / Dual solution vector returned by the solver
      * @return 完整对偶值到原始约束的映射 / Mapping from complete dual values to original constraints
@@ -581,11 +610,9 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
 }
 
 /**
- * 线性三元模型
- * Linear triad model
+ * 线性三元模型 / Linear triad model
  *
- * 求解器标准形式的线性优化模型，包含变量、约束和目标函数。
- * Solver-standard form of linear optimization model, containing variables, constraints, and objective function.
+ * 求解器标准形式的线性优化模型，包含变量、约束和目标函数。 / Solver-standard form of linear optimization model, containing variables, constraints, and objective function.
  *
  * @property impl 基础模型实现 / Basic model implementation
  * @property tokensInSolver 求解器中的符号列表 / Token list in solver
@@ -596,18 +623,35 @@ data class LinearTriadModel(
     private val impl: BasicLinearTriadModel,
     val tokensInSolver: List<Token<Flt64>>,
     override val objective: LinearObjective,
-    internal val dualOrigin: LinearTriadModelView? = null
+    internal val dualOrigin: LinearTriadModelView? = null,
+    override val identityValidation: Try = validateDerivedIdentitySet(
+        variables = impl.variables,
+        constraints = impl.constraints,
+        objective = objective
+    )
 ) : LinearTriadModelView, Cloneable, Copyable<LinearTriadModel> {
     companion object {
         private val logger = logger()
 
-        /** V->Flt64 转换边界：泛型 V 在线性中间模型构造时解析为具体的 Flt64 类型。 / V->Flt64 conversion boundary: generic V resolves to concrete Flt64 for linear intermediate model construction. */
+        /**
+         * V->Flt64 转换边界：泛型 V 在线性中间模型构造时解析为具体的 Flt64 类型。 /
+         * V->Flt64 conversion boundary: generic V resolves to concrete Flt64 for linear intermediate model construction.
+         *
+         * @param model 源线性机制模型 / Source linear mechanism model
+         * @param fixedVariables 可选的固定变量 / Optional fixed variables
+         * @param dumpConstraintsToBounds 是否转储边界约束 / Whether to dump bound constraints
+         * @param forceDumpBounds 是否强制转储可识别边界 / Whether to force recognizable bounds
+         * @param concurrent 是否并行转储 / Whether to dump concurrently
+         * @param identityRegistry 可选的稳定身份注册表 / Optional stable identity registry
+         * @return 线性三元模型 / Linear triad model
+         */
         suspend operator fun invoke(
             model: LinearMechanismModel<Flt64>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             dumpConstraintsToBounds: Boolean? = null,
             forceDumpBounds: Boolean? = null,
-            concurrent: Boolean? = null
+            concurrent: Boolean? = null,
+            identityRegistry: ModelElementIdentityRegistry? = model.identityRegistry
         ): LinearTriadModel {
             logger.trace("Creating LinearTriadModel for $model")
             val tokensInSolver = if (fixedVariables.isNullOrEmpty()) {
@@ -653,7 +697,8 @@ data class LinearTriadModel(
                     val variablePromise = async(Dispatchers.Default) {
                         dumpLinearTriadVariables(
                             tokenIndexes = tokenIndexMap,
-                            bounds = bounds
+                            bounds = bounds,
+                            identityRegistry = identityRegistry
                         )
                     }
                     val constraintPromise = async(Dispatchers.Default) {
@@ -661,14 +706,16 @@ data class LinearTriadModel(
                             model = model,
                             tokenIndexes = tokenIndexMap,
                             bounds = bounds,
-                            fixedVariables = fixedVariables
+                            fixedVariables = fixedVariables,
+                            identityRegistry = identityRegistry
                         )
                     }
                     val objectivePromise = async(Dispatchers.Default) {
                         dumpLinearTriadObjectives(
                             model = model,
                             tokenIndexes = tokenIndexMap,
-                            fixedVariables = fixedVariables
+                            fixedVariables = fixedVariables,
+                            identityRegistry = identityRegistry
                         )
                     }
 
@@ -687,13 +734,15 @@ data class LinearTriadModel(
                     impl = BasicLinearTriadModel(
                         variables = dumpLinearTriadVariables(
                             tokenIndexes = tokenIndexMap,
-                            bounds = bounds
+                            bounds = bounds,
+                            identityRegistry = identityRegistry
                         ),
                         constraints = dumpLinearTriadConstraints(
                             model = model,
                             tokenIndexes = tokenIndexMap,
                             bounds = bounds,
-                            fixedVariables = fixedVariables
+                            fixedVariables = fixedVariables,
+                            identityRegistry = identityRegistry
                         ),
                         name = model.name
                     ),
@@ -701,14 +750,25 @@ data class LinearTriadModel(
                     objective = dumpLinearTriadObjectives(
                         model = model,
                         tokenIndexes = tokenIndexMap,
-                        fixedVariables = fixedVariables
+                        fixedVariables = fixedVariables,
+                        identityRegistry = identityRegistry
                     )
                 )
             }
 
+            val identityValidation = combineIdentityValidation(
+                materializedValidation = validateDerivedIdentitySet(
+                    variables = triadModel.variables,
+                    constraints = triadModel.constraints,
+                    objective = triadModel.objective,
+                    allowGeneratedArtifactPrefix = true
+                ),
+                registryValidation = identityRegistry?.validate()
+            )
+            val validatedTriadModel = triadModel.copy(identityValidation = identityValidation)
             logger.trace("LinearTriadModel created for $model")
             MemoryCleanupPolicy.cleanupAfterModelBuilt()
-            return triadModel
+            return validatedTriadModel
         }
     }
 
@@ -720,10 +780,19 @@ data class LinearTriadModel(
     override fun copy() = LinearTriadModel(
         impl = impl.copy(),
         tokensInSolver = tokensInSolver,
-        objective = objective.copy()
+        objective = objective.copy(),
+        identityValidation = identityValidation
     )
 
     override fun clone() = copy()
+
+    /**
+     * Return the identity validation result captured during model construction. /
+     * 返回模型构建期间捕获的身份校验结果。
+     *
+     * @return Structured identity validation result. / 结构化身份校验结果。
+     */
+    fun validateIdentity(): Try = identityValidation
 
     override fun linearRelax(): LinearTriadModel {
         impl.linearRelax()
@@ -734,13 +803,13 @@ data class LinearTriadModel(
         return LinearTriadModel(
             impl = impl.linearRelaxed(),
             tokensInSolver = tokensInSolver,
-            objective = objective.copy()
+            objective = objective.copy(),
+            identityValidation = identityValidation
         )
     }
 
     /**
-     * 构建对偶模型
-     * Build dual model
+     * 构建对偶模型 / Build dual model
      *
      * @return 对偶线性三元模型 / Dual linear triad model
     */
@@ -792,6 +861,18 @@ data class LinearTriadModel(
                 slack = null,
                 name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_dual",
                 initialResult = Flt64.zero
+            )
+        }.mapIndexed { index, variable ->
+            val sourceId = this.constraints.ids.getOrNull(index)?.value
+            variable.withDerivedIdentity(
+                role = "dual-constraint",
+                sourceId = sourceId,
+                sourceScope = this.constraints.identityScopeAt(index),
+                sourceOrigin = this.constraints.identityOriginAt(index),
+                sourceProvenance = this.constraints.identityProvenanceOrOriginAt(index),
+                namespace = this.constraints.identityNamespace,
+                schemaVersion = this.constraints.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, "0", index.toString())
             )
         }
         var colIndex = this.constraints.size
@@ -923,6 +1004,28 @@ data class LinearTriadModel(
                     }
                 }
             }
+        }.mapIndexed { sourceIndex, pair ->
+            val source = this.variables[sourceIndex]
+            val sourceId = source.id?.value
+            pair.first?.withDerivedIdentity(
+                role = "dual-bound",
+                sourceId = sourceId,
+                sourceScope = source.identityScope,
+                sourceOrigin = source.identityOrigin,
+                sourceProvenance = source.identityProvenanceOrOrigin(),
+                namespace = source.identityNamespace,
+                schemaVersion = source.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, "lower", "$sourceIndex:lower")
+            ) to pair.second?.withDerivedIdentity(
+                role = "dual-bound",
+                sourceId = sourceId,
+                sourceScope = source.identityScope,
+                sourceOrigin = source.identityOrigin,
+                sourceProvenance = source.identityProvenanceOrOrigin(),
+                namespace = source.identityNamespace,
+                schemaVersion = source.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, "upper", "$sourceIndex:upper")
+            )
         }
 
         val cellGroups = this.constraints.lhs.flatten().groupBy { it.colIndex }
@@ -1017,14 +1120,62 @@ data class LinearTriadModel(
                     signs = signs,
                     rhs = rhs,
                     names = names,
-                    sources = sources
+                    sources = sources,
+                    ids = this.variables.mapIndexed { index, variable ->
+                        val sourceId = variable.id?.value
+                        ConstraintId(
+                            derivedModelElementIdentity(
+                                kind = ModelElementKind.Constraint,
+                                role = "dual-balance",
+                                sourceId = sourceId,
+                                sourceScope = variable.identityScope,
+                                sourceOrigin = variable.identityOrigin,
+                                sourceProvenance = variable.identityProvenanceOrOrigin(),
+                                namespace = variable.identityNamespace,
+                                schemaVersion = variable.identitySchemaVersion,
+                                discriminator = derivedDiscriminator(sourceId, "0", index.toString())
+                            ).id.value
+                        )
+                    },
+                    identityNamespace = this.identityNamespace,
+                    identitySchemaVersion = this.identitySchemaVersion,
+                        identityScopes = this.variables.map { variable ->
+                        if (variable.id == null) ModelElementScope.ModelLocal else variable.identityScope
+                        },
+                    identityOrigins = this.variables.map { it.identityOrigin },
+                    identityProvenance = this.variables.map { it.identityProvenanceOrOrigin() }
                 ),
                 name = "$name-dual"
             ),
             tokensInSolver = tokensInSolver,
-            objective = LinearObjective(this.objective.category.reverse, objective),
-            dualOrigin = this
-        )
+            objective = LinearObjective(
+                category = this.objective.category.reverse,
+                objective = objective,
+                id = ObjectiveId(
+                    derivedModelElementIdentity(
+                        kind = ModelElementKind.Objective,
+                        role = "dual-objective",
+                        sourceId = this.objective.id?.value,
+                        sourceScope = this.objective.identityScope,
+                        sourceOrigin = this.objective.identityOrigin,
+                        sourceProvenance = this.objective.identityProvenanceOrOrigin(),
+                        namespace = this.objective.identityNamespace ?: this.constraints.identityNamespace,
+                        schemaVersion = this.objective.identitySchemaVersion ?: this.constraints.identitySchemaVersion
+                    ).id.value
+                ),
+                identityScope = if (this.objective.id == null) {
+                    ModelElementScope.ModelLocal
+                } else {
+                    this.objective.identityScope
+                },
+                identityOrigin = if (this.objective.id == null) null else this.objective.identityOrigin,
+                identityNamespace = this.objective.identityNamespace ?: this.constraints.identityNamespace,
+                identitySchemaVersion = this.objective.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                identityProvenance = this.objective.identityProvenanceOrOrigin()
+            ),
+            dualOrigin = this,
+            identityValidation = ok
+        ).withDerivedIdentityValidation()
     }
     override suspend fun farkasDual(): LinearTriadModel {
         var colIndex = this.constraints.size
@@ -1325,27 +1476,202 @@ data class LinearTriadModel(
             )
         }
 
+        val derivedFarkasVariables = farkasVariables.mapIndexed { index, variable ->
+            val source = this.constraints
+            val sourceId = source.ids.getOrNull(index)?.value
+            variable.withDerivedIdentity(
+                role = "farkas-constraint",
+                sourceId = sourceId,
+                sourceScope = source.identityScopeAt(index),
+                sourceOrigin = source.identityOriginAt(index),
+                sourceProvenance = source.identityProvenanceOrOriginAt(index),
+                namespace = source.identityNamespace,
+                schemaVersion = source.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, "0", index.toString())
+            )
+        }
+        val derivedSlackVariables = slackVariables.mapIndexed { index, variable ->
+            val sourceIndex = this.constraints.indices
+                .filter { this.constraints.signs[it] == ConstraintRelation.Equal }[index / 2]
+            val source = this.constraints
+            val sourceId = source.ids.getOrNull(sourceIndex)?.value
+            variable.withDerivedIdentity(
+                role = "farkas-slack",
+                sourceId = sourceId,
+                sourceScope = source.identityScopeAt(sourceIndex),
+                sourceOrigin = source.identityOriginAt(sourceIndex),
+                sourceProvenance = source.identityProvenanceOrOriginAt(sourceIndex),
+                namespace = source.identityNamespace,
+                schemaVersion = source.identitySchemaVersion,
+                discriminator = derivedDiscriminator(
+                    sourceId,
+                    if (index % 2 == 0) "positive" else "negative",
+                    "$sourceIndex:${if (index % 2 == 0) "positive" else "negative"}"
+                )
+            )
+        }
+        val derivedBoundVariables = boundVariables.mapIndexed { index, pair ->
+            val source = this.variables[index]
+            val sourceId = source.id?.value
+            pair.first?.withDerivedIdentity(
+                role = "farkas-bound",
+                sourceId = sourceId,
+                sourceScope = source.identityScope,
+                sourceOrigin = source.identityOrigin,
+                sourceProvenance = source.identityProvenanceOrOrigin(),
+                namespace = source.identityNamespace ?: this.constraints.identityNamespace,
+                schemaVersion = source.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, "lower", "$index:lower")
+            ) to pair.second?.withDerivedIdentity(
+                role = "farkas-bound",
+                sourceId = sourceId,
+                sourceScope = source.identityScope,
+                sourceOrigin = source.identityOrigin,
+                sourceProvenance = source.identityProvenanceOrOrigin(),
+                namespace = source.identityNamespace ?: this.constraints.identityNamespace,
+                schemaVersion = source.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, "upper", "$index:upper")
+            )
+        }
+        val constraintSourceIds = this.variables.map { it.id?.value }
+        val constraintIds = constraintSourceIds.mapIndexed { index, sourceId ->
+            ConstraintId(
+                derivedModelElementIdentity(
+                    kind = ModelElementKind.Constraint,
+                    role = "farkas-balance",
+                    sourceId = sourceId,
+                    sourceScope = this.variables[index].identityScope,
+                    sourceOrigin = this.variables[index].identityOrigin,
+                    sourceProvenance = this.variables[index].identityProvenanceOrOrigin(),
+                    namespace = this.identityNamespace ?: this.constraints.identityNamespace,
+                    schemaVersion = this.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                    discriminator = derivedDiscriminator(sourceId, "0", index.toString())
+                ).id.value
+            )
+        } + listOf(
+            ConstraintId(
+                derivedModelElementIdentity(
+                    kind = ModelElementKind.Constraint,
+                    role = "farkas-normalization",
+                    sourceId = null,
+                    sourceScope = ModelElementScope.ModelLocal,
+                    sourceOrigin = null,
+                    namespace = this.identityNamespace ?: this.constraints.identityNamespace,
+                    schemaVersion = this.identitySchemaVersion ?: this.constraints.identitySchemaVersion
+                ).id.value
+            )
+        ) + this.constraints.indices.filter { this.constraints.signs[it] == ConstraintRelation.Equal }.map { index ->
+            val sourceId = this.constraints.ids.getOrNull(index)?.value
+            ConstraintId(
+                derivedModelElementIdentity(
+                    kind = ModelElementKind.Constraint,
+                    role = "farkas-equality",
+                    sourceId = sourceId,
+                    sourceScope = this.constraints.identityScopeAt(index),
+                    sourceOrigin = this.constraints.identityOriginAt(index),
+                    sourceProvenance = this.constraints.identityProvenanceOrOriginAt(index),
+                    namespace = this.constraints.identityNamespace,
+                    schemaVersion = this.constraints.identitySchemaVersion,
+                    discriminator = derivedDiscriminator(sourceId, "0", index.toString())
+                ).id.value
+            )
+        }
+        val constraintScopes = this.variables.map { variable ->
+            if (variable.id == null) ModelElementScope.ModelLocal else variable.identityScope
+        } + ModelElementScope.ModelLocal + this.constraints.indices.filter {
+            this.constraints.signs[it] == ConstraintRelation.Equal
+        }.map { this.constraints.identityScopeAt(it) }
+        val constraintOrigins = this.variables.map { it.identityOrigin } + null + this.constraints.indices.filter {
+            this.constraints.signs[it] == ConstraintRelation.Equal
+        }.map { this.constraints.identityOriginAt(it) }
+        val constraintProvenance = this.variables.map { it.identityProvenanceOrOrigin() } + listOf(emptyList()) +
+            this.constraints.indices.filter {
+                this.constraints.signs[it] == ConstraintRelation.Equal
+            }.map { this.constraints.identityProvenanceOrOriginAt(it) }
+        val objectiveIdentity = derivedModelElementIdentity(
+            kind = ModelElementKind.Objective,
+            role = "farkas-objective",
+            sourceId = this.objective.id?.value,
+            sourceScope = this.objective.identityScope,
+            sourceOrigin = this.objective.identityOrigin,
+            sourceProvenance = this.objective.identityProvenanceOrOrigin(),
+            namespace = this.objective.identityNamespace ?: this.constraints.identityNamespace,
+            schemaVersion = this.objective.identitySchemaVersion ?: this.constraints.identitySchemaVersion
+        )
+
         return LinearTriadModel(
             impl = BasicLinearTriadModel(
-                variables = (farkasVariables + slackVariables + boundVariables.flatMapNotNull { listOf(it.first, it.second) }).sortedBy { it.index },
+                variables = (derivedFarkasVariables + derivedSlackVariables + derivedBoundVariables.flatMapNotNull { listOf(it.first, it.second) }).sortedBy { it.index },
                 constraints = LinearConstraintBatch(
                     sparseLhs = buildLinearSparseLhs(lhs),
                     signs = signs,
                     rhs = rhs,
                     names = names,
-                    sources = sources
+                    sources = sources,
+                    ids = constraintIds,
+                    identityNamespace = this.identityNamespace ?: this.constraints.identityNamespace,
+                    identitySchemaVersion = this.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                    identityScopes = constraintScopes,
+                    identityOrigins = constraintOrigins,
+                    identityProvenance = constraintProvenance
                 ),
                 name = "$name-farkas-dual"
             ),
             tokensInSolver = tokensInSolver,
-            objective = LinearObjective(ObjectCategory.Minimum, objective),
-            dualOrigin = this
-        )
+            objective = LinearObjective(
+                category = ObjectCategory.Minimum,
+                objective = objective,
+                id = ObjectiveId(objectiveIdentity.id.value),
+                identityScope = objectiveIdentity.scope,
+                identityOrigin = objectiveIdentity.origin,
+                identityNamespace = this.objective.identityNamespace ?: this.constraints.identityNamespace,
+                identitySchemaVersion = this.objective.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                identityProvenance = objectiveIdentity.provenance
+            ),
+            dualOrigin = this,
+            identityValidation = ok
+        ).withDerivedIdentityValidation()
     }
     override fun feasibility(): LinearTriadModel {
         var colIndex = this.variables.size
         val slackVariables = ArrayList<Variable>()
         val artifactVariables = ArrayList<Variable>()
+        fun artifactVariable(
+            constraintIndex: Int,
+            role: String,
+            index: Int,
+            slack: VariableSlack? = null
+        ): Variable {
+            val sourceId = this.constraints.ids.getOrNull(constraintIndex)?.value
+            val identity = derivedModelElementIdentity(
+                kind = ModelElementKind.Variable,
+                role = "feasibility-$role",
+                sourceId = sourceId,
+                sourceScope = this.constraints.identityScopeAt(constraintIndex),
+                sourceOrigin = this.constraints.identityOriginAt(constraintIndex),
+                sourceProvenance = this.constraints.identityProvenanceOrOriginAt(constraintIndex),
+                namespace = this.constraints.identityNamespace,
+                schemaVersion = this.constraints.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, role, "$constraintIndex:$role")
+            )
+            return Variable(
+                index = index,
+                lowerBound = Flt64.zero,
+                upperBound = Flt64.infinity,
+                type = Continuous,
+                origin = null,
+                dualOrigin = null,
+                slack = slack,
+                name = "${this.constraints.names[constraintIndex].ifEmpty { "cons$constraintIndex" }}_$role",
+                initialResult = Flt64.zero,
+                id = VariableId(identity.id.value),
+                identityScope = identity.scope,
+                identityOrigin = identity.origin,
+                identityNamespace = this.constraints.identityNamespace,
+                identitySchemaVersion = this.constraints.identitySchemaVersion,
+                identityProvenance = identity.provenance
+            )
+        }
         val lhs = this.constraints.indices.map {
                 when (if (this.constraints.rhs[it] ls Flt64.zero) {
                     this.constraints.signs[it].reverse
@@ -1353,18 +1679,11 @@ data class LinearTriadModel(
                     this.constraints.signs[it]
                 }) {
                     ConstraintRelation.LessEqual -> {
-                        val slack = Variable(
+                        val slack = artifactVariable(
+                            constraintIndex = it,
+                            role = "slack",
                             index = colIndex,
-                            lowerBound = Flt64.zero,
-                            upperBound = Flt64.infinity,
-                            type = Continuous,
-                            origin = null,
-                            dualOrigin = null,
-                            slack = VariableSlack(
-                                constraint = this.constraints.origins[it]
-                            ),
-                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_slack",
-                            initialResult = Flt64.zero
+                            slack = VariableSlack(constraint = this.constraints.origins[it])
                         )
                         colIndex += 1
 
@@ -1383,30 +1702,17 @@ data class LinearTriadModel(
                     }
 
                     ConstraintRelation.GreaterEqual -> {
-                        val slack = Variable(
-                            colIndex,
-                            lowerBound = Flt64.zero,
-                            upperBound = Flt64.infinity,
-                            type = Continuous,
-                            origin = null,
-                            dualOrigin = null,
-                            slack = VariableSlack(
-                                constraint = this.constraints.origins[it]
-                            ),
-                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_slack",
-                            initialResult = Flt64.zero
+                        val slack = artifactVariable(
+                            constraintIndex = it,
+                            role = "slack",
+                            index = colIndex,
+                            slack = VariableSlack(constraint = this.constraints.origins[it])
                         )
                         colIndex += 1
-                        val artifact = Variable(
-                            colIndex,
-                            lowerBound = Flt64.zero,
-                            upperBound = Flt64.infinity,
-                            type = Continuous,
-                            origin = null,
-                            dualOrigin = null,
-                            slack = null,
-                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_artifact",
-                            initialResult = Flt64.zero
+                        val artifact = artifactVariable(
+                            constraintIndex = it,
+                            role = "artifact",
+                            index = colIndex
                         )
                         colIndex += 1
 
@@ -1431,16 +1737,10 @@ data class LinearTriadModel(
                     }
 
                     ConstraintRelation.Equal -> {
-                        val artifact = Variable(
-                            index = colIndex,
-                            lowerBound = Flt64.zero,
-                            upperBound = Flt64.infinity,
-                            type = Continuous,
-                            origin = null,
-                            dualOrigin = null,
-                            slack = null,
-                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_artifact",
-                            initialResult = Flt64.zero
+                        val artifact = artifactVariable(
+                            constraintIndex = it,
+                            role = "artifact",
+                            index = colIndex
                         )
                         colIndex += 1
 
@@ -1459,6 +1759,20 @@ data class LinearTriadModel(
                     }
                 }
             }
+        val constraintIdentities = this.constraints.indices.map { index ->
+            val sourceId = this.constraints.ids.getOrNull(index)?.value
+            derivedModelElementIdentity(
+                kind = ModelElementKind.Constraint,
+                role = "feasibility-constraint",
+                sourceId = sourceId,
+                sourceScope = this.constraints.identityScopeAt(index),
+                sourceOrigin = this.constraints.identityOriginAt(index),
+                sourceProvenance = this.constraints.identityProvenanceOrOriginAt(index),
+                namespace = this.constraints.identityNamespace,
+                schemaVersion = this.constraints.identitySchemaVersion,
+                discriminator = derivedDiscriminator(sourceId, "0", index.toString())
+            )
+        }
         val constraints = LinearConstraintBatch(
             sparseLhs = buildLinearSparseLhs(lhs),
             signs = this.constraints.indices.map {
@@ -1481,7 +1795,13 @@ data class LinearTriadModel(
             },
             priorities = this.constraints.indices.map {
                 this.constraints.priorities[it]
-            }
+            },
+            ids = constraintIdentities.map { ConstraintId(it.id.value) },
+            identityNamespace = this.constraints.identityNamespace,
+            identitySchemaVersion = this.constraints.identitySchemaVersion,
+            identityScopes = constraintIdentities.map { it.scope },
+            identityOrigins = constraintIdentities.map { it.origin },
+            identityProvenance = constraintIdentities.map { it.provenance }
         )
 
         val objective = artifactVariables.map {
@@ -1491,6 +1811,20 @@ data class LinearTriadModel(
             )
         }
 
+        val objectiveIdentity = derivedModelElementIdentity(
+            kind = ModelElementKind.Objective,
+            role = "feasibility-objective",
+            sourceId = this.objective.id?.value,
+            sourceScope = this.objective.identityScope,
+            sourceOrigin = this.objective.identityOrigin,
+            sourceProvenance = (
+                this.objective.identityProvenanceOrOrigin() +
+                    this.constraints.indices.flatMap { this.constraints.identityProvenanceOrOriginAt(it) } +
+                    this.variables.flatMap { it.identityProvenanceOrOrigin() }
+                ).distinct(),
+            namespace = this.objective.identityNamespace ?: this.constraints.identityNamespace,
+            schemaVersion = this.objective.identitySchemaVersion ?: this.constraints.identitySchemaVersion
+        )
         return LinearTriadModel(
             impl = BasicLinearTriadModel(
                 variables = this.variables + (slackVariables + artifactVariables).sortedBy { it.index },
@@ -1498,8 +1832,18 @@ data class LinearTriadModel(
                 name = "$name-feasibility"
             ),
             tokensInSolver = tokensInSolver,
-            objective = LinearObjective(ObjectCategory.Minimum, objective)
-        )
+            objective = LinearObjective(
+                category = ObjectCategory.Minimum,
+                objective = objective,
+                id = ObjectiveId(objectiveIdentity.id.value),
+                identityScope = objectiveIdentity.scope,
+                identityOrigin = objectiveIdentity.origin,
+                identityNamespace = this.objective.identityNamespace ?: this.constraints.identityNamespace,
+                identitySchemaVersion = this.objective.identitySchemaVersion ?: this.constraints.identitySchemaVersion,
+                identityProvenance = objectiveIdentity.provenance
+            ),
+            identityValidation = ok
+        ).withDerivedIdentityValidation()
     }
     override fun elastic(
         minmaxSlack: Boolean,

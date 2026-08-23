@@ -6,8 +6,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * 对象引用。
- * Object reference.
+ * 对象引用。 / Object reference.
  *
  * @property path 存储路径 / Storage path
  * @property version 版本标识 / Version identifier
@@ -21,8 +20,7 @@ data class ObjectRef(
 ) {
     companion object {
         /**
-         * 从字符串创建对象引用。
-         * Create object reference from strings.
+         * 从字符串创建对象引用。 / Create object reference from strings.
          *
          * @param path 对象路径 / Object path
          * @param version 对象版本 / Object version
@@ -44,8 +42,7 @@ data class ObjectRef(
 }
 
 /**
- * 存储对象。
- * Stored object.
+ * 存储对象。 / Stored object.
  *
  * @property ref 对象引用 / Object reference
  * @property bytes 对象字节 / Object bytes
@@ -81,8 +78,7 @@ data class StoredObject(
 }
 
 /**
- * 检查点元数据。
- * Checkpoint metadata.
+ * 检查点元数据。 / Checkpoint metadata.
  *
  * @property taskId 任务 ID / Task ID
  * @property sliceId 切片 ID / Slice ID

@@ -14,6 +14,18 @@ data object AggregationInitializer {
         stowageAggregation: StowageAggregation,
         input: RequestDTO
     ): Ret<Aggregation> {
-        TODO("not implemented yet")
+        return Ok(
+            Aggregation(
+                aircraftModel = aircraftAggregation.aircraftModel,
+                items = stowageAggregation.items,
+                positions = stowageAggregation.positions,
+                appointment = stowageAggregation.appointment.appointment,
+                stowage = stowageAggregation.stowage,
+                load = stowageAggregation.load,
+                payload = stowageAggregation.payload,
+                totalWeight = stowageAggregation.totalWeight,
+                ballast = stowageAggregation.ballast
+            )
+        )
     }
 }

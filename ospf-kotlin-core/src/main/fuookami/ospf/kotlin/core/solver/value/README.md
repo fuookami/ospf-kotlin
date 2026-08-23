@@ -46,5 +46,5 @@ Validation utilities for checking solve value correctness and bounds.
 
 - **token** — `Token<V>` uses `IntoValue<V>` to provide the generic `result` view
 - **symbol** — Intermediate symbol evaluation uses `IntoValue<V>` for value conversion
-- **solver/output** — `FeasibleSolverOutput` provides `convertTo(converter)` using `IntoValue<V>`
+- **solver.report** — `SolveReport<Flt64>.convertTo(converter)` converts solutions and diagnostics using `IntoValue<V>`
 - **solver** — Solver `solve()` methods accept `IntoValue<V>` for generic solving

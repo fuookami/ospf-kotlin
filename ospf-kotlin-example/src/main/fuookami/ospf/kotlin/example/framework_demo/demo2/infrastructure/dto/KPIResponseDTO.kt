@@ -18,8 +18,8 @@ data class KPIResponseDTO(
      * Constructs an error response from a failed request.
      * 从失败请求构造错误响应。
      *
-     * @param request the original request DTO / 原始请求DTO
-     * @param error the error encountered during processing / 处理过程中遇到的错误
+     * @param request 原始请求DTO / the original request DTO
+     * @param error 处理过程中遇到的错误 / the error encountered during processing
     */
     constructor(
         request: RequestDTO,

@@ -1,9 +1,7 @@
 /**
- * 符号量纲注册表
- * Symbol Dimension Registry
+ * 符号量纲注册表 / Symbol Dimension Registry
  *
- * 维护符号到量纲的映射，用于表达式构造前/后的量纲校验。
- * Maintains symbol-to-dimension mapping for dimension validation before/after expression construction.
+ * 维护符号到量纲的映射，用于表达式构造前/后的量纲校验。 / Maintains symbol-to-dimension mapping for dimension validation before/after expression construction.
  *
  * 主要用途 / Main use cases:
  * - 在构建符号表达式前验证量纲语义 / Validate dimension semantics before building symbol expressions
@@ -29,11 +27,9 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 运算类型
- * Operation type
+ * 运算类型 / Operation type
  *
- * 用于量纲推导时指定运算类型。
- * Used to specify operation type for dimension inference.
+ * 用于量纲推导时指定运算类型。 / Used to specify operation type for dimension inference.
 */
 enum class Operation {
     /**
@@ -58,11 +54,9 @@ enum class Operation {
 }
 
 /**
- * 符号量纲注册表
- * Symbol dimension registry
+ * 符号量纲注册表 / Symbol dimension registry
  *
- * 维护符号到量纲的映射，用于表达式构造前/后的量纲校验。
- * Maintains symbol-to-dimension mapping for dimension validation before/after expression construction.
+ * 维护符号到量纲的映射，用于表达式构造前/后的量纲校验。 / Maintains symbol-to-dimension mapping for dimension validation before/after expression construction.
  *
  * 使用 ConcurrentHashMap 保证线程安全。
  * Uses ConcurrentHashMap for thread safety.
@@ -71,8 +65,7 @@ class SymbolDimensionRegistry {
     private val symbolDimensions = ConcurrentHashMap<Symbol, DimensionedSymbol>()
 
     /**
-     * 注册符号及其量纲
-     * Register symbol with its dimension
+     * 注册符号及其量纲 / Register symbol with its dimension
      *
      * 示例 / Example:
      * ```kotlin
@@ -87,8 +80,7 @@ class SymbolDimensionRegistry {
     }
 
     /**
-     * 获取符号的量纲信息
-     * Get dimension info for a symbol
+     * 获取符号的量纲信息 / Get dimension info for a symbol
      *
      * 示例 / Example:
      * ```kotlin
@@ -104,11 +96,9 @@ class SymbolDimensionRegistry {
     }
 
     /**
-     * 校验加减运算的量纲一致性
-     * Validate dimension consistency for add/sub operations
+     * 校验加减运算的量纲一致性 / Validate dimension consistency for add/sub operations
      *
-     * 确保所有符号具有相同的量纲，否则返回 Failed。
-     * Ensures all symbols have the same dimension, otherwise returns Failed.
+     * 确保所有符号具有相同的量纲，否则返回 Failed。 / Ensures all symbols have the same dimension, otherwise returns Failed.
      *
      * 示例 / Example:
      * ```kotlin
@@ -147,11 +137,9 @@ class SymbolDimensionRegistry {
     }
 
     /**
-     * 推导运算结果的量纲
-     * Infer result dimension from operation
+     * 推导运算结果的量纲 / Infer result dimension from operation
      *
-     * 根据运算类型推导两个符号运算结果的量纲。
-     * Infers the dimension of operation result based on operation type.
+     * 根据运算类型推导两个符号运算结果的量纲。 / Infers the dimension of operation result based on operation type.
      *
      * 规则 / Rules:
      * - 加减: 结果量纲与操作数相同 / Add/Subtract: result dimension same as operands
@@ -199,8 +187,7 @@ class SymbolDimensionRegistry {
     }
 
     /**
-     * 检查符号是否已注册
-     * Check if symbol is registered
+     * 检查符号是否已注册 / Check if symbol is registered
      *
      * 示例 / Example:
      * ```kotlin
@@ -215,8 +202,7 @@ class SymbolDimensionRegistry {
     }
 
     /**
-     * 移除符号注册
-     * Remove symbol registration
+     * 移除符号注册 / Remove symbol registration
      *
      * 示例 / Example:
      * ```kotlin
@@ -231,8 +217,7 @@ class SymbolDimensionRegistry {
     }
 
     /**
-     * 清空所有注册
-     * Clear all registrations
+     * 清空所有注册 / Clear all registrations
      *
      * 示例 / Example:
      * ```kotlin

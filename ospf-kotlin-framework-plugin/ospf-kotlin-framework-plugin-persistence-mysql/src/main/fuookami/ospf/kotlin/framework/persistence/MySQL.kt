@@ -1,9 +1,7 @@
 /**
- * MySQL 数据库客户端管理
- * MySQL database client management
+ * MySQL 数据库客户端管理 / MySQL database client management
  *
- * 提供 MySQL 数据源的初始化和管理功能。
- * Provides MySQL datasource initialization and management functionality.
+ * 提供 MySQL 数据源的初始化和管理功能。 / Provides MySQL datasource initialization and management functionality.
 */
 package fuookami.ospf.kotlin.framework.persistence
 
@@ -26,8 +24,7 @@ data class MySQLClientKey(
 )
 
 /**
- * MySQL 配置构建器
- * MySQL configuration builder
+ * MySQL 配置构建器 / MySQL configuration builder
  *
  * @property url 数据库连接 URL / Database connection URL
  * @property name 客户端名称 / Client name
@@ -122,19 +119,16 @@ data class MySQLConfig(
 }
 
 /**
- * MySQL 客户端管理器
- * MySQL client manager
+ * MySQL 客户端管理器 / MySQL client manager
  *
- * 管理多个 MySQL 数据源实例，按名称和数据库索引。
- * Manages multiple MySQL datasource instances, indexed by name and database.
+ * 管理多个 MySQL 数据源实例，按名称和数据库索引。 / Manages multiple MySQL datasource instances, indexed by name and database.
 */
 object MySQL {
     @get:Synchronized
     private val clients: MutableMap<MySQLClientKey, BasicDataSource> = HashMap()
 
     /**
-     * 初始化并获取 MySQL 数据库连接
-     * Initialize and get MySQL database connection
+     * 初始化并获取 MySQL 数据库连接 / Initialize and get MySQL database connection
      *
      * @param builder 配置构建器 lambda / Configuration builder lambda
      * @return Ktorm 数据库实例，初始化失败时返回 null / Ktorm database instance, or null if initialization fails
@@ -147,8 +141,7 @@ object MySQL {
     }
 
     /**
-     * 获取或创建 MySQL 数据库连接
-     * Get or create MySQL database connection
+     * 获取或创建 MySQL 数据库连接 / Get or create MySQL database connection
      *
      * @param config MySQL 配置 / MySQL configuration
      * @return Ktorm 数据库实例，创建失败时返回 null / Ktorm database instance, or null if creation fails
@@ -181,8 +174,7 @@ object MySQL {
     }
 
     /**
-     * 按键获取已注册的 MySQL 数据库连接
-     * Get registered MySQL database connection by key
+     * 按键获取已注册的 MySQL 数据库连接 / Get registered MySQL database connection by key
      *
      * @param key 客户端键（为 null 时返回第一个）/ Client key (returns first if null)
      * @return Ktorm 数据库实例，未找到时返回 null / Ktorm database instance, or null if not found
@@ -199,8 +191,7 @@ object MySQL {
     }
 
     /**
-     * 按名称获取已注册的 MySQL 数据库连接
-     * Get registered MySQL database connection by name
+     * 按名称获取已注册的 MySQL 数据库连接 / Get registered MySQL database connection by name
      *
      * @param name 客户端名称 / Client name
      * @param dataBase 数据库名称（可选）/ Database name (optional)

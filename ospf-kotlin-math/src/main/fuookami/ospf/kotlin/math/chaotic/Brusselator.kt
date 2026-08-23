@@ -1,12 +1,9 @@
 /**
- * 布鲁塞尔振子
- * Brusselator
+ * 布鲁塞尔振子 / Brusselator
  *
  * 布鲁塞尔振子是由 Ilya Prigogine 在布鲁塞尔自由大学提出的化学反应动力学模型。
  * 该模型描述了自催化化学反应中的振荡行为，是非平衡态热力学和化学反应动力学研究的重要范例。
- * 常用于化学反应动力学研究、自组织现象分析和非线性动力学教学。
- *
- * The Brusselator is a chemical reaction kinetics model proposed by Ilya Prigogine at the Free University of Brussels.
+ * 常用于化学反应动力学研究、自组织现象分析和非线性动力学教学。 / The Brusselator is a chemical reaction kinetics model proposed by Ilya Prigogine at the Free University of Brussels.
  * This model describes oscillatory behavior in autocatalytic chemical reactions, serving as an important example for nonequilibrium thermodynamics and chemical reaction kinetics research.
  * Commonly used for chemical reaction kinetics research, self-organization phenomena analysis, and nonlinear dynamics education.
 */
@@ -20,8 +17,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 布鲁塞尔振子
- * Brusselator
+ * 布鲁塞尔振子 / Brusselator
  *
  * @property a 系统参数 a / System parameter a
  * @property b 系统参数 b / System parameter b
@@ -53,8 +49,7 @@ data class Brusselator<V : FloatingNumber<V>>(
 }
 
 /**
- * 布鲁塞尔振子生成噌
- * Brusselator Generator
+ * 布鲁塞尔振子生成噌 / Brusselator Generator
 */
 data class BrusselatorGenerator(
     val brusselator: Brusselator<Flt64> = Brusselator(),

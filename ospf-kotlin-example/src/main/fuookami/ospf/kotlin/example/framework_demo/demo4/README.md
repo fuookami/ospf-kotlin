@@ -86,6 +86,60 @@ demo4/
       service/BranchAndPriceAlgorithm.kt -- Branch-and-price solver
 ```
 
+## bunch_generation in detail
+
+`bunch_generation` is the **pricing sub-problem** in branch-and-price. It generates new columns with negative reduced cost.
+
+### Core flow
+
+1. **Initialization** (`AggregationInitializer`)
+   - Build `FlightTaskReverse` for reversible task pairs.
+   - Build one `RouteGraph` per aircraft with BFS.
+   - Generate initial bunches with `InitialFlightTaskBunchGenerator`.
+
+2. **Pricing** (`FlightTaskBunchGenerator`)
+   - Run the Label Setting algorithm.
+   - Traverse graph nodes in topological order, or use a label queue when order changes are enabled.
+   - Accumulate task shadow prices.
+   - Apply dominance pruning and the per-node label limit.
+   - Return bunches whose reduced cost is negative.
+
+3. **Output**
+   - New bunch columns.
+   - Route graph and pricing diagnostics for the latest generation round.
+
+### Key concepts
+
+| Concept | Meaning |
+| --- | --- |
+| `shadow price` | The dual value of a master constraint and its marginal cost. |
+| `reduced cost` | Original cost minus the applicable shadow prices; a negative value identifies a useful column. |
+| `initial bunch` | An initial feasible column for an aircraft, preserving locked tasks. |
+| `generated bunch` | A new column found by the pricing sub-problem. |
+| `dominance` | At the same node, retain labels that are no worse in cost, time, and aircraft-change state. |
+
+### Boundary with compilation and selection
+
+| Module | Responsibility | Does not own |
+| --- | --- | --- |
+| `bunch_generation` | Route graph, initial bunches, pricing, and generation diagnostics. | Master constraints, fleet balance, or solution parsing. |
+| `bunch_compilation` | Master constraint registration, fleet balance, and flight links. | Label Setting, route graph construction, or reduced-cost search. |
+| `bunch_selection` | Branch-and-price orchestration, shadow-price extraction, and column addition. | The concrete pricing rules. |
+
+The master solver passes shadow prices to `BunchGenerationContext.generateFlightTaskBunch`; the context reuses its static graphs and exposes the latest `routeGraphDiagnostics` and `pricingDiagnostics` to the calling flow.
+
+## Reference Mapping
+
+| Kotlin responsibility | FSRA reference | Rust reference | Intentional difference |
+| --- | --- | --- | --- |
+| `bunch_generation/BunchGenerationContext.kt`, `AggregationInitializer.kt` | `fsra-domain-bunch-generation-context` aggregation and initialization | `ospf-rust-example/src/framework` bunch-generation context | Kotlin keeps an object context and `Try`/`Ret` error flow; Rust ownership and trait boundaries are not copied literally. |
+| `RouteGraphGenerator.kt`, `FlightTaskReverse.kt` | FSRA route graph and reverse-task services | Rust route graph and reverse-task services | Kotlin uses `Graph`, `Node`, and `Edge` domain objects and records route-graph diagnostics. |
+| `FlightTaskBunchGenerator.kt` | FSRA pricing and label-setting logic | Rust pricing sub-problem | Kotlin reuses a static graph across pricing rounds and exposes label diagnostics through the context. |
+| `bunch_compilation` | FSRA master/bunch compilation context | Rust master model and column compilation | Both own master constraints; pricing and graph traversal remain in `bunch_generation`. |
+| `bunch_selection/BranchAndPriceAlgorithm.kt` | FSRA branch-and-price orchestration | Rust branch-and-price orchestration | Kotlin delegates the iteration mechanics to the generic framework algorithm. |
+
+The references are available locally at `E:/workspace/ospf/ospf-rust` and `E:/workspace/fsra-proof`. The FSRA cost-validity guard (`cost == null || !cost.valid`) and label-setting behavior have been checked against `fsra-domain-bunch-generation-context`; Kotlin retains its `Try`/`Ret` boundary and static-graph reuse as documented above.
+
 ## Generic Quantity Sample
 
 The `Demo4GenericQuantitySample` object demonstrates how to use framework generic types:
@@ -125,5 +179,5 @@ fun main() {
 ## Local Validation
 
 ```powershell
-mvn -B -ntp -pl ospf-kotlin-example -Pcore-demo-only test
+mvn -B -ntp -pl ospf-kotlin-example -Pdemo4-only test
 ```

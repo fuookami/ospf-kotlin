@@ -27,8 +27,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 }
 
 /**
- * 生产规划：在设备工时约束下最大化利润。
- * Production planning: maximize profit subject to equipment man-hour constraints.
+ * 生产规划：在设备工时约束下最大化利润。 / Production planning: maximize profit subject to equipment man-hour constraints.
  *
  * @see https://fuookami.github.io/ospf/examples/example8.html
 */
@@ -211,7 +210,7 @@ data object Demo8 {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
             is Ok -> {
-                metaModel.tokens.setSolution(ret.value.solution)
+                metaModel.tokens.setSolution(ret.value.values)
             }
 
             is Failed -> {

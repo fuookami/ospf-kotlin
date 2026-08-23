@@ -1,17 +1,14 @@
 /**
- * 二维投影形状
- * 2D Projection Shape
+ * 二维投影形状 / 2D Projection Shape
  *
- * 定义二维投影形状的密封接口，支持圆形和矩形等投影形状。
- * Defines sealed interface for 2D projection shapes, supporting circles, rectangles, and other projection shapes.
+ * 定义二维投影形状的密封接口，支持圆形和矩形等投影形状。 / Defines sealed interface for 2D projection shapes, supporting circles, rectangles, and other projection shapes.
 */
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 /**
- * 二维投影形状的密封接口，支持圆形和矩形。
- * Sealed interface for 2D projection shapes, supporting circles and rectangles.
+ * 二维投影形状的密封接口，支持圆形和矩形。 / Sealed interface for 2D projection shapes, supporting circles and rectangles.
  *
  * @param V 数值类型 / The numeric type
 */
@@ -27,8 +24,7 @@ sealed interface Projection2<V : FloatingNumber<V>>
 typealias Shape2<V> = Projection2<V>
 
 /**
- * 二维圆形投影，由半径定义。
- * 2D circle projection defined by radius.
+ * 二维圆形投影，由半径定义。 / 2D circle projection defined by radius.
  *
  * @param V 数值类型 / The numeric type
  * @property radius 半径 / The radius
@@ -41,8 +37,7 @@ data class Circle2<V : FloatingNumber<V>>(
     val diameter: V get() = quantityPlus(radius, radius)
 
     /**
-     * 计算面积
-     * Compute the area
+     * 计算面积 / Compute the area
      *
      * @param pi 圆周率值 / The pi value
      * @return 面积 / The area
@@ -53,14 +48,13 @@ data class Circle2<V : FloatingNumber<V>>(
      * Create a bounding box at the origin.
      * 在原点处创建包围盒。
      *
-     * @return the bounding box at the origin / 原点处的包围盒
+     * @return 原点处的包围盒 / the bounding box at the origin
     */
     fun boundingBoxAtOrigin(): Box2<V> = Box2.atOrigin(this)
 }
 
 /**
- * 二维矩形投影，由宽度和高度定义。
- * 2D rectangle projection defined by width and height.
+ * 二维矩形投影，由宽度和高度定义。 / 2D rectangle projection defined by width and height.
  *
  * @param V 数值类型 / The numeric type
  * @property width 宽度 / The width
@@ -75,8 +69,7 @@ data class Rectangle2<V : FloatingNumber<V>>(
     val area: V get() = width * height
 
     /**
-     * 沿指定轴的尺寸
-     * Dimension along the specified axis
+     * 沿指定轴的尺寸 / Dimension along the specified axis
      *
      * @param axis 目标轴 / The target axis
      * @return 沿该轴的尺寸 / The dimension along the axis
@@ -89,8 +82,7 @@ data class Rectangle2<V : FloatingNumber<V>>(
     }
 
     /**
-     * 按轴置换宽高
-     * Permute width and height by axes
+     * 按轴置换宽高 / Permute width and height by axes
      *
      * @param permutation 轴置换方案 / The axis permutation
      * @return 置换后的矩形 / The permuted rectangle

@@ -1,6 +1,5 @@
 /**
- * 值类型转换接口
- * Value type conversion interface
+ * 值类型转换接口 / Value type conversion interface
 */
 package fuookami.ospf.kotlin.core.solver.value
 
@@ -9,8 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 
 /**
  * 值类型转换接口（与 Rust IntoValue<V> 对齐）。
- * 将源数值类型转换为统一的泛型值类型 V。
- * Value type conversion trait (aligns with Rust IntoValue<V>).
+ * 将源数值类型转换为统一的泛型值类型 V。 / Value type conversion trait (aligns with Rust IntoValue<V>).
  * Converts source numeric types into a unified generic value type V.
  *
  * Rust: `pub trait IntoValue<V>: Clone + Debug + PartialOrd + Send + Sync + 'static`
@@ -18,8 +16,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  * Kotlin: V is bounded by RealNumber<V> which provides all arithmetic + ordering.
  *
  * 主要用途：将 Flt64（求解器标准类型）转换为 V（泛型值类型），
- * 使函数符号能将字面量 f64 常量转换为 V。
- * The primary use case: converting Flt64 (solver standard) → V (generic value type).
+ * 使函数符号能将字面量 f64 常量转换为 V。 / The primary use case: converting Flt64 (solver standard) → V (generic value type).
  * This enables function symbols to convert literal f64 constants to V.
  *
  * 还提供 V 类型常量（零、一）和反向转换（fromValue），
@@ -30,8 +27,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 interface IntoValue<V : RealNumber<V>> {
 
     /**
-     * 将 Flt64 转换为泛型值类型 V。
-     * Convert Flt64 to generic value type V.
+     * 将 Flt64 转换为泛型值类型 V。 / Convert Flt64 to generic value type V.
      *
      * @param value Flt64 值 / Flt64 value
      * @return 转换后的 V 值 / Converted V value
@@ -51,8 +47,7 @@ interface IntoValue<V : RealNumber<V>> {
     val infinity: V get() = intoValue(Flt64.infinity)
 
     /**
-     * 将泛型值类型 V 转换回 Flt64。
-     * Convert generic value type V back to Flt64.
+     * 将泛型值类型 V 转换回 Flt64。 / Convert generic value type V back to Flt64.
      *
      * @param value V 值 / V value
      * @return 转换后的 Flt64 值 / Converted Flt64 value

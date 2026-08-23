@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.framework.persistence.expression.UpdateAssignments
 
 @DisplayName("MongoUpdateTranslator Tests / MongoDB 更新翻译器测试")
 class MongoUpdateTranslatorTest {
-    private val resolver: MongoFieldNameResolver = { path: String -> path.substringAfterLast(".") }
+    private val resolver = MongoFieldNameResolver { path: String -> path.substringAfterLast(".") }
     private val codec = MongoClientSettings.getDefaultCodecRegistry()
 
     @Test

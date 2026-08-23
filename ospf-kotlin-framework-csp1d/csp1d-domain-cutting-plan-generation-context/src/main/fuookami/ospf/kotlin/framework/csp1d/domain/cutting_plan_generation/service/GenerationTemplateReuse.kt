@@ -27,7 +27,7 @@ internal class GenerationSliceTemplateRecorder<V : RealNumber<V>> {
 /**
  * record.
  * record。
- * @param slices the list of cutting plan slices to record as a template / 要记录为模板的切割方案切片列表
+ * @param slices 要记录为模板的切割方案切片列表 / the list of cutting plan slices to record as a template
 */
     fun record(slices: List<CuttingPlanSlice<V>>) {
         recordedTemplates.add(ArrayList(slices))

@@ -4,9 +4,7 @@
  *
  * Sprott 吸引子是一类简单的混沌吸引子系统，
  * 通过最少的非线性项产生混沌动力学行为。
- * 常用于混沌动力学研究、简单混沌系统分析和时间序列生成。
- *
- * The Sprott attractor is a class of simple chaotic attractor systems
+ * 常用于混沌动力学研究、简单混沌系统分析和时间序列生成。 / The Sprott attractor is a class of simple chaotic attractor systems
  * that produce chaotic dynamics through minimal nonlinear terms.
  * Commonly used for chaotic dynamics research, simple chaotic system analysis, and time series generation.
 */
@@ -55,8 +53,7 @@ data class SprottAttractor<V : FloatingNumber<V>>(
 }
 
 /**
- * Sprott 吸引子生成器
- * Sprott Attractor Generator
+ * Sprott 吸引子生成器 / Sprott Attractor Generator
  *
  * @property attractor Sprott 吸引子实例 / Sprott attractor instance
 */

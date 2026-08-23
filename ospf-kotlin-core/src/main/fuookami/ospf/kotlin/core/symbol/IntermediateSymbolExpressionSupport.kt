@@ -3,8 +3,7 @@
 /**
  * 中间符号表达式支持 / Intermediate symbol expression support
  *
- * 提供中间符号的表达式求值、缓存和求解器边界支持。
- * Provides expression evaluation, caching, and solver boundary support for intermediate symbols.
+ * 提供中间符号的表达式求值、缓存和求解器边界支持。 / Provides expression evaluation, caching, and solver boundary support for intermediate symbols.
 */
 package fuookami.ospf.kotlin.core.symbol
 
@@ -27,16 +26,14 @@ import fuookami.ospf.kotlin.quantities.unit.reciprocal
  * IntermediateSymbol 表达式求值与缓存支持。
  * IntermediateSymbol expression evaluation and cache support.
  *
- * 说明：该文件统一维护 solver 边界上的 Flt64 视图、缓存命中策略与回写路径。
- * Note: this file centralizes Flt64 boundary views, cache-hit policy, and write-back paths at solver boundaries.
+ * 说明：该文件统一维护 solver 边界上的 Flt64 视图、缓存命中策略与回写路径。 / Note: this file centralizes Flt64 boundary views, cache-hit policy, and write-back paths at solver boundaries.
  *
  * 非目标：不在此处定义兼容层桥接 API；跨类型转换统一走显式 converter 与 SolverBoundaryCasts。
  * Non-goal: compatibility bridge APIs are not defined here; cross-type conversions must go through explicit converters and SolverBoundaryCasts.
 */
 
 /**
- * 判断是否需要准备符号（使用指定缓存键）。
- * Determine whether the symbol needs preparation (with specified cache key).
+ * 判断是否需要准备符号（使用指定缓存键）。 / Determine whether the symbol needs preparation (with specified cache key).
  *
  * @param cacheKey 缓存键 / Cache key
  * @param values 固定值映射（可空） / Fixed values map (nullable)
@@ -57,8 +54,7 @@ internal fun IntermediateSymbol<*>.shouldPrepare(
 }
 
 /**
- * 判断是否需要准备符号（使用自身作为缓存键）。
- * Determine whether the symbol needs preparation (using self as cache key).
+ * 判断是否需要准备符号（使用自身作为缓存键）。 / Determine whether the symbol needs preparation (using self as cache key).
  *
  * @param values 固定值映射（可空） / Fixed values map (nullable)
  * @param tokenTable 令牌表 / Token table
@@ -72,8 +68,7 @@ internal fun IntermediateSymbol<*>.shouldPrepare(
 }
 
 /**
- * 判断是否需要准备符号（使用固定缓存键，不区分值集合）。
- * Determine whether the symbol needs preparation (with fixed cache key, ignoring value set).
+ * 判断是否需要准备符号（使用固定缓存键，不区分值集合）。 / Determine whether the symbol needs preparation (with fixed cache key, ignoring value set).
  *
  * @param cacheKey 缓存键 / Cache key
  * @param values 固定值映射（可空） / Fixed values map (nullable)
@@ -89,8 +84,7 @@ internal fun IntermediateSymbol<*>.shouldPrepareWithFixedCacheKey(
 }
 
 /**
- * 判断是否需要准备符号（使用自身作为固定缓存键）。
- * Determine whether the symbol needs preparation (using self as fixed cache key).
+ * 判断是否需要准备符号（使用自身作为固定缓存键）。 / Determine whether the symbol needs preparation (using self as fixed cache key).
  *
  * @param values 固定值映射（可空） / Fixed values map (nullable)
  * @param tokenTable 令牌表 / Token table
@@ -104,8 +98,7 @@ internal fun IntermediateSymbol<*>.shouldPrepareWithFixedCacheKey(
 }
 
 /**
- * 若未缓存则准备符号并执行回调（使用指定缓存键）。
- * Prepare symbol and execute callback if not cached (with specified cache key).
+ * 若未缓存则准备符号并执行回调（使用指定缓存键）。 / Prepare symbol and execute callback if not cached (with specified cache key).
  *
  * @param cacheKey 缓存键 / Cache key
  * @param values 固定值映射（可空） / Fixed values map (nullable)
@@ -127,8 +120,7 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
 }
 
 /**
- * 若未缓存则准备符号并执行回调（使用自身作为缓存键）。
- * Prepare symbol and execute callback if not cached (using self as cache key).
+ * 若未缓存则准备符号并执行回调（使用自身作为缓存键）。 / Prepare symbol and execute callback if not cached (using self as cache key).
  *
  * @param values 固定值映射（可空） / Fixed values map (nullable)
  * @param tokenTable 令牌表 / Token table
@@ -144,8 +136,7 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
 }
 
 /**
- * 若未缓存则准备符号并执行回调（使用固定缓存键）。
- * Prepare symbol and execute callback if not cached (with fixed cache key).
+ * 若未缓存则准备符号并执行回调（使用固定缓存键）。 / Prepare symbol and execute callback if not cached (with fixed cache key).
  *
  * @param cacheKey 缓存键 / Cache key
  * @param values 固定值映射（可空） / Fixed values map (nullable)
@@ -167,8 +158,7 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCachedWithFixedCacheKe
 }
 
 /**
- * 若未缓存则准备符号并执行回调（使用自身作为固定缓存键）。
- * Prepare symbol and execute callback if not cached (using self as fixed cache key).
+ * 若未缓存则准备符号并执行回调（使用自身作为固定缓存键）。 / Prepare symbol and execute callback if not cached (using self as fixed cache key).
  *
  * @param values 固定值映射（可空） / Fixed values map (nullable)
  * @param tokenTable 令牌表 / Token table
@@ -184,8 +174,7 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCachedWithFixedCacheKe
 }
 
 /**
- * 使用令牌表缓存求值，若未缓存则执行计算器回调。
- * Evaluate with cached token table, execute calculator if not cached.
+ * 使用令牌表缓存求值，若未缓存则执行计算器回调。 / Evaluate with cached token table, execute calculator if not cached.
  *
  * @param tokenTable 令牌表 / Token table
  * @param converter 值转换器 / Value converter
@@ -224,8 +213,7 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
 }
 
 /**
- * 使用求解器结果列表和令牌表缓存求值，若未缓存则执行计算器回调。
- * Evaluate with solver results list and cached token table, execute calculator if not cached.
+ * 使用求解器结果列表和令牌表缓存求值，若未缓存则执行计算器回调。 / Evaluate with solver results list and cached token table, execute calculator if not cached.
  *
  * @param results 求解器结果列表 / Solver results list
  * @param tokenTable 令牌表 / Token table
@@ -260,8 +248,7 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
 }
 
 /**
- * 使用固定值映射和令牌表缓存求值，若未缓存则执行计算器回调。
- * Evaluate with fixed values map and cached token table, execute calculator if not cached.
+ * 使用固定值映射和令牌表缓存求值，若未缓存则执行计算器回调。 / Evaluate with fixed values map and cached token table, execute calculator if not cached.
  *
  * @param values Flt64 固定值映射 / Flt64 fixed values map
  * @param tokenTable 令牌表 / Token table
@@ -306,8 +293,7 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
 }
 
 /**
- * 线性中间符号表达式，由线性多项式支持，可在求解器边界进行缓存求值。
- * Linear intermediate symbol expression backed by a linear polynomial, supporting cached evaluation at solver boundaries.
+ * 线性中间符号表达式，由线性多项式支持，可在求解器边界进行缓存求值。 / Linear intermediate symbol expression backed by a linear polynomial, supporting cached evaluation at solver boundaries.
  *
  * @property _utilsPolynomial 可变线性多项式存储 / Mutable linear polynomial storage
  * @param category 符号类别 / Symbol category
@@ -340,8 +326,7 @@ class LinearExpressionSymbol<V>(
 
     companion object {
         /**
-         * 从变量项创建线性表达式符号。
-         * Create linear expression symbol from variable item.
+         * 从变量项创建线性表达式符号。 / Create linear expression symbol from variable item.
          *
          * @param item 变量项 / Variable item
          * @param constants 实数常量定义 / Real number constants definition
@@ -370,8 +355,7 @@ class LinearExpressionSymbol<V>(
         }
 
         /**
-         * 从线性中间符号创建线性表达式符号。
-         * Create linear expression symbol from linear intermediate symbol.
+         * 从线性中间符号创建线性表达式符号。 / Create linear expression symbol from linear intermediate symbol.
          *
          * @param symbol 线性中间符号 / Linear intermediate symbol
          * @param constants 实数常量定义 / Real number constants definition
@@ -400,8 +384,7 @@ class LinearExpressionSymbol<V>(
         }
 
         /**
-         * 从不可变线性多项式创建线性表达式符号。
-         * Create linear expression symbol from immutable linear polynomial.
+         * 从不可变线性多项式创建线性表达式符号。 / Create linear expression symbol from immutable linear polynomial.
          *
          * @param polynomial 线性多项式 / Linear polynomial
          * @param parent 父级符号（可空） / Parent symbol (nullable)
@@ -428,8 +411,7 @@ class LinearExpressionSymbol<V>(
         }
 
         /**
-         * 从线性单项式创建线性表达式符号。
-         * Create linear expression symbol from linear monomial.
+         * 从线性单项式创建线性表达式符号。 / Create linear expression symbol from linear monomial.
          *
          * @param monomial 线性单项式 / Linear monomial
          * @param parent 父级符号（可空） / Parent symbol (nullable)
@@ -456,8 +438,7 @@ class LinearExpressionSymbol<V>(
         }
 
         /**
-         * 从可变线性多项式创建线性表达式符号。
-         * Create linear expression symbol from mutable linear polynomial.
+         * 从可变线性多项式创建线性表达式符号。 / Create linear expression symbol from mutable linear polynomial.
          *
          * @param polynomial 可变线性多项式 / Mutable linear polynomial
          * @param parent 父级符号（可空） / Parent symbol (nullable)
@@ -481,8 +462,7 @@ class LinearExpressionSymbol<V>(
         }
 
         /**
-         * 从常量值创建线性表达式符号。
-         * Create linear expression symbol from constant value.
+         * 从常量值创建线性表达式符号。 / Create linear expression symbol from constant value.
          *
          * @param constant 常量值 / Constant value
          * @param parent 父级符号（可空） / Parent symbol (nullable)
@@ -509,8 +489,7 @@ class LinearExpressionSymbol<V>(
         }
 
         /**
-         * 从实数常量定义创建零值线性表达式符号。
-         * Create zero-valued linear expression symbol from real number constants.
+         * 从实数常量定义创建零值线性表达式符号。 / Create zero-valued linear expression symbol from real number constants.
          *
          * @param constants 实数常量定义 / Real number constants definition
          * @param parent 父级符号（可空） / Parent symbol (nullable)
@@ -555,8 +534,7 @@ class LinearExpressionSymbol<V>(
     }
 
     /**
-     * 通过令牌表求值符号（求解器边界 Flt64 路径）。
-     * Evaluate symbol via token table (solver boundary Flt64 path).
+     * 通过令牌表求值符号（求解器边界 Flt64 路径）。 / Evaluate symbol via token table (solver boundary Flt64 path).
      *
      * @param symbol 待求值符号 / Symbol to evaluate
      * @param tokenTable 令牌表 / Token table
@@ -577,8 +555,7 @@ class LinearExpressionSymbol<V>(
     }
 
     /**
-     * 通过求解器结果列表和令牌表求值符号。
-     * Evaluate symbol via solver results list and token table.
+     * 通过求解器结果列表和令牌表求值符号。 / Evaluate symbol via solver results list and token table.
      *
      * @param symbol 待求值符号 / Symbol to evaluate
      * @param results 求解器结果列表 / Solver results list
@@ -602,8 +579,7 @@ class LinearExpressionSymbol<V>(
     }
 
     /**
-     * 通过固定值映射和可空令牌表求值符号。
-     * Evaluate symbol via fixed values map and nullable token table.
+     * 通过固定值映射和可空令牌表求值符号。 / Evaluate symbol via fixed values map and nullable token table.
      *
      * @param symbol 待求值符号 / Symbol to evaluate
      * @param values Flt64 固定值映射 / Flt64 fixed values map
@@ -625,8 +601,7 @@ class LinearExpressionSymbol<V>(
     }
 
     /**
-     * 通过 Flt64 令牌列表直接求值符号。
-     * Evaluate symbol directly via Flt64 token list.
+     * 通过 Flt64 令牌列表直接求值符号。 / Evaluate symbol directly via Flt64 token list.
      *
      * @param symbol 待求值符号 / Symbol to evaluate
      * @param tokenList Flt64 令牌列表 / Flt64 token list
@@ -645,8 +620,7 @@ class LinearExpressionSymbol<V>(
     }
 
     /**
-     * 通过求解器结果列表和 Flt64 令牌列表求值符号。
-     * Evaluate symbol via solver results list and Flt64 token list.
+     * 通过求解器结果列表和 Flt64 令牌列表求值符号。 / Evaluate symbol via solver results list and Flt64 token list.
      *
      * @param symbol 待求值符号 / Symbol to evaluate
      * @param results 求解器结果列表 / Solver results list
@@ -667,8 +641,7 @@ class LinearExpressionSymbol<V>(
     }
 
     /**
-     * 通过固定值映射和 Flt64 令牌列表求值符号。
-     * Evaluate symbol via fixed values map and Flt64 token list.
+     * 通过固定值映射和 Flt64 令牌列表求值符号。 / Evaluate symbol via fixed values map and Flt64 token list.
      *
      * @param symbol 待求值符号 / Symbol to evaluate
      * @param values Flt64 固定值映射 / Flt64 fixed values map
@@ -697,8 +670,7 @@ class LinearExpressionSymbol<V>(
             .toSet()
 
     /**
-     * 计算线性表达式的 Flt64 值域。
-     * Calculate the Flt64 value range of the linear expression.
+     * 计算线性表达式的 Flt64 值域。 / Calculate the Flt64 value range of the linear expression.
      *
      * @return Flt64 值域，若依赖符号无值域则返回 null / Flt64 value range, or null if dependency symbols have no range
     */
@@ -744,8 +716,7 @@ class LinearExpressionSymbol<V>(
     )
 
     /**
-     * 从依赖符号中获取绑定的令牌表并转换为 Flt64 视图。
-     * Retrieve the bound token table from dependencies and cast to Flt64 view.
+     * 从依赖符号中获取绑定的令牌表并转换为 Flt64 视图。 / Retrieve the bound token table from dependencies and cast to Flt64 view.
      *
      * @return Flt64 令牌表，若无可用依赖则返回 null / Flt64 token table, or null if no dependency provides one
     */
@@ -780,8 +751,7 @@ class LinearExpressionSymbol<V>(
     }
 
     /**
-     * 在求解器边界准备符号值，使用 Flt64 视图求值后转换回目标类型。
-     * Prepare symbol value at solver boundary, evaluate using Flt64 view then convert back.
+     * 在求解器边界准备符号值，使用 Flt64 视图求值后转换回目标类型。 / Prepare symbol value at solver boundary, evaluate using Flt64 view then convert back.
      *
      * @param values 固定值映射（可空） / Fixed values map (nullable)
      * @param tokenTable 令牌表 / Token table
@@ -837,8 +807,7 @@ class LinearExpressionSymbol<V>(
     }
 
     /**
-     * 使用 Flt64 令牌列表直接求值。
-     * Evaluate directly using Flt64 token list.
+     * 使用 Flt64 令牌列表直接求值。 / Evaluate directly using Flt64 token list.
      *
      * @param tokenList Flt64 令牌列表 / Flt64 token list
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
@@ -877,8 +846,7 @@ class LinearExpressionSymbol<V>(
     }
 
     /**
-     * 使用求解器结果列表在求解器边界求值。
-     * Evaluate at solver boundary using solver results list.
+     * 使用求解器结果列表在求解器边界求值。 / Evaluate at solver boundary using solver results list.
      *
      * @param results 求解器结果列表 / Solver results list
      * @param tokenTable 令牌表 / Token table
@@ -899,8 +867,7 @@ class LinearExpressionSymbol<V>(
     }
 
     /**
-     * 使用固定值映射在求解器边界求值。
-     * Evaluate at solver boundary using fixed values map.
+     * 使用固定值映射在求解器边界求值。 / Evaluate at solver boundary using fixed values map.
      *
      * @param values Flt64 固定值映射 / Flt64 fixed values map
      * @param tokenTable 令牌表（可空） / Token table (nullable)
@@ -936,8 +903,7 @@ class LinearExpressionSymbol<V>(
     }
 
     /**
-     * 使用求解器结果列表和 Flt64 令牌列表求值。
-     * Evaluate using solver results list and Flt64 token list.
+     * 使用求解器结果列表和 Flt64 令牌列表求值。 / Evaluate using solver results list and Flt64 token list.
      *
      * @param results 求解器结果列表 / Solver results list
      * @param tokenList Flt64 令牌列表 / Flt64 token list
@@ -955,8 +921,7 @@ class LinearExpressionSymbol<V>(
     }
 
     /**
-     * 使用固定值映射和 Flt64 令牌列表求值。
-     * Evaluate using fixed values map and Flt64 token list.
+     * 使用固定值映射和 Flt64 令牌列表求值。 / Evaluate using fixed values map and Flt64 token list.
      *
      * @param values Flt64 固定值映射 / Flt64 fixed values map
      * @param tokenList Flt64 令牌列表（可空） / Flt64 token list (nullable)
@@ -995,8 +960,7 @@ class LinearExpressionSymbol<V>(
 }
 
 /**
- * 二次中间符号表达式，由二次多项式支持，可在求解器边界进行缓存求值。
- * Quadratic intermediate symbol expression backed by a quadratic polynomial, supporting cached evaluation at solver boundaries.
+ * 二次中间符号表达式，由二次多项式支持，可在求解器边界进行缓存求值。 / Quadratic intermediate symbol expression backed by a quadratic polynomial, supporting cached evaluation at solver boundaries.
  *
  * @property _utilsPolynomial 可变二次多项式存储 / Mutable quadratic polynomial storage
  * @param category 符号类别 / Symbol category
@@ -1029,8 +993,7 @@ class QuadraticExpressionSymbol<V>(
 
     companion object {
         /**
-         * 从变量项创建二次表达式符号。
-         * Create quadratic expression symbol from variable item.
+         * 从变量项创建二次表达式符号。 / Create quadratic expression symbol from variable item.
          *
          * @param item 变量项 / Variable item
          * @param constants 实数常量定义 / Real number constants definition
@@ -1059,8 +1022,7 @@ class QuadraticExpressionSymbol<V>(
         }
 
         /**
-         * 从线性中间符号创建二次表达式符号。
-         * Create quadratic expression symbol from linear intermediate symbol.
+         * 从线性中间符号创建二次表达式符号。 / Create quadratic expression symbol from linear intermediate symbol.
          *
          * @param symbol 线性中间符号 / Linear intermediate symbol
          * @param constants 实数常量定义 / Real number constants definition
@@ -1089,8 +1051,7 @@ class QuadraticExpressionSymbol<V>(
         }
 
         /**
-         * 从二次中间符号创建二次表达式符号。
-         * Create quadratic expression symbol from quadratic intermediate symbol.
+         * 从二次中间符号创建二次表达式符号。 / Create quadratic expression symbol from quadratic intermediate symbol.
          *
          * @param symbol 二次中间符号 / Quadratic intermediate symbol
          * @param constants 实数常量定义 / Real number constants definition
@@ -1119,8 +1080,7 @@ class QuadraticExpressionSymbol<V>(
         }
 
         /**
-         * 从不可变线性多项式创建二次表达式符号。
-         * Create quadratic expression symbol from immutable linear polynomial.
+         * 从不可变线性多项式创建二次表达式符号。 / Create quadratic expression symbol from immutable linear polynomial.
          *
          * @param polynomial 线性多项式 / Linear polynomial
          * @param parent 父级符号（可空） / Parent symbol (nullable)
@@ -1148,8 +1108,7 @@ class QuadraticExpressionSymbol<V>(
         }
 
         /**
-         * 从线性单项式创建二次表达式符号。
-         * Create quadratic expression symbol from linear monomial.
+         * 从线性单项式创建二次表达式符号。 / Create quadratic expression symbol from linear monomial.
          *
          * @param monomial 线性单项式 / Linear monomial
          * @param parent 父级符号（可空） / Parent symbol (nullable)
@@ -1177,8 +1136,7 @@ class QuadraticExpressionSymbol<V>(
         }
 
         /**
-         * 从不可变二次多项式创建二次表达式符号。
-         * Create quadratic expression symbol from immutable quadratic polynomial.
+         * 从不可变二次多项式创建二次表达式符号。 / Create quadratic expression symbol from immutable quadratic polynomial.
          *
          * @param polynomial 二次多项式 / Quadratic polynomial
          * @param parent 父级符号（可空） / Parent symbol (nullable)
@@ -1205,8 +1163,7 @@ class QuadraticExpressionSymbol<V>(
         }
 
         /**
-         * 从二次单项式创建二次表达式符号。
-         * Create quadratic expression symbol from quadratic monomial.
+         * 从二次单项式创建二次表达式符号。 / Create quadratic expression symbol from quadratic monomial.
          *
          * @param monomial 二次单项式 / Quadratic monomial
          * @param parent 父级符号（可空） / Parent symbol (nullable)
@@ -1233,8 +1190,7 @@ class QuadraticExpressionSymbol<V>(
         }
 
         /**
-         * 从可变二次多项式创建二次表达式符号。
-         * Create quadratic expression symbol from mutable quadratic polynomial.
+         * 从可变二次多项式创建二次表达式符号。 / Create quadratic expression symbol from mutable quadratic polynomial.
          *
          * @param polynomial 可变二次多项式 / Mutable quadratic polynomial
          * @param parent 父级符号（可空） / Parent symbol (nullable)
@@ -1258,8 +1214,7 @@ class QuadraticExpressionSymbol<V>(
         }
 
         /**
-         * 从常量值创建二次表达式符号。
-         * Create quadratic expression symbol from constant value.
+         * 从常量值创建二次表达式符号。 / Create quadratic expression symbol from constant value.
          *
          * @param constant 常量值 / Constant value
          * @param parent 父级符号（可空） / Parent symbol (nullable)
@@ -1286,8 +1241,7 @@ class QuadraticExpressionSymbol<V>(
         }
 
         /**
-         * 从实数常量定义创建零值二次表达式符号。
-         * Create zero-valued quadratic expression symbol from real number constants.
+         * 从实数常量定义创建零值二次表达式符号。 / Create zero-valued quadratic expression symbol from real number constants.
          *
          * @param constants 实数常量定义 / Real number constants definition
          * @param parent 父级符号（可空） / Parent symbol (nullable)
@@ -1332,8 +1286,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     /**
-     * 通过令牌表求值符号（求解器边界 Flt64 路径）。
-     * Evaluate symbol via token table (solver boundary Flt64 path).
+     * 通过令牌表求值符号（求解器边界 Flt64 路径）。 / Evaluate symbol via token table (solver boundary Flt64 path).
      *
      * @param symbol 待求值符号 / Symbol to evaluate
      * @param tokenTable 令牌表 / Token table
@@ -1354,8 +1307,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     /**
-     * 通过求解器结果列表和令牌表求值符号。
-     * Evaluate symbol via solver results list and token table.
+     * 通过求解器结果列表和令牌表求值符号。 / Evaluate symbol via solver results list and token table.
      *
      * @param symbol 待求值符号 / Symbol to evaluate
      * @param results 求解器结果列表 / Solver results list
@@ -1379,8 +1331,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     /**
-     * 通过固定值映射和可空令牌表求值符号。
-     * Evaluate symbol via fixed values map and nullable token table.
+     * 通过固定值映射和可空令牌表求值符号。 / Evaluate symbol via fixed values map and nullable token table.
      *
      * @param symbol 待求值符号 / Symbol to evaluate
      * @param values Flt64 固定值映射 / Flt64 fixed values map
@@ -1402,8 +1353,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     /**
-     * 通过 Flt64 令牌列表直接求值符号。
-     * Evaluate symbol directly via Flt64 token list.
+     * 通过 Flt64 令牌列表直接求值符号。 / Evaluate symbol directly via Flt64 token list.
      *
      * @param symbol 待求值符号 / Symbol to evaluate
      * @param tokenList Flt64 令牌列表 / Flt64 token list
@@ -1423,8 +1373,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     /**
-     * 通过求解器结果列表和 Flt64 令牌列表求值符号。
-     * Evaluate symbol via solver results list and Flt64 token list.
+     * 通过求解器结果列表和 Flt64 令牌列表求值符号。 / Evaluate symbol via solver results list and Flt64 token list.
      *
      * @param symbol 待求值符号 / Symbol to evaluate
      * @param results 求解器结果列表 / Solver results list
@@ -1446,8 +1395,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     /**
-     * 通过固定值映射和 Flt64 令牌列表求值符号。
-     * Evaluate symbol via fixed values map and Flt64 token list.
+     * 通过固定值映射和 Flt64 令牌列表求值符号。 / Evaluate symbol via fixed values map and Flt64 token list.
      *
      * @param symbol 待求值符号 / Symbol to evaluate
      * @param values Flt64 固定值映射 / Flt64 fixed values map
@@ -1485,8 +1433,7 @@ class QuadraticExpressionSymbol<V>(
             .toSet()
 
     /**
-     * 计算二次表达式的 Flt64 值域。
-     * Calculate the Flt64 value range of the quadratic expression.
+     * 计算二次表达式的 Flt64 值域。 / Calculate the Flt64 value range of the quadratic expression.
      *
      * @return Flt64 值域，若依赖符号无值域则返回 null / Flt64 value range, or null if dependency symbols have no range
     */
@@ -1561,8 +1508,7 @@ class QuadraticExpressionSymbol<V>(
     )
 
     /**
-     * 从依赖符号中获取绑定的令牌表并转换为 Flt64 视图。
-     * Retrieve the bound token table from dependencies and cast to Flt64 view.
+     * 从依赖符号中获取绑定的令牌表并转换为 Flt64 视图。 / Retrieve the bound token table from dependencies and cast to Flt64 view.
      *
      * @return Flt64 令牌表，若无可用依赖则返回 null / Flt64 token table, or null if no dependency provides one
     */
@@ -1597,8 +1543,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     /**
-     * 在求解器边界准备符号值，使用 Flt64 视图求值后转换回目标类型。
-     * Prepare symbol value at solver boundary, evaluate using Flt64 view then convert back.
+     * 在求解器边界准备符号值，使用 Flt64 视图求值后转换回目标类型。 / Prepare symbol value at solver boundary, evaluate using Flt64 view then convert back.
      *
      * @param values 固定值映射（可空） / Fixed values map (nullable)
      * @param tokenTable 令牌表 / Token table
@@ -1613,11 +1558,9 @@ class QuadraticExpressionSymbol<V>(
         return if (values.isNullOrEmpty()) {
             var ret = _polyFlt64.constant
             for (monomial in _polyFlt64.monomials) {
-                val sym1Value = evaluateSymbol(monomial.symbol1, tokenTable, converter, false)
-                if (sym1Value == null) return null
+                val sym1Value = evaluateSymbol(monomial.symbol1, tokenTable, converter, false) ?: return null
                 val termValue = if (monomial.symbol2 != null) {
-                    val sym2Value = evaluateSymbol(monomial.symbol2!!, tokenTable, converter, false)
-                    if (sym2Value == null) return null
+                    val sym2Value = evaluateSymbol(monomial.symbol2!!, tokenTable, converter, false) ?: return null
                     sym1Value * sym2Value
                 } else sym1Value
                 ret += monomial.coefficient * termValue
@@ -1626,11 +1569,9 @@ class QuadraticExpressionSymbol<V>(
         } else {
             var ret = _polyFlt64.constant
             for (monomial in _polyFlt64.monomials) {
-                val sym1Value = evaluateSymbol(monomial.symbol1, values, tokenTable, converter, false)
-                if (sym1Value == null) return null
+                val sym1Value = evaluateSymbol(monomial.symbol1, values, tokenTable, converter, false) ?: return null
                 val termValue = if (monomial.symbol2 != null) {
-                    val sym2Value = evaluateSymbol(monomial.symbol2!!, values, tokenTable, converter, false)
-                    if (sym2Value == null) return null
+                    val sym2Value = evaluateSymbol(monomial.symbol2!!, values, tokenTable, converter, false) ?: return null
                     sym1Value * sym2Value
                 } else sym1Value
                 ret += monomial.coefficient * termValue
@@ -1673,8 +1614,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     /**
-     * 使用 Flt64 令牌列表直接求值。
-     * Evaluate directly using Flt64 token list.
+     * 使用 Flt64 令牌列表直接求值。 / Evaluate directly using Flt64 token list.
      *
      * @param tokenList Flt64 令牌列表 / Flt64 token list
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
@@ -1723,8 +1663,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     /**
-     * 使用求解器结果列表和 Flt64 令牌列表求值。
-     * Evaluate using solver results list and Flt64 token list.
+     * 使用求解器结果列表和 Flt64 令牌列表求值。 / Evaluate using solver results list and Flt64 token list.
      *
      * @param results 求解器结果列表 / Solver results list
      * @param tokenList Flt64 令牌列表 / Flt64 token list
@@ -1747,8 +1686,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     /**
-     * 使用求解器结果列表在求解器边界求值。
-     * Evaluate at solver boundary using solver results list.
+     * 使用求解器结果列表在求解器边界求值。 / Evaluate at solver boundary using solver results list.
      *
      * @param results 求解器结果列表 / Solver results list
      * @param tokenTable 令牌表 / Token table
@@ -1774,8 +1712,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     /**
-     * 使用固定值映射和 Flt64 令牌列表求值。
-     * Evaluate using fixed values map and Flt64 token list.
+     * 使用固定值映射和 Flt64 令牌列表求值。 / Evaluate using fixed values map and Flt64 token list.
      *
      * @param values Flt64 固定值映射 / Flt64 fixed values map
      * @param tokenList Flt64 令牌列表（可空） / Flt64 token list (nullable)
@@ -1799,8 +1736,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     /**
-     * 使用固定值映射在求解器边界求值。
-     * Evaluate at solver boundary using fixed values map.
+     * 使用固定值映射在求解器边界求值。 / Evaluate at solver boundary using fixed values map.
      *
      * @param values Flt64 固定值映射 / Flt64 fixed values map
      * @param tokenTable 令牌表（可空） / Token table (nullable)
@@ -1868,8 +1804,7 @@ class QuadraticExpressionSymbol<V>(
 }
 
 /**
- * 将线性中间符号与物理单位相乘，创建量纲符号。
- * Multiply linear intermediate symbol by physical unit to create quantity symbol.
+ * 将线性中间符号与物理单位相乘，创建量纲符号。 / Multiply linear intermediate symbol by physical unit to create quantity symbol.
  *
  * @param rhs 物理单位 / Physical unit
  * @return 量纲线性中间符号 / Quantity linear intermediate symbol
@@ -1879,8 +1814,7 @@ operator fun <V> LinearIntermediateSymbol<V>.times(rhs: PhysicalUnit): Quantity<
 }
 
 /**
- * 将线性中间符号除以物理单位，创建量纲符号。
- * Divide linear intermediate symbol by physical unit to create quantity symbol.
+ * 将线性中间符号除以物理单位，创建量纲符号。 / Divide linear intermediate symbol by physical unit to create quantity symbol.
  *
  * @param rhs 物理单位 / Physical unit
  * @return 量纲线性中间符号 / Quantity linear intermediate symbol
@@ -1890,8 +1824,7 @@ operator fun <V> LinearIntermediateSymbol<V>.div(rhs: PhysicalUnit): Quantity<Li
 }
 
 /**
- * 将二次中间符号与物理单位相乘，创建量纲符号。
- * Multiply quadratic intermediate symbol by physical unit to create quantity symbol.
+ * 将二次中间符号与物理单位相乘，创建量纲符号。 / Multiply quadratic intermediate symbol by physical unit to create quantity symbol.
  *
  * @param rhs 物理单位 / Physical unit
  * @return 量纲二次中间符号 / Quantity quadratic intermediate symbol
@@ -1901,8 +1834,7 @@ operator fun <V> QuadraticIntermediateSymbol<V>.times(rhs: PhysicalUnit): Quanti
 }
 
 /**
- * 将二次中间符号除以物理单位，创建量纲符号。
- * Divide quadratic intermediate symbol by physical unit to create quantity symbol.
+ * 将二次中间符号除以物理单位，创建量纲符号。 / Divide quadratic intermediate symbol by physical unit to create quantity symbol.
  *
  * @param rhs 物理单位 / Physical unit
  * @return 量纲二次中间符号 / Quantity quadratic intermediate symbol
@@ -1912,8 +1844,7 @@ operator fun <V> QuadraticIntermediateSymbol<V>.div(rhs: PhysicalUnit): Quantity
 }
 
 /**
- * 将两个线性中间符号相加，返回线性多项式。
- * Add two linear intermediate symbols to produce a linear polynomial.
+ * 将两个线性中间符号相加，返回线性多项式。 / Add two linear intermediate symbols to produce a linear polynomial.
  *
  * @param rhs 右侧线性中间符号 / Right-hand linear intermediate symbol
  * @return 线性多项式 / Linear polynomial
@@ -1926,8 +1857,7 @@ operator fun <V> LinearIntermediateSymbol<V>.plus(rhs: LinearIntermediateSymbol<
 }
 
 /**
- * 将两个线性中间符号相减，返回线性多项式。
- * Subtract two linear intermediate symbols to produce a linear polynomial.
+ * 将两个线性中间符号相减，返回线性多项式。 / Subtract two linear intermediate symbols to produce a linear polynomial.
  *
  * @param rhs 右侧线性中间符号 / Right-hand linear intermediate symbol
  * @return 线性多项式 / Linear polynomial

@@ -51,6 +51,65 @@ class QuickDslTest {
     }
 
     @Test
+    fun int64QuickDslShouldWork() {
+        val dsl = QuickDsl(Int64)
+        val x = TestSymbol("x")
+        val poly: LinearPolynomial<Int64> = dsl.LinearPolynomial(x)
+        assertNotNull(poly)
+        assertEquals(Int64.one, poly.monomials[0].coefficient)
+    }
+
+    @Test
+    fun intXQuickDslShouldWork() {
+        val dsl = QuickDsl(IntX)
+        val x = TestSymbol("x")
+        val poly: LinearPolynomial<IntX> = dsl.LinearPolynomial(x)
+        assertNotNull(poly)
+        assertEquals(IntX.one, poly.monomials[0].coefficient)
+    }
+
+    @Test
+    fun uint64QuickDslShouldWork() {
+        val dsl = QuickDsl(UInt64)
+        val x = TestSymbol("x")
+        val poly: LinearPolynomial<UInt64> = dsl.LinearPolynomial(x)
+        assertNotNull(poly)
+        assertEquals(UInt64.one, poly.monomials[0].coefficient)
+    }
+
+    @Test
+    fun uintXQuickDslShouldWork() {
+        val dsl = QuickDsl(UIntX)
+        val x = TestSymbol("x")
+        val poly: LinearPolynomial<UIntX> = dsl.LinearPolynomial(x)
+        assertNotNull(poly)
+        assertEquals(UIntX.one, poly.monomials[0].coefficient)
+    }
+
+    @Test
+    fun genericTopLevelLinearPolynomialShouldSupportCoreNumberTypes() {
+        val x = TestSymbol("x")
+
+        val fltX: LinearPolynomial<FltX> = LinearPolynomial(x, FltX)
+        val flt64: LinearPolynomial<Flt64> = LinearPolynomial(x, Flt64)
+        val rtnX: LinearPolynomial<RtnX> = LinearPolynomial(x, RtnX)
+        val rtn64: LinearPolynomial<Rtn64> = LinearPolynomial(x, Rtn64)
+        val uintX: LinearPolynomial<UIntX> = LinearPolynomial(x, UIntX)
+        val uint64: LinearPolynomial<UInt64> = LinearPolynomial(x, UInt64)
+        val intX: LinearPolynomial<IntX> = LinearPolynomial(x, IntX)
+        val int64: LinearPolynomial<Int64> = LinearPolynomial(x, Int64)
+
+        assertEquals(FltX.one, fltX.monomials.single().coefficient)
+        assertEquals(Flt64.one, flt64.monomials.single().coefficient)
+        assertEquals(RtnX.one, rtnX.monomials.single().coefficient)
+        assertEquals(Rtn64.one, rtn64.monomials.single().coefficient)
+        assertEquals(UIntX.one, uintX.monomials.single().coefficient)
+        assertEquals(UInt64.one, uint64.monomials.single().coefficient)
+        assertEquals(IntX.one, intX.monomials.single().coefficient)
+        assertEquals(Int64.one, int64.monomials.single().coefficient)
+    }
+
+    @Test
     fun sumVarsShouldWork() {
         val dsl = QuickDsl(FltX)
         val x = TestSymbol("x")

@@ -1,9 +1,7 @@
 /**
- * 线性空间概念
- * Linear Spaces Concept
+ * 线性空间概念 / Linear Spaces Concept
  *
- * 定义线性空间相关的代数结构接口，包括全序、向量空间、赋范空间和内积空间。
- * Defines algebraic structure interfaces related to linear spaces, including total ordering, vector space, normed space, and inner product space.
+ * 定义线性空间相关的代数结构接口，包括全序、向量空间、赋范空间和内积空间。 / Defines algebraic structure interfaces related to linear spaces, including total ordering, vector space, normed space, and inner product space.
 */
 package fuookami.ospf.kotlin.math.algebra.concept
 
@@ -11,17 +9,14 @@ import fuookami.ospf.kotlin.utils.functional.Ord
 import fuookami.ospf.kotlin.math.operator.*
 
 /**
- * 全序接口
- * Totally Ordered Interface
+ * 全序接口 / Totally Ordered Interface
  *
- * 定义全序关系，继承自 Ord 接口。
- * Defines total ordering relation, extending from Ord interface.
+ * 定义全序关系，继承自 Ord 接口。 / Defines total ordering relation, extending from Ord interface.
 */
 interface TotallyOrdered<Self : Comparable<Self>> : Ord<Self> {
 
     /**
-     * 获取自身（CRTP 模式的类型安全转换）
-     * Get self (type-safe cast for CRTP pattern)
+     * 获取自身（CRTP 模式的类型安全转换） / Get self (type-safe cast for CRTP pattern)
      *
      * @return 当前实例的 Self 类型引用 / The Self-typed reference to this instance
     */
@@ -33,8 +28,7 @@ interface TotallyOrdered<Self : Comparable<Self>> : Ord<Self> {
     }
 
     /**
-     * 取两个值中的较小值
-     * Get the minimum of two values
+     * 取两个值中的较小值 / Get the minimum of two values
      *
      * @param rhs 另一个值 / The other value
      * @return 较小值 / The minimum value
@@ -42,8 +36,7 @@ interface TotallyOrdered<Self : Comparable<Self>> : Ord<Self> {
     fun minValue(rhs: Self): Self = if (self() <= rhs) self() else rhs
 
     /**
-     * 取两个值中的较大值
-     * Get the maximum of two values
+     * 取两个值中的较大值 / Get the maximum of two values
      *
      * @param rhs 另一个值 / The other value
      * @return 较大值 / The maximum value
@@ -51,8 +44,7 @@ interface TotallyOrdered<Self : Comparable<Self>> : Ord<Self> {
     fun maxValue(rhs: Self): Self = if (self() >= rhs) self() else rhs
 
     /**
-     * 判断值是否在指定范围册
-     * Check if the value is within the specified range
+     * 判断值是否在指定范围册 / Check if the value is within the specified range
      *
      * @param lower 下界
      * @param upper 上界
@@ -62,8 +54,7 @@ interface TotallyOrdered<Self : Comparable<Self>> : Ord<Self> {
     fun isBetween(lower: Self, upper: Self): Boolean = self() >= lower && self() <= upper
 
     /**
-     * 将值限制在指定范围册
-     * Clamp the value to the specified range
+     * 将值限制在指定范围册 / Clamp the value to the specified range
      *
      * @param lower 下界
      * @param upper 上界
@@ -78,11 +69,9 @@ interface TotallyOrdered<Self : Comparable<Self>> : Ord<Self> {
 }
 
 /**
- * 向量空间接口
- * Vector Space Interface
+ * 向量空间接口 / Vector Space Interface
  *
- * 向量空间是一个集合，支持向量加法、减法和标量缩放运算。
- * A vector space is a set that supports vector addition, subtraction, and scalar multiplication.
+ * 向量空间是一个集合，支持向量加法、减法和标量缩放运算。 / A vector space is a set that supports vector addition, subtraction, and scalar multiplication.
  *
  * @param Self 向量类型
  * @param Scalar 标量类型
@@ -90,8 +79,7 @@ interface TotallyOrdered<Self : Comparable<Self>> : Ord<Self> {
 interface VectorSpace<Self : VectorSpace<Self, Scalar>, Scalar> : Plus<Self, Self>, Minus<Self, Self> {
 
     /**
-     * 标量缩放运算
-     * Scalar multiplication operation
+     * 标量缩放运算 / Scalar multiplication operation
      *
      * @param rhs 标量倌
      * @return 缩放后的向量
@@ -101,11 +89,9 @@ interface VectorSpace<Self : VectorSpace<Self, Scalar>, Scalar> : Plus<Self, Sel
 }
 
 /**
- * 赋范空间接口
- * Normed Space Interface
+ * 赋范空间接口 / Normed Space Interface
  *
- * 赋范空间是一个向量空间，具有范数和单位向量概念。
- * A normed space is a vector space with norm and unit vector concepts.
+ * 赋范空间是一个向量空间，具有范数和单位向量概念。 / A normed space is a vector space with norm and unit vector concepts.
  *
  * @param Self 向量类型
  * @param Scalar 标量类型
@@ -114,20 +100,17 @@ interface NormedSpace<Self : VectorSpace<Self, Scalar>, Scalar> : VectorSpace<Se
         where Scalar : RealNumber<Scalar>, Scalar : NumberField<Scalar> {
 
     /**
-     * 向量的范敌
-     * The norm of the vector
+     * 向量的范敌 / The norm of the vector
     */
     val norm: Scalar
 
     /**
-     * 单位向量
-     * The unit vector
+     * 单位向量 / The unit vector
     */
     val unit: Self
 
     /**
-     * 计算范数的平方
-     * Compute the squared norm
+     * 计算范数的平方 / Compute the squared norm
      *
      * @return 范数的平方值
      * @return The squared norm value
@@ -137,8 +120,7 @@ interface NormedSpace<Self : VectorSpace<Self, Scalar>, Scalar> : VectorSpace<Se
     }
 
     /**
-     * 归一化向量，返回单位向量
-     * Normalize the vector to return a unit vector
+     * 归一化向量，返回单位向量 / Normalize the vector to return a unit vector
      *
      * @return 归一化后的单位向量，若范数为零则返回 null
      * @return The normalized unit vector, or null if the norm is zero
@@ -153,11 +135,9 @@ interface NormedSpace<Self : VectorSpace<Self, Scalar>, Scalar> : VectorSpace<Se
 }
 
 /**
- * 内积空间接口
- * Inner Product Space Interface
+ * 内积空间接口 / Inner Product Space Interface
  *
- * 内积空间是一个赋范空间，支持内积运算。
- * An inner product space is a normed space that supports dot product operation.
+ * 内积空间是一个赋范空间，支持内积运算。 / An inner product space is a normed space that supports dot product operation.
  *
  * @param Self 向量类型
  * @param Scalar 标量类型
@@ -166,8 +146,7 @@ interface InnerProductSpace<Self : InnerProductSpace<Self, Scalar>, Scalar> : No
         where Scalar : RealNumber<Scalar>, Scalar : NumberField<Scalar> {
 
     /**
-     * 内积运算
-     * Dot product operation
+     * 内积运算 / Dot product operation
      *
      * @param rhs 另一个向里
      * @return 内积倌
@@ -176,8 +155,7 @@ interface InnerProductSpace<Self : InnerProductSpace<Self, Scalar>, Scalar> : No
     infix fun dot(rhs: Self): Scalar
 
     /**
-     * 计算两个向量之间的夹角（弧度）
-     * Compute the angle (in radians) between two vectors
+     * 计算两个向量之间的夹角（弧度） / Compute the angle (in radians) between two vectors
      *
      * @param rhs 另一个向量
      * @return 夹角（弧度），若任一范数为零则返回 null
@@ -195,8 +173,7 @@ interface InnerProductSpace<Self : InnerProductSpace<Self, Scalar>, Scalar> : No
     }
 
     /**
-     * 判断两个向量是否正交
-     * Check whether two vectors are orthogonal
+     * 判断两个向量是否正交 / Check whether two vectors are orthogonal
      *
      * @param rhs 另一个向量
      * @param epsilon 容差值
@@ -208,8 +185,7 @@ interface InnerProductSpace<Self : InnerProductSpace<Self, Scalar>, Scalar> : No
     }
 
     /**
-     * 计算两个向量的余弦相似度
-     * Compute the cosine similarity between two vectors
+     * 计算两个向量的余弦相似度 / Compute the cosine similarity between two vectors
      *
      * @param rhs 另一个向量
      * @return 余弦相似度值，若任一范数为零则返回 null
@@ -225,8 +201,7 @@ interface InnerProductSpace<Self : InnerProductSpace<Self, Scalar>, Scalar> : No
     }
 
     /**
-     * 计算当前向量在另一个向量上的投影
-     * Compute the projection of this vector onto another vector
+     * 计算当前向量在另一个向量上的投影 / Compute the projection of this vector onto another vector
      *
      * @param rhs 目标向量
      * @return 投影向量，若目标向量范数为零则返回 null
@@ -242,8 +217,7 @@ interface InnerProductSpace<Self : InnerProductSpace<Self, Scalar>, Scalar> : No
     }
 
     /**
-     * 计算当前向量相对于另一个向量的正交分量
-     * Compute the orthogonal component of this vector with respect to another vector
+     * 计算当前向量相对于另一个向量的正交分量 / Compute the orthogonal component of this vector with respect to another vector
      *
      * @param rhs 参考向量
      * @return 正交分量，若投影不存在则返回 null

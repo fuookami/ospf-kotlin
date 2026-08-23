@@ -28,9 +28,7 @@ import kotlin.time.Instant
 
 /**
  * 将求解流程中的任务对象收敛为目标任务类型。
- * 任务列表与编译产物来自同一上下文，构建路径保证运行期类型不变量。
- *
- * Narrows task objects in the solving flow to the target task type.
+ * 任务列表与编译产物来自同一上下文，构建路径保证运行期类型不变量。 / Narrows task objects in the solving flow to the target task type.
  * The task list and compilation artifacts come from the same context,
  * so the construction path owns the runtime type invariant.
 */

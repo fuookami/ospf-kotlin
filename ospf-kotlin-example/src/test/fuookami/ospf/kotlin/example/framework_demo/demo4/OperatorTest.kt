@@ -18,19 +18,19 @@ class OperatorTest {
 
     @Test
     fun `RuleChecker can be assigned as lambda`() {
-        val checker: RuleChecker = { _, _, _ -> true }
+        val checker = RuleChecker { _, _, _ -> true }
         assertNotNull(checker)
     }
 
     @Test
     fun `ConnectionTimeCalculator can be assigned as lambda`() {
-        val calculator: ConnectionTimeCalculator = { _, _, _ -> Duration.ZERO }
+        val calculator = ConnectionTimeCalculator { _, _, _ -> Duration.ZERO }
         assertNotNull(calculator)
     }
 
     @Test
     fun `MinimumDepartureTimeCalculator can be assigned as lambda`() {
-        val calculator: MinimumDepartureTimeCalculator = { arrivalTime, _, _, connectionTime ->
+        val calculator = MinimumDepartureTimeCalculator { arrivalTime, _, _, connectionTime ->
             arrivalTime + connectionTime
         }
         assertNotNull(calculator)
@@ -38,13 +38,13 @@ class OperatorTest {
 
     @Test
     fun `CostCalculator can be assigned as lambda`() {
-        val calculator: CostCalculator = { _, _, _, _, _ -> null }
+        val calculator = CostCalculator { _, _, _, _, _ -> null }
         assertNotNull(calculator)
     }
 
     @Test
     fun `TotalCostCalculator can be assigned as lambda`() {
-        val calculator: TotalCostCalculator = { _, _ -> null }
+        val calculator = TotalCostCalculator { _, _ -> null }
         assertNotNull(calculator)
     }
 }

@@ -28,14 +28,14 @@ typealias Quadruple4<T> = Quadruple<T, T, T, T>
  * Represents a tuple of four values.
  * 表示包含四个值的元组。
  *
- * @param A The type of the first element / 第一个元素的类型
- * @param B The type of the second element / 第二个元素的类型
- * @param C The type of the third element / 第三个元素的类型
- * @param D The type of the fourth element / 第四个元素的类型
- * @property first The first element / 第一个元素
- * @property second The second element / 第二个元素
- * @property third The third element / 第三个元素
- * @property fourth The fourth element / 第四个元素
+ * @param A 第一个元素的类型 / The type of the first element
+ * @param B 第二个元素的类型 / The type of the second element
+ * @param C 第三个元素的类型 / The type of the third element
+ * @param D 第四个元素的类型 / The type of the fourth element
+ * @property first 第一个元素 / The first element
+ * @property second 第二个元素 / The second element
+ * @property third 第三个元素 / The third element
+ * @property fourth 第四个元素 / The fourth element
 */
 @Serializable
 data class Quadruple<A, B, C, D>(
@@ -53,7 +53,7 @@ operator fun <A, B, C, D> Quadruple<A, B, C, D>.component1() = first
  * Component operator for destructuring the second element.
  * 四元组第二个元素的解构操作符。
  *
- * @return the second element / 第二个元素
+ * @return 第二个元素 / the second element
 */
 operator fun <A, B, C, D> Quadruple<A, B, C, D>.component2() = second
 
@@ -61,7 +61,7 @@ operator fun <A, B, C, D> Quadruple<A, B, C, D>.component2() = second
  * Component operator for destructuring the third element.
  * 四元组第三个元素的解构操作符。
  *
- * @return the third element / 第三个元素
+ * @return 第三个元素 / the third element
 */
 operator fun <A, B, C, D> Quadruple<A, B, C, D>.component3() = third
 
@@ -69,7 +69,7 @@ operator fun <A, B, C, D> Quadruple<A, B, C, D>.component3() = third
  * Component operator for destructuring the fourth element.
  * 四元组第四个元素的解构操作符。
  *
- * @return the fourth element / 第四个元素
+ * @return 第四个元素 / the fourth element
 */
 operator fun <A, B, C, D> Quadruple<A, B, C, D>.component4() = fourth
 
@@ -77,7 +77,7 @@ operator fun <A, B, C, D> Quadruple<A, B, C, D>.component4() = fourth
  * Converts a homogeneous Quadruple to a List.
  * 将均质四元组转换为列表。
  *
- * @param T the type of all elements / 所有元素的类型
- * @return a list containing the four elements / 包含四个元素的列表
+ * @param T 所有元素的类型 / the type of all elements
+ * @return 包含四个元素的列表 / a list containing the four elements
 */
 fun <T> Quadruple<T, T, T, T>.toList(): List<T> = listOf(first, second, third, fourth)

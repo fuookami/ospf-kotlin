@@ -37,9 +37,9 @@ abstract class HexalySolver : AutoCloseable {
      * Initialize Hexaly optimizer
      * 初始化 Hexaly 优化器
      *
-     * @param name model name / 中文 模型名称
-     * @param callBack creating environment callback function / 中文 创建环境回调函数
-     * @return operation result / 中文 操作结果
+     * @param name 中文 模型名称 / model name
+     * @param callBack 中文 创建环境回调函数 / creating environment callback function
+     * @return 中文 操作结果 / operation result
     */
     protected suspend fun init(
         name: String,
@@ -47,7 +47,7 @@ abstract class HexalySolver : AutoCloseable {
     ): Try {
         return try {
             optimizer = HexalyOptimizer()
-            when (val callbackResult = executeCreatingEnvironmentCallback(optimizer, callBack)) {
+            when (val callbackResult = executeCreatingEnvironmentCallback(optimizer, callBack?.let { it::invoke })) {
                 is Failed -> return callbackResult
                 is Fatal -> return callbackResult
                 else -> {}
@@ -66,7 +66,7 @@ abstract class HexalySolver : AutoCloseable {
      * Execute Hexaly solving
      * 执行 Hexaly 求解
      *
-     * @return operation result / 中文 操作结果
+     * @return 中文 操作结果 / operation result
     */
     protected suspend fun solve(): Try {
         return try {
@@ -87,7 +87,7 @@ abstract class HexalySolver : AutoCloseable {
      * Analyze Hexaly solving status
      * 分析 Hexaly 求解状态
      *
-     * @return operation result / 中文 操作结果
+     * @return 中文 操作结果 / operation result
     */
     protected suspend fun analyzeStatus(): Try {
         return try {

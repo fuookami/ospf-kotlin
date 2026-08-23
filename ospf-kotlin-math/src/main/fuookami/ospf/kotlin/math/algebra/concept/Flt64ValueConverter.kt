@@ -1,6 +1,5 @@
 /**
- * Flt64 值转换接口
- * Flt64 Value Converter Interface
+ * Flt64 值转换接口 / Flt64 Value Converter Interface
  *
  * 定义数值类型与 Flt64 之间的双向转换能力，使 companion 对象可直接充当 converter，
  * 消除 core/framework 中大量重复的 flt64Converter 样板代码。
@@ -9,10 +8,8 @@
  * enabling companion objects to serve as converters directly,
  * eliminating repetitive flt64Converter boilerplate in core/framework.
  *
- * 四种核心数值类型（Flt64、FltX、Rtn64、RtnX）的 companion 对象均实现此接口，
- * 因此可直接作为 IntoValue<V> 的等价提供者使用。
- *
- * The companion objects of the four core numeric types (Flt64, FltX, Rtn64, RtnX)
+ * Flt64、FltX、Rtn64、RtnX、Int64、IntX、UInt64 和 UIntX 的 companion 对象均实现此接口，
+ * 因此可直接作为 IntoValue<V> 的等价提供者使用。 / The companion objects of Flt64, FltX, Rtn64, RtnX, Int64, IntX, UInt64, and UIntX
  * all implement this interface, and can thus be used directly as IntoValue<V>-equivalent providers.
 */
 package fuookami.ospf.kotlin.math.algebra.concept
@@ -21,14 +18,11 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * Flt64 值转换接口
- * Flt64 value converter interface
+ * Flt64 值转换接口 / Flt64 value converter interface
  *
  * 提供从 Flt64 到 V 的正向转换（intoValue）和从 V 到 Flt64 的反向转换（fromValue），
  * 以及 V 类型的零和一常量。
- * 与 core 层的 IntoValue<V> 接口语义完全对齐，但定义在 math 层以允许 companion 对象直接实现。
- *
- * Provides forward conversion from Flt64 to V (intoValue) and reverse conversion from V to Flt64 (fromValue),
+ * 与 core 层的 IntoValue<V> 接口语义完全对齐，但定义在 math 层以允许 companion 对象直接实现。 / Provides forward conversion from Flt64 to V (intoValue) and reverse conversion from V to Flt64 (fromValue),
  * along with zero and one constants in the target value type V.
  * Semantically aligned with core's IntoValue<V> interface, but defined in the math layer
  * to allow companion objects to implement it directly.
@@ -42,11 +36,10 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @param V 目标数值类型，必须是实数且满足数域约束
 */
-interface Flt64ValueConverter<V : RealNumber<V>> : HasZero<V>, HasOne<V> {
+interface Flt64ValueConverter<V : RealNumber<V>> : ArithmeticConstants<V> {
 
     /**
-     * 将 Flt64 值转换为 V 类型
-     * Convert a Flt64 value to type V
+     * 将 Flt64 值转换为 V 类型 / Convert a Flt64 value to type V
      *
      * @param value Flt64 源值
      *              The Flt64 source value
@@ -56,8 +49,7 @@ interface Flt64ValueConverter<V : RealNumber<V>> : HasZero<V>, HasOne<V> {
     fun intoValue(value: Flt64): V
 
     /**
-     * 将 V 类型值转换为 Flt64
-     * Convert a value of type V to Flt64
+     * 将 V 类型值转换为 Flt64 / Convert a value of type V to Flt64
      *
      * 默认实现使用 RealNumber 的 toFlt64() 方法。
      * Default implementation uses RealNumber's toFlt64() method.

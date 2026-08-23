@@ -25,11 +25,9 @@ import fuookami.ospf.kotlin.utils.functional.*
 */
 
 /**
- * 单变量线性分段函数：由断点和斜率定义的 y = f(x)。
- * Univariate linear piecewise function: y = f(x) defined by breakpoints and slopes.
+ * 单变量线性分段函数：由断点和斜率定义的 y = f(x)。 / Univariate linear piecewise function: y = f(x) defined by breakpoints and slopes.
  *
- * 使用二值选择变量选择激活的线段。
- * Uses binary selector variables to choose the active segment.
+ * 使用二值选择变量选择激活的线段。 / Uses binary selector variables to choose the active segment.
  *
  * @property x 输入线性多项式 / the input linear polynomial
  * @property breakpoints 断点值列表 / list of breakpoint values
@@ -178,8 +176,7 @@ class UnivariateLinearPiecewiseFunction<V>(
     }
     companion object {
         /**
-         * 创建分段线性函数实例。
-         * Create a piecewise linear function instance.
+         * 创建分段线性函数实例。 / Create a piecewise linear function instance.
          *
          * @param x 输入线性多项式 / the input linear polynomial
          * @param breakpoints 断点值列表 / list of breakpoint values
@@ -207,8 +204,7 @@ class UnivariateLinearPiecewiseFunction<V>(
             )
 
         /**
-         * 从采样点创建分段线性函数。
-         * Create a piecewise linear function from sampling points.
+         * 从采样点创建分段线性函数。 / Create a piecewise linear function from sampling points.
          *
          * @param x 输入线性多项式 / the input linear polynomial
          * @param points 采样点列表 / list of sampling points

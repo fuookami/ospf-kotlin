@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_s
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -14,7 +15,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 /**
  * 基于装载模式生成适航安全约束的管线。Generates the pipeline of airworthiness security constraints based on the stowage mode.
  *
- * @property aggregation The aggregation of all airworthiness domain models / 适航领域模型的聚合
+ * @property aggregation 适航领域模型的聚合 / The aggregation of all airworthiness domain models
 */
 data class PipelineListGenerator(
     private val aggregation: Aggregation
@@ -35,17 +36,6 @@ data class PipelineListGenerator(
                 positions = aggregation.positions
             )
         )
-
-        if (aggregation.maxUnsymmetricalLinearDensity != null) {
-            pipelines.add(
-                UnsymmetricalLinearDensityLimit(
-                    aircraftModel = aggregation.aircraftModel,
-                    maxUnsymmetricalLinearDensity = aggregation.maxUnsymmetricalLinearDensity,
-                    linearDensity = aggregation.linearDensity,
-                    positions = aggregation.positions
-                )
-            )
-        }
 
         pipelines.add(
             SurfaceDensityLimit(
@@ -91,6 +81,29 @@ data class PipelineListGenerator(
         pipelines.add(
             PayloadLimit(
                 payload = aggregation.payload,
+                minPayload = aggregation.minPayload
+            )
+        )
+
+        pipelines.add(
+            LongitudinalMomentLimit(
+                torque = aggregation.torque,
+                min = Quantity(
+                    aggregation.targetLongitudinalMoment.value - aggregation.maxLongitudinalMomentDeviation.value,
+                    aggregation.targetLongitudinalMoment.unit
+                ),
+                max = Quantity(
+                    aggregation.targetLongitudinalMoment.value + aggregation.maxLongitudinalMomentDeviation.value,
+                    aggregation.targetLongitudinalMoment.unit
+                ),
+                name = "target_longitudinal_moment_limit"
+            )
+        )
+
+        pipelines.add(
+            LateralImbalanceLimit(
+                torque = aggregation.torque,
+                maxLateralImbalance = aggregation.maxLateralImbalance
             )
         )
 

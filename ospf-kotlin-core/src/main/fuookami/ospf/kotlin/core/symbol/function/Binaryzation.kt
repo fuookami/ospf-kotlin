@@ -24,11 +24,9 @@ import fuookami.ospf.kotlin.utils.functional.*
 */
 
 /**
- * 二值化函数：使用 Big-M 方法将连续变量转换为二值变量。
- * Binaryzation function: converts a continuous variable to binary using Big-M.
+ * 二值化函数：使用 Big-M 方法将连续变量转换为二值变量。 / Binaryzation function: converts a continuous variable to binary using Big-M.
  *
- * 当 x > 0 时 y = 1，当 x <= 0 时 y = 0。
- * y = 1 if x > 0, y = 0 if x <= 0.
+ * 当 x > 0 时 y = 1，当 x <= 0 时 y = 0。 / y = 1 if x > 0, y = 0 if x <= 0.
  *
  * @property polynomial 输入线性多项式 / Input linear polynomial
  * @property resultVar 结果变量 / Result variable

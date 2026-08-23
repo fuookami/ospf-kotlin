@@ -1,6 +1,5 @@
 /**
- * 渲染器数据传输对象。
- * Renderer data transfer objects.
+ * 渲染器数据传输对象。 / Renderer data transfer objects.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto
 

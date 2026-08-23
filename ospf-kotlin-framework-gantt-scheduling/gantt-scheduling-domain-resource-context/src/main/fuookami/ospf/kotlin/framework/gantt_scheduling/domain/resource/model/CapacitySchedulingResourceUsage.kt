@@ -15,8 +15,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
 /**
  * 产能调度场景的资源使用量管理抽象基类 / Abstract base class for resource usage in Capacity Scheduling
  *
- * 提供产能调度场景下资源使用量计算的通用框架
- * Provides a common framework for resource usage calculation in capacity scheduling scenarios
+ * 提供产能调度场景下资源使用量计算的通用框架 / Provides a common framework for resource usage calculation in capacity scheduling scenarios
  *
  * @param A 生产动作类型 / Production action type
  * @param S 资源时间槽类型 / Resource time slot type

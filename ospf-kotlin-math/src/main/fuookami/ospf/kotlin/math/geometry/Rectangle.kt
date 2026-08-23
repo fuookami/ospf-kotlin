@@ -1,9 +1,7 @@
 /**
- * 矩形
- * Rectangle
+ * 矩形 / Rectangle
  *
- * 定义几何空间中的矩形数据结构，由四个顶点定义，支持面积、凸性检测、交集等操作。
- * Defines rectangle data structure in geometric space, defined by four vertices, supporting area, convexity detection, intersection, etc.
+ * 定义几何空间中的矩形数据结构，由四个顶点定义，支持面积、凸性检测、交集等操作。 / Defines rectangle data structure in geometric space, defined by four vertices, supporting area, convexity detection, intersection, etc.
 */
 package fuookami.ospf.kotlin.math.geometry
 
@@ -14,8 +12,7 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.ordinary.*
 
 /**
- * 通用矩形，由四个顶点定义（不要求轴对齐）。
- * General rectangle defined by four vertices (not necessarily axis-aligned).
+ * 通用矩形，由四个顶点定义（不要求轴对齐）。 / General rectangle defined by four vertices (not necessarily axis-aligned).
  *
  * @param P 点类型 / The point type
  * @param D 维度类型 / The dimension type
@@ -33,8 +30,7 @@ data class Rectangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
 ) {
     companion object {
         /**
-         * 通过左上角和右下角创建二维轴对齐矩形
-         * Create a 2D axis-aligned rectangle from left-upper and right-bottom corners
+         * 通过左上角和右下角创建二维轴对齐矩形 / Create a 2D axis-aligned rectangle from left-upper and right-bottom corners
          *
          * @param leftUpperPoint 左上角点 / The left-upper corner point
          * @param rightBottomPoint 右下角点 / The right-bottom corner point
@@ -94,8 +90,7 @@ data class Rectangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
 }
 
 /**
- * 判断指定点是否在矩形内
- * Check whether a point is inside the rectangle
+ * 判断指定点是否在矩形内 / Check whether a point is inside the rectangle
  *
  * @param point 待检测的点 / The point to check
  * @param withLowerBound 是否包含下界 / Whether to include the lower bound

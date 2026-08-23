@@ -1,26 +1,21 @@
 /**
- * 物理量最小/最大值函数
- * Minimum/Maximum Functions for Physical Quantities
+ * 物理量最小/最大值函数 / Minimum/Maximum Functions for Physical Quantities
  *
- * 提供物理量之间的最小值和最大值比较函数。
- * Provides minimum and maximum comparison functions between physical quantities.
+ * 提供物理量之间的最小值和最大值比较函数。 / Provides minimum and maximum comparison functions between physical quantities.
  *
- * 基于 PartialOrd 进行比较，支持无法比较（返回 null）的情况。
- * Based on PartialOrd for comparison, supports incomparable cases (returns null).
+ * 基于 PartialOrd 进行比较，支持无法比较（返回 null）的情况。 / Based on PartialOrd for comparison, supports incomparable cases (returns null).
 */
 package fuookami.ospf.kotlin.quantities.quantity
 
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 获取两个物理量中的较小值
- * Get the minimum of two quantities
+ * 获取两个物理量中的较小值 / Get the minimum of two quantities
  *
  * 基于 PartialOrd 进行比较。如果 lhs <= rhs，返回 lhs；否则返回 rhs。
  * Compares based on PartialOrd. Returns lhs if lhs <= rhs, otherwise returns rhs.
  *
- * 当量纲不匹配或值无法比较时，返回 null。
- * Returns null when dimensions don't match or values are incomparable.
+ * 当量纲不匹配或值无法比较时，返回 null。 / Returns null when dimensions don't match or values are incomparable.
  *
  * 示例 / Example:
  * ```kotlin
@@ -51,14 +46,12 @@ fun <T : PartialOrd<T>> min(lhs: Quantity<T>, rhs: Quantity<T>): Quantity<T>? = 
 }
 
 /**
- * 获取两个物理量中的较大值
- * Get the maximum of two quantities
+ * 获取两个物理量中的较大值 / Get the maximum of two quantities
  *
  * 基于 PartialOrd 进行比较。如果 lhs >= rhs，返回 lhs；否则返回 rhs。
  * Compares based on PartialOrd. Returns lhs if lhs >= rhs, otherwise returns rhs.
  *
- * 当量纲不匹配或值无法比较时，返回 null。
- * Returns null when dimensions don't match or values are incomparable.
+ * 当量纲不匹配或值无法比较时，返回 null。 / Returns null when dimensions don't match or values are incomparable.
  *
  * 示例 / Example:
  * ```kotlin

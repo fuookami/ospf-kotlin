@@ -41,8 +41,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
     private val canonicalKeyOverride: ((CuttingPlan<V>) -> String?)? = null,
 
     /**
-     * 自定义 dominance 接受函数，返回 true 表示新候选应被接受。
-     * Custom dominance acceptance function; returns true if the new candidate should be accepted.
+     * 自定义 dominance 接受函数，返回 true 表示新候选应被接受。 / Custom dominance acceptance function; returns true if the new candidate should be accepted.
     */
     private val dominanceAcceptOverride: ((CuttingPlan<V>, List<CuttingPlan<V>>) -> Boolean)? = null
 ) {
@@ -134,7 +133,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
      * Checks whether generation should stop due to capacity or timeout.
      * 检查是否因容量已满或超时而应停止生成。
      *
-     * @return true if generation should stop / 如果应停止生成则返回 true
+     * @return 如果应停止生成则返回 true / true if generation should stop
     */
     fun shouldStop(): Boolean {
         return isFull() || isTimedOut()
@@ -144,7 +143,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
      * Checks whether the generation deadline has been exceeded.
      * 检查是否已超过生成截止时间。
      *
-     * @return true if the deadline has been exceeded / 如果已超过截止时间则返回 true
+     * @return 如果已超过截止时间则返回 true / true if the deadline has been exceeded
     */
     fun isTimedOut(): Boolean {
         if (timedOut) {
@@ -164,7 +163,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
      * 要记录的切割方案候选
      * @param feasible whether the candidate is feasible
      * 候选是否可行
-     * @return true if the plan was accepted / 如果方案被接受则返回 true
+     * @return 如果方案被接受则返回 true / true if the plan was accepted
     */
     fun record(plan: CuttingPlan<V>, feasible: Boolean): Boolean {
         generatedCandidates = generatedCandidates + Int64.one
@@ -224,7 +223,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
      *
      * @param plan the cutting plan to resolve the key for
      * 要解析 key 的切割方案
-     * @return the resolved canonical key / 解析后的 canonical key
+     * @return 解析后的 canonical key / the resolved canonical key
     */
     private fun resolveCanonicalKey(plan: CuttingPlan<V>): CuttingPlanCanonicalKey {
         val customKey = canonicalKeyOverride?.invoke(plan)
@@ -235,7 +234,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
      * Generates a report summarizing the generation results and statistics.
      * 生成汇总生成结果和统计信息的报告。
      *
-     * @return the cutting plan generation report / 切割方案生成报告
+     * @return 切割方案生成报告 / the cutting plan generation report
     */
     fun report(): CuttingPlanGenerationReport<V> {
         return CuttingPlanGenerationReport(
@@ -266,7 +265,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
      *
      * @param plan the new cutting plan candidate
      * 新的切割方案候选
-     * @return the dominance action to take / 要执行的支配动作
+     * @return 要执行的支配动作 / the dominance action to take
     */
     private fun applyDominancePruning(plan: CuttingPlan<V>): DominanceAction {
         // Note: dominanceAcceptOverride is checked in record() before this method is called,
@@ -314,15 +313,13 @@ internal class GenerationCollector<V : RealNumber<V>>(
      *
      * 新方案 dominate 旧方案当且仅当：
      * 1. 新方案覆盖旧方案全部产品（每个产品贡献 >= 旧方案）
-     * 2. 新方案余宽 <= 旧方案余宽
-     *
-     * New plan dominates existing plan iff:
+     * 2. 新方案余宽 <= 旧方案余宽 / New plan dominates existing plan iff:
      * 1. New plan covers all products of existing plan (each product contribution >= existing)
      * 2. New plan rest width <= existing plan rest width
      *
-     * @param newPlan the new cutting plan to compare / 待比较的新切割方案
-     * @param existingPlan the existing cutting plan to compare against / 待比较的已有切割方案
-     * @return whether the new plan dominates the existing plan / 新方案是否支配已有方案
+     * @param newPlan 待比较的新切割方案 / the new cutting plan to compare
+     * @param existingPlan 待比较的已有切割方案 / the existing cutting plan to compare against
+     * @return 新方案是否支配已有方案 / whether the new plan dominates the existing plan
     */
     private fun canCrossContributionDominate(
         newPlan: CuttingPlan<V>,
@@ -357,7 +354,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
      * 新的切割方案候选
      * @param existingPlan the existing cutting plan to compare against
      * 用于比较的已有切割方案
-     * @return the dominance comparison result / 支配比较结果
+     * @return 支配比较结果 / the dominance comparison result
     */
     private fun compareRestWidth(
         newPlan: CuttingPlan<V>,
@@ -379,7 +376,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
      * Checks whether the collector has reached the maximum plan capacity.
      * 检查收集器是否已达到最大方案容量。
      *
-     * @return true if the capacity is full / 如果容量已满则返回 true
+     * @return 如果容量已满则返回 true / true if the capacity is full
     */
     private fun isFull(): Boolean {
         return acceptedPlans.size.toLong() >= maxPlans.toLong()
@@ -389,7 +386,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
      * Determines the reason why generation stopped.
      * 确定生成停止的原因。
      *
-     * @return the stop reason / 停止原因
+     * @return 停止原因 / the stop reason
     */
     private fun stopReason(): CuttingPlanGenerationStopReason {
         return if (timedOut) {
@@ -407,7 +404,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
      *
      * @receiver plan the cutting plan to compute the key for
      * 要计算 key 的切割方案
-     * @return the dominance key / 支配键
+     * @return 支配键 / the dominance key
     */
     private fun CuttingPlan<V>.dominanceKey(): DominanceKey {
         return DominanceKey(
@@ -439,7 +436,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
      *
      * @receiver plan the cutting plan to compute the key for
      * 要计算 key 的切割方案
-     * @return the relaxed dominance key / 松弛支配键
+     * @return 松弛支配键 / the relaxed dominance key
     */
     private fun CuttingPlan<V>.relaxedDominanceKey(): RelaxedDominanceKey {
         return RelaxedDominanceKey(
@@ -479,10 +476,10 @@ internal class GenerationCollector<V : RealNumber<V>>(
      * Key for same-contribution dominance comparison, capturing material, machine, capacity, and demand contributions.
      * 用于同贡献支配比较的键，包含材料、机器、产能和需求贡献。
      *
-     * @property materialId the material identifier / 材料标识符
-     * @property machineId the machine identifier / 机器标识符
-     * @property capacityConsumption the capacity consumption quantity key / 产能消耗量键
-     * @property demandContributions the list of demand contribution keys / 需求贡献键列表
+     * @property materialId 材料标识符 / the material identifier
+     * @property machineId 机器标识符 / the machine identifier
+     * @property capacityConsumption 产能消耗量键 / the capacity consumption quantity key
+     * @property demandContributions 需求贡献键列表 / the list of demand contribution keys
     */
     private data class DominanceKey(
         val materialId: MaterialId,
@@ -495,9 +492,9 @@ internal class GenerationCollector<V : RealNumber<V>>(
      * Key for cross-contribution dominance comparison, capturing material, machine, and product set.
      * 用于跨贡献支配比较的键，包含材料、机器和产品集。
      *
-     * @property materialId the material identifier / 材料标识符
-     * @property machineId the machine identifier / 机器标识符
-     * @property productSet the set of product identifiers / 产品标识符集合
+     * @property materialId 材料标识符 / the material identifier
+     * @property machineId 机器标识符 / the machine identifier
+     * @property productSet 产品标识符集合 / the set of product identifiers
     */
     private data class RelaxedDominanceKey(
         val materialId: MaterialId,
@@ -509,8 +506,8 @@ internal class GenerationCollector<V : RealNumber<V>>(
      * Key representing a quantity value with its unit for dominance comparison.
      * 表示带有单位的量值键，用于支配比较。
      *
-     * @property value the quantity value as string / 量值的字符串表示
-     * @property unit the canonical unit key / 规范单位键
+     * @property value 量值的字符串表示 / the quantity value as string
+     * @property unit 规范单位键 / the canonical unit key
     */
     private data class QuantityKey(
         val value: String,
@@ -521,9 +518,9 @@ internal class GenerationCollector<V : RealNumber<V>>(
      * Key representing a single demand contribution entry for dominance comparison.
      * 表示单个需求贡献条目的键，用于支配比较。
      *
-     * @property productId the product identifier / 产品标识符
-     * @property unit the canonical unit key / 规范单位键
-     * @property quantityValue the quantity value as string / 量值的字符串表示
+     * @property productId 产品标识符 / the product identifier
+     * @property unit 规范单位键 / the canonical unit key
+     * @property quantityValue 量值的字符串表示 / the quantity value as string
     */
     private data class DemandContributionKey(
         val productId: ProductId,

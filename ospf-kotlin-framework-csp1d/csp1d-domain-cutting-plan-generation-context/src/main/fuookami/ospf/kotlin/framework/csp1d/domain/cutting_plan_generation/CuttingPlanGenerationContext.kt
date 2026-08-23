@@ -50,9 +50,7 @@ data class CuttingPlanGenerationInput<V : RealNumber<V>>(
     /**
      * 宽度可行性判断函数，返回 true 表示该产品宽度在该物料上可切。
      * 默认使用 material.widthRange.canCut(productWidth)。
-     * 下游可通过此函数放宽或替代原始宽度判断逻辑。
-     *
-     * Width feasibility check function, returns true if the product width is cuttable on the material.
+     * 下游可通过此函数放宽或替代原始宽度判断逻辑。 / Width feasibility check function, returns true if the product width is cuttable on the material.
      * Defaults to material.widthRange.canCut(productWidth).
      * Downstream can relax or replace the original width judgment logic through this function.
      *
@@ -64,16 +62,14 @@ data class CuttingPlanGenerationInput<V : RealNumber<V>>(
 
     /**
      * 自定义 canonical key 函数列表，每个返回非 null 时替代默认 canonicalKey()。
-     * 按列表顺序尝试，首个返回非 null 的值作为自定义 key。
-     * Custom canonical key function list; when any returns non-null, it replaces the default canonicalKey().
+     * 按列表顺序尝试，首个返回非 null 的值作为自定义 key。 / Custom canonical key function list; when any returns non-null, it replaces the default canonicalKey().
      * Tried in list order; the first non-null result is used as the custom key.
     */
     val canonicalKeyOverrides: List<(CuttingPlan<V>) -> String?> = emptyList(),
 
     /**
      * 自定义 dominance 接受函数列表，每个返回 true 表示新候选应被接受。
-     * 默认空列表表示不额外过滤。
-     * Custom dominance acceptance function list; each returns true if the new candidate should be accepted.
+     * 默认空列表表示不额外过滤。 / Custom dominance acceptance function list; each returns true if the new candidate should be accepted.
      * Default empty list means no extra filtering.
     */
     val dominanceAcceptOverrides: List<(CuttingPlan<V>, List<CuttingPlan<V>>) -> Boolean> = emptyList()
@@ -138,8 +134,7 @@ data class CuttingPlanGenerationStatistics(
 /**
  * 切割方案生成 benchmark 快照 / Cutting plan generation benchmark snapshot
  *
- * 该快照只包含确定性的数量类统计，适合测试和文档中做稳定比较；耗时仍保留在原始 statistics 中作为趋势观察。
- * This snapshot only contains deterministic count statistics for stable comparison in tests and docs;
+ * 该快照只包含确定性的数量类统计，适合测试和文档中做稳定比较；耗时仍保留在原始 statistics 中作为趋势观察。 / This snapshot only contains deterministic count statistics for stable comparison in tests and docs;
  * elapsed time remains in the raw statistics for trend observation.
  *
  * @property generatorName 生成器名称 / Generator name
@@ -333,8 +328,7 @@ data class Csp1dPricingInput<V : RealNumber<V>>(
 /**
  * 定价候选的方案级目标提示 / Plan-level objective hints for pricing candidates
  *
- * 这些配置只用于候选筛选和排序，不改变 LP shadow price 提取口径。
- * These settings only affect candidate filtering and ordering, not LP shadow price extraction.
+ * 这些配置只用于候选筛选和排序，不改变 LP shadow price 提取口径。 / These settings only affect candidate filtering and ordering, not LP shadow price extraction.
  *
  * @param V 数值类型 / Numeric value type
  * @property planUsagePenalty 单次方案使用惩罚 / Penalty per plan usage
@@ -547,9 +541,7 @@ class SimplePricingGenerator<V : RealNumber<V>> : Csp1dPricingGenerator<V> {
  * Reduced cost 定价生成器 / Reduced cost pricing generator
  *
  * 使用枚举子问题生成候选切割方案，通过 shadow price 计算 reduced cost，
- * 返回 reduced cost 为负的方案（即有潜力改善主问题目标的新列）。
- *
- * Uses enumeration sub-problem to generate candidate cutting plans,
+ * 返回 reduced cost 为负的方案（即有潜力改善主问题目标的新列）。 / Uses enumeration sub-problem to generate candidate cutting plans,
  * computes reduced cost via shadow prices, and returns plans with
  * negative reduced cost (columns that can improve the master problem objective).
  *
@@ -686,8 +678,7 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
     /**
      * 计算切割方案的目标函数成本 / Compute objective cost of a cutting plan
      *
-     * 基础成本为 1（表示方案使用一次），加上各项可配置惩罚。
-     * Base cost is 1 (representing one plan usage), plus configurable penalties.
+     * 基础成本为 1（表示方案使用一次），加上各项可配置惩罚。 / Base cost is 1 (representing one plan usage), plus configurable penalties.
      *
      * @param plan 切割方案 / Cutting plan
      * @param objectiveConfig 定价目标配置 / Pricing objective config

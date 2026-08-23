@@ -1,9 +1,7 @@
 /**
- * 三维包围盒
- * 3D bounding box
+ * 三维包围盒 / 3D bounding box
  *
- * 由位置坐标和长方体形状定义的三维包围盒，支持包含测试、重叠检测和求交运算。
- * A 3D bounding box defined by position coordinates and a cuboid shape, supporting containment tests, overlap detection, and intersection.
+ * 由位置坐标和长方体形状定义的三维包围盒，支持包含测试、重叠检测和求交运算。 / A 3D bounding box defined by position coordinates and a cuboid shape, supporting containment tests, overlap detection, and intersection.
 */
 package fuookami.ospf.kotlin.math.geometry
 
@@ -17,11 +15,9 @@ import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
- * 三维包围盒
- * 3D bounding box
+ * 三维包围盒 / 3D bounding box
  *
- * 由原点坐标和长方体形状定义的三维包围盒，支持包含测试、重叠检测和求交运算。
- * A 3D bounding box defined by origin coordinates and a cuboid shape, supporting containment tests, overlap detection, and intersection.
+ * 由原点坐标和长方体形状定义的三维包围盒，支持包含测试、重叠检测和求交运算。 / A 3D bounding box defined by origin coordinates and a cuboid shape, supporting containment tests, overlap detection, and intersection.
  *
  * @property x 原点的 x 坐标 / x coordinate of the origin
  * @property y 原点的 y 坐标 / y coordinate of the origin
@@ -37,8 +33,7 @@ data class QuantityBox3<V : FloatingNumber<V>>(
 ) {
     companion object {
         /**
-         * 在原点创建包围盒
-         * Create a bounding box at the origin
+         * 在原点创建包围盒 / Create a bounding box at the origin
          *
          * @param cuboid 长方体形状 / Cuboid shape
          * @param V 数值类型 / Number type
@@ -73,32 +68,28 @@ data class QuantityBox3<V : FloatingNumber<V>>(
     val maxZOrNull: Quantity<V>? get() = maxZ().value
 
     /**
-     * 获取 x 方向最大值
-     * Get the maximum x value
+     * 获取 x 方向最大值 / Get the maximum x value
      *
      * @return x 方向最大值 / Maximum x value
     */
     fun maxX(): Ret<Quantity<V>> = quantityPlusSafe(x, width)
 
     /**
-     * 获取 y 方向最大值
-     * Get the maximum y value
+     * 获取 y 方向最大值 / Get the maximum y value
      *
      * @return y 方向最大值 / Maximum y value
     */
     fun maxY(): Ret<Quantity<V>> = quantityPlusSafe(y, height)
 
     /**
-     * 获取 z 方向最大值
-     * Get the maximum z value
+     * 获取 z 方向最大值 / Get the maximum z value
      *
      * @return z 方向最大值 / Maximum z value
     */
     fun maxZ(): Ret<Quantity<V>> = quantityPlusSafe(z, depth)
 
     /**
-     * 判断点是否在包围盒内
-     * Check if a point is inside the bounding box
+     * 判断点是否在包围盒内 / Check if a point is inside the bounding box
      *
      * @param x 点的 x 坐标 / x coordinate of the point
      * @param y 点的 y 坐标 / y coordinate of the point
@@ -153,8 +144,7 @@ data class QuantityBox3<V : FloatingNumber<V>>(
     }
 
     /**
-     * 判断两个包围盒是否重叠
-     * Check if two bounding boxes overlap
+     * 判断两个包围盒是否重叠 / Check if two bounding boxes overlap
      *
      * @param rhs 另一个包围盒 / Another bounding box
      * @return 是否重叠 / Whether they overlap
@@ -242,8 +232,7 @@ data class QuantityBox3<V : FloatingNumber<V>>(
     }
 
     /**
-     * 计算两个包围盒的交集
-     * Compute the intersection of two bounding boxes
+     * 计算两个包围盒的交集 / Compute the intersection of two bounding boxes
      *
      * @param rhs 另一个包围盒 / Another bounding box
      * @return 交集包围盒，如果不相交则返回 null / Intersection box, or null if they don't intersect
@@ -362,7 +351,6 @@ data class QuantityBox3<V : FloatingNumber<V>>(
 }
 
 /**
- * 三维轴对齐包围盒别名
- * Type alias for 3D axis-aligned bounding box
+ * 三维轴对齐包围盒别名 / Type alias for 3D axis-aligned bounding box
 */
 typealias QuantityAxisAlignedBox3<V> = QuantityBox3<V>

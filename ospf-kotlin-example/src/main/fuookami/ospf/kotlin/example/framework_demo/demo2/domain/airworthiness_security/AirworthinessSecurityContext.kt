@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -34,11 +35,11 @@ class AirworthinessSecurityContext {
      * Initializes the airworthiness security aggregation from the given contexts and input.
      * 从给定的上下文和输入初始化适航安全聚合。
      *
-     * @param aircraftContext The aircraft context. / 飞机上下文
-     * @param stowageContext The stowage context. / 装载上下文
+     * @param aircraftContext 飞机上下文 / The aircraft context.
+     * @param stowageContext 装载上下文 / The stowage context.
      * @param macContext The MAC context. / MAC 上下文
-     * @param input The request DTO input data. / 请求 DTO 输入数据
-     * @return Success or failure result. / 成功或失败结果
+     * @param input 请求 DTO 输入数据 / The request DTO input data.
+     * @return 成功或失败结果 / Success or failure result.
     */
     fun init(
         aircraftContext: AircraftContext,
@@ -53,15 +54,15 @@ class AirworthinessSecurityContext {
                 macAggregation = macContext.aggregation,
                 input = input
             )) {
-                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Ok -> {
                     aggregation = result.value!!
                 }
 
-                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
             }
@@ -74,9 +75,9 @@ class AirworthinessSecurityContext {
      * Registers all airworthiness and safety constraints with the given model.
      * 将所有适航和安全约束注册到给定模型中。
      *
-     * @param stowageMode The stowage mode to use. / 使用的装载模式
-     * @param model The linear meta model to register constraints with. / 要注册约束的线性元模型
-     * @return Success or failure result. / 成功或失败结果
+     * @param stowageMode 使用的装载模式 / The stowage mode to use.
+     * @param model 要注册约束的线性元模型 / The linear meta model to register constraints with.
+     * @return 成功或失败结果 / Success or failure result.
     */
     fun register(
         stowageMode: StowageMode,
@@ -86,41 +87,41 @@ class AirworthinessSecurityContext {
             stowageMode = stowageMode,
             model = model
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
 
         val generator = PipelineListGenerator(aggregation)
         val pipelines = when (val result = generator.invoke(stowageMode)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Ok -> {
                 result.value!!
             }
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
         }
 
         for (pipeline in pipelines) {
             when (val result = pipeline(model)) {
-                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                is Ok -> {}
 
-                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Failed -> {
                     return Failed(result.error)
                 }
 
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                is Fatal -> {
                     return Fatal(result.errors)
                 }
             }
@@ -134,7 +135,7 @@ class AirworthinessSecurityContext {
      * 为 Benders 分解主问题注册约束。
      *
      * @param model The linear meta model for the master problem. / Benders 主问题的线性元模型
-     * @return Success or failure result. / 成功或失败结果
+     * @return 成功或失败结果 / Success or failure result.
     */
     fun registerForBendersMP(
         model: AbstractLinearMetaModel<Flt64>
@@ -147,13 +148,14 @@ class AirworthinessSecurityContext {
      * 为 Benders 分解子问题注册约束。
      *
      * @param model The linear meta model for the sub-problem. / Benders 子问题的线性元模型
-     * @return Success or failure result. / 成功或失败结果
+     * @return 成功或失败结果 / Success or failure result.
     */
     fun registerForBendersSP(
+        stowageMode: StowageMode,
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
         return register(
-            stowageMode = StowageMode.FullLoad,
+            stowageMode = stowageMode,
             model = model
         )
     }
@@ -163,8 +165,8 @@ class AirworthinessSecurityContext {
      * 为 Benders 分解子问题刷新状态。
      *
      * @param model The linear meta model for the sub-problem. / Benders 子问题的线性元模型
-     * @param solution The solution from the master problem. / 主问题的解
-     * @return Success or failure result. / 成功或失败结果
+     * @param solution 主问题的解 / The solution from the master problem.
+     * @return 成功或失败结果 / Success or failure result.
     */
     fun flushForBendersSP(
         model: AbstractLinearMetaModel<Flt64>,

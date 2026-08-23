@@ -14,17 +14,16 @@ import kotlin.reflect.KClass
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
+import fuookami.ospf.kotlin.framework.model.*
 
 /**
  * CSP1D 影子价格索引键 / CSP1D shadow price key
  *
- * 继承框架 ShadowPriceKey，提供 limit 属性用于约束限制类型标识。
- * Inherits from framework ShadowPriceKey, providing limit property for constraint limit type identification.
+ * 继承框架 ShadowPriceKey，提供 limit 属性用于约束限制类型标识。 / Inherits from framework ShadowPriceKey, providing limit property for constraint limit type identification.
 */
 sealed class Csp1dShadowPriceKey(
     limit: KClass<*>
-) : fuookami.ospf.kotlin.framework.model.ShadowPriceKey(limit) {
+) : ShadowPriceKey(limit) {
 
     /**
      * 键名称 / Key name
@@ -88,8 +87,7 @@ data class YieldOverProductionBoundShadowPriceKey(
 /**
  * CSP1D 影子价格参数接口 / CSP1D shadow price arguments interface
  *
- * 用于列生成管线计算 reduced cost 时传递参数。
- * Used for passing arguments when computing reduced cost in column generation pipelines.
+ * 用于列生成管线计算 reduced cost 时传递参数。 / Used for passing arguments when computing reduced cost in column generation pipelines.
 */
 interface AbstractCsp1dShadowPriceArguments
 

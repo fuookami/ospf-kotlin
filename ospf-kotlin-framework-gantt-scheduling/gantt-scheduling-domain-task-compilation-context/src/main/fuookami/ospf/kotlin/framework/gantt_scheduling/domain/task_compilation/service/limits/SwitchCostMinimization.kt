@@ -3,7 +3,9 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
@@ -30,21 +32,21 @@ class SwitchCostMinimization<
     private val executors: List<E>,
     private val tasks: List<T>,
     private val switch: Switch,
-    private val coefficient: Extractor<Flt64?, Triple<E, T, T>> = { Flt64.one },
+    private val coefficient: Extractor<Flt64?, Triple<E, T, T>> = Extractor { Flt64.one },
     override val name: String = "switch_cost_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
-        val cost = MutableLinearPolynomial<Flt64>(constant = Flt64.zero)
+        var cost = LinearPolynomial()
         for (executor in executors) {
             for (task1 in tasks) {
                 for (task2 in tasks) {
                     val thisCoefficient = coefficient(Triple(executor, task1, task2)) ?: Flt64.infinity
-                    cost += thisCoefficient * switch.switch[executor, task1, task2].toLinearPolynomial()
+                    cost += thisCoefficient * switch.switch[executor, task1, task2]
                 }
             }
         }
         when (val result = model.minimize(
-            polynomial = cost.toLinearPolynomial(),
+            polynomial = cost,
             name = "switch cost"
         )) {
             is Ok -> {}

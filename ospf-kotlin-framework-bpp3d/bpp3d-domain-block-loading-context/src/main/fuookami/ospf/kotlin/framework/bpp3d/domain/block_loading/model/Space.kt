@@ -232,8 +232,7 @@ data class Space(
         }
 
     /**
-     * 将箱子放入该空间。
-     * Put a block into this space.
+     * 将箱子放入该空间。 / Put a block into this space.
      * @param block 要放入的箱子
      * @return 放置后的新空间，如果无法放置则返回 null
      * @return the new space after placement, or null if placement is not possible
@@ -345,8 +344,7 @@ data class Space(
     }
 
     /**
-     * 转储空间中的物品列表。
-     * Dump the items in the space.
+     * 转储空间中的物品列表。 / Dump the items in the space.
      * @return 物品放置列表，如果空间为空则返回空列表
      * @return the list of item placements, or an empty list if the space is empty
     */

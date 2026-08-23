@@ -12,13 +12,13 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 /**
  * 分配给单架飞机的航班任务束（具有成本和时间跟踪）。A bunch of flight tasks assigned to a single aircraft with cost and time tracking.
  *
- * @property aircraft The assigned aircraft / 分配的飞机
- * @property time The time range of the bunch / 任务束的时间范围
- * @property dep The departure airport / 出发机场
- * @property arr The arrival airport / 到达机场
- * @property tasks The list of flight tasks / 航班任务列表
- * @property cost The cost of the bunch / 任务束的成本
- * @property iteration The iteration number / 迭代号
+ * @property aircraft 分配的飞机 / The assigned aircraft
+ * @property time 任务束的时间范围 / The time range of the bunch
+ * @property dep 出发机场 / The departure airport
+ * @property arr 到达机场 / The arrival airport
+ * @property tasks 航班任务列表 / The list of flight tasks
+ * @property cost 任务束的成本 / The cost of the bunch
+ * @property iteration 迭代号 / The iteration number
 */
 class FlightTaskBunch(
     val aircraft: Aircraft,
@@ -71,8 +71,8 @@ class FlightTaskBunch(
     /**
      * 检查此任务束是否包含给定任务。Checks whether this bunch contains the given task.
      *
-     * @param task The flight task to check / 要检查的航班任务
-     * @return true if the task is contained, false otherwise / 如果包含该任务则为true，否则为false
+     * @param task 要检查的航班任务 / The flight task to check
+     * @return 如果包含该任务则为true，否则为false / true if the task is contained, false otherwise
     */
     fun contains(task: FlightTask): Boolean {
         return keys.contains(task.key)
@@ -81,9 +81,9 @@ class FlightTaskBunch(
     /**
      * 检查此任务束是否包含两个连续任务。Checks whether this bunch contains two consecutive tasks.
      *
-     * @param prevFlightTask The preceding flight task / 前一个航班任务
-     * @param succFlightTask The succeeding flight task / 后一个航班任务
-     * @return true if both tasks are consecutive in the bunch, false otherwise / 如果两个任务在任务束中连续则为true，否则为false
+     * @param prevFlightTask 前一个航班任务 / The preceding flight task
+     * @param succFlightTask 后一个航班任务 / The succeeding flight task
+     * @return 如果两个任务在任务束中连续则为true，否则为false / true if both tasks are consecutive in the bunch, false otherwise
     */
     fun contains(prevFlightTask: FlightTask, succFlightTask: FlightTask): Boolean {
         val prevTask = keys[prevFlightTask.key]
@@ -98,8 +98,8 @@ class FlightTaskBunch(
     /**
      * 返回此任务束中给定原始任务的恢复版本。Returns the recovered version of the given origin task within this bunch.
      *
-     * @param originTask The original flight task to look up / 要查找的原始航班任务
-     * @return The recovered version of the task, or null if not found / 任务的恢复版本，未找到则为null
+     * @param originTask 要查找的原始航班任务 / The original flight task to look up
+     * @return 任务的恢复版本，未找到则为null / The recovered version of the task, or null if not found
     */
     fun get(originTask: FlightTask): FlightTask? {
         val task = keys[originTask.key]
@@ -114,9 +114,9 @@ class FlightTaskBunch(
     /**
      * 检查此任务束中是否有任务在时间窗口内到达机场。Checks whether any task in this bunch arrives at the airport within the time window.
      *
-     * @param airport The airport to check / 要检查的机场
-     * @param timeWindow The time window to check / 要检查的时间窗口
-     * @return true if any task arrives at the airport within the window, false otherwise / 如果有任务在窗口内到达机场则为true，否则为false
+     * @param airport 要检查的机场 / The airport to check
+     * @param timeWindow 要检查的时间窗口 / The time window to check
+     * @return 如果有任务在窗口内到达机场则为true，否则为false / true if any task arrives at the airport within the window, false otherwise
     */
     fun arrivedWhen(airport: Airport, timeWindow: TimeRange): Boolean {
         if (!time.withIntersection(timeWindow)) {
@@ -137,9 +137,9 @@ class FlightTaskBunch(
     /**
      * 检查此任务束中是否有任务在时间窗口内从机场出发。Checks whether any task in this bunch departs from the airport within the time window.
      *
-     * @param airport The airport to check / 要检查的机场
-     * @param timeWindow The time window to check / 要检查的时间窗口
-     * @return true if any task departs from the airport within the window, false otherwise / 如果有任务在窗口内从机场出发则为true，否则为false
+     * @param airport 要检查的机场 / The airport to check
+     * @param timeWindow 要检查的时间窗口 / The time window to check
+     * @return 如果有任务在窗口内从机场出发则为true，否则为false / true if any task departs from the airport within the window, false otherwise
     */
     fun departedWhen(airport: Airport, timeWindow: TimeRange): Boolean {
         if (!time.withIntersection(timeWindow)) {
@@ -160,9 +160,9 @@ class FlightTaskBunch(
     /**
      * 检查飞机是否在时间窗口内位于机场。Checks whether the aircraft is located at the airport within the time window.
      *
-     * @param airport The airport to check / 要检查的机场
-     * @param timeWindow The time window to check / 要检查的时间窗口
-     * @return true if the aircraft is located at the airport within the window, false otherwise / 如果飞机在窗口内位于机场则为true，否则为false
+     * @param airport 要检查的机场 / The airport to check
+     * @param timeWindow 要检查的时间窗口 / The time window to check
+     * @return 如果飞机在窗口内位于机场则为true，否则为false / true if the aircraft is located at the airport within the window, false otherwise
     */
     fun locatedWhen(airport: Airport, timeWindow: TimeRange): Boolean {
         if (tasks.first().departedWhen(airport, timeWindow)) {

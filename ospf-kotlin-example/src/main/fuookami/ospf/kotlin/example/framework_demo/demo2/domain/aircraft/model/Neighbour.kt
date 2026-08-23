@@ -31,8 +31,8 @@ val PositionPair.symmetrical get() = PositionPair(second, first)
  * An adjacency relationship between two cargo positions of a given type.
  * 给定类型的两个货物位置之间的邻接关系。
  *
- * @property type The type of neighbour relationship. / 邻接关系类型
- * @property pair The pair of positions in this relationship. / 该关系中的位置对
+ * @property type 邻接关系类型 / The type of neighbour relationship.
+ * @property pair 该关系中的位置对 / The pair of positions in this relationship.
 */
 data class Neighbour(
     val type: NeighbourType,

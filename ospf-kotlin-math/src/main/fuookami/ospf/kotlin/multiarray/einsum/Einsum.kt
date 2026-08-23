@@ -1,14 +1,11 @@
 /**
- * 爱因斯坦求和表示法模块
- * Einstein Notation Module
+ * 爱因斯坦求和表示法模块 / Einstein Notation Module
  *
- * 提供编译期类型安全的爱因斯坦求和操作。
- * Provides compile-time type-safe Einstein summation operations.
+ * 提供编译期类型安全的爱因斯坦求和操作。 / Provides compile-time type-safe Einstein summation operations.
  *
  * 核心概念 / Core Concepts:
  *
- * 爱因斯坦求和表示法的核心是隐式求和约定：当一个索引在表达式中出现两次时，自动对该索引进行求和。
- * The core of Einstein notation is the implicit summation convention:
+ * 爱因斯坦求和表示法的核心是隐式求和约定：当一个索引在表达式中出现两次时，自动对该索引进行求和。 / The core of Einstein notation is the implicit summation convention:
  * when an index appears twice in an expression, it is automatically summed over.
  *
  * 使用示例 / Usage Examples:

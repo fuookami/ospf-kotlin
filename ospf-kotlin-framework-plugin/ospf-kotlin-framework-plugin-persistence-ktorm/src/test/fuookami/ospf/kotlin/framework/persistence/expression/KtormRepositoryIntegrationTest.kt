@@ -19,6 +19,7 @@ import org.ktorm.dsl.where
 import org.ktorm.schema.int
 import org.ktorm.schema.Table
 import org.ktorm.schema.varchar
+import org.ktorm.support.sqlite.SQLiteDialect
 import fuookami.ospf.kotlin.framework.persistence.expression.translator.KtormColumnResolver
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.symbol.expression.dsl.and
@@ -57,7 +58,7 @@ class KtormRepositoryIntegrationTest {
      * 列解析器，将属性路径映射到表列
      * Column resolver, maps property paths to table columns
      */
-    private val resolver: KtormColumnResolver = { path: String ->
+    private val resolver = KtormColumnResolver { path: String ->
         when (path.substringAfterLast(".")) {
             "id" -> Users.id
             "name" -> Users.name
@@ -100,7 +101,10 @@ class KtormRepositoryIntegrationTest {
      */
     private fun createDatabase(): Database {
         val dbFile = Files.createTempFile("ktorm-repo-test", ".db").toFile().apply { deleteOnExit() }
-        val database = Database.connect("jdbc:sqlite:${dbFile.absolutePath}")
+        val database = Database.connect(
+            url = "jdbc:sqlite:${dbFile.absolutePath}",
+            dialect = SQLiteDialect()
+        )
         database.useConnection { conn ->
             conn.createStatement().use { stmt ->
                 stmt.execute("create table users(id integer primary key, name text, age integer, status text)")
@@ -328,7 +332,10 @@ class KtormRepositoryIntegrationTest {
      */
     private fun createSnakeDatabase(): Database {
         val dbFile = Files.createTempFile("ktorm-snake-test", ".db").toFile().apply { deleteOnExit() }
-        val database = Database.connect("jdbc:sqlite:${dbFile.absolutePath}")
+        val database = Database.connect(
+            url = "jdbc:sqlite:${dbFile.absolutePath}",
+            dialect = SQLiteDialect()
+        )
         database.useConnection { conn ->
             conn.createStatement().use { stmt ->
                 stmt.execute("create table snake_users(user_id integer primary key, user_name text, user_age integer, user_status text)")

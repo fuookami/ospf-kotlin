@@ -13,7 +13,6 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.multiarray.*
@@ -26,8 +25,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 typealias TaskTimeQuantity<V> = Quantity<V>
 
 /**
- * 捕获线性约束输入结果，失败时调用回调并返回 null。
- * Capture linear constraint input result, invoke callback on failure and return null.
+ * 捕获线性约束输入结果，失败时调用回调并返回 null。 / Capture linear constraint input result, invoke callback on failure and return null.
  *
  * @param result 约束输入结果 / Constraint input result
  * @param onFailure 失败时的回调函数 / Callback function on failure
@@ -444,8 +442,7 @@ abstract class TaskTimeImpl<
     override lateinit var notOnTime: LinearIntermediateSymbols1<Flt64>
 
     /**
-     * 构建带掩码的松弛符号结果，任务取消未启用时直接返回松弛符号。
-     * Build masked slack symbol result, return slack directly when task cancel is not enabled.
+     * 构建带掩码的松弛符号结果，任务取消未启用时直接返回松弛符号。 / Build masked slack symbol result, return slack directly when task cancel is not enabled.
      *
      * @param model 元模型 / Meta model
      * @param task 任务 / Task
@@ -1090,9 +1087,9 @@ abstract class TaskTimeImpl<
                         polynomial = if (delayLastEndTimeEnabled && advanceEarliestEndTimeEnabled) {
                             onLastEndTime[t].toLinearPolynomial() + onEarliestEndTime[t].toLinearPolynomial()
                         } else if (delayLastEndTimeEnabled) {
-                            LinearPolynomial(listOf(LinearMonomial(Flt64.one, onLastEndTime[t])), Flt64.zero)
+                            LinearPolynomial(onLastEndTime[t])
                         } else if (advanceEarliestEndTimeEnabled) {
-                            LinearPolynomial(listOf(LinearMonomial(Flt64.one, onEarliestEndTime[t])), Flt64.zero)
+                            LinearPolynomial(onEarliestEndTime[t])
                         } else {
                             LinearPolynomial(emptyList(), Flt64.one)
                         },
@@ -1254,9 +1251,9 @@ abstract class TaskTimeImpl<
                         polynomial = if (delayLastEndTimeEnabled && advanceEarliestEndTimeEnabled) {
                             notOnLastEndTime[t].toLinearPolynomial() + notOnEarliestEndTime[t].toLinearPolynomial()
                         } else if (delayLastEndTimeEnabled) {
-                            LinearPolynomial(listOf(LinearMonomial(Flt64.one, notOnLastEndTime[t])), Flt64.zero)
+                            LinearPolynomial(notOnLastEndTime[t])
                         } else if (advanceEarliestEndTimeEnabled) {
-                            LinearPolynomial(listOf(LinearMonomial(Flt64.one, notOnEarliestEndTime[t])), Flt64.zero)
+                            LinearPolynomial(notOnEarliestEndTime[t])
                         } else {
                             LinearPolynomial(emptyList(), Flt64.zero)
                         },
@@ -1445,7 +1442,7 @@ class TaskSchedulingTaskTime<
                                     timeBoundary.flooredValueOf(time.start)
                                 }
                                 val slack = slackSymbol(
-                                    x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, est[task])), Flt64.zero),
+                                    x = LinearPolynomial(est[task]),
                                     y = y,
                                     type = if (timeBoundary.continues) {
                                         UContinuous
@@ -1488,7 +1485,7 @@ class TaskSchedulingTaskTime<
             ) { t, _ ->
                 val task = tasks[t]
                 LinearExpressionSymbol(
-                    LinearPolynomial(listOf(LinearMonomial(Flt64.one, est[t])), Flt64.zero),
+                    LinearPolynomial(est[t]),
                     name = "estimate_start_time_${task}"
                 )
             }
@@ -1527,7 +1524,7 @@ class TaskSchedulingTaskTime<
             ) { t, _ ->
                 val task = tasks[t]
                 LinearExpressionSymbol(
-                    estimateEndTimeCalculator(task, LinearPolynomial(listOf(LinearMonomial(Flt64.one, estimateStartTime[t])), Flt64.zero)),
+                    estimateEndTimeCalculator(task, LinearPolynomial(estimateStartTime[t])),
                     name = "estimate_end_time_${task}"
                 )
             }
@@ -1645,7 +1642,7 @@ open class IterativeTaskSchedulingTaskTime<
                 val task = tasks[t]
                 LinearExpressionSymbol(
                     if (::estRedundancy.isInitialized) {
-                        LinearPolynomial(listOf(LinearMonomial(Flt64.one, estRedundancy[t])), Flt64.zero)
+                        LinearPolynomial(estRedundancy[t])
                     } else {
                         LinearPolynomial(emptyList(), Flt64.zero)
                     },
@@ -1673,7 +1670,7 @@ open class IterativeTaskSchedulingTaskTime<
                 val task = tasks[t]
                 LinearExpressionSymbol(
                     if (::estRedundancy.isInitialized) {
-                        LinearPolynomial(listOf(LinearMonomial(Flt64.one, estRedundancy[t])), Flt64.zero)
+                        LinearPolynomial(estRedundancy[t])
                     } else {
                         LinearPolynomial(emptyList(), Flt64.zero)
                     },
@@ -1720,7 +1717,7 @@ open class IterativeTaskSchedulingTaskTime<
                                 timeBoundary.flooredValueOf(time.start)
                             }
                             val slack = slackSymbol(
-                                x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, estimateStartTime[task])), Flt64.zero),
+                                x = LinearPolynomial(estimateStartTime[task]),
                                 y = y,
                                 type = if (timeBoundary.continues) {
                                     UContinuous
@@ -1756,10 +1753,10 @@ open class IterativeTaskSchedulingTaskTime<
 /**
  * Add new iterative task columns for the given iteration, updating estimate start/end time polynomials.
  * 为给定迭代添加新的迭代任务列，更新预估开始/结束时间多项式。
- * @param iteration Current iteration index / 当前迭代索引
- * @param newTasks New iterative tasks to add as columns / 要添加为新列的迭代任务列表
- * @param model Linear meta model to add columns into / 要添加列的线性元模型
- * @return Operation result / 操作结果
+ * @param iteration 当前迭代索引 / Current iteration index
+ * @param newTasks 要添加为新列的迭代任务列表 / New iterative tasks to add as columns
+ * @param model 要添加列的线性元模型 / Linear meta model to add columns into
+ * @return 操作结果 / Operation result
 */
     open fun addColumns(
         iteration: UInt64,
@@ -1784,8 +1781,8 @@ open class IterativeTaskSchedulingTaskTime<
 
                 for (newTask in thisNewTasks) {
                     val time = newTask.time!!
-                    est.asMutable() += LinearMonomial(timeBoundary.valueOf(time.start), xi[newTask])
-                    eet.asMutable() += LinearMonomial(timeBoundary.valueOf(time.end), xi[newTask])
+                    est.asMutable() += timeBoundary.valueOf(time.start) * xi[newTask]
+                    eet.asMutable() += timeBoundary.valueOf(time.end) * xi[newTask]
                 }
             }
         }

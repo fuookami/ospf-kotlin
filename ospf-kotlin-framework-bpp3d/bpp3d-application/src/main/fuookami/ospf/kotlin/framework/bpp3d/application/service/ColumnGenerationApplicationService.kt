@@ -1,6 +1,5 @@
 /**
- * 列生成应用服务。
- * Column generation application service.
+ * 列生成应用服务。 / Column generation application service.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
@@ -18,8 +17,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.*
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 
 /**
- * 物料装箱混合需求策略。
- * Material packing mixed demand policy.
+ * 物料装箱混合需求策略。 / Material packing mixed demand policy.
 */
 enum class MaterialPackingMixedDemandPolicy {
     /** 拒绝混合需求 / reject mixed demands */
@@ -31,8 +29,7 @@ enum class MaterialPackingMixedDemandPolicy {
 }
 
 /**
- * 将量纲值转换为 FltX 量纲值。
- * Converts a quantity value to FltX quantity value.
+ * 将量纲值转换为 FltX 量纲值。 / Converts a quantity value to FltX quantity value.
  *
  * @param quantity 量纲值 / quantity value
  * @return FltX 量纲值 / FltX quantity value
@@ -44,8 +41,7 @@ private fun <T : FloatingNumber<T>> toFltXQuantity(
 }
 
 /**
- * 从泛型输入构建列生成应用请求。
- * Build column generation application request from quantity inputs.
+ * 从泛型输入构建列生成应用请求。 / Build column generation application request from quantity inputs.
  *
  * @param T 量纲数值类型 / quantity numeric type
  * @param itemDemands 货物需求列表 / item demand list
@@ -124,8 +120,7 @@ fun <T : FloatingNumber<T>> columnGenerationApplicationRequestFromQuantity(
 }
 
 /**
- * 列生成应用请求。
- * Column generation application request.
+ * 列生成应用请求。 / Column generation application request.
  *
  * @property itemDemands 货物需求列表 / item demand list
  * @property materialAmountDemands 物料数量需求 / material amount demands
@@ -162,8 +157,7 @@ data class ColumnGenerationApplicationRequest(
 )
 
 /**
- * 列生成量纲应用请求。
- * Column generation quantity application request.
+ * 列生成量纲应用请求。 / Column generation quantity application request.
  *
  * @param T 量纲数值类型 / quantity numeric type
  * @property itemDemands 货物需求列表 / item demand list
@@ -201,8 +195,7 @@ data class ColumnGenerationQuantityApplicationRequest<T : FloatingNumber<T>>(
 )
 
 /**
- * 量纲应用请求转模型应用请求。
- * Convert quantity application request into model application request.
+ * 量纲应用请求转模型应用请求。 / Convert quantity application request into model application request.
  *
  * @param T 量纲数值类型 / quantity numeric type
  * @param materialCache 物料缓存 / material cache
@@ -235,8 +228,7 @@ fun <T : FloatingNumber<T>> ColumnGenerationQuantityApplicationRequest<T>.toMode
 }
 
 /**
- * 列生成应用响应。
- * Column generation application response.
+ * 列生成应用响应。 / Column generation application response.
  *
  * @property result 列生成结果 / column generation result
  * @property packingSnapshot 装箱快照（可选） / packing snapshot (optional)
@@ -291,8 +283,7 @@ fun interface ColumnGenerationApplicationAlgorithmFactory {
 }
 
 /**
- * 列生成应用服务，编排物料装箱和列生成流程。
- * Column generation application service, orchestrates material packing and column generation.
+ * 列生成应用服务，编排物料装箱和列生成流程。 / Column generation application service, orchestrates material packing and column generation.
  *
  * @property solver 列生成求解器 / column generation solver
  * @property materialPackingSolverExecutor 物料装箱求解器执行器 / material packing solver executor
@@ -305,8 +296,7 @@ class ColumnGenerationApplicationService(
 ) {
     companion object {
         /**
-         * 获取默认层生成器列表。
-         * Get default layer generator list.
+         * 获取默认层生成器列表。 / Get default layer generator list.
          *
          * @return 层生成器列表 / layer generator list
         */
@@ -324,8 +314,7 @@ class ColumnGenerationApplicationService(
     }
 
     /**
-     * 执行列生成求解。
-     * Execute column generation solving.
+     * 执行列生成求解。 / Execute column generation solving.
      *
      * @param request 应用请求 / application request
      * @param packingAnalyzer 装箱分析器（可选） / packing analyzer (optional)
@@ -448,8 +437,7 @@ class ColumnGenerationApplicationService(
     }
 
     /**
-     * 执行量纲列生成求解。
-     * Execute quantity column generation solving.
+     * 执行量纲列生成求解。 / Execute quantity column generation solving.
      *
      * @param request 量纲应用请求 / quantity application request
      * @param packingAnalyzer 装箱分析器（可选） / packing analyzer (optional)
@@ -469,8 +457,7 @@ class ColumnGenerationApplicationService(
     }
 
     /**
-     * 合并货物需求列表，相同货物的数量累加。
-     * Merge item demand lists, accumulating amounts for identical items.
+     * 合并货物需求列表，相同货物的数量累加。 / Merge item demand lists, accumulating amounts for identical items.
      *
      * @param base 基础货物需求列表 / base item demand list
      * @param extra 额外货物需求列表 / extra item demand list
@@ -491,8 +478,7 @@ class ColumnGenerationApplicationService(
     }
 
     /**
-     * 构建程序物料目录，合并物料数量需求、物料重量需求和程序物料目录中的物料。
-     * Build program material catalog by merging materials from amount demands, weight demands, and program catalog.
+     * 构建程序物料目录，合并物料数量需求、物料重量需求和程序物料目录中的物料。 / Build program material catalog by merging materials from amount demands, weight demands, and program catalog.
      *
      * @param request 列生成应用请求 / column generation application request
      * @return 物料键到物料的映射 / mapping from material key to material
@@ -514,8 +500,7 @@ class ColumnGenerationApplicationService(
     }
 
     /**
-     * 解析执行器配置，合并请求中的深度边界层轴向/朝向策略。
-     * Resolve executor config, merging the depth boundary layer orientation policy from the request.
+     * 解析执行器配置，合并请求中的深度边界层轴向/朝向策略。 / Resolve executor config, merging the depth boundary layer orientation policy from the request.
      *
      * @param request 列生成应用请求 / column generation application request
      * @return 合并后的执行器配置 / resolved executor config

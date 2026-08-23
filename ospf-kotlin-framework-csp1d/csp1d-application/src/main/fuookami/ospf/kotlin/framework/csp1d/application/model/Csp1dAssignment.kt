@@ -7,11 +7,10 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.variable.UIntVariable1
 
 /**
- * CSP1D 方案分配，包含一组无符号整数决策变量。
- * Csp1d assignment, containing a set of unsigned integer decision variables.
+ * CSP1D 方案分配，包含一组无符号整数决策变量。 / Csp1d assignment, containing a set of unsigned integer decision variables.
  *
- * @property x Unsigned integer decision variable, dimensioned by plan count / 无符号整数决策变量，维度为方案数量
- * @property planCount Plan count / 方案数量
+ * @property x 无符号整数决策变量，维度为方案数量 / Unsigned integer decision variable, dimensioned by plan count
+ * @property planCount 方案数量 / Plan count
 */
 class Csp1dAssignment(
     val x: UIntVariable1,
@@ -35,8 +34,7 @@ class Csp1dAssignment(
     operator fun get(index: Int) = x[index]
 
     /**
-     * 将决策变量注册到线性元模型中。
-     * Register decision variables to the linear meta model.
+     * 将决策变量注册到线性元模型中。 / Register decision variables to the linear meta model.
      * @param model 线性元模型。
      * @return 注册操作的结果。
     */

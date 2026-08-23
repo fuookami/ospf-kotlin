@@ -20,9 +20,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 最大/最小值函数符号 / Max/Min function symbols
  *
  * 提供 [MaxFunction]、[MinFunction]、[MinMaxFunction]、[MaxMinFunction]，
- * 用于最大值和最小值的线性化建模。
- *
- * Provides [MaxFunction], [MinFunction], [MinMaxFunction], and [MaxMinFunction]
+ * 用于最大值和最小值的线性化建模。 / Provides [MaxFunction], [MinFunction], [MinMaxFunction], and [MaxMinFunction]
  * for linearized modeling of maximum and minimum values.
 */
 

@@ -1,12 +1,9 @@
 /**
- * 丁克贝尔映射
- * Tinkerbell Map
+ * 丁克贝尔映射 / Tinkerbell Map
  *
  * 丁克贝尔映射是一个具有混沌吸引子的二维映射。
  * 该映射以 Peter Pan 故事中的小精灵 Tinker Bell 命名，展现出美丽的混沌轨迹。
- * 常用于混沌理论研究和混沌图形可视化。
- *
- * The Tinkerbell map is a two-dimensional map with a chaotic attractor.
+ * 常用于混沌理论研究和混沌图形可视化。 / The Tinkerbell map is a two-dimensional map with a chaotic attractor.
  * This map is named after Tinker Bell from the Peter Pan story, exhibiting beautiful chaotic trajectories.
  * Commonly used for chaos theory research and chaotic graphics visualization.
 */
@@ -20,8 +17,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 丁克贝尔映射
- * Tinkerbell Map
+ * 丁克贝尔映射 / Tinkerbell Map
  *
  * 公式 / Formula:
  * x_{n+1} = x^2 - y^2 + a*x + b*y
@@ -73,8 +69,7 @@ data class TinkerbellMap<V : FloatingNumber<V>>(
 }
 
 /**
- * 丁克贝尔映射生成器
- * Tinkerbell Map Generator
+ * 丁克贝尔映射生成器 / Tinkerbell Map Generator
  *
  * @property tinkerbellMap 用于生成的丁克贝尔映射实例 / The Tinkerbell map instance used for generation
  * @property _x 当前状态点 / The current state point

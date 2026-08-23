@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -19,10 +20,10 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
  * Enforces adjacent position separation constraints for ELD (Electronic Device) cargo.
  * 强制执行ELD（电子设备）货物的相邻位置分离约束。
  *
- * @property items the list of cargo items to be stowed / 待装载的货物项目列表
- * @property positions the list of available stowage positions / 可用装载位置列表
- * @property neighbours the list of adjacent position pairs / 相邻位置对列表
- * @property stowage the stowage decision variable matrix / 装载决策变量矩阵
+ * @property items 待装载的货物项目列表 / the list of cargo items to be stowed
+ * @property positions 可用装载位置列表 / the list of available stowage positions
+ * @property neighbours 相邻位置对列表 / the list of adjacent position pairs
+ * @property stowage 装载决策变量矩阵 / the stowage decision variable matrix
 */
 class ELDAdjacentLimit(
     private val items: List<Item>,
@@ -50,29 +51,23 @@ class ELDAdjacentLimit(
                     val position2 = positions[j2]
 
                     if (Stowage.stowageNeeded(item1, position1) || Stowage.stowageNeeded(item2, position2)) {
-                        val poly1 = MutableLinearPolynomial()
-                        poly1 += LinearMonomial(Flt64.one, stowage.stowage[i1, j1])
-                        poly1 += LinearMonomial(Flt64.one, stowage.stowage[i2, j2])
                         when (val result = model.addConstraint(
-                            relation = LinearPolynomial(poly1.monomials, poly1.constant) leq Flt64.one,
+                            relation = (stowage.stowage[i1, j1] + stowage.stowage[i2, j2]) leq Flt64.one,
                             name = "${name}_${item1}_${item2}_${position1}_${position2}"
                         )) {
-                            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
-                            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
-                            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
+                            is Ok -> {}
+                            is Failed -> return Failed(result.error)
+                            is Fatal -> return Fatal(result.errors)
                         }
                     }
                     if (Stowage.stowageNeeded(item1, position2) || Stowage.stowageNeeded(item2, position1)) {
-                        val poly2 = MutableLinearPolynomial()
-                        poly2 += LinearMonomial(Flt64.one, stowage.stowage[i1, j2])
-                        poly2 += LinearMonomial(Flt64.one, stowage.stowage[i2, j1])
                         when (val result = model.addConstraint(
-                            relation = LinearPolynomial(poly2.monomials, poly2.constant) leq Flt64.one,
+                            relation = (stowage.stowage[i1, j2] + stowage.stowage[i2, j1]) leq Flt64.one,
                             name = "${name}_${item1}_${item2}_${position2}_${position1}"
                         )) {
-                            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
-                            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
-                            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
+                            is Ok -> {}
+                            is Failed -> return Failed(result.error)
+                            is Fatal -> return Fatal(result.errors)
                         }
                     }
                 }

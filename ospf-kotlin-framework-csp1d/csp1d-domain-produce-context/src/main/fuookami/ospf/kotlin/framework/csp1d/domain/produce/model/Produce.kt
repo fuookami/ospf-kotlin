@@ -2,7 +2,8 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.produce.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
 /**
@@ -65,7 +66,7 @@ data class Produce<V : RealNumber<V>>(
 */
 data class ContributionKey(
     val productId: ProductId,
-    val unit: fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+    val unit: PhysicalUnit
 )
 
 /**

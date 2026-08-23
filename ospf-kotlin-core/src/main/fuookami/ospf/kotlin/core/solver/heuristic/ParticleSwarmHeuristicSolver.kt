@@ -13,8 +13,7 @@ import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 /**
- * 启发式求解状态枚举。
- * Heuristic solution status enum.
+ * 启发式求解状态枚举。 / Heuristic solution status enum.
 */
 enum class HeuristicSolutionStatus {
     /** 可行 / Feasible */
@@ -24,8 +23,7 @@ enum class HeuristicSolutionStatus {
 }
 
 /**
- * 启发式求解结果。
- * Heuristic solve result.
+ * 启发式求解结果。 / Heuristic solve result.
  *
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
@@ -42,8 +40,7 @@ data class HeuristicResult<ObjValue, V>(
 ) where V : RealNumber<V>, V : NumberField<V>
 
 /**
- * 基础启发式策略，使用默认的迭代和时间限制。
- * Basic heuristic policy with default iteration and time limits.
+ * 基础启发式策略，使用默认的迭代和时间限制。 / Basic heuristic policy with default iteration and time limits.
  *
  * @property iterationLimit 最大迭代次数 / Maximum iteration count
  * @property notBetterIterationLimit 最大无改进迭代次数 / Maximum no-improvement iteration count
@@ -60,8 +57,7 @@ class BasicHeuristicPolicy(
 )
 
 /**
- * 粒子数据结构，表示粒子群优化中的一个粒子。
- * Particle data structure, representing a particle in particle swarm optimization.
+ * 粒子数据结构，表示粒子群优化中的一个粒子。 / Particle data structure, representing a particle in particle swarm optimization.
  *
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
@@ -80,8 +76,7 @@ data class Particle<ObjValue, V>(
 ) where V : RealNumber<V>, V : NumberField<V>
 
 /**
- * 粒子群启发式求解器，实现标准 PSO 算法。
- * Particle swarm heuristic solver, implementing standard PSO algorithm.
+ * 粒子群启发式求解器，实现标准 PSO 算法。 / Particle swarm heuristic solver, implementing standard PSO algorithm.
  *
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
@@ -104,15 +99,14 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
     val c2: Flt64 = Flt64.two,
     val maxVelocity: Flt64 = Flt64(10000),
     val solveOnObjectiveMiss: Boolean = true,
-    private val randomGenerator: Generator<Flt64> = { Flt64(0.5) },
+    private val randomGenerator: Generator<Flt64> = Generator { Flt64(0.5) },
     private val initialVelocityGenerator: (index: Int) -> Flt64 = { Flt64.zero },
     private val converter: IntoValue<V>
 ) where V : RealNumber<V>, V : NumberField<V> {
     val name: String get() = "pso"
 
     /**
-     * 替换随机数生成器，返回新的求解器实例。
-     * Replace the random number generator and return a new solver instance.
+     * 替换随机数生成器，返回新的求解器实例。 / Replace the random number generator and return a new solver instance.
      *
      * @param randomGenerator 新的随机数生成器 / New random number generator
      * @return 新的粒子群求解器实例 / New particle swarm solver instance
@@ -133,8 +127,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
     }
 
     /**
-     * 替换初始速度生成器，返回新的求解器实例。
-     * Replace the initial velocity generator and return a new solver instance.
+     * 替换初始速度生成器，返回新的求解器实例。 / Replace the initial velocity generator and return a new solver instance.
      *
      * @param initialVelocityGenerator 新的初始速度生成器 / New initial velocity generator
      * @return 新的粒子群求解器实例 / New particle swarm solver instance
@@ -157,8 +150,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
     }
 
     /**
-     * 设置目标值缺失时是否使用默认值，返回新的求解器实例。
-     * Set whether to use default on objective miss and return a new solver instance.
+     * 设置目标值缺失时是否使用默认值，返回新的求解器实例。 / Set whether to use default on objective miss and return a new solver instance.
      *
      * @param enabled 是否启用 / Whether to enable
      * @return 新的粒子群求解器实例 / New particle swarm solver instance
@@ -179,16 +171,14 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
     }
 
     /**
-     * 生成随机数。
-     * Generate random number.
+     * 生成随机数。 / Generate random number.
      *
      * @return 随机浮点值 / Random float value
     */
     private fun random(): Flt64 = randomGenerator() ?: Flt64.zero
 
     /**
-     * 将速度限制在最大范围内。
-     * Clamp velocity within maximum range.
+     * 将速度限制在最大范围内。 / Clamp velocity within maximum range.
      *
      * @param value 待限制的速度值 / The velocity value to clamp
      * @return 限制后的速度值 / The clamped velocity value
@@ -204,8 +194,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
     }
 
     /**
-     * 将粒子转换为个体。
-     * Convert particle to individual.
+     * 将粒子转换为个体。 / Convert particle to individual.
      *
      * @param particle 待转换的粒子 / The particle to convert
      * @return 包含适应度的解 / Solution with fitness
@@ -218,8 +207,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
     }
 
     /**
-     * 评估解的适应度。
-     * Evaluate solution fitness.
+     * 评估解的适应度。 / Evaluate solution fitness.
      *
      * @param model    回调模型接口 / Callback model interface
      * @param solution 待评估的解 / The solution to evaluate
@@ -240,8 +228,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
     }
 
     /**
-     * 构建粒子。
-     * Build particle.
+     * 构建粒子。 / Build particle.
      *
      * @param model    回调模型接口 / Callback model interface
      * @param solution 解 / The solution
@@ -260,8 +247,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
     }
 
     /**
-     * 比较两个目标值的优劣。
-     * Compare two objective values.
+     * 比较两个目标值的优劣。 / Compare two objective values.
      *
      * @param model 回调模型接口 / Callback model interface
      * @param lhs   左值 / Left-hand value
@@ -277,8 +263,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
     }
 
     /**
-     * 按适应度排序粒子。
-     * Sort particles by fitness.
+     * 按适应度排序粒子。 / Sort particles by fitness.
      *
      * @param model     回调模型接口 / Callback model interface
      * @param particles 待排序的粒子列表 / The list of particles to sort
@@ -298,8 +283,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
     }
 
     /**
-     * 更新粒子速度和位置。
-     * Update particle velocity and position.
+     * 更新粒子速度和位置。 / Update particle velocity and position.
      *
      * @param iteration    当前迭代信息 / Current iteration info
      * @param particle     待更新的粒子 / The particle to update
@@ -363,8 +347,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
     }
 
     /**
-     * 执行粒子群优化求解。
-     * Execute particle swarm optimization solving.
+     * 执行粒子群优化求解。 / Execute particle swarm optimization solving.
      *
      * @param model 回调模型接口 / Callback model interface
      * @param policy 启发式策略 / Heuristic policy

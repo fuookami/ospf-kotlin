@@ -29,8 +29,8 @@ data class CrewMan(
         /**
          * 通过工号从池中获取机组成员。Retrieves a [CrewMan] by worker number from the pool.
          *
-         * @param workerNo Worker number to look up / 要查找的工号
-         * @return The matching CrewMan, or null if not found / 匹配的机组人员，未找到则返回 null
+         * @param workerNo 要查找的工号 / Worker number to look up
+         * @return 匹配的机组人员，未找到则返回 null / The matching CrewMan, or null if not found
         */
         operator fun invoke(workerNo: WorkerNo): CrewMan? {
             return pool[workerNo]

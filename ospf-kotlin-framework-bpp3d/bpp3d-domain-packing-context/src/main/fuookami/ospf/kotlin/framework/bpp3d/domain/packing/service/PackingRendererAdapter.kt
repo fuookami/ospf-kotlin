@@ -1,6 +1,5 @@
 /**
- * 装箱渲染适配器。
- * Packing renderer adapter.
+ * 装箱渲染适配器。 / Packing renderer adapter.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
@@ -15,16 +14,14 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
 
 /**
- * 装箱渲染适配器，将装箱结果转换为渲染 DTO。
- * Packing renderer adapter, converts packing results to rendering DTOs.
+ * 装箱渲染适配器，将装箱结果转换为渲染 DTO。 / Packing renderer adapter, converts packing results to rendering DTOs.
 */
 class PackingRendererAdapter {
 
     /**
-     * 将装箱形状类型转换为渲染形状类型 DTO。
-     * Convert packing shape type to rendering shape type DTO.
+     * 将装箱形状类型转换为渲染形状类型 DTO。 / Convert packing shape type to rendering shape type DTO.
      *
-     * @return corresponding render shape type DTO / 对应的渲染形状类型 DTO
+     * @return 对应的渲染形状类型 DTO / corresponding render shape type DTO
     */
     private fun PackingShapeType.toRenderShapeType(): RenderShapeTypeDTO {
         return when (this) {
@@ -34,10 +31,9 @@ class PackingRendererAdapter {
     }
 
     /**
-     * 将装箱算法形状类型转换为渲染算法形状类型 DTO。
-     * Convert packing algorithm shape type to rendering algorithm shape type DTO.
+     * 将装箱算法形状类型转换为渲染算法形状类型 DTO。 / Convert packing algorithm shape type to rendering algorithm shape type DTO.
      *
-     * @return corresponding render algorithm shape type DTO / 对应的渲染算法形状类型 DTO
+     * @return 对应的渲染算法形状类型 DTO / corresponding render algorithm shape type DTO
     */
     private fun PackingAlgorithmShapeType.toRenderAlgorithmShapeType(): RenderAlgorithmShapeTypeDTO {
         return when (this) {
@@ -49,10 +45,9 @@ class PackingRendererAdapter {
     }
 
     /**
-     * 将 Axis3 枚举转换为渲染轴 DTO。
-     * Convert Axis3 enum to rendering axis DTO.
+     * 将 Axis3 枚举转换为渲染轴 DTO。 / Convert Axis3 enum to rendering axis DTO.
      *
-     * @return corresponding render axis DTO / 对应的渲染轴 DTO
+     * @return 对应的渲染轴 DTO / corresponding render axis DTO
     */
     private fun Axis3.toRenderAxis3(): RenderAxis3DTO {
         return when (this) {
@@ -63,8 +58,7 @@ class PackingRendererAdapter {
     }
 
     /**
-     * 从 solver 结果中查找物品对应的连续半径选择结果。
-     * Look up the continuous-radius selection result for an item from solver results.
+     * 从 solver 结果中查找物品对应的连续半径选择结果。 / Look up the continuous-radius selection result for an item from solver results.
      *
      * @param item 物品 / item
      * @param solverRadiusByVariableName 按变量名索引的半径选择结果 / radius selection results indexed by variable name
@@ -90,8 +84,7 @@ class PackingRendererAdapter {
     }
 
     /**
-     * 将装箱结果转换为渲染方案 DTO。
-     * Convert packing result to rendering schema DTO.
+     * 将装箱结果转换为渲染方案 DTO。 / Convert packing result to rendering schema DTO.
      *
      * @param result 装箱结果 / packing result
      * @return 渲染方案 DTO / rendering schema DTO
@@ -101,8 +94,7 @@ class PackingRendererAdapter {
     }
 
     /**
-     * 将装箱结果转换为渲染方案 DTO，支持 solver 选出半径回写。
-     * Convert packing result to rendering schema DTO with solver-selected radius writeback.
+     * 将装箱结果转换为渲染方案 DTO，支持 solver 选出半径回写。 / Convert packing result to rendering schema DTO with solver-selected radius writeback.
      *
      * @param result 装箱结果 / packing result
      * @param continuousRadiusSelectionResults 连续半径已选择结果列表 / continuous-radius selection results

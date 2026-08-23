@@ -34,8 +34,7 @@ class PredicateSchemaProcessor(
 ) : SymbolProcessor {
 
     /**
-     * 处理带注解的符号
-     * Process annotated symbols
+     * 处理带注解的符号 / Process annotated symbols
      *
      * @param resolver KSP 解析器 / KSP resolver
      * @return 延迟处理的符号列表 / List of deferred symbols
@@ -54,13 +53,11 @@ class PredicateSchemaProcessor(
     }
 
     /**
-     * 符号访问器，处理类声明
-     * Symbol visitor for processing class declarations
+     * 符号访问器，处理类声明 / Symbol visitor for processing class declarations
     */
     private inner class Visitor : KSVisitorVoid() {
         /**
-         * 访问类声明，生成 schema 代码文件
-         * Visit class declaration and generate schema code file
+         * 访问类声明，生成 schema 代码文件 / Visit class declaration and generate schema code file
          *
          * @param classDeclaration 类声明 / Class declaration
          * @param data 附加数据（未使用）/ Additional data (unused)
@@ -84,8 +81,7 @@ class PredicateSchemaProcessor(
         }
 
         /**
-         * 将类声明转换为谓词 schema 模型
-         * Convert class declaration to predicate schema model
+         * 将类声明转换为谓词 schema 模型 / Convert class declaration to predicate schema model
          *
          * @return 谓词 schema 模型，验证失败时返回 null / Predicate schema model, or null if validation fails
         */
@@ -178,8 +174,7 @@ class PredicateSchemaProcessor(
         }
 
         /**
-         * 验证实体类是否符合要求
-         * Validate entity class meets requirements
+         * 验证实体类是否符合要求 / Validate entity class meets requirements
          *
          * @param entityName 实体类名 / Entity class name
          * @param declaration 类声明 / Class declaration
@@ -202,8 +197,7 @@ class PredicateSchemaProcessor(
         }
 
         /**
-         * 验证 schema 名称是否为合法标识符
-         * Validate schema name is a valid identifier
+         * 验证 schema 名称是否为合法标识符 / Validate schema name is a valid identifier
          *
          * @param schemaName schema 名称 / Schema name
          * @param declaration 类声明 / Class declaration
@@ -221,8 +215,7 @@ class PredicateSchemaProcessor(
         }
 
         /**
-         * 判断属性是否为可见的 schema 属性
-         * Check if property is a visible schema property
+         * 判断属性是否为可见的 schema 属性 / Check if property is a visible schema property
          *
          * @return 是否可见 / Whether visible
         */
@@ -231,8 +224,7 @@ class PredicateSchemaProcessor(
         }
 
         /**
-         * 获取属性的谓词字段名（通过 @PredicateField 注解指定）
-         * Get predicate field name of property (specified via @PredicateField annotation)
+         * 获取属性的谓词字段名（通过 @PredicateField 注解指定） / Get predicate field name of property (specified via @PredicateField annotation)
          *
          * @return 后端字段名，未注解时返回 null / Backend field name, or null if not annotated
         */
@@ -245,8 +237,7 @@ class PredicateSchemaProcessor(
 }
 
 /**
- * 从注解中获取字符串参数值
- * Get string argument value from annotation
+ * 从注解中获取字符串参数值 / Get string argument value from annotation
  *
  * @param name 参数名 / Argument name
  * @return 参数值，不存在时返回 null / Argument value, or null if not present
@@ -256,8 +247,7 @@ private fun com.google.devtools.ksp.symbol.KSAnnotation.stringArgument(name: Str
 }
 
 /**
- * 从注解中获取布尔参数值
- * Get boolean argument value from annotation
+ * 从注解中获取布尔参数值 / Get boolean argument value from annotation
  *
  * @param name 参数名 / Argument name
  * @return 参数值，不存在时返回 null / Argument value, or null if not present
@@ -267,8 +257,7 @@ private fun com.google.devtools.ksp.symbol.KSAnnotation.booleanArgument(name: St
 }
 
 /**
- * 从注解中获取枚举参数值（返回枚举条目名称）
- * Get enum argument value from annotation (returns enum entry name)
+ * 从注解中获取枚举参数值（返回枚举条目名称） / Get enum argument value from annotation (returns enum entry name)
  *
  * @param name 参数名 / Parameter name
  * @return 枚举条目名称，不存在时返回 null / Enum entry name, or null if not present
@@ -280,8 +269,7 @@ private fun com.google.devtools.ksp.symbol.KSAnnotation.enumArgument(name: Strin
 }
 
 /**
- * 根据命名策略计算后端列名
- * Compute backend column name based on naming strategy
+ * 根据命名策略计算后端列名 / Compute backend column name based on naming strategy
  *
  * @param propertyName Kotlin 属性名 / Kotlin property name
  * @param namingStrategy 命名策略 / Naming strategy
@@ -295,8 +283,7 @@ private fun applyNamingStrategy(propertyName: String, namingStrategy: KspColumnN
 }
 
 /**
- * 驼峰转蛇形命名
- * Camel case to snake case
+ * 驼峰转蛇形命名 / Camel case to snake case
  *
  * @param name 驼峰命名 / Camel case name
  * @return 蛇形命名 / Snake case name
@@ -348,8 +335,7 @@ private val kotlinKeywords = setOf(
 private val regularIdentifier = Regex("[A-Za-z_][A-Za-z0-9_]*")
 
 /**
- * 判断字符串是否为合法的常规 Kotlin 标识符
- * Check if string is a valid regular Kotlin identifier
+ * 判断字符串是否为合法的常规 Kotlin 标识符 / Check if string is a valid regular Kotlin identifier
  *
  * @return 是否合法 / Whether valid
 */
@@ -358,8 +344,7 @@ private fun String.isRegularKotlinIdentifier(): Boolean {
 }
 
 /**
- * 将字符串转换为合法的 Kotlin 标识符，关键字用反引号包裹
- * Convert string to valid Kotlin identifier, wrapping keywords with backticks
+ * 将字符串转换为合法的 Kotlin 标识符，关键字用反引号包裹 / Convert string to valid Kotlin identifier, wrapping keywords with backticks
  *
  * @return 合法标识符，不合法时返回 null / Valid identifier, or null if invalid
 */

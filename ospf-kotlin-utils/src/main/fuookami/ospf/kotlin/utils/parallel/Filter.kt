@@ -1,16 +1,12 @@
 /**
- * 并行过滤操作
- *
- * Parallel filtering operations with concurrency control.
+ * 并行过滤操作 / Parallel filtering operations with concurrency control.
 */
 package fuookami.ospf.kotlin.utils.parallel
 
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 并行过滤满足条件的元素
- *
- * Filter elements that satisfy the predicate in parallel with concurrency control.
+ * 并行过滤满足条件的元素 / Filter elements that satisfy the predicate in parallel with concurrency control.
  *
  * @param T 元素类型 / Element type
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
@@ -25,9 +21,7 @@ suspend inline fun <T : Any> Iterable<T>.filterParallelly(
 }
 
 /**
- * 并行过滤满足条件的元素（带错误处理）
- *
- * Filter elements that satisfy the predicate in parallel with error handling.
+ * 并行过滤满足条件的元素（带错误处理） / Filter elements that satisfy the predicate in parallel with error handling.
  * 并发过滤满足条件的元素，支持错误处理。
  *
  * @param T 元素类型 / Element type
@@ -43,9 +37,7 @@ suspend inline fun <T : Any> Iterable<T>.tryFilterParallelly(
 }
 
 /**
- * 并行过滤满足条件的元素（带错误收集）
- *
- * Filter elements that satisfy the predicate in parallel with error collection.
+ * 并行过滤满足条件的元素（带错误收集） / Filter elements that satisfy the predicate in parallel with error collection.
  * 并发过滤满足条件的元素，收集所有错误。
  *
  * @param T 元素类型 / Element type
@@ -61,9 +53,7 @@ suspend inline fun <T : Any> Iterable<T>.exTryFilterParallelly(
 }
 
 /**
- * 并行过滤满足条件的元素到目标集合
- *
- * Filter elements that satisfy the predicate in parallel to a destination collection.
+ * 并行过滤满足条件的元素到目标集合 / Filter elements that satisfy the predicate in parallel to a destination collection.
  * 并发过滤满足条件的元素到目标集合。
  *
  * @param T 元素类型 / Element type
@@ -87,9 +77,7 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.filterToPa
 }
 
 /**
- * 并行过滤满足条件的元素到目标集合（带错误处理）
- *
- * Filter elements that satisfy the predicate in parallel to a destination collection with error handling.
+ * 并行过滤满足条件的元素到目标集合（带错误处理） / Filter elements that satisfy the predicate in parallel to a destination collection with error handling.
  * 并发过滤满足条件的元素到目标集合，支持错误处理。
  *
  * @param T 元素类型 / Element type
@@ -119,9 +107,7 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.tryFilterT
 }
 
 /**
- * 并行过滤满足条件的元素到目标集合（带错误收集）
- *
- * Filter elements that satisfy the predicate in parallel to a destination collection with error collection.
+ * 并行过滤满足条件的元素到目标集合（带错误收集） / Filter elements that satisfy the predicate in parallel to a destination collection with error collection.
  * 并发过滤满足条件的元素到目标集合，收集所有错误。
  *
  * @param T 元素类型 / Element type
@@ -168,9 +154,7 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.exTryFilte
 // ============================================================================
 
 /**
- * 并行过滤非空元素
- *
- * Filter non-null elements that satisfy the predicate in parallel.
+ * 并行过滤非空元素 / Filter non-null elements that satisfy the predicate in parallel.
  * 并发过滤满足条件的非空元素。
  *
  * @param T 元素类型（非空）/ Element type (non-null)
@@ -186,9 +170,7 @@ suspend inline fun <T : Any> Iterable<T?>.filterNotNullParallelly(
 }
 
 /**
- * 并行过滤非空元素（带错误处理）
- *
- * Filter non-null elements that satisfy the predicate in parallel with error handling.
+ * 并行过滤非空元素（带错误处理） / Filter non-null elements that satisfy the predicate in parallel with error handling.
  * 并发过滤满足条件的非空元素，支持错误处理。
  *
  * @param T 元素类型（非空）/ Element type (non-null)
@@ -204,9 +186,7 @@ suspend inline fun <T : Any> Iterable<T?>.tryFilterNotNullParallelly(
 }
 
 /**
- * 并行过滤非空元素（带错误收集）
- *
- * Filter non-null elements that satisfy the predicate in parallel with error collection.
+ * 并行过滤非空元素（带错误收集） / Filter non-null elements that satisfy the predicate in parallel with error collection.
  * 并发过滤满足条件的非空元素，收集所有错误。
  *
  * @param T 元素类型（非空）/ Element type (non-null)
@@ -222,9 +202,7 @@ suspend inline fun <T : Any> Iterable<T?>.exTryFilterNotNullParallelly(
 }
 
 /**
- * 并行过滤非空元素到目标集合
- *
- * Filter non-null elements that satisfy the predicate in parallel to a destination collection.
+ * 并行过滤非空元素到目标集合 / Filter non-null elements that satisfy the predicate in parallel to a destination collection.
  * 并发过滤满足条件的非空元素到目标集合。
  *
  * @param T 元素类型（非空）/ Element type (non-null)
@@ -249,9 +227,7 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T?>.filterNot
 }
 
 /**
- * 并行过滤非空元素到目标集合（带错误处理）
- *
- * Filter non-null elements that satisfy the predicate in parallel to a destination collection with error handling.
+ * 并行过滤非空元素到目标集合（带错误处理） / Filter non-null elements that satisfy the predicate in parallel to a destination collection with error handling.
  * 并发过滤满足条件的非空元素到目标集合，支持错误处理。
  *
  * @param T 元素类型（非空）/ Element type (non-null)
@@ -282,9 +258,7 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T?>.tryFilter
 }
 
 /**
- * 并行过滤非空元素到目标集合（带错误收集）
- *
- * Filter non-null elements that satisfy the predicate in parallel to a destination collection with error collection.
+ * 并行过滤非空元素到目标集合（带错误收集） / Filter non-null elements that satisfy the predicate in parallel to a destination collection with error collection.
  * 并发过滤满足条件的非空元素到目标集合，收集所有错误。
  *
  * @param T 元素类型（非空）/ Element type (non-null)
@@ -332,9 +306,7 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T?>.exTryFilt
 // ============================================================================
 
 /**
- * 并行过滤不满足条件的元素
- *
- * Filter elements that do NOT satisfy the predicate in parallel.
+ * 并行过滤不满足条件的元素 / Filter elements that do NOT satisfy the predicate in parallel.
  * 并发过滤不满足条件的元素。
  *
  * @param T 元素类型 / Element type
@@ -350,9 +322,7 @@ suspend inline fun <T : Any> Iterable<T>.filterNotParallelly(
 }
 
 /**
- * 并行过滤不满足条件的元素（带错误处理）
- *
- * Filter elements that do NOT satisfy the predicate in parallel with error handling.
+ * 并行过滤不满足条件的元素（带错误处理） / Filter elements that do NOT satisfy the predicate in parallel with error handling.
  * 并发过滤不满足条件的元素，支持错误处理。
  *
  * @param T 元素类型 / Element type
@@ -368,9 +338,7 @@ suspend inline fun <T : Any> Iterable<T>.tryFilterNotParallelly(
 }
 
 /**
- * 并行过滤不满足条件的元素（带错误收集）
- *
- * Filter elements that do NOT satisfy the predicate in parallel with error collection.
+ * 并行过滤不满足条件的元素（带错误收集） / Filter elements that do NOT satisfy the predicate in parallel with error collection.
  * 并发过滤不满足条件的元素，收集所有错误。
  *
  * @param T 元素类型 / Element type
@@ -386,9 +354,7 @@ suspend inline fun <T : Any> Iterable<T>.exTryFilterNotParallelly(
 }
 
 /**
- * 并行过滤不满足条件的元素到目标集合
- *
- * Filter elements that do NOT satisfy the predicate in parallel to a destination collection.
+ * 并行过滤不满足条件的元素到目标集合 / Filter elements that do NOT satisfy the predicate in parallel to a destination collection.
  * 并发过滤不满足条件的元素到目标集合。
  *
  * @param T 元素类型 / Element type
@@ -412,9 +378,7 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.filterNotT
 }
 
 /**
- * 并行过滤不满足条件的元素到目标集合（带错误处理）
- *
- * Filter elements that do NOT satisfy the predicate in parallel to a destination collection with error handling.
+ * 并行过滤不满足条件的元素到目标集合（带错误处理） / Filter elements that do NOT satisfy the predicate in parallel to a destination collection with error handling.
  * 并发过滤不满足条件的元素到目标集合，支持错误处理。
  *
  * @param T 元素类型 / Element type
@@ -450,9 +414,7 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.tryFilterN
 }
 
 /**
- * 并行过滤不满足条件的元素到目标集合（带错误收集）
- *
- * Filter elements that do NOT satisfy the predicate in parallel to a destination collection with error collection.
+ * 并行过滤不满足条件的元素到目标集合（带错误收集） / Filter elements that do NOT satisfy the predicate in parallel to a destination collection with error collection.
  * 并发过滤不满足条件的元素到目标集合，收集所有错误。
  *
  * @param T 元素类型 / Element type
@@ -499,9 +461,7 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.exTryFilte
 // ============================================================================
 
 /**
- * 并行过滤满足条件的元素（带索引）
- *
- * Filter elements that satisfy the indexed predicate in parallel.
+ * 并行过滤满足条件的元素（带索引） / Filter elements that satisfy the indexed predicate in parallel.
  * 并发过滤满足索引判断条件的元素。
  *
  * @param T 元素类型 / Element type
@@ -517,9 +477,7 @@ suspend inline fun <T : Any> Iterable<T>.filterIndexedParallelly(
 }
 
 /**
- * 并行过滤满足条件的元素（带索引，带错误处理）
- *
- * Filter elements that satisfy the indexed predicate in parallel with error handling.
+ * 并行过滤满足条件的元素（带索引，带错误处理） / Filter elements that satisfy the indexed predicate in parallel with error handling.
  * 并发过滤满足索引判断条件的元素，支持错误处理。
  *
  * @param T 元素类型 / Element type
@@ -535,9 +493,7 @@ suspend inline fun <T : Any> Iterable<T>.tryFilterIndexedParallelly(
 }
 
 /**
- * 并行过滤满足条件的元素（带索引，带错误收集）
- *
- * Filter elements that satisfy the indexed predicate in parallel with error collection.
+ * 并行过滤满足条件的元素（带索引，带错误收集） / Filter elements that satisfy the indexed predicate in parallel with error collection.
  * 并发过滤满足索引判断条件的元素，收集所有错误。
  *
  * @param T 元素类型 / Element type
@@ -553,9 +509,7 @@ suspend inline fun <T : Any> Iterable<T>.exTryFilterIndexedParallelly(
 }
 
 /**
- * 并行过滤满足条件的元素到目标集合（带索引）
- *
- * Filter elements that satisfy the indexed predicate in parallel to a destination collection.
+ * 并行过滤满足条件的元素到目标集合（带索引） / Filter elements that satisfy the indexed predicate in parallel to a destination collection.
  * 并发过滤满足索引判断条件的元素到目标集合。
  *
  * @param T 元素类型 / Element type
@@ -579,9 +533,7 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.filterInde
 }
 
 /**
- * 并行过滤满足条件的元素到目标集合（带索引，带错误处理）
- *
- * Filter elements that satisfy the indexed predicate in parallel to a destination collection with error handling.
+ * 并行过滤满足条件的元素到目标集合（带索引，带错误处理） / Filter elements that satisfy the indexed predicate in parallel to a destination collection with error handling.
  * 并发过滤满足索引判断条件的元素到目标集合，支持错误处理。
  *
  * @param T 元素类型 / Element type
@@ -611,9 +563,7 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.tryFilterI
 }
 
 /**
- * 并行过滤满足条件的元素到目标集合（带索引，带错误收集）
- *
- * Filter elements that satisfy the indexed predicate in parallel to a destination collection with error collection.
+ * 并行过滤满足条件的元素到目标集合（带索引，带错误收集） / Filter elements that satisfy the indexed predicate in parallel to a destination collection with error collection.
  * 并发过滤满足索引判断条件的元素到目标集合，收集所有错误。
  *
  * @param T 元素类型 / Element type
@@ -660,9 +610,7 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.exTryFilte
 // ============================================================================
 
 /**
- * 并行过滤指定类型的元素
- *
- * Filter elements of a specific type that satisfy the predicate in parallel.
+ * 并行过滤指定类型的元素 / Filter elements of a specific type that satisfy the predicate in parallel.
  * 并发过滤指定类型且满足条件的元素。
  *
  * @param U 目标类型 / Target type
@@ -679,9 +627,7 @@ suspend inline fun <reified U : Any, T> Iterable<T>.filterIsInstanceParallelly(
 }
 
 /**
- * 并行过滤指定类型的元素（带错误处理）
- *
- * Filter elements of a specific type that satisfy the predicate in parallel with error handling.
+ * 并行过滤指定类型的元素（带错误处理） / Filter elements of a specific type that satisfy the predicate in parallel with error handling.
  * 并发过滤指定类型且满足条件的元素，支持错误处理。
  *
  * @param U 目标类型 / Target type
@@ -698,9 +644,7 @@ suspend inline fun <reified U : Any, T> Iterable<T>.tryFilterIsInstanceParallell
 }
 
 /**
- * 并行过滤指定类型的元素（带错误收集）
- *
- * Filter elements of a specific type that satisfy the predicate in parallel with error collection.
+ * 并行过滤指定类型的元素（带错误收集） / Filter elements of a specific type that satisfy the predicate in parallel with error collection.
  * 并发过滤指定类型且满足条件的元素，收集所有错误。
  *
  * @param U 目标类型 / Target type
@@ -717,9 +661,7 @@ suspend inline fun <reified U : Any, T> Iterable<T>.exTryFilterIsInstanceParalle
 }
 
 /**
- * 并行过滤指定类型的元素到目标集合
- *
- * Filter elements of a specific type that satisfy the predicate in parallel to a destination collection.
+ * 并行过滤指定类型的元素到目标集合 / Filter elements of a specific type that satisfy the predicate in parallel to a destination collection.
  * 并发过滤指定类型且满足条件的元素到目标集合。
  *
  * @param U 目标类型 / Target type
@@ -745,9 +687,7 @@ suspend inline fun <reified U : Any, T, C : MutableCollection<U>> Iterable<T>.fi
 }
 
 /**
- * 并行过滤指定类型的元素到目标集合（带错误处理）
- *
- * Filter elements of a specific type that satisfy the predicate in parallel to a destination collection with error handling.
+ * 并行过滤指定类型的元素到目标集合（带错误处理） / Filter elements of a specific type that satisfy the predicate in parallel to a destination collection with error handling.
  * 并发过滤指定类型且满足条件的元素到目标集合，支持错误处理。
  *
  * @param U 目标类型 / Target type
@@ -779,9 +719,7 @@ suspend inline fun <reified U : Any, T, C : MutableCollection<U>> Iterable<T>.tr
 }
 
 /**
- * 并行过滤指定类型的元素到目标集合（带错误收集）
- *
- * Filter elements of a specific type that satisfy the predicate in parallel to a destination collection with error collection.
+ * 并行过滤指定类型的元素到目标集合（带错误收集） / Filter elements of a specific type that satisfy the predicate in parallel to a destination collection with error collection.
  * 并发过滤指定类型且满足条件的元素到目标集合，收集所有错误。
  *
  * @param U 目标类型 / Target type

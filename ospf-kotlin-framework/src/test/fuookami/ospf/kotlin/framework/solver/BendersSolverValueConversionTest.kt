@@ -1,18 +1,33 @@
 package fuookami.ospf.kotlin.framework.solver
 
+import fuookami.ospf.kotlin.core.solver.toSolveReport
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.solver.report.*
 import kotlinx.coroutines.runBlocking
+import fuookami.ospf.kotlin.core.solver.report.*
 import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 class BendersSolverValueConversionTest {
@@ -35,11 +50,11 @@ class BendersSolverValueConversionTest {
         val quadraticSubRegistrationCallbacks = mutableListOf<RegistrationStatusCallBack?>()
         val quadraticSubSolvingCallbacks = mutableListOf<SolvingStatusCallBack?>()
 
-        private val output = FeasibleSolverOutput(
-            obj = Flt64(12.0),
-            solution = listOf(Flt64(5.0), Flt64(7.0)),
-            time = Duration.ZERO,
-            possibleBestObj = Flt64(11.0),
+        private val output = SolverStatus.Feasible.toSolveReport(
+            objective = Flt64(12.0),
+            values = listOf(Flt64(5.0), Flt64(7.0)),
+            solveTime = Duration.ZERO,
+            bestBound = Flt64(11.0),
             gap = Flt64.zero
         )
 
@@ -265,12 +280,13 @@ class BendersSolverValueConversionTest {
             converter = plusOneConverter
         )
         val output = (result as Ok).value
-        assertTrue(output is FeasibleSolverOutput<*>)
-        val feasible = output as FeasibleSolverOutput<*>
-        assertEquals(Flt64(6.0), feasible.solution[0] as Flt64)
-        assertEquals(Flt64(8.0), feasible.solution[1] as Flt64)
-        assertEquals(Flt64(13.0), feasible.objValueOrNull!! as Flt64)
-        assertEquals(Flt64(12.0), feasible.possibleBestObjValueOrNull!! as Flt64)
+        assertTrue(output is SolveReport<*>)
+        val feasible = output as SolveReport<*>
+        assertEquals(Flt64(6.0), feasible.values[0] as Flt64)
+        assertEquals(Flt64(8.0), feasible.values[1] as Flt64)
+        assertEquals(Flt64(13.0), feasible.solution?.objective as Flt64)
+        assertEquals(Flt64(11.0), feasible.statistics.bestBound)
+        assertEquals(ProblemStatus.Feasible, feasible.problemStatus)
     }
 
     @Test
@@ -278,10 +294,10 @@ class BendersSolverValueConversionTest {
         val solver = StubBendersSolver()
         val result = solver.solveMasterAs(metaModel = linearModel())
         val output = (result as Ok).value
-        assertTrue(output is FeasibleSolverOutput<*>)
-        val feasible = output as FeasibleSolverOutput<*>
-        assertEquals(Flt64(5.0), feasible.solution[0] as Flt64)
-        assertEquals(Flt64(7.0), feasible.solution[1] as Flt64)
+        assertTrue(output is SolveReport<*>)
+        val feasible = output as SolveReport<*>
+        assertEquals(Flt64(5.0), feasible.values[0] as Flt64)
+        assertEquals(Flt64(7.0), feasible.values[1] as Flt64)
     }
 
     @Test
@@ -289,10 +305,10 @@ class BendersSolverValueConversionTest {
         val solver = StubBendersSolver()
         val result = solver.solveMasterAsAsync(metaModel = linearModel()).get()
         val output = (result as Ok).value
-        assertTrue(output is FeasibleSolverOutput<*>)
-        val feasible = output as FeasibleSolverOutput<*>
-        assertEquals(Flt64(5.0), feasible.solution[0] as Flt64)
-        assertEquals(Flt64(7.0), feasible.solution[1] as Flt64)
+        assertTrue(output is SolveReport<*>)
+        val feasible = output as SolveReport<*>
+        assertEquals(Flt64(5.0), feasible.values[0] as Flt64)
+        assertEquals(Flt64(7.0), feasible.values[1] as Flt64)
     }
 
     @Test
@@ -302,11 +318,11 @@ class BendersSolverValueConversionTest {
             metaModel = linearModel(),
             converter = plusOneConverter
         ).get()
-        val output = (result as Ok).value as FeasibleSolverOutput<*>
-        assertEquals(Flt64(6.0), output.solution[0] as Flt64)
-        assertEquals(Flt64(8.0), output.solution[1] as Flt64)
-        assertEquals(Flt64(13.0), output.objValueOrNull!! as Flt64)
-        assertEquals(Flt64(12.0), output.possibleBestObjValueOrNull!! as Flt64)
+        val output = (result as Ok).value as SolveReport<*>
+        assertEquals(Flt64(6.0), output.values[0] as Flt64)
+        assertEquals(Flt64(8.0), output.values[1] as Flt64)
+        assertEquals(Flt64(13.0), output.solution?.objective as Flt64)
+        assertEquals(Flt64(11.0), output.statistics.bestBound)
     }
 
     @Test
@@ -332,8 +348,8 @@ class BendersSolverValueConversionTest {
     @Test
     fun linearSolveMasterAsAsyncForwardsCallbacksFromOptions() {
         val solver = StubBendersSolver()
-        val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
-        val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
+        val registrationStatusCallBack = RegistrationStatusCallBack { _ -> ok }
+        val solvingStatusCallBack = SolvingStatusCallBack { _ -> ok }
         solver.solveMasterAsAsync(
             metaModel = linearModel(),
             options = FrameworkSolveOptions(
@@ -348,8 +364,8 @@ class BendersSolverValueConversionTest {
     @Test
     fun linearSolveMasterAsForwardsCallbacksFromOptions() = runBlocking {
         val solver = StubBendersSolver()
-        val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
-        val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
+        val registrationStatusCallBack = RegistrationStatusCallBack { _ -> ok }
+        val solvingStatusCallBack = SolvingStatusCallBack { _ -> ok }
         solver.solveMasterAs(
             metaModel = linearModel(),
             options = FrameworkSolveOptions(
@@ -369,12 +385,12 @@ class BendersSolverValueConversionTest {
             converter = plusOneConverter
         )
         val output = (result as Ok).value
-        assertTrue(output is FeasibleSolverOutput<*>)
-        val feasible = output as FeasibleSolverOutput<*>
-        assertEquals(Flt64(6.0), feasible.solution[0] as Flt64)
-        assertEquals(Flt64(8.0), feasible.solution[1] as Flt64)
-        assertEquals(Flt64(13.0), feasible.objValueOrNull!! as Flt64)
-        assertEquals(Flt64(12.0), feasible.possibleBestObjValueOrNull!! as Flt64)
+        assertTrue(output is SolveReport<*>)
+        val feasible = output as SolveReport<*>
+        assertEquals(Flt64(6.0), feasible.values[0] as Flt64)
+        assertEquals(Flt64(8.0), feasible.values[1] as Flt64)
+        assertEquals(Flt64(13.0), feasible.solution?.objective as Flt64)
+        assertEquals(Flt64(11.0), feasible.statistics.bestBound)
     }
 
     @Test
@@ -382,10 +398,10 @@ class BendersSolverValueConversionTest {
         val solver = StubBendersSolver()
         val result = solver.solveMasterAs(metaModel = quadraticModel())
         val output = (result as Ok).value
-        assertTrue(output is FeasibleSolverOutput<*>)
-        val feasible = output as FeasibleSolverOutput<*>
-        assertEquals(Flt64(5.0), feasible.solution[0] as Flt64)
-        assertEquals(Flt64(7.0), feasible.solution[1] as Flt64)
+        assertTrue(output is SolveReport<*>)
+        val feasible = output as SolveReport<*>
+        assertEquals(Flt64(5.0), feasible.values[0] as Flt64)
+        assertEquals(Flt64(7.0), feasible.values[1] as Flt64)
     }
 
     @Test
@@ -393,10 +409,10 @@ class BendersSolverValueConversionTest {
         val solver = StubBendersSolver()
         val result = solver.solveMasterAsAsync(metaModel = quadraticModel()).get()
         val output = (result as Ok).value
-        assertTrue(output is FeasibleSolverOutput<*>)
-        val feasible = output as FeasibleSolverOutput<*>
-        assertEquals(Flt64(5.0), feasible.solution[0] as Flt64)
-        assertEquals(Flt64(7.0), feasible.solution[1] as Flt64)
+        assertTrue(output is SolveReport<*>)
+        val feasible = output as SolveReport<*>
+        assertEquals(Flt64(5.0), feasible.values[0] as Flt64)
+        assertEquals(Flt64(7.0), feasible.values[1] as Flt64)
     }
 
     @Test
@@ -406,11 +422,11 @@ class BendersSolverValueConversionTest {
             metaModel = quadraticModel(),
             converter = plusOneConverter
         ).get()
-        val output = (result as Ok).value as FeasibleSolverOutput<*>
-        assertEquals(Flt64(6.0), output.solution[0] as Flt64)
-        assertEquals(Flt64(8.0), output.solution[1] as Flt64)
-        assertEquals(Flt64(13.0), output.objValueOrNull!! as Flt64)
-        assertEquals(Flt64(12.0), output.possibleBestObjValueOrNull!! as Flt64)
+        val output = (result as Ok).value as SolveReport<*>
+        assertEquals(Flt64(6.0), output.values[0] as Flt64)
+        assertEquals(Flt64(8.0), output.values[1] as Flt64)
+        assertEquals(Flt64(13.0), output.solution?.objective as Flt64)
+        assertEquals(Flt64(11.0), output.statistics.bestBound)
     }
 
     @Test
@@ -436,8 +452,8 @@ class BendersSolverValueConversionTest {
     @Test
     fun quadraticSolveMasterAsAsyncForwardsCallbacksFromOptions() {
         val solver = StubBendersSolver()
-        val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
-        val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
+        val registrationStatusCallBack = RegistrationStatusCallBack { _ -> ok }
+        val solvingStatusCallBack = SolvingStatusCallBack { _ -> ok }
         solver.solveMasterAsAsync(
             metaModel = quadraticModel(),
             options = FrameworkSolveOptions(
@@ -452,8 +468,8 @@ class BendersSolverValueConversionTest {
     @Test
     fun quadraticSolveMasterAsForwardsCallbacksFromOptions() = runBlocking {
         val solver = StubBendersSolver()
-        val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
-        val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
+        val registrationStatusCallBack = RegistrationStatusCallBack { _ -> ok }
+        val solvingStatusCallBack = SolvingStatusCallBack { _ -> ok }
         solver.solveMasterAs(
             metaModel = quadraticModel(),
             options = FrameworkSolveOptions(
@@ -492,8 +508,8 @@ class BendersSolverValueConversionTest {
     @Test
     fun linearSolveSubAsAsyncForwardsCallbacksFromOptions() {
         val solver = StubBendersSolver()
-        val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
-        val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
+        val registrationStatusCallBack = RegistrationStatusCallBack { _ -> ok }
+        val solvingStatusCallBack = SolvingStatusCallBack { _ -> ok }
         solver.solveSubAsAsync(
             metaModel = linearModel(),
             objectVariable = RealVar("x"),
@@ -510,8 +526,8 @@ class BendersSolverValueConversionTest {
     @Test
     fun linearSolveSubAsForwardsCallbacksFromOptions() = runBlocking {
         val solver = StubBendersSolver()
-        val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
-        val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
+        val registrationStatusCallBack = RegistrationStatusCallBack { _ -> ok }
+        val solvingStatusCallBack = SolvingStatusCallBack { _ -> ok }
         solver.solveSubAs(
             metaModel = linearModel(),
             objectVariable = RealVar("x"),
@@ -552,8 +568,8 @@ class BendersSolverValueConversionTest {
     @Test
     fun quadraticSolveSubAsAsyncForwardsCallbacksFromOptions() {
         val solver = StubBendersSolver()
-        val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
-        val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
+        val registrationStatusCallBack = RegistrationStatusCallBack { _ -> ok }
+        val solvingStatusCallBack = SolvingStatusCallBack { _ -> ok }
         solver.solveSubAsAsync(
             metaModel = quadraticModel(),
             objectVariable = RealVar("y"),
@@ -570,8 +586,8 @@ class BendersSolverValueConversionTest {
     @Test
     fun quadraticSolveSubAsForwardsCallbacksFromOptions() = runBlocking {
         val solver = StubBendersSolver()
-        val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
-        val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
+        val registrationStatusCallBack = RegistrationStatusCallBack { _ -> ok }
+        val solvingStatusCallBack = SolvingStatusCallBack { _ -> ok }
         solver.solveSubAs(
             metaModel = quadraticModel(),
             objectVariable = RealVar("y"),

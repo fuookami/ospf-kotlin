@@ -1,16 +1,12 @@
 /**
- * 并行判断操作
- *
- * Parallel predicate operations (all, any, none) with concurrency control.
+ * 并行判断操作 / Parallel predicate operations (all, any, none) with concurrency control.
 */
 package fuookami.ospf.kotlin.utils.parallel
 
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 并行判断是否所有元素都满足条件
- *
- * Check if all elements satisfy the predicate in parallel with concurrency control.
+ * 并行判断是否所有元素都满足条件 / Check if all elements satisfy the predicate in parallel with concurrency control.
  *
  * @param T 元素类型 / Element type
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
@@ -27,9 +23,7 @@ suspend inline fun <T> Iterable<T>.allParallelly(
 }
 
 /**
- * 并行判断是否所有元素都满足条件（带错误处理）
- *
- * Check if all elements satisfy the predicate in parallel with error handling.
+ * 并行判断是否所有元素都满足条件（带错误处理） / Check if all elements satisfy the predicate in parallel with error handling.
  * 并发判断是否所有元素都满足条件，支持错误处理。
  *
  * @param T 元素类型 / Element type
@@ -51,9 +45,7 @@ suspend inline fun <T> Iterable<T>.tryAllParallelly(
 }
 
 /**
- * 并行判断是否所有元素都满足条件（带错误收集）
- *
- * Check if all elements satisfy the predicate in parallel with error collection.
+ * 并行判断是否所有元素都满足条件（带错误收集） / Check if all elements satisfy the predicate in parallel with error collection.
  * 并发判断是否所有元素都满足条件，收集所有错误。
  *
  * @param T 元素类型 / Element type
@@ -76,9 +68,7 @@ suspend inline fun <T> Iterable<T>.exTryAllParallelly(
 }
 
 /**
- * 并行判断是否存在元素满足条件
- *
- * Check if any element satisfies the predicate in parallel with concurrency control.
+ * 并行判断是否存在元素满足条件 / Check if any element satisfies the predicate in parallel with concurrency control.
  *
  * @param T 元素类型 / Element type
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
@@ -95,9 +85,7 @@ suspend inline fun <T> Iterable<T>.anyParallelly(
 }
 
 /**
- * 并行判断是否存在元素满足条件（带错误处理）
- *
- * Check if any element satisfies the predicate in parallel with error handling.
+ * 并行判断是否存在元素满足条件（带错误处理） / Check if any element satisfies the predicate in parallel with error handling.
  * 并发判断是否存在元素满足条件，支持错误处理。
  *
  * @param T 元素类型 / Element type
@@ -119,9 +107,7 @@ suspend inline fun <T> Iterable<T>.tryAnyParallelly(
 }
 
 /**
- * 并行判断是否存在元素满足条件（带错误收集）
- *
- * Check if any element satisfies the predicate in parallel with error collection.
+ * 并行判断是否存在元素满足条件（带错误收集） / Check if any element satisfies the predicate in parallel with error collection.
  * 并发判断是否存在元素满足条件，收集所有错误。
  *
  * @param T 元素类型 / Element type
@@ -144,9 +130,7 @@ suspend inline fun <T> Iterable<T>.exTryAnyParallelly(
 }
 
 /**
- * 并行判断是否没有元素满足条件
- *
- * Check if no element satisfies the predicate in parallel with concurrency control.
+ * 并行判断是否没有元素满足条件 / Check if no element satisfies the predicate in parallel with concurrency control.
  *
  * @param T 元素类型 / Element type
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
@@ -161,9 +145,7 @@ suspend inline fun <T> Iterable<T>.noneParallelly(
 }
 
 /**
- * 并行判断是否没有元素满足条件（带错误处理）
- *
- * Check if no element satisfies the predicate in parallel with error handling.
+ * 并行判断是否没有元素满足条件（带错误处理） / Check if no element satisfies the predicate in parallel with error handling.
  * 并发判断是否没有元素满足条件，支持错误处理。
  *
  * @param T 元素类型 / Element type
@@ -183,9 +165,7 @@ suspend inline fun <T> Iterable<T>.tryNoneParallelly(
 }
 
 /**
- * 并行判断是否没有元素满足条件（带错误收集）
- *
- * Check if no element satisfies the predicate in parallel with error collection.
+ * 并行判断是否没有元素满足条件（带错误收集） / Check if no element satisfies the predicate in parallel with error collection.
  * 并发判断是否没有元素满足条件，收集所有错误。
  *
  * @param T 元素类型 / Element type

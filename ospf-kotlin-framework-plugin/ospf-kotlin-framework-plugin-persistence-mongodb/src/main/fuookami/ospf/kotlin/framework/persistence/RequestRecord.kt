@@ -1,9 +1,7 @@
 /**
- * MongoDB 请求/响应记录持久化
- * MongoDB request/response record persistence
+ * MongoDB 请求/响应记录持久化 / MongoDB request/response record persistence
  *
- * 提供将 API 请求和响应记录插入和查询 MongoDB 的扩展函数。
- * Provides extension functions for inserting and querying API request/response records in MongoDB.
+ * 提供将 API 请求和响应记录插入和查询 MongoDB 的扩展函数。 / Provides extension functions for inserting and querying API request/response records in MongoDB.
 */
 package fuookami.ospf.kotlin.framework.persistence
 
@@ -11,8 +9,7 @@ import kotlinx.serialization.*
 import com.mongodb.client.MongoDatabase
 
 /**
- * 插入请求记录（使用默认序列化器）
- * Insert request record (using default serializer)
+ * 插入请求记录（使用默认序列化器） / Insert request record (using default serializer)
  *
  * @param T 请求类型 / Request type
  * @param path API 路径 / API path
@@ -40,8 +37,7 @@ inline fun <reified T> MongoDatabase.insertRequest(
 }
 
 /**
- * 插入请求记录（使用指定序列化器）
- * Insert request record (using specified serializer)
+ * 插入请求记录（使用指定序列化器） / Insert request record (using specified serializer)
  *
  * @param T 请求类型 / Request type
  * @param path API 路径 / API path
@@ -73,8 +69,7 @@ fun <T : RequestDTO<T>> MongoDatabase.insertRequest(
 }
 
 /**
- * 查询请求记录（使用默认反序列化器）
- * Query request records (using default deserializer)
+ * 查询请求记录（使用默认反序列化器） / Query request records (using default deserializer)
  *
  * @param T 请求类型 / Request type
  * @param path API 路径 / API path
@@ -94,8 +89,7 @@ inline fun <reified T> MongoDatabase.getRequest(
 }
 
 /**
- * 查询请求记录（使用指定序列化器）
- * Query request records (using specified serializer)
+ * 查询请求记录（使用指定序列化器） / Query request records (using specified serializer)
  *
  * @param T 请求类型 / Request type
  * @param path API 路径 / API path
@@ -116,8 +110,7 @@ fun <T : RequestDTO<T>> MongoDatabase.getRequest(
 }
 
 /**
- * 插入响应记录（使用默认序列化器）
- * Insert response record (using default serializer)
+ * 插入响应记录（使用默认序列化器） / Insert response record (using default serializer)
  *
  * @param T 响应类型 / Response type
  * @param path API 路径 / API path
@@ -145,8 +138,7 @@ inline fun <reified T> MongoDatabase.insertResponse(
 }
 
 /**
- * 插入响应记录（使用指定序列化器）
- * Insert response record (using specified serializer)
+ * 插入响应记录（使用指定序列化器） / Insert response record (using specified serializer)
  *
  * @param T 响应类型 / Response type
  * @param path API 路径 / API path
@@ -178,8 +170,7 @@ fun <T : ResponseDTO<T>> MongoDatabase.insertResponse(
 }
 
 /**
- * 查询响应记录（使用默认反序列化器）
- * Query response records (using default deserializer)
+ * 查询响应记录（使用默认反序列化器） / Query response records (using default deserializer)
  *
  * @param T 响应类型 / Response type
  * @param path API 路径 / API path
@@ -199,8 +190,7 @@ inline fun <reified T> MongoDatabase.getResponse(
 }
 
 /**
- * 查询响应记录（使用指定序列化器）
- * Query response records (using specified serializer)
+ * 查询响应记录（使用指定序列化器） / Query response records (using specified serializer)
  *
  * @param T 响应类型 / Response type
  * @param path API 路径 / API path

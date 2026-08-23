@@ -1,16 +1,14 @@
 /**
- * 容器几何核心。
- * Container geometry core.
+ * 容器几何核心。 / Container geometry core.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import fuookami.ospf.kotlin.utils.functional.Eq
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.quantities.quantity.*
 
 /**
- * 泛型 3D 容器形状接口。
- * Generic 3D container shape interface.
+ * 泛型 3D 容器形状接口。 / Generic 3D container shape interface.
  *
  * @param V 数值类型 / numeric scalar type
 */
@@ -32,9 +30,9 @@ interface Container3Geometry<V : FloatingNumber<V>> : Eq<Container3Geometry<V>> 
 /**
  * enabled.
  * enabled。
- * @param unit cuboid to check fit for / 待检查适配的长方体
- * @param orientation placement orientation / 放置姿态
- * @return whether the cuboid fits within this container / 该长方体是否可放入此容器
+ * @param unit 待检查适配的长方体 / cuboid to check fit for
+ * @param orientation 放置姿态 / placement orientation
+ * @return 该长方体是否可放入此容器 / whether the cuboid fits within this container
 */
     fun enabled(
         unit: AbstractCuboid<V>,
@@ -48,8 +46,8 @@ interface Container3Geometry<V : FloatingNumber<V>> : Eq<Container3Geometry<V>> 
 /**
  * enabled.
  * enabled。
- * @param unit placement to check fit for / 待检查适配的放置物
- * @return whether the placement fits within this container / 该放置物是否可放入此容器
+ * @param unit 待检查适配的放置物 / placement to check fit for
+ * @return 该放置物是否可放入此容器 / whether the placement fits within this container
 */
     fun enabled(unit: QuantityPlacement3<*, V>): Boolean {
         return (width geq unit.maxX) == true
@@ -60,8 +58,8 @@ interface Container3Geometry<V : FloatingNumber<V>> : Eq<Container3Geometry<V>> 
 /**
  * enabled.
  * enabled。
- * @param units placements to check fit for / 待检查适配的放置物列表
- * @return whether all placements fit within this container's dimensions / 所有放置物是否在此容器的尺寸范围内
+ * @param units 待检查适配的放置物列表 / placements to check fit for
+ * @return 所有放置物是否在此容器的尺寸范围内 / whether all placements fit within this container's dimensions
 */
     fun enabled(units: List<QuantityPlacement3<*, V>>): Boolean {
         val maxX = maxQuantityByValue(units.map { it.maxX })
@@ -82,8 +80,8 @@ interface Container3Geometry<V : FloatingNumber<V>> : Eq<Container3Geometry<V>> 
 /**
  * restSpace.
  * restSpace。
- * @param offset offset point / 偏移点
- * @return remaining container shape / 剩余容器形状
+ * @param offset 偏移点 / offset point
+ * @return 剩余容器形状 / remaining container shape
 */
     fun restSpace(offset: QuantityPoint3<V>): QuantityContainer3Shape<V> {
         return QuantityContainer3Shape(
@@ -99,8 +97,7 @@ interface Container3Geometry<V : FloatingNumber<V>> : Eq<Container3Geometry<V>> 
 }
 
 /**
- * 泛型 3D 容器形状实现。
- * Generic 3D container shape implementation.
+ * 泛型 3D 容器形状实现。 / Generic 3D container shape implementation.
  *
  * @param V 数值类型 / numeric scalar type
  * @property width 宽度 / width
@@ -114,8 +111,7 @@ data class QuantityContainer3Shape<V : FloatingNumber<V>>(
 ) : Container3Geometry<V>
 
 /**
- * 泛型 2D 容器形状接口。
- * Generic 2D container shape interface.
+ * 泛型 2D 容器形状接口。 / Generic 2D container shape interface.
  *
  * @param P 投影平面 / projective plane
  * @param V 数值类型 / numeric scalar type
@@ -134,8 +130,8 @@ interface Container2Geometry<P : ProjectivePlane, V : FloatingNumber<V>> {
 /**
  * restSpace.
  * restSpace。
- * @param offset offset point / 偏移点
- * @return remaining container shape / 剩余容器形状
+ * @param offset 偏移点 / offset point
+ * @return 剩余容器形状 / remaining container shape
 */
     fun restSpace(offset: QuantityPoint2<V>): QuantityContainer2Shape<P, V> {
         return QuantityContainer2Shape(
@@ -148,8 +144,8 @@ interface Container2Geometry<P : ProjectivePlane, V : FloatingNumber<V>> {
 /**
  * restSpace.
  * restSpace。
- * @param offset offset point / 偏移点
- * @return remaining container shape / 剩余容器形状
+ * @param offset 偏移点 / offset point
+ * @return 剩余容器形状 / remaining container shape
 */
     fun restSpace(offset: QuantityVector2<V>): QuantityContainer2Shape<P, V> {
         return QuantityContainer2Shape(
@@ -161,8 +157,7 @@ interface Container2Geometry<P : ProjectivePlane, V : FloatingNumber<V>> {
 }
 
 /**
- * 泛型 2D 容器形状实现。
- * Generic 2D container shape implementation.
+ * 泛型 2D 容器形状实现。 / Generic 2D container shape implementation.
  *
  * @param P 投影平面 / projective plane
  * @param V 数值类型 / numeric scalar type
@@ -179,7 +174,7 @@ data class QuantityContainer2Shape<P : ProjectivePlane, V : FloatingNumber<V>>(
 private fun <V : FloatingNumber<V>> maxQuantityByValue(values: Iterable<Quantity<V>>): Quantity<V>? {
     var maximum: Quantity<V>? = null
     for (value in values) {
-        maximum = if (maximum == null || quantityOrd(value, maximum, "max") is fuookami.ospf.kotlin.utils.functional.Order.Greater) {
+        maximum = if (maximum == null || quantityOrd(value, maximum, "max") is Order.Greater) {
             value
         } else {
             maximum

@@ -30,7 +30,7 @@ class TaskExecutorCostMinimization<
     private val tasks: List<T>,
     private val executors: List<E>,
     private val compilation: Compilation,
-    private val costCalculator: Extractor<Flt64?, Pair<T, E>> = { Flt64.one },
+    private val costCalculator: Extractor<Flt64?, Pair<T, E>> = Extractor { Flt64.one },
     override val name: String = "task_executor_cost"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {

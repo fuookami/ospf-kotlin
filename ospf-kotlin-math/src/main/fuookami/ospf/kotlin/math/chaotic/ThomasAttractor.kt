@@ -1,6 +1,5 @@
 /**
- * 托马斯吸引子
- * Thomas Attractor
+ * 托马斯吸引子 / Thomas Attractor
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 托马斯吸引子
- * Thomas Attractor
+ * 托马斯吸引子 / Thomas Attractor
  *
  * @property beta 系统参数 beta / System parameter beta
  * @property h 时间步长 / Time step size
@@ -37,8 +35,7 @@ data class ThomasAttractor<V : FloatingNumber<V>>(val beta: V, val h: V) : Extra
 }
 
 /**
- * 托马斯吸引子生成器
- * Thomas Attractor Generator
+ * 托马斯吸引子生成器 / Thomas Attractor Generator
  *
  * @property attractor 托马斯吸引子实例 / Thomas attractor instance
 */
@@ -55,8 +52,7 @@ data class ThomasAttractorGenerator(
 ) : Generator<Point<Dim3, Flt64>> {
 
     /**
-     * 当前点坐标
-     * Current point coordinates
+     * 当前点坐标 / Current point coordinates
     */
     val x by ::_x;
     override operator fun invoke(): Point<Dim3, Flt64> {

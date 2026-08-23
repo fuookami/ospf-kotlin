@@ -22,8 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 */
 
 /**
- * 平衡三值化函数：将 x 映射为 sign(x) 取值 {-1, 0, 1}。
- * Balance Ternaryzation function: maps x to sign(x) in {-1, 0, 1}.
+ * 平衡三值化函数：将 x 映射为 sign(x) 取值 {-1, 0, 1}。 / Balance Ternaryzation function: maps x to sign(x) in {-1, 0, 1}.
  *
  * 输出：
  * - y = 1  当 x > epsilon

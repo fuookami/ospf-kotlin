@@ -1,6 +1,5 @@
 /**
- * 方向基础设施。
- * Orientation infrastructure.
+ * 方向基础设施。 / Orientation infrastructure.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
@@ -13,8 +12,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.quantities.quantity.*
 
 /**
- * 方向类别枚举。
- * Orientation category enum.
+ * 方向类别枚举。 / Orientation category enum.
 */
 enum class OrientationCategory {
     Upright,
@@ -23,11 +21,9 @@ enum class OrientationCategory {
 }
 
 /**
- * 方向类型（密封类版本）
- * Orientation type (sealed class version)
+ * 方向类型（密封类版本） / Orientation type (sealed class version)
  *
- * 从 enum 迁移为 sealed class，同时保持字符串序列化/反序列化与旧枚举名称兼容。
- * Migrated from enum to sealed class while preserving string serialization/deserialization
+ * 从 enum 迁移为 sealed class，同时保持字符串序列化/反序列化与旧枚举名称兼容。 / Migrated from enum to sealed class while preserving string serialization/deserialization
  * compatibility with previous enum names.
  *
  * @property label 方向标签
@@ -39,8 +35,7 @@ enum class OrientationCategory {
 sealed class Orientation {
 
     /**
-     * 竖直方向（默认方向）。
-     * Upright orientation (default orientation).
+     * 竖直方向（默认方向）。 / Upright orientation (default orientation).
     */
     object Upright : Orientation() {
         override val label = "Upright"
@@ -50,8 +45,7 @@ sealed class Orientation {
     }
 
     /**
-     * 竖直旋转方向，深度与宽度互换。
-     * Upright rotated orientation, depth and width swapped.
+     * 竖直旋转方向，深度与宽度互换。 / Upright rotated orientation, depth and width swapped.
     */
     object UprightRotated : Orientation() {
         override val label = "UprightRotated"
@@ -64,8 +58,7 @@ sealed class Orientation {
     }
 
     /**
-     * 侧向方向，高度与宽度互换。
-     * Side orientation, height and width swapped.
+     * 侧向方向，高度与宽度互换。 / Side orientation, height and width swapped.
     */
     object Side : Orientation() {
         override val label = "Side"
@@ -77,8 +70,7 @@ sealed class Orientation {
     }
 
     /**
-     * 侧向旋转方向，深度与高度互换，宽度不变。
-     * Side rotated orientation, depth and height swapped, width unchanged.
+     * 侧向旋转方向，深度与高度互换，宽度不变。 / Side rotated orientation, depth and height swapped, width unchanged.
     */
     object SideRotated : Orientation() {
         override val label = "SideRotated"
@@ -92,8 +84,7 @@ sealed class Orientation {
     }
 
     /**
-     * 平躺方向，高度与深度互换。
-     * Lie orientation, height and depth swapped.
+     * 平躺方向，高度与深度互换。 / Lie orientation, height and depth swapped.
     */
     object Lie : Orientation() {
         override val label = "Lie"
@@ -105,8 +96,7 @@ sealed class Orientation {
     }
 
     /**
-     * 平躺旋转方向，宽度与高度互换，深度不变。
-     * Lie rotated orientation, width and height swapped, depth unchanged.
+     * 平躺旋转方向，宽度与高度互换，深度不变。 / Lie rotated orientation, width and height swapped, depth unchanged.
     */
     object LieRotated : Orientation() {
         override val label = "LieRotated"
@@ -123,20 +113,17 @@ sealed class Orientation {
     protected abstract val rank: Int
 
     /**
-     * 方向的深度尺寸。
-     * Depth dimension of the orientation.
+     * 方向的深度尺寸。 / Depth dimension of the orientation.
     */
     open fun <V : FloatingNumber<V>> depth(unit: AbstractCuboid<V>): Quantity<V> = unit.depth
 
     /**
-     * 方向的宽度尺寸。
-     * Width dimension of the orientation.
+     * 方向的宽度尺寸。 / Width dimension of the orientation.
     */
     open fun <V : FloatingNumber<V>> width(unit: AbstractCuboid<V>): Quantity<V> = unit.width
 
     /**
-     * 方向的高度尺寸。
-     * Height dimension of the orientation.
+     * 方向的高度尺寸。 / Height dimension of the orientation.
     */
     open fun <V : FloatingNumber<V>> height(unit: AbstractCuboid<V>): Quantity<V> = unit.height
 
@@ -145,8 +132,7 @@ sealed class Orientation {
     abstract val category: OrientationCategory
 
     /**
-     * 获取方向的排序值。
-     * Get the ordering value of the orientation.
+     * 获取方向的排序值。 / Get the ordering value of the orientation.
      * @return 排序值
     */
     fun orderValue(): Int = rank
@@ -165,8 +151,7 @@ sealed class Orientation {
             )
 
         /**
-         * 根据字符串名称查找方向。
-         * Find an orientation by string name.
+         * 根据字符串名称查找方向。 / Find an orientation by string name.
          * @param str 方向名称
          * @return 找到的方向，若未找到则返回 null
         */
@@ -175,8 +160,7 @@ sealed class Orientation {
         }
 
         /**
-         * 根据字符串名称获取方向，若不存在则返回错误。
-         * Resolve an orientation by string name, returning an error if not found.
+         * 根据字符串名称获取方向，若不存在则返回错误。 / Resolve an orientation by string name, returning an error if not found.
          * @param str 方向名称
          * @return 包含方向的结果或错误
         */
@@ -190,8 +174,7 @@ sealed class Orientation {
         }
 
         /**
-         * 合并方向列表，去除尺寸重复的方向。
-         * Merge orientation list, removing orientations with duplicate dimensions.
+         * 合并方向列表，去除尺寸重复的方向。 / Merge orientation list, removing orientations with duplicate dimensions.
          * @param unit 参考容器
          * @param orientations 待合并的方向列表
          * @return 合并后的方向列表
@@ -221,8 +204,7 @@ sealed class Orientation {
 }
 
 /**
- * 方向类型的序列化器。
- * Serializer for the Orientation type.
+ * 方向类型的序列化器。 / Serializer for the Orientation type.
 */
 object OrientationSerializer : KSerializer<Orientation> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Orientation", PrimitiveKind.STRING)
@@ -241,8 +223,7 @@ object OrientationSerializer : KSerializer<Orientation> {
 }
 
 /**
- * 根据自定义顺序比较两个方向的大小关系。
- * Compare two orientations according to a custom order.
+ * 根据自定义顺序比较两个方向的大小关系。 / Compare two orientations according to a custom order.
  * @param rhs 右侧方向
  * @return 比较结果
 */
@@ -259,8 +240,7 @@ infix fun Orientation.ord(rhs: Orientation): Order {
 }
 
 /**
- * 根据列表顺序比较两个方向的大小关系。
- * Compare two orientations according to list order.
+ * 根据列表顺序比较两个方向的大小关系。 / Compare two orientations according to list order.
  * @param lhs 左侧方向
  * @param rhs 右侧方向
  * @return 比较结果

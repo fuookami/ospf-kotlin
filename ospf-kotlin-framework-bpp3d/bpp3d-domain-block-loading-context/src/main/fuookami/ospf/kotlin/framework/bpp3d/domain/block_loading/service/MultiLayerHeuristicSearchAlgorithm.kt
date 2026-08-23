@@ -1,6 +1,5 @@
 /**
- * 多层启发式搜索算法。
- * Multi-layer heuristic search algorithm.
+ * 多层启发式搜索算法。 / Multi-layer heuristic search algorithm.
 */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
@@ -163,8 +162,8 @@ class MultiLayerHeuristicSearchAlgorithm(
 /**
  * finished.
  * finished。
- * @param restItems remaining item quantities / 剩余物品数量
- * @return whether all items are packed / 所有货物是否已装完
+ * @param restItems 剩余物品数量 / remaining item quantities
+ * @return 所有货物是否已装完 / whether all items are packed
 */
     private fun finished(restItems: Map<Item, UInt64>): Boolean {
         for ((_, amount) in restItems) {
@@ -178,9 +177,9 @@ class MultiLayerHeuristicSearchAlgorithm(
 /**
  * enough.
  * enough。
- * @param restItems remaining item quantities / 剩余物品数量
- * @param block block to check / 待检查的块
- * @return whether remaining items are sufficient / 剩余货物是否足够
+ * @param restItems 剩余物品数量 / remaining item quantities
+ * @param block 待检查的块 / block to check
+ * @return 剩余货物是否足够 / whether remaining items are sufficient
 */
     private fun enough(
         restItems: Map<Item, UInt64>,
@@ -195,8 +194,7 @@ class MultiLayerHeuristicSearchAlgorithm(
     }
 
     /**
-     * 执行多层启发式搜索装箱。
-     * Perform multi-layer heuristic search packing.
+     * 执行多层启发式搜索装箱。 / Perform multi-layer heuristic search packing.
      *
      * @param promise 用于发送装箱结果的通道
      * Channel for sending packing results

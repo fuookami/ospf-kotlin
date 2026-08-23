@@ -1,6 +1,5 @@
 /**
- * 金融吸引子
- * Finance Attractor
+ * 金融吸引子 / Finance Attractor
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 金融吸引子
- * Finance Attractor
+ * 金融吸引子 / Finance Attractor
  *
  * @property alpha 系统参数 alpha / System parameter alpha
  * @property beta 系统参数 beta / System parameter beta
@@ -43,8 +41,7 @@ data class FinanceAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, va
 }
 
 /**
- * 金融吸引子生成器
- * Finance Attractor Generator
+ * 金融吸引子生成器 / Finance Attractor Generator
 */
 data class FinanceAttractorGenerator(
     val attractor: FinanceAttractor<Flt64> = FinanceAttractor(),

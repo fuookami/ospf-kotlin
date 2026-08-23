@@ -12,8 +12,7 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 /**
- * 转换为 FltX 量纲。
- * Convert to FltX quantity.
+ * 转换为 FltX 量纲。 / Convert to FltX quantity.
  * @return FltX 量纲。
 */
 private fun <V : FloatingNumber<V>> Quantity<V>.toFltXQuantity(): Quantity<FltX> {
@@ -21,8 +20,7 @@ private fun <V : FloatingNumber<V>> Quantity<V>.toFltXQuantity(): Quantity<FltX>
 }
 
 /**
- * 不安全地转换为 FltX 量纲。
- * Unsafely convert to FltX quantity.
+ * 不安全地转换为 FltX 量纲。 / Unsafely convert to FltX quantity.
  * @return FltX 量纲。
 */
 private fun Quantity<*>.toFltXQuantityUnsafe(): Quantity<FltX> {
@@ -30,8 +28,7 @@ private fun Quantity<*>.toFltXQuantityUnsafe(): Quantity<FltX> {
 }
 
 /**
- * 量纲包裹形状规格。
- * Quantity package shape specification.
+ * 量纲包裹形状规格。 / Quantity package shape specification.
 */
 sealed interface QuantityPackageShapeSpec {
 
@@ -39,8 +36,7 @@ sealed interface QuantityPackageShapeSpec {
     data object Cuboid : QuantityPackageShapeSpec
 
     /**
-     * 竖直圆柱体。
-     * Vertical cylinder.
+     * 竖直圆柱体。 / Vertical cylinder.
      * @property radius 半径。
      * @property axis 轴线方向。
      * @property radiusCandidates 半径候选值。
@@ -67,8 +63,7 @@ sealed interface QuantityPackageShapeSpec {
 }
 
 /**
- * 转换为领域模型。
- * Convert to the domain model.
+ * 转换为领域模型。 / Convert to the domain model.
  * @return 包裹形状规格模型。
 */
 private fun QuantityPackageShapeSpec.toModel(): PackageShapeSpec {
@@ -92,8 +87,7 @@ private fun QuantityPackageShapeSpec.toModel(): PackageShapeSpec {
 }
 
 /**
- * 量纲材料。
- * Quantity material.
+ * 量纲材料。 / Quantity material.
  * @property no 材料编号。
  * @property type 材料类型。
  * @property cargo 货物属性。
@@ -115,8 +109,7 @@ data class QuantityMaterial<V : FloatingNumber<V>>(
 ) {
 
     /**
-     * 转换为领域模型。
-     * Convert to the domain model.
+     * 转换为领域模型。 / Convert to the domain model.
      * @return 材料模型。
     */
     fun toModel(): Material<FltX> {
@@ -134,8 +127,7 @@ data class QuantityMaterial<V : FloatingNumber<V>>(
 }
 
 /**
- * 量纲包裹形状。
- * Quantity package shape.
+ * 量纲包裹形状。 / Quantity package shape.
  * @property width 宽度。
  * @property height 高度。
  * @property depth 深度。
@@ -148,14 +140,13 @@ data class QuantityPackageShape<V : FloatingNumber<V>>(
     val height: Quantity<V>,
     val depth: Quantity<V>,
     val weight: Quantity<V>,
-    val packageType: fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType,
+    val packageType: PackageType,
     val shapeSpec: QuantityPackageShapeSpec = QuantityPackageShapeSpec.Cuboid
 ) {
     val volume: Quantity<V> = width * height * depth
 
     /**
-     * 转换为领域模型。
-     * Convert to the domain model.
+     * 转换为领域模型。 / Convert to the domain model.
      * @return 包裹形状模型。
     */
     fun toModel(): PackageShape<FltX> {
@@ -171,8 +162,7 @@ data class QuantityPackageShape<V : FloatingNumber<V>>(
 }
 
 /**
- * 量纲包裹。
- * Quantity package.
+ * 量纲包裹。 / Quantity package.
  * @property code 包裹编码。
  * @property pattern 包裹模式。
  * @property shape 包裹形状。
@@ -192,8 +182,7 @@ data class QuantityPackage<V : FloatingNumber<V>>(
 ) {
     companion object {
         /**
-         * 创建外层包裹。
-         * Create an outer package.
+         * 创建外层包裹。 / Create an outer package.
          * @param code 包裹编码。
          * @param pattern 包裹模式。
          * @param shape 包裹形状。
@@ -228,8 +217,7 @@ data class QuantityPackage<V : FloatingNumber<V>>(
         }
 
         /**
-         * 创建内层包裹。
-         * Create an inner package.
+         * 创建内层包裹。 / Create an inner package.
          * @param code 包裹编码。
          * @param pattern 包裹模式。
          * @param shape 包裹形状。
@@ -265,8 +253,7 @@ data class QuantityPackage<V : FloatingNumber<V>>(
     val volume by shape::volume
 
     /**
-     * 转换为领域模型。
-     * Convert to the domain model.
+     * 转换为领域模型。 / Convert to the domain model.
      * @param materialCache 材料缓存，用于避免重复创建。
      * @return 包裹模型。
     */
@@ -299,8 +286,7 @@ data class QuantityPackage<V : FloatingNumber<V>>(
 }
 
 /**
- * 量纲物品。
- * Quantity item.
+ * 量纲物品。 / Quantity item.
  * @property packageCode 包裹编码。
  * @property pack 包裹。
  * @property width 宽度。
@@ -350,8 +336,7 @@ data class QuantityItem<V : FloatingNumber<V>>(
     )
 
     /**
-     * 转换为领域模型。
-     * Convert to the domain model.
+     * 转换为领域模型。 / Convert to the domain model.
      * @param materialCache 材料缓存，用于避免重复创建。
      * @param itemCache 物品缓存，用于避免重复创建。
      * @return 实际物品模型。
@@ -381,8 +366,7 @@ data class QuantityItem<V : FloatingNumber<V>>(
 }
 
 /**
- * 量纲物品放置。
- * Quantity item placement.
+ * 量纲物品放置。 / Quantity item placement.
  * @property item 物品。
  * @property x X 坐标。
  * @property y Y 坐标。
@@ -398,8 +382,7 @@ data class QuantityItemPlacement<V : FloatingNumber<V>>(
 ) {
 
     /**
-     * 转换为领域模型。
-     * Convert to the domain model.
+     * 转换为领域模型。 / Convert to the domain model.
      * @param materialCache 材料缓存，用于避免重复创建。
      * @param itemCache 物品缓存，用于避免重复创建。
      * @return 物品放置模型。
@@ -422,8 +405,7 @@ data class QuantityItemPlacement<V : FloatingNumber<V>>(
 }
 
 /**
- * 量纲箱子层。
- * Quantity bin layer.
+ * 量纲箱子层。 / Quantity bin layer.
 */
 data class QuantityBinLayer<V : FloatingNumber<V>>(
     val iteration: Int64,
@@ -435,8 +417,7 @@ data class QuantityBinLayer<V : FloatingNumber<V>>(
 ) {
 
     /**
-     * 转换为领域模型。
-     * Convert to the domain model.
+     * 转换为领域模型。 / Convert to the domain model.
      * @param materialCache 材料缓存，用于避免重复创建。
      * @param itemCache 物品缓存，用于避免重复创建。
      * @return 箱子层模型。

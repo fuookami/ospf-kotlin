@@ -20,9 +20,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 逻辑运算函数符号 / Logical operation function symbols
  *
  * 提供 [AndFunction]、[OrFunction]、[NotFunction]、[XorFunction]，
- * 用于将逻辑运算线性化建模。
- *
- * Provides [AndFunction], [OrFunction], [NotFunction], and [XorFunction]
+ * 用于将逻辑运算线性化建模。 / Provides [AndFunction], [OrFunction], [NotFunction], and [XorFunction]
  * for linearized modeling of logical operations.
 */
 
@@ -165,8 +163,7 @@ class AndFunction<V>(
 }
 
 /**
- * 或逻辑函数：当且仅当至少一个输入非零时 y = 1。
- * OR function: y = 1 iff at least one input is nonzero.
+ * 或逻辑函数：当且仅当至少一个输入非零时 y = 1。 / OR function: y = 1 iff at least one input is nonzero.
  *
  * 使用非零指示变量，满足 sum(indicators) >= result 且 result >= each indicator。
  * Uses nonzero indicators with sum(indicators) >= result and result >= each indicator.
@@ -276,11 +273,9 @@ class OrFunction<V>(
 }
 
 /**
- * 非逻辑函数：当且仅当输入为零时 y = 1。
- * NOT function: y = 1 iff input is zero.
+ * 非逻辑函数：当且仅当输入为零时 y = 1。 / NOT function: y = 1 iff input is zero.
  *
- * 使用非零指示变量，满足 y = 1 - indicator。
- * Uses nonzero indicator with y = 1 - indicator.
+ * 使用非零指示变量，满足 y = 1 - indicator。 / Uses nonzero indicator with y = 1 - indicator.
  *
  * @property polynomial 输入线性多项式 / Input linear polynomial
  * @property indicatorVar 非零指示变量 / Nonzero indicator variable
@@ -368,8 +363,7 @@ class NotFunction<V>(
 }
 
 /**
- * 异或逻辑函数：当且仅当恰好一个输入非零时 y = 1。
- * XOR function: y = 1 iff exactly one input is nonzero.
+ * 异或逻辑函数：当且仅当恰好一个输入非零时 y = 1。 / XOR function: y = 1 iff exactly one input is nonzero.
  *
  * 使用非零指示变量，满足 sum(indicators) - 2*slack = result, sum(indicators) <= n*result + n - 1。
  * Uses nonzero indicators with sum(indicators) - 2*slack = result, sum(indicators) <= n*result + n - 1.

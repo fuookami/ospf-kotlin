@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -17,8 +18,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
 /**
  * 约束 CG 指数裕度（CLIM）在最大允许边界内。Constrains the CG index margin (CLIM) to be within the maximum allowed bounds.
  *
- * @property torque The torque model providing CG index margin / 提供CG指数裕度的力矩模型
- * @property maxCLIM The maximum CG index margin limit / 最大CG指数裕度限制
+ * @property torque 提供CG指数裕度的力矩模型 / The torque model providing CG index margin
+ * @property maxCLIM 最大CG指数裕度限制 / The maximum CG index margin limit
 */
 class CLIMLimit(
     private val torque: Torque,
@@ -26,38 +27,32 @@ class CLIMLimit(
     override val name: String = "max_clim_limit"
 ) : Pipeline<AbstractLinearMetaModel<Flt64>> {
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
-        val upper = MutableLinearPolynomial()
-        upper += LinearMonomial(Flt64.one, torque.clim.value)
-        upper += LinearMonomial(-Flt64.one, maxCLIM.maxCLIM.value)
         when (val result = model.addConstraint(
-            relation = LinearPolynomial(upper.monomials, upper.constant) leq Flt64.zero,
+            relation = (torque.clim.value - maxCLIM.maxCLIM.value) leq Flt64.zero,
             name = "${name}_ub"
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                 return Failed(result.error)
             }
 
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Fatal -> {
                 return Fatal(result.errors)
             }
         }
 
-        val lower = MutableLinearPolynomial()
-        lower += LinearMonomial(Flt64.one, torque.clim.value)
-        lower += LinearMonomial(Flt64.one, maxCLIM.maxCLIM.value)
         when (val result = model.addConstraint(
-            relation = LinearPolynomial(lower.monomials, lower.constant) geq Flt64.zero,
+            relation = (torque.clim.value + maxCLIM.maxCLIM.value) geq Flt64.zero,
             name = "${name}_lb"
         )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+            is Ok -> {}
 
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Failed -> {
                 return Failed(result.error)
             }
 
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+            is Fatal -> {
                 return Fatal(result.errors)
             }
         }

@@ -28,8 +28,7 @@ private fun scalar(value: Number): FltX = FltX(value.toDouble())
 private fun scalar(value: ULong): FltX = FltX(value.toDouble())
 
 /**
- * 将 [Try] 的失败分支转换为 [Ret] 类型，成功分支返回 null。
- * Converts the failure branch of [Try] to [Ret], returning null for the success branch.
+ * 将 [Try] 的失败分支转换为 [Ret] 类型，成功分支返回 null。 / Converts the failure branch of [Try] to [Ret], returning null for the success branch.
  *
  * @return 成功时返回 null（由调用方继续处理），失败时返回对应的 [Failed] 或 [Fatal] /
  *         null on success (caller continues processing), [Failed] or [Fatal] on failure
@@ -187,13 +186,13 @@ data object ItemMerger {
      * Merges items into merge units based on bin type and patterns.
      * 中文根据箱型和模式将物品合并为合并单元。
      *
-     * @param items the list of items to merge / 待合并的物品列表
-     * @param binType the bin type for merging / 合并使用的箱型
-     * @param patterns the packing patterns / 装箱模式
-     * @param predicate optional filter predicate for items / 可选的物品过滤谓词
-     * @param fillerPredicate optional filter predicate for filler items / 可选的填充物品过滤谓词
-     * @param config the merge configuration / 合并配置
-     * @return the list of item merge units / 物品合并单元列表
+     * @param items 待合并的物品列表 / the list of items to merge
+     * @param binType 合并使用的箱型 / the bin type for merging
+     * @param patterns 装箱模式 / the packing patterns
+     * @param predicate 可选的物品过滤谓词 / optional filter predicate for items
+     * @param fillerPredicate 可选的填充物品过滤谓词 / optional filter predicate for filler items
+     * @param config 合并配置 / the merge configuration
+     * @return 物品合并单元列表 / the list of item merge units
     */
     suspend fun merge(
         items: List<Item>,
@@ -219,8 +218,7 @@ data object ItemMerger {
     }
 
     /**
-     * 合并物品，处理圆柱约束。
-     * Merge items, handling cylinder constraints.
+     * 合并物品，处理圆柱约束。 / Merge items, handling cylinder constraints.
      *
      * @param items 待合并的物品列表 / Items to merge
      * @param space 容器空间 / Container space
@@ -320,8 +318,7 @@ data object ItemMerger {
     }
 
     /**
-     * 合并堆叠物品。
-     * Merge piled items.
+     * 合并堆叠物品。 / Merge piled items.
      *
      * @param items 待合并的物品列表 / Items to merge
      * @param space 容器空间 / Container space
@@ -534,8 +531,7 @@ data object ItemMerger {
     }
 
     /**
-     * 合并图案方块。
-     * Merge pattern blocks.
+     * 合并图案方块。 / Merge pattern blocks.
      *
      * @param items 待合并的物品列表 / Items to merge
      * @param space 容器空间 / Container space
@@ -617,8 +613,7 @@ data object ItemMerger {
     }
 
     /**
-     * 合并空心方块。
-     * Merge hollow square blocks.
+     * 合并空心方块。 / Merge hollow square blocks.
      *
      * @param items 待合并的物品列表 / Items to merge
      * @param space 容器空间 / Container space
@@ -650,8 +645,7 @@ data object ItemMerger {
     }
 
     /**
-     * 合并空心方块的 Map 重载。
-     * Map overload for merging hollow square blocks.
+     * 合并空心方块的 Map 重载。 / Map overload for merging hollow square blocks.
      *
      * @param items 物品数量映射 / Item amount map
      * @param space 容器空间 / Container space
@@ -839,8 +833,7 @@ data object ItemMerger {
 
     /**
      * 将合并结果展开为 Item 列表。
-     * 仅支持长方体（Cuboid-only）：圆柱在此路径被显式拒绝。
-     * Flatten merged results to Item list.
+     * 仅支持长方体（Cuboid-only）：圆柱在此路径被显式拒绝。 / Flatten merged results to Item list.
      * Cuboid-only: cylinders are explicitly rejected in this path.
      *
      * @param units 合并单元列表 / The merge units to flatten
@@ -857,8 +850,7 @@ data object ItemMerger {
     }
 
     /**
-     * 将放置列表展开为货物放置列表，处理嵌套容器。
-     * Flatten placement list to item placements, handling nested containers.
+     * 将放置列表展开为货物放置列表，处理嵌套容器。 / Flatten placement list to item placements, handling nested containers.
      *
      * @param placements 放置列表 / placement list
      * @param offset 位置偏移量 / position offset

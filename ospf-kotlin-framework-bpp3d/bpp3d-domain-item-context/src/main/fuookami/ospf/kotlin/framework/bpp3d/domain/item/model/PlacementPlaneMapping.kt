@@ -28,7 +28,7 @@ private fun <P : ProjectivePlane> QuantityPlacement2<*, FltX, P>.asFrontPlacemen
 /**
  * QuantityPlacement2.
  * QuantityPlacement2。
- * @return item-typed side placement, or null / 货物类型侧面放置，或 null
+ * @return 货物类型侧面放置，或 null / item-typed side placement, or null
 */
 private fun QuantityPlacement2<*, FltX, Side>.asItemSidePlacementOrNull(): QuantityPlacement2<Item, FltX, Side>? {
     val item = unit as? Item ?: return null
@@ -45,7 +45,7 @@ private fun QuantityPlacement2<*, FltX, Side>.asItemSidePlacementOrNull(): Quant
 /**
  * QuantityPlacement2.
  * QuantityPlacement2。
- * @return item-typed front placement, or null / 货物类型正面放置，或 null
+ * @return 货物类型正面放置，或 null / item-typed front placement, or null
 */
 private fun QuantityPlacement2<*, FltX, Front>.asItemFrontPlacementOrNull(): QuantityPlacement2<Item, FltX, Front>? {
     val item = unit as? Item ?: return null
@@ -62,7 +62,7 @@ private fun QuantityPlacement2<*, FltX, Front>.asItemFrontPlacementOrNull(): Qua
 /**
  * QuantityPlacement2.
  * QuantityPlacement2。
- * @return block-typed side placement, or null / 块类型侧面放置，或 null
+ * @return 块类型侧面放置，或 null / block-typed side placement, or null
 */
 private fun QuantityPlacement2<*, FltX, Side>.asBlockSidePlacementOrNull(): QuantityPlacement2<Block, FltX, Side>? {
     val block = unit as? Block ?: return null
@@ -79,7 +79,7 @@ private fun QuantityPlacement2<*, FltX, Side>.asBlockSidePlacementOrNull(): Quan
 /**
  * QuantityPlacement2.
  * QuantityPlacement2。
- * @return block-typed front placement, or null / 块类型正面放置，或 null
+ * @return 块类型正面放置，或 null / block-typed front placement, or null
 */
 private fun QuantityPlacement2<*, FltX, Front>.asBlockFrontPlacementOrNull(): QuantityPlacement2<Block, FltX, Front>? {
     val block = unit as? Block ?: return null

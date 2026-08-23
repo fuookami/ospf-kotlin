@@ -281,6 +281,8 @@ Besides the string `resolver`, the framework provides a strong-typed column bind
 | `ColumnNamingStrategy` | enum | `Identity` or `SnakeCase`; controls how KSP derives column names |
 | `ColumnBinder.toResolver()` | extension | Converts a `ColumnBinder<C>` into a `PersistenceFieldResolver<C>` |
 
+Resolvers that need to preserve configuration errors can implement `DiagnosticPersistenceFieldResolver<C>`. Its `resolveDetailed` result distinguishes `Resolved`, `Missing`, `Ambiguous`, and `InvalidConfiguration`; the nullable `invoke` API remains available for existing repositories.
+
 A `PredicateSchema` that implements `HasColumnMapping` can be handed to backend resolver factories so that property paths are translated to concrete columns. The schema fields (`field(User::status)`) stay the AST entry point; the binder only affects how paths resolve to backend columns.
 
 ### Enabling Column Mapping Generation

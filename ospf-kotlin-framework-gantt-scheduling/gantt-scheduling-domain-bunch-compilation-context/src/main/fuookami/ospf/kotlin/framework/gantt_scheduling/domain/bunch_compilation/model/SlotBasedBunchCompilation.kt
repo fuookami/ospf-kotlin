@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
@@ -16,14 +16,12 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**
- * 分时隙任务束编译类
- * Slot-based bunch compilation class
+ * 分时隙任务束编译类 / Slot-based bunch compilation class
  *
  * 继承 BunchCompilation，增加时隙相关功能。
  * Extends BunchCompilation with slot-related functionality.
  *
- * 每个 bunch 只能属于一个时隙，时隙对应关系由 bunch 生成器保证。
- * Each bunch can only belong to one time slot, ensured by the bunch generator.
+ * 每个 bunch 只能属于一个时隙，时隙对应关系由 bunch 生成器保证。 / Each bunch can only belong to one time slot, ensured by the bunch generator.
  *
  * @param B 任务束类型 / Bunch type
  * @param V 数值类型 / Numeric type
@@ -65,14 +63,12 @@ open class SlotBasedBunchCompilation<
         get() = bunches.groupBy { it.slot }
 
     /**
-     * 按时隙分组的 bunch 变量
-     * Bunch variables grouped by slot
+     * 按时隙分组的 bunch 变量 / Bunch variables grouped by slot
     */
     private val allVariablesByBunch = LinkedHashMap<B, CombinationVariableItem<UInt8, Binary>>()
 
     /**
-     * 当前有效 bunch 到真实列变量的映射
-     * Mapping from active bunches to their actual column variables
+     * 当前有效 bunch 到真实列变量的映射 / Mapping from active bunches to their actual column variables
      */
     val variableByBunch: Map<B, CombinationVariableItem<UInt8, Binary>>
         get() = bunches.mapNotNull { bunch ->
@@ -85,8 +81,7 @@ open class SlotBasedBunchCompilation<
         }
 
     /**
-     * 执行器-时隙选列表达式
-     * Executor-slot column selection expressions
+     * 执行器-时隙选列表达式 / Executor-slot column selection expressions
      */
     val executorSlotCompilation: Map<Pair<E, TimeSlot>, LinearExpressionSymbol<Flt64>> = buildMap {
         for (executor in executors) {
@@ -103,8 +98,7 @@ open class SlotBasedBunchCompilation<
     }
 
     /**
-     * 注册分时隙编译模型
-     * Register the slot-based compilation model
+     * 注册分时隙编译模型 / Register the slot-based compilation model
      *
      * @param model 元模型 / Meta model
      * @return 操作结果 / Operation result
@@ -127,8 +121,7 @@ open class SlotBasedBunchCompilation<
     }
 
     /**
-     * 添加列并建立 bunch、时隙和真实变量之间的权威映射
-     * Add columns and establish the authoritative mapping among bunches, slots, and actual variables
+     * 添加列并建立 bunch、时隙和真实变量之间的权威映射 / Add columns and establish the authoritative mapping among bunches, slots, and actual variables
      *
      * @param iteration 迭代次数 / Iteration count
      * @param newBunches 新任务束列表 / List of new bunches
@@ -174,19 +167,18 @@ open class SlotBasedBunchCompilation<
                 "新增列缺少执行器-时隙表达式：${bunch.executor}, ${bunch.slot} / Added column has no executor-slot expression: ${bunch.executor}, ${bunch.slot}"
             )
             compilation.flush()
-            compilation.asMutable() += LinearMonomial(Flt64.one, variable)
+            compilation.asMutable() += Flt64.one * variable
         }
         return Ok(unduplicatedBunches)
     }
 
     /**
-     * 按时隙添加列
-     * Add columns by slot
+     * 按时隙添加列 / Add columns by slot
      *
-     * @param iteration Current iteration number / 当前迭代号
-     * @param newBunches New bunches to add / 要添加的新 bunch
-     * @param model Linear meta model / 线性元模型 (solver boundary — Flt64)
-     * @return Added bunches grouped by slot / 按时隙分组的已添加 bunch
+     * @param iteration 当前迭代号 / Current iteration number
+     * @param newBunches 要添加的新 bunch / New bunches to add
+     * @param model 线性元模型 (solver boundary — Flt64) / Linear meta model
+     * @return 按时隙分组的已添加 bunch / Added bunches grouped by slot
     */
     open suspend fun addColumnsBySlot(
         iteration: UInt64,
@@ -206,23 +198,21 @@ open class SlotBasedBunchCompilation<
     }
 
     /**
-     * 获取指定时隙的所有 bunch
-     * Get all bunches for specified slot
+     * 获取指定时隙的所有 bunch / Get all bunches for specified slot
      *
-     * @param slot The time slot / 时隙
-     * @return List of bunches in this slot / 该时隙的 bunch 列表
+     * @param slot 时隙 / The time slot
+     * @return 该时隙的 bunch 列表 / List of bunches in this slot
     */
     fun bunchesInSlot(slot: TimeSlot): List<B> {
         return bunchesBySlot[slot] ?: emptyList()
     }
 
     /**
-     * 获取指定时隙和执行器的所有 bunch
-     * Get all bunches for specified slot and executor
+     * 获取指定时隙和执行器的所有 bunch / Get all bunches for specified slot and executor
      *
-     * @param slot The time slot / 时隙
-     * @param executor The executor / 执行器
-     * @return List of bunches in this slot for this executor / 该时隙该执行器的 bunch 列表
+     * @param slot 时隙 / The time slot
+     * @param executor 执行器 / The executor
+     * @return 该时隙该执行器的 bunch 列表 / List of bunches in this slot for this executor
     */
     fun bunchesInSlot(slot: TimeSlot, executor: E): List<B> {
         return bunchesBySlot[slot]?.filter { it.executor == executor } ?: emptyList()

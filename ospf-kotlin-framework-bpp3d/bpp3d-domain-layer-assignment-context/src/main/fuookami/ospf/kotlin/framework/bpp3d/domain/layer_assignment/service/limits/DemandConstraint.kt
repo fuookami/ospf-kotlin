@@ -39,8 +39,8 @@ data class DemandShadowPriceKey(
  * Symbol linear polynomial construction.
  * 符号线性多项式构造。
  *
- * @param symbol linear symbol to convert / 待转换的线性符号
- * @return linear polynomial with the symbol as single monomial / 以该符号为单项的线性多项式
+ * @param symbol 待转换的线性符号 / linear symbol to convert
+ * @return 以该符号为单项的线性多项式 / linear polynomial with the symbol as single monomial
 */
 private fun asLinearPolynomial(symbol: Symbol): LinearPolynomial<FltX> {
     return LinearPolynomial(
@@ -53,8 +53,8 @@ private fun asLinearPolynomial(symbol: Symbol): LinearPolynomial<FltX> {
  * Constant polynomial construction.
  * 常量多项式构造。
  *
- * @param value constant value / 常量值
- * @return constant-only linear polynomial / 仅含常量的线性多项式
+ * @param value 常量值 / constant value
+ * @return 仅含常量的线性多项式 / constant-only linear polynomial
 */
 private fun constantPolynomial(value: FltX): LinearPolynomial<FltX> {
     return LinearPolynomial(emptyList(), value)
@@ -64,8 +64,8 @@ private fun constantPolynomial(value: FltX): LinearPolynomial<FltX> {
  * Demand mode tag.
  * 需求模式标签。
  *
- * @param mode demand mode / 需求模式
- * @return short tag string for the mode / 模式的短标签字符串
+ * @param mode 需求模式 / demand mode
+ * @return 模式的短标签字符串 / short tag string for the mode
 */
 private fun modeTag(mode: Bpp3dDemandMode): String {
     return when (mode) {
@@ -82,8 +82,8 @@ private fun modeTag(mode: Bpp3dDemandMode): String {
  * Demand domain tag.
  * 需求域标签。
  *
- * @param domain demand domain / 需求域
- * @return short tag string for the domain / 域的短标签字符串
+ * @param domain 需求域 / demand domain
+ * @return 域的短标签字符串 / short tag string for the domain
 */
 private fun domainTag(domain: Bpp3dDemandDomain): String {
     return when (domain) {
@@ -97,13 +97,12 @@ private fun domainTag(domain: Bpp3dDemandDomain): String {
  * 获取需求统计。
  *
  * 使用 Any 参数代替基础设施层通配 Cuboid 类型：when-dispatch 本身即为运行时类型检查，
- * Any 等价且更通用，减少 domain 层对基础设施层几何兼容类型的绑定。
- * Uses Any parameter instead of the infrastructure wildcard Cuboid type: when-dispatch is runtime type checking,
+ * Any 等价且更通用，减少 domain 层对基础设施层几何兼容类型的绑定。 / Uses Any parameter instead of the infrastructure wildcard Cuboid type: when-dispatch is runtime type checking,
  * Any is equivalent and more general, reducing domain-layer binding to infrastructure geometry compatibility types.
  *
- * @param cuboid packing unit to compute statistics for / 待计算统计的装箱单元
- * @param mode demand mode / 需求模式
- * @return short tag string for the mode / 模式的短标签字符串
+ * @param cuboid 待计算统计的装箱单元 / packing unit to compute statistics for
+ * @param mode 需求模式 / demand mode
+ * @return 模式的短标签字符串 / short tag string for the mode
 */
 private fun demandStatistics(
     cuboid: Any,
@@ -317,7 +316,7 @@ open class DemandConstraint<
 
     override fun extractor(): ShadowPriceExtractor<Args, AbstractBPP3DShadowPriceMap<Args, FltX, T>>? {
         if (shadowPriceExtractor != null) {
-            return { _, args ->
+            return ShadowPriceExtractor { _, args ->
                 shadowPriceConverter.fromValue(shadowPriceExtractor.invoke(args) ?: layerAssignmentZero())
             }
         }
@@ -326,7 +325,7 @@ open class DemandConstraint<
             return null
         }
 
-        return { map, args ->
+        return ShadowPriceExtractor { map, args ->
             var price = layerAssignmentZero()
             for (demand in demandEntries) {
                 val concreteMode = demand.mode.toConcreteMode(

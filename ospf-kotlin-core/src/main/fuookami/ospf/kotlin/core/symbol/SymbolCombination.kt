@@ -3,8 +3,7 @@
 /**
  * 符号组合 / Symbol combination
  *
- * 提供基于多维数组的中间符号组合容器及工厂方法。
- * Provides multi-array-based intermediate symbol combination containers and factory methods.
+ * 提供基于多维数组的中间符号组合容器及工厂方法。 / Provides multi-array-based intermediate symbol combination containers and factory methods.
 */
 package fuookami.ospf.kotlin.core.symbol
 
@@ -20,9 +19,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * 符号组合容器 / Symbol combination containers
  *
  * 提供基于 [MultiArray] 的中间符号组合容器，支持线性/二次表达式符号
- * 和中间符号的多维数组创建与管理。同时提供 [map] / [flatMap] 便捷工厂函数。
- *
- * Provides [MultiArray]-based containers for intermediate symbols, supporting
+ * 和中间符号的多维数组创建与管理。同时提供 [map] / [flatMap] 便捷工厂函数。 / Provides [MultiArray]-based containers for intermediate symbols, supporting
  * creation and management of multi-dimensional arrays of linear/quadratic
  * expression symbols and intermediate symbols. Also provides [map] / [flatMap]
  * convenience factory functions.
@@ -50,9 +47,7 @@ interface AbstractSymbolCombination<S : Shape> {
 /**
  * 符号组合 / Symbol combination
  *
- * 基于 [MultiArray] 的中间符号多维数组容器。创建时自动为每个元素设置组引用和索引。
- *
- * A [MultiArray]-based multi-dimensional container for intermediate symbols.
+ * 基于 [MultiArray] 的中间符号多维数组容器。创建时自动为每个元素设置组引用和索引。 / A [MultiArray]-based multi-dimensional container for intermediate symbols.
  * Automatically sets group references and indices for each element on creation.
  *
  * @property name 组合名称 / Combination name
@@ -88,9 +83,7 @@ class SymbolCombination<out Sym : IntermediateSymbol<*>, S : Shape>(
 /**
  * 量纲符号组合 / Quantity symbol combination
  *
- * 基于 [MultiArray] 的量纲中间符号多维数组容器。
- *
- * A [MultiArray]-based multi-dimensional container for quantity intermediate symbols.
+ * 基于 [MultiArray] 的量纲中间符号多维数组容器。 / A [MultiArray]-based multi-dimensional container for quantity intermediate symbols.
  *
  * @property name 组合名称 / Combination name
  * @param shape 数组形状 / Array shape
@@ -216,8 +209,7 @@ typealias QuantityQuadraticExpressionSymbols4<V> = QuantitySymbolCombination<Qua
 typealias DynQuantityQuadraticExpressionSymbols<V> = QuantitySymbolCombination<QuadraticExpressionSymbol<V>, DynShape>
 
 /**
- * 根据名称和索引数组生成符号名称。
- * Generate symbol name from name and indices array.
+ * 根据名称和索引数组生成符号名称。 / Generate symbol name from name and indices array.
  *
  * @param name 基础名称 / Base name
  * @param indices 索引数组 / Indices array
@@ -228,8 +220,7 @@ private fun symbolName(name: String, indices: IntArray): String {
 }
 
 /**
- * 创建空的线性表达式符号。
- * Create an empty linear expression symbol.
+ * 创建空的线性表达式符号。 / Create an empty linear expression symbol.
  *
  * @param name 符号名称 / Symbol name
  * @param zero 零值 / Zero value
@@ -249,8 +240,7 @@ private fun <V> emptyLinearExpressionSymbol(
 }
 
 /**
- * 创建空的二次表达式符号。
- * Create an empty quadratic expression symbol.
+ * 创建空的二次表达式符号。 / Create an empty quadratic expression symbol.
  *
  * @param name 符号名称 / Symbol name
  * @param zero 零值 / Zero value
@@ -271,8 +261,7 @@ private fun <V> emptyQuadraticExpressionSymbol(
 }
 
 /**
- * 从线性多项式创建线性表达式符号。
- * Create linear expression symbol from linear polynomial.
+ * 从线性多项式创建线性表达式符号。 / Create linear expression symbol from linear polynomial.
  *
  * @param polynomial 线性多项式 / Linear polynomial
  * @param name 符号名称 / Symbol name
@@ -294,15 +283,12 @@ private fun <V> linearExpressionSymbol(
 /**
  * 线性中间符号工厂 / Linear intermediate symbol factory
  *
- * 提供创建各维度空线性表达式符号组合的工厂方法。
- *
- * Provides factory methods for creating empty linear expression symbol combinations of various dimensions.
+ * 提供创建各维度空线性表达式符号组合的工厂方法。 / Provides factory methods for creating empty linear expression symbol combinations of various dimensions.
 */
 data object LinearIntermediateSymbols {
 
     /**
-     * 创建一维线性表达式符号组合。
-     * Create 1D linear expression symbol combination.
+     * 创建一维线性表达式符号组合。 / Create 1D linear expression symbol combination.
      *
      * @param name 组合名称 / Combination name
      * @param shape 一维形状 / 1D shape
@@ -323,8 +309,7 @@ data object LinearIntermediateSymbols {
     }
 
     /**
-     * 创建二维线性表达式符号组合。
-     * Create 2D linear expression symbol combination.
+     * 创建二维线性表达式符号组合。 / Create 2D linear expression symbol combination.
      *
      * @param name 组合名称 / Combination name
      * @param shape 二维形状 / 2D shape
@@ -345,8 +330,7 @@ data object LinearIntermediateSymbols {
     }
 
     /**
-     * 创建三维线性表达式符号组合。
-     * Create 3D linear expression symbol combination.
+     * 创建三维线性表达式符号组合。 / Create 3D linear expression symbol combination.
      *
      * @param name 组合名称 / Combination name
      * @param shape 三维形状 / 3D shape
@@ -367,8 +351,7 @@ data object LinearIntermediateSymbols {
     }
 
     /**
-     * 创建四维线性表达式符号组合。
-     * Create 4D linear expression symbol combination.
+     * 创建四维线性表达式符号组合。 / Create 4D linear expression symbol combination.
      *
      * @param name 组合名称 / Combination name
      * @param shape 四维形状 / 4D shape
@@ -389,8 +372,7 @@ data object LinearIntermediateSymbols {
     }
 
     /**
-     * 创建动态维度线性表达式符号组合。
-     * Create dynamic-dimension linear expression symbol combination.
+     * 创建动态维度线性表达式符号组合。 / Create dynamic-dimension linear expression symbol combination.
      *
      * @param name 组合名称 / Combination name
      * @param shape 动态形状 / Dynamic shape
@@ -414,15 +396,12 @@ data object LinearIntermediateSymbols {
 /**
  * 二次中间符号工厂 / Quadratic intermediate symbol factory
  *
- * 提供创建各维度空二次表达式符号组合的工厂方法。
- *
- * Provides factory methods for creating empty quadratic expression symbol combinations of various dimensions.
+ * 提供创建各维度空二次表达式符号组合的工厂方法。 / Provides factory methods for creating empty quadratic expression symbol combinations of various dimensions.
 */
 data object QuadraticIntermediateSymbols {
 
     /**
-     * 创建一维二次表达式符号组合。
-     * Create 1D quadratic expression symbol combination.
+     * 创建一维二次表达式符号组合。 / Create 1D quadratic expression symbol combination.
      *
      * @param name 组合名称 / Combination name
      * @param shape 一维形状 / 1D shape
@@ -443,8 +422,7 @@ data object QuadraticIntermediateSymbols {
     }
 
     /**
-     * 创建二维二次表达式符号组合。
-     * Create 2D quadratic expression symbol combination.
+     * 创建二维二次表达式符号组合。 / Create 2D quadratic expression symbol combination.
      *
      * @param name 组合名称 / Combination name
      * @param shape 二维形状 / 2D shape
@@ -465,8 +443,7 @@ data object QuadraticIntermediateSymbols {
     }
 
     /**
-     * 创建三维二次表达式符号组合。
-     * Create 3D quadratic expression symbol combination.
+     * 创建三维二次表达式符号组合。 / Create 3D quadratic expression symbol combination.
      *
      * @param name 组合名称 / Combination name
      * @param shape 三维形状 / 3D shape
@@ -487,8 +464,7 @@ data object QuadraticIntermediateSymbols {
     }
 
     /**
-     * 创建四维二次表达式符号组合。
-     * Create 4D quadratic expression symbol combination.
+     * 创建四维二次表达式符号组合。 / Create 4D quadratic expression symbol combination.
      *
      * @param name 组合名称 / Combination name
      * @param shape 四维形状 / 4D shape
@@ -509,8 +485,7 @@ data object QuadraticIntermediateSymbols {
     }
 
     /**
-     * 创建动态维度二次表达式符号组合。
-     * Create dynamic-dimension quadratic expression symbol combination.
+     * 创建动态维度二次表达式符号组合。 / Create dynamic-dimension quadratic expression symbol combination.
      *
      * @param name 组合名称 / Combination name
      * @param shape 动态形状 / Dynamic shape
@@ -532,8 +507,7 @@ data object QuadraticIntermediateSymbols {
 }
 
 /**
- * 从一维可迭代对象映射创建线性表达式符号组合。
- * Create linear expression symbol combination by mapping 1D iterable.
+ * 从一维可迭代对象映射创建线性表达式符号组合。 / Create linear expression symbol combination by mapping 1D iterable.
  *
  * @param name 组合名称 / Combination name
  * @param objs 可迭代对象 / Iterable objects
@@ -560,8 +534,7 @@ fun <T, V> map(
 }
 
 /**
- * 从一维可迭代对象扁平映射创建线性表达式符号组合。
- * Create linear expression symbol combination by flat-mapping 1D iterable.
+ * 从一维可迭代对象扁平映射创建线性表达式符号组合。 / Create linear expression symbol combination by flat-mapping 1D iterable.
  *
  * @param name 组合名称 / Combination name
  * @param objs 可迭代对象 / Iterable objects
@@ -588,8 +561,7 @@ fun <T, V> flatMap(
 }
 
 /**
- * 从二维可迭代对象映射创建线性表达式符号组合。
- * Create linear expression symbol combination by mapping 2D iterables.
+ * 从二维可迭代对象映射创建线性表达式符号组合。 / Create linear expression symbol combination by mapping 2D iterables.
  *
  * @param name 组合名称 / Combination name
  * @param objs1 第一维可迭代对象 / First dimension iterable
@@ -619,8 +591,7 @@ fun <T1, T2, V> map(
 }
 
 /**
- * 从二维可迭代对象扁平映射创建线性表达式符号组合。
- * Create linear expression symbol combination by flat-mapping 2D iterables.
+ * 从二维可迭代对象扁平映射创建线性表达式符号组合。 / Create linear expression symbol combination by flat-mapping 2D iterables.
  *
  * @param name 组合名称 / Combination name
  * @param objs1 第一维可迭代对象 / First dimension iterable
@@ -650,8 +621,7 @@ fun <T1, T2, V> flatMap(
 }
 
 /**
- * 从三维可迭代对象映射创建线性表达式符号组合。
- * Create linear expression symbol combination by mapping 3D iterables.
+ * 从三维可迭代对象映射创建线性表达式符号组合。 / Create linear expression symbol combination by mapping 3D iterables.
  *
  * @param name 组合名称 / Combination name
  * @param objs1 第一维可迭代对象 / First dimension iterable
@@ -690,8 +660,7 @@ fun <T1, T2, T3, V> map(
 }
 
 /**
- * 从三维可迭代对象扁平映射创建线性表达式符号组合。
- * Create linear expression symbol combination by flat-mapping 3D iterables.
+ * 从三维可迭代对象扁平映射创建线性表达式符号组合。 / Create linear expression symbol combination by flat-mapping 3D iterables.
  *
  * @param name 组合名称 / Combination name
  * @param objs1 第一维可迭代对象 / First dimension iterable
@@ -730,8 +699,7 @@ fun <T1, T2, T3, V> flatMap(
 }
 
 /**
- * 从四维可迭代对象映射创建线性表达式符号组合。
- * Create linear expression symbol combination by mapping 4D iterables.
+ * 从四维可迭代对象映射创建线性表达式符号组合。 / Create linear expression symbol combination by mapping 4D iterables.
  *
  * @param name 组合名称 / Combination name
  * @param objs1 第一维可迭代对象 / First dimension iterable
@@ -775,8 +743,7 @@ fun <T1, T2, T3, T4, V> map(
 }
 
 /**
- * 从四维可迭代对象扁平映射创建线性表达式符号组合。
- * Create linear expression symbol combination by flat-mapping 4D iterables.
+ * 从四维可迭代对象扁平映射创建线性表达式符号组合。 / Create linear expression symbol combination by flat-mapping 4D iterables.
  *
  * @param name 组合名称 / Combination name
  * @param objs1 第一维可迭代对象 / First dimension iterable
@@ -820,8 +787,7 @@ fun <T1, T2, T3, T4, V> flatMap(
 }
 
 /**
- * 从动态维度可迭代对象映射创建线性表达式符号组合。
- * Create linear expression symbol combination by mapping dynamic-dimension iterables.
+ * 从动态维度可迭代对象映射创建线性表达式符号组合。 / Create linear expression symbol combination by mapping dynamic-dimension iterables.
  *
  * @param name 组合名称 / Combination name
  * @param objs 嵌套可迭代对象 / Nested iterable objects
@@ -849,8 +815,7 @@ fun <V> map(
 }
 
 /**
- * 从动态维度可迭代对象扁平映射创建线性表达式符号组合。
- * Create linear expression symbol combination by flat-mapping dynamic-dimension iterables.
+ * 从动态维度可迭代对象扁平映射创建线性表达式符号组合。 / Create linear expression symbol combination by flat-mapping dynamic-dimension iterables.
  *
  * @param name 组合名称 / Combination name
  * @param objs 嵌套可迭代对象列表 / Nested iterable objects list

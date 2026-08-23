@@ -1,6 +1,5 @@
 /**
- * 蔡氏电路
- * Chua's Circuit
+ * 蔡氏电路 / Chua's Circuit
 */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,8 +11,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 蔡氏电路
- * Chua's Circuit
+ * 蔡氏电路 / Chua's Circuit
  *
  * @property a 系统参数 a / System parameter a
  * @property b 系统参数 b / System parameter b
@@ -47,8 +45,7 @@ data class ChuasCircuit<V : FloatingNumber<V>>(val a: V, val b: V, val c: V, val
 }
 
 /**
- * 蔡氏电路生成器
- * Chua's Circuit generator
+ * 蔡氏电路生成器 / Chua's Circuit generator
  *
  * @property attractor 蔡氏电路吸引子 / Chua's Circuit attractor
  * @property x 当前状态点 / Current state point

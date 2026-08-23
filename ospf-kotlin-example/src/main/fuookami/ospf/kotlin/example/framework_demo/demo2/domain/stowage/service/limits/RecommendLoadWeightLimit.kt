@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -17,8 +18,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
  * Enforces recommended load weight limits for positions requiring recommended weight validation.
  * 强制执行需要推荐重量验证的位置的推荐装载重量限制。
  *
- * @property positions the list of available stowage positions / 可用装载位置列表
- * @property load the load decision variables / 装载决策变量
+ * @property positions 可用装载位置列表 / the list of available stowage positions
+ * @property load 装载决策变量 / the load decision variables
 */
 class RecommendLoadWeightLimit(
     private val positions: List<Position>,
@@ -31,20 +32,17 @@ class RecommendLoadWeightLimit(
                 && position.status.recommendedWeightNeeded
             ) {
                 val maxLoadWeight = position.mlw.mlw.value
-                val poly = MutableLinearPolynomial()
-                poly += LinearMonomial(Flt64.one, load.z[j].value)
-                poly += LinearMonomial(maxLoadWeight, load.actualLoaded[j])
                 when (val result = model.addConstraint(
-            relation = LinearPolynomial(poly.monomials, poly.constant) leq maxLoadWeight,
+            relation = (load.z[j].value + maxLoadWeight * load.actualLoaded[j]) leq maxLoadWeight,
             name = "recommend_load_weight_limit_${position}",
                 )) {
-                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                    is Ok -> {}
 
-                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                    is Failed -> {
                         return Failed(result.error)
                     }
 
-                    is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                    is Fatal -> {
                         return Fatal(result.errors)
                     }
                 }

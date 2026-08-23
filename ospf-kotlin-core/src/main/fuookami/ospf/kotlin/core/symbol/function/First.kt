@@ -19,19 +19,15 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 首选函数符号 / First function symbol
  *
- * 提供 [FirstFunction]，从候选列表中选择第一个满足条件的元素。
- *
- * Provides [FirstFunction] for selecting the first satisfying element from a candidate list.
+ * 提供 [FirstFunction]，从候选列表中选择第一个满足条件的元素。 / Provides [FirstFunction] for selecting the first satisfying element from a candidate list.
 */
 
 /**
- * 首元素函数：返回列表中第一个计算值 > 0 的多项式的索引。
- * FirstFunction - Returns the index of the first polynomial in the list that evaluates to > 0.
+ * 首元素函数：返回列表中第一个计算值 > 0 的多项式的索引。 / FirstFunction - Returns the index of the first polynomial in the list that evaluates to > 0.
  *
  * 对每个多项式，BinaryzationFunction 创建二值 bin[i]（当 polynomial[i] > 0 时为 1）。
  * For each polynomial, a BinaryzationFunction creates binary bin[i] (1 if polynomial[i] > 0).
- * 输出二值数组 y[0..n-1]，其中 y[i]=1 表示"多项式 i 是第一个非零的"。
- * Output binary array y[0..n-1] where y[i]=1 means "polynomial i is the first nonzero".
+ * 输出二值数组 y[0..n-1]，其中 y[i]=1 表示"多项式 i 是第一个非零的"。 / Output binary array y[0..n-1] where y[i]=1 means "polynomial i is the first nonzero".
  *
  * 约束：
  * - y[i] <= bin[i] 对每个 i（只有非零才能成为第一个）
@@ -86,8 +82,7 @@ class FirstFunction<V>(
     /**
      * 结果多项式：sum(i * y[i]) + n * (1 - sum(y[i]))
      * Result polynomial: sum(i * y[i]) + n * (1 - sum(y[i]))
-     * 返回第一个非零多项式的索引，若无则返回 n。
-     * Returns the index of the first nonzero polynomial, or n if none.
+     * 返回第一个非零多项式的索引，若无则返回 n。 / Returns the index of the first nonzero polynomial, or n if none.
     */
     val result: LinearPolynomial<V> by lazy {
         // sum(i * y[i]) / i * y[i] 的加权求和

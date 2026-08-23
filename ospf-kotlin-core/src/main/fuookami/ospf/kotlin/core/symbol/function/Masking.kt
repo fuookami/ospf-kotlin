@@ -23,15 +23,12 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 掩码函数符号 / Masking function symbols
  *
  * 提供 [MaskingFunction]、[MaskingWithPolyMaskFunction]、[MaskingRangeFunction]，
- * 实现 y = x * mask 的线性化建模（mask 为二值变量）。
- *
- * Provides [MaskingFunction], [MaskingWithPolyMaskFunction], and [MaskingRangeFunction]
+ * 实现 y = x * mask 的线性化建模（mask 为二值变量）。 / Provides [MaskingFunction], [MaskingWithPolyMaskFunction], and [MaskingRangeFunction]
  * for linearized modeling of y = x * mask (where mask is binary).
 */
 
 /**
- * 掩码函数：y = x * mask，其中 mask 为二值变量。
- * Masking function: y = x * mask where mask is binary.
+ * 掩码函数：y = x * mask，其中 mask 为二值变量。 / Masking function: y = x * mask where mask is binary.
  * 当 mask=1 时，y=x。当 mask=0 时，y=0。
  * When mask=1, y=x. When mask=0, y=0.
  *
@@ -152,8 +149,7 @@ class MaskingFunction<V>(
         }
 
         /**
-         * 类型化符号工厂：将线性中间符号转换为线性多项式。
-         * Generic symbol factory: converts a linear intermediate symbol to a linear polynomial.
+         * 类型化符号工厂：将线性中间符号转换为线性多项式。 / Generic symbol factory: converts a linear intermediate symbol to a linear polynomial.
          *
          * @param x 线性中间符号 / linear intermediate symbol
          * @param mask 二值掩码变量 / binary mask variable
@@ -185,8 +181,7 @@ class MaskingFunction<V>(
         )
 
         /**
-         * 类型化多项式工厂：接受 input 与 mask 的线性多项式视图。
-         * Generic polynomial factory: accepts linear-polynomial views for input and mask.
+         * 类型化多项式工厂：接受 input 与 mask 的线性多项式视图。 / Generic polynomial factory: accepts linear-polynomial views for input and mask.
          *
          * @param x 输入的线性多项式视图 / linear polynomial view for input
          * @param mask 掩码的线性多项式视图 / linear polynomial view for mask
@@ -217,12 +212,9 @@ class MaskingFunction<V>(
 }
 
 /**
- * 掩码函数变体：mask 为多项式而非单个变量。
- * Masking function variant where mask is a polynomial instead of a single variable.
- * y = x * mask，其中 mask 为多项式表达式。
- * y = x * mask where mask is a polynomial expression.
- * 创建内部变量 `m` 并约束 m = maskPoly，然后以 m 作为二值掩码应用标准 Big-M 掩码约束。
- * Creates an internal variable `m` with constraint m = maskPoly, then applies
+ * 掩码函数变体：mask 为多项式而非单个变量。 / Masking function variant where mask is a polynomial instead of a single variable.
+ * y = x * mask，其中 mask 为多项式表达式。 / y = x * mask where mask is a polynomial expression.
+ * 创建内部变量 `m` 并约束 m = maskPoly，然后以 m 作为二值掩码应用标准 Big-M 掩码约束。 / Creates an internal variable `m` with constraint m = maskPoly, then applies
  * standard Big-M masking constraints with m as the binary mask.
  *
  * @property input 输入线性多项式 / input linear polynomial
@@ -252,7 +244,7 @@ class MaskingWithPolyMaskFunction<V>(
 
     override val identifier: UInt64 get() = IdentifierGenerator.gen()
     override val index: Int get() = 0
-    override val category: Category get() = fuookami.ospf.kotlin.math.symbol.Linear
+    override val category: Category get() = Linear
     override val cached: Boolean get() = false
     override val dependencies: Set<IntermediateSymbol<*>> get() = emptySet()
     override val discrete: Boolean get() = false

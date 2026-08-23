@@ -1,6 +1,5 @@
 /**
- * 因式分解
- * Integer Factorization
+ * 因式分解 / Integer Factorization
  *
  * 提供整数质因数分解及相关功能。
  * 数学定义：将正整敌n 分解为质数的乘积，n = p1^e1 * p2^e2 * ... * pk^ek，
@@ -10,9 +9,7 @@
  * 反因式分解（defactorize）将质因数分解结果还原为原整数。
  * 因数计算（divisors）返回所有能整除 n 的因数，包括 1 和n 本身。
  * 欧拉函数（eulerTotient）计算小二n 的正整数中与 n 互质的个数，
- * 公式：phi(n) = n * (1 - 1/p1) * (1 - 1/p2) * ...，其丌pi 丌n 的质因数。
- *
- * Provides integer prime factorization and related functionality.
+ * 公式：phi(n) = n * (1 - 1/p1) * (1 - 1/p2) * ...，其丌pi 丌n 的质因数。 / Provides integer prime factorization and related functionality.
  * Mathematical definition: decomposes positive integer n into product of primes,
  * n = p1^e1 * p2^e2 * ... * pk^ek, where pi are primes and ei are exponents.
  * Boundary case: n <= 1 returns empty list, indicating no prime factorization.
@@ -99,11 +96,9 @@ private fun <I> factorizeWithPrimes(
 }
 
 /**
- * 对整数进行质因数分解（内部实现）
- * Perform prime factorization of an integer (internal implementation)
+ * 对整数进行质因数分解（内部实现） / Perform prime factorization of an integer (internal implementation)
  *
- * 使用筛法预先生成质数表，遍历到 sqrt(num) 的质数进行试除。
- * Uses sieve method to pre-generate prime table, testing primes up to sqrt(num).
+ * 使用筛法预先生成质数表，遍历到 sqrt(num) 的质数进行试除。 / Uses sieve method to pre-generate prime table, testing primes up to sqrt(num).
  *
  * @param num 待分解的整数 / Integer to factorize
  * @param constants 数值常量提供器 / Real number constants provider
@@ -129,8 +124,7 @@ fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, I
 }
 
 /**
- * UInt64 专用优化质因数分解，直接使用缓存的素数表
- * Optimized factorization for UInt64 using cached prime table directly
+ * UInt64 专用优化质因数分解，直接使用缓存的素数表 / Optimized factorization for UInt64 using cached prime table directly
  *
  * @param num 待分解的 UInt64 整数 / UInt64 integer to factorize
  * @param constants 数值常量提供器 / Real number constants provider
@@ -148,8 +142,7 @@ fun factorizeImpl(num: UInt64, constants: RealNumberConstants<UInt64>): List<Pai
 }
 
 /**
- * 对整数进行质因数分解
- * Perform prime factorization of an integer
+ * 对整数进行质因数分解 / Perform prime factorization of an integer
  *
  * @param num 待分解的整数 / Integer to factorize
  * @param constants 数值常量提供器 / Real number constants provider
@@ -163,8 +156,7 @@ fun <I> factorize(
 }
 
 /**
- * 对整数进行质因数分解（自动解析常量）
- * Perform prime factorization (auto-resolve constants)
+ * 对整数进行质因数分解（自动解析常量） / Perform prime factorization (auto-resolve constants)
  *
  * @param num 待分解的整数 / Integer to factorize
  * @return 质因数分解结果列表 / List of (prime, exponent) pairs
@@ -197,8 +189,7 @@ fun <I> defactorizeImpl(
 }
 
 /**
- * 将质因数分解结果还原为原整数
- * Convert factorization result back to original integer
+ * 将质因数分解结果还原为原整数 / Convert factorization result back to original integer
  *
  * @param factors 质因数分解结果 / Factorization result
  * @param constants 数值常量提供器 / Real number constants provider
@@ -212,8 +203,7 @@ fun <I> defactorize(
 }
 
 /**
- * 将质因数分解结果还原为原整数（自动解析常量）
- * Convert factorization result back to integer (auto-resolve)
+ * 将质因数分解结果还原为原整数（自动解析常量） / Convert factorization result back to integer (auto-resolve)
  *
  * @param factors 质因数分解结果 / Factorization result
  * @return 还原后的整数 / Restored integer
@@ -261,8 +251,7 @@ fun <I> divisorsImpl(
 }
 
 /**
- * 根据质因数分解结果计算所有因数
- * Compute all divisors from factorization result
+ * 根据质因数分解结果计算所有因数 / Compute all divisors from factorization result
  *
  * @param factors 质因数分解结果 / Factorization result
  * @param constants 数值常量提供器 / Real number constants provider
@@ -276,8 +265,7 @@ fun <I> divisors(
 }
 
 /**
- * 根据质因数分解结果计算所有因数（自动解析常量）
- * Compute all divisors from factorization (auto-resolve)
+ * 根据质因数分解结果计算所有因数（自动解析常量） / Compute all divisors from factorization (auto-resolve)
  *
  * @param factors 质因数分解结果 / Factorization result
  * @return 所有因数列表 / List of all divisors
@@ -294,8 +282,7 @@ inline fun <reified I> divisors(
 }
 
 /**
- * 计算整数的所有因数
- * Compute all divisors of an integer
+ * 计算整数的所有因数 / Compute all divisors of an integer
  *
  * @param num 目标整数 / Target integer
  * @param constants 数值常量提供器 / Real number constants provider
@@ -309,8 +296,7 @@ fun <I> divisors(
 }
 
 /**
- * 计算整数的所有因数（自动解析常量）
- * Compute all divisors (auto-resolve constants)
+ * 计算整数的所有因数（自动解析常量） / Compute all divisors (auto-resolve constants)
  *
  * @param num 目标整数 / Target integer
  * @return 所有因数列表 / List of all divisors
@@ -327,8 +313,7 @@ inline fun <reified I> divisors(
 }
 
 /**
- * 根据质因数分解结果计算因数个数
- * Compute divisor count from factorization result
+ * 根据质因数分解结果计算因数个数 / Compute divisor count from factorization result
  *
  * @param factors 质因数分解结果 / Factorization result
  * @return 因数个数 / Number of divisors
@@ -344,8 +329,7 @@ fun <I> divisorCount(factors: Iterable<Pair<I, Int>>): Int where I : Integer<I> 
 }
 
 /**
- * 计算整数的因数个数
- * Compute divisor count of an integer
+ * 计算整数的因数个数 / Compute divisor count of an integer
  *
  * @param num 目标整数 / Target integer
  * @param constants 数值常量提供器 / Real number constants provider
@@ -359,8 +343,7 @@ fun <I> divisorCount(
 }
 
 /**
- * 计算整数的因数个数（自动解析常量）
- * Compute divisor count (auto-resolve constants)
+ * 计算整数的因数个数（自动解析常量） / Compute divisor count (auto-resolve constants)
  *
  * @param num 目标整数 / Target integer
  * @return 因数个数 / Number of divisors
@@ -393,8 +376,7 @@ fun <I> eulerTotientImpl(
 }
 
 /**
- * 计算欧拉函数值 phi(n)，即小于 n 且与 n 互质的正整数个数
- * Compute Euler's totient phi(n)
+ * 计算欧拉函数值 phi(n)，即小于 n 且与 n 互质的正整数个数 / Compute Euler's totient phi(n)
  *
  * @param num 目标整数 / Target integer
  * @param constants 数值常量提供器 / Real number constants provider
@@ -408,8 +390,7 @@ fun <I> eulerTotient(
 }
 
 /**
- * 计算欧拉函数值（自动解析常量）
- * Compute Euler's totient (auto-resolve constants)
+ * 计算欧拉函数值（自动解析常量） / Compute Euler's totient (auto-resolve constants)
  *
  * @param num 目标整数 / Target integer
  * @return 欧拉函数值 / Euler's totient value

@@ -1,6 +1,5 @@
 /**
- * MyBatis 标量表达式翻译器
- * MyBatis Scalar Expression Translator
+ * MyBatis 标量表达式翻译器 / MyBatis Scalar Expression Translator
  *
  * 将通用 ScalarExpression 翻译为参数化 SQL 片段。
  * Translates generic ScalarExpression to parameterized SQL fragments.
@@ -27,8 +26,7 @@ data class MybatisScalarSql(
 ) {
 
     /**
-     * 将参数占位符整体右移
-     * Shift parameter placeholders by offset
+     * 将参数占位符整体右移 / Shift parameter placeholders by offset
      *
      * @param offset 偏移量 / Offset value
      * @return 偏移后的新 SQL 片段 / New SQL fragment with shifted placeholders
@@ -44,8 +42,7 @@ data class MybatisScalarSql(
 }
 
 /**
- * MyBatis 标量表达式翻译器
- * MyBatis scalar expression translator
+ * MyBatis 标量表达式翻译器 / MyBatis scalar expression translator
  *
  * @property resolveColumnName 列名解析函数 / Column name resolver function
  * @property unsupportedPredicatePolicy 不支持谓词时的策略 / Policy for unsupported predicates
@@ -56,8 +53,7 @@ class MybatisScalarTranslator(
 ) {
 
     /**
-     * 翻译标量表达式为参数化 SQL 片段
-     * Translate scalar expression to parameterized SQL fragment
+     * 翻译标量表达式为参数化 SQL 片段 / Translate scalar expression to parameterized SQL fragment
      *
      * @param expr 标量表达式 / Scalar expression
      * @return 参数化 SQL 片段，不支持时返回 null / Parameterized SQL fragment, or null if unsupported
@@ -78,8 +74,7 @@ class MybatisScalarTranslator(
     }
 
     /**
-     * 翻译一元标量表达式为参数化 SQL 片段
-     * Translate unary scalar expression to parameterized SQL fragment
+     * 翻译一元标量表达式为参数化 SQL 片段 / Translate unary scalar expression to parameterized SQL fragment
      *
      * @param expr 一元标量表达式 / Unary scalar expression
      * @return 参数化 SQL 片段 / Parameterized SQL fragment
@@ -94,8 +89,7 @@ class MybatisScalarTranslator(
     }
 
     /**
-     * 翻译二元标量表达式为参数化 SQL 片段
-     * Translate binary scalar expression to parameterized SQL fragment
+     * 翻译二元标量表达式为参数化 SQL 片段 / Translate binary scalar expression to parameterized SQL fragment
      *
      * @param expr 二元标量表达式 / Binary scalar expression
      * @return 参数化 SQL 片段 / Parameterized SQL fragment
@@ -119,8 +113,7 @@ class MybatisScalarTranslator(
     }
 
     /**
-     * 翻译标量函数调用为参数化 SQL 函数片段
-     * Translate scalar function call to parameterized SQL function fragment
+     * 翻译标量函数调用为参数化 SQL 函数片段 / Translate scalar function call to parameterized SQL function fragment
      *
      * @param expr 标量函数表达式 / Scalar function expression
      * @return 参数化 SQL 函数片段 / Parameterized SQL function fragment
@@ -153,8 +146,7 @@ class MybatisScalarTranslator(
     }
 
     /**
-     * 生成标准 SQL 函数的参数化片段
-     * Generate parameterized fragment for standard SQL function
+     * 生成标准 SQL 函数的参数化片段 / Generate parameterized fragment for standard SQL function
      *
      * @param logicalName 逻辑函数名（用于错误信息） / Logical function name (for error messages)
      * @param sqlName SQL 函数名 / SQL function name
@@ -179,8 +171,7 @@ class MybatisScalarTranslator(
     }
 
     /**
-     * 根据不支持谓词策略处理不支持的表达式
-     * Handle unsupported expression based on unsupported predicate policy
+     * 根据不支持谓词策略处理不支持的表达式 / Handle unsupported expression based on unsupported predicate policy
      *
      * @param reason 不支持的原因 / Reason for being unsupported
      * @return 根据策略返回失败或 null / Returns failure or null based on policy

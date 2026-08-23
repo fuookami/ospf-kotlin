@@ -1,7 +1,5 @@
 /**
- * 并行展平映射操作
- *
- * Parallel flat-map operations with concurrency control.
+ * 并行展平映射操作 / Parallel flat-map operations with concurrency control.
 */
 package fuookami.ospf.kotlin.utils.parallel
 
@@ -13,9 +11,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 // ============================================================================
 
 /**
- * 并行展平映射集合元素
- *
- * Flat-map collection elements in parallel.
+ * 并行展平映射集合元素 / Flat-map collection elements in parallel.
  * 并发展平映射集合元素。
  *
  * @param R 结果元素类型 / Result element type
@@ -32,9 +28,7 @@ suspend inline fun <R, T> Iterable<T>.flatMapParallelly(
 }
 
 /**
- * 并行展平映射集合元素（带错误处理）
- *
- * Flat-map collection elements in parallel with error handling.
+ * 并行展平映射集合元素（带错误处理） / Flat-map collection elements in parallel with error handling.
  * 并发展平映射集合元素，支持错误处理。
  *
  * @param R 结果元素类型 / Result element type
@@ -51,9 +45,7 @@ suspend inline fun <R, T> Iterable<T>.tryFlatMapToParallelly(
 }
 
 /**
- * 并行展平映射集合元素（带错误收集）
- *
- * Flat-map collection elements in parallel with error collection.
+ * 并行展平映射集合元素（带错误收集） / Flat-map collection elements in parallel with error collection.
  * 并发展平映射集合元素，收集所有错误。
  *
  * @param R 结果元素类型 / Result element type
@@ -70,9 +62,7 @@ suspend inline fun <R, T> Iterable<T>.exTryFlatMapToParallelly(
 }
 
 /**
- * 并行展平映射集合元素到目标集合
- *
- * Flat-map collection elements in parallel to a destination collection.
+ * 并行展平映射集合元素到目标集合 / Flat-map collection elements in parallel to a destination collection.
  * 并发展平映射集合元素到目标集合。
  *
  * @param R 结果元素类型 / Result element type
@@ -95,9 +85,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapToPara
 }
 
 /**
- * 并行展平映射集合元素到目标集合（带错误处理）
- *
- * Flat-map collection elements in parallel to a destination collection with error handling.
+ * 并行展平映射集合元素到目标集合（带错误处理） / Flat-map collection elements in parallel to a destination collection with error handling.
  * 并发展平映射集合元素到目标集合，支持错误处理。
  *
  * @param R 结果元素类型 / Result element type
@@ -126,9 +114,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapToP
 }
 
 /**
- * 并行展平映射集合元素到目标集合（带错误收集）
- *
- * Flat-map collection elements in parallel to a destination collection with error collection.
+ * 并行展平映射集合元素到目标集合（带错误收集） / Flat-map collection elements in parallel to a destination collection with error collection.
  * 并发展平映射集合元素到目标集合，收集所有错误。
  *
  * @param R 结果元素类型 / Result element type
@@ -166,9 +152,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryFlatMapT
 // ============================================================================
 
 /**
- * 并行展平映射集合元素（带索引）
- *
- * Flat-map collection elements in parallel with index information.
+ * 并行展平映射集合元素（带索引） / Flat-map collection elements in parallel with index information.
  * 并发展平映射集合元素，提供元素索引信息。
  *
  * @param R 结果元素类型 / Result element type
@@ -186,9 +170,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexe
 }
 
 /**
- * 并行展平映射集合元素（带索引，带错误处理）
- *
- * Flat-map collection elements in parallel with index information and error handling.
+ * 并行展平映射集合元素（带索引，带错误处理） / Flat-map collection elements in parallel with index information and error handling.
  * 并发展平映射集合元素，提供元素索引信息，支持错误处理。
  *
  * @param R 结果元素类型 / Result element type
@@ -206,9 +188,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapInd
 }
 
 /**
- * 并行展平映射集合元素（带索引，带错误收集）
- *
- * Flat-map collection elements in parallel with index information and error collection.
+ * 并行展平映射集合元素（带索引，带错误收集） / Flat-map collection elements in parallel with index information and error collection.
  * 并发展平映射集合元素，提供元素索引信息，收集所有错误。
  *
  * @param R 结果元素类型 / Result element type
@@ -226,9 +206,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryFlatMapI
 }
 
 /**
- * 并行展平映射集合元素到目标集合（带索引）
- *
- * Flat-map collection elements in parallel to a destination collection with index information.
+ * 并行展平映射集合元素到目标集合（带索引） / Flat-map collection elements in parallel to a destination collection with index information.
  * 并发展平映射集合元素到目标集合，提供元素索引信息。
  *
  * @param R 结果元素类型 / Result element type
@@ -251,9 +229,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexe
 }
 
 /**
- * 并行展平映射集合元素到目标集合（带索引，带错误处理）
- *
- * Flat-map collection elements in parallel to a destination collection with index information and error handling.
+ * 并行展平映射集合元素到目标集合（带索引，带错误处理） / Flat-map collection elements in parallel to a destination collection with index information and error handling.
  * 并发展平映射集合元素到目标集合，提供元素索引信息，支持错误处理。
  *
  * @param R 结果元素类型 / Result element type
@@ -282,9 +258,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapInd
 }
 
 /**
- * 并行展平映射集合元素到目标集合（带索引，带错误收集）
- *
- * Flat-map collection elements in parallel to a destination collection with index information and error collection.
+ * 并行展平映射集合元素到目标集合（带索引，带错误收集） / Flat-map collection elements in parallel to a destination collection with index information and error collection.
  * 并发展平映射集合元素到目标集合，提供元素索引信息，收集所有错误。
  *
  * @param R 结果元素类型 / Result element type
@@ -322,9 +296,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryFlatMapI
 // ============================================================================
 
 /**
- * 并行展平映射集合元素（带索引，过滤空值）
- *
- * Flat-map collection elements in parallel with index information, filtering out null results.
+ * 并行展平映射集合元素（带索引，过滤空值） / Flat-map collection elements in parallel with index information, filtering out null results.
  * 并发展平映射集合元素，提供元素索引信息，过滤掉空值结果。
  *
  * @param R 结果元素类型（非空）/ Result element type (non-null)
@@ -342,9 +314,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexe
 }
 
 /**
- * 并行展平映射集合元素（带索引，过滤空值，带错误处理）
- *
- * Flat-map collection elements in parallel with index information, filtering out null results with error handling.
+ * 并行展平映射集合元素（带索引，过滤空值，带错误处理） / Flat-map collection elements in parallel with index information, filtering out null results with error handling.
  * 并发展平映射集合元素，提供元素索引信息，过滤掉空值结果，支持错误处理。
  *
  * @param R 结果元素类型（非空）/ Result element type (non-null)
@@ -362,9 +332,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapInd
 }
 
 /**
- * 并行展平映射集合元素（带索引，过滤空值，带错误收集）
- *
- * Flat-map collection elements in parallel with index information, filtering out null results with error collection.
+ * 并行展平映射集合元素（带索引，过滤空值，带错误收集） / Flat-map collection elements in parallel with index information, filtering out null results with error collection.
  * 并发展平映射集合元素，提供元素索引信息，过滤掉空值结果，收集所有错误。
  *
  * @param R 结果元素类型（非空）/ Result element type (non-null)
@@ -382,9 +350,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryFlatMapI
 }
 
 /**
- * 并行展平映射集合元素到目标集合（带索引，过滤空值）
- *
- * Flat-map collection elements in parallel to a destination collection with index information, filtering out null results.
+ * 并行展平映射集合元素到目标集合（带索引，过滤空值） / Flat-map collection elements in parallel to a destination collection with index information, filtering out null results.
  * 并发展平映射集合元素到目标集合，提供元素索引信息，过滤掉空值结果。
  *
  * @param R 结果元素类型（非空）/ Result element type (non-null)
@@ -409,9 +375,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexe
 }
 
 /**
- * 并行展平映射集合元素到目标集合（带索引，过滤空值，带错误处理）
- *
- * Flat-map collection elements in parallel to a destination collection with index information, filtering out null results with error handling.
+ * 并行展平映射集合元素到目标集合（带索引，过滤空值，带错误处理） / Flat-map collection elements in parallel to a destination collection with index information, filtering out null results with error handling.
  * 并发展平映射集合元素到目标集合，提供元素索引信息，过滤掉空值结果，支持错误处理。
  *
  * @param R 结果元素类型（非空）/ Result element type (non-null)
@@ -442,9 +406,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapInd
 }
 
 /**
- * 并行展平映射集合元素到目标集合（带索引，过滤空值，带错误收集）
- *
- * Flat-map collection elements in parallel to a destination collection with index information, filtering out null results with error collection.
+ * 并行展平映射集合元素到目标集合（带索引，过滤空值，带错误收集） / Flat-map collection elements in parallel to a destination collection with index information, filtering out null results with error collection.
  * 并发展平映射集合元素到目标集合，提供元素索引信息，过滤掉空值结果，收集所有错误。
  *
  * @param R 结果元素类型（非空）/ Result element type (non-null)

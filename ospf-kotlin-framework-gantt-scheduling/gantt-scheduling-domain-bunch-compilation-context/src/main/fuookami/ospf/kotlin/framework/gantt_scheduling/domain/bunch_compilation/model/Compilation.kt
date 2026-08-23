@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Compilation
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
@@ -194,7 +194,7 @@ open class BunchCompilation<
                 val executor = executors[i]
                 LinearExpressionSymbol(
                     polynomial = if (withExecutorLeisure) {
-                        LinearPolynomial(listOf(LinearMonomial(Flt64.one, z[i])), Flt64.zero)
+                        LinearPolynomial(z[i])
                     } else {
                         LinearPolynomial(emptyList(), Flt64.zero)
                     },
@@ -251,10 +251,8 @@ open class BunchCompilation<
 
         for (bunch in unduplicatedBunches) {
             (bunchCost as LinearExpressionSymbol<Flt64>).flush()
-            (bunchCost as LinearExpressionSymbol<Flt64>).asMutable() += LinearMonomial(
-                bunch.cost.solverCostOrNull(Flt64.infinity)!!,
-                xi[bunch]
-            )
+            (bunchCost as LinearExpressionSymbol<Flt64>).asMutable() +=
+                bunch.cost.solverCostOrNull(Flt64.infinity)!! * xi[bunch]
         }
 
         for (task in tasks) {
@@ -263,7 +261,7 @@ open class BunchCompilation<
                 if (thisBunches.isNotEmpty()) {
                     val assign = taskAssignment[task, executor]
                     assign.flush()
-                    assign.asMutable() += sum(thisBunches.map { LinearMonomial(Flt64.one, xi[it]) })
+                    assign.asMutable() += sum(thisBunches.map { xi[it] })
                 }
             }
         }
@@ -273,7 +271,7 @@ open class BunchCompilation<
             if (thisBunches.isNotEmpty()) {
                 val compilation = taskCompilation[task]
                 compilation.flush()
-                compilation.asMutable() += sum(thisBunches.map { LinearMonomial(Flt64.one, xi[it]) })
+                compilation.asMutable() += sum(thisBunches.map { xi[it] })
             }
         }
 
@@ -282,7 +280,7 @@ open class BunchCompilation<
             if (thisBunches.isNotEmpty()) {
                 val compilation = executorCompilation[executor]
                 compilation.flush()
-                compilation.asMutable() += sum(thisBunches.map { LinearMonomial(Flt64.one, xi[it]) })
+                compilation.asMutable() += sum(thisBunches.map { xi[it] })
             }
         }
 

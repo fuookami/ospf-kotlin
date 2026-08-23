@@ -3,9 +3,7 @@
  * Rabinovich-Fabrikant Attractor
  *
  * 一个描述非平衡介质中波调制不稳定性的混沌吸引子系统。
- * 常用于非平衡态物理、波动力学和复杂系统分析。
- *
- * A chaotic attractor system describing wave modulation instability in non-equilibrium media.
+ * 常用于非平衡态物理、波动力学和复杂系统分析。 / A chaotic attractor system describing wave modulation instability in non-equilibrium media.
  * Commonly used for non-equilibrium physics, wave dynamics, and complex systems analysis.
 */
 package fuookami.ospf.kotlin.math.chaotic

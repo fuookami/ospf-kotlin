@@ -1,6 +1,5 @@
 /**
- * 抽象变量项及其键、类型别名和物理单位扩展。
- * Abstract variable item, its key, type aliases, and physical unit extensions.
+ * 抽象变量项及其键、类型别名和物理单位扩展。 / Abstract variable item, its key, type aliases, and physical unit extensions.
 */
 package fuookami.ospf.kotlin.core.variable
 
@@ -17,8 +16,7 @@ import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 变量项键，由标识符和索引唯一确定一个变量项。
- * Variable item key uniquely identifying a variable item by identifier and index.
+ * 变量项键，由标识符和索引唯一确定一个变量项。 / Variable item key uniquely identifying a variable item by identifier and index.
  *
  * @property identifier 变量标识符 / Variable identifier
  * @property index 变量索引 / Variable index
@@ -63,11 +61,9 @@ data class VariableItemKey(
 }
 
 /**
- * 抽象变量项基类
- * Abstract base class for variable items
+ * 抽象变量项基类 / Abstract base class for variable items
  *
- * 持有变量类型、名称、常量和范围等元数据，是所有变量类型的公共基类。
- * Holds metadata such as type, name, constants, and range; common base for all variable types.
+ * 持有变量类型、名称、常量和范围等元数据，是所有变量类型的公共基类。 / Holds metadata such as type, name, constants, and range; common base for all variable types.
  *
  * @param T 数值类型 / The number type
  * @param Type 变量类型 / The variable type
@@ -127,8 +123,7 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
     val key get() = VariableItemKey(identifier, index)
 
     /**
-     * 判断是否属于同一变量组
-     * Check if this variable belongs to the same group as another
+     * 判断是否属于同一变量组 / Check if this variable belongs to the same group as another
      *
      * @param item 另一个变量项 / Another variable item
      * @return 是否属于同一组 / Whether in the same group
@@ -138,8 +133,7 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
     }
 
     /**
-     * 判断是否属于指定组合
-     * Check if this variable belongs to the specified combination
+     * 判断是否属于指定组合 / Check if this variable belongs to the specified combination
      *
      * @param combination 变量组合 / Variable combination
      * @return 是否属于该组合 / Whether belongs to the combination
@@ -149,8 +143,7 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
     }
 
     /**
-     * 转换为线性不等式（变量 = 1）
-     * Convert to linear inequality (variable = 1)
+     * 转换为线性不等式（变量 = 1） / Convert to linear inequality (variable = 1)
      *
      * @return 线性不等式 / Linear inequality
     */
@@ -160,8 +153,7 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
     }
 
     /**
-     * 转换为二次不等式（变量² = 1）
-     * Convert to quadratic inequality (variable² = 1)
+     * 转换为二次不等式（变量² = 1） / Convert to quadratic inequality (variable² = 1)
      *
      * @return 二次不等式 / Quadratic inequality
     */
@@ -193,11 +185,9 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
 }
 
 /**
- * 变量标识符生成器（线程不安全）
- * Variable identifier generator (not thread-safe)
+ * 变量标识符生成器（线程不安全） / Variable identifier generator (not thread-safe)
  *
- * 通过递增计数器生成唯一的变量标识符。
- * Generates unique variable identifiers via an incrementing counter.
+ * 通过递增计数器生成唯一的变量标识符。 / Generates unique variable identifiers via an incrementing counter.
  *
  * @property next 下一个可用标识符 / Next available identifier
 */
@@ -207,16 +197,14 @@ internal data object IdentifierGenerator {
     var next: UInt64 = UInt64.zero
 
     /**
-     * 重置生成器
-     * Reset the generator
+     * 重置生成器 / Reset the generator
     */
     fun flush() {
         next = UInt64.zero
     }
 
     /**
-     * 生成下一个标识符
-     * Generate the next identifier
+     * 生成下一个标识符 / Generate the next identifier
      *
      * @return 新的唯一标识符 / New unique identifier
     */
@@ -264,8 +252,7 @@ typealias QuantityIntVariable = Quantity<IntVariable>
 typealias QuantityUIntVariable = Quantity<UIntVariable>
 
 /**
- * 变量项与物理单位相乘
- * Multiply variable item by physical unit
+ * 变量项与物理单位相乘 / Multiply variable item by physical unit
  *
  * @param rhs 物理单位 / Physical unit
  * @return 物理量变量项 / Quantity variable item
@@ -275,8 +262,7 @@ operator fun AbstractVariableItem<*, *>.times(rhs: PhysicalUnit): Quantity<Abstr
 }
 
 /**
- * 变量项除以物理单位
- * Divide variable item by physical unit
+ * 变量项除以物理单位 / Divide variable item by physical unit
  *
  * @param rhs 物理单位 / Physical unit
  * @return 物理量变量项（单位取倒数）/ Quantity variable item (reciprocal unit)

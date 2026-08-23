@@ -1,11 +1,8 @@
 /**
- * 西奈映射
- * Sinai Map
+ * 西奈映射 / Sinai Map
  *
  * 西奈映射是一种二维混沌映射，通过余弦耦合项产生混沌行为。
- * 常用于混沌动力学研究、随机数生成和加密应用。
- *
- * The Sinai map is a two-dimensional chaotic map that produces chaotic behavior
+ * 常用于混沌动力学研究、随机数生成和加密应用。 / The Sinai map is a two-dimensional chaotic map that produces chaotic behavior
  * through cosine coupling terms.
  * Commonly used for chaotic dynamics research, random number generation, and encryption applications.
 */
@@ -19,8 +16,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * 西奈映射
- * Sinai Map
+ * 西奈映射 / Sinai Map
  *
  * @property r 混沌参数 / Chaos parameter
  * @property twoPi 常量 2*pi / Constant 2*pi
@@ -48,8 +44,7 @@ data class SinaiMap<V : FloatingNumber<V>>(
 }
 
 /**
- * 西奈映射生成器
- * Sinai Map Generator
+ * 西奈映射生成器 / Sinai Map Generator
  *
  * @property map 西奈映射实例 / Sinai map instance
 */
