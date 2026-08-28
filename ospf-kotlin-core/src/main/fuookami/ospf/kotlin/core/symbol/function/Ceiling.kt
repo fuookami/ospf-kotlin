@@ -42,11 +42,18 @@ class CeilingFunction<V>(
     bigM: V? = null,
     override var name: String = "ceil",
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultVariable, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
 
     val kVar: AbstractVariableItem<*, *> = IntVar("${name}_k")
-    val resultVar: AbstractVariableItem<*, *> = IntVar("${name}_ceil")
+    override val resultVar: AbstractVariableItem<*, *> = IntVar("${name}_ceil")
+
+    override val resultPolynomial: LinearPolynomial<V> by lazy {
+        LinearPolynomial(
+            monomials = listOf(LinearMonomial(converter.one, resultVar)),
+            constant = converter.zero
+        )
+    }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(kVar, resultVar)

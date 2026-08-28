@@ -75,6 +75,21 @@ interface HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
 }
 
 /**
+ * 可选接口，用于暴露结果变量的 [MathFunctionSymbol] 实现。 / Optional interface for [MathFunctionSymbol] implementations that expose
+ * a result variable.
+ *
+ * 适配器会将该变量转换为单位系数的结果多项式。 / The adapter converts this variable
+ * to a unit-coefficient result polynomial.
+ *
+ * @property resultVar 结果变量 / Result variable
+*/
+interface HasResultVariable {
+
+    /** 函数结果变量 / Function result variable */
+    val resultVar: AbstractVariableItem<*, *>
+}
+
+/**
  * 基于数学符号的函数符号的基础接口。 / Base interface for math-symbol-based function symbols.
  * 每个函数符号创建辅助变量并生成线性约束。 / Each function symbol creates helper variables and generates linear constraints.
  *
@@ -230,7 +245,25 @@ class LinearFunctionSymbolAdapter<V>(
     override val cached: Boolean get() = false
     override val dependencies: Set<IntermediateSymbol<*>> get() = emptySet()
     override val discrete: Boolean get() = false
-    override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRange()
+    /**
+     * 函数结果的表达式值域；分段线性函数可提供有限的 solver 边界值域。
+     * Expression range of the function result; piecewise-linear delegates can expose
+     * a finite range at the solver boundary.
+     */
+    override val range: ExpressionRange<V>
+        get() = try {
+            when (val function = delegate) {
+                is UnivariateLinearPiecewiseFunction<*> -> when (val result = function.resolveOutputRange()) {
+                    is Ok -> SolverBoundaryCasts.expressionRangeFromFlt64<V>(result.value)
+                    is Failed, is Fatal -> SolverBoundaryCasts.fullExpressionRange()
+                }
+                else -> SolverBoundaryCasts.fullExpressionRange()
+            }
+        } catch (_: RuntimeException) {
+            // A range is a non-Result compatibility property; malformed delegates must not
+            // escape through it. Registration still reports the detailed failure via Ret/Try.
+            SolverBoundaryCasts.fullExpressionRange()
+        }
 
     override fun flush(force: Boolean) {}
 
@@ -244,29 +277,112 @@ class LinearFunctionSymbolAdapter<V>(
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         val targetValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         return if (targetValues.isNullOrEmpty()) {
-            evaluate(tokenTable, converter, false)
+            semanticValuesFromTokens(tokenTable, converter)?.let { delegate.evaluate(it) }
         } else {
-            evaluate(targetValues, tokenTable, converter, false)
+            delegate.evaluate(targetValues)
         }
     }
     override fun toRawString(unfold: UInt64): String = name
 
     /**
-     * 获取委托的结果多项式，若不存在则返回零多项式。 / Get the delegate's result polynomial, or a zero polynomial if unavailable.
+     * 获取委托的结果多项式；旧函数通过兼容结果属性解析。 / Get the delegate's result polynomial;
+     * legacy functions are resolved through compatible result properties.
      *
-     * @return 结果线性多项式 / result linear polynomial
-    */
-    /**
-     * 获取委托的结果多项式，若不存在则返回零多项式。 / Get the delegate's result polynomial, or a zero polynomial if unavailable.
+     * `HasResultPolynomial` 是首选契约；未实现该接口的旧函数可以通过公开的 `resultPolynomial`、
+     * `result` 或 `resultVar` 属性提供结果。 / `HasResultPolynomial` is the preferred contract;
+     * legacy functions that do not implement it can expose their result through a public
+     * `resultPolynomial`, `result`, or `resultVar` property.
      *
-     * @return 结果线性多项式 / result linear polynomial
+     * @return 结果线性多项式；无法解析时保留零多项式兼容行为 / result linear polynomial;
+     * zero polynomial for delegates without a result contract, preserving compatibility
     */
     @Suppress("UNCHECKED_CAST")
     private fun resultPolynomialOrZero(): LinearPolynomial<V> {
-        // 安全不变量：本模块内 HasResultPolynomial 的实现与 delegate 使用相同的 V 类型参数。
-        // Safety invariant: HasResultPolynomial implementations in this module use the same V type parameter as delegate.
-        return (delegate as? HasResultPolynomial<*>)?.resultPolynomial as? LinearPolynomial<V>
-            ?: LinearPolynomial(emptyList(), converter.zero)
+        val resultPolynomial = try {
+            (delegate as? HasResultPolynomial<*>)?.resultPolynomial
+        } catch (_: RuntimeException) {
+            null
+        }
+        if (resultPolynomial != null) {
+            return resultPolynomial as LinearPolynomial<V>
+        }
+
+        resolveLegacyResultPolynomial()?.let { return it }
+
+        val resultVariable = try {
+            (delegate as? HasResultVariable)?.resultVar
+        } catch (_: RuntimeException) {
+            null
+        }
+        if (resultVariable != null) {
+            return LinearPolynomial(
+                monomials = listOf(LinearMonomial(converter.one, resultVariable)),
+                constant = converter.zero
+            )
+        }
+
+        resolveLegacyResultVariable()?.let { resultVariable ->
+            return LinearPolynomial(
+                monomials = listOf(LinearMonomial(converter.one, resultVariable)),
+                constant = converter.zero
+            )
+        }
+
+        return LinearPolynomial(emptyList(), converter.zero)
+    }
+
+    /**
+     * 解析未迁移旧函数公开的结果多项式属性。 / Resolve a result polynomial property exposed by
+     * a legacy function that has not migrated to the marker interface.
+     */
+    @Suppress("UNCHECKED_CAST")
+    private fun resolveLegacyResultPolynomial(): LinearPolynomial<V>? {
+        val resultPolynomial = invokeLegacyResultAccessor("getResultPolynomial")
+        if (resultPolynomial is LinearPolynomial<*>) {
+            return resultPolynomial as LinearPolynomial<V>
+        }
+
+        val result = invokeLegacyResultAccessor("getResult")
+        return if (result is LinearPolynomial<*>) {
+            result as LinearPolynomial<V>
+        } else {
+            null
+        }
+    }
+
+    /**
+     * 解析未迁移旧函数公开的结果变量属性。 / Resolve a result variable property exposed by a
+     * legacy function that has not migrated to the marker interface.
+     */
+    private fun resolveLegacyResultVariable(): AbstractVariableItem<*, *>? {
+        return invokeLegacyResultAccessor("getResultVar") as? AbstractVariableItem<*, *>
+    }
+
+    /**
+     * 安全读取结果契约 getter；反射失败转换为缺失结果。 / Safely read a result-contract getter;
+     * reflection failures are converted to an absent result.
+     *
+     * 这里使用属性契约而非函数名称或名称字符串，兼容尚未实现标记接口的旧函数。 /
+     * This uses property contracts rather than function classes or name strings, keeping
+     * compatibility with legacy functions that have not implemented the marker interface.
+     */
+    private fun invokeLegacyResultAccessor(accessorName: String): Any? {
+        val accessor = try {
+            delegate.javaClass.methods.firstOrNull { method ->
+                method.name == accessorName && method.parameterCount == 0
+            }
+        } catch (_: SecurityException) {
+            null
+        } ?: return null
+
+        return try {
+            accessor.trySetAccessible()
+            accessor.invoke(delegate)
+        } catch (_: ReflectiveOperationException) {
+            null
+        } catch (_: RuntimeException) {
+            null
+        }
     }
 
     /** 展平后的单项式数据（来自结果多项式）/ Flattened monomial data from the result polynomial */
@@ -289,7 +405,22 @@ class LinearFunctionSymbolAdapter<V>(
      * @param zeroIfNone 缺失值时是否使用零 / whether to use zero for missing values
      * @return 计算结果 / evaluation result
     */
-    internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
+    internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+        return evaluateResultPolynomialFlt64(
+            valueOf = { symbol ->
+                when (symbol) {
+                    is AbstractVariableItem<*, *> -> tokenList.find(symbol)?.resultFlt64
+                    is LinearFunctionSymbolAdapter<*> -> if (symbol === this) {
+                        null
+                    } else {
+                        tokenList.let { symbol.evaluate(it, zeroIfNone) }
+                    }
+                    else -> null
+                }
+            },
+            zeroIfNone = zeroIfNone
+        )
+    }
 
     /**
      * 基于结果列表和 token 列表的 Flt64 求值（默认返回 null）/ Flt64 evaluation based on results and token list (default returns null)
@@ -298,7 +429,24 @@ class LinearFunctionSymbolAdapter<V>(
      * @param zeroIfNone 缺失值时是否使用零 / whether to use zero for missing values
      * @return 计算结果 / evaluation result
     */
-    internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
+    internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+        return evaluateResultPolynomialFlt64(
+            valueOf = { symbol ->
+                when (symbol) {
+                    is AbstractVariableItem<*, *> -> tokenList.indexOf(symbol)?.let { index ->
+                        results.getOrNull(index)
+                    }
+                    is LinearFunctionSymbolAdapter<*> -> if (symbol === this) {
+                        null
+                    } else {
+                        symbol.evaluate(results, tokenList, zeroIfNone)
+                    }
+                    else -> null
+                }
+            },
+            zeroIfNone = zeroIfNone
+        )
+    }
 
     /**
      * 基于符号值映射的 Flt64 求值 / Flt64 evaluation based on symbol-value mapping
@@ -308,44 +456,141 @@ class LinearFunctionSymbolAdapter<V>(
      * @return 计算结果 / evaluation result
     */
     internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
-        val v = delegate.evaluate(SolverBoundaryCasts.mapValues(values, converter)) ?: return null
-        return converter.fromValue(v)
+        return evaluateResultPolynomialFlt64(
+            valueOf = { symbol ->
+                when (symbol) {
+                    is AbstractVariableItem<*, *> -> values[symbol]
+                        ?: tokenList?.find(symbol)?.resultFlt64
+                    is LinearFunctionSymbolAdapter<*> -> if (symbol === this) {
+                        null
+                    } else {
+                        tokenList?.let { symbol.evaluate(it, zeroIfNone) }
+                    }
+                    else -> values[symbol]
+                } ?: if (zeroIfNone) Flt64.zero else null
+            },
+            zeroIfNone = zeroIfNone
+        )
     }
 
-    // V-generic evaluate overrides (P4-5) - delegate to Flt64-boundary evaluate + converter
-    // V 类型求值重写 (P4-5) - 委托给 Flt64 边界求值 + 转换器
+    /**
+     * 从 token 中提取语义准备阶段所需的输入值。/ Extract input values for semantic preparation.
+     *
+     * 准备阶段仍然需要调用 delegate 的公开语义；只有 solver 后验路径读取结果多项式。
+     * Preparation still uses the delegate's public semantics; only solver-result paths read
+     * the result polynomial.
+     */
+    private fun semanticValuesFromTokens(
+        tokenTable: AbstractTokenTable<V>,
+        converter: IntoValue<V>
+    ): Map<Symbol, V>? {
+        val values = LinkedHashMap<Symbol, V>(tokenTable.tokensInSolver.size)
+        for (token in tokenTable.tokensInSolver) {
+            values[token.variable] = token.result(converter) ?: return null
+        }
+        return values
+    }
+
+    /**
+     * 按结果多项式读取实际 solver token；绝不重新执行 delegate classifier。
+     * Read the actual solver tokens through the result polynomial; never re-run the
+     * delegate classifier.
+     */
+    private fun evaluateResultPolynomial(
+        valueOf: (Symbol) -> V?,
+        zeroIfNone: Boolean,
+        zero: V
+    ): V? {
+        val poly = resultPolynomialOrZero()
+        var result = poly.constant
+        for (monomial in poly.monomials) {
+            val value = valueOf(monomial.symbol) ?: if (zeroIfNone) zero else return null
+            result += monomial.coefficient * value
+        }
+        return result
+    }
+
+    /**
+     * Flt64 solver 边界上的结果多项式求值。/ Evaluate the result polynomial at the Flt64 solver boundary.
+     */
+    private fun evaluateResultPolynomialFlt64(
+        valueOf: (Symbol) -> Flt64?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val poly = resultPolynomialOrZero()
+        var result = converter.fromValue(poly.constant)
+        for (monomial in poly.monomials) {
+            val value = valueOf(monomial.symbol) ?: if (zeroIfNone) Flt64.zero else return null
+            result += converter.fromValue(monomial.coefficient) * value
+        }
+        return result
+    }
+
+    // V-generic evaluate overrides (P4-5) - semantic preparation and structural solver reads are separate.
+    // V 类型求值重写 (P4-5) - 准备阶段语义求值与 solver 结构读取明确分离。
     override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         return if (values.isNullOrEmpty()) {
-            evaluate(tokenTable, converter, false)
+            semanticValuesFromTokens(tokenTable, converter)?.let { delegate.evaluate(it) }
         } else {
-            evaluate(values, tokenTable, converter, false)
+            delegate.evaluate(values)
         }
     }
     override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val values = LinkedHashMap<Symbol, V>(tokenTable.tokensInSolver.size)
-        for (token in tokenTable.tokensInSolver) {
-            val tokenValue = token.result ?: if (zeroIfNone) converter.zero else return null
-            values[token.variable] = tokenValue
-        }
-        return delegate.evaluate(values)
+        return evaluateResultPolynomial(
+            valueOf = { symbol ->
+                when (symbol) {
+                    is AbstractVariableItem<*, *> -> tokenTable.find(symbol)?.result(converter)
+                    is IntermediateSymbol<*> -> if (symbol === this) {
+                        null
+                    } else {
+                        SolverBoundaryCasts.dependencyAsIntermediate<V>(symbol)
+                            .evaluate(tokenTable, converter, zeroIfNone)
+                    }
+                    else -> null
+                }
+            },
+            zeroIfNone = zeroIfNone,
+            zero = converter.zero
+        )
     }
     override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val values = LinkedHashMap<Symbol, V>(tokenTable.tokensInSolver.size)
-        for ((index, token) in tokenTable.tokensInSolver.withIndex()) {
-            val value = if (index < results.size) {
-                results[index]
-            } else {
-                if (!zeroIfNone) {
-                    return null
+        return evaluateResultPolynomial(
+            valueOf = { symbol ->
+                when (symbol) {
+                    is AbstractVariableItem<*, *> -> tokenTable.indexOf(symbol)?.let { index ->
+                        results.getOrNull(index)
+                    }
+                    is IntermediateSymbol<*> -> if (symbol === this) {
+                        null
+                    } else {
+                        SolverBoundaryCasts.dependencyAsIntermediate<V>(symbol)
+                            .evaluate(results, tokenTable, converter, zeroIfNone)
+                    }
+                    else -> null
                 }
-                converter.zero
-            }
-            values[token.variable] = value
-        }
-        return delegate.evaluate(values)
+            },
+            zeroIfNone = zeroIfNone,
+            zero = converter.zero
+        )
     }
     override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        return delegate.evaluate(values)
+        return evaluateResultPolynomial(
+            valueOf = { symbol ->
+                when (symbol) {
+                    is AbstractVariableItem<*, *> -> values[symbol]
+                        ?: tokenTable?.find(symbol)?.result(converter)
+                    is IntermediateSymbol<*> -> if (symbol === this) {
+                        values[symbol]
+                    } else {
+                        values[symbol] ?: SolverBoundaryCasts.dependencyAsIntermediate<V>(symbol)
+                            .evaluate(values, tokenTable, converter, zeroIfNone)
+                    }
+                    else -> values[symbol]
+                }
+            },
+            zeroIfNone = zeroIfNone,
+            zero = converter.zero
+        )
     }
 
     /**
@@ -370,7 +615,8 @@ class LinearFunctionSymbolAdapter<V>(
      * @return 计算结果 / evaluation result
     */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        return delegate.evaluate(SolverBoundaryCasts.mapValues(values, converter))
+        val targetValues = SolverBoundaryCasts.mapValues(values, converter)
+        return evaluate(targetValues, tokenTable, converter, zeroIfNone)
     }
 }
 

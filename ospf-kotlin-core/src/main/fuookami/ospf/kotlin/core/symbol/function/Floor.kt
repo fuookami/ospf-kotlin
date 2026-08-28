@@ -43,15 +43,18 @@ class FloorFunction<V>(
     bigM: V? = null,
     override var name: String = "floor",
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultVariable, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
 
     val kVar: AbstractVariableItem<*, *> = IntVar("${name}_k")
-    val resultVar: AbstractVariableItem<*, *> = IntVar("${name}_floor")
+    override val resultVar: AbstractVariableItem<*, *> = IntVar("${name}_floor")
 
     val result: LinearPolynomial<V> by lazy {
         LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
     }
+
+    override val resultPolynomial: LinearPolynomial<V>
+        get() = result
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(kVar, resultVar)

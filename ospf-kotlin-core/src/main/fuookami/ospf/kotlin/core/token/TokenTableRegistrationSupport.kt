@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.variable.*
 
 /**
  * Token 注册与缓存预热支持（含并发路径）。 / Token registration and cache warm-up support (including concurrent path).
@@ -33,6 +34,50 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 */
 private fun IntermediateSymbol<*>.registerAuxTokensStar(tokens: AddableTokenCollection<*>): Try {
     return SolverBoundaryCasts.registerAuxiliaryTokensStar(this, tokens)
+}
+
+/**
+ * 跳过已存在的变量 token，保持已有 token 的 solver index 不变。
+ * Skip variable tokens that are already present, preserving their solver indices.
+ */
+private class ExistingTokenSkippingCollection(
+    private val delegate: AddableTokenCollection<Flt64>,
+    existingKeys: Iterable<VariableItemKey>
+) : AddableTokenCollection<Flt64> {
+    private val knownKeys = existingKeys.toMutableSet()
+
+    override fun add(item: AbstractVariableItem<*, *>): Try {
+        if (item.key in knownKeys) {
+            return ok
+        }
+        return when (val result = delegate.add(item)) {
+            is Ok -> {
+                knownKeys.add(item.key)
+                ok
+            }
+
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
+        val newItems = items
+            .filter { it.key !in knownKeys }
+            .distinctBy { it.key }
+        if (newItems.isEmpty()) {
+            return ok
+        }
+        return when (val result = delegate.add(newItems)) {
+            is Ok -> {
+                knownKeys.addAll(newItems.map { it.key })
+                ok
+            }
+
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
 }
 
 /**
@@ -86,14 +131,24 @@ private fun AbstractTokenTable<Flt64>.cacheSymbolContexts(symbols: Iterable<Inte
  * @param tokenTable 目标可变符号表 / Target mutable token table
  * @param fixedValues 固定值映射 / Fixed values map
  * @param callBack 注册状态回调 / Registration status callback
+ * @param skipExistingVariables 是否跳过已存在的变量 token / Whether to skip existing variable tokens
  * @return 操作结果 / Operation result
-*/
+ */
 @Suppress("USELESS_CAST")
 fun Collection<IntermediateSymbol<*>>.register(
     tokenTable: MutableTokenTable<Flt64>,
     fixedValues: Map<Symbol, Flt64>? = null,
-    callBack: RegistrationStatusCallBack? = null
+    callBack: RegistrationStatusCallBack? = null,
+    skipExistingVariables: Boolean = false
 ): Try {
+    val auxiliaryTokens = if (skipExistingVariables) {
+        ExistingTokenSkippingCollection(
+            delegate = tokenTable,
+            existingKeys = tokenTable.tokens.map { it.key }
+        )
+    } else {
+        tokenTable
+    }
     val (emptySymbols, notEmptySymbols) = this@register.partition {
         it !is MathFunctionSymbolBase<*> && it is LinearIntermediateSymbol<*> && it.solverFlattenedMonomials.run {
             monomials.isEmpty() && constant eq Flt64.zero
@@ -124,7 +179,7 @@ fun Collection<IntermediateSymbol<*>>.register(
         for (symbol in readySymbols) {
             // 为函数符号注册辅助 token；函数约束由 MetaModel/MechanismModel 注册，不属于 token 注册阶段。
             // Register auxiliary tokens for function symbols; function constraints are registered by MetaModel/MechanismModel, not this phase.
-            when (val result = symbol.registerAuxTokensStar(tokenTable)) {
+            when (val result = symbol.registerAuxTokensStar(auxiliaryTokens)) {
                 is Ok -> {}
                 is Failed -> { return Failed(result.error) }
                 is Fatal -> { return Fatal(result.errors) }
@@ -172,15 +227,25 @@ fun Collection<IntermediateSymbol<*>>.register(
  * @param tokenTable 目标并发可变符号表 / Target concurrent mutable token table
  * @param fixedValues 固定值映射 / Fixed values map
  * @param callBack 注册状态回调 / Registration status callback
+ * @param skipExistingVariables 是否跳过已存在的变量 token / Whether to skip existing variable tokens
  * @return 操作结果 / Operation result
-*/
+ */
 @Suppress("USELESS_CAST")
 suspend fun Collection<IntermediateSymbol<*>>.register(
     tokenTable: ConcurrentMutableTokenTable<Flt64>,
     fixedValues: Map<Symbol, Flt64>? = null,
-    callBack: RegistrationStatusCallBack? = null
+    callBack: RegistrationStatusCallBack? = null,
+    skipExistingVariables: Boolean = false
 ): Try {
     return coroutineScope {
+        val auxiliaryTokens = if (skipExistingVariables) {
+            ExistingTokenSkippingCollection(
+                delegate = tokenTable,
+                existingKeys = tokenTable.tokens.map { it.key }
+            )
+        } else {
+            tokenTable
+        }
         val (emptySymbols, notEmptySymbols) = this@register.partition {
             it !is MathFunctionSymbolBase<*> && it is LinearIntermediateSymbol<*> && it.solverFlattenedMonomials.run {
                 monomials.isEmpty() && constant eq Flt64.zero
@@ -211,7 +276,7 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
             for (symbol in readySymbols) {
                 // 为函数符号注册辅助 token；函数约束由 MetaModel/MechanismModel 注册，不属于 token 注册阶段。
                 // Register auxiliary tokens for function symbols; function constraints are registered by MetaModel/MechanismModel, not this phase.
-                when (val result = symbol.registerAuxTokensStar(tokenTable)) {
+                when (val result = symbol.registerAuxTokensStar(auxiliaryTokens)) {
                     is Ok -> {}
                     is Failed -> { return@coroutineScope Failed(result.error) }
                     is Fatal -> { return@coroutineScope Fatal(result.errors) }

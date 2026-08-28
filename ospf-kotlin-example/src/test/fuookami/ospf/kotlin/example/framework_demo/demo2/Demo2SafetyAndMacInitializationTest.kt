@@ -8,6 +8,9 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.value.*
+import fuookami.ospf.kotlin.core.symbol.function.ConditionBounds
+import fuookami.ospf.kotlin.core.symbol.function.IfFunction
+import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.Aggregation as AircraftAggregation
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.FlightPhase
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.service.AggregationInitializer as AircraftAggregationInitializer
@@ -412,9 +415,19 @@ class Demo2SafetyAndMacInitializationTest {
             rhsSide1 = side("rhs_1", AbstractEnvelope.SideType.Right, 4.0),
             lhsSide2 = side("lhs_2", AbstractEnvelope.SideType.Left, -2.0),
             rhsSide2 = side("rhs_2", AbstractEnvelope.SideType.Right, 5.0),
-            valueCondition = { true },
-            symbolCondition = { _ ->
-                Either.Left(LinearPolynomial(emptyList(), Flt64.zero))
+            valueCondition = { null },
+            symbolCondition = { conditionName ->
+                Either.Right(
+                    LinearFunctionSymbolAdapter(
+                        IfFunction(
+                            condition = LinearPolynomial(emptyList(), Flt64.one),
+                            converter = IntoValue.Identity,
+                            name = conditionName,
+                            conditionBounds = ConditionBounds(Flt64.one, Flt64.one)
+                        ),
+                        converter = IntoValue.Identity
+                    )
+                )
             },
             totalWeight = stowage.totalWeight
         )
@@ -422,6 +435,15 @@ class Demo2SafetyAndMacInitializationTest {
         assertSuccess(conditional.register(model), "conditional envelope")
         assertNotNull(conditional.minIndex)
         assertNotNull(conditional.maxIndex)
+        val dynamicTokenNames = model.tokens.symbols.map { it.name }
+        assertTrue(
+            dynamicTokenNames.any { it == "conditional_request_envelope_takeoff_min_switch" },
+            dynamicTokenNames.toString()
+        )
+        assertTrue(
+            dynamicTokenNames.any { it == "conditional_request_envelope_takeoff_max_switch" },
+            dynamicTokenNames.toString()
+        )
 
         fun invalidSide(
             name: String,
@@ -434,6 +456,10 @@ class Demo2SafetyAndMacInitializationTest {
                 points = listOf(
                     AbstractEnvelope.Point(
                         totalWeight = Quantity(Flt64.zero, aircraft.aircraftModel.weightUnit),
+                        index = Quantity(Flt64.zero, aircraft.aircraftModel.weightUnit)
+                    ),
+                    AbstractEnvelope.Point(
+                        totalWeight = Quantity(Flt64(100.0), aircraft.aircraftModel.weightUnit),
                         index = Quantity(Flt64.zero, aircraft.aircraftModel.weightUnit)
                     )
                 )
@@ -461,6 +487,70 @@ class Demo2SafetyAndMacInitializationTest {
         val invalidResult = invalidConditional.register(invalidModel)
         assertTrue(invalidResult is Failed)
         assertTrue((invalidResult as Failed<*, *, *>).error.message.contains("单位"))
+    }
+
+    @Test
+    fun `dynamic conditional envelope rejects non finite side ranges`() {
+        val request = RequestDTO.sample()
+        val aircraft = aircraftAggregation(request)
+        val stowage = stowageAggregation(aircraft, request)
+        val model = LinearMetaModel<Flt64>(
+            name = "demo2-conditional-envelope-non-finite-range",
+            converter = IntoValue.Identity
+        )
+        assertSuccess(stowage.register(StowageMode.FullLoad, model), "stowage")
+
+        fun finiteSide(name: String, type: AbstractEnvelope.SideType, index: Double): AbstractEnvelope.Side {
+            return AbstractEnvelope.Side(
+                aircraftModel = aircraft.aircraftModel,
+                name = name,
+                type = type,
+                points = listOf(
+                    AbstractEnvelope.Point(
+                        totalWeight = Quantity(Flt64.zero, aircraft.aircraftModel.weightUnit),
+                        index = Quantity(Flt64(index), aircraft.aircraftModel.torqueUnit)
+                    ),
+                    AbstractEnvelope.Point(
+                        totalWeight = Quantity(Flt64(100.0), aircraft.aircraftModel.weightUnit),
+                        index = Quantity(Flt64(index), aircraft.aircraftModel.torqueUnit)
+                    )
+                )
+            )
+        }
+
+        val nonFiniteSide = AbstractEnvelope.Side(
+            aircraftModel = aircraft.aircraftModel,
+            name = "non_finite_lhs_1",
+            type = AbstractEnvelope.SideType.Left,
+            points = listOf(
+                AbstractEnvelope.Point(
+                    totalWeight = Quantity(Flt64.zero, aircraft.aircraftModel.weightUnit),
+                    index = Quantity(Flt64.infinity, aircraft.aircraftModel.torqueUnit)
+                ),
+                AbstractEnvelope.Point(
+                    totalWeight = Quantity(Flt64(100.0), aircraft.aircraftModel.weightUnit),
+                    index = Quantity(Flt64.infinity, aircraft.aircraftModel.torqueUnit)
+                )
+            )
+        )
+        val conditional = ConditionalEnvelope(
+            aircraftModel = aircraft.aircraftModel,
+            phase = FlightPhase.TakeOff,
+            name = "conditional_non_finite_range",
+            lhsSide1 = nonFiniteSide,
+            rhsSide1 = finiteSide("non_finite_rhs_1", AbstractEnvelope.SideType.Right, 4.0),
+            lhsSide2 = finiteSide("non_finite_lhs_2", AbstractEnvelope.SideType.Left, -2.0),
+            rhsSide2 = finiteSide("non_finite_rhs_2", AbstractEnvelope.SideType.Right, 5.0),
+            valueCondition = { null },
+            symbolCondition = { _ -> Either.Left(LinearPolynomial(emptyList(), Flt64.zero)) },
+            totalWeight = stowage.totalWeight
+        )
+
+        val result = conditional.register(model)
+        assertTrue(result is Failed)
+        val message = (result as Failed<*, *, *>).error.message
+        assertTrue(message.contains("有限"), message)
+        assertTrue(message.contains("finite"), message)
     }
 
     @Test

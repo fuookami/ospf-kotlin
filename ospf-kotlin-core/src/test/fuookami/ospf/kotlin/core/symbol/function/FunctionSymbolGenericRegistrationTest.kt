@@ -3,10 +3,10 @@ package fuookami.ospf.kotlin.core.symbol.function
 import kotlin.test.*
 import kotlinx.coroutines.runBlocking
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.testing.*
@@ -79,6 +79,10 @@ class FunctionSymbolGenericRegistrationTest {
             where V : RealNumber<V>, V : NumberField<V> {
         val x = RealVar("${numberCase.name.lowercase()}_fn_x")
         val y = RealVar("${numberCase.name.lowercase()}_fn_y")
+        x.range.geq(Flt64(-10.0))
+        x.range.leq(Flt64(10.0))
+        y.range.geq(Flt64(-10.0))
+        y.range.leq(Flt64(10.0))
 
         val model = LinearMetaModel<V>(
             name = "generic-function-${numberCase.name.lowercase()}",

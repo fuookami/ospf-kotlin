@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
@@ -523,6 +524,70 @@ data class ContinuousCylinderRadiusSolverPrototype(
 }
 
 /**
+ * PWL 路径使用的米制半径边界。 / Radius bounds in meters used by the PWL path.
+ *
+ * @property lower 半径下界（米） / radius lower bound in meters
+ * @property upper 半径上界（米） / radius upper bound in meters
+ */
+data class ContinuousCylinderRadiusPwlBounds(
+    val lower: FltX,
+    val upper: FltX
+)
+
+/**
+ * 校验并转换 PWL 路径所需的半径边界。 / Validate and convert radius bounds required by the PWL path.
+ *
+ * 该入口覆盖直接构造原型时绕过公共工厂的场景，避免不兼容单位在 List API 中被静默丢弃。
+ * This entry point covers prototypes constructed directly, preventing incompatible units from
+ * being silently dropped by the List API.
+ *
+ * @receiver 连续半径 solver 原型 / continuous-radius solver prototype
+ * @return 米制边界或错误 / meter-based bounds or an error
+ */
+fun ContinuousCylinderRadiusSolverPrototype.pwlRadiusBoundsInMeters(): Ret<ContinuousCylinderRadiusPwlBounds> {
+    val lower = radiusLowerBound
+        ?: return Failed(
+            ErrorCode.IllegalArgument,
+            "连续半径 PWL 原型缺少半径下界。 / Continuous-radius PWL prototype is missing a radius lower bound."
+        )
+    val upper = radiusUpperBound
+        ?: return Failed(
+            ErrorCode.IllegalArgument,
+            "连续半径 PWL 原型缺少半径上界。 / Continuous-radius PWL prototype is missing a radius upper bound."
+        )
+    val lowerInMeters = lower.convertTo(Meter)
+        ?: return Failed(
+            ErrorCode.IllegalArgument,
+            "连续半径 PWL 原型下界无法转换为米：${lower.unit.symbol}。 / Continuous-radius PWL lower bound cannot be converted to meters: ${lower.unit.symbol}."
+        )
+    val upperInMeters = upper.convertTo(Meter)
+        ?: return Failed(
+            ErrorCode.IllegalArgument,
+            "连续半径 PWL 原型上界无法转换为米：${upper.unit.symbol}。 / Continuous-radius PWL upper bound cannot be converted to meters: ${upper.unit.symbol}."
+        )
+    val lowerValue = lowerInMeters.value.toDouble()
+    val upperValue = upperInMeters.value.toDouble()
+    if (!lowerValue.isFinite() || !upperValue.isFinite()) {
+        return Failed(
+            ErrorCode.IllegalArgument,
+            "连续半径 PWL 原型边界必须为有限值。 / Continuous-radius PWL bounds must be finite."
+        )
+    }
+    if (lowerValue > upperValue) {
+        return Failed(
+            ErrorCode.IllegalArgument,
+            "连续半径 PWL 原型下界必须不大于上界。 / Continuous-radius PWL lower bound must not exceed the upper bound."
+        )
+    }
+    return Ok(
+        ContinuousCylinderRadiusPwlBounds(
+            lower = FltX(lowerValue),
+            upper = FltX(upperValue)
+        )
+    )
+}
+
+/**
  * 构建连续半径 solver 原生变量原型。 / Build a solver-native continuous-radius variable prototype.
  *
  * @param source 调用来源 / call source
@@ -590,6 +655,16 @@ fun continuousCylinderRadiusSolverPrototype(
     }
     if (source.isBlank()) {
         return Failed(ErrorCode.IllegalArgument, "Continuous cylinder radius solver prototype source must not be blank.")
+    }
+    fun Quantity<FltX>.isFiniteSolverValue(): Boolean {
+        val meters = convertTo(Meter) ?: return false
+        return meters.value.toDouble().isFinite()
+    }
+    if (listOfNotNull(lowerBound, upperBound, selectedRadius).any { !it.isFiniteSolverValue() }) {
+        return Failed(
+            ErrorCode.IllegalArgument,
+            "Continuous cylinder radius solver prototype values must convert to finite solver values."
+        )
     }
     if (lowerBound != null && lowerBound.value.toDouble() <= 0.0) {
         return Failed(ErrorCode.IllegalArgument, "Continuous cylinder radius solver prototype lower bound must be positive.")

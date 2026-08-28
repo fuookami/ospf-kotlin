@@ -153,7 +153,7 @@ class SatisfiedAmountFunction<V>(
                     )
                 }
                 Comparison.EQ -> {
-                    allConstraints += zeroIndicatorConstraints(
+                    when (val result = safeZeroIndicatorConstraints(
                         poly = LinearPolynomial(shiftedMonos, shiftedConst),
                         indicator = ui,
                         sideVar = _eqSideVars[i]!!,
@@ -161,7 +161,11 @@ class SatisfiedAmountFunction<V>(
                         tolerance = eps,
                         strictBoundary = eps,
                         namePrefix = "${name}_sat_eq_$i"
-                    )
+                    )) {
+                        is Ok -> allConstraints += result.value
+                        is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
+                    }
                 }
                 Comparison.LT, Comparison.GT, Comparison.NE -> {
                     return Failed(

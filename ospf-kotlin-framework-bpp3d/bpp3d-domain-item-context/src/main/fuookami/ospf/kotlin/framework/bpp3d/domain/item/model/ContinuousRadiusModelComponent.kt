@@ -10,9 +10,15 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.value_range.Interval
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.quantity.convertTo
+import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
@@ -108,33 +114,47 @@ fun continuousRadiusSolverVariables(
  *
  * @param prototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
  * @param config PWL 配置 / PWL config
- * @return PWL solver 变量列表 / PWL solver variable list
+ * @return PWL solver 变量列表结果 / result containing PWL solver variables
 */
-fun pwlContinuousRadiusSolverVariables(
+fun pwlContinuousRadiusSolverVariablesResult(
     prototypes: List<ContinuousCylinderRadiusSolverPrototype>,
     config: PWLRadiusApproximationConfig = PWLRadiusApproximationConfig()
-): List<PWLContinuousRadiusSolverVariable> {
-    return prototypes
-        .filter { it.isPWLRegisterable && !it.isSolverRegisterable }
-        .mapNotNull { prototype ->
-            val rMin = prototype.radiusLowerBound ?: return@mapNotNull null
-            val rMax = prototype.radiusUpperBound ?: return@mapNotNull null
-            val rMinValue = rMin.value
-            val rMaxValue = rMax.value
-
+): Ret<List<PWLContinuousRadiusSolverVariable>> {
+    val variables = ArrayList<PWLContinuousRadiusSolverVariable>()
+    for (prototype in prototypes) {
+        if (!prototype.isPWLRegisterable || prototype.isSolverRegisterable) {
+            continue
+        }
+        try {
+            val bounds = when (val result = prototype.pwlRadiusBoundsInMeters()) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            val rMinValue = bounds.lower
+            val rMaxValue = bounds.upper
             val pwlApproximation = PWLRadiusSquaredApproximation.fromRadiusInterval(
                 rMin = rMinValue,
                 rMax = rMaxValue,
                 config = config
             )
-
             val envelope = ConservativeRadiusEnvelope(
                 rMin = rMinValue,
                 rMax = rMaxValue
             )
-
             val variableName = prototype.variableName
             val radiusVariable = RealVar("${variableName}_r")
+            val radiusRange = ValueRange(
+                rMinValue.toFlt64(),
+                rMaxValue.toFlt64(),
+                Interval.Closed,
+                Interval.Closed,
+                Flt64
+            ).value ?: return Failed(
+                ErrorCode.IllegalArgument,
+                "连续半径 PWL 原型无法构造半径范围：$variableName。 / Cannot build the radius range for continuous-radius PWL prototype: $variableName."
+            )
+            radiusVariable.range.set(radiusRange)
 
             // Build core UnivariateLinearPiecewiseFunction: q ≈ r²
             val x = LinearPolynomial(
@@ -149,16 +169,140 @@ fun pwlContinuousRadiusSolverVariables(
                 converter = IntoValue.fromConverter(FltX),
                 name = "${variableName}_pwl_r_squared"
             )
-
-            PWLContinuousRadiusSolverVariable(
-                prototype = prototype,
-                radiusVariable = radiusVariable,
-                pwlFunction = pwlFunction,
-                pwlApproximation = pwlApproximation,
-                envelope = envelope,
-                config = config
+            variables.add(
+                PWLContinuousRadiusSolverVariable(
+                    prototype = prototype,
+                    radiusVariable = radiusVariable,
+                    pwlFunction = pwlFunction,
+                    pwlApproximation = pwlApproximation,
+                    envelope = envelope,
+                    config = config
+                )
+            )
+        } catch (error: RuntimeException) {
+            val detail = error.message?.takeIf { it.isNotBlank() }
+                ?: error::class.simpleName
+                ?: "unknown runtime error"
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "连续半径 PWL 原型构建失败：${prototype.variableName}：$detail / Failed to build continuous-radius PWL prototype ${prototype.variableName}: $detail"
             )
         }
+    }
+    return Ok(variables)
+}
+
+/**
+ * 旧版 PWL solver 变量列表入口。失败时返回空列表以保持源码兼容；新代码应使用 Result 入口。
+ * Legacy PWL solver-variable list entry point. Returns an empty list on failure for source
+ * compatibility; new code should use the Result-returning entry point.
+ */
+@Deprecated(
+    message = "Use pwlContinuousRadiusSolverVariablesResult for explicit failure handling.",
+    level = DeprecationLevel.WARNING
+)
+fun pwlContinuousRadiusSolverVariables(
+    prototypes: List<ContinuousCylinderRadiusSolverPrototype>,
+    config: PWLRadiusApproximationConfig = PWLRadiusApproximationConfig()
+): List<PWLContinuousRadiusSolverVariable> {
+    return when (val result = pwlContinuousRadiusSolverVariablesResult(prototypes, config)) {
+        is Ok -> result.value
+        is Failed, is Fatal -> emptyList()
+    }
+}
+
+/**
+ * 回滚连续半径组件注册失败造成的模型改动。 / Roll back model mutations from a failed continuous-radius registration.
+ */
+private fun rollbackContinuousRadiusRegistration(
+    model: LinearMetaModel<FltX>,
+    originalConstraintCount: Int,
+    addedVariables: List<RealVar>,
+    addedSymbols: List<IntermediateSymbol<*>>,
+    failure: Try
+): Try {
+    val rollbackErrors = ArrayList<Error<ErrorCode>>()
+
+    fun record(result: Try) {
+        when (result) {
+            is Ok -> {}
+            is Failed -> rollbackErrors.add(result.error)
+            is Fatal -> rollbackErrors.addAll(result.errors)
+        }
+    }
+
+    try {
+        record(model.rollbackConstraintsTo(originalConstraintCount))
+    } catch (error: RuntimeException) {
+        rollbackErrors.add(
+            Err(
+                ErrorCode.ApplicationError,
+                "回滚连续半径约束失败：${error.message ?: error::class.simpleName} / Failed to roll back continuous-radius constraints: ${error.message ?: error::class.simpleName}"
+            )
+        )
+    }
+    for (symbol in addedSymbols.asReversed()) {
+        try {
+            model.remove(symbol)
+        } catch (error: RuntimeException) {
+            rollbackErrors.add(
+                Err(
+                    ErrorCode.ApplicationError,
+                    "移除连续半径符号失败：${symbol.name} / Failed to remove continuous-radius symbol: ${symbol.name}"
+                )
+            )
+        }
+    }
+    for (variable in addedVariables.asReversed()) {
+        try {
+            model.remove(variable)
+        } catch (error: RuntimeException) {
+            rollbackErrors.add(
+                Err(
+                    ErrorCode.ApplicationError,
+                    "移除连续半径变量失败：${variable.name} / Failed to remove continuous-radius variable: ${variable.name}"
+                )
+            )
+        }
+    }
+
+    if (rollbackErrors.isEmpty()) {
+        return failure
+    }
+    val errors = ArrayList<Error<ErrorCode>>()
+    when (failure) {
+        is Ok -> {}
+        is Failed -> errors.add(failure.error)
+        is Fatal -> errors.addAll(failure.errors)
+    }
+    errors.addAll(rollbackErrors)
+    return Fatal(errors)
+}
+
+/**
+ * 显式表示“失败时返回空列表”的旧兼容视图。 / Explicit legacy view that returns an empty list on failure.
+ *
+ * 仅供已迁移前的展示代码使用；模型注册和业务逻辑必须使用 [pwlContinuousRadiusSolverVariables]。
+ * This is for pre-migration display code only; model registration and business logic must use
+ * [pwlContinuousRadiusSolverVariables].
+ *
+ * @param prototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
+ * @param config PWL 配置 / PWL config
+ * @return 成功时的 PWL solver 变量列表，失败时为空列表 / PWL solver variables on success, empty on failure
+ */
+@Deprecated(
+    message = "Use pwlContinuousRadiusSolverVariables for explicit failure handling.",
+    level = DeprecationLevel.WARNING
+)
+fun pwlContinuousRadiusSolverVariablesOrEmpty(
+    prototypes: List<ContinuousCylinderRadiusSolverPrototype>,
+    config: PWLRadiusApproximationConfig = PWLRadiusApproximationConfig()
+): List<PWLContinuousRadiusSolverVariable> {
+    return when (val result = pwlContinuousRadiusSolverVariablesResult(prototypes, config)) {
+        is Ok -> result.value
+        is Failed -> emptyList()
+        is Fatal -> emptyList()
+    }
 }
 
 /**
@@ -416,9 +560,18 @@ class ContinuousRadiusModelComponent(
         continuousRadiusSolverVariables(prototypes)
     }
 
-    /** PWL 路径 solver 变量 / PWL path solver variables */
+    /** PWL 路径 solver 变量构建结果 / PWL path solver variable construction result */
+    val pwlVariablesResult: Ret<List<PWLContinuousRadiusSolverVariable>> by lazy {
+        pwlContinuousRadiusSolverVariablesResult(prototypes, config)
+    }
+
+    /** PWL 路径 solver 变量（兼容 List 读取）/ PWL path solver variables (List-compatible view) */
     val pwlVariables: List<PWLContinuousRadiusSolverVariable> by lazy {
-        pwlContinuousRadiusSolverVariables(prototypes, config)
+        when (val result = pwlVariablesResult) {
+            is Ok -> result.value
+            is Failed -> emptyList()
+            is Fatal -> emptyList()
+        }
     }
 
     /** 注册计划（含诊断信息） / registration plan (with diagnostics) */
@@ -447,115 +600,210 @@ class ContinuousRadiusModelComponent(
     fun register(
         model: LinearMetaModel<FltX>
     ): Try {
-        // Register native variables / 注册 native 变量
-        for (solverVar in nativeVariables) {
-            val proto = solverVar.prototype
-            model.add(solverVar.variable)
-            // Lower bound / 下界
-            proto.radiusLowerBound?.let { lb ->
-                val lhs = LinearPolynomial(
-                    listOf(LinearMonomial(FltX.one, solverVar.variable)),
-                    FltX.zero
+        val validatedPwlVariables = when (val result = pwlVariablesResult) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+
+        val originalConstraintCount = model.constraints.size
+        val addedVariables = ArrayList<RealVar>()
+        val addedSymbols = ArrayList<IntermediateSymbol<*>>()
+
+        fun rollback(failure: Try): Try {
+            return rollbackContinuousRadiusRegistration(
+                model = model,
+                originalConstraintCount = originalConstraintCount,
+                addedVariables = addedVariables,
+                addedSymbols = addedSymbols,
+                failure = failure
+            )
+        }
+
+        val variablesToAdd = nativeVariables.map { it.variable } +
+            validatedPwlVariables.map { it.radiusVariable }
+        val existingVariableKeys = model.tokens.tokens.map { it.key }.toHashSet()
+        val requestedVariableKeys = HashSet<Any>()
+        for (variable in variablesToAdd) {
+            if (!requestedVariableKeys.add(variable.key) || variable.key in existingVariableKeys) {
+                return Failed(
+                    ErrorCode.TokenExisted,
+                    "连续半径变量已存在：${variable.name} / Continuous-radius variable already exists: ${variable.name}"
                 )
-                val rhs = LinearPolynomial(emptyList(), lb.value)
-                when (val result = model.addConstraint(
-                    relation = LinearInequality(lhs, rhs, Comparison.GE),
-                    name = "${proto.variableName}_lb"
-                )) {
-                    is Ok -> {}
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
             }
-            // Upper bound / 上界
-            proto.radiusUpperBound?.let { ub ->
-                val lhs = LinearPolynomial(
-                    listOf(LinearMonomial(FltX.one, solverVar.variable)),
-                    FltX.zero
+        }
+
+        val pwlSymbols = validatedPwlVariables.map { pwlVar ->
+            LinearFunctionSymbolAdapter(pwlVar.pwlFunction, IntoValue.fromConverter(FltX))
+        }
+        val existingSymbolNames = model.tokens.symbols.map { it.name }.toHashSet()
+        val requestedSymbolNames = HashSet<String>()
+        for (symbol in pwlSymbols) {
+            if (!requestedSymbolNames.add(symbol.name) || symbol.name in existingSymbolNames) {
+                return Failed(
+                    ErrorCode.SymbolRepetitive,
+                    "连续半径符号已存在：${symbol.name} / Continuous-radius symbol already exists: ${symbol.name}"
                 )
-                val rhs = LinearPolynomial(emptyList(), ub.value)
-                when (val result = model.addConstraint(
-                    relation = LinearInequality(lhs, rhs, Comparison.LE),
-                    name = "${proto.variableName}_ub"
-                )) {
-                    is Ok -> {}
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
             }
-            // Target equality for production-ready / 生产就绪变量的目标等式约束
-            if (proto.isProductionReady) {
-                proto.initialRadius?.let { ir ->
+        }
+
+        return try {
+            // Register native variables / 注册 native 变量
+            for (solverVar in nativeVariables) {
+                val proto = solverVar.prototype
+                val lowerBound = proto.radiusLowerBound?.convertTo(Meter)
+                val upperBound = proto.radiusUpperBound?.convertTo(Meter)
+                val initialRadius = proto.initialRadius?.convertTo(Meter)
+                if ((proto.radiusLowerBound != null && lowerBound == null)
+                    || (proto.radiusUpperBound != null && upperBound == null)
+                    || (proto.initialRadius != null && initialRadius == null)) {
+                    return rollback(
+                        Failed(
+                            ErrorCode.IllegalArgument,
+                            "半径单位无法转换为米。 / Radius units cannot be converted to meters."
+                        )
+                    )
+                }
+                // FltX can hold values outside the solver's Flt64 range.  Such values
+                // convert to +/-Infinity when the mechanism model is built, so reject
+                // them before adding any native variable or constraint.
+                val convertedRadiusValues = listOfNotNull(
+                    lowerBound?.value,
+                    upperBound?.value,
+                    initialRadius?.value
+                )
+                if (convertedRadiusValues.any { !it.toDouble().isFinite() }) {
+                    return rollback(
+                        Failed(
+                            ErrorCode.IllegalArgument,
+                            "半径边界和初始值必须可有限转换为 solver 数值。 / Radius bounds and initial radius must convert to finite solver values."
+                        )
+                    )
+                }
+                when (val result = model.add(solverVar.variable)) {
+                    is Ok -> addedVariables.add(solverVar.variable)
+                    is Failed -> return rollback(Failed(result.error))
+                    is Fatal -> return rollback(Fatal(result.errors))
+                }
+                // Lower bound / 下界
+                lowerBound?.let { lb ->
                     val lhs = LinearPolynomial(
                         listOf(LinearMonomial(FltX.one, solverVar.variable)),
                         FltX.zero
                     )
-                    val rhs = LinearPolynomial(emptyList(), ir.value)
+                    val rhs = LinearPolynomial(emptyList(), lb.value)
                     when (val result = model.addConstraint(
-                        relation = LinearInequality(lhs, rhs, Comparison.EQ),
-                        name = "${proto.variableName}_target"
+                        relation = LinearInequality(lhs, rhs, Comparison.GE),
+                        name = "${proto.variableName}_lb"
                     )) {
                         is Ok -> {}
-                        is Failed -> return Failed(result.error)
-                        is Fatal -> return Fatal(result.errors)
+                        is Failed -> return rollback(Failed(result.error))
+                        is Fatal -> return rollback(Fatal(result.errors))
+                    }
+                }
+                // Upper bound / 上界
+                upperBound?.let { ub ->
+                    val lhs = LinearPolynomial(
+                        listOf(LinearMonomial(FltX.one, solverVar.variable)),
+                        FltX.zero
+                    )
+                    val rhs = LinearPolynomial(emptyList(), ub.value)
+                    when (val result = model.addConstraint(
+                        relation = LinearInequality(lhs, rhs, Comparison.LE),
+                        name = "${proto.variableName}_ub"
+                    )) {
+                        is Ok -> {}
+                        is Failed -> return rollback(Failed(result.error))
+                        is Fatal -> return rollback(Fatal(result.errors))
+                    }
+                }
+                // Target equality for production-ready / 生产就绪变量的目标等式约束
+                if (proto.isProductionReady) {
+                    initialRadius?.let { ir ->
+                        val lhs = LinearPolynomial(
+                            listOf(LinearMonomial(FltX.one, solverVar.variable)),
+                            FltX.zero
+                        )
+                        val rhs = LinearPolynomial(emptyList(), ir.value)
+                        when (val result = model.addConstraint(
+                            relation = LinearInequality(lhs, rhs, Comparison.EQ),
+                            name = "${proto.variableName}_target"
+                        )) {
+                            is Ok -> {}
+                            is Failed -> return rollback(Failed(result.error))
+                            is Fatal -> return rollback(Fatal(result.errors))
+                        }
                     }
                 }
             }
+
+            // Register PWL variables / 注册 PWL 变量
+            for ((index, pwlVar) in validatedPwlVariables.withIndex()) {
+                val variableName = pwlVar.variableName
+                val r = pwlVar.radiusVariable
+                val envelope = pwlVar.envelope
+
+                // Register radius variable / 注册半径变量
+                when (val result = model.add(r)) {
+                    is Ok -> addedVariables.add(r)
+                    is Failed -> return rollback(Failed(result.error))
+                    is Fatal -> return rollback(Fatal(result.errors))
+                }
+
+                // Lower bound: r >= rMin / 半径下界
+                when (val result = model.addConstraint(
+                    relation = LinearInequality(
+                        LinearPolynomial(listOf(LinearMonomial(FltX.one, r)), FltX.zero),
+                        LinearPolynomial(emptyList(), envelope.rMin),
+                        Comparison.GE
+                    ),
+                    name = "${variableName}_pwl_r_lb"
+                )) {
+                    is Ok -> {}
+                    is Failed -> return rollback(Failed(result.error))
+                    is Fatal -> return rollback(Fatal(result.errors))
+                }
+
+                // Upper bound: r <= rMax / 半径上界
+                when (val result = model.addConstraint(
+                    relation = LinearInequality(
+                        LinearPolynomial(listOf(LinearMonomial(FltX.one, r)), FltX.zero),
+                        LinearPolynomial(emptyList(), envelope.rMax),
+                        Comparison.LE
+                    ),
+                    name = "${variableName}_pwl_r_ub"
+                )) {
+                    is Ok -> {}
+                    is Failed -> return rollback(Failed(result.error))
+                    is Fatal -> return rollback(Fatal(result.errors))
+                }
+
+                // Register PWL function symbol via core intermediate symbol lifecycle.
+                // The LinearFunctionSymbolAdapter wraps the MathFunctionSymbol as an
+                // IntermediateSymbol so the core mechanism model can register helper tokens
+                // and expand the function constraints during model dumping.
+                // 通过 core 中间符号生命周期注册 PWL 函数符号。
+                // LinearFunctionSymbolAdapter 将 MathFunctionSymbol 包装为 IntermediateSymbol，
+                // 以便 core mechanism model 在模型 dump 阶段注册辅助 token 并展开函数约束。
+                val pwlSymbol = pwlSymbols[index]
+                when (val result = model.add(pwlSymbol)) {
+                    is Ok -> addedSymbols.add(pwlSymbol)
+                    is Failed -> return rollback(Failed(result.error))
+                    is Fatal -> return rollback(Fatal(result.errors))
+                }
+            }
+            ok
+        } catch (error: RuntimeException) {
+            val detail = error.message?.takeIf { it.isNotBlank() }
+                ?: error::class.simpleName
+                ?: "unknown runtime error"
+            rollback(
+                Failed(
+                    ErrorCode.ApplicationError,
+                    "连续半径组件注册失败：$detail / Continuous-radius component registration failed: $detail"
+                )
+            )
         }
-
-        // Register PWL variables / 注册 PWL 变量
-        for (pwlVar in pwlVariables) {
-            val variableName = pwlVar.variableName
-            val r = pwlVar.radiusVariable
-            val envelope = pwlVar.envelope
-            val pwlFunction = pwlVar.pwlFunction
-
-            // Register radius variable / 注册半径变量
-            model.add(r)
-
-            // Lower bound: r >= rMin / 半径下界
-            when (val result = model.addConstraint(
-                relation = LinearInequality(
-                    LinearPolynomial(listOf(LinearMonomial(FltX.one, r)), FltX.zero),
-                    LinearPolynomial(emptyList(), envelope.rMin),
-                    Comparison.GE
-                ),
-                name = "${variableName}_pwl_r_lb"
-            )) {
-                is Ok -> {}
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
-            }
-
-            // Upper bound: r <= rMax / 半径上界
-            when (val result = model.addConstraint(
-                relation = LinearInequality(
-                    LinearPolynomial(listOf(LinearMonomial(FltX.one, r)), FltX.zero),
-                    LinearPolynomial(emptyList(), envelope.rMax),
-                    Comparison.LE
-                ),
-                name = "${variableName}_pwl_r_ub"
-            )) {
-                is Ok -> {}
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
-            }
-
-            // Register PWL function symbol via core intermediate symbol lifecycle.
-            // The LinearFunctionSymbolAdapter wraps the MathFunctionSymbol as an
-            // IntermediateSymbol so the core mechanism model can register helper tokens
-            // and expand the function constraints during model dumping.
-            // 通过 core 中间符号生命周期注册 PWL 函数符号。
-            // LinearFunctionSymbolAdapter 将 MathFunctionSymbol 包装为 IntermediateSymbol，
-            // 以便 core mechanism model 在模型 dump 阶段注册辅助 token 并展开函数约束。
-            val pwlSymbol = LinearFunctionSymbolAdapter(pwlFunction, IntoValue.fromConverter(FltX))
-            when (val result = model.add(pwlSymbol)) {
-                is Ok -> {}
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
-            }
-        }
-        return ok
     }
 
     /**
@@ -585,15 +833,25 @@ class ContinuousRadiusModelComponent(
     fun extractPWLResults(model: LinearMetaModel<FltX>): Map<String, Map<String, FltX>> {
         if (pwlVariables.isEmpty()) return emptyMap()
 
+        fun finiteSolverValue(value: Double?): FltX? {
+            if (value == null || !value.isFinite()) {
+                return null
+            }
+            return FltX(value)
+        }
+
         val pwlResultsMap = LinkedHashMap<String, Map<String, FltX>>()
         for (pwlVar in pwlVariables) {
             val rToken = model.tokens.find(pwlVar.radiusVariable)
-            val rValue = rToken?.doubleResult?.let { FltX(it) } ?: continue
+            val rValue = finiteSolverValue(rToken?.doubleResult) ?: continue
 
             val qToken = model.tokens.find(pwlVar.pwlFunction.resultVar)
-            val qValue = qToken?.doubleResult?.let { FltX(it) } ?: FltX.zero
+            val qValue = finiteSolverValue(qToken?.doubleResult) ?: continue
 
             val actualRSquared = rValue * rValue
+            if (!actualRSquared.isFinite()) {
+                continue
+            }
             val pwlError = (qValue - actualRSquared).abs()
             val pwlRelativeError = if (actualRSquared > FltX(1e-12)) pwlError / actualRSquared else FltX.zero
             val isWithinEnvelope = pwlVar.envelope.isRadiusValid(rValue)

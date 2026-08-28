@@ -1,24 +1,20 @@
 package fuookami.ospf.kotlin.example.linear_function
 
 import kotlinx.coroutines.runBlocking
-
-import fuookami.ospf.kotlin.example.test.flt64TestConverter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-
 import fuookami.ospf.kotlin.utils.functional.Ok
-
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.symbol.function.IfFunction
 import fuookami.ospf.kotlin.core.symbol.function.OneOfFunction
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.example.test.flt64TestConverter
 
 /** Verifies that if and one-of functions expose comparable constraints without invoking a solver. */
 class ConditionalFunctionBuildOnlyStructureTest {
@@ -26,6 +22,10 @@ class ConditionalFunctionBuildOnlyStructureTest {
     fun ifAndOneOfShouldAppendComparableConstraintsWithoutSolver() {
         val x = RealVar("example_cond_build_x")
         val y = RealVar("example_cond_build_y")
+        x.range.geq(Flt64(-10.0))
+        x.range.leq(Flt64(10.0))
+        y.range.geq(Flt64(-10.0))
+        y.range.leq(Flt64(10.0))
         val xPoly = LinearPolynomial(
             monomials = listOf(LinearMonomial(Flt64.one, x)),
             constant = Flt64.zero

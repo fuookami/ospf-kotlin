@@ -272,6 +272,12 @@
                     <version>1.0.0</version>
                     <scope>test</scope>
                 </dependency>
+                <dependency>
+                    <groupId>gurobi</groupId>
+                    <artifactId>gurobi</artifactId>
+                    <version>1.0.0</version>
+                    <scope>test</scope>
+                </dependency>
             </dependencies>
             <build>
                 <plugins>
@@ -285,6 +291,9 @@
                                     <sourceDirs>
                                         <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/linear_function/LinearFunctionSolveTest.kt</sourceDir>
                                         <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/linear_function/ConditionalFunctionSolveTest.kt</sourceDir>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/linear_function/ConditionalFunctionSolveRegressionTest.kt</sourceDir>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/linear_function/ConditionalEnvelopeSolveRegressionTest.kt</sourceDir>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/linear_function/ConditionalFunctionSolverSupport.kt</sourceDir>
                                         <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/quadratic_function/QuadraticFunctionSolveTest.kt</sourceDir>
                                         <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/core_demo/ScipAvailability.kt</sourceDir>
                                     </sourceDirs>
@@ -296,14 +305,117 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
+                            <argLine>-XX:-UseJVMCICompiler -Djava.library.path="${env.JSCIP_HOME};${env.SCIP_HOME}\bin;${env.GUROBI_HOME}\bin"</argLine>
+                            <reportsDirectory>${env.TEMP}/ospf-kotlin-conditional-solver-reports</reportsDirectory>
                             <includes>
                                 <include>**/LinearFunctionSolveTest.*</include>
                                 <include>**/ConditionalFunctionSolveTest.*</include>
+                                <include>**/ConditionalFunctionSolveRegressionTest.*</include>
+                                <include>**/ConditionalEnvelopeSolveRegressionTest.*</include>
                                 <include>**/QuadraticFunctionSolveTest.*</include>
                             </includes>
                             <systemPropertyVariables>
                                 <ospf.kotlin.math.enableCompanionReflectionFallback>true</ospf.kotlin.math.enableCompanionReflectionFallback>
-                                <java.library.path>${env.JSCIP_HOME};${env.SCIP_HOME};${java.library.path}</java.library.path>
+                                <ospf.gurobi.suppressOutput>true</ospf.gurobi.suppressOutput>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>solver-integration-tests-scip</id>
+            <properties>
+                <example.source.directory>src/core-demo-none</example.source.directory>
+                <example.test.source.directory>src/core-demo-none</example.test.source.directory>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>scip</groupId>
+                    <artifactId>jscip</artifactId>
+                    <version>1.0.0</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>test-compile</id>
+                                <configuration>
+                                    <sourceDirs>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/linear_function/ConditionalFunctionSolveRegressionTest.kt</sourceDir>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/linear_function/ConditionalFunctionSolverSupport.kt</sourceDir>
+                                    </sourceDirs>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <argLine>-XX:-UseJVMCICompiler -Djava.library.path="${env.JSCIP_HOME};${env.SCIP_HOME}\bin"</argLine>
+                            <reportsDirectory>${env.TEMP}/ospf-kotlin-conditional-solver-scip-reports</reportsDirectory>
+                            <includes>
+                                <include>**/ConditionalFunctionSolveRegressionTest.*</include>
+                            </includes>
+                            <systemPropertyVariables>
+                                <ospf.conditional.solver>scip</ospf.conditional.solver>
+                                <ospf.kotlin.math.enableCompanionReflectionFallback>true</ospf.kotlin.math.enableCompanionReflectionFallback>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>solver-integration-tests-gurobi</id>
+            <properties>
+                <example.source.directory>src/core-demo-none</example.source.directory>
+                <example.test.source.directory>src/core-demo-none</example.test.source.directory>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>gurobi</groupId>
+                    <artifactId>gurobi</artifactId>
+                    <version>1.0.0</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>test-compile</id>
+                                <configuration>
+                                    <sourceDirs>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/linear_function/ConditionalFunctionSolveRegressionTest.kt</sourceDir>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/linear_function/ConditionalFunctionSolverSupport.kt</sourceDir>
+                                    </sourceDirs>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <argLine>-XX:-UseJVMCICompiler -Djava.library.path="${env.GUROBI_HOME}\bin"</argLine>
+                            <reportsDirectory>${env.TEMP}/ospf-kotlin-conditional-solver-gurobi-reports</reportsDirectory>
+                            <includes>
+                                <include>**/ConditionalFunctionSolveRegressionTest.*</include>
+                            </includes>
+                            <systemPropertyVariables>
+                                <ospf.conditional.solver>gurobi</ospf.conditional.solver>
+                                <ospf.gurobi.suppressOutput>true</ospf.gurobi.suppressOutput>
+                                <ospf.kotlin.math.enableCompanionReflectionFallback>true</ospf.kotlin.math.enableCompanionReflectionFallback>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>

@@ -631,6 +631,19 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
     ): Try
 
     /**
+     * 将线性约束回滚到指定数量。 / Rolls linear constraints back to the specified count.
+     *
+     * @param size 回滚后的约束数量 / Constraint count after rollback
+     * @return 操作结果 / Operation result
+     */
+    fun rollbackConstraintsTo(size: Int): Try {
+        return Failed(
+            ErrorCode.ApplicationError,
+            "当前线性元模型不支持约束回滚。 / This linear meta model does not support constraint rollback."
+        )
+    }
+
+    /**
      * 使用变量迭代器添加分区约束。 / Add a partition constraint using an iterable of variables.
      *
      * @param variables   变量迭代器 / The variables
@@ -984,6 +997,27 @@ abstract class AbstractMetaModel<V>(
         }
         return constraintGroupIndexMap[group]
     }
+
+    /**
+     * 回滚约束组索引状态。 / Rolls back constraint-group index state.
+     *
+     * @param size 回滚后的约束数量 / Constraint count after rollback
+     */
+    protected fun rollbackConstraintGroupStateTo(size: Int) {
+        val iterator = constraintGroupIndexMap.entries.iterator()
+        while (iterator.hasNext()) {
+            val entry = iterator.next()
+            val range = entry.value
+            if (range.isEmpty() || range.first >= size) {
+                iterator.remove()
+            } else if (range.last >= size) {
+                entry.setValue(range.first until size)
+            }
+        }
+        if (currentConstraintGroup != null && currentConstraintGroupIndexLowerBound!! > size) {
+            currentConstraintGroupIndexLowerBound = size
+        }
+    }
 }
 
 /**
@@ -1124,6 +1158,20 @@ class LinearMetaModel<V>(
                 priority = priority
             )
         )
+        return ok
+    }
+
+    override fun rollbackConstraintsTo(size: Int): Try {
+        if (size < 0 || size > _relationConstraints.size) {
+            return Failed(
+                Err(
+                    ErrorCode.IllegalArgument,
+                    "约束回滚位置无效：$size / Invalid constraint rollback position: $size"
+                )
+            )
+        }
+        _relationConstraints.subList(size, _relationConstraints.size).clear()
+        rollbackConstraintGroupStateTo(size)
         return ok
     }
 
@@ -1336,6 +1384,20 @@ class QuadraticMetaModel<V>(
                 priority = priority
             )
         )
+        return ok
+    }
+
+    override fun rollbackConstraintsTo(size: Int): Try {
+        if (size < 0 || size > _relationConstraints.size) {
+            return Failed(
+                Err(
+                    ErrorCode.IllegalArgument,
+                    "约束回滚位置无效：$size / Invalid constraint rollback position: $size"
+                )
+            )
+        }
+        _relationConstraints.subList(size, _relationConstraints.size).clear()
+        rollbackConstraintGroupStateTo(size)
         return ok
     }
 

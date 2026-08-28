@@ -137,15 +137,19 @@ class InequalityFunction<V>(
             Comparison.EQ -> {
                 val diffMonos = lhsMonos
                 val diffConst = lhs.constant - rhsValue
-                allConstraints += zeroIndicatorConstraints(
-                    LinearPolynomial(diffMonos, diffConst),
-                    flagVar,
-                    sideVar,
-                    bigMValue,
-                    toleranceValue,
-                    strictBoundary,
-                    "${name}_eq"
-                )
+                when (val result = safeZeroIndicatorConstraints(
+                    poly = LinearPolynomial(diffMonos, diffConst),
+                    indicator = flagVar,
+                    sideVar = sideVar,
+                    bigM = bigMValue,
+                    tolerance = toleranceValue,
+                    strictBoundary = strictBoundary,
+                    namePrefix = "${name}_eq"
+                )) {
+                    is Ok -> allConstraints += result.value
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
             }
 
             Comparison.NE -> {

@@ -2,6 +2,8 @@ package fuookami.ospf.kotlin.core.symbol.function
 
 import kotlin.test.*
 import org.junit.jupiter.api.Tag
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -177,6 +179,14 @@ class FunctionSymbolRoundingGenericRegistrationTest {
             } else {
                 collectedConstraints.add(relation)
             }
+            return ok
+        }
+
+        override fun rollbackConstraintsTo(size: Int): Try {
+            if (size < 0 || size > collectedConstraints.size) {
+                return Failed(Err(ErrorCode.IllegalArgument, "Invalid constraint rollback position: $size"))
+            }
+            collectedConstraints.subList(size, collectedConstraints.size).clear()
             return ok
         }
     }

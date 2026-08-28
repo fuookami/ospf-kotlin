@@ -9,8 +9,11 @@ import kotlin.test.*
 import kotlinx.coroutines.runBlocking
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Axis3
+import fuookami.ospf.kotlin.quantities.unit.Centimeter
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.quantities.unit.Second
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
@@ -109,6 +112,156 @@ class ContinuousRadiusModelComponentTest {
     }
 
     @Test
+    fun testPWLNormalizesCompatibleRadiusUnitsBeforeBuildingEnvelope() {
+        val prototype = ContinuousCylinderRadiusSolverPrototype(
+            source = "test",
+            radiusWeightFunctionKey = "key_mixed_units",
+            axis = Axis3.Y,
+            variableName = "mixed_units_r",
+            radiusLowerBound = Quantity(FltX(50.0), Centimeter),
+            radiusUpperBound = Quantity(FltX(1.0), Meter),
+            initialRadius = null,
+            gaps = listOf(ContinuousCylinderRadiusOptimizationGap.SolverNativeRadiusIntervalUnsupported)
+        )
+        val component = ContinuousRadiusModelComponent(
+            prototypes = listOf(prototype),
+            config = PWLRadiusApproximationConfig(maxSegments = 2)
+        )
+
+        val envelope = component.pwlVariables.single().envelope
+        assertEquals(0.5, envelope.rMin.toDouble(), 1e-10)
+        assertEquals(1.0, envelope.rMax.toDouble(), 1e-10)
+    }
+
+    @Test
+    fun testPWLRejectsDirectPrototypeWithIncompatibleRadiusUnits() {
+        val prototype = ContinuousCylinderRadiusSolverPrototype(
+            source = "test",
+            radiusWeightFunctionKey = "key_incompatible_units",
+            axis = Axis3.Y,
+            variableName = "incompatible_units_r",
+            radiusLowerBound = Quantity(FltX(0.5), Meter),
+            radiusUpperBound = Quantity(FltX(2.0), Second),
+            initialRadius = null,
+            gaps = listOf(ContinuousCylinderRadiusOptimizationGap.SolverNativeRadiusIntervalUnsupported)
+        )
+
+        val variablesResult = pwlContinuousRadiusSolverVariablesResult(
+            prototypes = listOf(prototype),
+            config = PWLRadiusApproximationConfig(maxSegments = 2)
+        )
+        assertTrue(variablesResult is fuookami.ospf.kotlin.utils.functional.Failed)
+        assertTrue(variablesResult.message.contains("无法转换为米"))
+
+        val component = ContinuousRadiusModelComponent(
+            prototypes = listOf(prototype),
+            config = PWLRadiusApproximationConfig(maxSegments = 2)
+        )
+        val model = LinearMetaModel(
+            name = "test_incompatible_radius_units",
+            converter = IntoValue.fromConverter(FltX)
+        )
+        val registrationResult = component.register(model)
+        assertTrue(registrationResult is fuookami.ospf.kotlin.utils.functional.Failed)
+        assertTrue(registrationResult.message.contains("无法转换为米"))
+        assertTrue(model.tokens.symbols.none { it.name == "incompatible_units_r_r" })
+    }
+
+    @Test
+    fun testPWLResultExtractionSkipsNonFiniteSolverValues() {
+        val component = ContinuousRadiusModelComponent(
+            prototypes = listOf(pwlPrototype(variableName = "non_finite_result_r")),
+            config = PWLRadiusApproximationConfig(maxSegments = 2)
+        )
+        val model = LinearMetaModel(
+            name = "test_non_finite_pwl_result",
+            converter = IntoValue.fromConverter(FltX)
+        )
+        assertTrue(component.register(model) is Ok)
+
+        val pwlVariable = component.pwlVariables.single()
+        model.tokens.setSolverSolution(
+            mapOf(
+                pwlVariable.radiusVariable to Flt64.nan,
+                pwlVariable.pwlFunction.resultVar to Flt64.one
+            )
+        )
+
+        assertTrue(component.extractPWLResults(model).isEmpty())
+
+        model.tokens.setSolverSolution(
+            mapOf(
+                pwlVariable.radiusVariable to Flt64.one,
+                pwlVariable.pwlFunction.resultVar to Flt64.nan
+            )
+        )
+
+        assertTrue(component.extractPWLResults(model).isEmpty())
+    }
+
+    @Test
+    fun testRegistrationRollsBackEarlierNativeVariablesWhenALaterUnitIsInvalid() {
+        val validPrototype = nativePrototype(variableName = "atomic_valid_native")
+        val invalidPrototype = ContinuousCylinderRadiusSolverPrototype(
+            source = "test",
+            radiusWeightFunctionKey = "key_atomic_invalid_native",
+            axis = Axis3.Y,
+            variableName = "atomic_invalid_native",
+            radiusLowerBound = Quantity(FltX(1.0), Meter),
+            radiusUpperBound = Quantity(FltX(2.0), Second),
+            initialRadius = null,
+            gaps = emptyList()
+        )
+        val component = ContinuousRadiusModelComponent(
+            prototypes = listOf(validPrototype, invalidPrototype)
+        )
+        val model = LinearMetaModel(
+            name = "test_atomic_native_registration",
+            converter = IntoValue.fromConverter(FltX)
+        )
+
+        try {
+            val result = component.register(model)
+            assertTrue(result is fuookami.ospf.kotlin.utils.functional.Failed)
+            assertTrue(model.tokens.tokens.isEmpty())
+            assertTrue(model.constraints.isEmpty())
+        } finally {
+            model.close()
+        }
+    }
+
+    @Test
+    fun testRegistrationRejectsNativeRadiusValuesOutsideSolverFiniteRange() {
+        // FltX accepts arbitrary-precision values, while the mechanism solver uses Flt64.
+        val hugeRadius = FltX("1e400")
+        val prototype = ContinuousCylinderRadiusSolverPrototype(
+            source = "test",
+            radiusWeightFunctionKey = "key_huge_native",
+            axis = Axis3.Y,
+            variableName = "huge_native",
+            radiusLowerBound = Quantity(hugeRadius, Meter),
+            radiusUpperBound = Quantity(hugeRadius, Meter),
+            initialRadius = Quantity(hugeRadius, Meter),
+            gaps = emptyList()
+        )
+        val component = ContinuousRadiusModelComponent(listOf(prototype))
+        val model = LinearMetaModel(
+            name = "test_huge_native_radius",
+            converter = IntoValue.fromConverter(FltX)
+        )
+
+        try {
+            val result = component.register(model)
+            assertTrue(result is fuookami.ospf.kotlin.utils.functional.Failed)
+            assertTrue(result.message.contains("有限转换"))
+            assertTrue(model.tokens.tokens.isEmpty())
+            assertTrue(model.constraints.isEmpty())
+        } finally {
+            model.close()
+        }
+    }
+
+    @Test
     fun testComponentCreatesMixedVariablesForMixedPrototypes() {
         val prototypes = listOf(
             nativePrototype("native1"),
@@ -200,7 +353,7 @@ class ContinuousRadiusModelComponentTest {
         val component = ContinuousRadiusModelComponent(
             prototypes = prototypes,
             config = PWLRadiusApproximationConfig(
-                maxSegments = 8,
+                maxSegments = 32,
                 breakpointStrategy = PWLBreakpointStrategy.ErrorDriven,
                 relativeErrorTolerance = FltX(0.005)
             )

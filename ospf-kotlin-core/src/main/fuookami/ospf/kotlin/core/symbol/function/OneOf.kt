@@ -93,15 +93,19 @@ class OneOfFunction<V>(
         // Nonzero indicators for each polynomial / 为每个多项式构建非零指示约束
         for (i in polynomials.indices) {
             val currentBigM = explicitBigM ?: polynomials[i].defaultBigM(converter)
-            allConstraints += nonzeroIndicatorConstraints(
-                polynomials[i],
-                indicatorVars[i],
-                sideVars[i],
-                currentBigM,
-                tolerance,
-                strictBoundary,
-                "${name}_oneof_nz_${i}"
-            )
+            when (val result = safeNonzeroIndicatorConstraints(
+                poly = polynomials[i],
+                indVar = indicatorVars[i],
+                sideVar = sideVars[i],
+                bigM = currentBigM,
+                tolerance = tolerance,
+                strictBoundary = strictBoundary,
+                namePrefix = "${name}_oneof_nz_${i}"
+            )) {
+                is Ok -> allConstraints += result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
         }
 
         // Exactly one indicator must be 1: sum(indicators) = 1 / 恰好一个指示变量为 1：sum(指示变量) = 1

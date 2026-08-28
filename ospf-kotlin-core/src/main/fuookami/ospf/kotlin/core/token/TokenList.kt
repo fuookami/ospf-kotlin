@@ -38,6 +38,11 @@ sealed class AbstractTokenList<T : RealNumber<T>> : AutoCloseable {
 
     private val cache = HashMap<Token<T>, Int?>()
 
+    /** 清除 token 索引缓存 / Clears the token index cache */
+    protected fun clearIndexCache() {
+        cache.clear()
+    }
+
     /**
      * 查找 token 的求解器索引 / Finds the solver index of a token
      *
@@ -276,7 +281,10 @@ interface AddableTokenCollection<T : RealNumber<T>> {
      *
      * @param items 变量项集合 / The variable item collection
      * @return 操作结果 / Operation result
-    */
+     *
+     * 失败时集合必须保持调用前状态；该操作具有 all-or-nothing 语义。
+     * The collection must remain unchanged on failure; this operation is all-or-nothing.
+     */
     fun add(items: Iterable<AbstractVariableItem<*, *>>): Try
 }
 
@@ -296,7 +304,41 @@ abstract class AbstractMutableTokenList<T : RealNumber<T>> : AbstractTokenList<T
 
     /** 刷新内部状态并清除求解结果 / Refreshes internal state and clears solve results */
     open fun flush() {}
+
+    /**
+     * 创建 token 状态快照；不支持快照的自定义实现返回 null。
+     * Creates a token-state snapshot; custom implementations without snapshot support return null.
+     */
+    internal open fun snapshotState(): TokenListSnapshot<T>? = null
+
+    /**
+     * 恢复 token 状态快照 / Restores a token-state snapshot.
+     *
+     * 该能力供需要事务语义的核心注册流程使用。
+     * This is used by core registration flows that require transaction semantics.
+     */
+    internal open fun restoreState(snapshot: TokenListSnapshot<T>): Try {
+        return Failed(
+            ErrorCode.ApplicationError,
+            "当前 token 列表不支持状态恢复。 / This token list does not support state restoration."
+        )
+    }
 }
+
+/**
+ * 可变 token 列表的精确状态快照。 / Exact state snapshot for a mutable token list.
+ *
+ * 快照包含 token 身份、下一个 solver index、缓存标记和回调，
+ * 从而可以恢复替换 token 而不只删除新增 token。
+ * The snapshot includes token identity, the next solver index, cache state, and callbacks,
+ * so replaced tokens can be restored instead of only removing newly added tokens.
+ */
+internal data class TokenListSnapshot<T : RealNumber<T>>(
+    val list: Map<VariableItemKey, Token<T>>,
+    val nextSolverIndex: Int,
+    val cachedSolution: Boolean?,
+    val callbacks: List<Pair<Token<T>, ((Boolean) -> Unit)?>>
+)
 
 /**
  * 可变 token 列表的密封基类，支持 token 的增删和求解结果管理。 / Sealed base class for mutable token lists, supporting token add/remove and solution management.
@@ -335,40 +377,210 @@ sealed class MutableTokenList<T : RealNumber<T>>(
             }
         }
 
-    override fun add(item: AbstractVariableItem<*, *>): Try {
-        if (checkTokenExisted && list.containsKey(item.key)) {
-            return Failed(code = ErrorCode.TokenExisted)
+    override fun snapshotState(): TokenListSnapshot<T> {
+        return synchronized(lock) {
+            val snapshot = list.toMap()
+            val listOwner = this as AbstractTokenList<T>
+            TokenListSnapshot(
+                list = snapshot,
+                nextSolverIndex = currentIndex,
+                cachedSolution = _cachedSolution,
+                callbacks = snapshot.values.map { token ->
+                    token to token.refreshCallbacks[listOwner]
+                }
+            )
         }
-        list[item.key] = Token<T>(item, currentIndex, mutableMapOf(this as AbstractTokenList<T> to {
+    }
+
+    override fun restoreState(snapshot: TokenListSnapshot<T>): Try {
+        return synchronized(lock) {
+            try {
+                val listOwner = this as AbstractTokenList<T>
+                for (token in list.values) {
+                    if (snapshot.list.values.none { original -> original === token }) {
+                        token.refreshCallbacks.remove(listOwner)
+                    }
+                }
+                for ((token, callback) in snapshot.callbacks) {
+                    if (callback == null) {
+                        token.refreshCallbacks.remove(listOwner)
+                    } else {
+                        token.refreshCallbacks[listOwner] = callback
+                    }
+                }
+                list.clear()
+                list.putAll(snapshot.list)
+                currentIndex = snapshot.nextSolverIndex
+                invalidateTokensInSolver()
+                clearIndexCache()
+                _cachedSolution = snapshot.cachedSolution
+                ok
+            } catch (error: RuntimeException) {
+                val detail = error.message?.takeIf { it.isNotBlank() }
+                    ?: error::class.simpleName
+                    ?: "unknown runtime error"
+                Failed(
+                    ErrorCode.ApplicationError,
+                    "恢复 token 状态失败：$detail / Token state restoration failed: $detail"
+                )
+            }
+        }
+    }
+
+    /** 清除按求解器排序的 token 缓存 / Invalidates the solver-order token cache. */
+    protected fun invalidateTokensInSolver() {
+        _tokensInSolver = ArrayList()
+    }
+
+    /** 创建带当前列表回调的 token / Creates a token with the current-list refresh callback. */
+    protected fun createToken(item: AbstractVariableItem<*, *>): Token<T> {
+        return Token(item, currentIndex, mutableMapOf(this as AbstractTokenList<T> to {
             synchronized(lock) {
                 _cachedSolution = tokens.any { it.resultFlt64 != null }
             }
         }))
-        ++currentIndex
-        return ok
     }
 
-    override fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
-        for (item in items) {
-            when (val result = add(item)) {
-                is Ok -> {}
+    /** 将 token 注册异常转换为失败结果 / Convert a token-registration exception into a failure result. */
+    private fun runtimeRegistrationFailure(error: RuntimeException): Try {
+        val detail = error.message?.takeIf { it.isNotBlank() } ?: error::class.simpleName ?: "unknown runtime error"
+        return Failed(
+            ErrorCode.ApplicationError,
+            "注册 token 失败：$detail / Token registration failed: $detail"
+        )
+    }
 
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+    /** 恢复 token 列表及其回调状态 / Restore token-list contents and callback state. */
+    private fun rollbackTo(
+        originalList: Map<VariableItemKey, Token<T>>,
+        originalIndex: Int,
+        originalCachedSolution: Boolean?,
+        originalCallbacks: List<Pair<Token<T>, ((Boolean) -> Unit)?>>
+    ) {
+        val listOwner = this as AbstractTokenList<T>
+        for (token in list.values) {
+            if (originalList.values.none { it === token }) {
+                token.refreshCallbacks.remove(listOwner)
             }
+        }
+        for ((token, callback) in originalCallbacks) {
+            if (callback == null) {
+                token.refreshCallbacks.remove(listOwner)
+            } else {
+                token.refreshCallbacks[listOwner] = callback
+            }
+        }
+        list.clear()
+        list.putAll(originalList)
+        currentIndex = originalIndex
+        invalidateTokensInSolver()
+        clearIndexCache()
+        _cachedSolution = originalCachedSolution
+    }
+
+    override fun add(item: AbstractVariableItem<*, *>): Try {
+        return synchronized(lock) {
+            val originalList = list.toMap()
+            val originalIndex = currentIndex
+            val originalCachedSolution = _cachedSolution
+            val listOwner = this as AbstractTokenList<T>
+            val originalCallbacks = originalList.values.map { token ->
+                token to token.refreshCallbacks[listOwner]
+            }
+            try {
+                addOne(item)
+            } catch (error: RuntimeException) {
+                rollbackTo(
+                    originalList = originalList,
+                    originalIndex = originalIndex,
+                    originalCachedSolution = originalCachedSolution,
+                    originalCallbacks = originalCallbacks
+                )
+                runtimeRegistrationFailure(error)
+            }
+        }
+    }
+
+    private fun addOne(
+        item: AbstractVariableItem<*, *>,
+        addedTokens: MutableList<Token<T>>? = null
+    ): Try {
+        if (checkTokenExisted && list.containsKey(item.key)) {
+            return Failed(code = ErrorCode.TokenExisted)
+        }
+        val token = createToken(item)
+        val replacedToken = list.put(item.key, token)
+        replacedToken?.refreshCallbacks?.remove(this as AbstractTokenList<T>)
+        addedTokens?.add(token)
+        ++currentIndex
+        invalidateTokensInSolver()
+        clearIndexCache()
+        if (replacedToken?.resultFlt64 != null) {
+            _cachedSolution = tokens.any { it.resultFlt64 != null }
         }
         return ok
     }
 
+    override fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
+        return synchronized(lock) {
+            val originalList = list.toMap()
+            val originalIndex = currentIndex
+            val originalCachedSolution = _cachedSolution
+            val addedTokens = ArrayList<Token<T>>()
+            val listOwner = this as AbstractTokenList<T>
+            val originalCallbacks = originalList.values.map { token ->
+                token to token.refreshCallbacks[listOwner]
+            }
+
+            fun rollback() {
+                for (token in addedTokens) {
+                    token.refreshCallbacks.remove(listOwner)
+                }
+                for ((token, callback) in originalCallbacks) {
+                    if (callback == null) {
+                        token.refreshCallbacks.remove(listOwner)
+                    } else {
+                        token.refreshCallbacks[listOwner] = callback
+                    }
+                }
+                list.clear()
+                list.putAll(originalList)
+                currentIndex = originalIndex
+                invalidateTokensInSolver()
+                clearIndexCache()
+                _cachedSolution = originalCachedSolution
+            }
+
+            try {
+                for (item in items) {
+                    when (val result = addOne(item, addedTokens)) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            rollback()
+                            return@synchronized Failed(result.error)
+                        }
+
+                        is Fatal -> {
+                            rollback()
+                            return@synchronized Fatal(result.errors)
+                        }
+                    }
+                }
+            } catch (error: RuntimeException) {
+                rollback()
+                return@synchronized runtimeRegistrationFailure(error)
+            }
+            ok
+        }
+    }
+
     override fun remove(item: AbstractVariableItem<*, *>) {
         synchronized(lock) {
-            _tokensInSolver = ArrayList()
+            invalidateTokensInSolver()
             val removedToken = list.remove(item.key)
+            removedToken?.refreshCallbacks?.remove(this as AbstractTokenList<T>)
+            clearIndexCache()
             if (removedToken?.resultFlt64 != null) {
                 _cachedSolution = tokens.any { it.resultFlt64 != null }
             }
@@ -376,7 +588,7 @@ sealed class MutableTokenList<T : RealNumber<T>>(
     }
 
     override fun flush() {
-        _tokensInSolver = ArrayList()
+        invalidateTokensInSolver()
         clearSolution()
     }
 
@@ -495,14 +707,13 @@ class AutoTokenList<T : RealNumber<T>> private constructor(
 
     override fun find(item: AbstractVariableItem<*, *>): Token<T> {
         return synchronized(lock) {
-            val token = list.getOrPut(item.key) {
-                Token<T>(item, currentIndex, mutableMapOf(this as AbstractTokenList<T> to {
-                    synchronized(super.lock) {
-                        super._cachedSolution = tokens.any { it.resultFlt64 != null }
-                    }
-                }))
+            val token = list[item.key] ?: createToken(item).also {
+                list[item.key] = it
+                ++currentIndex
+                invalidateTokensInSolver()
+                clearIndexCache()
             }
-            super._cachedSolution = tokens.any { it.resultFlt64 != null }
+            _cachedSolution = tokens.any { it.resultFlt64 != null }
             token
         }
     }

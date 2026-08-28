@@ -67,7 +67,7 @@ interface AbstractEnvelope {
          * @return CG 指数边界或单位转换错误 / The CG index bound or a unit-conversion error
          */
         fun piecewise(totalWeight: QuantityLinearIntermediateSymbol<Flt64>): Ret<QuantityLinearIntermediateSymbol<Flt64>> {
-            val function = UnivariateLinearPiecewiseFunction.fromPoints(
+            val function = when (val result = UnivariateLinearPiecewiseFunction.fromPointsResult(
                 x = totalWeight.value.toLinearPolynomial(),
                 points = points.map {
                     val pointWeight = it.totalWeight.to(aircraftModel.weightUnit)
@@ -87,7 +87,11 @@ interface AbstractEnvelope {
                 },
                 converter = IntoValue.Identity,
                 name = "${name}_${type.name.lowercase(Locale.getDefault())}"
-            )
+            )) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             return Ok(Quantity(
                 LinearFunctionSymbolAdapter(
                     delegate = function,
@@ -322,12 +326,112 @@ class ConditionalEnvelope(
     }
 
     private fun piecewiseSide(side: AbstractEnvelope.Side): Ret<QuantityLinearIntermediateSymbol<Flt64>> {
+        if (side.points.size < 2) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "条件包络 ${name} 的 ${side.name} 至少需要两个断点，无法建立有限范围 / Conditional envelope ${name} side ${side.name} needs at least two points to establish a finite range"
+            )
+        }
         val estimate = totalWeight.estimateTotalWeight[phase]
             ?: return Failed(
                 ErrorCode.IllegalArgument,
                 "条件包络 ${name} 缺少 ${phase.name} 的总重估计 / Conditional envelope ${name} is missing an estimated total weight for ${phase.name}"
             )
         return side.piecewise(estimate)
+    }
+
+    private fun Flt64.isFiniteEnvelopeBound(): Boolean {
+        if (!isFinite()) {
+            return false
+        }
+        if (constants.nan?.let { this == it } == true) {
+            return false
+        }
+
+        // Solver full-range sentinels are technically finite doubles but do not prove a usable bound.
+        // 求解器的全范围哨兵在浮点层面虽是有限值，但不能证明可用的有限边界。
+        return compareTo(Flt64.minimum) > 0 && compareTo(Flt64.maximum) < 0
+    }
+
+    private fun sidePointBounds(
+        side: AbstractEnvelope.Side,
+        label: String
+    ): Ret<ConditionBounds<Flt64>> {
+        if (side.points.isEmpty()) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "条件包络 ${name} 的 ${label} 缺少断点，无法证明有限范围 / Conditional envelope ${name} ${label} has no points from which a finite range can be proven"
+            )
+        }
+
+        val values = side.points.mapIndexed { index, point ->
+            val pointWeight = point.totalWeight.to(aircraftModel.weightUnit)?.value
+            val pointIndex = point.index.to(aircraftModel.torqueUnit)?.value
+            if (pointWeight == null || pointIndex == null) {
+                return Failed(
+                    ErrorCode.IllegalArgument,
+                    "条件包络 ${name} 的 ${label} 第 ${index + 1} 个断点单位不兼容，无法证明有限范围 / Conditional envelope ${name} ${label} point ${index + 1} has incompatible units, so a finite range cannot be proven"
+                )
+            }
+            if (!pointWeight.isFiniteEnvelopeBound() || !pointIndex.isFiniteEnvelopeBound()) {
+                return Failed(
+                    ErrorCode.IllegalArgument,
+                    "条件包络 ${name} 的 ${label} 第 ${index + 1} 个断点不是有限值，无法证明有限范围 / Conditional envelope ${name} ${label} point ${index + 1} is non-finite, so a finite range cannot be proven"
+                )
+            }
+            pointIndex
+        }
+
+        var lower = values.first()
+        var upper = values.first()
+        values.drop(1).forEach { value ->
+            if (value.compareTo(lower) < 0) {
+                lower = value
+            }
+            if (value.compareTo(upper) > 0) {
+                upper = value
+            }
+        }
+        return Ok(ConditionBounds(lower = lower, upper = upper))
+    }
+
+    private fun boundaryBounds(
+        symbol: QuantityLinearIntermediateSymbol<Flt64>,
+        side: AbstractEnvelope.Side,
+        label: String
+    ): Ret<ConditionBounds<Flt64>> {
+        // A piecewise adapter exposes a helper result variable and an unbounded adapter range;
+        // its actual finite output range comes from the envelope points.
+        // 分段适配器暴露的是辅助结果变量和无界适配器范围，其实际有限输出范围应来自包络断点。
+        val inferred = if (symbol.value is LinearFunctionSymbolAdapter<*>) {
+            null
+        } else {
+            symbol.value.toLinearPolynomial().finiteBounds(IntoValue.Identity)
+        }
+        if (inferred != null &&
+            inferred.lower.isFiniteEnvelopeBound() &&
+            inferred.upper.isFiniteEnvelopeBound() &&
+            inferred.lower.compareTo(inferred.upper) <= 0
+        ) {
+            return Ok(ConditionBounds(lower = inferred.lower, upper = inferred.upper))
+        }
+        return sidePointBounds(side, label)
+    }
+
+    private fun differenceBounds(
+        first: ConditionBounds<Flt64>,
+        second: ConditionBounds<Flt64>,
+        label: String
+    ): Ret<ConditionBounds<Flt64>> {
+        val lower = first.lower - second.upper
+        val upper = first.upper - second.lower
+        if (!lower.isFiniteEnvelopeBound() || !upper.isFiniteEnvelopeBound() || lower.compareTo(upper) > 0) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "条件包络 ${name} 的 ${label} 无法得到有限差值范围 / Conditional envelope ${name} cannot derive a finite difference range for ${label}"
+            )
+        }
+        return Ok(ConditionBounds(lower = lower, upper = upper))
     }
 
     private fun sideAt(side: AbstractEnvelope.Side): Ret<QuantityLinearIntermediateSymbol<Flt64>> {
@@ -415,6 +519,37 @@ class ConditionalEnvelope(
                 is Fatal -> return Fatal(result.errors)
             }
 
+            val min1Bounds = when (val result = boundaryBounds(min1, lhsSide1, "第一组左侧边界")) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            val min2Bounds = when (val result = boundaryBounds(min2, lhsSide2, "第二组左侧边界")) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            val max1Bounds = when (val result = boundaryBounds(max1, rhsSide1, "第一组右侧边界")) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            val max2Bounds = when (val result = boundaryBounds(max2, rhsSide2, "第二组右侧边界")) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            val minSwitchBounds = when (val result = differenceBounds(min1Bounds, min2Bounds, "minSwitch")) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            val maxSwitchBounds = when (val result = differenceBounds(max1Bounds, max2Bounds, "maxSwitch")) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+
             listOf(min1.value, min2.value, max1.value, max2.value).forEach { symbol ->
                 when (val result = addSymbol(model, symbol)) {
                     is Ok -> {}
@@ -428,7 +563,9 @@ class ConditionalEnvelope(
                     condition = condition.toLinearPolynomial(),
                     thenPoly = min1.value.toLinearPolynomial() - min2.value.toLinearPolynomial(),
                     converter = IntoValue.Identity,
-                    name = "${name}_${phase.name.lowercase(Locale.getDefault())}_min_switch"
+                    name = "${name}_${phase.name.lowercase(Locale.getDefault())}_min_switch",
+                    conditionBounds = ConditionBounds(Flt64.zero, Flt64.one),
+                    thenBounds = minSwitchBounds
                 ),
                 converter = IntoValue.Identity
             )
@@ -437,7 +574,9 @@ class ConditionalEnvelope(
                     condition = condition.toLinearPolynomial(),
                     thenPoly = max1.value.toLinearPolynomial() - max2.value.toLinearPolynomial(),
                     converter = IntoValue.Identity,
-                    name = "${name}_${phase.name.lowercase(Locale.getDefault())}_max_switch"
+                    name = "${name}_${phase.name.lowercase(Locale.getDefault())}_max_switch",
+                    conditionBounds = ConditionBounds(Flt64.zero, Flt64.one),
+                    thenBounds = maxSwitchBounds
                 ),
                 converter = IntoValue.Identity
             )

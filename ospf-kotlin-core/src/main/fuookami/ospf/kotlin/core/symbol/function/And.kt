@@ -96,7 +96,19 @@ class AndFunction<V>(
         // Nonzero indicators for each polynomial / 为每个多项式构建非零指示约束
         for (i in polynomials.indices) {
             val currentBigM = explicitBigM ?: polynomials[i].defaultBigM(converter)
-            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], currentBigM, tolerance, strictBoundary, "${name}_and_nz_${i}")
+            when (val result = safeNonzeroIndicatorConstraints(
+                poly = polynomials[i],
+                indVar = indicatorVars[i],
+                sideVar = sideVars[i],
+                bigM = currentBigM,
+                tolerance = tolerance,
+                strictBoundary = strictBoundary,
+                namePrefix = "${name}_and_nz_${i}"
+            )) {
+                is Ok -> allConstraints += result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
         }
 
         // sum(indicators) >= n * result / 非零指示变量之和大于等于 n 倍结果
@@ -232,7 +244,19 @@ class OrFunction<V>(
         // Nonzero indicators for each polynomial / 为每个多项式构建非零指示约束
         for (i in polynomials.indices) {
             val currentBigM = explicitBigM ?: polynomials[i].defaultBigM(converter)
-            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], currentBigM, tolerance, strictBoundary, "${name}_or_nz_${i}")
+            when (val result = safeNonzeroIndicatorConstraints(
+                poly = polynomials[i],
+                indVar = indicatorVars[i],
+                sideVar = sideVars[i],
+                bigM = currentBigM,
+                tolerance = tolerance,
+                strictBoundary = strictBoundary,
+                namePrefix = "${name}_or_nz_${i}"
+            )) {
+                is Ok -> allConstraints += result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
         }
 
         // sum(indicators) >= result / 非零指示变量之和大于等于结果
@@ -331,7 +355,19 @@ class NotFunction<V>(
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicator / 非零指示约束
-            allConstraints += nonzeroIndicatorConstraints(polynomial, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_not_nz")
+        when (val result = safeNonzeroIndicatorConstraints(
+            poly = polynomial,
+            indVar = indicatorVar,
+            sideVar = sideVar,
+            bigM = bigM,
+            tolerance = tolerance,
+            strictBoundary = strictBoundary,
+            namePrefix = "${name}_not_nz"
+        )) {
+            is Ok -> allConstraints += result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
         // result = 1 - indicator => result + indicator = 1 / 结果 = 1 - 指示变量，即结果 + 指示变量 = 1
         allConstraints += LinearInequality(
@@ -435,7 +471,19 @@ class XorFunction<V>(
         // Nonzero indicators for each polynomial / 为每个多项式构建非零指示约束
         for (i in polynomials.indices) {
             val currentBigM = explicitBigM ?: polynomials[i].defaultBigM(converter)
-            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], currentBigM, tolerance, strictBoundary, "${name}_xor_nz_${i}")
+            when (val result = safeNonzeroIndicatorConstraints(
+                poly = polynomials[i],
+                indVar = indicatorVars[i],
+                sideVar = sideVars[i],
+                bigM = currentBigM,
+                tolerance = tolerance,
+                strictBoundary = strictBoundary,
+                namePrefix = "${name}_xor_nz_${i}"
+            )) {
+                is Ok -> allConstraints += result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
         }
 
         // sum(indicators) - 2*slack = result (where slack is integer)

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
@@ -161,6 +162,146 @@ class FunctionSymbolRegressionTest {
         assertEquals(2, adapter.flattenedMonomials.monomials.size)
         assertEquals(setOf(slack.negVar, slack.posVar), adapter.flattenedMonomials.monomials.map { it.symbol }.toSet())
         assertEquals(Flt64.zero, adapter.flattenedMonomials.constant)
+    }
+
+    @Test
+    fun `LinearFunctionSymbolAdapter resolves legacy function result variables`() {
+        val x = RealVar("legacy_result_x")
+        val xPoly = LinearPolynomial(
+            monomials = listOf(LinearMonomial(Flt64.one, x)),
+            constant = Flt64.zero
+        )
+        val sameAs = SameAsFunction(
+            inequalities = listOf(
+                LinearInequality(
+                    lhs = xPoly,
+                    rhs = LinearPolynomial(emptyList(), Flt64.zero),
+                    comparison = Comparison.GE,
+                    name = "legacy_same_as_input"
+                )
+            ),
+            constraint = false,
+            epsilon = Flt64(1e-6),
+            m = Flt64(10.0),
+            converter = flt64TestConverter,
+            name = "legacy_same_as"
+        )
+        val floor = FloorFunction(
+            x = xPoly,
+            converter = flt64TestConverter,
+            name = "legacy_floor"
+        )
+        val ceiling = CeilingFunction(
+            x = xPoly,
+            converter = flt64TestConverter,
+            name = "legacy_ceiling"
+        )
+        val rounding = RoundingFunction(
+            x = xPoly,
+            converter = flt64TestConverter,
+            name = "legacy_rounding"
+        )
+        val binaryzation = BinaryzationFunction(
+            polynomial = xPoly,
+            converter = flt64TestConverter,
+            name = "legacy_binaryzation"
+        )
+
+        val cases: List<Pair<MathFunctionSymbol<Flt64>, AbstractVariableItem<*, *>>> = listOf(
+            floor to floor.resultVar,
+            ceiling to ceiling.resultVar,
+            rounding to rounding.resultVar,
+            binaryzation to binaryzation.resultVar,
+            sameAs to sameAs.resultVar
+        )
+
+        for ((function, resultVariable) in cases) {
+            val adapter = LinearFunctionSymbolAdapter(function, flt64TestConverter)
+            assertEquals(
+                listOf(resultVariable),
+                adapter.polynomial.monomials.map { it.symbol },
+                "${function.name} should expose its actual result variable"
+            )
+            assertEquals(Flt64.one, adapter.polynomial.monomials.single().coefficient)
+            assertEquals(Flt64.zero, adapter.polynomial.constant)
+        }
+    }
+
+    @Test
+    fun `LinearFunctionSymbolAdapter reads legacy result from solver tokens`() {
+        val x = RealVar("legacy_solver_result_x")
+        val xPoly = LinearPolynomial(
+            monomials = listOf(LinearMonomial(Flt64.one, x)),
+            constant = Flt64.zero
+        )
+        val floor = FloorFunction(
+            x = xPoly,
+            converter = flt64TestConverter,
+            name = "legacy_solver_floor"
+        )
+        val ceiling = CeilingFunction(
+            x = xPoly,
+            converter = flt64TestConverter,
+            name = "legacy_solver_ceiling"
+        )
+        val rounding = RoundingFunction(
+            x = xPoly,
+            converter = flt64TestConverter,
+            name = "legacy_solver_rounding"
+        )
+        val binaryzation = BinaryzationFunction(
+            polynomial = xPoly,
+            converter = flt64TestConverter,
+            name = "legacy_solver_binaryzation"
+        )
+        val sameAs = SameAsFunction(
+            inequalities = listOf(
+                LinearInequality(
+                    lhs = xPoly,
+                    rhs = LinearPolynomial(emptyList(), Flt64.zero),
+                    comparison = Comparison.GE,
+                    name = "legacy_solver_same_as_input"
+                )
+            ),
+            constraint = false,
+            epsilon = Flt64(1e-6),
+            m = Flt64(10.0),
+            converter = flt64TestConverter,
+            name = "legacy_solver_same_as"
+        )
+        val cases: List<Pair<MathFunctionSymbol<Flt64>, AbstractVariableItem<*, *>>> = listOf(
+            floor to floor.resultVar,
+            ceiling to ceiling.resultVar,
+            rounding to rounding.resultVar,
+            binaryzation to binaryzation.resultVar,
+            sameAs to sameAs.resultVar
+        )
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
+
+        try {
+            for ((index, case) in cases.withIndex()) {
+                val (function, resultVariable) = case
+                assertTrue(function is HasResultVariable, "${function.name} should implement HasResultVariable")
+                assertSame(
+                    resultVariable,
+                    (function as HasResultVariable).resultVar,
+                    "${function.name} should expose its actual result variable through HasResultVariable"
+                )
+                val adapter = LinearFunctionSymbolAdapter(function, flt64TestConverter)
+                assertTrue(adapter.registerAuxiliaryTokens(tokenTable) is Ok)
+
+                val expected = Flt64((index + 1).toDouble())
+                tokenTable.setSolverSolution(mapOf(resultVariable to expected))
+                assertEquals(
+                    expected,
+                    adapter.evaluate(tokenTable, flt64TestConverter, zeroIfNone = false),
+                    "${function.name} should read the solver value of its result variable"
+                )
+                tokenTable.clearSolution()
+            }
+        } finally {
+            tokenTable.close()
+        }
     }
 
     @Test

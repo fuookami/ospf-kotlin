@@ -94,6 +94,19 @@ interface AbstractLinearMechanismModel<V> : MechanismModel<V> where V : RealNumb
             from = from?.let { it to false }
         )
     }
+
+    /**
+     * 将线性约束回滚到指定数量。 / Rolls linear constraints back to the specified count.
+     *
+     * @param size 回滚后的约束数量 / Constraint count after rollback
+     * @return 操作结果 / Operation result
+     */
+    fun rollbackConstraintsTo(size: Int): Try {
+        return Failed(
+            ErrorCode.ApplicationError,
+            "当前线性机制模型不支持约束回滚。 / This linear mechanism model does not support constraint rollback."
+        )
+    }
 }
 
 /**
@@ -189,6 +202,230 @@ private fun validateDualById(
 }
 
 /**
+ * 机制模型构建期间的源 token 快照。 / Source token snapshot for mechanism-model construction.
+ *
+ * 快照必须覆盖 token 身份和下一个 solver index，才能恢复自动 token 查询或 helper token 注册造成的全部状态。
+ * The snapshot must cover token identity and the next solver index to restore all state changed by auto-token lookup or helper-token registration.
+ */
+private data class MechanismTokenCheckpoint<V>(
+    val tokenList: AbstractMutableTokenList<V>,
+    val state: TokenListSnapshot<V>
+) where V : RealNumber<V>, V : NumberField<V>
+
+/**
+ * 展开 token 表及其底层临时表的所有权。 / Ownership of an unfolded token table and its underlying temporary table.
+ *
+ * 不可变包装表与底层可变表各自持有缓存和符号绑定，关闭时必须同时释放。
+ * The immutable wrapper and the mutable backing table own separate caches and symbol bindings, so both must be closed.
+ */
+private class UnfoldedMechanismTokens<V>(
+    val table: AbstractTokenTable<V>,
+    private val temporary: AutoCloseable
+) : AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
+
+    override fun close() {
+        var failure: RuntimeException? = null
+        try {
+            table.close()
+        } catch (error: RuntimeException) {
+            failure = error
+        }
+        try {
+            temporary.close()
+        } catch (error: RuntimeException) {
+            if (failure == null) {
+                failure = error
+            }
+        }
+        if (failure != null) {
+            throw failure!!
+        }
+    }
+}
+
+/** 读取机制模型构建事务的 token 快照。 / Read the token snapshot for a mechanism-model build transaction. */
+@Suppress("UNCHECKED_CAST")
+private fun <V> snapshotMechanismTokens(
+    tokens: AbstractMutableTokenTable<V>
+): Ret<MechanismTokenCheckpoint<V>> where V : RealNumber<V>, V : NumberField<V> {
+    return try {
+        val tokenList = tokens.tokenList as? AbstractMutableTokenList<V>
+            ?: return Failed(
+                Err(
+                    ErrorCode.ApplicationError,
+                    "机制模型 token 表不支持事务快照。 / The mechanism-model token table does not support transactional snapshots."
+                )
+            )
+        val state = tokenList.snapshotState()
+            ?: return Failed(
+                Err(
+                    ErrorCode.ApplicationError,
+                    "机制模型 token 列表不支持事务快照。 / The mechanism-model token list does not support transactional snapshots."
+                )
+            )
+        Ok(MechanismTokenCheckpoint(tokenList, state))
+    } catch (error: RuntimeException) {
+        val detail = error.message?.takeIf { it.isNotBlank() }
+            ?: error::class.simpleName
+            ?: "unknown runtime error"
+        Failed(
+            Err(
+                ErrorCode.ApplicationError,
+                "读取机制模型 token 快照失败：$detail / Failed to read mechanism-model token snapshot: $detail"
+            )
+        )
+    }
+}
+
+/** 恢复机制模型构建事务的 token 快照。 / Restore the token snapshot for a mechanism-model build transaction. */
+private fun <V> restoreMechanismTokens(
+    checkpoint: MechanismTokenCheckpoint<V>
+): Try where V : RealNumber<V>, V : NumberField<V> {
+    return try {
+        checkpoint.tokenList.restoreState(checkpoint.state)
+    } catch (error: RuntimeException) {
+        val detail = error.message?.takeIf { it.isNotBlank() }
+            ?: error::class.simpleName
+            ?: "unknown runtime error"
+        Failed(
+            Err(
+                ErrorCode.ApplicationError,
+                "恢复机制模型 token 状态失败：$detail / Failed to restore mechanism-model token state: $detail"
+            )
+        )
+    }
+}
+
+/** 关闭构建失败后不再交付的临时资源。 / Close temporary resources that are not delivered after a failed build. */
+private fun closeMechanismBuildResource(resource: AutoCloseable?): Try {
+    if (resource == null) {
+        return ok
+    }
+    return try {
+        resource.close()
+        ok
+    } catch (error: RuntimeException) {
+        val detail = error.message?.takeIf { it.isNotBlank() }
+            ?: error::class.simpleName
+            ?: "unknown runtime error"
+        Failed(
+            Err(
+                ErrorCode.ApplicationError,
+                "关闭机制模型构建资源失败：$detail / Failed to close mechanism-model build resource: $detail"
+            )
+        )
+    }
+}
+
+/** 合并构建失败、资源清理失败和 token 回滚失败。 / Combine build, cleanup, and token-rollback failures. */
+private fun <T> mergeMechanismBuildFailure(
+    failure: Ret<T>,
+    cleanup: Try,
+    rollback: Try
+): Ret<T> {
+    if (cleanup is Ok && rollback is Ok) {
+        return failure
+    }
+
+    val errors = ArrayList<Error<ErrorCode>>()
+    when (failure) {
+        is Ok -> {}
+        is Failed -> errors.add(failure.error)
+        is Fatal -> errors.addAll(failure.errors)
+    }
+    when (cleanup) {
+        is Ok -> {}
+        is Failed -> errors.add(cleanup.error)
+        is Fatal -> errors.addAll(cleanup.errors)
+    }
+    when (rollback) {
+        is Ok -> {}
+        is Failed -> errors.add(rollback.error)
+        is Fatal -> errors.addAll(rollback.errors)
+    }
+    return Fatal(errors)
+}
+
+/** 关闭展开失败后不再交付的临时 token 表。 / Close a temporary token table that is not delivered after unfolding fails. */
+private fun <T> failAfterClosingUnfoldedTokens(
+    failure: Ret<T>,
+    tokens: AutoCloseable
+): Ret<T> {
+    return mergeMechanismBuildFailure(
+        failure = failure,
+        cleanup = closeMechanismBuildResource(tokens),
+        rollback = ok
+    )
+}
+
+/** 将构建阶段异常转换为 Result 失败。 / Convert a construction exception to a Result failure. */
+private fun <T> mechanismBuildFailure(error: RuntimeException): Ret<T> {
+    val detail = error.message?.takeIf { it.isNotBlank() }
+        ?: error::class.simpleName
+        ?: "unknown runtime error"
+    return Failed(
+        Err(
+            ErrorCode.ApplicationError,
+            "机制模型构建失败：$detail / Mechanism-model construction failed: $detail"
+        )
+    )
+}
+
+/**
+ * 在机制模型构建期间执行 token 事务。 / Execute a token transaction during mechanism-model construction.
+ *
+ * 成功时提交所有状态；任一构建结果失败时先清理临时资源，再恢复源 token 状态。
+ * On success all state is committed; on any build failure, temporary resources are closed before restoring the source token state.
+ */
+private suspend fun <V, T> withMechanismTokenTransaction(
+    source: AbstractMutableTokenTable<V>,
+    cleanup: () -> Try,
+    operation: suspend () -> Ret<T>
+): Ret<T> where V : RealNumber<V>, V : NumberField<V> {
+    val checkpoint = when (val result = snapshotMechanismTokens(source)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
+
+    val result: Ret<T> = try {
+        operation()
+    } catch (error: RuntimeException) {
+        val detail = error.message?.takeIf { it.isNotBlank() }
+            ?: error::class.simpleName
+            ?: "unknown runtime error"
+        Failed(
+            Err(
+                ErrorCode.ApplicationError,
+                "机制模型构建失败：$detail / Mechanism-model construction failed: $detail"
+            )
+        )
+    }
+    if (result is Ok) {
+        return result
+    }
+
+    val cleanupResult = try {
+        cleanup()
+    } catch (error: RuntimeException) {
+        val detail = error.message?.takeIf { it.isNotBlank() }
+            ?: error::class.simpleName
+            ?: "unknown runtime error"
+        Failed(
+            Err(
+                ErrorCode.ApplicationError,
+                "机制模型构建清理失败：$detail / Mechanism-model build cleanup failed: $detail"
+            )
+        )
+    }
+    return mergeMechanismBuildFailure(
+        failure = result,
+        cleanup = cleanupResult,
+        rollback = restoreMechanismTokens(checkpoint)
+    )
+}
+
+/**
  * 从线性元模型构建线性约束实现列表。 / Build a list of linear constraint implementations from a linear meta model.
  *
  * 遍历元模型中的所有关系约束，将其扁平化数据与符号表组合为 LinearConstraintImpl 实例。
@@ -226,6 +463,45 @@ private fun <V> buildConstraints(
         }
     }
     return Ok(constraints)
+}
+
+/**
+ * 将展开副本中新出现的变量同步回元模型 token 表。
+ * Synchronize variables newly created in the unfolded copy back to the meta-model token table.
+ *
+ * 普通变量使用副本保留的原 solver index；只追加原表中不存在的 key，避免重复注册造成索引漂移。
+ * Existing variables retain the indices preserved by the copy; only missing keys are appended to avoid index shifts from duplicate registration.
+ *
+ * @param source 元模型的可变 token 表 / Mutable token table of the meta model
+ * @param unfolded 展开后的 token 表 / Unfolded token table
+ * @return 同步结果 / Synchronization result
+ */
+private fun <V> synchronizeUnfoldedTokens(
+    source: AbstractMutableTokenTable<V>,
+    unfolded: AbstractTokenTable<*>
+): Try where V : RealNumber<V>, V : NumberField<V> {
+    val sourceTokens = source.tokens.associateBy { it.key }
+    val unfoldedTokens = unfolded.tokens.associateBy { it.key }
+    for ((key, sourceToken) in sourceTokens) {
+        val unfoldedToken = unfoldedTokens[key] ?: continue
+        if (sourceToken.solverIndex != unfoldedToken.solverIndex) {
+            return Failed(
+                Err(
+                    ErrorCode.ApplicationError,
+                    "变量 ${sourceToken.name} 的 solver index 不一致：${sourceToken.solverIndex} != ${unfoldedToken.solverIndex} / Solver index mismatch for variable ${sourceToken.name}: ${sourceToken.solverIndex} != ${unfoldedToken.solverIndex}"
+                )
+            )
+        }
+    }
+
+    val newVariables = unfolded.tokensInSolver
+        .filter { it.key !in sourceTokens }
+        .map { it.variable }
+        .distinctBy { it.key }
+    if (newVariables.isEmpty()) {
+        return ok
+    }
+    return source.add(newVariables)
 }
 
 /**
@@ -280,7 +556,8 @@ class LinearMechanismModel<V>(
     override var name: String,
     constraints: List<LinearConstraintImpl<V>>,
     override val objectFunction: SingleObject<LinearSubObject<V>>,
-    override val tokens: AbstractTokenTable<V>
+    override val tokens: AbstractTokenTable<V>,
+    private val ownedTokenResources: AutoCloseable? = null
 ) : BasicMechanismModel<V>(name, tokens), AbstractLinearMechanismModel<V>, SingleObjectMechanismModel<V>
         where V : RealNumber<V>, V : NumberField<V> {
     override val identityRegistry: ModelElementIdentityRegistry? get() = parent.identityRegistry
@@ -320,100 +597,120 @@ class LinearMechanismModel<V>(
                 is Fatal -> return Fatal(identityValidation.errors)
             }
 
-            logger.trace { "Unfolding tokens for $metaModel" }
-            val tokens = when (val result = unfold(
-                tokens = metaModel.tokens,
-                fixedVariables = fixedVariables,
-                toFlt64 = metaModel.converter::fromValue,
-                callBack = registrationStatusCallBack
-            )) {
-                is Ok -> result.value
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
-            }
-            logger.trace { "Tokens unfolded for $metaModel" }
-
-            val model = if (Runtime.getRuntime().availableProcessors() > 2 && concurrent ?: metaModel.configuration.concurrent) {
-                if (blocking ?: metaModel.configuration.dumpBlocking) {
-                    when (val result = runBlocking {
-                        dumpAsync(
-                            metaModel = metaModel,
-                            tokens = tokens,
-                            scope = this,
-                            callBack = dumpingStatusCallBack
-                        )
-                    }) {
-                        is Ok -> result.value
-                        is Failed -> return Failed(result.error)
-                        is Fatal -> return Fatal(result.errors)
+            var unfoldedTokens: UnfoldedMechanismTokens<V>? = null
+            var constructedModel: LinearMechanismModel<V>? = null
+            return withMechanismTokenTransaction(
+                source = metaModel.tokens,
+                cleanup = {
+                    if (constructedModel != null) {
+                        closeMechanismBuildResource(constructedModel)
+                    } else {
+                        closeMechanismBuildResource(unfoldedTokens)
                     }
-                } else {
-                    when (val result = coroutineScope {
-                        dumpAsync(
-                            metaModel = metaModel,
-                            tokens = tokens,
-                            scope = this,
-                            callBack = dumpingStatusCallBack
-                        )
-                    }) {
+                },
+                operation = operation@{
+                    logger.trace { "Unfolding tokens for $metaModel" }
+                    val unfolded = when (val result = unfold(
+                        tokens = metaModel.tokens,
+                        fixedVariables = fixedVariables,
+                        toFlt64 = metaModel.converter::fromValue,
+                        callBack = registrationStatusCallBack
+                    )) {
                         is Ok -> result.value
-                        is Failed -> return Failed(result.error)
-                        is Fatal -> return Fatal(result.errors)
+                        is Failed -> return@operation Failed(result.error)
+                        is Fatal -> return@operation Fatal(result.errors)
                     }
-                }
-            } else {
-                val constraints = when (val result = buildConstraints(
-                    metaModel = metaModel,
-                    tokens = tokens
-                )) {
-                    is Ok -> result.value
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
-                LinearMechanismModel<V>(
-                    parent = metaModel,
-                    name = metaModel.name,
-                    constraints = constraints,
-                    objectFunction = SingleObject(metaModel.objectCategory, buildLinearObjectiveSubObjects(metaModel, tokens)),
-                    tokens = tokens
-                )
-            }
-            MemoryCleanupPolicy.cleanupAfterModelBuilt()
+                    unfoldedTokens = unfolded
+                    val tokens = unfolded.table
+                    logger.trace { "Tokens unfolded for $metaModel" }
 
-            logger.trace { "Registering function symbol constraints for $metaModel" }
-            for ((i, symbol) in tokens.symbols.withIndex()) {
-                val result = when (symbol) {
-                    is MathFunctionSymbolBase<*> -> symbol.registerConstraintsUnchecked(model)
-                    else -> ok
-                }
-                when (result) {
-                    is Ok -> {}
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
-
-                if (dumpingStatusCallBack != null && i % 100 == 0) {
-                    dumpingStatusCallBack(
-                        MechanismModelDumpingStatus.dumpingSymbols(
-                            ready = UInt64(i),
-                            model = metaModel
+                    val model = if (Runtime.getRuntime().availableProcessors() > 2 && concurrent ?: metaModel.configuration.concurrent) {
+                        if (blocking ?: metaModel.configuration.dumpBlocking) {
+                            when (val result = runBlocking {
+                                dumpAsync(
+                                    metaModel = metaModel,
+                                    tokens = tokens,
+                                    ownedTokenResources = unfolded,
+                                    scope = this,
+                                    callBack = dumpingStatusCallBack
+                                )
+                            }) {
+                                is Ok -> result.value
+                                is Failed -> return@operation Failed(result.error)
+                                is Fatal -> return@operation Fatal(result.errors)
+                            }
+                        } else {
+                            when (val result = coroutineScope {
+                                dumpAsync(
+                                    metaModel = metaModel,
+                                    tokens = tokens,
+                                    ownedTokenResources = unfolded,
+                                    scope = this,
+                                    callBack = dumpingStatusCallBack
+                                )
+                            }) {
+                                is Ok -> result.value
+                                is Failed -> return@operation Failed(result.error)
+                                is Fatal -> return@operation Fatal(result.errors)
+                            }
+                        }
+                    } else {
+                        val constraints = when (val result = buildConstraints(
+                            metaModel = metaModel,
+                            tokens = tokens
+                        )) {
+                            is Ok -> result.value
+                            is Failed -> return@operation Failed(result.error)
+                            is Fatal -> return@operation Fatal(result.errors)
+                        }
+                        LinearMechanismModel<V>(
+                            parent = metaModel,
+                            name = metaModel.name,
+                            constraints = constraints,
+                            objectFunction = SingleObject(metaModel.objectCategory, buildLinearObjectiveSubObjects(metaModel, tokens)),
+                            tokens = tokens,
+                            ownedTokenResources = unfolded
                         )
-                    )
-                }
-            }
-            if (dumpingStatusCallBack != null) {
-                dumpingStatusCallBack(
-                    MechanismModelDumpingStatus.dumpingSymbols(
-                        ready = tokens.symbols.usize,
-                        model = metaModel
-                    )
-                )
-            }
-            logger.trace { "Function symbol constraints registered for $metaModel" }
+                    }
+                    constructedModel = model
+                    MemoryCleanupPolicy.cleanupAfterModelBuilt()
 
-            logger.info { "LinearMechanismModel<V> created for $metaModel" }
-            MemoryCleanupPolicy.cleanupAfterSymbolRegistration()
-            return Ok(model)
+                    logger.trace { "Registering function symbol constraints for $metaModel" }
+                    for ((i, symbol) in tokens.symbols.withIndex()) {
+                        val result = when (symbol) {
+                            is MathFunctionSymbolBase<*> -> symbol.registerConstraintsUnchecked(model)
+                            else -> ok
+                        }
+                        when (result) {
+                            is Ok -> {}
+                            is Failed -> return@operation Failed(result.error)
+                            is Fatal -> return@operation Fatal(result.errors)
+                        }
+
+                        if (dumpingStatusCallBack != null && i % 100 == 0) {
+                            dumpingStatusCallBack(
+                                MechanismModelDumpingStatus.dumpingSymbols(
+                                    ready = UInt64(i),
+                                    model = metaModel
+                                )
+                            )
+                        }
+                    }
+                    if (dumpingStatusCallBack != null) {
+                        dumpingStatusCallBack(
+                            MechanismModelDumpingStatus.dumpingSymbols(
+                                ready = tokens.symbols.usize,
+                                model = metaModel
+                            )
+                        )
+                    }
+                    logger.trace { "Function symbol constraints registered for $metaModel" }
+
+                    logger.info { "LinearMechanismModel<V> created for $metaModel" }
+                    MemoryCleanupPolicy.cleanupAfterSymbolRegistration()
+                    Ok(model)
+                }
+            )
         }
 
         /**
@@ -429,6 +726,7 @@ class LinearMechanismModel<V>(
         private suspend fun <V> dumpAsync(
             metaModel: LinearMetaModel<V>,
             tokens: AbstractTokenTable<V>,
+            ownedTokenResources: AutoCloseable? = null,
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
         ): Ret<LinearMechanismModel<V>> where V : RealNumber<V>, V : NumberField<V> {
@@ -458,7 +756,8 @@ class LinearMechanismModel<V>(
                 name = metaModel.name,
                 constraints = constraints,
                 objectFunction = SingleObject(metaModel.objectCategory, subObjects),
-                tokens = tokens
+                tokens = tokens,
+                ownedTokenResources = ownedTokenResources
             ))
         }
 
@@ -477,46 +776,128 @@ class LinearMechanismModel<V>(
             fixedVariables: Map<AbstractVariableItem<*, *>, V>? = null,
             toFlt64: (V) -> Flt64,
             callBack: RegistrationStatusCallBack? = null
-        ): Ret<AbstractTokenTable<V>> where V : RealNumber<V>, V : NumberField<V> {
+        ): Ret<UnfoldedMechanismTokens<V>> where V : RealNumber<V>, V : NumberField<V> {
             return when (tokens) {
                 is MutableTokenTable<V> -> {
                     val temp = copyMutableTokenTableAsFlt64(tokens)
-                    when (val result = tokens.symbols.register(
-                        tokenTable = temp,
-                        fixedValues = toSolverFixedValues(fixedVariables, toFlt64),
-                        callBack = callBack
-                    )) {
+                    val registration = try {
+                        tokens.symbols.register(
+                            tokenTable = temp,
+                            fixedValues = toSolverFixedValues(fixedVariables, toFlt64),
+                            callBack = callBack,
+                            skipExistingVariables = true
+                        )
+                    } catch (error: RuntimeException) {
+                        return failAfterClosingUnfoldedTokens(
+                            failure = mechanismBuildFailure(error),
+                            tokens = temp
+                        )
+                    }
+                    when (registration) {
                         is Ok -> {
-                            Ok(mechanismTokenTableAs<V, Flt64>(TokenTable(temp)))
+                            val synchronization = try {
+                                synchronizeUnfoldedTokens(
+                                    source = tokens,
+                                    unfolded = temp
+                                )
+                            } catch (error: RuntimeException) {
+                                return failAfterClosingUnfoldedTokens(
+                                    failure = mechanismBuildFailure(error),
+                                    tokens = temp
+                                )
+                            }
+                            when (synchronization) {
+                                is Ok -> Ok(
+                                    UnfoldedMechanismTokens(
+                                        table = mechanismTokenTableAs<V, Flt64>(TokenTable(temp)),
+                                        temporary = temp
+                                    )
+                                )
+                                is Failed -> failAfterClosingUnfoldedTokens(
+                                    failure = Failed(synchronization.error),
+                                    tokens = temp
+                                )
+                                is Fatal -> failAfterClosingUnfoldedTokens(
+                                    failure = Fatal(synchronization.errors),
+                                    tokens = temp
+                                )
+                            }
                         }
 
                         is Failed -> {
-                            Failed(result.error)
+                            failAfterClosingUnfoldedTokens(
+                                failure = Failed(registration.error),
+                                tokens = temp
+                            )
                         }
 
                         is Fatal -> {
-                            Fatal(result.errors)
+                            failAfterClosingUnfoldedTokens(
+                                failure = Fatal(registration.errors),
+                                tokens = temp
+                            )
                         }
                     }
                 }
 
                 is ConcurrentMutableTokenTable<V> -> {
                     val temp = copyConcurrentMutableTokenTableAsFlt64(tokens)
-                    when (val result = tokens.symbols.register(
-                        tokenTable = temp,
-                        fixedValues = toSolverFixedValues(fixedVariables, toFlt64),
-                        callBack = callBack
-                    )) {
+                    val registration = try {
+                        tokens.symbols.register(
+                            tokenTable = temp,
+                            fixedValues = toSolverFixedValues(fixedVariables, toFlt64),
+                            callBack = callBack,
+                            skipExistingVariables = true
+                        )
+                    } catch (error: RuntimeException) {
+                        return failAfterClosingUnfoldedTokens(
+                            failure = mechanismBuildFailure(error),
+                            tokens = temp
+                        )
+                    }
+                    when (registration) {
                         is Ok -> {
-                            Ok(mechanismTokenTableAs<V, Flt64>(ConcurrentTokenTable(temp)))
+                            val synchronization = try {
+                                synchronizeUnfoldedTokens(
+                                    source = tokens,
+                                    unfolded = temp
+                                )
+                            } catch (error: RuntimeException) {
+                                return failAfterClosingUnfoldedTokens(
+                                    failure = mechanismBuildFailure(error),
+                                    tokens = temp
+                                )
+                            }
+                            when (synchronization) {
+                                is Ok -> Ok(
+                                    UnfoldedMechanismTokens(
+                                        table = mechanismTokenTableAs<V, Flt64>(ConcurrentTokenTable(temp)),
+                                        temporary = temp
+                                    )
+                                )
+                                is Failed -> failAfterClosingUnfoldedTokens(
+                                    failure = Failed(synchronization.error),
+                                    tokens = temp
+                                )
+                                is Fatal -> failAfterClosingUnfoldedTokens(
+                                    failure = Fatal(synchronization.errors),
+                                    tokens = temp
+                                )
+                            }
                         }
 
                         is Failed -> {
-                            Failed(result.error)
+                            failAfterClosingUnfoldedTokens(
+                                failure = Failed(registration.error),
+                                tokens = temp
+                            )
                         }
 
                         is Fatal -> {
-                            Fatal(result.errors)
+                            failAfterClosingUnfoldedTokens(
+                                failure = Fatal(registration.errors),
+                                tokens = temp
+                            )
                         }
                     }
                 }
@@ -547,6 +928,19 @@ class LinearMechanismModel<V>(
             is Fatal -> return Fatal(result.errors)
         }
         _constraints.add(constraint)
+        return ok
+    }
+
+    override fun rollbackConstraintsTo(size: Int): Try {
+        if (size < 0 || size > _constraints.size) {
+            return Failed(
+                Err(
+                    ErrorCode.IllegalArgument,
+                    "约束回滚位置无效：$size / Invalid constraint rollback position: $size"
+                )
+            )
+        }
+        _constraints.subList(size, _constraints.size).clear()
         return ok
     }
 
@@ -805,7 +1199,11 @@ class LinearMechanismModel<V>(
     val numConstraints: Int get() = _constraints.size
 
     override fun close() {
-        tokens.close()
+        if (ownedTokenResources == null) {
+            tokens.close()
+        } else {
+            ownedTokenResources.close()
+        }
     }
 
     override fun toString(): String {
@@ -830,7 +1228,8 @@ class QuadraticMechanismModel<V>(
     override var name: String,
     constraints: List<QuadraticConstraintImpl<V>>,
     override val objectFunction: SingleObject<QuadraticSubObject<V>>,
-    override val tokens: AbstractTokenTable<V>
+    override val tokens: AbstractTokenTable<V>,
+    private val ownedTokenResources: AutoCloseable? = null
 ) : BasicMechanismModel<V>(name, tokens), AbstractQuadraticMechanismModel<V>, SingleObjectMechanismModel<V>
         where V : RealNumber<V>, V : NumberField<V> {
     override val identityRegistry: ModelElementIdentityRegistry? get() = parent.identityRegistry
@@ -870,101 +1269,121 @@ class QuadraticMechanismModel<V>(
                 is Fatal -> return Fatal(identityValidation.errors)
             }
 
-            logger.trace { "Unfolding tokens for $metaModel" }
-            val tokens = when (val result = unfold(
-                tokens = metaModel.tokens,
-                fixedVariables = fixedVariables,
-                toFlt64 = metaModel.converter::fromValue,
-                callBack = registrationStatusCallBack
-            )) {
-                is Ok -> result.value
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
-            }
-            logger.trace { "Tokens unfolded for $metaModel" }
-
-            val model = if (Runtime.getRuntime().availableProcessors() > 2 && concurrent ?: metaModel.configuration.concurrent) {
-                if (blocking ?: metaModel.configuration.dumpBlocking) {
-                    when (val result = runBlocking {
-                        dumpAsync(
-                            metaModel = metaModel,
-                            tokens = tokens,
-                            scope = this,
-                            callBack = dumpingStatusCallBack
-                        )
-                    }) {
-                        is Ok -> result.value
-                        is Failed -> return Failed(result.error)
-                        is Fatal -> return Fatal(result.errors)
+            var unfoldedTokens: UnfoldedMechanismTokens<V>? = null
+            var constructedModel: QuadraticMechanismModel<V>? = null
+            return withMechanismTokenTransaction(
+                source = metaModel.tokens,
+                cleanup = {
+                    if (constructedModel != null) {
+                        closeMechanismBuildResource(constructedModel)
+                    } else {
+                        closeMechanismBuildResource(unfoldedTokens)
                     }
-                } else {
-                    when (val result = coroutineScope {
-                        dumpAsync(
-                            metaModel = metaModel,
-                            tokens = tokens,
-                            scope = this,
-                            callBack = dumpingStatusCallBack
-                        )
-                    }) {
+                },
+                operation = operation@{
+                    logger.trace { "Unfolding tokens for $metaModel" }
+                    val unfolded = when (val result = unfold(
+                        tokens = metaModel.tokens,
+                        fixedVariables = fixedVariables,
+                        toFlt64 = metaModel.converter::fromValue,
+                        callBack = registrationStatusCallBack
+                    )) {
                         is Ok -> result.value
-                        is Failed -> return Failed(result.error)
-                        is Fatal -> return Fatal(result.errors)
+                        is Failed -> return@operation Failed(result.error)
+                        is Fatal -> return@operation Fatal(result.errors)
                     }
-                }
-            } else {
-                val constraints = when (val result = buildConstraints(
-                    metaModel = metaModel,
-                    tokens = tokens
-                )) {
-                    is Ok -> result.value
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
-                QuadraticMechanismModel<V>(
-                    parent = metaModel,
-                    name = metaModel.name,
-                    constraints = constraints,
-                    objectFunction = SingleObject(metaModel.objectCategory, buildQuadraticObjectiveSubObjects(metaModel, tokens)),
-                    tokens = tokens
-                )
-            }
-            MemoryCleanupPolicy.cleanupAfterModelBuilt()
+                    unfoldedTokens = unfolded
+                    val tokens = unfolded.table
+                    logger.trace { "Tokens unfolded for $metaModel" }
 
-            logger.trace { "Registering function symbol constraints for $metaModel" }
-            for ((i, symbol) in tokens.symbols.withIndex()) {
-                val result = when (symbol) {
-                    is QuadraticMathFunctionSymbolBase<*> -> symbol.registerConstraintsUnchecked(model)
-                    is MathFunctionSymbolBase<*> -> symbol.registerConstraintsUnchecked(model)
-                    else -> ok
-                }
-                when (result) {
-                    is Ok -> {}
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
-
-                if (dumpingStatusCallBack != null && i % 100 == 0) {
-                    dumpingStatusCallBack(
-                        MechanismModelDumpingStatus.dumpingSymbols(
-                            ready = UInt64(i),
-                            model = metaModel
+                    val model = if (Runtime.getRuntime().availableProcessors() > 2 && concurrent ?: metaModel.configuration.concurrent) {
+                        if (blocking ?: metaModel.configuration.dumpBlocking) {
+                            when (val result = runBlocking {
+                                dumpAsync(
+                                    metaModel = metaModel,
+                                    tokens = tokens,
+                                    ownedTokenResources = unfolded,
+                                    scope = this,
+                                    callBack = dumpingStatusCallBack
+                                )
+                            }) {
+                                is Ok -> result.value
+                                is Failed -> return@operation Failed(result.error)
+                                is Fatal -> return@operation Fatal(result.errors)
+                            }
+                        } else {
+                            when (val result = coroutineScope {
+                                dumpAsync(
+                                    metaModel = metaModel,
+                                    tokens = tokens,
+                                    ownedTokenResources = unfolded,
+                                    scope = this,
+                                    callBack = dumpingStatusCallBack
+                                )
+                            }) {
+                                is Ok -> result.value
+                                is Failed -> return@operation Failed(result.error)
+                                is Fatal -> return@operation Fatal(result.errors)
+                            }
+                        }
+                    } else {
+                        val constraints = when (val result = buildConstraints(
+                            metaModel = metaModel,
+                            tokens = tokens
+                        )) {
+                            is Ok -> result.value
+                            is Failed -> return@operation Failed(result.error)
+                            is Fatal -> return@operation Fatal(result.errors)
+                        }
+                        QuadraticMechanismModel<V>(
+                            parent = metaModel,
+                            name = metaModel.name,
+                            constraints = constraints,
+                            objectFunction = SingleObject(metaModel.objectCategory, buildQuadraticObjectiveSubObjects(metaModel, tokens)),
+                            tokens = tokens,
+                            ownedTokenResources = unfolded
                         )
-                    )
-                }
-            }
-            if (dumpingStatusCallBack != null) {
-                dumpingStatusCallBack(
-                    MechanismModelDumpingStatus.dumpingSymbols(
-                        ready = tokens.symbols.usize,
-                        model = metaModel
-                    )
-                )
-            }
-            logger.trace { "Function symbol constraints registered for $metaModel" }
+                    }
+                    constructedModel = model
+                    MemoryCleanupPolicy.cleanupAfterModelBuilt()
 
-            logger.info { "QuadraticMechanismModel<V> created for $metaModel" }
-            MemoryCleanupPolicy.cleanupAfterSymbolRegistration()
-            return Ok(model)
+                    logger.trace { "Registering function symbol constraints for $metaModel" }
+                    for ((i, symbol) in tokens.symbols.withIndex()) {
+                        val result = when (symbol) {
+                            is QuadraticMathFunctionSymbolBase<*> -> symbol.registerConstraintsUnchecked(model)
+                            is MathFunctionSymbolBase<*> -> symbol.registerConstraintsUnchecked(model)
+                            else -> ok
+                        }
+                        when (result) {
+                            is Ok -> {}
+                            is Failed -> return@operation Failed(result.error)
+                            is Fatal -> return@operation Fatal(result.errors)
+                        }
+
+                        if (dumpingStatusCallBack != null && i % 100 == 0) {
+                            dumpingStatusCallBack(
+                                MechanismModelDumpingStatus.dumpingSymbols(
+                                    ready = UInt64(i),
+                                    model = metaModel
+                                )
+                            )
+                        }
+                    }
+                    if (dumpingStatusCallBack != null) {
+                        dumpingStatusCallBack(
+                            MechanismModelDumpingStatus.dumpingSymbols(
+                                ready = tokens.symbols.usize,
+                                model = metaModel
+                            )
+                        )
+                    }
+                    logger.trace { "Function symbol constraints registered for $metaModel" }
+
+                    logger.info { "QuadraticMechanismModel<V> created for $metaModel" }
+                    MemoryCleanupPolicy.cleanupAfterSymbolRegistration()
+                    Ok(model)
+                }
+            )
         }
 
         /**
@@ -980,6 +1399,7 @@ class QuadraticMechanismModel<V>(
         private suspend fun <V> dumpAsync(
             metaModel: QuadraticMetaModel<V>,
             tokens: AbstractTokenTable<V>,
+            ownedTokenResources: AutoCloseable? = null,
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
         ): Ret<QuadraticMechanismModel<V>> where V : RealNumber<V>, V : NumberField<V> {
@@ -1009,7 +1429,8 @@ class QuadraticMechanismModel<V>(
                 name = metaModel.name,
                 constraints = constraints,
                 objectFunction = SingleObject(metaModel.objectCategory, subObjects),
-                tokens = tokens
+                tokens = tokens,
+                ownedTokenResources = ownedTokenResources
             ))
         }
 
@@ -1028,46 +1449,128 @@ class QuadraticMechanismModel<V>(
             fixedVariables: Map<AbstractVariableItem<*, *>, V>? = null,
             toFlt64: (V) -> Flt64,
             callBack: RegistrationStatusCallBack? = null
-        ): Ret<AbstractTokenTable<V>> where V : RealNumber<V>, V : NumberField<V> {
+        ): Ret<UnfoldedMechanismTokens<V>> where V : RealNumber<V>, V : NumberField<V> {
             return when (tokens) {
                 is MutableTokenTable<V> -> {
                     val temp = copyMutableTokenTableAsFlt64(tokens)
-                    when (val result = tokens.symbols.register(
-                        tokenTable = temp,
-                        fixedValues = toSolverFixedValues(fixedVariables, toFlt64),
-                        callBack = callBack
-                    )) {
+                    val registration = try {
+                        tokens.symbols.register(
+                            tokenTable = temp,
+                            fixedValues = toSolverFixedValues(fixedVariables, toFlt64),
+                            callBack = callBack,
+                            skipExistingVariables = true
+                        )
+                    } catch (error: RuntimeException) {
+                        return failAfterClosingUnfoldedTokens(
+                            failure = mechanismBuildFailure(error),
+                            tokens = temp
+                        )
+                    }
+                    when (registration) {
                         is Ok -> {
-                            Ok(mechanismTokenTableAs<V, Flt64>(TokenTable(temp)))
+                            val synchronization = try {
+                                synchronizeUnfoldedTokens(
+                                    source = tokens,
+                                    unfolded = temp
+                                )
+                            } catch (error: RuntimeException) {
+                                return failAfterClosingUnfoldedTokens(
+                                    failure = mechanismBuildFailure(error),
+                                    tokens = temp
+                                )
+                            }
+                            when (synchronization) {
+                                is Ok -> Ok(
+                                    UnfoldedMechanismTokens(
+                                        table = mechanismTokenTableAs<V, Flt64>(TokenTable(temp)),
+                                        temporary = temp
+                                    )
+                                )
+                                is Failed -> failAfterClosingUnfoldedTokens(
+                                    failure = Failed(synchronization.error),
+                                    tokens = temp
+                                )
+                                is Fatal -> failAfterClosingUnfoldedTokens(
+                                    failure = Fatal(synchronization.errors),
+                                    tokens = temp
+                                )
+                            }
                         }
 
                         is Failed -> {
-                            Failed(result.error)
+                            failAfterClosingUnfoldedTokens(
+                                failure = Failed(registration.error),
+                                tokens = temp
+                            )
                         }
 
                         is Fatal -> {
-                            Fatal(result.errors)
+                            failAfterClosingUnfoldedTokens(
+                                failure = Fatal(registration.errors),
+                                tokens = temp
+                            )
                         }
                     }
                 }
 
                 is ConcurrentMutableTokenTable<V> -> {
                     val temp = copyConcurrentMutableTokenTableAsFlt64(tokens)
-                    when (val result = tokens.symbols.register(
-                        tokenTable = temp,
-                        fixedValues = toSolverFixedValues(fixedVariables, toFlt64),
-                        callBack = callBack
-                    )) {
+                    val registration = try {
+                        tokens.symbols.register(
+                            tokenTable = temp,
+                            fixedValues = toSolverFixedValues(fixedVariables, toFlt64),
+                            callBack = callBack,
+                            skipExistingVariables = true
+                        )
+                    } catch (error: RuntimeException) {
+                        return failAfterClosingUnfoldedTokens(
+                            failure = mechanismBuildFailure(error),
+                            tokens = temp
+                        )
+                    }
+                    when (registration) {
                         is Ok -> {
-                            Ok(mechanismTokenTableAs<V, Flt64>(ConcurrentTokenTable(temp)))
+                            val synchronization = try {
+                                synchronizeUnfoldedTokens(
+                                    source = tokens,
+                                    unfolded = temp
+                                )
+                            } catch (error: RuntimeException) {
+                                return failAfterClosingUnfoldedTokens(
+                                    failure = mechanismBuildFailure(error),
+                                    tokens = temp
+                                )
+                            }
+                            when (synchronization) {
+                                is Ok -> Ok(
+                                    UnfoldedMechanismTokens(
+                                        table = mechanismTokenTableAs<V, Flt64>(ConcurrentTokenTable(temp)),
+                                        temporary = temp
+                                    )
+                                )
+                                is Failed -> failAfterClosingUnfoldedTokens(
+                                    failure = Failed(synchronization.error),
+                                    tokens = temp
+                                )
+                                is Fatal -> failAfterClosingUnfoldedTokens(
+                                    failure = Fatal(synchronization.errors),
+                                    tokens = temp
+                                )
+                            }
                         }
 
                         is Failed -> {
-                            Failed(result.error)
+                            failAfterClosingUnfoldedTokens(
+                                failure = Failed(registration.error),
+                                tokens = temp
+                            )
                         }
 
                         is Fatal -> {
-                            Fatal(result.errors)
+                            failAfterClosingUnfoldedTokens(
+                                failure = Fatal(registration.errors),
+                                tokens = temp
+                            )
                         }
                     }
                 }
@@ -1124,6 +1627,19 @@ class QuadraticMechanismModel<V>(
             is Fatal -> return Fatal(result.errors)
         }
         _constraints.add(constraint)
+        return ok
+    }
+
+    override fun rollbackConstraintsTo(size: Int): Try {
+        if (size < 0 || size > _constraints.size) {
+            return Failed(
+                Err(
+                    ErrorCode.IllegalArgument,
+                    "约束回滚位置无效：$size / Invalid constraint rollback position: $size"
+                )
+            )
+        }
+        _constraints.subList(size, _constraints.size).clear()
         return ok
     }
 
@@ -1407,7 +1923,11 @@ class QuadraticMechanismModel<V>(
     val numConstraints: Int get() = _constraints.size
 
     override fun close() {
-        tokens.close()
+        if (ownedTokenResources == null) {
+            tokens.close()
+        } else {
+            ownedTokenResources.close()
+        }
     }
 
     override fun toString(): String {

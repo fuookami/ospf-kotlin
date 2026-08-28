@@ -29,12 +29,36 @@
 
 执行 `git add` / `git commit` 前，必须确认暂存区中不包含上述生成物。若发现误添加，应立即通过 `git reset HEAD <file>` 撤出暂存区。
 
+## 报告生成路径
+
+编译、测试、脚本检查等命令生成的报告文件必须输出到临时目录（`%TEMP%` 或 `E:\temp\{project-name}-tmp`），避免在工作区中产生临时文件。
+
+示例：
+- Maven 构建日志：`mvn compile -T 0.75C > $env:TEMP\build.log 2>&1`
+- 测试报告：`mvn test -T 0.75C > $env:TEMP\test.log 2>&1`
+- 脚本检查报告：`pwsh -File scripts\check.ps1 > $env:TEMP\check.log 2>&1`
+
+临时目录中的文件会随系统清理自动删除，无需手动管理，也不会污染工作区。
+
 ## 语言要求
 始终使用简体中文与用户对话。
 
 ## 提交信息要求
 进行 `git commit` 或 `git commit --amend` 时，提交信息内容要具体、完整，清晰说明改动目的与关键变更点，避免过于简短或笼统的描述。
 提交信息必须包含符合 Conventional Commit 风格的 Header。
+
+## Worktree 管理
+
+当一个任务在独立的 git worktree 中完成后，必须将改动合并回主仓库，然后删除该 worktree，保持仓库结构整洁。
+
+操作流程：
+1. 在 worktree 中完成任务并提交改动
+2. 切换到主仓库：`cd <主仓库路径>`
+3. 合并 worktree 分支：`git merge <分支名>`
+4. 删除 worktree：`git worktree remove <worktree路径>`
+5. 清理已合并的分支（可选）：`git branch -d <分支名>`
+
+合并前应确认主仓库工作区状态干净，避免合并冲突。
 
 ## 命令行环境优先级
 

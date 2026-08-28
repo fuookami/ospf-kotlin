@@ -87,6 +87,18 @@ open class ExpressionRange<V>(
     }
 
     /**
+     * Restore an exact range snapshot, including an empty range and the set marker.
+     * 恢复精确的范围快照，包括空范围和 set 标记。
+     *
+     * This is intentionally internal: public callers should continue to use
+     * [set] and the intersection helpers so range invariants remain explicit.
+     */
+    internal fun restore(range: ValueRange<V>?, wasSet: Boolean) {
+        _range = range
+        _set = wasSet
+    }
+
+    /**
      * 与指定范围求交 / Intersect with specified range
      *
      * @param range   要求交的值范围 / The value range to intersect with

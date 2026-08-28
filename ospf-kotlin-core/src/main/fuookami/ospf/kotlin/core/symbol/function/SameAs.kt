@@ -51,7 +51,7 @@ class SameAsFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultVariable, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
 
     init {
         require(inequalities.isNotEmpty()) { "SameAsFunction requires at least one inequality" }
@@ -64,7 +64,14 @@ class SameAsFunction<V>(
         (0 until n).map { BinVar("${name}_u${it}") }
 
     // Output binary: y = 1 if all same, 0 otherwise / 输出二值变量：全部相同时 y = 1，否则为 0
-    val resultVar: AbstractVariableItem<*, *> = BinVar("${name}_same")
+    override val resultVar: AbstractVariableItem<*, *> = BinVar("${name}_same")
+
+    override val resultPolynomial: LinearPolynomial<V> by lazy {
+        LinearPolynomial(
+            monomials = listOf(LinearMonomial(converter.one, resultVar)),
+            constant = converter.zero
+        )
+    }
 
     // Diff variables for measurement mode (XOR between adjacent satisfaction flags) / 度量模式的差异变量（相邻满足标志之间的 XOR）
     private val diffVars: List<AbstractVariableItem<*, *>> =

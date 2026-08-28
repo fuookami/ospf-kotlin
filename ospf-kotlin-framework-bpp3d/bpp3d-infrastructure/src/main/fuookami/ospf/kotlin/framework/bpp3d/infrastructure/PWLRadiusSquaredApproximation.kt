@@ -148,10 +148,17 @@ data class PWLRadiusSquaredApproximation(
         ): PWLRadiusSquaredApproximation {
             require(rMin > FltX.zero) { "rMin must be positive" }
             require(rMax > rMin) { "rMax must be greater than rMin" }
+            require(config.maxSegments >= 1) { "maxSegments must be at least 1" }
+            require(config.relativeErrorTolerance >= FltX.zero) {
+                "relativeErrorTolerance must be non-negative"
+            }
 
             val breakpoints = when {
                 config.customBreakpoints != null && config.customBreakpoints.size >= 2 -> {
                     validateCustomBreakpoints(config.customBreakpoints, rMin, rMax)
+                    require(config.customBreakpoints.size - 1 <= config.maxSegments) {
+                        "customBreakpoints must not exceed maxSegments"
+                    }
                     config.customBreakpoints
                 }
                 else -> {
@@ -201,8 +208,8 @@ data class PWLRadiusSquaredApproximation(
                 "Custom breakpoints must end at or above rMax"
             }
             for (i in 0 until breakpoints.size - 1) {
-                require(breakpoints[i] <= breakpoints[i + 1]) {
-                    "Custom breakpoints must be non-decreasing"
+                require(breakpoints[i] < breakpoints[i + 1]) {
+                    "Custom breakpoints must be non-decreasing, with strictly increasing adjacent points"
                 }
             }
         }
@@ -294,10 +301,8 @@ data class PWLRadiusSquaredApproximation(
             relativeTolerance: FltX,
             maxSegments: Int
         ): List<FltX> {
-            var breakpoints = generateUniformBreakpoints(rMin, rMax, maxSegments)
-            val maxIterations = 5
-            var iterations = 0
-            while (iterations < maxIterations) {
+            var breakpoints = generateUniformBreakpoints(rMin, rMax, 1)
+            while (true) {
                 val slopes = (0 until breakpoints.size - 1).map { i ->
                     breakpoints[i] + breakpoints[i + 1]
                 }
@@ -306,15 +311,14 @@ data class PWLRadiusSquaredApproximation(
                 }
                 val (maxRelError, segmentErrors) = computeSegmentRelativeErrors(breakpoints, slopes, intercepts)
                 if (maxRelError <= relativeTolerance) break
+                if (breakpoints.size - 1 >= maxSegments) break
 
                 // Find the segment with highest relative error and bisect it
                 val worstSegment = segmentErrors.indices.maxByOrNull { segmentErrors[it].toDouble() } ?: break
                 val mid = (breakpoints[worstSegment] + breakpoints[worstSegment + 1]) / FltX(2.0)
                 val newBreakpoints = breakpoints.toMutableList()
                 newBreakpoints.add(worstSegment + 1, mid)
-                if (newBreakpoints.size - 1 > maxSegments * 2) break // Safety limit
                 breakpoints = newBreakpoints
-                iterations++
             }
             return breakpoints
         }

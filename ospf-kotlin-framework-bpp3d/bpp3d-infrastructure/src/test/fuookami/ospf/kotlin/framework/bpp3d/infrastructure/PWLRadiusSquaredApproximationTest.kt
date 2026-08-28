@@ -286,6 +286,62 @@ class PWLRadiusSquaredApproximationTest {
         )
     }
 
+    @Test
+    fun testErrorDrivenNeverExceedsConfiguredMaximumSegments() {
+        val maxSegments = 4
+        val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
+            rMin = FltX(1.0),
+            rMax = FltX(10.0),
+            config = PWLRadiusApproximationConfig(
+                maxSegments = maxSegments,
+                relativeErrorTolerance = FltX(1e-12),
+                breakpointStrategy = PWLBreakpointStrategy.ErrorDriven
+            )
+        )
+
+        assertTrue(
+            pwl.numSegments <= maxSegments,
+            "Error-driven breakpoint generation must honor maxSegments"
+        )
+    }
+
+    @Test
+    fun testCustomBreakpointsCannotBypassMaximumSegments() {
+        val exception = assertFailsWith<IllegalArgumentException> {
+            PWLRadiusSquaredApproximation.fromRadiusInterval(
+                rMin = FltX(1.0),
+                rMax = FltX(5.0),
+                config = PWLRadiusApproximationConfig(
+                    maxSegments = 2,
+                    customBreakpoints = listOf(FltX(1.0), FltX(2.0), FltX(3.0), FltX(5.0))
+                )
+            )
+        }
+
+        assertTrue(exception.message?.contains("customBreakpoints") == true)
+    }
+
+    @Test
+    fun testCustomBreakpointsMustBeStrictlyIncreasing() {
+        val exception = assertFailsWith<IllegalArgumentException> {
+            PWLRadiusSquaredApproximation.fromRadiusInterval(
+                rMin = FltX(1.0),
+                rMax = FltX(5.0),
+                config = PWLRadiusApproximationConfig(
+                    maxSegments = 4,
+                    customBreakpoints = listOf(
+                        FltX(1.0),
+                        FltX(2.0),
+                        FltX(2.0),
+                        FltX(5.0)
+                    )
+                )
+            )
+        }
+
+        assertTrue(exception.message?.contains("strictly increasing") == true)
+    }
+
     // ===== Edge case tests =====
 
     @Test

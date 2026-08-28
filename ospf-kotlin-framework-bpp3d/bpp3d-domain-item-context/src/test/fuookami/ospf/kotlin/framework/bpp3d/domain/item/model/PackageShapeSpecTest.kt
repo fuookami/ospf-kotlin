@@ -180,6 +180,22 @@ class PackageShapeSpecTest {
     }
 
     @Test
+    fun continuousRadiusSolverPrototypeShouldRejectValuesOutsideFiniteSolverRange() {
+        val hugeRadius = FltX("1e400") * Meter
+        val result = continuousCylinderRadiusSolverPrototype(
+            source = "unit test",
+            radiusWeightFunctionKey = "continuous-radius-prototype",
+            axis = Axis3.Y,
+            selectedRadius = hugeRadius,
+            radiusMin = hugeRadius,
+            radiusMax = hugeRadius
+        )
+
+        assertTrue(result is Failed)
+        assertTrue((result as Failed).error.message.contains("finite solver values"))
+    }
+
+    @Test
     fun selectedContinuousRadiusShouldHaveNoOptimizationGap() {
         val report = continuousCylinderRadiusOptimizationGapReport(
             source = "test",

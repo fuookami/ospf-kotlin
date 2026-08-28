@@ -5,9 +5,13 @@ package fuookami.ospf.kotlin.core.symbol.function
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.token.AbstractMutableTokenList
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.token.TokenListSnapshot
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
@@ -15,7 +19,6 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
@@ -53,8 +56,66 @@ data class LinearPolynomialBounds<V>(
         get() {
             val lowerAbs = lower.abs()
             val upperAbs = upper.abs()
-            return if (lowerAbs geq upperAbs) lowerAbs else upperAbs
+            return if (lowerAbs.compareTo(upperAbs) >= 0) lowerAbs else upperAbs
         }
+}
+
+/**
+ * 判断 Flt64 是否可作为已证明的有限 solver 值。 / Check whether Flt64 is a proven finite solver value.
+ *
+ * `Flt64.minimum/maximum` 是全范围哨兵，不是可用于证明 Big-M 的边界。 / `Flt64.minimum/maximum`
+ * are full-range sentinels, not bounds that can prove a Big-M value.
+ */
+private fun Flt64.isUsableBigMValue(): Boolean {
+    return isFinite() &&
+        compareTo(Flt64.minimum) > 0 &&
+        compareTo(Flt64.maximum) < 0
+}
+
+/** 安全执行 Flt64 加法。 / Safely execute Flt64 addition. */
+private fun addBigMValues(lhs: Flt64, rhs: Flt64): Flt64? {
+    return try {
+        (lhs + rhs).takeIf { it.isUsableBigMValue() }
+    } catch (_: RuntimeException) {
+        null
+    }
+}
+
+/** 安全执行 Flt64 乘法。 / Safely execute Flt64 multiplication. */
+private fun multiplyBigMValues(lhs: Flt64, rhs: Flt64): Flt64? {
+    return try {
+        (lhs * rhs).takeIf { it.isUsableBigMValue() }
+    } catch (_: RuntimeException) {
+        null
+    }
+}
+
+/** 安全地从泛型值转换为 Flt64。 / Safely convert a generic value to Flt64. */
+private fun <V> fromBigMValueOrNull(
+    converter: IntoValue<V>,
+    value: V
+): Flt64? where V : RealNumber<V>, V : NumberField<V> {
+    return try {
+        converter.fromValue(value).takeIf { it.isUsableBigMValue() }
+    } catch (_: RuntimeException) {
+        null
+    }
+}
+
+/** 安全地转换为泛型值并验证回转结果。 / Safely convert to a generic value and validate the round trip. */
+private fun <V> intoBigMValueOrNull(
+    converter: IntoValue<V>,
+    value: Flt64
+): V? where V : RealNumber<V>, V : NumberField<V> {
+    if (!value.isUsableBigMValue()) {
+        return null
+    }
+    return try {
+        val converted = converter.intoValue(value)
+        fromBigMValueOrNull(converter, converted)?.let { converted }
+    } catch (_: RuntimeException) {
+        null
+    }
 }
 
 /**
@@ -63,14 +124,14 @@ data class LinearPolynomialBounds<V>(
  * @param values 非空的可迭代值集合 / non-empty iterable of values
  * @return 最大值 / the maximum value
 */
-private fun maxOf(values: Iterable<Flt64>): Flt64 {
-    val iterator = values.iterator()
-    require(iterator.hasNext()) { "values must not be empty" }
-    var result = iterator.next()
-    while (iterator.hasNext()) {
-        val value = iterator.next()
-        if (value gr result) {
-            result = value
+private fun maxOf(values: Iterable<Flt64>): Flt64? {
+    var result: Flt64? = null
+    for (value in values) {
+        val current = result
+        result = if (current == null || value.compareTo(current) > 0) {
+            value
+        } else {
+            current
         }
     }
     return result
@@ -82,14 +143,14 @@ private fun maxOf(values: Iterable<Flt64>): Flt64 {
  * @param values 非空的可迭代值集合 / non-empty iterable of values
  * @return 最小值 / the minimum value
 */
-private fun minOf(values: Iterable<Flt64>): Flt64 {
-    val iterator = values.iterator()
-    require(iterator.hasNext()) { "values must not be empty" }
-    var result = iterator.next()
-    while (iterator.hasNext()) {
-        val value = iterator.next()
-        if (value ls result) {
-            result = value
+private fun minOf(values: Iterable<Flt64>): Flt64? {
+    var result: Flt64? = null
+    for (value in values) {
+        val current = result
+        result = if (current == null || value.compareTo(current) < 0) {
+            value
+        } else {
+            current
         }
     }
     return result
@@ -102,15 +163,22 @@ private fun minOf(values: Iterable<Flt64>): Flt64 {
  * @return 符号的有限上下界对，若符号无有限范围则返回 null / pair of finite lower and upper bounds, or null if the symbol has no finite range
 */
 private fun symbolFiniteBounds(symbol: Symbol): Pair<Flt64, Flt64>? {
-    val range = when (symbol) {
-        is AbstractVariableItem<*, *> -> symbol.range.valueRange
-        is IntermediateSymbol<*> -> SolverBoundaryCasts.rangeAsFlt64(symbol)?.valueRange
-        else -> null
-    } ?: return null
+    return try {
+        val range = when (symbol) {
+            is AbstractVariableItem<*, *> -> symbol.range.valueRange
+            is IntermediateSymbol<*> -> SolverBoundaryCasts.rangeAsFlt64(symbol)?.valueRange
+            else -> null
+        } ?: return null
 
-    val lower = range.lowerBound.value.unwrapOrNull() ?: return null
-    val upper = range.upperBound.value.unwrapOrNull() ?: return null
-    return lower to upper
+        val lower = range.lowerBound.value.unwrapOrNull() ?: return null
+        val upper = range.upperBound.value.unwrapOrNull() ?: return null
+        if (!lower.isUsableBigMValue() || !upper.isUsableBigMValue() || lower.compareTo(upper) > 0) {
+            return null
+        }
+        lower to upper
+    } catch (_: RuntimeException) {
+        null
+    }
 }
 
 /**
@@ -137,26 +205,42 @@ fun <V> LinearPolynomial<V>.evaluateWith(values: Map<Symbol, V>): V? where V : R
 fun <V> LinearPolynomial<V>.finiteBounds(
     converter: IntoValue<V>
 ): LinearPolynomialBounds<V>? where V : RealNumber<V>, V : NumberField<V> {
-    var lower = converter.fromValue(constant)
-    var upper = converter.fromValue(constant)
+    return try {
+        val initialLower: Flt64 = fromBigMValueOrNull(converter, constant) ?: return null
+        var lower: Flt64 = initialLower
+        var upper: Flt64 = initialLower
 
-    for (monomial in monomials) {
-        val (symbolLower, symbolUpper) = symbolFiniteBounds(monomial.symbol) ?: return null
-        val coefficient = converter.fromValue(monomial.coefficient)
-
-        if (coefficient geq Flt64.zero) {
-            lower += coefficient * symbolLower
-            upper += coefficient * symbolUpper
-        } else {
-            lower += coefficient * symbolUpper
-            upper += coefficient * symbolLower
+        for (monomial in monomials) {
+            val (symbolLower, symbolUpper) = symbolFiniteBounds(monomial.symbol) ?: return null
+            val coefficient = fromBigMValueOrNull(converter, monomial.coefficient) ?: return null
+            val lowerTerm: Flt64
+            val upperTerm: Flt64
+            if (coefficient.compareTo(Flt64.zero) >= 0) {
+                lowerTerm = multiplyBigMValues(coefficient, symbolLower) ?: return null
+                upperTerm = multiplyBigMValues(coefficient, symbolUpper) ?: return null
+            } else {
+                lowerTerm = multiplyBigMValues(coefficient, symbolUpper) ?: return null
+                upperTerm = multiplyBigMValues(coefficient, symbolLower) ?: return null
+            }
+            lower = addBigMValues(lower, lowerTerm) ?: return null
+            upper = addBigMValues(upper, upperTerm) ?: return null
+            if (lower.compareTo(upper) > 0) {
+                return null
+            }
         }
-    }
 
-    return LinearPolynomialBounds(
-        lower = converter.intoValue(lower),
-        upper = converter.intoValue(upper)
-    )
+        val lowerValue = intoBigMValueOrNull(converter, lower) ?: return null
+        val upperValue = intoBigMValueOrNull(converter, upper) ?: return null
+        if (lowerValue.compareTo(upperValue) > 0) {
+            return null
+        }
+        LinearPolynomialBounds(
+            lower = lowerValue,
+            upper = upperValue
+        )
+    } catch (_: RuntimeException) {
+        null
+    }
 }
 
 /**
@@ -168,50 +252,88 @@ fun <V> LinearPolynomial<V>.finiteBounds(
 fun <V> QuadraticPolynomial<V>.finiteBounds(
     converter: IntoValue<V>
 ): LinearPolynomialBounds<V>? where V : RealNumber<V>, V : NumberField<V> {
-    var lower = converter.fromValue(constant)
-    var upper = converter.fromValue(constant)
+    return try {
+        val initialLower: Flt64 = fromBigMValueOrNull(converter, constant) ?: return null
+        var lower: Flt64 = initialLower
+        var upper: Flt64 = initialLower
 
-    for (monomial in monomials) {
-        val coefficient = converter.fromValue(monomial.coefficient)
-        val (lower1, upper1) = symbolFiniteBounds(monomial.symbol1) ?: return null
-        val termBounds = if (monomial.symbol2 == null) {
-            if (coefficient geq Flt64.zero) {
-                coefficient * lower1 to coefficient * upper1
+        for (monomial in monomials) {
+            val coefficient = fromBigMValueOrNull(converter, monomial.coefficient) ?: return null
+            val (lower1, upper1) = symbolFiniteBounds(monomial.symbol1) ?: return null
+            val termBounds = if (monomial.symbol2 == null) {
+                if (coefficient.compareTo(Flt64.zero) >= 0) {
+                    val lowerTerm = multiplyBigMValues(coefficient, lower1) ?: return null
+                    val upperTerm = multiplyBigMValues(coefficient, upper1) ?: return null
+                    lowerTerm to upperTerm
+                } else {
+                    val lowerTerm = multiplyBigMValues(coefficient, upper1) ?: return null
+                    val upperTerm = multiplyBigMValues(coefficient, lower1) ?: return null
+                    lowerTerm to upperTerm
+                }
+            } else if (monomial.symbol1 == monomial.symbol2) {
+                val lowerSquare = multiplyBigMValues(lower1, lower1) ?: return null
+                val upperSquare = multiplyBigMValues(upper1, upper1) ?: return null
+                val squareLower = if (lower1.compareTo(Flt64.zero) <= 0 && upper1.compareTo(Flt64.zero) >= 0) {
+                    Flt64.zero
+                } else if (lowerSquare.compareTo(upperSquare) <= 0) {
+                    lowerSquare
+                } else {
+                    upperSquare
+                }
+                val squareUpper = maxOf(listOf(lowerSquare, upperSquare)) ?: return null
+                if (coefficient.compareTo(Flt64.zero) >= 0) {
+                    val lowerTerm = multiplyBigMValues(coefficient, squareLower) ?: return null
+                    val upperTerm = multiplyBigMValues(coefficient, squareUpper) ?: return null
+                    lowerTerm to upperTerm
+                } else {
+                    val lowerTerm = multiplyBigMValues(coefficient, squareUpper) ?: return null
+                    val upperTerm = multiplyBigMValues(coefficient, squareLower) ?: return null
+                    lowerTerm to upperTerm
+                }
             } else {
-                coefficient * upper1 to coefficient * lower1
+                val symbol2 = monomial.symbol2 ?: return null
+                val (lower2, upper2) = symbolFiniteBounds(symbol2) ?: return null
+                val products = listOf(
+                    multiplyBigMValues(
+                        multiplyBigMValues(coefficient, lower1) ?: return null,
+                        lower2
+                    ) ?: return null,
+                    multiplyBigMValues(
+                        multiplyBigMValues(coefficient, lower1) ?: return null,
+                        upper2
+                    ) ?: return null,
+                    multiplyBigMValues(
+                        multiplyBigMValues(coefficient, upper1) ?: return null,
+                        lower2
+                    ) ?: return null,
+                    multiplyBigMValues(
+                        multiplyBigMValues(coefficient, upper1) ?: return null,
+                        upper2
+                    ) ?: return null
+                )
+                val lowerTerm = minOf(products) ?: return null
+                val upperTerm = maxOf(products) ?: return null
+                lowerTerm to upperTerm
             }
-        } else if (monomial.symbol1 == monomial.symbol2) {
-            val squareLower = if (lower1 leq Flt64.zero && upper1 geq Flt64.zero) {
-                Flt64.zero
-            } else {
-                val lowerSquare = lower1 * lower1
-                val upperSquare = upper1 * upper1
-                if (lowerSquare ls upperSquare) lowerSquare else upperSquare
+            lower = addBigMValues(lower, termBounds.first) ?: return null
+            upper = addBigMValues(upper, termBounds.second) ?: return null
+            if (lower.compareTo(upper) > 0) {
+                return null
             }
-            val squareUpper = maxOf(listOf(lower1 * lower1, upper1 * upper1))
-            if (coefficient geq Flt64.zero) {
-                coefficient * squareLower to coefficient * squareUpper
-            } else {
-                coefficient * squareUpper to coefficient * squareLower
-            }
-        } else {
-            val (lower2, upper2) = symbolFiniteBounds(monomial.symbol2!!) ?: return null
-            val products = listOf(
-                coefficient * lower1 * lower2,
-                coefficient * lower1 * upper2,
-                coefficient * upper1 * lower2,
-                coefficient * upper1 * upper2
-            )
-            minOf(products) to maxOf(products)
         }
-        lower += termBounds.first
-        upper += termBounds.second
-    }
 
-    return LinearPolynomialBounds(
-        lower = converter.intoValue(lower),
-        upper = converter.intoValue(upper)
-    )
+        val lowerValue = intoBigMValueOrNull(converter, lower) ?: return null
+        val upperValue = intoBigMValueOrNull(converter, upper) ?: return null
+        if (lowerValue.compareTo(upperValue) > 0) {
+            return null
+        }
+        LinearPolynomialBounds(
+            lower = lowerValue,
+            upper = upperValue
+        )
+    } catch (_: RuntimeException) {
+        null
+    }
 }
 
 /**
@@ -222,7 +344,34 @@ fun <V> ensurePositiveBigM(
     converter: IntoValue<V>
 ): V where V : RealNumber<V>, V : NumberField<V> {
     val minimum = converter.intoValue(Flt64(BIG_M_MIN))
-    return if (value geq minimum) value else minimum
+    return if (value.compareTo(minimum) >= 0) value else minimum
+}
+
+/** 从已验证边界安全解析 Big-M 候选。 / Resolve a Big-M candidate safely from validated bounds. */
+private fun <V> finiteBigMOrNull(
+    bounds: LinearPolynomialBounds<V>?,
+    converter: IntoValue<V>
+): V? where V : RealNumber<V>, V : NumberField<V> {
+    return try {
+        if (bounds == null) {
+            return null
+        }
+        val lower = fromBigMValueOrNull(converter, bounds.lower) ?: return null
+        val upper = fromBigMValueOrNull(converter, bounds.upper) ?: return null
+        val lowerAbs = lower.abs().takeIf { it.isUsableBigMValue() } ?: return null
+        val upperAbs = upper.abs().takeIf { it.isUsableBigMValue() } ?: return null
+        val candidate = if (lowerAbs.compareTo(upperAbs) >= 0) lowerAbs else upperAbs
+        val candidateValue = intoBigMValueOrNull(converter, candidate) ?: return null
+        val normalized = ensurePositiveBigM(candidateValue, converter)
+        val normalizedSolverValue = fromBigMValueOrNull(converter, normalized) ?: return null
+        if (normalizedSolverValue.compareTo(Flt64.zero) <= 0) {
+            null
+        } else {
+            normalized
+        }
+    } catch (_: RuntimeException) {
+        null
+    }
 }
 
 private fun <V> relaxBigM(
@@ -233,13 +382,121 @@ private fun <V> relaxBigM(
 }
 
 /**
+ * 校验旧版指示约束 helper 的 solver 边界值。 / Validate solver-boundary values used by legacy indicator helpers.
+ *
+ * 这些 helper 保留旧的 List 返回签名，因此必须在构造前后拒绝非有限值，不能把错误延迟到模型写入阶段。
+ * The helpers retain their legacy List return type, so non-finite values must be rejected before and after
+ * construction instead of being deferred until model insertion.
+ */
+private fun <V> isUsableLegacyIndicatorValue(value: V): Boolean
+    where V : RealNumber<V>, V : NumberField<V> {
+    return try {
+        if (!value.isFinite()) {
+            return false
+        }
+        val solverValue = value.toFltX()
+        val nan = solverValue.constants.nan
+        solverValue.isFinite() &&
+            (nan == null || solverValue != nan) &&
+            solverValue.compareTo(FltX.minimum) > 0 &&
+            solverValue.compareTo(FltX.maximum) < 0
+    } catch (_: RuntimeException) {
+        false
+    }
+}
+
+private fun <V> hasUsableLegacyIndicatorPolynomial(
+    polynomial: LinearPolynomial<V>
+): Boolean where V : RealNumber<V>, V : NumberField<V> {
+    return try {
+        if (!isUsableLegacyIndicatorValue(polynomial.constant)) {
+            return false
+        }
+        val zero = polynomial.constant - polynomial.constant
+        val effectiveCoefficients = LinkedHashMap<Symbol, V>()
+        for (monomial in polynomial.monomials) {
+            if (!isUsableLegacyIndicatorValue(monomial.coefficient)) {
+                return false
+            }
+            val coefficient = (effectiveCoefficients[monomial.symbol] ?: zero) + monomial.coefficient
+            if (!isUsableLegacyIndicatorValue(coefficient)) {
+                return false
+            }
+            effectiveCoefficients[monomial.symbol] = coefficient
+        }
+        true
+    } catch (_: RuntimeException) {
+        false
+    }
+}
+
+private fun <V> validateLegacyIndicatorInputs(
+    poly: LinearPolynomial<V>,
+    bigM: V,
+    tolerance: V,
+    strictBoundary: V? = null
+) where V : RealNumber<V>, V : NumberField<V> {
+    require(hasUsableLegacyIndicatorPolynomial(poly)) {
+        "indicator polynomial contains a non-finite or unrepresentable solver value"
+    }
+    require(isUsableLegacyIndicatorValue(bigM)) {
+        "indicator Big-M must be finite and solver-representable"
+    }
+    val zero = bigM - bigM
+    require(bigM.compareTo(zero) > 0) {
+        "indicator Big-M must be greater than zero"
+    }
+    require(isUsableLegacyIndicatorValue(tolerance) && tolerance.compareTo(zero) >= 0) {
+        "indicator tolerance must be finite and non-negative"
+    }
+    strictBoundary?.let {
+        require(isUsableLegacyIndicatorValue(it) && it.compareTo(zero) > 0) {
+            "indicator strict boundary must be finite and greater than zero"
+        }
+    }
+}
+
+private fun <V> validateLegacyIndicatorConstraints(
+    constraints: List<LinearInequality<V>>
+) where V : RealNumber<V>, V : NumberField<V> {
+    require(constraints.all { constraint ->
+        hasUsableLegacyIndicatorPolynomial(constraint.lhs) &&
+            hasUsableLegacyIndicatorPolynomial(constraint.rhs)
+    }) {
+        "indicator helper produced a non-finite or unrepresentable constraint"
+    }
+}
+
+private fun <V> legacyIndicatorFailure(
+    operation: String,
+    error: RuntimeException
+): Ret<List<LinearInequality<V>>> where V : RealNumber<V>, V : NumberField<V> {
+    val detail = error.message?.takeIf { it.isNotBlank() } ?: error::class.simpleName ?: "unknown runtime error"
+    return Failed(
+        ErrorCode.IllegalArgument,
+        "$operation 失败：$detail / $operation failed: $detail"
+    )
+}
+
+private inline fun <V> checkedLegacyIndicatorConstraints(
+    operation: String,
+    builder: () -> List<LinearInequality<V>>
+): Ret<List<LinearInequality<V>>> where V : RealNumber<V>, V : NumberField<V> {
+    return try {
+        Ok(builder())
+    } catch (error: RuntimeException) {
+        legacyIndicatorFailure(operation, error)
+    }
+}
+
+/**
  * 线性多项式默认 Big-M：优先使用有限范围的最大绝对值。 / Default Big-M for a linear polynomial: finite-range absolute maximum first.
 */
 fun <V> LinearPolynomial<V>.defaultBigM(
     converter: IntoValue<V>,
     fallback: V = converter.intoValue(Flt64(BIG_M_DEFAULT))
 ): V where V : RealNumber<V>, V : NumberField<V> {
-    return finiteBounds(converter)?.absMax?.let { ensurePositiveBigM(it, converter) } ?: fallback
+    return finiteBigMOrNull(finiteBounds(converter), converter) ?: fallback
 }
 
 /**
@@ -249,7 +506,7 @@ fun <V> QuadraticPolynomial<V>.defaultBigM(
     converter: IntoValue<V>,
     fallback: V = converter.intoValue(Flt64(BIG_M_DEFAULT))
 ): V where V : RealNumber<V>, V : NumberField<V> {
-    return finiteBounds(converter)?.absMax?.let { ensurePositiveBigM(it, converter) } ?: fallback
+    return finiteBigMOrNull(finiteBounds(converter), converter) ?: fallback
 }
 
 /**
@@ -259,21 +516,32 @@ fun <V> Iterable<LinearPolynomial<V>>.defaultBigM(
     converter: IntoValue<V>,
     fallback: V = converter.intoValue(Flt64(BIG_M_DEFAULT))
 ): V where V : RealNumber<V>, V : NumberField<V> {
-    var result: V? = null
-    for (poly in this) {
-        val candidate = poly.finiteBounds(converter)?.absMax ?: return fallback
-        result = if (result == null || candidate gr result) {
-            candidate
-        } else {
-            result
+    return try {
+        var result: V? = null
+        var resultSolverValue: Flt64? = null
+        for (poly in this) {
+            val candidate = finiteBigMOrNull(poly.finiteBounds(converter), converter) ?: return fallback
+            val candidateSolverValue = fromBigMValueOrNull(converter, candidate) ?: return fallback
+            val currentSolverValue = resultSolverValue
+            if (currentSolverValue == null || candidateSolverValue.compareTo(currentSolverValue) > 0) {
+                result = candidate
+                resultSolverValue = candidateSolverValue
+            }
         }
+        result ?: fallback
+    } catch (_: RuntimeException) {
+        fallback
     }
-    return result?.let { ensurePositiveBigM(it, converter) } ?: fallback
 }
 
 /**
  * 构建线性不等式两侧差值 lhs-rhs。 / Build the lhs-rhs difference polynomial for a linear inequality.
-*/
+ *
+ * 此 API 保持非空返回签名；若底层数值运算产生溢出，结果中的非有限值会由
+ * [finiteBounds] 以 null 拒绝，而不会被饱和值或默认 Big-M 掩盖。 / This API keeps its
+ * non-null return signature; if underlying arithmetic overflows, [finiteBounds] rejects
+ * the resulting non-finite value with null instead of hiding it behind saturation or a default Big-M.
+ */
 fun <V> LinearInequality<V>.differencePolynomial(): LinearPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     return LinearPolynomial(
         lhs.monomials + rhs.monomials.map { LinearMonomial(-it.coefficient, it.symbol) },
@@ -282,45 +550,294 @@ fun <V> LinearInequality<V>.differencePolynomial(): LinearPolynomial<V> where V 
 }
 
 /**
- * 将约束列表添加到模型中，失败时提前返回。 / Add a list of constraints to the model, returning early on failure.
+ * 返回约束写入失败及回滚失败的组合结果。 / Combines a constraint-write failure with a rollback failure.
+ */
+private fun rollbackFailure(failure: Try, rollback: Try): Try {
+    if (rollback is Ok) {
+        return failure
+    }
+
+    val errors = ArrayList<Error<ErrorCode>>()
+    when (failure) {
+        is Ok -> {}
+        is Failed -> errors.add(failure.error)
+        is Fatal -> errors.addAll(failure.errors)
+    }
+    when (rollback) {
+        is Ok -> {}
+        is Failed -> errors.add(rollback.error)
+        is Fatal -> errors.addAll(rollback.errors)
+    }
+    return Fatal(errors)
+}
+
+/** 将约束写入异常转换为失败结果 / Convert a constraint-write exception into a failure result. */
+private fun constraintWriteFailure(operation: String, error: RuntimeException): Try {
+    val detail = error.message?.takeIf { it.isNotBlank() } ?: error::class.simpleName ?: "unknown runtime error"
+    return Failed(
+        ErrorCode.ApplicationError,
+        "$operation 失败：$detail / $operation failed: $detail"
+    )
+}
+
+/** 安全执行约束回滚 / Execute constraint rollback without leaking runtime exceptions. */
+private fun rollbackConstraintsSafely(rollback: () -> Try): Try {
+    return try {
+        rollback()
+    } catch (error: RuntimeException) {
+        constraintWriteFailure(
+            operation = "回滚约束 / Roll back constraints",
+            error = error
+        )
+    }
+}
+
+private data class TokenStateCheckpoint<V : RealNumber<V>>(
+    val tokenList: AbstractMutableTokenList<V>?,
+    val state: TokenListSnapshot<V>?
+)
+
+/**
+ * 读取模型 token 状态快照；可变列表不支持快照时直接失败。
+ * Read a model token-state snapshot; fail before writing when a mutable list cannot be snapshotted.
+ */
+@Suppress("UNCHECKED_CAST")
+private fun <V> snapshotModelTokens(
+    tokens: AbstractTokenTable<V>
+): Ret<TokenStateCheckpoint<V>> where V : RealNumber<V>, V : NumberField<V> {
+    return try {
+        val tokenList = tokens.tokenList as? AbstractMutableTokenList<V>
+        if (tokenList == null) {
+            Ok(TokenStateCheckpoint(tokenList = null, state = null))
+        } else {
+            val state = tokenList.snapshotState()
+            if (state == null) {
+                return Failed(
+                    ErrorCode.ApplicationError,
+                    "模型 token 列表不支持事务快照。 / The model token list does not support transactional snapshots."
+                )
+            }
+            Ok(TokenStateCheckpoint(tokenList = tokenList, state = state))
+        }
+    } catch (error: RuntimeException) {
+        val detail = error.message?.takeIf { it.isNotBlank() }
+            ?: error::class.simpleName
+            ?: "unknown runtime error"
+        Failed(
+            ErrorCode.ApplicationError,
+            "读取 token 状态快照失败：$detail / Failed to read token state snapshot: $detail"
+        )
+    }
+}
+
+/** 安全恢复模型 token 状态 / Safely restore model token state. */
+private fun <V> restoreModelTokens(
+    checkpoint: TokenStateCheckpoint<V>
+): Try where V : RealNumber<V>, V : NumberField<V> {
+    val tokenList = checkpoint.tokenList
+    val state = checkpoint.state
+    if (tokenList == null && state == null) {
+        return ok
+    }
+    if (tokenList == null || state == null) {
+        return Failed(
+            ErrorCode.ApplicationError,
+            "模型 token 状态快照不完整。 / The model token-state snapshot is incomplete."
+        )
+    }
+    return try {
+        tokenList.restoreState(state)
+    } catch (error: RuntimeException) {
+        constraintWriteFailure(
+            operation = "恢复 token 状态 / Restore token state",
+            error = error
+        )
+    }
+}
+
+/** 同时回滚约束和 token 状态 / Roll back both constraints and token state. */
+private fun <V> rollbackModelRegistration(
+    failure: Try,
+    rollbackConstraints: () -> Try,
+    tokenCheckpoint: TokenStateCheckpoint<V>
+): Try where V : RealNumber<V>, V : NumberField<V> {
+    val constraintRollback = rollbackConstraintsSafely(rollbackConstraints)
+    val tokenRollback = restoreModelTokens(tokenCheckpoint)
+    return rollbackFailure(
+        rollbackFailure(failure, constraintRollback),
+        tokenRollback
+    )
+}
+
+/**
+ * 将约束列表原子地添加到模型中，失败时回滚本次调用。 / Atomically adds constraints to the model and rolls back this call on failure.
  * 成功时返回 null，失败时返回错误结果。 / Returns null on success, or the error result on failure.
-*/
+ */
 internal fun <V> addConstraints(model: AbstractLinearMetaModel<V>, constraints: List<LinearInequality<V>>): Try? where V : RealNumber<V>, V : NumberField<V> {
+    val originalConstraintCount = try {
+        model.constraints.size
+    } catch (error: RuntimeException) {
+        return constraintWriteFailure(
+            operation = "读取约束数量 / Read constraint count",
+            error = error
+        )
+    }
+    val tokenCheckpoint = when (val result = snapshotModelTokens(model.tokens)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
     for (c in constraints) {
-        when (val r = model.addConstraint(relation = c, name = c.name)) {
+        val result = try {
+            model.addConstraint(relation = c, name = c.name)
+        } catch (error: RuntimeException) {
+            return rollbackModelRegistration(
+                failure = constraintWriteFailure(
+                    operation = "写入约束 / Write constraint",
+                    error = error
+                ),
+                rollbackConstraints = {
+                    model.rollbackConstraintsTo(originalConstraintCount)
+                },
+                tokenCheckpoint = tokenCheckpoint
+            )
+        }
+        when (val r = result) {
             is Ok -> {}
-            is Failed -> return Failed(r.error)
-            is Fatal -> return Fatal(r.errors)
+            is Failed -> {
+                return rollbackModelRegistration(
+                    failure = Failed(r.error),
+                    rollbackConstraints = {
+                        model.rollbackConstraintsTo(originalConstraintCount)
+                    },
+                    tokenCheckpoint = tokenCheckpoint
+                )
+            }
+            is Fatal -> {
+                return rollbackModelRegistration(
+                    failure = Fatal(r.errors),
+                    rollbackConstraints = {
+                        model.rollbackConstraintsTo(originalConstraintCount)
+                    },
+                    tokenCheckpoint = tokenCheckpoint
+                )
+            }
         }
     }
     return null
 }
 
 /**
- * 将 V 类型约束列表直接添加到 V 类型机制模型中。 / Add a list of V-generic constraints directly to a V-generic MechanismModel.
+ * 将 V 类型约束列表原子地添加到 V 类型机制模型中。 / Atomically adds V-generic constraints to a V-generic MechanismModel.
  * 成功时返回 null，失败时返回错误结果。 / Returns null on success, or the error result on failure.
-*/
+ */
 internal fun <V> addConstraints(model: AbstractLinearMechanismModel<V>, constraints: List<LinearInequality<V>>): Try? where V : RealNumber<V>, V : NumberField<V> {
+    val originalConstraintCount = try {
+        model.constraints.size
+    } catch (error: RuntimeException) {
+        return constraintWriteFailure(
+            operation = "读取约束数量 / Read constraint count",
+            error = error
+        )
+    }
+    val tokenCheckpoint = when (val result = snapshotModelTokens(model.tokens)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
     for (c in constraints) {
-        when (val r = model.addConstraint(relation = c, name = c.name)) {
+        val result = try {
+            model.addConstraint(relation = c, name = c.name)
+        } catch (error: RuntimeException) {
+            return rollbackModelRegistration(
+                failure = constraintWriteFailure(
+                    operation = "写入约束 / Write constraint",
+                    error = error
+                ),
+                rollbackConstraints = {
+                    model.rollbackConstraintsTo(originalConstraintCount)
+                },
+                tokenCheckpoint = tokenCheckpoint
+            )
+        }
+        when (val r = result) {
             is Ok -> {}
-            is Failed -> return Failed(r.error)
-            is Fatal -> return Fatal(r.errors)
+            is Failed -> {
+                return rollbackModelRegistration(
+                    failure = Failed(r.error),
+                    rollbackConstraints = {
+                        model.rollbackConstraintsTo(originalConstraintCount)
+                    },
+                    tokenCheckpoint = tokenCheckpoint
+                )
+            }
+            is Fatal -> {
+                return rollbackModelRegistration(
+                    failure = Fatal(r.errors),
+                    rollbackConstraints = {
+                        model.rollbackConstraintsTo(originalConstraintCount)
+                    },
+                    tokenCheckpoint = tokenCheckpoint
+                )
+            }
         }
     }
     return null
 }
 
 /**
- * 将 V 类型二次约束列表直接添加到 V 类型二次机制模型中。 / Add a list of V-generic quadratic constraints directly to a V-generic QuadraticMechanismModel.
+ * 将 V 类型二次约束列表原子地添加到 V 类型二次机制模型中。 / Atomically adds V-generic quadratic constraints to a V-generic QuadraticMechanismModel.
  * 成功时返回 null，失败时返回错误结果。 / Returns null on success, or the error result on failure.
-*/
+ */
 internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<V>, constraints: List<QuadraticInequalityOf<V>>): Try? where V : RealNumber<V>, V : NumberField<V> {
+    val originalConstraintCount = try {
+        model.constraints.size
+    } catch (error: RuntimeException) {
+        return constraintWriteFailure(
+            operation = "读取约束数量 / Read constraint count",
+            error = error
+        )
+    }
+    val tokenCheckpoint = when (val result = snapshotModelTokens(model.tokens)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
     for (c in constraints) {
-        when (val r = model.addConstraint(relation = c, name = c.name)) {
+        val result = try {
+            model.addConstraint(relation = c, name = c.name)
+        } catch (error: RuntimeException) {
+            return rollbackModelRegistration(
+                failure = constraintWriteFailure(
+                    operation = "写入二次约束 / Write quadratic constraint",
+                    error = error
+                ),
+                rollbackConstraints = {
+                    model.rollbackConstraintsTo(originalConstraintCount)
+                },
+                tokenCheckpoint = tokenCheckpoint
+            )
+        }
+        when (val r = result) {
             is Ok -> {}
-            is Failed -> return Failed(r.error)
-            is Fatal -> return Fatal(r.errors)
+            is Failed -> {
+                return rollbackModelRegistration(
+                    failure = Failed(r.error),
+                    rollbackConstraints = {
+                        model.rollbackConstraintsTo(originalConstraintCount)
+                    },
+                    tokenCheckpoint = tokenCheckpoint
+                )
+            }
+            is Fatal -> {
+                return rollbackModelRegistration(
+                    failure = Fatal(r.errors),
+                    rollbackConstraints = {
+                        model.rollbackConstraintsTo(originalConstraintCount)
+                    },
+                    tokenCheckpoint = tokenCheckpoint
+                )
+            }
         }
     }
     return null
@@ -345,6 +862,12 @@ fun <V> nonzeroIndicatorConstraints(
     strictBoundary: V,
     namePrefix: String
 ): List<LinearInequality<V>> where V : RealNumber<V>, V : NumberField<V> {
+    validateLegacyIndicatorInputs(
+        poly = poly,
+        bigM = bigM,
+        tolerance = tolerance,
+        strictBoundary = strictBoundary
+    )
     val constraints = mutableListOf<LinearInequality<V>>()
     val polyMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
     val bandM = relaxBigM(bigM, tolerance)
@@ -376,8 +899,31 @@ fun <V> nonzeroIndicatorConstraints(
         LinearPolynomial(emptyList(), -strictBoundary + outM),
         Comparison.LE, "${namePrefix}_out_ub")
 
+    validateLegacyIndicatorConstraints(constraints)
     return constraints
 }
+
+/** 安全构建旧版非零指示约束。 / Safely build legacy nonzero-indicator constraints. */
+internal fun <V> safeNonzeroIndicatorConstraints(
+    poly: LinearPolynomial<V>,
+    indVar: AbstractVariableItem<*, *>,
+    sideVar: AbstractVariableItem<*, *>,
+    bigM: V,
+    tolerance: V,
+    strictBoundary: V,
+    namePrefix: String
+): Ret<List<LinearInequality<V>>> where V : RealNumber<V>, V : NumberField<V> =
+    checkedLegacyIndicatorConstraints("构建非零指示约束 / Build nonzero-indicator constraints") {
+        nonzeroIndicatorConstraints(
+            poly = poly,
+            indVar = indVar,
+            sideVar = sideVar,
+            bigM = bigM,
+            tolerance = tolerance,
+            strictBoundary = strictBoundary,
+            namePrefix = namePrefix
+        )
+    }
 
 /**
  * 为零值检测构建指示约束。 / Build indicator constraints for detecting a zero polynomial value.
@@ -396,6 +942,12 @@ fun <V> zeroIndicatorConstraints(
     strictBoundary: V,
     namePrefix: String
 ): List<LinearInequality<V>> where V : RealNumber<V>, V : NumberField<V> {
+    validateLegacyIndicatorInputs(
+        poly = poly,
+        bigM = bigM,
+        tolerance = tolerance,
+        strictBoundary = strictBoundary
+    )
     val constraints = mutableListOf<LinearInequality<V>>()
     val polyMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
     val bandM = relaxBigM(bigM, tolerance)
@@ -425,8 +977,31 @@ fun <V> zeroIndicatorConstraints(
         LinearPolynomial(emptyList(), -strictBoundary),
         Comparison.LE, "${namePrefix}_zero_out_ub")
 
+    validateLegacyIndicatorConstraints(constraints)
     return constraints
 }
+
+/** 安全构建旧版零值指示约束。 / Safely build legacy zero-indicator constraints. */
+internal fun <V> safeZeroIndicatorConstraints(
+    poly: LinearPolynomial<V>,
+    indicator: AbstractVariableItem<*, *>,
+    sideVar: AbstractVariableItem<*, *>,
+    bigM: V,
+    tolerance: V,
+    strictBoundary: V,
+    namePrefix: String
+): Ret<List<LinearInequality<V>>> where V : RealNumber<V>, V : NumberField<V> =
+    checkedLegacyIndicatorConstraints("构建零值指示约束 / Build zero-indicator constraints") {
+        zeroIndicatorConstraints(
+            poly = poly,
+            indicator = indicator,
+            sideVar = sideVar,
+            bigM = bigM,
+            tolerance = tolerance,
+            strictBoundary = strictBoundary,
+            namePrefix = namePrefix
+        )
+    }
 
 /**
  * 为正数检测构建指示约束。 / Build indicator constraints for detecting a positive polynomial value.
@@ -443,6 +1018,11 @@ fun <V> positiveIndicatorConstraints(
     tolerance: V,
     namePrefix: String
 ): List<LinearInequality<V>> where V : RealNumber<V>, V : NumberField<V> {
+    validateLegacyIndicatorInputs(
+        poly = poly,
+        bigM = bigM,
+        tolerance = tolerance
+    )
     val constraints = mutableListOf<LinearInequality<V>>()
     val polyMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
     val lowerRelaxM = relaxBigM(bigM, tolerance)
@@ -459,8 +1039,27 @@ fun <V> positiveIndicatorConstraints(
         LinearPolynomial(emptyList(), tolerance - lowerRelaxM),
         Comparison.GE, "${namePrefix}_positive_lb")
 
+    validateLegacyIndicatorConstraints(constraints)
     return constraints
 }
+
+/** 安全构建旧版正数指示约束。 / Safely build legacy positive-indicator constraints. */
+internal fun <V> safePositiveIndicatorConstraints(
+    poly: LinearPolynomial<V>,
+    indicator: AbstractVariableItem<*, *>,
+    bigM: V,
+    tolerance: V,
+    namePrefix: String
+): Ret<List<LinearInequality<V>>> where V : RealNumber<V>, V : NumberField<V> =
+    checkedLegacyIndicatorConstraints("构建正数指示约束 / Build positive-indicator constraints") {
+        positiveIndicatorConstraints(
+            poly = poly,
+            indicator = indicator,
+            bigM = bigM,
+            tolerance = tolerance,
+            namePrefix = namePrefix
+        )
+    }
 
 /**
  * 为非负检测构建指示约束。 / Build indicator constraints for detecting a nonnegative polynomial value.
@@ -477,6 +1076,11 @@ fun <V> nonnegativeIndicatorConstraints(
     tolerance: V,
     namePrefix: String
 ): List<LinearInequality<V>> where V : RealNumber<V>, V : NumberField<V> {
+    validateLegacyIndicatorInputs(
+        poly = poly,
+        bigM = bigM,
+        tolerance = tolerance
+    )
     val constraints = mutableListOf<LinearInequality<V>>()
     val polyMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
     val upperRelaxM = relaxBigM(bigM, tolerance)
@@ -493,8 +1097,27 @@ fun <V> nonnegativeIndicatorConstraints(
         LinearPolynomial(emptyList(), -tolerance),
         Comparison.LE, "${namePrefix}_nonnegative_ub")
 
+    validateLegacyIndicatorConstraints(constraints)
     return constraints
 }
+
+/** 安全构建旧版非负指示约束。 / Safely build legacy nonnegative-indicator constraints. */
+internal fun <V> safeNonnegativeIndicatorConstraints(
+    poly: LinearPolynomial<V>,
+    indicator: AbstractVariableItem<*, *>,
+    bigM: V,
+    tolerance: V,
+    namePrefix: String
+): Ret<List<LinearInequality<V>>> where V : RealNumber<V>, V : NumberField<V> =
+    checkedLegacyIndicatorConstraints("构建非负指示约束 / Build nonnegative-indicator constraints") {
+        nonnegativeIndicatorConstraints(
+            poly = poly,
+            indicator = indicator,
+            bigM = bigM,
+            tolerance = tolerance,
+            namePrefix = namePrefix
+        )
+    }
 
 /**
  * 为简单不等式（LE 或 GE）构建指示约束。 / Build indicator constraints for a simple inequality (LE or GE).
@@ -513,51 +1136,71 @@ fun <V> simpleIndicatorConstraints(
     namePrefix: String,
     sideVar: AbstractVariableItem<*, *>? = null
 ): Ret<List<LinearInequality<V>>> where V : RealNumber<V>, V : NumberField<V> {
-    val zero = ineq.lhs.constant - ineq.lhs.constant
-    val constraints = mutableListOf<LinearInequality<V>>()
-    val diffMonos = ineq.lhs.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
-        ineq.rhs.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-    val shiftedConst = ineq.lhs.constant - ineq.rhs.constant
-    val strictRelaxM = relaxBigM(bigM, strictBoundary)
+    return try {
+        val zero = ineq.lhs.constant - ineq.lhs.constant
+        val constraints = mutableListOf<LinearInequality<V>>()
+        val diffMonos = ineq.lhs.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
+            ineq.rhs.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
+        val shiftedConst = ineq.lhs.constant - ineq.rhs.constant
+        validateLegacyIndicatorInputs(
+            poly = LinearPolynomial(diffMonos, shiftedConst),
+            bigM = bigM,
+            tolerance = tolerance,
+            strictBoundary = strictBoundary
+        )
+        val strictRelaxM = relaxBigM(bigM, strictBoundary)
 
-    when (ineq.comparison) {
-        Comparison.LE -> {
-            // satisfied: diff <= tolerance + M*(1-indicator)
-            // 满足：indicator=1 时 diff <= tolerance
-            constraints += LinearInequality(
-                LinearPolynomial(diffMonos + LinearMonomial(bigM, indicator), shiftedConst),
-                LinearPolynomial(emptyList(), tolerance + bigM), Comparison.LE, "${namePrefix}_sat")
-            // violated: diff >= strictBoundary - M*indicator
-            // 违反：indicator=0 时 diff >= strictBoundary
-            constraints += LinearInequality(
-                LinearPolynomial(diffMonos + LinearMonomial(strictRelaxM, indicator), shiftedConst),
-                LinearPolynomial(emptyList(), strictBoundary), Comparison.GE, "${namePrefix}_violated")
+        when (ineq.comparison) {
+            Comparison.LE -> {
+                // satisfied: diff <= tolerance + M*(1-indicator)
+                // 满足：indicator=1 时 diff <= tolerance
+                constraints += LinearInequality(
+                    LinearPolynomial(diffMonos + LinearMonomial(bigM, indicator), shiftedConst),
+                    LinearPolynomial(emptyList(), tolerance + bigM), Comparison.LE, "${namePrefix}_sat")
+                // violated: diff >= strictBoundary - M*indicator
+                // 违反：indicator=0 时 diff >= strictBoundary
+                constraints += LinearInequality(
+                    LinearPolynomial(diffMonos + LinearMonomial(strictRelaxM, indicator), shiftedConst),
+                    LinearPolynomial(emptyList(), strictBoundary), Comparison.GE, "${namePrefix}_violated")
+            }
+            Comparison.GE -> {
+                // satisfied: diff >= -tolerance - M*(1-indicator)
+                // 满足：indicator=1 时 diff >= -tolerance
+                constraints += LinearInequality(
+                    LinearPolynomial(diffMonos + LinearMonomial(-bigM, indicator), shiftedConst),
+                    LinearPolynomial(emptyList(), -tolerance - bigM), Comparison.GE, "${namePrefix}_sat")
+                // violated: diff <= -strictBoundary + M*indicator
+                // 违反：indicator=0 时 diff <= -strictBoundary
+                constraints += LinearInequality(
+                    LinearPolynomial(diffMonos + LinearMonomial(-strictRelaxM, indicator), shiftedConst),
+                    LinearPolynomial(emptyList(), -strictBoundary), Comparison.LE, "${namePrefix}_violated")
+            }
+            Comparison.EQ -> {
+                val eqSideVar = sideVar ?: BinVar("${namePrefix}_side")
+                when (val result = safeZeroIndicatorConstraints(
+                    poly = LinearPolynomial(diffMonos, shiftedConst),
+                    indicator = indicator,
+                    sideVar = eqSideVar,
+                    bigM = bigM,
+                    tolerance = tolerance,
+                    strictBoundary = strictBoundary,
+                    namePrefix = namePrefix
+                )) {
+                    is Ok -> constraints += result.value
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
+            }
+            Comparison.LT, Comparison.GT, Comparison.NE -> {
+                return Failed(ErrorCode.ApplicationError, "Indicator constraints not supported for ${ineq.comparison}")
+            }
         }
-        Comparison.GE -> {
-            // satisfied: diff >= -tolerance - M*(1-indicator)
-            // 满足：indicator=1 时 diff >= -tolerance
-            constraints += LinearInequality(
-                LinearPolynomial(diffMonos + LinearMonomial(-bigM, indicator), shiftedConst),
-                LinearPolynomial(emptyList(), -tolerance - bigM), Comparison.GE, "${namePrefix}_sat")
-            // violated: diff <= -strictBoundary + M*indicator
-            // 违反：indicator=0 时 diff <= -strictBoundary
-            constraints += LinearInequality(
-                LinearPolynomial(diffMonos + LinearMonomial(-strictRelaxM, indicator), shiftedConst),
-                LinearPolynomial(emptyList(), -strictBoundary), Comparison.LE, "${namePrefix}_violated")
-        }
-        Comparison.EQ -> {
-            val eqSideVar = sideVar ?: BinVar("${namePrefix}_side")
-            constraints += zeroIndicatorConstraints(
-                LinearPolynomial(diffMonos, shiftedConst),
-                indicator, eqSideVar, bigM, tolerance, strictBoundary, namePrefix
-            )
-        }
-        Comparison.LT, Comparison.GT, Comparison.NE -> {
-            return Failed(ErrorCode.ApplicationError, "Indicator constraints not supported for ${ineq.comparison}")
-        }
+
+        validateLegacyIndicatorConstraints(constraints)
+        Ok(constraints)
+    } catch (error: RuntimeException) {
+        legacyIndicatorFailure("构建简单指示约束 / Build simple indicator constraints", error)
     }
-
-    return Ok(constraints)
 }
 
 internal fun <V> repeatAdd(

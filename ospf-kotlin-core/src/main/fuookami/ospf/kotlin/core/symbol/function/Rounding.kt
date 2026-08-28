@@ -40,13 +40,20 @@ class RoundingFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String = "round",
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultVariable, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val bigM: V = bigM?.let { if (it geq converter.one) it else converter.one } ?: converter.one
 
     val kVar: AbstractVariableItem<*, *> = IntVar("${name}_k")
     val rVar: AbstractVariableItem<*, *> = BinVar("${name}_r")
     val bVar: AbstractVariableItem<*, *> = URealVar("${name}_b")
-    val resultVar: AbstractVariableItem<*, *> = IntVar("${name}_round")
+    override val resultVar: AbstractVariableItem<*, *> = IntVar("${name}_round")
+
+    override val resultPolynomial: LinearPolynomial<V> by lazy {
+        LinearPolynomial(
+            monomials = listOf(LinearMonomial(converter.one, resultVar)),
+            constant = converter.zero
+        )
+    }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(kVar, rVar, bVar, resultVar)

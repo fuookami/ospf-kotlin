@@ -41,11 +41,18 @@ class BinaryzationFunction<V>(
     bigM: V? = null,
     override var name: String = "bin",
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultVariable, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
     private val bigM: V = bigM ?: polynomial.defaultBigM(converter)
 
-    val resultVar: AbstractVariableItem<*, *> = BinVar("${name}_bin")
+    override val resultVar: AbstractVariableItem<*, *> = BinVar("${name}_bin")
+
+    override val resultPolynomial: LinearPolynomial<V> by lazy {
+        LinearPolynomial(
+            monomials = listOf(LinearMonomial(converter.one, resultVar)),
+            constant = converter.zero
+        )
+    }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar)
@@ -65,13 +72,17 @@ class BinaryzationFunction<V>(
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val eps = converter.intoValue(Flt64(NONZERO_TOLERANCE))
-        val allConstraints = positiveIndicatorConstraints(
-            polynomial,
-            resultVar,
-            bigM,
-            eps,
-            "${name}_bin"
-        )
+        val allConstraints = when (val result = safePositiveIndicatorConstraints(
+            poly = polynomial,
+            indicator = resultVar,
+            bigM = bigM,
+            tolerance = eps,
+            namePrefix = "${name}_bin"
+        )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
         addConstraints(model, allConstraints)?.let { return it }
         return ok
