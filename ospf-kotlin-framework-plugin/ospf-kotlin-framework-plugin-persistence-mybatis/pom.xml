@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>ospf-kotlin-framework-plugin-persistence-mybatis${ospf.kotlin.artifact.suffix}</artifactId>
+    <name>ospf-kotlin-framework-plugin-persistence-mybatis</name>
 
     <properties>
         <mybatis-plus.version>3.5.5</mybatis-plus.version>

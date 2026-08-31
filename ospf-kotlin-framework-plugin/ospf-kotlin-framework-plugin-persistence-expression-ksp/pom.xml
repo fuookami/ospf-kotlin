@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>ospf-kotlin-framework-plugin-persistence-expression-ksp${ospf.kotlin.artifact.suffix}</artifactId>
+    <name>ospf-kotlin-framework-plugin-persistence-expression-ksp</name>
 
     <properties>
         <ksp.version>2.2.20-2.0.4</ksp.version>

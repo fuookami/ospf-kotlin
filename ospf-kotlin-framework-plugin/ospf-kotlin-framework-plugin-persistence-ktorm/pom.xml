@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>ospf-kotlin-framework-plugin-persistence-ktorm${ospf.kotlin.artifact.suffix}</artifactId>
+    <name>ospf-kotlin-framework-plugin-persistence-ktorm</name>
 
     <dependencies>
         <dependency>
