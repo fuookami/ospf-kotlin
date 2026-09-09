@@ -13,6 +13,23 @@ A comprehensive mathematical algebra, symbol, and geometry system for OSPF Kotli
 - **Immutability**: All value types are immutable by design
 - **Extensibility**: Interfaces allow custom implementations
 
+
+## Scope
+
+This module covers:
+
+1. Algebraic structures, laws, value ranges, and number types.
+2. Mathematical operators, ordinary math utilities, and comparison/tolerance.
+3. Geometric entities and Delaunay triangulation.
+4. Chaotic systems, fractal generation, and combinatorics.
+5. Symbolic computation, polynomials, inequalities, expressions, parsing, and serialization.
+6. Trivalent logic and scale/SI prefixes.
+
+Explicit non-goals:
+
+1. Optimization model assembly and solver lifecycle; those belong in `ospf-kotlin-core`.
+2. Physical unit ownership; those belong in `ospf-kotlin-quantities`.
+3. Domain-specific business formulas unless they become reusable mathematical primitives.
 ## Module Structure
 
 | Package | Description | Key Types |
@@ -34,6 +51,20 @@ A comprehensive mathematical algebra, symbol, and geometry system for OSPF Kotli
 | `symbol.expression` | Runtime expression AST | `ScalarExpression`, `BooleanExpression`, `PropertyPath` |
 | `symbol.parse` | Direct polynomial/inequality parser | `parseLinear`, `parseQuadratic`, `parseCanonical`, `ParseResult` |
 | `symbol.serde` | Polynomial/inequality JSON serde and symbol identity | `linearPolynomialFromJson`, `SymbolIdentityExpr` |
+
+## Public API
+
+| API | Responsibility | Stability |
+| --- | --- | --- |
+| `algebra.concept` / `algebra.law` | Algebraic structures and law validation. | stable |
+| `algebra.number` | Number type implementations. | stable |
+| `algebra.value_range` | Typed value ranges and intervals. | stable |
+| `geometry` | Points, vectors, edges, triangles, circles, shapes, and triangulation. | stable |
+| `operator` | Mathematical operator traits and tolerance comparison. | stable |
+| `ordinary` | GCD, LCM, primes, factorization, and common utilities. | stable |
+| `symbol` | Symbolic polynomials, expressions, inequalities, and parsing. | stable |
+| `chaotic_operator` / `fractal_operator` | Chaotic systems and fractal generation. | stable |
+| `combinatorics` | Combinations, permutations, and Cartesian products. | stable |
 
 ## Expression Entry Points
 

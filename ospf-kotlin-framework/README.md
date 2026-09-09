@@ -34,6 +34,23 @@ Explicit non-goals:
 | `network` | HTTP response utilities with retry and authorization |
 | `log` | Log context management (push/save interfaces, builder) and log record types |
 
+## Public API
+
+| API | Responsibility | Stability |
+| --- | --- | --- |
+| `ColumnGenerationSolver` | Column-generation solver abstraction. | stable |
+| `LinearBendersDecompositionSolver` / `QuadraticBendersDecompositionSolver` | Benders decomposition solver interfaces. | stable |
+| `LogicBasedBendersEngine` | Logic-Based Benders for CP with proof gates. | stable |
+| `ParallelCombinatorialColumnGenerationSolver` / `SerialCombinatorial...` | Solver combinators. | stable |
+| `Pipeline<M>` / `PipelineList<M>` | Constraint/objective pipeline execution. | stable |
+| `CGPipeline` / `HAPipeline` | Column-generation and heuristic analysis pipelines. | stable |
+| `ShadowPriceKey` / `ShadowPriceMap` | Shadow-price hierarchy for column generation. | stable |
+| `ExpressionRepository<E>` / `SortBy` / `UpdateAssignments` | Persistence expression contracts. | stable |
+| `Response` / `ResponseRetry` | HTTP response utilities with retry. | stable |
+| `LogContext` / `LogRecord` | Log context and record management. | stable |
+| `RunningHeartBeat` / `SubProgressHeartBeat` / `FinnishHeartBeat` | Heartbeat data structures. | stable |
+| `RemoteSolverClient` | Remote solver client with checkpoint support. | stable |
+
 ## Solver Abstractions
 
 ### ColumnGenerationSolver

@@ -27,7 +27,25 @@ The current public model is limited to entities already expressed by `csp1d-doma
 - `CuttingPlanSlice`, `CuttingPlan`
 - demand contribution, render DTOs, and the currently integrated yield, waste, and length assignment contexts
 
-Downstream-specific concepts such as defects, segmentation, position constraints, `unitBatch`, material-level costar attributes, business DTO protocols, and formula languages are not modeled here until they first become general domain entities.
+Explicit non-goals:
+
+1. Downstream-specific defects, segmentation, position constraints, `unitBatch`, material-level costar attributes, business DTO protocols, and formula languages.
+2. Solver backend installation and license management.
+3. Heartbeat, tenant, and project runtime logic.
+
+
+## Public API
+
+| API | Responsibility | Stability |
+| --- | --- | --- |
+| `Csp1dProblem<V>` / `csp1dProblem` builder | Problem definition and builder DSL. | stable |
+| `Csp1dMilp<V>` | Plain MILP application entry. | stable |
+| `Csp1dColumnGeneration<V>` | Column-generation application entry. | stable |
+| `Csp1dConfiguration` | Column-generation configuration. | stable |
+| `Csp1dSolveConfig` | Solve configuration with yield/waste/length/partial/recovery controls. | stable |
+| `ReducedCostPricingGenerator` | Reduced-cost pricing generator. | stable |
+| `DFSGenerator` / `NSumGenerator` / `NSameGenerator` / `FullSumGenerator` | Cutting-plan generation strategies. | stable |
+| `Csp1dRecovery` | Solution recovery mechanism. | stable |
 
 ## Basic Use
 

@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.framework.network_scheduling.application.service
 
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.output.*
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.framework.network_scheduling.application.model.*
  * input, unit conversion, solver call, or dual certificate failures
  * return Failed.
  */
-class VrptwApplicationService<V : RealNumber<V>>(
+class VrptwApplicationService<V : FloatingNumber<V>>(
     private val instance: VrptwInstance<V>,
     private val solver: ColumnGenerationSolver,
     private val configuration: BranchAndPriceAlgorithm.Configuration = BranchAndPriceAlgorithm.Configuration(),

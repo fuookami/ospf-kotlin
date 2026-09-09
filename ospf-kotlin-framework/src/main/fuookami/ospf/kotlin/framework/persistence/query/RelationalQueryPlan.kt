@@ -145,11 +145,11 @@ data class OrderSpec(
 /**
  * 分页规格 / Page specification
  *
- * @property limit 单页最大记录数 / Maximum records per page
+ * @property limit 单页最大记录数，可空表示不设上限 / Maximum records per page; null means unbounded
  * @property offset 跳过的记录数 / Number of records to skip
  */
 data class PageSpec(
-    val limit: Int,
+    val limit: Int? = null,
     val offset: Int = 0
 )
 
@@ -235,8 +235,12 @@ class RelationalQueryPlan(
         if (projections.size > limits.maxProjections) {
             return failure("Projection count exceeds configured limit", "projections")
         }
-        if (page != null && (page.limit <= 0 || page.offset < 0)) {
-            return failure("Page limit must be positive and offset must not be negative", "page")
+        if (page != null && (page.limit != null && page.limit <= 0 || page.offset < 0)) {
+            return failure(
+                "Page limit, when specified, must be positive and offset must not be negative / " +
+                    "分页上限（如指定）必须为正数且偏移量不能为负数",
+                "page"
+            )
         }
         if (rootKey.any { it.source.isBlank() || it.path.isBlank() }) {
             return failure("Root key contains an empty column reference", "rootKey")
@@ -398,7 +402,7 @@ class RelationalQueryPlan(
             }
             append("|page=")
             page?.let {
-                append(it.limit)
+                append(it.limit ?: "unbounded")
                 append(":")
                 append(it.offset)
             }
@@ -418,7 +422,16 @@ class RelationalQueryPlan(
         return digest.joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
     }
 
-    /** 复制计划并重新防御性复制所有集合 / Copy the plan with defensive copies of all collections */
+    /**
+     * 获取规范化计划哈希 / Get the normalized plan hash
+     *
+     * `hash()` 是审计 API 的简短别名；保留 [canonicalHash] 以兼容已有调用方。
+     * `hash()` is the concise audit API alias; [canonicalHash] remains available for existing callers.
+     *
+     * @return 规范化计划的十六进制 SHA-256 摘要 / Hexadecimal SHA-256 digest of the normalized plan
+     */
+    fun hash(): String = canonicalHash()
+
     /**
      * 复制计划并重新规范化输入 / Copy the plan and normalize the supplied inputs again
      *

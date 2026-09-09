@@ -33,6 +33,23 @@ infrastructure
 
 `domain-route-generation` and `domain-route-compilation` do not depend on each other; `application` bridges them by passing `PricingDuals` from compilation to generation.
 
+
+## Scope
+
+This module covers:
+
+1. Generic directed network graphs and flow primitives.
+2. Single/multi-commodity network flow modeling.
+3. VRPTW instance, routes, validators, and cost policies.
+4. ESPPRC exact pricing with label dominance.
+5. Incremental column generation with Phase I/II.
+6. Best-bound Branch-and-Price orchestration.
+
+Explicit non-goals:
+
+1. Business-specific request DTOs, tenant context, formula languages, and project runtime policies.
+2. Solver backend installation and license management.
+3. Domain-specific scheduling beyond network-flow problem families.
 ## Public API
 
 ### Infrastructure
@@ -83,6 +100,26 @@ infrastructure
 | `VrptwSolveResult<V>` | Public solve result with status, solution, bounds, gap, and trace |
 | `BranchAndPriceStatus` | `Optimal \| Feasible \| Infeasible \| TimeLimit \| NodeLimit \| SolverStopped` |
 | `BranchDecision` | Sealed class: `ForbidVehicleType`, `RequireVehicleType`, `ForbidArc`, `RequireArc` |
+
+
+## Kotlin Delivery Status and Validation
+
+This section records the Kotlin module scope only. It does not claim full-repository acceptance or native-solver benchmark results.
+
+### Covered Kotlin Tests
+
+The module-local tests cover:
+
+- network infrastructure and flow model registration
+- VRPTW value validation, route validation, and pricing helpers
+- ESPPRC label extension, resource feasibility, forbidden-customer reachability, dominance, branch masks, and column limits
+- route compilation and application-level branch-and-price orchestration
+
+Run the Kotlin tests for this module with:
+
+```powershell
+mvn -B -ntp -f ospf-kotlin-framework-network-scheduling/pom.xml test -T 0.75C
+```
 
 ## Extension Points
 

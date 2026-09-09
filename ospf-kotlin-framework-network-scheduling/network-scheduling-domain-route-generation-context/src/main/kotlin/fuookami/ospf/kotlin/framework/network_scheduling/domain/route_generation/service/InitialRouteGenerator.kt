@@ -1,10 +1,8 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.network_scheduling.domain.route_generation.service
 
-import kotlin.time.Duration
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.infrastructure.BranchMask
@@ -78,7 +76,8 @@ class InitialRouteGenerator<V : RealNumber<V>>(
      * 构建单客户路线：start depot -> customer -> end depot。 / Build single-customer route.
      */
     private fun buildSingleCustomerRoute(customer: Customer<V>, vehicleType: VehicleType<V>): Route<V>? {
-        val flt64Window = instance.schedulingWindow.toFlt64Boundary()
+        val schedulingWindow = instance.schedulingWindow
+        val zero = vehicleType.capacity.value.constants.zero
 
         val startDepot = instance.startDepot
         val endDepot = instance.endDepot
@@ -95,9 +94,9 @@ class InitialRouteGenerator<V : RealNumber<V>>(
         if (!startArcFeasible || !endArcFeasible) return null
 
         // 时间递推 / Time recurrence
-        var currentTime = flt64Window.valueOf(startDepot.timeWindow.readyTime)
-        var currentLoad = Flt64.zero
-        var totalDistance = Flt64.zero
+        var currentTime = schedulingWindow.valueOf(startDepot.timeWindow.readyTime)
+        var currentLoad = zero
+        var totalDistance = zero
         val arcCosts = mutableListOf<Quantity<V>>()
 
         val stops = mutableListOf<RouteStop<V>>()
@@ -107,10 +106,10 @@ class InitialRouteGenerator<V : RealNumber<V>>(
         stops.add(RouteStop(
             nodeId = startDepot.node.id,
             customerId = null,
-            arrival = flt64Window.instantOf(startDeparture),
-            serviceStart = flt64Window.instantOf(startDeparture),
-            departure = flt64Window.instantOf(startDeparture),
-            accumulatedLoad = Quantity(valueAdapter.fromSolverValue(Flt64.zero).value ?: return null, instance.units.loadUnit)
+            arrival = schedulingWindow.instantOf(startDeparture),
+            serviceStart = schedulingWindow.instantOf(startDeparture),
+            departure = schedulingWindow.instantOf(startDeparture),
+            accumulatedLoad = Quantity(zero, instance.units.loadUnit)
         ))
 
         // start -> customer
@@ -118,25 +117,26 @@ class InitialRouteGenerator<V : RealNumber<V>>(
         val distance1 = distanceCalculator.distance(startDepot.node, customer.node).value ?: return null
         val arcCost1 = arcCostCalculator.cost(startDepot.node, customer.node, distance1, travelTime1, vehicleType).value ?: return null
         arcCosts.add(arcCost1)
-        totalDistance = totalDistance + (valueAdapter.normalize(distance1, instance.units.distanceUnit).value ?: return null)
+        totalDistance = totalDistance + (valueAdapter.normalizeValue(distance1, instance.units.distanceUnit).value ?: return null)
 
-        val arrival1 = startDeparture + flt64Window.valueOf(travelTime1)
-        val serviceStart1 = maxOf(arrival1, flt64Window.valueOf(customer.timeWindow.readyTime))
-        if (serviceStart1 gr flt64Window.valueOf(customer.timeWindow.dueTime)) return null
+        val arrival1 = startDeparture + schedulingWindow.valueOf(travelTime1)
+        val serviceStart1 = maxOf(arrival1, schedulingWindow.valueOf(customer.timeWindow.readyTime))
+        if (serviceStart1 gr schedulingWindow.valueOf(customer.timeWindow.dueTime)) return null
 
-        currentLoad = currentLoad + (valueAdapter.normalize(customer.demand, instance.units.loadUnit).value ?: return null)
-        if (currentLoad gr (valueAdapter.normalize(vehicleType.capacity, instance.units.loadUnit).value ?: return null)) return null
+        currentLoad = currentLoad + (valueAdapter.normalizeValue(customer.demand, instance.units.loadUnit).value ?: return null)
+        val vehicleCapacity = valueAdapter.normalizeValue(vehicleType.capacity, instance.units.loadUnit).value ?: return null
+        if (currentLoad gr vehicleCapacity) return null
 
-        val departure1 = serviceStart1 + flt64Window.valueOf(customer.serviceTime)
+        val departure1 = serviceStart1 + schedulingWindow.valueOf(customer.serviceTime)
         currentTime = departure1
 
         stops.add(RouteStop(
             nodeId = customer.node.id,
             customerId = customer.id,
-            arrival = flt64Window.instantOf(arrival1),
-            serviceStart = flt64Window.instantOf(serviceStart1),
-            departure = flt64Window.instantOf(departure1),
-            accumulatedLoad = Quantity(valueAdapter.fromSolverValue(currentLoad).value ?: return null, instance.units.loadUnit)
+            arrival = schedulingWindow.instantOf(arrival1),
+            serviceStart = schedulingWindow.instantOf(serviceStart1),
+            departure = schedulingWindow.instantOf(departure1),
+            accumulatedLoad = Quantity(currentLoad, instance.units.loadUnit)
         ))
 
         // customer -> end depot
@@ -144,19 +144,19 @@ class InitialRouteGenerator<V : RealNumber<V>>(
         val distance2 = distanceCalculator.distance(customer.node, endDepot.node).value ?: return null
         val arcCost2 = arcCostCalculator.cost(customer.node, endDepot.node, distance2, travelTime2, vehicleType).value ?: return null
         arcCosts.add(arcCost2)
-        totalDistance = totalDistance + (valueAdapter.normalize(distance2, instance.units.distanceUnit).value ?: return null)
+        totalDistance = totalDistance + (valueAdapter.normalizeValue(distance2, instance.units.distanceUnit).value ?: return null)
 
-        val arrival2 = currentTime + flt64Window.valueOf(travelTime2)
-        val serviceStart2 = maxOf(arrival2, flt64Window.valueOf(endDepot.timeWindow.readyTime))
-        if (serviceStart2 gr flt64Window.valueOf(endDepot.timeWindow.dueTime)) return null
+        val arrival2 = currentTime + schedulingWindow.valueOf(travelTime2)
+        val serviceStart2 = maxOf(arrival2, schedulingWindow.valueOf(endDepot.timeWindow.readyTime))
+        if (serviceStart2 gr schedulingWindow.valueOf(endDepot.timeWindow.dueTime)) return null
 
         stops.add(RouteStop(
             nodeId = endDepot.node.id,
             customerId = null,
-            arrival = flt64Window.instantOf(arrival2),
-            serviceStart = flt64Window.instantOf(serviceStart2),
-            departure = flt64Window.instantOf(serviceStart2),
-            accumulatedLoad = Quantity(valueAdapter.fromSolverValue(currentLoad).value ?: return null, instance.units.loadUnit)
+            arrival = schedulingWindow.instantOf(arrival2),
+            serviceStart = schedulingWindow.instantOf(serviceStart2),
+            departure = schedulingWindow.instantOf(serviceStart2),
+            accumulatedLoad = Quantity(currentLoad, instance.units.loadUnit)
         ))
 
         val cost = routeCostPolicy.cost(vehicleType, arcCosts).value ?: return null
@@ -164,7 +164,7 @@ class InitialRouteGenerator<V : RealNumber<V>>(
         return Route(
             vehicleTypeId = vehicleType.id,
             stops = stops,
-            distance = Quantity(valueAdapter.fromSolverValue(totalDistance).value ?: return null, instance.units.distanceUnit),
+            distance = Quantity(totalDistance, instance.units.distanceUnit),
             cost = cost
         ).value
     }

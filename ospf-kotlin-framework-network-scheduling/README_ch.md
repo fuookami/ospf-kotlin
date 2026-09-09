@@ -84,6 +84,26 @@ infrastructure
 | `BranchAndPriceStatus` | `Optimal \| Feasible \| Infeasible \| TimeLimit \| NodeLimit \| SolverStopped` |
 | `BranchDecision` | 密封类：`ForbidVehicleType`、`RequireVehicleType`、`ForbidArc`、`RequireArc` |
 
+
+## Kotlin 交付状态与验证
+
+本节仅记录 Kotlin 网络调度模块的范围，不代表全仓验收，也不报告原生求解器基准结果。
+
+### 已覆盖的 Kotlin 测试
+
+模块内测试覆盖：
+
+- 网络基础设施与流模型注册
+- VRPTW 值校验、路线校验与定价辅助逻辑
+- ESPPRC 标签扩展、资源可行性、禁止客户可达性、支配、分支掩码与列数限制
+- 路线编译以及应用层分支定价编排
+
+使用以下命令运行本模块的 Kotlin 测试：
+
+```powershell
+mvn -B -ntp -f ospf-kotlin-framework-network-scheduling/pom.xml test -T 0.75C
+```
+
 ## 扩展点
 
 所有策略均通过 fun interface 注入，框架不硬编码单一策略：

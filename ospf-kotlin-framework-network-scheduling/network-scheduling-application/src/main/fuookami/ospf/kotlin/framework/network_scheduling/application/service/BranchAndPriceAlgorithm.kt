@@ -5,6 +5,7 @@ package fuookami.ospf.kotlin.framework.network_scheduling.application.service
 import kotlin.time.Duration
 import kotlin.time.TimeSource
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -33,7 +34,7 @@ import fuookami.ospf.kotlin.framework.network_scheduling.application.model.*
  * after solving, it is replaced by the own lower bound.
  * The global lower bound is the minimum of all active nodes' effective lower bounds.
  */
-class BranchAndPriceAlgorithm<V : RealNumber<V>>(
+class BranchAndPriceAlgorithm<V : FloatingNumber<V>>(
     private val instance: VrptwInstance<V>,
     private val solver: ColumnGenerationSolver,
     private val configuration: Configuration,
@@ -53,7 +54,7 @@ class BranchAndPriceAlgorithm<V : RealNumber<V>>(
     /**
      * B&P 策略注入。 / B&P policy injection.
      */
-    data class Policy<V : RealNumber<V>>(
+    data class Policy<V : FloatingNumber<V>>(
         val valueAdapter: NetworkSchedulingSolverValueAdapter<V>,
         val distanceCalculator: DistanceCalculator<V>,
         val travelTimeCalculator: TravelTimeCalculator<V>,

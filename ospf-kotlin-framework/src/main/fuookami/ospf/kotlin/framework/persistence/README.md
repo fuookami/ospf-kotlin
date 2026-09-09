@@ -129,3 +129,8 @@ The `persistence/expression/` sub-package provides a KSP annotation processing-b
 The framework persistence API also exposes a database-independent [relational query plan](query/README.md). It is intended for controlled backend adapters: adapters register sources and columns, while callers provide immutable join, predicate, projection, ordering, grouping, and pagination semantics.
 
 `Inner`, `Left`, and `Exists` are distinct operations. `Exists` is a semi-join and is the preferred shape for one-to-many existence predicates because it preserves root cardinality. Root-granularity counting requires an explicit `rootKey`; unsupported composite-key strategies must be rejected rather than approximated.
+
+Backend adapters can implement `RelationalQueryCompiler<T>` and declare a `RelationalQueryDialect` (`MySQL`,
+`PostgreSQL`, or `Oracle`). The framework contract returns `Ret<T>` and deliberately leaves SQL generation,
+database drivers, connections, and row mapping to the adapter. The existing expression DSL remains compatible;
+adapters may compile its predicates through the same `RelationalQueryPlan` boundary.

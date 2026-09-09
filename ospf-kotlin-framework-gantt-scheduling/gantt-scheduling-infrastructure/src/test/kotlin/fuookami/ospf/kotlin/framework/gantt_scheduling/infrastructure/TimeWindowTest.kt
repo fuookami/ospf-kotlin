@@ -7,6 +7,8 @@ import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.Instant
 import kotlin.time.toDuration
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -20,6 +22,48 @@ import fuookami.ospf.kotlin.utils.functional.*
  * TimeWindow 类的单元测试。
  */
 class TimeWindowTest {
+    @Test
+    fun fltXConversionShouldPreserveNanosecondPrecisionAndHalfRounding() {
+        val oneNanosecond = 1.toDuration(DurationUnit.NANOSECONDS)
+        val preciseDuration = 1_234_567_890_123_456_789L.toDuration(DurationUnit.NANOSECONDS)
+
+        assertEquals(
+            FltX("0.000000001"),
+            TimeWindowValueConverters.durationToFltX(oneNanosecond, DurationUnit.SECONDS)
+        )
+        assertEquals(
+            FltX("1234567890.123456789"),
+            TimeWindowValueConverters.durationToFltX(preciseDuration, DurationUnit.SECONDS)
+        )
+        assertEquals(
+            oneNanosecond,
+            TimeWindowValueConverters.fltXToDuration(FltX("0.0000000006"), DurationUnit.SECONDS)
+        )
+        assertEquals(
+            -oneNanosecond,
+            TimeWindowValueConverters.fltXToDuration(FltX("-0.0000000005"), DurationUnit.SECONDS)
+        )
+    }
+
+    @Test
+    fun fltXTimeWindowHookShouldPreserveInstantNanoseconds() {
+        val timeWindow = TimeWindow(
+            window = TimeRange(
+                start = Instant.parse("2020-08-30T08:00:00Z"),
+                end = Instant.parse("2020-08-30T09:00:00Z")
+            ),
+            durationUnit = DurationUnit.SECONDS,
+            fromDouble = { FltX(it.toString()) },
+            toDouble = { fail("FltX time-window conversion must not use Double fallback") },
+            fromDuration = TimeWindowValueConverters::durationToFltX,
+            toDuration = TimeWindowValueConverters::fltXToDuration
+        )
+        val instant = timeWindow.start + 1.toDuration(DurationUnit.NANOSECONDS)
+
+        assertEquals(FltX("0.000000001"), timeWindow.valueOf(instant))
+        assertEquals(instant, timeWindow.instantOf(FltX("0.000000001")))
+    }
+
     @Test
     fun quantityOfShouldReturnGenericTimeWindowValueQuantity() {
         val timeWindow = TimeWindow(

@@ -11,7 +11,19 @@ import org.ktorm.dsl.*
 import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.Table
 import fuookami.ospf.kotlin.framework.persistence.expression.translator.*
+import fuookami.ospf.kotlin.framework.persistence.query.ColumnRef
+import fuookami.ospf.kotlin.framework.persistence.query.KtormCompiledQuery
+import fuookami.ospf.kotlin.framework.persistence.query.KtormQuerySource
+import fuookami.ospf.kotlin.framework.persistence.query.KtormRelationalQueryCompiler
+import fuookami.ospf.kotlin.framework.persistence.query.NullsOrder as RelationalNullsOrder
+import fuookami.ospf.kotlin.framework.persistence.query.OrderSpec
+import fuookami.ospf.kotlin.framework.persistence.query.PageSpec
+import fuookami.ospf.kotlin.framework.persistence.query.QuerySource
+import fuookami.ospf.kotlin.framework.persistence.query.RelationalQueryDialect
+import fuookami.ospf.kotlin.framework.persistence.query.RelationalQueryPlan
+import fuookami.ospf.kotlin.framework.persistence.query.SortDirection as RelationalSortDirection
 import fuookami.ospf.kotlin.math.symbol.expression.BooleanExpression
+import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
  * 列名解析器 / Column Name Resolver
@@ -33,6 +45,7 @@ fun interface ColumnNameResolver {
  * @property patternMatchPolicy 模式匹配策略 / Pattern match policy
  * @property nullsOrderSupport 空值排序支持 / Nulls order support
  * @property unsupportedPredicatePolicy 不支持谓词策略 / Unsupported predicate policy
+ * @property relationalQueryDialect Ktorm 数据库使用的关系查询方言 / Relational query dialect used by the Ktorm database
 */
 abstract class KtormRepository<E : Any>(
     protected val database: Database,
@@ -41,16 +54,45 @@ abstract class KtormRepository<E : Any>(
     protected val patternMatchPolicy: PatternMatchPolicy = DefaultPatternMatchPolicy,
     protected val nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto,
     protected val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse,
-    protected val targetConstantBinder: KtormTargetConstantBinder? = null
+    protected val targetConstantBinder: KtormTargetConstantBinder? = null,
+    protected val relationalQueryDialect: RelationalQueryDialect = RelationalQueryDialect.SQLite
 ) : ExpressionRepository<E> {
 
+    private val relationalQuerySource = QuerySource(
+        table::class.simpleName ?: "root"
+    )
+    private val relationalQueryCompiler = KtormRelationalQueryCompiler(
+        database = database,
+        sources = mapOf(
+            relationalQuerySource.name to KtormQuerySource(
+                source = relationalQuerySource,
+                table = table,
+                resolveColumnDetailed = object : DiagnosticPersistenceFieldResolver<ColumnDeclaring<*>> {
+                    override fun resolveDetailed(path: String): PersistenceFieldResolution<ColumnDeclaring<*>> {
+                        val normalizedPath = path.trim()
+                        val column = resolveColumn(normalizedPath)
+                        return if (column == null) {
+                            PersistenceFieldResolution.Missing(path)
+                        } else {
+                            PersistenceFieldResolution.Resolved(column)
+                        }
+                    }
+                },
+                defaultColumnExpressions = table.columns.map { it as ColumnDeclaring<*> }
+            )
+        ),
+        patternMatchPolicy = patternMatchPolicy,
+        nullsOrderSupport = nullsOrderSupport,
+        unsupportedPredicatePolicy = unsupportedPredicatePolicy,
+        targetConstantBinder = targetConstantBinder,
+        dialect = relationalQueryDialect
+    )
     private val booleanTranslator = KtormBooleanTranslator(
         resolveColumn = resolveColumn,
         patternMatchPolicy = patternMatchPolicy,
         unsupportedPredicatePolicy = unsupportedPredicatePolicy,
         targetConstantBinder = targetConstantBinder
     )
-    private val orderByTranslator = KtormOrderByTranslator(resolveColumn, nullsOrderSupport)
     private val updateTranslator = KtormUpdateTranslator(resolveColumn, table)
 
     /**
@@ -78,27 +120,16 @@ abstract class KtormRepository<E : Any>(
         limit: Int?,
         offset: Int?
     ): List<E> {
-        val condition = booleanTranslator.translate(where).value
-        if (condition == null) return emptyList()
-
-        var query = database.from(table).select().where(condition)
-
-        // 应用排序
-        // Apply order by
-        if (sortBy != null && sortBy.isNotEmpty()) {
-            query = orderByTranslator.apply(query, sortBy).value!!
-        }
-
-        // 应用分页
-        // Apply pagination
-        if (limit != null) {
-            query = query.limit(limit)
-        }
-        if (offset != null) {
-            query = query.offset(offset)
-        }
-
-        return query.mapNotNull { mapToEntity(it) }
+        if (limit != null && limit <= 0 || offset != null && offset < 0) return emptyList()
+        val compiled = compileQuery(
+            queryPlan(
+                where = where,
+                sortBy = sortBy,
+                limit = limit,
+                offset = offset
+            )
+        ).value ?: return emptyList()
+        return compiled.query.mapNotNull { mapToEntity(it) }
     }
 
     /**
@@ -108,11 +139,8 @@ abstract class KtormRepository<E : Any>(
      * @return 实体数量 / Entity count
     */
     override fun count(where: BooleanExpression): Long {
-        val condition = booleanTranslator.translate(where).value
-        if (condition == null) return 0L
-
-        val totalRecords = database.from(table).select().where(condition).totalRecordsInAllPages
-        return totalRecords.toLong()
+        val compiled = compileQuery(queryPlan(where = where)).value ?: return 0L
+        return compiled.query.totalRecordsInAllPages.toLong()
     }
 
     /**
@@ -125,8 +153,7 @@ abstract class KtormRepository<E : Any>(
     override fun update(where: BooleanExpression, assignments: UpdateAssignments): Int {
         if (assignments.isEmpty()) return 0
 
-        val condition = booleanTranslator.translate(where).value
-        if (condition == null) return 0
+        val condition = booleanTranslator.translate(where).value ?: return 0
 
         return updateTranslator.executeUpdate(database, condition, assignments)
     }
@@ -138,8 +165,7 @@ abstract class KtormRepository<E : Any>(
      * @return 受影响的行数 / Number of affected rows
     */
     override fun delete(where: BooleanExpression): Int {
-        val condition = booleanTranslator.translate(where).value
-        if (condition == null) return 0
+        val condition = booleanTranslator.translate(where).value ?: return 0
 
         return database.delete(table) { condition }
     }
@@ -154,6 +180,51 @@ abstract class KtormRepository<E : Any>(
     */
     protected abstract fun mapToEntity(row: QueryRowSet): E?
 
+    /**
+     * 编译仓储读取计划 / Compile repository read plan
+     *
+     * 子类可覆写该边界以记录审计信息或替换执行策略。 / Subclasses may override this boundary to record audit information or replace the execution strategy.
+     *
+     * @param plan 关系查询计划 / Relational query plan
+     * @return Ktorm 编译结果 / Ktorm compiled result
+     */
+    protected open fun compileQuery(plan: RelationalQueryPlan): Ret<KtormCompiledQuery> {
+        return relationalQueryCompiler.compile(plan)
+    }
+
+    private fun queryPlan(
+        where: BooleanExpression,
+        sortBy: SortBy? = null,
+        limit: Int? = null,
+        offset: Int? = null
+    ): RelationalQueryPlan {
+        val orders = sortBy?.items.orEmpty().map { item ->
+            OrderSpec(
+                column = ColumnRef(relationalQuerySource.name, item.path),
+                direction = when (item.direction) {
+                    SortDirection.Asc -> RelationalSortDirection.Ascending
+                    SortDirection.Desc -> RelationalSortDirection.Descending
+                },
+                nulls = when (item.nulls) {
+                    NullsOrder.NullsFirst -> RelationalNullsOrder.First
+                    NullsOrder.NullsLast -> RelationalNullsOrder.Last
+                    null -> RelationalNullsOrder.Unspecified
+                }
+            )
+        }
+        val page = if (limit != null || offset != null) {
+            PageSpec(limit = limit, offset = offset ?: 0)
+        } else {
+            null
+        }
+        return RelationalQueryPlan(
+            root = relationalQuerySource,
+            predicate = where,
+            orderBy = orders,
+            page = page
+        )
+    }
+
     companion object {
         /**
          * 从 Table 自动创建列解析器 / Create column resolver from Table
@@ -162,8 +233,7 @@ abstract class KtormRepository<E : Any>(
          * @return 列解析器函数 / Column resolver function
         */
         fun tableColumnResolver(table: Table<*>): KtormColumnResolver = KtormColumnResolver { path: String ->
-            val columnName = path.substringAfterLast(".")
-            table.columns.find { it.name == columnName } as? ColumnDeclaring<*>
+            table.columns.find { it.name == path.trim() } as? ColumnDeclaring<*>
         }
     }
 }

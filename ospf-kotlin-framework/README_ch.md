@@ -33,6 +33,13 @@
 | `persistence.expression` | 谓词下推注解、仓储 API、排序 DSL、更新赋值 DSL、标量函数 DSL |
 | `network` | 带重试和鉴权的 HTTP 响应工具 |
 | `log` | 日志上下文管理（推送/保存接口、建造者）和日志记录类型 |
+## 公开 API
+
+| API | 职责 | 稳定性 |
+| --- | --- | --- |
+| `ColumnGenerationSolver` | 列生成求解器抽象。 | stable |
+| `Pipeline<M>` | 约束/目标流水线执行。 | stable |
+| `LogicBasedBendersEngine` | 基于逻辑的 Benders CP。 | stable |
 
 ## 求解器抽象
 

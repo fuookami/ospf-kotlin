@@ -129,3 +129,7 @@ object MyTable : Table<MyEntity>("my_table") {
 framework 持久化 API 同时提供与数据库无关的[关系查询计划](query/README_ch.md)。该契约用于受控后端适配器：适配器注册数据源和字段，调用方只提交不可变的 Join、谓词、投影、排序、分组和分页语义。
 
 `Inner`、`Left` 和 `Exists` 是不同操作。`Exists` 是半连接，适合一对多存在性谓词并保持根记录粒度。根粒度计数必须显式提供 `rootKey`；不支持的复合根键策略必须拒绝，不能用近似计数替代。
+
+后端适配器可以实现 `RelationalQueryCompiler<T>`，并声明 `RelationalQueryDialect`（`MySQL`、`PostgreSQL`
+或 `Oracle`）。framework 契约统一返回 `Ret<T>`，SQL 生成、数据库驱动、连接和行映射仍由适配器负责。
+现有表达式 DSL 保持兼容；适配器可以将其谓词通过同一 `RelationalQueryPlan` 边界编译。

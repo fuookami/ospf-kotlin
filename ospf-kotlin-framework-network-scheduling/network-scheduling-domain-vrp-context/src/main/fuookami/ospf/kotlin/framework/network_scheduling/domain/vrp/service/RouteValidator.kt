@@ -194,9 +194,15 @@ object RouteValidator {
         isCost: Boolean
     ): Boolean {
         val unit = if (isCost) instance.units.costUnit else instance.units.distanceUnit
-        val actualValue = adapter.normalize(actual, unit).value ?: return false
-        val expectedValue = adapter.normalize(expected, unit).value ?: return false
-        return (actualValue - expectedValue).abs() leq instance.tolerances.costValidation
+        val actualValue = adapter.normalizeValue(actual, unit).value ?: return false
+        val expectedValue = adapter.normalizeValue(expected, unit).value ?: return false
+        val tolerance = adapter.fromSolverValue(instance.tolerances.costValidation).value ?: return false
+        // RealNumber 保证排序与加法，但不保证减法（例如无符号值）。
+        // RealNumber guarantees ordering and addition, but not subtraction (for example unsigned values).
+        // 对称边界等价于绝对差检查，并保持领域数值类型 V。
+        // Symmetric bounds are equivalent to an absolute-difference check and keep the domain type V.
+        return actualValue leq (expectedValue + tolerance) &&
+                expectedValue leq (actualValue + tolerance)
     }
 
     private fun <V : RealNumber<V>> routeFailure(

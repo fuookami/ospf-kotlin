@@ -2,12 +2,9 @@
 package fuookami.ospf.kotlin.framework.network_scheduling.domain.route_generation.service
 
 import kotlin.time.Duration
-import kotlin.time.Instant
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow as SchedulingTimeWindow
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.route_generation.model.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.route_generation.policy.LabelDominancePolicy
@@ -27,7 +24,7 @@ import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
  *
  * Uses label-extension-based ESPPRC algorithm.
  */
-class EspprcPricer<V : RealNumber<V>>(
+class EspprcPricer<V : FloatingNumber<V>>(
     private val instance: VrptwInstance<V>,
     private val valueAdapter: NetworkSchedulingSolverValueAdapter<V>,
     private val dominancePolicy: LabelDominancePolicy = LabelDominancePolicy.Default
@@ -39,23 +36,32 @@ class EspprcPricer<V : RealNumber<V>>(
      * @param request 定价请求 / Pricing request
      * @return 定价结果 / Pricing result
      */
-    fun price(graph: PricingGraph, request: PricingRequest<V>): Ret<PricingResult<V>> {
+    fun price(graph: PricingGraph<V>, request: PricingRequest<V>): Ret<PricingResult<V>> {
+        val pricingTolerance = valueAdapter.fromSolverValue(request.pricingTolerance).value
+            ?: return networkSchedulingFailure(
+                "执行定价失败：定价容差转换失败 / Failed to execute pricing: pricing tolerance conversion failed"
+            )
         val customerCount = graph.customerCount
         val endDepotIdx = graph.endDepotIndex
+        val zero = graph.vehicleCapacity.constants.zero
+        val negativePricingTolerance = zero - pricingTolerance
+            ?: return networkSchedulingFailure(
+                "执行定价失败：无法计算负定价容差 / Failed to execute pricing: cannot calculate negative pricing tolerance"
+            )
 
         // 每个节点的活跃标签索引列表 / Active label indices at each node
         val labelsAtNode = Array(graph.nodes.size) { mutableListOf<Int>() }
         // dominated 标记数组 / Dominated marker array
         val dominated = mutableSetOf<Int>()
         // 全局标签列表（用于前驱回溯） / Global label list (for predecessor backtracking)
-        val allLabels = mutableListOf<EspprcLabel>()
+        val allLabels = mutableListOf<EspprcLabel<V>>()
 
         // 创建根标签（在起始 depot，时间为 0，负载为 0） / Create root label
         val startNode = graph.nodes[graph.startDepotIndex]
         val rootLabel = EspprcLabel(
-            reducedCost = Flt64.zero,
+            reducedCost = zero,
             time = startNode.readyTime,
-            load = Flt64.zero,
+            load = zero,
             currentNode = startNode.nodeId,
             visited = VisitedCustomers.empty(customerCount),
             forbidden = ForbiddenCustomers.empty(customerCount),
@@ -67,8 +73,8 @@ class EspprcPricer<V : RealNumber<V>>(
 
         // BFS 式标签扩展 / BFS-style label extension
         var labelIdCounter = 1
-        var minReducedCost = Flt64.zero
-        val negativeLabels = mutableListOf<EspprcLabel>()
+        var minReducedCost = zero
+        val negativeLabels = mutableListOf<EspprcLabel<V>>()
 
         // 使用队列逐层扩展 / Use queue for level-by-level extension
         val queue = ArrayDeque<Int>()
@@ -161,7 +167,7 @@ class EspprcPricer<V : RealNumber<V>>(
                 queue.add(newLabelIdx)
 
                 // 到达 end depot 时检查 reduced cost / Check reduced cost when reaching end depot
-                if (arc.toIndex == endDepotIdx && newReducedCost ls -request.pricingTolerance) {
+                if (arc.toIndex == endDepotIdx && newReducedCost ls negativePricingTolerance) {
                     negativeLabels.add(newLabel)
                     if (minReducedCost gr newReducedCost) {
                         minReducedCost = newReducedCost
@@ -171,7 +177,7 @@ class EspprcPricer<V : RealNumber<V>>(
         }
 
         // 精确定价完成：没有任何标签的 reduced cost 小于 -pricingTolerance
-        val exactPricingComplete = !interrupted && minReducedCost geq -request.pricingTolerance
+        val exactPricingComplete = !interrupted && minReducedCost geq negativePricingTolerance
 
         // 回溯生成路线 / Backtrack to generate routes
         val routes = mutableListOf<Route<V>>()
@@ -203,11 +209,11 @@ class EspprcPricer<V : RealNumber<V>>(
      */
     private fun updateForbiddenCustomers(
         currentForbidden: ForbiddenCustomers,
-        toNode: PricingNode,
+        toNode: PricingNode<V>,
         visited: VisitedCustomers,
-        graph: PricingGraph,
-        departureTime: Flt64,
-        currentLoad: Flt64
+        graph: PricingGraph<V>,
+        departureTime: V,
+        currentLoad: V
     ): ForbiddenCustomers {
         var forbidden = currentForbidden
         if (toNode.isDepot) return forbidden
@@ -246,27 +252,27 @@ class EspprcPricer<V : RealNumber<V>>(
      * 从标签回溯生成完整路线。 / Backtrack from label to generate complete route.
      */
     private fun backtrackRoute(
-        label: EspprcLabel,
-        allLabels: List<EspprcLabel>,
-        graph: PricingGraph,
+        label: EspprcLabel<V>,
+        allLabels: List<EspprcLabel<V>>,
+        graph: PricingGraph<V>,
         request: PricingRequest<V>
     ): Ret<Route<V>> {
-        val flt64Window = instance.schedulingWindow.toFlt64Boundary()
+        val schedulingWindow = instance.schedulingWindow
         val vehicleType = instance.vehicleTypeById[request.vehicleTypeId]
             ?: return networkSchedulingFailure(
                 "回溯路线失败：车辆类型不存在 / Failed to backtrack route: vehicle type does not exist"
             )
 
         // 收集路径节点 / Collect path nodes
-        val path = mutableListOf<EspprcLabel>()
-        var current: EspprcLabel? = label
+        val path = mutableListOf<EspprcLabel<V>>()
+        var current: EspprcLabel<V>? = label
         while (current != null) {
             path.add(0, current)
             current = if (current.predecessor >= 0) allLabels[current.predecessor] else null
         }
 
         // 收集路径弧 / Collect path arcs
-        val pathArcs = mutableListOf<PricingArc>()
+        val pathArcs = mutableListOf<PricingArc<V>>()
         for (i in 0 until path.lastIndex) {
             val fromNodeId = path[i].currentNode
             val toNodeId = path[i + 1].currentNode
@@ -277,12 +283,10 @@ class EspprcPricer<V : RealNumber<V>>(
 
         // 构建 RouteStop 列表 / Build RouteStop list
         val stops = mutableListOf<RouteStop<V>>()
-        var accumulatedLoad = Quantity(valueAdapter.fromSolverValue(Flt64.zero).value
-            ?: return networkSchedulingFailure(
-                "回溯路线失败：负载转换失败 / Failed to backtrack route: load conversion failed"
-            ), instance.units.loadUnit)
-        var totalSolverDistance = Flt64.zero
-        var totalSolverCost = Flt64.zero
+        val zero = graph.vehicleCapacity.constants.zero
+        var accumulatedLoad = Quantity(zero, instance.units.loadUnit)
+        var totalDistance = zero
+        var totalCost = zero
 
         for (i in path.indices) {
             val nodeLabel = path[i]
@@ -292,7 +296,7 @@ class EspprcPricer<V : RealNumber<V>>(
             // nodeLabel.time = departure time = serviceStart + serviceTime
             // arrival = departure - serviceTime (如果无等待) 或 readyTime (如果有等待)
             // 更准确：从前驱弧推算 arrival
-            val arrivalFlt64: Flt64 = if (i == 0) {
+            val arrivalTime: V = if (i == 0) {
                 // 起始 depot：arrival = departure = readyTime
                 nodeLabel.time
             } else {
@@ -303,34 +307,33 @@ class EspprcPricer<V : RealNumber<V>>(
                     prevLabel.time + arc.travelTime
                 } else {
                     // fallback: departure - serviceTime
-                    nodeLabel.time - node.serviceTime
+                    val fallbackArrivalTime: V? = nodeLabel.time - node.serviceTime
+                    fallbackArrivalTime
+                        ?: return networkSchedulingFailure(
+                            "回溯路线失败：无法计算到达时间 / Failed to backtrack route: cannot calculate arrival time"
+                        )
                 }
             }
-            val serviceStartFlt64 = maxOf(arrivalFlt64, node.readyTime)
-            val departureFlt64 = nodeLabel.time
+            val serviceStartTime = maxOf(arrivalTime, node.readyTime)
+            val departureTime = nodeLabel.time
 
-            val arrivalInstant = flt64Window.instantOf(arrivalFlt64)
-            val serviceStartInstant = flt64Window.instantOf(serviceStartFlt64)
-            val departureInstant = flt64Window.instantOf(departureFlt64)
+            val arrivalInstant = schedulingWindow.instantOf(arrivalTime)
+            val serviceStartInstant = schedulingWindow.instantOf(serviceStartTime)
+            val departureInstant = schedulingWindow.instantOf(departureTime)
 
             val customerId = if (node.isDepot) null
                 else instance.customers[node.customerIndex].id
 
             if (!node.isDepot) {
-                val demand = instance.customers[node.customerIndex].demand
-                val convertedDemand = demand.convertTo(instance.units.loadUnit)
-                    ?: return networkSchedulingFailure(
-                        "回溯路线失败：需求单位转换失败 / Failed to backtrack route: demand unit conversion failed"
-                    )
-                accumulatedLoad = Quantity(accumulatedLoad.value + convertedDemand.value, instance.units.loadUnit)
+                accumulatedLoad = Quantity(accumulatedLoad.value + node.demand, instance.units.loadUnit)
             }
 
             // 累加弧距离 / Accumulate arc distance
             if (i > 0) {
                 val arc = pathArcs.getOrNull(i - 1)
                 if (arc != null) {
-                    totalSolverDistance = totalSolverDistance + arc.distance
-                    totalSolverCost = totalSolverCost + arc.objectiveCost
+                    totalDistance = totalDistance + arc.distance
+                    totalCost = totalCost + arc.objectiveCost
                 }
             }
 
@@ -344,21 +347,11 @@ class EspprcPricer<V : RealNumber<V>>(
             ))
         }
 
-        val costValue = valueAdapter.fromSolverValue(totalSolverCost)
-            .value ?: return networkSchedulingFailure(
-            "回溯路线失败：成本转换失败 / Failed to backtrack route: cost conversion failed"
-        )
-
-        val distanceValue = valueAdapter.fromSolverValue(totalSolverDistance)
-            .value ?: return networkSchedulingFailure(
-            "回溯路线失败：距离转换失败 / Failed to backtrack route: distance conversion failed"
-        )
-
         return Route(
             vehicleTypeId = request.vehicleTypeId,
             stops = stops,
-            distance = Quantity(distanceValue, instance.units.distanceUnit),
-            cost = Quantity(costValue, instance.units.costUnit)
+            distance = Quantity(totalDistance, instance.units.distanceUnit),
+            cost = Quantity(totalCost, instance.units.costUnit)
         )
     }
 }

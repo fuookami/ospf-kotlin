@@ -6,11 +6,13 @@ import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.Instant
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow as SchedulingTimeWindow
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindowValueConverters
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.infrastructure.*
@@ -138,19 +140,21 @@ class EspprcTest {
             window = schedulingWindow.window,
             durationUnit = DurationUnit.SECONDS,
             fromDouble = { FltX(it.toString()) },
-            toDouble = { it.toDouble() }
+            toDouble = { it.toDouble() },
+            fromDuration = TimeWindowValueConverters::durationToFltX,
+            toDuration = TimeWindowValueConverters::fltXToDuration
         )
         val start = assertNotNull(NetworkNode(
             id = NetworkNodeId("start-x"),
-            attributes = mapOf("x" to Quantity(FltX("0"), Meter), "y" to Quantity(FltX("0"), Meter))
+            attributes = mapOf("x" to Quantity(FltX("0.100000000000000000001", scale = 21), Meter), "y" to Quantity(FltX("0"), Meter))
         ).value)
         val customerNode = assertNotNull(NetworkNode(
             id = NetworkNodeId("customer-x"),
-            attributes = mapOf("x" to Quantity(FltX("1"), Meter), "y" to Quantity(FltX("0"), Meter))
+            attributes = mapOf("x" to Quantity(FltX("0.200000000000000000002", scale = 21), Meter), "y" to Quantity(FltX("0"), Meter))
         ).value)
         val end = assertNotNull(NetworkNode(
             id = NetworkNodeId("end-x"),
-            attributes = mapOf("x" to Quantity(FltX("2"), Meter), "y" to Quantity(FltX("0"), Meter))
+            attributes = mapOf("x" to Quantity(FltX("0.300000000000000000003", scale = 21), Meter), "y" to Quantity(FltX("0"), Meter))
         ).value)
         return assertNotNull(VrptwInstance(
             name = "fltx-pricing",
@@ -166,7 +170,7 @@ class EspprcTest {
             vehicleTypes = listOf(assertNotNull(VehicleType(
                 id = VehicleTypeId("vehicle-x"),
                 capacity = Quantity(FltX("2"), Kilogram),
-                fixedCost = Quantity(FltX("10"), NoneUnit),
+                fixedCost = Quantity(FltX("10.100000000000000000001", scale = 21), NoneUnit),
                 amount = 1
             ).value)),
             units = units,
@@ -174,6 +178,59 @@ class EspprcTest {
             tolerances = VrptwTolerances.default
         ).value)
     }
+
+    /**
+     * 构造 forbidden 可达性回归图：两条访问顺序在 merge 汇合。
+     * Build the forbidden-reachability regression graph: two visit orders merge at one customer.
+     */
+    private fun makeForbiddenReachabilityInstance(): VrptwInstance<Flt64> = assertNotNull(
+        VrptwInstance(
+            name = "test-forbidden-reachability",
+            startDepot = Depot(node("start", Flt64.zero), window(Flt64.zero, Flt64(100.0))),
+            endDepot = Depot(node("end", Flt64(5.0)), window(Flt64.zero, Flt64(100.0))),
+            customers = listOf(
+                assertNotNull(Customer(
+                    id = CustomerId("a"),
+                    node = node("a", Flt64(1.0)),
+                    demand = Quantity(Flt64.one, Kilogram),
+                    timeWindow = window(Flt64.zero, Flt64(50.0)),
+                    serviceTime = Duration.ZERO
+                ).value),
+                assertNotNull(Customer(
+                    id = CustomerId("b"),
+                    node = node("b", Flt64(2.0)),
+                    demand = Quantity(Flt64.one, Kilogram),
+                    timeWindow = window(Flt64.zero, Flt64(50.0)),
+                    serviceTime = Duration.ZERO
+                ).value),
+                assertNotNull(Customer(
+                    id = CustomerId("merge"),
+                    node = node("merge", Flt64(3.0)),
+                    demand = Quantity(Flt64.one, Kilogram),
+                    timeWindow = window(Flt64.zero, Flt64(100.0)),
+                    serviceTime = Duration.ZERO
+                ).value),
+                assertNotNull(Customer(
+                    id = CustomerId("target"),
+                    node = node("target", Flt64(4.0)),
+                    demand = Quantity(Flt64.one, Kilogram),
+                    timeWindow = window(Flt64.zero, Flt64(1.0)),
+                    serviceTime = Duration.ZERO
+                ).value)
+            ),
+            vehicleTypes = listOf(
+                assertNotNull(VehicleType(
+                    id = VehicleTypeId("v1"),
+                    capacity = Quantity(Flt64(10.0), Kilogram),
+                    fixedCost = Quantity(Flt64(100.0), NoneUnit),
+                    amount = 1
+                ).value)
+            ),
+            units = units,
+            schedulingWindow = schedulingWindow,
+            tolerances = VrptwTolerances.default
+        ).value
+    )
 
     // ========== Model 层测试 ==========
 
@@ -455,6 +512,89 @@ class EspprcTest {
         assertTrue(pricing.value.routes.isNotEmpty())
     }
 
+    /**
+     * FltX 定价图和 ESPPRC 必须保留高于 Double 精度的距离、成本及 reduced cost。
+     * The pricing graph and ESPPRC must preserve distance, cost, and reduced cost beyond Double precision.
+     */
+    @Test
+    fun espprcShouldPreserveFltXPrecisionForGraphAndRoutes() {
+        val instance = makeFltXInstance()
+        val vehicleTypeId = instance.vehicleTypes.single().id
+        val customer = instance.customers.single()
+        val startId = instance.startDepot.node.id.value
+        val customerId = customer.node.id.value
+        val endId = instance.endDepot.node.id.value
+
+        val startToCustomerDistance = FltX("0.100000000000000000001", scale = 21)
+        val customerToEndDistance = FltX("0.100000000000000000001", scale = 21)
+        val startToEndDistance = FltX("0.200000000000000000002", scale = 21)
+        val fixedCost = instance.vehicleTypes.single().fixedCost.value
+
+        val distanceValues = mapOf(
+            "$startId->$customerId" to startToCustomerDistance,
+            "$customerId->$endId" to customerToEndDistance,
+            "$startId->$endId" to startToEndDistance
+        )
+        val distanceCalculator = DistanceCalculator<FltX> { from, to ->
+            val key = "${from.id.value}->${to.id.value}"
+            ok(Quantity(distanceValues[key] ?: FltX.zero, Meter))
+        }
+        val travelTimeCalculator = TravelTimeCalculator<FltX> { _, _, _ ->
+            ok(Duration.ZERO)
+        }
+        val arcCostCalculator = ArcCostCalculator<FltX> { from, _, distance, _, _ ->
+            val cost = if (from.id.value == startId) FltX.zero else distance.value
+            ok(Quantity(cost, NoneUnit))
+        }
+        val duals = PricingDuals(
+            phase = PricingPhase.PhaseTwo,
+            customer = mapOf(customer.id to Flt64(20.0)),
+            fleet = emptyMap()
+        )
+
+        val graph = assertNotNull(RouteGraphBuilder(
+            instance = instance,
+            valueAdapter = FltXNetworkSchedulingSolverValueAdapter,
+            distanceCalculator = distanceCalculator,
+            travelTimeCalculator = travelTimeCalculator,
+            arcCostCalculator = arcCostCalculator
+        ).build(vehicleTypeId, duals).value)
+        val startToCustomerArc = graph.outgoingFrom(graph.startDepotIndex)
+            .single { it.toNodeId == customer.node.id }
+        val customerToEndArc = graph.outgoingFrom(graph.nodeIndexMap[customer.node.id] ?: fail("customer node missing"))
+            .single { it.toNodeId == instance.endDepot.node.id }
+        val startToEndArc = graph.outgoingFrom(graph.startDepotIndex)
+            .single { it.toNodeId == instance.endDepot.node.id }
+
+        assertEquals(startToCustomerDistance.toPlainString(), startToCustomerArc.distance.toPlainString())
+        assertEquals(customerToEndDistance.toPlainString(), customerToEndArc.distance.toPlainString())
+        assertEquals(startToEndDistance.toPlainString(), startToEndArc.distance.toPlainString())
+        assertEquals(fixedCost.toPlainString(), startToCustomerArc.objectiveCost.toPlainString())
+        assertEquals(customerToEndDistance.toPlainString(), customerToEndArc.objectiveCost.toPlainString())
+
+        val result = assertNotNull(EspprcPricer(
+            instance = instance,
+            valueAdapter = FltXNetworkSchedulingSolverValueAdapter
+        ).price(
+            graph = graph,
+            request = PricingRequest(
+                instance = instance,
+                duals = duals,
+                branchMask = null,
+                pricingTolerance = Flt64(1e-6),
+                vehicleTypeId = vehicleTypeId
+            )
+        ).value)
+        val route = result.routes.single()
+        val expectedDistance = startToCustomerDistance + customerToEndDistance
+        val expectedCost = fixedCost + customerToEndDistance
+        val expectedReducedCost = expectedCost - FltX("20")
+
+        assertEquals(expectedDistance.toPlainString(), route.distance.value.toPlainString())
+        assertEquals(expectedCost.toPlainString(), route.cost.value.toPlainString())
+        assertEquals(expectedReducedCost.toPlainString(), result.minReducedCost.toPlainString())
+    }
+
     // ========== LabelDominancePolicy 测试 ==========
 
     @Test
@@ -462,8 +602,8 @@ class EspprcTest {
         val policy = LabelDominancePolicy.Default
         val visited1 = VisitedCustomers.empty(3).add(0)
         val visited2 = VisitedCustomers.empty(3).add(0).add(1)
-        val forbidden1 = ForbiddenCustomers.empty(3).add(0).add(2)
-        val forbidden2 = ForbiddenCustomers.empty(3).add(0)
+        val forbidden1 = ForbiddenCustomers.empty(3).add(0)
+        val forbidden2 = ForbiddenCustomers.empty(3).add(0).add(2)
 
         val labelA = EspprcLabel(
             reducedCost = Flt64(-2.0), time = Flt64(5.0), load = Flt64(1.0),
@@ -476,10 +616,178 @@ class EspprcTest {
             visited = visited2, forbidden = forbidden2, predecessor = -1
         )
 
-        // A 的 reduced cost < B, time < B, load < B, visited subset of B, forbidden superset of B
+        // A 的 reduced cost < B, time < B, load < B, visited subset of B, forbidden subset of B
         // A dominates B
         assertTrue(policy.dominates(labelA, labelB))
         assertFalse(policy.dominates(labelB, labelA))
+    }
+
+    @Test
+    fun labelDominanceShouldRejectMoreRestrictedForbiddenSet() {
+        val policy = LabelDominancePolicy.Default
+        val visited = VisitedCustomers.empty(3).add(0)
+        val lessRestricted = EspprcLabel(
+            reducedCost = Flt64(-2.0), time = Flt64(5.0), load = Flt64(1.0),
+            currentNode = NetworkNodeId("c1"),
+            visited = visited,
+            forbidden = ForbiddenCustomers.empty(3).add(0),
+            predecessor = -1
+        )
+        val moreRestricted = EspprcLabel(
+            reducedCost = Flt64(-1.0), time = Flt64(10.0), load = Flt64(2.0),
+            currentNode = NetworkNodeId("c1"),
+            visited = visited,
+            forbidden = ForbiddenCustomers.empty(3).add(0).add(2),
+            predecessor = -1
+        )
+
+        assertTrue(policy.dominates(lessRestricted, moreRestricted))
+        assertFalse(policy.dominates(moreRestricted, lessRestricted))
+    }
+
+    /**
+     * 支配回归：较小 forbidden 集的标签必须继续扩展到 target，较大的标签不能扩展。
+     * Dominance regression: a label with the smaller forbidden set must extend to target,
+     * while the more restricted label must not.
+     */
+    @Test
+    fun espprcShouldRetainExpandableLabelWhenForbiddenSetIsSmaller() {
+        val instance = makeForbiddenReachabilityInstance()
+        val vehicleTypeId = VehicleTypeId("v1")
+        val mergeNodeId = NetworkNodeId("merge")
+        val targetIndex = instance.customers.indexOfFirst { it.id == CustomerId("target") }
+        val allowedArcs = setOf(
+            "start->a",
+            "a->b",
+            "b->merge",
+            "start->b",
+            "b->a",
+            "a->merge",
+            "merge->target",
+            "target->end"
+        )
+        val travelTimes = mapOf(
+            "start->a" to Flt64.zero,
+            "a->b" to Flt64.zero,
+            "b->merge" to Flt64.zero,
+            "start->b" to Flt64.one,
+            "b->a" to Flt64.one,
+            "a->merge" to Flt64.zero,
+            "merge->target" to Flt64.zero,
+            "target->end" to Flt64.zero
+        )
+        val arcCosts = mapOf(
+            "start->a" to Flt64(20.0),
+            "a->b" to Flt64(-40.0),
+            "b->merge" to Flt64(10.0),
+            "start->b" to Flt64.zero,
+            "b->a" to Flt64.zero,
+            "a->merge" to Flt64.zero,
+            "merge->target" to Flt64.zero,
+            "target->end" to Flt64.zero
+        )
+        val arcFeasibilityPolicy = ArcFeasibilityPolicy<Flt64> { from, to, _ ->
+            ok("${from.id.value}->${to.id.value}" in allowedArcs)
+        }
+        val distanceCalculator = DistanceCalculator<Flt64> { _, _ ->
+            ok(Quantity(Flt64.zero, Meter))
+        }
+        val travelTimeCalculator = TravelTimeCalculator<Flt64> { from, to, _ ->
+            val key = "${from.id.value}->${to.id.value}"
+            val value = travelTimes[key] ?: fail("缺少弧行驶时间：$key / Missing travel time for arc: $key")
+            ok(schedulingWindow.durationOf(value))
+        }
+        val arcCostCalculator = ArcCostCalculator<Flt64> { from, to, _, _, _ ->
+            val key = "${from.id.value}->${to.id.value}"
+            val value = arcCosts[key] ?: fail("缺少弧成本：$key / Missing arc cost for arc: $key")
+            ok(Quantity(value, NoneUnit))
+        }
+        var safeLabelDominatedRestricted = false
+        var restrictedLabelDominatedSafe = false
+        val dominancePolicy = object : LabelDominancePolicy {
+            override fun <V : RealNumber<V>> dominates(
+                a: EspprcLabel<V>,
+                b: EspprcLabel<V>
+            ): Boolean {
+                val result = LabelDominancePolicy.Default.dominates(a, b)
+                if (a.currentNode == mergeNodeId && b.currentNode == mergeNodeId &&
+                    (0..2).all { a.visited.contains(it) && b.visited.contains(it) } &&
+                    !a.forbidden.contains(targetIndex) && b.forbidden.contains(targetIndex)
+                ) {
+                    safeLabelDominatedRestricted = safeLabelDominatedRestricted || result
+                }
+                if (a.currentNode == mergeNodeId && b.currentNode == mergeNodeId &&
+                    (0..2).all { a.visited.contains(it) && b.visited.contains(it) } &&
+                    a.forbidden.contains(targetIndex) && !b.forbidden.contains(targetIndex)
+                ) {
+                    restrictedLabelDominatedSafe = restrictedLabelDominatedSafe || result
+                }
+                return result
+            }
+        }
+        val retainAllLabelsPolicy = object : LabelDominancePolicy {
+            override fun <V : RealNumber<V>> dominates(
+                a: EspprcLabel<V>,
+                b: EspprcLabel<V>
+            ): Boolean = false
+        }
+        val duals = PricingDuals(
+            phase = PricingPhase.PhaseTwo,
+            customer = mapOf(CustomerId("target") to Flt64(200.0)),
+            fleet = mapOf(vehicleTypeId to Flt64.zero)
+        )
+        val graph = assertNotNull(RouteGraphBuilder(
+            instance = instance,
+            valueAdapter = Flt64NetworkSchedulingSolverValueAdapter,
+            distanceCalculator = distanceCalculator,
+            travelTimeCalculator = travelTimeCalculator,
+            arcCostCalculator = arcCostCalculator,
+            arcFeasibilityPolicy = arcFeasibilityPolicy
+        ).build(vehicleTypeId, duals).value)
+        val request = PricingRequest(
+            instance = instance,
+            duals = duals,
+            branchMask = null,
+            pricingTolerance = Flt64(1e-6),
+            vehicleTypeId = vehicleTypeId
+        )
+        val withoutDominance = assertNotNull(EspprcPricer(
+            instance = instance,
+            valueAdapter = Flt64NetworkSchedulingSolverValueAdapter,
+            dominancePolicy = retainAllLabelsPolicy
+        ).price(graph, request).value)
+        val unprunedSequences = withoutDominance.routes.map { route ->
+            route.stops.mapNotNull { it.customerId?.value }
+        }
+        assertTrue(
+            unprunedSequences.contains(listOf("a", "b", "merge", "target")),
+            "即使不做支配裁剪，较少受限标签也应扩展到 target / The less restricted label should extend to target even without dominance pruning"
+        )
+        assertFalse(
+            unprunedSequences.contains(listOf("b", "a", "merge", "target")),
+            "更受限标签必须无法扩展到 target / The more restricted label must fail the target extension"
+        )
+        val result = assertNotNull(EspprcPricer(
+            instance = instance,
+            valueAdapter = Flt64NetworkSchedulingSolverValueAdapter,
+            dominancePolicy = dominancePolicy
+        ).price(graph, request).value)
+        val customerSequences = result.routes.map { route ->
+            route.stops.mapNotNull { it.customerId?.value }
+        }
+
+        assertTrue(safeLabelDominatedRestricted,
+            "可扩展的 merge 标签应支配更受限的 merge 标签 / The expandable merge label should dominate the more restricted merge label")
+        assertFalse(restrictedLabelDominatedSafe,
+            "更受限的 merge 标签不得支配可扩展标签 / The more restricted merge label must not dominate the expandable label")
+        assertTrue(
+            customerSequences.contains(listOf("a", "b", "merge", "target")),
+            "较小 forbidden 集应到达公共 target / The smaller forbidden set must reach the common target"
+        )
+        assertFalse(
+            customerSequences.contains(listOf("b", "a", "merge", "target")),
+            "较大 forbidden 集不得到达公共 target / The larger forbidden set must not reach the common target"
+        )
     }
 
     // ========== 穷举 Oracle 测试 ==========
@@ -1166,7 +1474,7 @@ class EspprcTest {
         duals: PricingDuals
     ): List<Flt64> {
         val vehicleType = instance.vehicleTypeById[vehicleTypeId] ?: return emptyList()
-        val flt64Window = instance.schedulingWindow.toFlt64Boundary()
+        val flt64Window = instance.schedulingWindow
         val reducedCosts = mutableListOf<Flt64>()
 
         // 枚举所有客户排列 / Enumerate all customer permutations
@@ -1197,7 +1505,7 @@ class EspprcTest {
         vehicleType: VehicleType<Flt64>,
         customerIndices: List<Int>
     ): Route<Flt64>? {
-        val flt64Window = instance.schedulingWindow.toFlt64Boundary()
+        val flt64Window = instance.schedulingWindow
         val startDepot = instance.startDepot
         val endDepot = instance.endDepot
 
@@ -1226,14 +1534,14 @@ class EspprcTest {
             val distance = h.distanceCalculator.distance(prevNode, customer.node).value ?: return null
             val arcCost = h.arcCostCalculator.cost(prevNode, customer.node, distance, travelTime, vehicleType).value ?: return null
             arcCosts.add(arcCost)
-            totalDistance = totalDistance + (h.valueAdapter.normalize(distance, instance.units.distanceUnit).value ?: return null)
+            totalDistance = totalDistance + (h.valueAdapter.normalizeValue(distance, instance.units.distanceUnit).value ?: return null)
 
             val arrival = currentTime + flt64Window.valueOf(travelTime)
             val serviceStart = maxOf(arrival, flt64Window.valueOf(customer.timeWindow.readyTime))
             if (serviceStart gr flt64Window.valueOf(customer.timeWindow.dueTime)) return null
 
-            currentLoad = currentLoad + (h.valueAdapter.normalize(customer.demand, instance.units.loadUnit).value ?: return null)
-            if (currentLoad gr (h.valueAdapter.normalize(vehicleType.capacity, instance.units.loadUnit).value ?: return null)) return null
+            currentLoad = currentLoad + (h.valueAdapter.normalizeValue(customer.demand, instance.units.loadUnit).value ?: return null)
+            if (currentLoad gr (h.valueAdapter.normalizeValue(vehicleType.capacity, instance.units.loadUnit).value ?: return null)) return null
 
             val departure = serviceStart + flt64Window.valueOf(customer.serviceTime)
             currentTime = departure
@@ -1244,7 +1552,7 @@ class EspprcTest {
                 arrival = flt64Window.instantOf(arrival),
                 serviceStart = flt64Window.instantOf(serviceStart),
                 departure = flt64Window.instantOf(departure),
-                accumulatedLoad = Quantity(h.valueAdapter.fromSolverValue(currentLoad).value ?: return null, instance.units.loadUnit)
+                accumulatedLoad = Quantity(currentLoad, instance.units.loadUnit)
             ))
 
             prevNode = customer.node
@@ -1255,7 +1563,7 @@ class EspprcTest {
         val distance = h.distanceCalculator.distance(prevNode, endDepot.node).value ?: return null
         val arcCost = h.arcCostCalculator.cost(prevNode, endDepot.node, distance, travelTime, vehicleType).value ?: return null
         arcCosts.add(arcCost)
-        totalDistance = totalDistance + (h.valueAdapter.normalize(distance, instance.units.distanceUnit).value ?: return null)
+        totalDistance = totalDistance + (h.valueAdapter.normalizeValue(distance, instance.units.distanceUnit).value ?: return null)
 
         val arrival = currentTime + flt64Window.valueOf(travelTime)
         val serviceStart = maxOf(arrival, flt64Window.valueOf(endDepot.timeWindow.readyTime))
@@ -1267,7 +1575,7 @@ class EspprcTest {
             arrival = flt64Window.instantOf(arrival),
             serviceStart = flt64Window.instantOf(serviceStart),
             departure = flt64Window.instantOf(serviceStart),
-            accumulatedLoad = Quantity(h.valueAdapter.fromSolverValue(currentLoad).value ?: return null, instance.units.loadUnit)
+            accumulatedLoad = Quantity(currentLoad, instance.units.loadUnit)
         ))
 
         val cost = h.routeCostPolicy.cost(vehicleType, arcCosts).value ?: return null
@@ -1275,7 +1583,7 @@ class EspprcTest {
         return Route(
             vehicleTypeId = vehicleType.id,
             stops = stops,
-            distance = Quantity(h.valueAdapter.fromSolverValue(totalDistance).value ?: return null, instance.units.distanceUnit),
+            distance = Quantity(totalDistance, instance.units.distanceUnit),
             cost = cost
         ).value
     }
@@ -1292,7 +1600,7 @@ class EspprcTest {
         h: PricingHelpers,
         duals: PricingDuals
     ): Flt64 {
-        val solverCost = h.valueAdapter.normalize(route.cost, instance.units.costUnit).value ?: Flt64.zero
+        val solverCost = h.valueAdapter.normalizeValue(route.cost, instance.units.costUnit).value ?: Flt64.zero
         val customerDualSum = route.stops.mapNotNull { stop ->
             stop.customerId?.let { duals.customer[it] }
         }.fold(Flt64.zero) { acc, v -> acc + v }

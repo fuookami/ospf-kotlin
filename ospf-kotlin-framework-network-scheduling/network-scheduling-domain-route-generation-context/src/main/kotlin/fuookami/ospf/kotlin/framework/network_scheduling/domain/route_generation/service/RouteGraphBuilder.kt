@@ -3,8 +3,9 @@ package fuookami.ospf.kotlin.framework.network_scheduling.domain.route_generatio
 
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow as SchedulingTimeWindow
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.infrastructure.BranchMask
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.pricing.*
@@ -15,13 +16,10 @@ import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
  * Branch-aware 定价图构建器。 / Branch-aware pricing graph builder.
  *
  * 从 VrptwInstance、PricingDuals 和可选的 BranchMask 构建有向定价图。
- * 图中弧的 cost 是 reduced cost：objective cost - dual values。
- * 时间和负载使用 Flt64 数值，便于 ESPPRC 标签扩展。 / Constructs a directed pricing graph from a VrptwInstance, PricingDuals,
- * and optional BranchMask. Arc costs are reduced costs:
- * objective cost - dual values. Time and load use Flt64 numeric values
- * for ESPPRC label extension.
+ * 图中弧的 reduced cost 为 objective cost - dual values；距离、时间、负载和业务成本保留 V。
+ * Arc reduced costs are objective cost - dual values; distance, time, load and business cost preserve V.
  */
-class RouteGraphBuilder<V : RealNumber<V>>(
+class RouteGraphBuilder<V : FloatingNumber<V>>(
     private val instance: VrptwInstance<V>,
     private val valueAdapter: NetworkSchedulingSolverValueAdapter<V>,
     private val distanceCalculator: DistanceCalculator<V>,
@@ -36,28 +34,29 @@ class RouteGraphBuilder<V : RealNumber<V>>(
         vehicleTypeId: VehicleTypeId,
         duals: PricingDuals,
         branchMask: BranchMask<VehicleTypeId>? = null
-    ): Ret<PricingGraph> {
+    ): Ret<PricingGraph<V>> {
         val vehicleType = instance.vehicleTypeById[vehicleTypeId]
             ?: return networkSchedulingFailure(
                 "构建定价图失败：车辆类型 ${vehicleTypeId.value} 不存在 / " +
                         "Failed to build pricing graph: vehicle type ${vehicleTypeId.value} does not exist"
             )
 
-        val flt64Window = instance.schedulingWindow.toFlt64Boundary()
+        val schedulingWindow: SchedulingTimeWindow<V> = instance.schedulingWindow
+        val zero = vehicleType.capacity.value.constants.zero
 
         // 构建节点列表
         // 索引 0 = start depot, 1..n = customers, n+1 = end depot
-        val nodes = mutableListOf<PricingNode>()
+        val nodes = mutableListOf<PricingNode<V>>()
         val customerIndexMap = mutableMapOf<NetworkNodeId, Int>() // nodeId -> index in nodes
 
         nodes.add(PricingNode(
             nodeId = instance.startDepot.node.id,
             isDepot = true,
             customerIndex = -1,
-            readyTime = flt64Window.valueOf(instance.startDepot.timeWindow.readyTime),
-            dueTime = flt64Window.valueOf(instance.startDepot.timeWindow.dueTime),
-            serviceTime = Flt64.zero,
-            demand = Flt64.zero
+            readyTime = schedulingWindow.valueOf(instance.startDepot.timeWindow.readyTime),
+            dueTime = schedulingWindow.valueOf(instance.startDepot.timeWindow.dueTime),
+            serviceTime = schedulingWindow.valueOf(Duration.ZERO),
+            demand = zero
         ))
         customerIndexMap[instance.startDepot.node.id] = 0
 
@@ -66,17 +65,17 @@ class RouteGraphBuilder<V : RealNumber<V>>(
             if (forbiddenByMask) continue
 
             val nodeIndex = nodes.size
-            val solverDemand = when (val r = valueAdapter.normalize(customer.demand, instance.units.loadUnit)) {
+            val demand = when (val r = valueAdapter.normalizeValue(customer.demand, instance.units.loadUnit)) {
                 is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
             }
             nodes.add(PricingNode(
                 nodeId = customer.node.id,
                 isDepot = false,
                 customerIndex = custIdx,
-                readyTime = flt64Window.valueOf(customer.timeWindow.readyTime),
-                dueTime = flt64Window.valueOf(customer.timeWindow.dueTime),
-                serviceTime = flt64Window.valueOf(customer.serviceTime),
-                demand = solverDemand
+                readyTime = schedulingWindow.valueOf(customer.timeWindow.readyTime),
+                dueTime = schedulingWindow.valueOf(customer.timeWindow.dueTime),
+                serviceTime = schedulingWindow.valueOf(customer.serviceTime),
+                demand = demand
             ))
             customerIndexMap[customer.node.id] = nodeIndex
         }
@@ -85,16 +84,16 @@ class RouteGraphBuilder<V : RealNumber<V>>(
             nodeId = instance.endDepot.node.id,
             isDepot = true,
             customerIndex = -1,
-            readyTime = flt64Window.valueOf(instance.endDepot.timeWindow.readyTime),
-            dueTime = flt64Window.valueOf(instance.endDepot.timeWindow.dueTime),
-            serviceTime = Flt64.zero,
-            demand = Flt64.zero
+            readyTime = schedulingWindow.valueOf(instance.endDepot.timeWindow.readyTime),
+            dueTime = schedulingWindow.valueOf(instance.endDepot.timeWindow.dueTime),
+            serviceTime = schedulingWindow.valueOf(Duration.ZERO),
+            demand = zero
         ))
         customerIndexMap[instance.endDepot.node.id] = nodes.lastIndex
 
         // 构建弧
-        val arcs = mutableListOf<PricingArc>()
-        val vehicleCapacity = when (val r = valueAdapter.normalize(vehicleType.capacity, instance.units.loadUnit)) {
+        val arcs = mutableListOf<PricingArc<V>>()
+        val vehicleCapacity = when (val r = valueAdapter.normalizeValue(vehicleType.capacity, instance.units.loadUnit)) {
             is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
         }
 
@@ -130,46 +129,60 @@ class RouteGraphBuilder<V : RealNumber<V>>(
                 val arcCost = when (val r = arcCostCalculator.cost(fromNodeObj, toNodeObj, distance, travelTime, vehicleType)) {
                     is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
                 }
-                val solverArcCost = when (val r = valueAdapter.normalize(arcCost, instance.units.costUnit)) {
+                val normalizedArcCost = when (val r = valueAdapter.normalizeValue(arcCost, instance.units.costUnit)) {
                     is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
                 }
 
-                val solverDistance = when (val r = valueAdapter.normalize(distance, instance.units.distanceUnit)) {
+                val normalizedDistance = when (val r = valueAdapter.normalizeValue(distance, instance.units.distanceUnit)) {
                     is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
                 }
 
                 val routeObjectiveCost = if (fromNode.isDepot && fromNode.nodeId == instance.startDepot.node.id) {
-                    val fixedCost = when (val r = valueAdapter.normalize(vehicleType.fixedCost, instance.units.costUnit)) {
+                    val fixedCost = when (val r = valueAdapter.normalizeValue(vehicleType.fixedCost, instance.units.costUnit)) {
                         is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
                     }
-                    fixedCost + solverArcCost
+                    fixedCost + normalizedArcCost
                 } else {
-                    solverArcCost
+                    normalizedArcCost
                 }
 
                 // Reduced cost = objective cost - customer dual - fleet dual
-                val customerDual = if (toNode.isDepot) Flt64.zero
-                    else duals.customer[instance.customers[toNode.customerIndex].id] ?: Flt64.zero
-                val fleetDual = if (fromNode.isDepot && fromNode.nodeId == instance.startDepot.node.id)
-                    duals.fleet[vehicleTypeId] ?: Flt64.zero
-                else Flt64.zero
+                val customerDual = if (toNode.isDepot) {
+                    zero
+                } else {
+                    val solverDual = duals.customer[instance.customers[toNode.customerIndex].id] ?: Flt64.zero
+                    valueAdapter.fromSolverValue(solverDual).value
+                        ?: return networkSchedulingFailure(
+                            "构建定价图失败：客户对偶转换失败 / Failed to build pricing graph: customer dual conversion failed"
+                        )
+                }
+                val fleetDual = if (fromNode.isDepot && fromNode.nodeId == instance.startDepot.node.id) {
+                    val solverDual = duals.fleet[vehicleTypeId] ?: Flt64.zero
+                    valueAdapter.fromSolverValue(solverDual).value
+                        ?: return networkSchedulingFailure(
+                            "构建定价图失败：车队对偶转换失败 / Failed to build pricing graph: fleet dual conversion failed"
+                        )
+                } else {
+                    zero
+                }
 
                 val phaseObjectiveCost = when (duals.phase) {
-                    PricingPhase.PhaseOne -> Flt64.zero
+                    PricingPhase.PhaseOne -> zero
                     PricingPhase.PhaseTwo -> routeObjectiveCost
                 }
                 val reducedCost = phaseObjectiveCost - customerDual - fleetDual
 
-                // 时间（Flt64 数值）
-                val solverTravelTime = flt64Window.valueOf(travelTime)
+                // 时间、距离和业务成本保留 V；仅 reduced cost 参与 solver 适配时才转换。
+                // Preserve time, distance and business cost as V; convert only at the solver boundary.
+                val travelTimeValue = schedulingWindow.valueOf(travelTime)
 
                 arcs.add(PricingArc(
                     fromIndex = fromIdx,
                     toIndex = toIdx,
                     objectiveCost = routeObjectiveCost,
                     reducedCost = reducedCost,
-                    travelTime = solverTravelTime,
-                    distance = solverDistance,
+                    travelTime = travelTimeValue,
+                    distance = normalizedDistance,
                     fromNodeId = fromNode.nodeId,
                     toNodeId = toNode.nodeId
                 ))
@@ -189,42 +202,42 @@ class RouteGraphBuilder<V : RealNumber<V>>(
 }
 
 /** 定价图节点 / Pricing graph node */
-data class PricingNode(
+data class PricingNode<V : FloatingNumber<V>>(
     val nodeId: NetworkNodeId,
     val isDepot: Boolean,
     val customerIndex: Int,
-    val readyTime: Flt64,
-    val dueTime: Flt64,
-    val serviceTime: Flt64,
-    val demand: Flt64
+    val readyTime: V,
+    val dueTime: V,
+    val serviceTime: V,
+    val demand: V
 )
 
 /** 定价图弧 / Pricing graph arc */
-data class PricingArc(
+data class PricingArc<V : FloatingNumber<V>>(
     val fromIndex: Int,
     val toIndex: Int,
-    val objectiveCost: Flt64,
-    val reducedCost: Flt64,
-    val travelTime: Flt64,
-    val distance: Flt64,
+    val objectiveCost: V,
+    val reducedCost: V,
+    val travelTime: V,
+    val distance: V,
     val fromNodeId: NetworkNodeId,
     val toNodeId: NetworkNodeId
 )
 
 /** 定价图 / Pricing graph */
-data class PricingGraph(
-    val nodes: List<PricingNode>,
-    val arcs: List<PricingArc>,
+data class PricingGraph<V : FloatingNumber<V>>(
+    val nodes: List<PricingNode<V>>,
+    val arcs: List<PricingArc<V>>,
     val nodeIndexMap: Map<NetworkNodeId, Int>,
     val customerCount: Int,
     val startDepotIndex: Int,
     val endDepotIndex: Int,
-    val vehicleCapacity: Flt64
+    val vehicleCapacity: V
 ) {
     /** 从指定节点出发的弧 / Arcs outgoing from the specified node */
-    private val outgoingCache = mutableMapOf<Int, List<PricingArc>>()
+    private val outgoingCache = mutableMapOf<Int, List<PricingArc<V>>>()
 
-    fun outgoingFrom(nodeIndex: Int): List<PricingArc> {
+    fun outgoingFrom(nodeIndex: Int): List<PricingArc<V>> {
         return outgoingCache.getOrPut(nodeIndex) { arcs.filter { it.fromIndex == nodeIndex } }
     }
 }

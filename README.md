@@ -14,6 +14,18 @@ documentation: https://fuookami.github.io/ospf/
 
 :us: English | :cn: [简体中文](README_ch.md)
 
+
+## Architecture Overview
+
+The workspace follows a layered shape:
+
+1. `utils`, `multiarray`, `math`, and `quantities` provide reusable foundations.
+2. `core` owns optimization modeling primitives and solver-facing model conversion.
+3. `framework` adds solver orchestration, pipeline abstractions, shadow prices, persistence contracts, and remote solving.
+4. Domain framework modules assemble reusable business-domain modeling contexts around `MetaModel`.
+5. `example` demonstrates current public flows and compatibility paths.
+
+Framework domain modules should keep optimization semantics in context / aggregation / model component / pipeline layers. Application services coordinate solver selection, lifecycle, trace/KPI/render assembly, and recovery boundaries.
 ## Module Documentation
 
 Top-level Maven modules now follow the same bilingual README convention: English documentation in `README.md`, Simplified Chinese documentation in `README_ch.md`, and language links in both files.
@@ -179,6 +191,12 @@ If you need to use the network scheduling development package, add the dependenc
 ```
 
 
+
+## Constraint Programming Boundary
+
+`ospf-kotlin-core` exposes an integer-domain constraint-programming model with immutable snapshots, stable IDs, source verification, and a unified solver report. The generic MIP lowerer uses checked arithmetic internally and only crosses the existing floating-point solver boundary when every integer coefficient, bound, and generated Big-M is exactly representable.
+
+The SCIP CP entry point is a strict finite MIP-backed facade. It is not a native SCIP/CIP CP backend. The declared CP capability scope is complete: generic MIP lowering returns verified exact lowering for the supported finite subset and structured unsupported errors for `Cumulative`, `Circuit`, `Automaton`, and `Reservoir`; raw cumulative FFI is a conditional research probe, and true incremental CP sessions remain unsupported. Snapshot-rebuild sessions are correct but must not be described as native incremental resume. The fake CP solver is for contract tests and small exhaustive oracles, not production search.
 ## Changelog
 
 See [1.1.0 release notes](changelog/1.1.0.md) for the full change record.

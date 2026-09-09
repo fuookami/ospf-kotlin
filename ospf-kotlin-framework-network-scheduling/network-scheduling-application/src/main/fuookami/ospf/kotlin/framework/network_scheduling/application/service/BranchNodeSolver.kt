@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.framework.network_scheduling.application.service
 
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -30,7 +31,7 @@ import fuookami.ospf.kotlin.framework.network_scheduling.application.model.Branc
  * generation loop, ESPPRC pricing, and solution extraction. Each call creates a fresh model
  * and context; mutable modeling state is never shared across nodes.
  */
-class BranchNodeSolver<V : RealNumber<V>>(
+class BranchNodeSolver<V : FloatingNumber<V>>(
     private val instance: VrptwInstance<V>,
     private val solver: ColumnGenerationSolver,
     private val valueAdapter: NetworkSchedulingSolverValueAdapter<V>,

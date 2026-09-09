@@ -1,9 +1,26 @@
-# OSPF Kotlin Multiarray
+﻿# OSPF Kotlin Multiarray
 
 :us: [English](README.md) | :cn: 简体中文
 
 高性能 Kotlin 多维数组库，支持多种存储顺序、视图、基于分块的稀疏数组和表格数据结构。
 
+
+## 范围
+
+本模块覆盖：
+
+1. 通用多维数组存储。
+2. 形状和索引转换（编译时和动态）。
+3. 零拷贝视图、切片和维度映射。
+4. 块/稀疏数组。
+5. `DataFrame` 表格辅助工具。
+6. List 和 Map 多维访问扩展。
+
+明确非目标：
+
+1. 张量代数引擎或优化模型组装。
+2. 领域特定数据协议。
+3. 物理单位语义；这些属于 `ospf-kotlin-quantities`。
 ### 特性
 
 - **多维数组**: 类型安全的 1 维到 N 维数组，支持编译期形状检查
@@ -254,6 +271,17 @@ for ((i, vec, value) in array.enumerateWithOrder(AccessOrder.ColumnMajor)) {
 }
 ```
 
+
+## 公开 API
+
+| API | 职责 | 稳定性 |
+| --- | --- | --- |
+| `MultiArray<T, S>` / `MutableMultiArray<T, S>` | 不可变和可变多维数组。 | stable |
+| `Shape1`–`Shape4` / `DynShape` | 编译时和动态形状。 | stable |
+| `MultiArrayView` / `MappedMultiArrayView` | 零拷贝切片和维度映射视图。 | stable |
+| `BlockMultiArray<T, S>` | 块/稀疏多维数组。 | stable |
+| `DataFrame` | 带命名列的表格数据。 | stable |
+| `DummyIndex` / `MapIndex` | 切片和维度映射索引类型。 | stable |
 ### API 参考
 
 #### 工厂方法

@@ -13,6 +13,23 @@ A comprehensive physical quantities and units library for OSPF Kotlin. Provides 
 - **Extensibility**: Easy to add new units and quantities
 - **Performance**: Optimized for both compile-time and runtime efficiency
 
+
+## Scope
+
+This module covers:
+
+1. Physical dimensions, fundamental and derived quantities.
+2. Unit systems (SI, MKS, CGS) and 300+ predefined units.
+3. Unit conversion with dimensional safety.
+4. Quantity arithmetic and generic value types.
+5. Quantity-aware symbolic helpers and geometry.
+6. Duration interoperability.
+
+Explicit non-goals:
+
+1. Optimization solver modeling or framework orchestration.
+2. Domain-specific business units unless they become general reusable units.
+3. Serialization protocol ownership beyond quantity/unit data boundaries.
 ## Module Structure
 
 | Package | Description | Key Types |
@@ -58,6 +75,17 @@ UnitSystem (interface)
 └── CGS - Centimeter-Gram-Second (mechanical subset)
 ```
 
+
+## Public API
+
+| API | Responsibility | Stability |
+| --- | --- | --- |
+| `Quantity<V>` | Typed physical quantity with unit and generic value. | stable |
+| `PhysicalUnit` / `UnitSystem` | Unit definitions and unit systems. | stable |
+| `FundamentalQuantity` / `DerivedQuantity` | Physical dimension definitions. | stable |
+| `Dimensions` / `QuantityDomain` | Dimension registry and quantity domain. | stable |
+| `SymbolQuantity` / `SymbolDimensionRegistry` | Quantity-aware symbolic helpers. | stable |
+| `duration extensions` | Kotlin Duration interoperability. | stable |
 ## Core Features
 
 ### Quantity Creation and Operations
