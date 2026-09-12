@@ -47,8 +47,13 @@ class QuadraticLinearFunction<V>(
         _polynomial.monomials.none { it.isQuadratic }
     }
 
+    // The solver bridge represents a signed polynomial value.  An unrestricted
+    // variable is therefore required; using URealVar silently clipped negative
+    // quadratic expressions at the solver boundary.
+    // 求解器桥接变量表示可正可负的多项式值，必须使用无界实变量；
+    // 原先的 URealVar 会在求解器边界错误地截断负值。
     private val y: AbstractVariableItem<*, *>? by lazy {
-        if (!isLinear) URealVar("${name}_y") else null
+        if (!isLinear) RealVar("${name}_y") else null
     }
 
     override val identifier: UInt64 get() = IdentifierGenerator.gen()

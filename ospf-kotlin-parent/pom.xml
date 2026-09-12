@@ -242,7 +242,7 @@
                 <version>${maven-surefire-plugin.version}</version>
                 <inherited>true</inherited>
                 <configuration>
-                    <argLine>-XX:-UseJVMCICompiler</argLine>
+                    <argLine>-Xms128m -Xmx768m -XX:+UseG1GC -Dfile.encoding=UTF-8 -XX:-UseJVMCICompiler</argLine>
                 </configuration>
             </plugin>
             <plugin>

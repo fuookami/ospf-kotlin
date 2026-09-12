@@ -78,7 +78,7 @@ class FunctionSymbolRegressionTest {
             name = "slack_test"
         )
 
-        assertEquals(2, slack.helperVariables.size, "SlackFunction should have 2 helper variables (pos + neg)")
+        assertEquals(3, slack.helperVariables.size, "SlackFunction should have 3 helper variables (pos + neg + branch)")
     }
 
     @Test

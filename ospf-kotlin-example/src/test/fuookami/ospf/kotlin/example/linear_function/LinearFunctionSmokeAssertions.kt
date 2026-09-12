@@ -254,9 +254,9 @@ object LinearFunctionSmokeAssertions {
     fun assertSlackRangeFunctionWorks() {
         val x = RealVar("example_slack_range_x")
         val function = SlackRangeFunction(
-            x = polyOf(x),
-            lb = LinearPolynomial(emptyList(), -Flt64.two),
-            ub = LinearPolynomial(emptyList(), Flt64.two),
+            input = polyOf(x),
+            lower = -Flt64.two,
+            upper = Flt64.two,
             converter = flt64TestConverter,
             name = "example_slack_range"
         )

@@ -36,9 +36,9 @@ class LinearFunctionBuildOnlyStructureTest {
             name = "example_abs_build"
         )
         val slackRange = SlackRangeFunction(
-            x = xPoly,
-            lb = LinearPolynomial(emptyList(), -Flt64.two),
-            ub = LinearPolynomial(emptyList(), Flt64.two),
+            input = xPoly,
+            lower = -Flt64.two,
+            upper = Flt64.two,
             converter = flt64TestConverter,
             name = "example_slack_range_build"
         )
@@ -64,17 +64,14 @@ class LinearFunctionBuildOnlyStructureTest {
             assertTrue(slackRange.registerConstraints(mechanismModel) is Ok)
             val appended = mechanismModel.constraints.subList(before, mechanismModel.constraints.size)
 
-            assertEquals(6, appended.size, "abs(4条)+slackRange(2条) 应追加 6 条约束")
+            assertEquals(11, appended.size, "abs(4条)+slackRange 精确 max(7条) 应追加 11 条约束")
             val absRows = appended.filter { it.name.startsWith("example_abs_build") }
-            val slackRows = appended.filter { it.name.startsWith("example_slack_range_build") }
             assertEquals(4, absRows.size)
-            assertEquals(2, slackRows.size)
 
             assertTrue(absRows.any { it.sign == ConstraintRelation.Equal })
-            assertTrue(slackRows.any { it.sign == ConstraintRelation.GreaterEqual })
             assertNotNull(abs.resultVar)
-            assertNotNull(slackRange.pos)
-            assertNotNull(slackRange.neg)
+            assertNotNull(slackRange.resultVar)
+            assertEquals(3, slackRange.selectorVars.size)
         } finally {
             model.close()
         }

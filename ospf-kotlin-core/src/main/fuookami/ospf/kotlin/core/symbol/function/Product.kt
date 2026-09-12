@@ -360,12 +360,17 @@ class ProductFunction<V>(
 
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try = ok
 
-    override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
-        val poly = polynomial
-        val rhs = QuadraticPolynomial<V>(constant = converter.zero)
-        val inequality = QuadraticInequalityOf(poly, rhs, Comparison.EQ, "${name}_eq")
-        return addQuadraticConstraints(model, listOf(inequality)) ?: ok
-    }
+    /**
+     * A product is an expression-level intermediate symbol, not a result variable.
+     * / 乘积是表达式级中间符号，不是结果变量。
+     *
+     * Its expanded polynomial is consumed by the objective or by an enclosing
+     * constraint. Registering `polynomial = 0` here would silently add an
+     * unrelated zero-product constraint, so no rows are emitted.
+     * / 展开后的多项式由目标函数或外层约束直接消费；在这里注册
+     * `polynomial = 0` 会错误地增加无关的零乘积约束，因此不提交任何行。
+    */
+    override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try = ok
 
     companion object {
         /** 创建 [ProductFunction] 实例。 / Create a [ProductFunction] instance. */

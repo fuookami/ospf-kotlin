@@ -29,15 +29,9 @@ class FrameworkDemoTest {
             name = "framework_if"
         )
         val slackRange = SlackRangeFunction(
-            x = xPoly,
-            lb = LinearPolynomial(
-                monomials = emptyList(),
-                constant = -Flt64.two
-            ),
-            ub = LinearPolynomial(
-                monomials = emptyList(),
-                constant = Flt64.two
-            ),
+            input = xPoly,
+            lower = -Flt64.two,
+            upper = Flt64.two,
             converter = flt64TestConverter,
             name = "framework_slack_range"
         )

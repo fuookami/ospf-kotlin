@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
@@ -27,20 +28,19 @@ import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 二次步进区间函数：若 x 在 [lower, upper] 范围内则 y = x，否则 y = 0。 / Quadratic in-step-range function: y = x if x in [lower, upper], else y = 0.
- * 使用二值变量 z，其中 z=1 表示 x 在范围内。 / Uses binary variable z where z=1 means x is in range.
+ * 使用 inside、below、above 三个互斥二值变量完整表达区间内、低于下界和高于上界。 / Uses three mutually exclusive binary variables, inside, below, and above, to represent the complete interval partition.
  *
- * 约束： / Constraints:
- * - x - lower >= -M*(1-z)   =>   x - lower + M - M*z >= 0
- * - x - upper <= M*(1-z)    =>   x - upper - M + M*z <= 0
- * - y - x >= -M*(1-z)       =>   y - x + M - M*z >= 0
- * - y - x <= M*(1-z)        =>   y - x - M + M*z <= 0
- * - y <= M*z
- * - y >= -M*z
+ * 连续域的严格区间补集不能由有限个非严格不等式精确表达，因此由 outsideTolerance 定义边界外容差带；
+ * 容差带内的直接求值返回 null，solver 模型也不允许该区域。 / A strict complement of a closed interval
+ * cannot be represented exactly by finitely many non-strict inequalities over a continuous domain. Therefore
+ * outsideTolerance defines the exterior tolerance band; direct evaluation returns null in that band and the
+ * solver model excludes it.
  *
  * @property x 二次多项式输入 / quadratic polynomial input
  * @property lower 范围的下界 / lower bound of the range
  * @property upper 范围的上界 / upper bound of the range
  * @param bigM Big-M 常量（默认从二次输入范围推导，失败时回退到 1e6）/ Big-M constant (inferred from quadratic input range by default, falls back to 1e6)
+ * @param outsideTolerance 区间外分类容差（默认 1e-6）/ exterior classification tolerance (default 1e-6)
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
@@ -50,24 +50,38 @@ class QuadraticInStepRangeFunction<V>(
     val lower: V,
     val upper: V,
     bigM: V? = null,
+    outsideTolerance: V? = null,
     private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: x.defaultBigM(converter)
+    /** Big-M used by the four branch/value constraints. / 四组分支/取值约束使用的 Big-M。 */
+    val bigM: V = bigM ?: x.defaultBigM(converter)
+    /** Exterior classification tolerance. / 区间外分类容差。 */
+    val outsideTolerance: V = outsideTolerance ?: converter.intoValue(Flt64(1e-6))
 
     init {
+        require(lower.isFinite() && upper.isFinite()) {
+            "QuadraticInStepRange bounds must be finite"
+        }
         require(lower ls upper || lower eq upper) {
             "QuadraticInStepRange lower bound must be <= upper bound"
         }
+        require(this.outsideTolerance gr converter.zero) {
+            "QuadraticInStepRange outside tolerance must be positive"
+        }
     }
 
-    val z: AbstractVariableItem<*, *> = BinVar("${name}_z")
+    val inside: AbstractVariableItem<*, *> = BinVar("${name}_inside")
+    val below: AbstractVariableItem<*, *> = BinVar("${name}_below")
+    val above: AbstractVariableItem<*, *> = BinVar("${name}_above")
     val y: AbstractVariableItem<*, *> = RealVar("${name}_y")
 
     override val identifier: UInt64 get() = IdentifierGenerator.gen()
     override val index: Int get() = 0
-    override val category: Category get() = Quadratic
+    // The result is a signed linear helper; the wrapped operation is quadratic.
+    // 结果是有符号线性辅助变量，底层操作类别仍为二次。
+    override val category: Category get() = Linear
     override val parent: IntermediateSymbol<out V>? = null
     override val operationCategory: Category get() = Quadratic
 
@@ -181,10 +195,12 @@ class QuadraticInStepRangeFunction<V>(
     }
 
     /**
-     * 求值步进区间逻辑：x 在范围内返回 x，否则返回 0。 / Evaluate step-range logic: return x if in range, else 0.
+     * 求值步进区间逻辑：区间内返回 x，明确位于容差带外时返回 0，容差带内返回 null。
+     * / Evaluate step-range logic: return x inside the interval, zero when clearly outside the tolerance band,
+     * and null inside the exterior tolerance band.
      *
      * @param resolve 符号解析函数 / symbol resolution function
-     * @return 步进区间结果值或 null / step-range result value or null
+     * @return 步进区间结果值、容差带内的 null，或输入缺失时的 null / step-range result, null in the tolerance band, or null for missing input
     */
     private fun evaluateStepRange(
         resolve: (Symbol) -> V?
@@ -192,11 +208,13 @@ class QuadraticInStepRangeFunction<V>(
         val xValue = evaluateQuadratic(x, resolve) ?: return null
         val inLower = xValue gr lower || xValue eq lower
         val inUpper = xValue ls upper || xValue eq upper
-        return if (inLower && inUpper) {
-            xValue
-        } else {
-            converter.zero
+        if (inLower && inUpper) {
+            return xValue
         }
+
+        val clearlyBelow = xValue ls (lower - outsideTolerance) || xValue eq (lower - outsideTolerance)
+        val clearlyAbove = xValue gr (upper + outsideTolerance) || xValue eq (upper + outsideTolerance)
+        return if (clearlyBelow || clearlyAbove) converter.zero else null
     }
 
     /** 使用 Flt64 值预计算求解器结果。 / Pre-compute solver result with Flt64 values.
@@ -292,10 +310,10 @@ class QuadraticInStepRangeFunction<V>(
     override fun toRawString(unfold: UInt64): String = displayName ?: name
 
     /**
-     * 将辅助变量 (z, y) 注册到 token 集合中。 / Register helper variables (z, y) with the token collection.
+     * 将辅助变量 (inside, below, above, y) 注册到 token 集合中。 / Register helper variables (inside, below, above, y) with the token collection.
     */
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
-        return when (val result = tokens.add(listOf(z, y))) {
+        return when (val result = tokens.add(listOf(inside, below, above, y))) {
             is Ok -> ok
             is Failed -> Failed(result.error)
             is Fatal -> Fatal(result.errors)
@@ -303,49 +321,106 @@ class QuadraticInStepRangeFunction<V>(
     }
 
     /**
-     * 为步进区间函数注册 Big-M 约束。 / Register Big-M constraints for the in-step-range function.
+     * 为完整的三状态区间划分注册 Big-M 约束。 / Register Big-M constraints for the complete three-state interval partition.
     */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
+        if (!isUsableExplicitBigM(bigM, converter)) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "QuadraticInStepRange Big-M must be finite and positive. / QuadraticInStepRange Big-M must be finite and positive."
+            )
+        }
+        if (!(outsideTolerance.isFinite() && outsideTolerance gr converter.zero)) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "QuadraticInStepRange outside tolerance must be finite and positive. / QuadraticInStepRange outside tolerance must be finite and positive."
+            )
+        }
         val m = bigM
         val zero = converter.zero
+        val one = converter.one
+        val tolerance = outsideTolerance
         val yMon = QuadraticMonomial.linear(converter.one, y)
-        val zMon = QuadraticMonomial.linear(m, z)
-        val negZMon = QuadraticMonomial.linear(-m, z)
+        val insideMon = QuadraticMonomial.linear(one, inside)
+        val belowMon = QuadraticMonomial.linear(one, below)
+        val aboveMon = QuadraticMonomial.linear(one, above)
+        val insideMMon = QuadraticMonomial.linear(m, inside)
+        val negInsideMMon = QuadraticMonomial.linear(-m, inside)
+        val belowMMon = QuadraticMonomial.linear(m, below)
+        val negAboveMMon = QuadraticMonomial.linear(-m, above)
 
         val negXMonos = x.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
         val posXMonos = x.monomials
 
         val constraints = mutableListOf<QuadraticInequalityOf<V>>()
 
-        // C1: x + M*(1-z) >= lower  =>  x + M - M*z >= lower / C1：x + M*(1-z) >= 下界
-        val c1Lhs = QuadraticPolynomial(posXMonos + listOf(negZMon), x.constant + m)
-        val c1Rhs = QuadraticPolynomial<V>(emptyList(), lower)
-        constraints += QuadraticInequalityOf(c1Lhs, c1Rhs, Comparison.GE, "${name}_range_lb")
+        // inside = 1 => x >= lower / inside = 1 表示 x 不低于下界
+        constraints += QuadraticInequalityOf(
+            QuadraticPolynomial(posXMonos + negInsideMMon, x.constant),
+            QuadraticPolynomial(emptyList(), lower - m),
+            Comparison.GE,
+            "${name}_inside_lb"
+        )
 
-        // C2: x <= upper + M*(1-z)  =>  x - M + M*z <= upper / C2：x <= 上界 + M*(1-z)
-        val c2Lhs = QuadraticPolynomial(posXMonos + listOf(zMon), x.constant - m)
-        val c2Rhs = QuadraticPolynomial<V>(emptyList(), upper)
-        constraints += QuadraticInequalityOf(c2Lhs, c2Rhs, Comparison.LE, "${name}_range_ub")
+        // inside = 1 => x <= upper / inside = 1 表示 x 不高于上界
+        constraints += QuadraticInequalityOf(
+            QuadraticPolynomial(posXMonos + insideMMon, x.constant),
+            QuadraticPolynomial(emptyList(), upper + m),
+            Comparison.LE,
+            "${name}_inside_ub"
+        )
 
-        // C3: y - x + M*(1-z) >= 0  =>  y - x + M - M*z >= 0 / C3：y - x + M*(1-z) >= 0
-        val c3Lhs = QuadraticPolynomial(listOf(yMon) + negXMonos + listOf(negZMon), -x.constant + m)
-        val c3Rhs = QuadraticPolynomial<V>(emptyList(), zero)
-        constraints += QuadraticInequalityOf(c3Lhs, c3Rhs, Comparison.GE, "${name}_eq_lb")
+        // below = 1 => x <= lower - tolerance / below = 1 表示明确低于下界
+        constraints += QuadraticInequalityOf(
+            QuadraticPolynomial(posXMonos + belowMMon, x.constant),
+            QuadraticPolynomial(emptyList(), lower - tolerance + m),
+            Comparison.LE,
+            "${name}_below"
+        )
 
-        // C4: y - x - M*(1-z) <= 0  =>  y - x - M + M*z <= 0 / C4：y - x - M*(1-z) <= 0
-        val c4Lhs = QuadraticPolynomial(listOf(yMon) + negXMonos + listOf(zMon), -x.constant - m)
-        val c4Rhs = QuadraticPolynomial<V>(emptyList(), zero)
-        constraints += QuadraticInequalityOf(c4Lhs, c4Rhs, Comparison.LE, "${name}_eq_ub")
+        // above = 1 => x >= upper + tolerance / above = 1 表示明确高于上界
+        constraints += QuadraticInequalityOf(
+            QuadraticPolynomial(posXMonos + negAboveMMon, x.constant),
+            QuadraticPolynomial(emptyList(), upper + tolerance - m),
+            Comparison.GE,
+            "${name}_above"
+        )
 
-        // C5: y <= M*z / C5：y <= M*z
-        val c5Lhs = QuadraticPolynomial(listOf(yMon), zero)
-        val c5Rhs = QuadraticPolynomial(listOf(zMon), zero)
-        constraints += QuadraticInequalityOf(c5Lhs, c5Rhs, Comparison.LE, "${name}_zero_ub")
+        // inside + below + above = 1 / 三个状态互斥且完备
+        constraints += QuadraticInequalityOf(
+            QuadraticPolynomial(listOf(insideMon, belowMon, aboveMon), zero),
+            QuadraticPolynomial(emptyList(), one),
+            Comparison.EQ,
+            "${name}_partition"
+        )
 
-        // C6: y >= -M*z / C6：y >= -M*z
-        val c6Lhs = QuadraticPolynomial(listOf(yMon), zero)
-        val c6Rhs = QuadraticPolynomial(listOf(negZMon), zero)
-        constraints += QuadraticInequalityOf(c6Lhs, c6Rhs, Comparison.GE, "${name}_zero_lb")
+        // inside = 1 => y = x / 进入区间分支时 y = x
+        constraints += QuadraticInequalityOf(
+            QuadraticPolynomial(listOf(yMon) + negXMonos + negInsideMMon, -x.constant),
+            QuadraticPolynomial(emptyList(), -m),
+            Comparison.GE,
+            "${name}_value_lb"
+        )
+        constraints += QuadraticInequalityOf(
+            QuadraticPolynomial(listOf(yMon) + negXMonos + insideMMon, -x.constant),
+            QuadraticPolynomial(emptyList(), m),
+            Comparison.LE,
+            "${name}_value_ub"
+        )
+
+        // inside = 0 => y = 0 / 未进入区间分支时 y = 0
+        constraints += QuadraticInequalityOf(
+            QuadraticPolynomial(listOf(yMon, negInsideMMon), zero),
+            QuadraticPolynomial(emptyList(), zero),
+            Comparison.LE,
+            "${name}_zero_ub"
+        )
+        constraints += QuadraticInequalityOf(
+            QuadraticPolynomial(listOf(yMon, insideMMon), zero),
+            QuadraticPolynomial(emptyList(), zero),
+            Comparison.GE,
+            "${name}_zero_lb"
+        )
 
         return addQuadraticConstraints(model, constraints) ?: ok
     }
@@ -357,10 +432,11 @@ class QuadraticInStepRangeFunction<V>(
             lower: V,
             upper: V,
             bigM: V? = null,
+            outsideTolerance: V? = null,
             converter: IntoValue<V>,
             name: String,
             displayName: String? = null
         ): QuadraticInStepRangeFunction<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> =
-            QuadraticInStepRangeFunction(x, lower, upper, bigM, converter, name, displayName)
+            QuadraticInStepRangeFunction(x, lower, upper, bigM, outsideTolerance, converter, name, displayName)
     }
 }

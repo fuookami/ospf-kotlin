@@ -36,7 +36,7 @@ class FunctionSymbolGenericRegistrationTest {
     }
 
     @Test
-    fun productShouldRegisterConstraintsForFourNumberTypesOnQuadraticMechanismModel() {
+    fun productShouldRemainExpressionOnlyForFourNumberTypesOnQuadraticMechanismModel() {
         runProductCase(GenericNumberCases.flt64)
         runProductCase(GenericNumberCases.fltX)
         runProductCase(GenericNumberCases.rtn64)
@@ -100,6 +100,10 @@ class FunctionSymbolGenericRegistrationTest {
                 monomials = listOf(LinearMonomial(numberCase.one, y)),
                 constant = numberCase.zero
             )
+            // 严格边界必须高于零带容差；此处覆盖所有通用数值类型。
+            // The strict boundary must exceed the zero-band tolerance for every generic numeric type.
+            val tolerance = numberCase.zero
+            val strictBoundary = numberCase.one
 
             val abs = AbsFunction(
                 polynomial = xPoly,
@@ -110,40 +114,40 @@ class FunctionSymbolGenericRegistrationTest {
                 polynomials = listOf(xPoly, yPoly),
                 converter = numberCase.converter,
                 bigM = numberCase.ten,
-                tolerance = numberCase.one,
-                strictBoundary = numberCase.one,
+                tolerance = tolerance,
+                strictBoundary = strictBoundary,
                 name = "and_${numberCase.name.lowercase()}"
             )
             val ifFunc = IfFunction(
                 condition = xPoly,
                 converter = numberCase.converter,
                 bigM = numberCase.ten,
-                tolerance = numberCase.one,
-                strictBoundary = numberCase.one,
+                tolerance = tolerance,
+                strictBoundary = strictBoundary,
                 name = "if_${numberCase.name.lowercase()}"
             )
             val or = OrFunction(
                 polynomials = listOf(xPoly, yPoly),
                 converter = numberCase.converter,
                 bigM = numberCase.ten,
-                tolerance = numberCase.one,
-                strictBoundary = numberCase.one,
+                tolerance = tolerance,
+                strictBoundary = strictBoundary,
                 name = "or_${numberCase.name.lowercase()}"
             )
             val not = NotFunction(
                 polynomial = xPoly,
                 converter = numberCase.converter,
                 bigM = numberCase.ten,
-                tolerance = numberCase.one,
-                strictBoundary = numberCase.one,
+                tolerance = tolerance,
+                strictBoundary = strictBoundary,
                 name = "not_${numberCase.name.lowercase()}"
             )
             val xor = XorFunction(
                 polynomials = listOf(xPoly, yPoly),
                 converter = numberCase.converter,
                 bigM = numberCase.ten,
-                tolerance = numberCase.one,
-                strictBoundary = numberCase.one,
+                tolerance = tolerance,
+                strictBoundary = strictBoundary,
                 name = "xor_${numberCase.name.lowercase()}"
             )
             assertTrue(abs.registerAuxiliaryTokens(model.tokens) is Ok, "${numberCase.name}: abs auxiliary tokens should succeed")
@@ -247,12 +251,15 @@ class FunctionSymbolGenericRegistrationTest {
             assertTrue(mechanismResult is Ok, "${numberCase.name}: product dump quadratic mechanism model should succeed")
             val mechanismModel = mechanismResult.value
 
-            assertQuadraticConstraintRegistration(
-                numberCase = numberCase,
-                mechanismModel = mechanismModel,
-                label = "product",
-                register = { product.registerConstraints(mechanismModel) },
-                expectedInputTokenNames = setOf(x.name, y.name)
+            val before = mechanismModel.constraints.size
+            assertTrue(
+                product.registerConstraints(mechanismModel) is Ok,
+                "${numberCase.name}: product registerConstraints should succeed"
+            )
+            assertEquals(
+                before,
+                mechanismModel.constraints.size,
+                "${numberCase.name}: product must not append an implicit zero-product constraint"
             )
         } finally {
             model.close()

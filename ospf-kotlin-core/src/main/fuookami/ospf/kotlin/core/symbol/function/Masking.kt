@@ -443,16 +443,16 @@ class MaskingRangeFunction<V>(
         }
     }
 
-    val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_mask_range")
+    val resultVar: AbstractVariableItem<*, *> = RealVar("${name}_mask_range")
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar)
 
     override fun evaluate(values: Map<Symbol, V>): V? {
-        val maskValue = mask.evaluateWith(values) ?: return converter.zero
+        val maskValue = mask.evaluateWith(values) ?: return null
         if (maskValue eq converter.zero) return converter.zero
 
-        val yValue = values[resultVar] ?: return converter.zero
+        val yValue = values[resultVar] ?: return null
         val lowerCandidate = lower * maskValue
         val upperCandidate = upper * maskValue
         val lowerBound: V

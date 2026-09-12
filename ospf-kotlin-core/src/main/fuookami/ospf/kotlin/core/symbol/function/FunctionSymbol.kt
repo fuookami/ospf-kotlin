@@ -177,8 +177,7 @@ class LinearFunctionSymbolAdapter<V>(
     */
     val pos: LinearPolynomial<V>? by lazy {
         val slack = delegate as? SlackFunction<V>
-        val slackRange = delegate as? SlackRangeFunction<V>
-        val posVar = slack?.posVar ?: slackRange?.posVar
+        val posVar = slack?.posVar
         posVar?.let { v ->
             LinearPolynomial(
                 monomials = listOf(LinearMonomial(converter.one, v)),
@@ -189,13 +188,12 @@ class LinearFunctionSymbolAdapter<V>(
 
     /**
      * 负松弛变量多项式 / Negative slack variable polynomial
-     * 仅当委托是 SlackFunction(withNegative=true) 或 SlackRangeFunction 时有意义。
-     * Only meaningful when the delegate is a SlackFunction with withNegative=true or a SlackRangeFunction.
+     * 仅当委托是 SlackFunction(withNegative=true) 时有意义。
+     * Only meaningful when the delegate is a SlackFunction with withNegative=true.
     */
     val neg: LinearPolynomial<V>? by lazy {
         val slack = delegate as? SlackFunction<V>
-        val slackRange = delegate as? SlackRangeFunction<V>
-        val negVar = slack?.negVar ?: slackRange?.negVar
+        val negVar = slack?.negVar
         negVar?.let { v ->
             LinearPolynomial(
                 monomials = listOf(LinearMonomial(converter.one, v)),
@@ -206,8 +204,8 @@ class LinearFunctionSymbolAdapter<V>(
 
     /**
      * 带松弛调整的输入多项式 / Input polynomial with slack adjustments
-     * 仅当委托是 SlackFunction 或 SlackRangeFunction 时有意义。
-     * Only meaningful when the delegate is a SlackFunction or SlackRangeFunction.
+     * 仅当委托是 SlackFunction 时有意义。
+     * Only meaningful when the delegate is a SlackFunction.
     */
     val polyX: LinearPolynomial<V>? by lazy {
         when (val d = delegate) {
@@ -220,13 +218,6 @@ class LinearFunctionSymbolAdapter<V>(
                 if (d.withPositive && d.posVar != null) {
                     result = LinearPolynomial(result.monomials + LinearMonomial(-unit, d.posVar!!), result.constant)
                 }
-                result
-            }
-            is SlackRangeFunction<V> -> {
-                val unit = converter.one
-                var result = LinearPolynomial(d.x.monomials.toMutableList(), d.x.constant)
-                result = LinearPolynomial(result.monomials + LinearMonomial(unit, d.negVar), result.constant)
-                result = LinearPolynomial(result.monomials + LinearMonomial(-unit, d.posVar), result.constant)
                 result
             }
             else -> null

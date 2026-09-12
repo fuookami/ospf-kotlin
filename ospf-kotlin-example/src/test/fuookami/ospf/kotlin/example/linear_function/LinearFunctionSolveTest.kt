@@ -84,9 +84,9 @@ class LinearFunctionSolveTest {
             constant = Flt64.zero
         )
         val slackFn = SlackRangeFunction(
-            x = xPoly,
-            lb = LinearPolynomial(emptyList(), Flt64(2.0)),
-            ub = LinearPolynomial(emptyList(), Flt64(4.0)),
+            input = xPoly,
+            lower = Flt64(2.0),
+            upper = Flt64(4.0),
             converter = converter,
             name = "p11_slack_range"
         )
@@ -99,13 +99,13 @@ class LinearFunctionSolveTest {
         try {
             assertTrue(model.add(x) is Ok, "x should be accepted")
             assertTrue(model.add(slackSymbol) is Ok, "slackRange symbol should be added to model")
-            assertTrue(model.minimize(slackSymbol.pos!!) is Ok, "minimize positive slack objective should be accepted")
+            assertTrue(model.minimize(slackSymbol) is Ok, "minimize exact range distance objective should be accepted")
 
             val solver = ScipLinearSolver()
             val result = runBlocking { solveLinearMetaModel(solver, model) }
             assertNotNull(result.value, "Solver should return a feasible solution")
             val objective = result.value!!.solution?.objective ?: error("Solver returned no incumbent objective")
-            assertTrue(objective ls Flt64(4.0), "positive slack should be less than upper bound")
+            assertTrue(objective eq Flt64.zero, "range distance should be zero inside the interval")
 
             model.setSolution(result.value!!.values)
             val xVal = model.tokens.find(x)?.result

@@ -9,12 +9,12 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.testing.*
-import fuookami.ospf.kotlin.core.token.AutoTokenTable
+import fuookami.ospf.kotlin.core.token.ManualTokenTable
 import fuookami.ospf.kotlin.core.variable.RealVar
 
 class SemiFunctionTest {
     @Test
-    fun explicitBoundsAndMarkerSemanticsShouldWorkForFourNumberTypes() {
+    fun explicitBoundsAndDomainSemanticsShouldWorkForFourNumberTypes() {
         runMarkerCase(GenericNumberCases.flt64)
         runMarkerCase(GenericNumberCases.fltX)
         runMarkerCase(GenericNumberCases.rtn64)
@@ -42,7 +42,7 @@ class SemiFunctionTest {
     }
 
     @Test
-    fun constraintRegistrationShouldBeANoOp() {
+    fun constraintRegistrationShouldCreateDomainRows() {
         val numberCase = GenericNumberCases.flt64
         val objective = LinearPolynomial<Flt64>(emptyList(), numberCase.zero)
         val metaModel = LinearMetaModel<Flt64>(
@@ -61,12 +61,12 @@ class SemiFunctionTest {
                 lb = numberCase.one,
                 ub = numberCase.ten,
                 converter = numberCase.converter,
-                name = "semi_no_op"
+                name = "semi_domain"
             )
 
             val before = mechanismModel.constraints.size
             assertTrue(function.registerConstraints(mechanismModel) is Ok)
-            assertEquals(before, mechanismModel.constraints.size)
+            assertEquals(before + 2, mechanismModel.constraints.size)
         } finally {
             metaModel.close()
         }
@@ -83,12 +83,24 @@ class SemiFunctionTest {
 
         assertTrue(function.lb eq numberCase.one, "${numberCase.name}: explicit lower bound")
         assertTrue(function.ub eq numberCase.ten, "${numberCase.name}: explicit upper bound")
-        assertTrue(function.helperVariables.isEmpty(), "${numberCase.name}: marker has no helpers")
-        assertNull(function.evaluate(emptyMap()), "${numberCase.name}: marker has no computed value")
+        assertEquals(2, function.helperVariables.size, "${numberCase.name}: result and indicator helpers")
+        assertNull(function.evaluate(emptyMap()), "${numberCase.name}: missing helper values")
+        assertTrue(
+            function.evaluate(
+                mapOf(function.indicatorVar to numberCase.zero, function.resultVar to numberCase.ten)
+            )!! eq numberCase.zero,
+            "${numberCase.name}: inactive value is zero"
+        )
+        assertTrue(
+            function.evaluate(
+                mapOf(function.indicatorVar to numberCase.one, function.resultVar to numberCase.zero)
+            )!! eq numberCase.one,
+            "${numberCase.name}: active value is clamped to the lower bound"
+        )
 
-        val tokens = AutoTokenTable<V>(Linear, false)
+        val tokens = ManualTokenTable<V>(Linear, false)
         assertTrue(function.registerAuxiliaryTokens(tokens) is Ok)
-        assertTrue(tokens.tokens.isEmpty(), "${numberCase.name}: marker registers no tokens")
+        assertEquals(2, tokens.tokens.size, "${numberCase.name}: result and indicator tokens")
     }
 
     private fun <V> runBoundCase(numberCase: GenericNumberCase<V>)

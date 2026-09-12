@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.example.quadratic_function
 
 import fuookami.ospf.kotlin.example.test.flt64TestConverter
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -22,7 +23,7 @@ class SemiTest {
         )
         assertTrue(function.lb eq Flt64.one)
         assertTrue(function.ub eq Flt64(4.0))
-        assertTrue(function.helperVariables.isEmpty())
+        assertEquals(2, function.helperVariables.size)
         assertNull(function.evaluate(emptyMap()))
     }
 }

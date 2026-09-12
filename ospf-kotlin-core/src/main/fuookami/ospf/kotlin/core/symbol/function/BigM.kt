@@ -347,6 +347,31 @@ fun <V> ensurePositiveBigM(
     return if (value.compareTo(minimum) >= 0) value else minimum
 }
 
+/**
+ * 判断显式 Big-M 是否可安全用于求解器约束。 / Check whether an explicit Big-M is safe for solver constraints.
+ *
+ * 显式值不能被静默截断为最小值；NaN、无穷、范围哨兵和非正值都必须在写约束前拒绝。
+ * Explicit values must not be silently clamped: NaN, infinities, range sentinels, and
+ * non-positive values are rejected before any constraint is written.
+ */
+fun <V> isUsableExplicitBigM(
+    value: V,
+    converter: IntoValue<V>
+): Boolean where V : RealNumber<V>, V : NumberField<V> {
+    return try {
+        if (!value.isFinite() || value.compareTo(converter.zero) <= 0) {
+            return false
+        }
+        val solverValue = converter.fromValue(value)
+        solverValue.isFinite() &&
+            solverValue != Flt64.nan &&
+            solverValue.compareTo(Flt64.minimum) > 0 &&
+            solverValue.compareTo(Flt64.maximum) < 0
+    } catch (_: RuntimeException) {
+        false
+    }
+}
+
 /** 从已验证边界安全解析 Big-M 候选。 / Resolve a Big-M candidate safely from validated bounds. */
 private fun <V> finiteBigMOrNull(
     bounds: LinearPolynomialBounds<V>?,
@@ -846,8 +871,8 @@ internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<
 /**
  * 为多项式构建 4 个非零指示约束。 / Build the 4 nonzero-indicator constraints for a polynomial.
  *
- * 当 `indicator = 1` 时：多项式被约束为接近零（在容差范围内）。 / When `indicator = 1`: polynomial is constrained to be near zero (within tolerance).
- * 当 `indicator = 0` 时：多项式可以非零（通过 Big-M 放松）。 / When `indicator = 0`: polynomial can be nonzero (relaxed by Big-M).
+ * 当 `indicator = 0` 时：多项式被约束为接近零（在容差范围内）。 / When `indicator = 0`: polynomial is constrained to be near zero (within tolerance).
+ * 当 `indicator = 1` 时：多项式必须越过严格边界，可为正或负。 / When `indicator = 1`: polynomial must cross the strict boundary in either direction.
  * `sideVar` 用于区分正负偏差以进行等式检查。 / The `sideVar` distinguishes positive vs negative deviation for equality checks.
  *
  * 这避免了 V -> Flt64 -> V 的往返转换，并在泛型路径中保持中间符号约束为 V 类型。 / This avoids the V -> Flt64 -> V conversion round-trip and keeps

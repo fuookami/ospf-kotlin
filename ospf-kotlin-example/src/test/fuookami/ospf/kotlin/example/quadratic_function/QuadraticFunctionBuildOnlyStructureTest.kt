@@ -40,7 +40,7 @@ class QuadraticFunctionBuildOnlyStructureTest {
         )
         assertEquals(Flt64.one, semi.lb, "SemiFunction lb should be 1")
         assertEquals(Flt64(4.0), semi.ub, "SemiFunction ub should be 4")
-        assertTrue(semi.helperVariables.isEmpty(), "SemiFunction should have no helper variables")
+        assertEquals(2, semi.helperVariables.size, "SemiFunction should expose result and activation helpers")
         assertNull(semi.evaluate(emptyMap()), "SemiFunction evaluate with empty map should return null")
     }
 

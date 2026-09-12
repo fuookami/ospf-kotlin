@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
@@ -316,6 +317,12 @@ class QuadraticMinFunction<V>(
      * 注册最小值约束（y <= pi，精确模式下：y >= pi - M*(1-ui), sum(ui)=1）。 / Register min constraints (y <= pi, and if exact: y >= pi - M*(1-ui), sum(ui)=1).
     */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
+        if (exact && explicitBigM != null && !isUsableExplicitBigM(explicitBigM!!, converter)) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "QuadraticMin Big-M must be finite and positive. / QuadraticMin Big-M must be finite and positive."
+            )
+        }
         val one = converter.one
         val zero = converter.zero
         val resultMon = QuadraticMonomial.linear(one, resultVar)

@@ -143,10 +143,9 @@ class HorizontalStabilizer(
                 warnSlack = if (limit.warnMinTrim != null && limit.warnMaxTrim != null) {
                     LinearFunctionSymbolAdapter(
                         delegate = SlackRangeFunction(
-                            x = LinearPolynomial(trim),
-                            lb = LinearPolynomial(limit.warnMinTrim),
-                            ub = LinearPolynomial(limit.warnMaxTrim),
-                            type = UContinuous,
+                            input = LinearPolynomial(trim),
+                            lower = limit.warnMinTrim,
+                            upper = limit.warnMaxTrim,
                             converter = flt64Converter,
                             name = "${key}_trim_warn_slack"
                         ),

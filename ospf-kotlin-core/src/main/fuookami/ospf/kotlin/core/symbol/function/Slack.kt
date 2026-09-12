@@ -36,6 +36,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property constraint 是否添加约束 / Whether to add constraints
  * @property negVar 负松弛变量 / Negative slack variable
  * @property posVar 正松弛变量 / Positive slack variable
+ * @property sideVar 绝对值分支变量 / Absolute-value branch variable
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
 */
@@ -61,9 +62,12 @@ class SlackFunction<V>(
     internal val posVar: AbstractVariableItem<*, *>? by lazy {
         if (withPositive) createVariable("${name}_pos") else null
     }
+    private val sideVar: AbstractVariableItem<*, *>? by lazy {
+        if (withNegative && withPositive) BinVar("${name}_side") else null
+    }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOfNotNull(negVar, posVar)
+        get() = listOfNotNull(negVar, posVar, sideVar)
 
     override val resultPolynomial: LinearPolynomial<V> by lazy {
         val monomials = buildList {
@@ -127,15 +131,70 @@ class SlackFunction<V>(
             return ok
         }
         val one = converter.one
+        val zero = converter.zero
         val constraints = mutableListOf<LinearInequality<V>>()
 
-        if (!threshold) {
+        // When both directions are requested, use the exact four-row absolute
+        // value formulation. This prevents the two nonnegative parts from
+        // growing together when no objective minimizes the result.
+        if (withNegative && withPositive && negVar != null && posVar != null && sideVar != null) {
+            val branchVar = sideVar!!
+            val difference = LinearPolynomial(
+                x.monomials + y.monomials.map { LinearMonomial(-it.coefficient, it.symbol) },
+                x.constant - y.constant
+            )
+            val result = resultPolynomial
+            val resultMinusDifference = LinearPolynomial(
+                result.monomials + difference.monomials.map { LinearMonomial(-it.coefficient, it.symbol) },
+                result.constant - difference.constant
+            )
+            val resultPlusDifference = LinearPolynomial(
+                result.monomials + difference.monomials,
+                result.constant + difference.constant
+            )
+            // Each inactive branch can expose twice the absolute difference,
+            // so M must cover 2 * max(|x - y|), not only max(|x - y|).
+            // 非激活分支可能暴露两倍绝对差值，因此 M 必须覆盖 2 * max(|x - y|)，不能只取 max(|x - y|)。
+            val bigM = difference.defaultBigM(converter) * (one + one)
+
+            constraints += LinearInequality(
+                resultMinusDifference,
+                LinearPolynomial(emptyList(), zero),
+                Comparison.GE,
+                "${name}_abs_ge_difference"
+            )
+            constraints += LinearInequality(
+                resultPlusDifference,
+                LinearPolynomial(emptyList(), zero),
+                Comparison.GE,
+                "${name}_abs_ge_negative_difference"
+            )
+            constraints += LinearInequality(
+                LinearPolynomial(
+                    resultMinusDifference.monomials + LinearMonomial(bigM, branchVar),
+                    resultMinusDifference.constant
+                ),
+                LinearPolynomial(emptyList(), bigM),
+                Comparison.LE,
+                "${name}_abs_branch_positive"
+            )
+            constraints += LinearInequality(
+                LinearPolynomial(
+                    resultPlusDifference.monomials + LinearMonomial(-bigM, branchVar),
+                    resultPlusDifference.constant
+                ),
+                LinearPolynomial(emptyList(), zero),
+                Comparison.LE,
+                "${name}_abs_branch_negative"
+            )
+        } else if (!threshold) {
             constraints += LinearInequality(polyX, y, Comparison.EQ, name)
         } else {
             if (withNegative && negVar != null) {
                 val lhs = LinearPolynomial(x.monomials + LinearMonomial(one, negVar!!), x.constant)
                 constraints += LinearInequality(lhs, y, Comparison.GE, "${name}_neg")
-            } else if (withPositive && posVar != null) {
+            }
+            if (withPositive && posVar != null) {
                 val lhs = LinearPolynomial(x.monomials + LinearMonomial(-one, posVar!!), x.constant)
                 constraints += LinearInequality(lhs, y, Comparison.LE, "${name}_pos")
             }

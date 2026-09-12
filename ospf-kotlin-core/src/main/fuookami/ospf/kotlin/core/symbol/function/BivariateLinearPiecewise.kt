@@ -17,6 +17,8 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.utils.functional.*
 
+private const val BLP_GEOMETRY_EPSILON: Double = 1e-12
+
 /**
  * 双变量线性分段函数符号 / Bivariate linear piecewise function symbol
  *
@@ -68,6 +70,23 @@ class BivariateLinearPiecewiseFunction<V>(
 
     init {
         require(triangles.isNotEmpty()) { "At least one triangle is required" }
+        triangles.forEachIndexed { index, triangle ->
+            val coordinates = listOf(
+                triangle.p1.x, triangle.p1.y, triangle.p1.z,
+                triangle.p2.x, triangle.p2.y, triangle.p2.z,
+                triangle.p3.x, triangle.p3.y, triangle.p3.z
+            )
+            require(coordinates.all { it.isFinite() }) {
+                "Triangle $index coordinates must be finite"
+            }
+            val determinant = (triangle.p2.y - triangle.p3.y) *
+                (triangle.p1.x - triangle.p3.x) +
+                (triangle.p3.x - triangle.p2.x) *
+                (triangle.p1.y - triangle.p3.y)
+            require(determinant.abs() gr Flt64(BLP_GEOMETRY_EPSILON)) {
+                "Triangle $index must be non-degenerate"
+            }
+        }
     }
 
     // Lambda variables: lambda_i_j for triangle i, vertex j (0, 1, 2)
@@ -112,14 +131,15 @@ class BivariateLinearPiecewiseFunction<V>(
         val yVal = y.evaluateWith(values)?.let { converter.fromValue(it) } ?: return null
         val zero = Flt64.zero
         val one = Flt64.one
+        val tolerance = Flt64(BLP_GEOMETRY_EPSILON)
 
         for (i in triangles.indices) {
             val tri = triangles[i]
             val (u, v) = calculateBarycentric(tri, xVal, yVal)
             if (u != null && v != null &&
-                (u geq zero) && (u leq one) &&
-                (v geq zero) && (v leq one) &&
-                ((u + v) leq one)
+                (u geq -tolerance) &&
+                (v geq -tolerance) &&
+                ((u + v) leq one + tolerance)
             ) {
                 val zVal = tri.p1.z + (tri.p2.z - tri.p1.z) * u + (tri.p3.z - tri.p1.z) * v
                 return converter.intoValue(zVal)
@@ -149,7 +169,7 @@ class BivariateLinearPiecewiseFunction<V>(
         val y3 = tri.p3.y
 
         val det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3)
-        val detTolerance = Flt64(1e-12)
+        val detTolerance = Flt64(BLP_GEOMETRY_EPSILON)
         if (det.abs() ls detTolerance || det.abs() eq detTolerance) {
             return null to null
         }
