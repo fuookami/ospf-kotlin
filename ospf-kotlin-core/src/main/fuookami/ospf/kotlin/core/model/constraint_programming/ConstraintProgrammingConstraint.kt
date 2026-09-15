@@ -596,8 +596,15 @@ sealed interface ConstraintProgrammingConstraint {
             var level = java.math.BigInteger.valueOf(initialLevel.toLong())
             val minimum = java.math.BigInteger.valueOf(minimumLevel.toLong())
             val maximum = java.math.BigInteger.valueOf(maximumLevel.toLong())
-            for ((_, change) in evaluated) {
-                level = level.add(java.math.BigInteger.valueOf(change))
+            var index = 0
+            while (index < evaluated.size) {
+                val time = evaluated[index].first
+                var totalChange = java.math.BigInteger.ZERO
+                while (index < evaluated.size && evaluated[index].first == time) {
+                    totalChange = totalChange.add(java.math.BigInteger.valueOf(evaluated[index].second))
+                    index++
+                }
+                level = level.add(totalChange)
                 if (level < minimum || level > maximum) {
                     return ok(false)
                 }

@@ -30,6 +30,33 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 
 class ConstraintProgrammingLowererTest {
     @Test
+    fun integerDomainBoundsAreAppliedToLoweredVariables() {
+        val model = ConstraintProgrammingModel("lower-domain-bounds")
+        try {
+            val dense = IntVar("dense")
+            val singleton = IntVar("singleton")
+            model.registerVariable(dense, IntegerDomain.interval(2, 3).value!!)
+            model.registerVariable(singleton, IntegerDomain.interval(7, 7).value!!)
+
+            val lowered = assertIs<Ok<ConstraintProgrammingLoweredLinearModel, *, *>>(
+                ConstraintProgrammingToLinearModelLowerer().lower(model)
+            ).value
+            try {
+                val denseId = VariableId("${dense.identifier}:${dense.index}")
+                val singletonId = VariableId("${singleton.identifier}:${singleton.index}")
+                assertEquals(2.0, lowered.variables[denseId]!!.lowerBound!!.value.unwrap().toDouble())
+                assertEquals(3.0, lowered.variables[denseId]!!.upperBound!!.value.unwrap().toDouble())
+                assertEquals(7.0, lowered.variables[singletonId]!!.lowerBound!!.value.unwrap().toDouble())
+                assertEquals(7.0, lowered.variables[singletonId]!!.upperBound!!.value.unwrap().toDouble())
+            } finally {
+                lowered.close()
+            }
+        } finally {
+            model.close()
+        }
+    }
+
+    @Test
     fun shouldLowerEmptyBooleanOrAndXorAsFalseConstraints() {
         val model = ConstraintProgrammingModel("empty-boolean-constraints")
         try {

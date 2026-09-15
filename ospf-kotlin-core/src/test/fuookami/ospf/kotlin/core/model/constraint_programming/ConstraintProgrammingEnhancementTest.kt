@@ -88,6 +88,31 @@ class ConstraintProgrammingEnhancementTest {
     }
 
     @Test
+    fun reservoirAggregatesEventsAtTheSameTimeBeforeCheckingBounds() {
+        val reservoir = ConstraintProgrammingConstraint.reservoir(
+            events = listOf(
+                ConstraintProgrammingConstraint.Reservoir.Event(
+                    ConstraintProgrammingExpression.Constant(Int64(3)),
+                    ConstraintProgrammingExpression.Constant(Int64(-1))
+                ),
+                ConstraintProgrammingConstraint.Reservoir.Event(
+                    ConstraintProgrammingExpression.Constant(Int64(3)),
+                    ConstraintProgrammingExpression.Constant(Int64(1))
+                )
+            ),
+            initialLevel = Int64.zero,
+            minimumLevel = Int64.zero,
+            maximumLevel = Int64(1)
+        ).value!!
+
+        assertEquals(true, reservoir.isSatisfied(emptyMap()).value)
+        assertEquals(
+            true,
+            reservoir.copy(events = reservoir.events.reversed()).isSatisfied(emptyMap()).value
+        )
+    }
+
+    @Test
     fun snapshotCodecRoundTripsStableIds() {
         val variable = BinVar("serialized-x")
         val model = ConstraintProgrammingModel("serialized")

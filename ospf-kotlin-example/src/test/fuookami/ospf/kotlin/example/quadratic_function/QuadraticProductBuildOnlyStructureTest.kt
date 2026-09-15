@@ -14,7 +14,6 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
@@ -75,12 +74,13 @@ class QuadraticProductBuildOnlyStructureTest {
             assertTrue(function.registerConstraints(mechanismModel) is Ok)
             val appended = mechanismModel.constraints.subList(before, mechanismModel.constraints.size)
 
-            // ProductFunction constraint assertions
-            assertEquals(1, appended.size, "product should append exactly 1 equality constraint")
-            assertEquals(ConstraintRelation.Equal, appended.first().sign)
-            assertTrue(appended.first().name.contains("example_product_build"))
-            assertTrue(appended.first().lhs.isNotEmpty(),
-                "product constraint lhs should have cells (quadratic terms)")
+            // ProductFunction is expression-level; its expanded polynomial is consumed by the
+            // objective or enclosing constraint, so registering it adds no auxiliary row.
+            assertEquals(
+                0,
+                appended.size,
+                "expression-level product should not append an auxiliary constraint"
+            )
         } finally {
             model.close()
         }

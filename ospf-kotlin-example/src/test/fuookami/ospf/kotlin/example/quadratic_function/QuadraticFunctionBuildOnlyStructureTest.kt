@@ -81,10 +81,11 @@ class QuadraticFunctionBuildOnlyStructureTest {
             assertTrue(product.registerConstraints(mechanismModel) is Ok)
             val appended = mechanismModel.constraints.subList(before, mechanismModel.constraints.size)
 
-            assertEquals(1, appended.size, "ProductFunction should append 1 equality constraint")
-            assertEquals(ConstraintRelation.Equal, appended.first().sign)
-            assertTrue(appended.first().name.contains("p12_product"))
-            assertTrue(appended.first().lhs.isNotEmpty(), "constraint lhs should have cells")
+            assertEquals(
+                0,
+                appended.size,
+                "ProductFunction is expression-level and should not append an auxiliary constraint"
+            )
         } finally {
             model.close()
         }

@@ -1814,8 +1814,28 @@ data class QuadraticTetradModel(
         }
     }
 
+    /**
+     * 释放本模型自身持有的资源。
+     *
+     * **不得**在此关闭 [dualOrigin]：`dual()` / `elastic()` 会把来源模型记为 `dualOrigin`，而来源
+     * 模型由调用方拥有，其生命周期长于派生模型。关闭派生模型去清空来源模型会产生难以察觉的
+     * use-after-free——来源对象仍然存活、访问不再报错，却已经没有任何约束。详见
+     * [LinearTriadModel.close] 中记录的实际触发路径。
+     *
+     * 所有权方向是"创建者负责释放"：调用方关闭来源模型，派生模型只释放自己。
+     *
+     * Releases only the resources this model owns.
+     *
+     * It must **not** close [dualOrigin]: `dual()` / `elastic()` record the source model as
+     * `dualOrigin`, and the source is owned by the caller and outlives the derived model. Closing a
+     * derived model only to empty its source produces a nearly invisible use-after-free — the source
+     * stays alive and keeps answering but has no constraints left. See [LinearTriadModel.close] for
+     * the concrete path that hit this.
+     *
+     * Ownership runs creator-to-created: the caller closes the source and a derived model releases
+     * only itself.
+     */
     override fun close() {
-        dualOrigin?.close()
         super.close()
     }
 
