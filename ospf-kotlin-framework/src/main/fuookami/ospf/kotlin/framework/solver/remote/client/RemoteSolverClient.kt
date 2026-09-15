@@ -165,6 +165,7 @@ class RemoteSolverClient(
                 }
                 latestSlice = sliceResult
                 totalElapsed += sliceResult.elapsed
+                latestCheckpoint = sliceResult.checkpointRef ?: latestCheckpoint
                 if (cancellationToken?.isCancellationRequested == true) {
                     return cancelled()
                 }
@@ -204,7 +205,12 @@ class RemoteSolverClient(
                         diagnostics = sliceResult.diagnostics,
                         runId = sliceResult.runId,
                         attemptId = sliceResult.attemptId,
-                        artifactDigest = sliceResult.artifactDigest
+                        artifactDigest = sliceResult.artifactDigest,
+                        bestBound = sliceResult.bestBound,
+                        incumbentRef = sliceResult.incumbentRef,
+                        modelFingerprint = sliceResult.modelFingerprint,
+                        scheduling = sliceResult.scheduling,
+                        outcome = sliceResult.outcome
                     )
                     completed = true
                     break
@@ -274,7 +280,12 @@ class RemoteSolverClient(
             diagnostics = slice?.diagnostics ?: emptyMap(),
             runId = slice?.runId,
             attemptId = slice?.attemptId,
-            artifactDigest = slice?.artifactDigest
+            artifactDigest = slice?.artifactDigest,
+            bestBound = slice?.bestBound,
+            incumbentRef = slice?.incumbentRef,
+            modelFingerprint = slice?.modelFingerprint,
+            scheduling = slice?.scheduling,
+            outcome = SliceOutcome.CANCELLED
         )
     }
 }

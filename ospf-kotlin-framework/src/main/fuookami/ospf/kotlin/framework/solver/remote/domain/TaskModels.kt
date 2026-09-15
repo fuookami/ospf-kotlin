@@ -68,7 +68,10 @@ enum class TaskStatus {
     FAILED,
 
     /** 等待预算释放 / Waiting for budget */
-    WAITING_FOR_BUDGET
+    WAITING_FOR_BUDGET,
+
+    /** 未知状态；用于兼容服务端新增枚举值 / Unknown state; used for forward-compatible decoding */
+    UNKNOWN
 }
 
 /**
@@ -253,6 +256,7 @@ data class SolverConfig(
  * @property config 内联配置 / Inline config
  * @property snapshotRef 快照引用 / Snapshot reference
  * @property taskMeta 任务元数据 / Task metadata
+ * @property scheduling V1.2 调度请求 / V1.2 scheduling request
  * @property extension 扩展字段 / Extension fields
 */
 @Serializable
@@ -262,7 +266,8 @@ data class SolvePayload(
     val config: SolverConfig? = null,
     val snapshotRef: ObjectRef? = null,
     val taskMeta: TaskMeta = TaskMeta(),
-    val extension: Map<String, String> = emptyMap()
+    val extension: Map<String, String> = emptyMap(),
+    val scheduling: SchedulingRequest? = null
 ) {
 
     /**
@@ -273,19 +278,22 @@ data class SolvePayload(
      * @param snapshotRef Optional snapshot reference. / 可选快照引用。
      * @param taskMeta Task metadata. / 任务元数据。
      * @param extension Extension fields. / 扩展字段。
+     * @param scheduling Scheduling requirements. / 调度要求。
     */
     constructor(
         modelRef: ObjectRef,
         configRef: ObjectRef? = null,
         snapshotRef: ObjectRef? = null,
         taskMeta: TaskMeta = TaskMeta(),
-        extension: Map<String, String> = emptyMap()
+        extension: Map<String, String> = emptyMap(),
+        scheduling: SchedulingRequest? = null
     ) : this(
         modelData = ModelData.reference(modelRef),
         configRef = configRef,
         snapshotRef = snapshotRef,
         taskMeta = taskMeta,
-        extension = extension
+        extension = extension,
+        scheduling = scheduling
     )
 
     /**
@@ -295,17 +303,20 @@ data class SolvePayload(
      * @param config Optional inline solver configuration. / 可选内联求解配置。
      * @param taskMeta Task metadata. / 任务元数据。
      * @param extension Extension fields. / 扩展字段。
+     * @param scheduling Scheduling requirements. / 调度要求。
     */
     constructor(
         linearModel: SerializedLinearModel,
         config: SolverConfig? = null,
         taskMeta: TaskMeta = TaskMeta(),
-        extension: Map<String, String> = emptyMap()
+        extension: Map<String, String> = emptyMap(),
+        scheduling: SchedulingRequest? = null
     ) : this(
         modelData = ModelData.linear(linearModel),
         config = config,
         taskMeta = taskMeta,
-        extension = extension
+        extension = extension,
+        scheduling = scheduling
     )
 
     /** Model reference carried by the payload. / 载荷携带的模型引用。

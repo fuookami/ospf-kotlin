@@ -1097,6 +1097,7 @@ class RemoteConstraintProgrammingClient(
             RemoteSolutionPresence.NONE -> fuookami.ospf.kotlin.core.solver.report.SolutionPresence.None
             RemoteSolutionPresence.INCUMBENT -> fuookami.ospf.kotlin.core.solver.report.SolutionPresence.Incumbent
             RemoteSolutionPresence.OPTIMAL -> fuookami.ospf.kotlin.core.solver.report.SolutionPresence.Optimal
+            RemoteSolutionPresence.UNKNOWN -> fuookami.ospf.kotlin.core.solver.report.SolutionPresence.None
         }
     }
 
@@ -1105,6 +1106,7 @@ class RemoteConstraintProgrammingClient(
             RemoteProofStatus.NONE -> ProofStatus.None
             RemoteProofStatus.CLAIMED -> ProofStatus.Claimed
             RemoteProofStatus.VERIFIED -> ProofStatus.Verified
+            RemoteProofStatus.UNKNOWN -> ProofStatus.None
         }
     }
 

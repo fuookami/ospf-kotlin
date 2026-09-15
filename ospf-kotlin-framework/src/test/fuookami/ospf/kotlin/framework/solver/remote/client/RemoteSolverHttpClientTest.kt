@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.error.ExErr
 import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Ok
 
 /**
  * 远程求解器 HTTP 客户端测试。
@@ -62,7 +63,15 @@ class RemoteSolverHttpClientTest {
                 priority = 3,
                 budgetScope = BudgetScopeId.of("scope-a"),
                 budgetLimit = Flt64(12.5),
-                deadline = Instant.fromEpochMilliseconds(123L)
+                deadline = Instant.fromEpochMilliseconds(123L),
+                scheduling = SchedulingRequest(
+                    complexity = TaskComplexity.COMPLEX,
+                    priority = 3,
+                    deadline = Instant.fromEpochMilliseconds(123L),
+                    estimate = SchedulingEstimate(runtime = 1500.milliseconds),
+                    preemptionMode = PreemptionMode.CONTROLLED_RETURN,
+                    resumeMode = ResumeMode.WARM_START
+                )
             )
         ).valueOrFail()
 
@@ -77,6 +86,88 @@ class RemoteSolverHttpClientTest {
         assertEquals("payloads/1", body.getValue("payloadRef").jsonPrimitive.content)
         assertEquals("COMPLEX", body.getValue("complexity").jsonPrimitive.content)
         assertEquals("NON_REALTIME", body.getValue("timeSensitivity").jsonPrimitive.content)
+        val scheduling = body.getValue("scheduling").jsonObject
+        assertEquals(1500L, scheduling.getValue("estimate").jsonObject
+            .getValue("estimatedRuntimeMs").jsonPrimitive.long)
+        assertEquals("CONTROLLED_RETURN", scheduling.getValue("preemptionMode").jsonPrimitive.content)
+    }
+
+    @Test
+    fun startRejectsUnacceptedSubmissionInsteadOfReturningHandle() = runBlocking {
+        val http = RecordingHttpHandler(
+            RemoteSolverHttpResponse(
+                statusCode = 200,
+                body =
+                """
+                {
+                  "code": "OK",
+                  "message": "success",
+                  "data": {
+                    "taskId": "task-rejected",
+                    "accepted": false,
+                    "status": "WAITING_FOR_BUDGET",
+                    "message": "budget is exhausted"
+                  }
+                }
+                """.trimIndent()
+            )
+        )
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http,
+            objectStoragePort = RecordingObjectStoragePort()
+        )
+
+        val result = client.start(
+            payload = SolvePayload(SerializedLinearModel.empty()),
+            taskId = TaskId.of("task-requested"),
+            sliceId = SliceId.of("slice-1"),
+            nodeId = NodeId.of("node-1"),
+            tenantId = TenantId.of("tenant-a")
+        )
+
+        assertTrue(result is Failed)
+        val failed = result as Failed<*, *, *>
+        assertEquals(ErrorCode.ApplicationFailed, failed.code)
+        assertTrue(failed.message?.contains("budget is exhausted") == true)
+        assertTrue(failed.message?.contains("accepted=false") == true)
+    }
+
+    @Test
+    fun v12SliceDecisionAndOutcomeDecodeWithMillisecondFields() {
+        val result = json.decodeFromString(
+            SliceResult.serializer(),
+            """
+            {
+              "sliceId": "slice-1",
+              "completed": false,
+              "feasible": true,
+              "objectiveValue": 42.0,
+              "gap": 0.2,
+              "elapsedMs": 1900,
+              "checkpointRef": {"path": "checkpoints/task-1/slice-1"},
+              "modelFingerprint": "sha256:model",
+              "scheduling": {
+                "dispatchId": "dispatch-1",
+                "taskId": "task-1",
+                "sliceId": "slice-1",
+                "nodeId": "node-1",
+                "quantumMs": 2000,
+                "queueWaitMs": 125,
+                "preemptionMode": "CONTROLLED_RETURN",
+                "resumeMode": "WARM_START"
+              },
+              "outcome": "CHECKPOINTED"
+            }
+            """.trimIndent()
+        )
+
+        assertEquals(1900L, result.elapsed.inWholeMilliseconds)
+        assertEquals(2000L, result.scheduling?.quantum?.inWholeMilliseconds)
+        assertEquals(125L, result.scheduling?.queueWait?.inWholeMilliseconds)
+        assertEquals(SliceOutcome.CHECKPOINTED, result.outcome)
+        assertEquals(PreemptionMode.CONTROLLED_RETURN, result.scheduling?.preemptionMode)
+        assertEquals(ResumeMode.WARM_START, result.scheduling?.resumeMode)
     }
 
     @Test
@@ -338,6 +429,152 @@ class RemoteSolverHttpClientTest {
     }
 
     @Test
+    fun getMapsTaskIdentityFields() {
+        val http = RecordingHttpHandler(
+            RemoteSolverHttpResponse(
+                statusCode = 200,
+                body =
+                """
+                {
+                  "code": "OK",
+                  "message": "success",
+                  "data": {
+                    "taskId": "task-identity",
+                    "tenantId": "tenant-a",
+                    "status": "RUNNING",
+                    "dispatchId": "dispatch-1",
+                    "runId": "run-1",
+                    "attemptId": "attempt-1",
+                    "artifactDigest": "artifact-1",
+                    "modelFingerprint": {
+                      "schemaVersion": "1.0",
+                      "algorithm": "SHA-256",
+                      "value": "model-1"
+                    },
+                    "configurationFingerprint": {
+                      "schemaVersion": "1.0",
+                      "algorithm": "SHA-256",
+                      "value": "configuration-1"
+                    },
+                    "solverFingerprint": "solver-1",
+                    "solverFingerprintSchema": "2.0",
+                    "fingerprints": {
+                      "extra": "extra-1"
+                    },
+                    "fingerprintSchemas": {
+                      "extra": "1.0"
+                    },
+                    "provenance": {
+                      "backend": "remote",
+                      "threads": 4
+                    }
+                  }
+                }
+                """.trimIndent()
+            )
+        )
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http
+        )
+
+        val response = client.get(TaskId.of("task-identity")).valueOrFail()
+
+        assertNotNull(response)
+        assertEquals(DispatchId.of("dispatch-1"), response?.dispatchId)
+        assertEquals("run-1", response?.runId)
+        assertEquals("attempt-1", response?.attemptId)
+        assertEquals("artifact-1", response?.artifactDigest)
+        assertEquals("model-1", response?.modelFingerprint)
+        assertEquals("1.0", response?.modelFingerprintSchema)
+        assertEquals("configuration-1", response?.configurationFingerprint)
+        assertEquals("1.0", response?.configurationFingerprintSchema)
+        assertEquals("solver-1", response?.solverFingerprint)
+        assertEquals("2.0", response?.solverFingerprintSchema)
+        assertEquals("extra-1", response?.fingerprints?.get("extra"))
+        assertEquals("model-1", response?.fingerprints?.get("model"))
+        assertEquals("configuration-1", response?.fingerprints?.get("configuration"))
+        assertEquals("solver-1", response?.fingerprints?.get("solver"))
+        assertEquals("4", response?.provenance?.get("threads"))
+    }
+
+    @Test
+    fun getToleratesUnknownWireEnumValues() {
+        val http = RecordingHttpHandler(
+            RemoteSolverHttpResponse(
+                statusCode = 200,
+                body =
+                """
+                {
+                  "code": "OK",
+                  "message": "success",
+                  "data": {
+                    "taskId": "task-future",
+                    "tenantId": "tenant-a",
+                    "status": "FUTURE_TASK_STATUS",
+                    "outcome": "FUTURE_SLICE_OUTCOME",
+                    "problemStatus": "FUTURE_PROBLEM_STATUS",
+                    "terminationReason": "FUTURE_TERMINATION_REASON",
+                    "solutionPresence": "FUTURE_SOLUTION_PRESENCE",
+                    "proofStatus": "FUTURE_PROOF_STATUS",
+                    "scheduling": {
+                      "preemptionMode": "FUTURE_PREEMPTION_MODE",
+                      "resumeMode": "FUTURE_RESUME_MODE",
+                      "outcome": "FUTURE_SCHEDULING_OUTCOME"
+                    },
+                    "slice": {
+                      "sliceId": "slice-future",
+                      "completed": false,
+                      "feasible": true,
+                      "objectiveValue": 1.5,
+                      "gap": null,
+                      "elapsedMs": 12,
+                      "problemStatus": "FUTURE_PROBLEM_STATUS",
+                      "terminationReason": "FUTURE_TERMINATION_REASON",
+                      "solutionPresence": "FUTURE_SOLUTION_PRESENCE",
+                      "proofStatus": "FUTURE_PROOF_STATUS",
+                      "outcome": "FUTURE_SLICE_OUTCOME",
+                      "scheduling": {
+                        "preemptionMode": "FUTURE_PREEMPTION_MODE",
+                        "resumeMode": "FUTURE_RESUME_MODE",
+                        "outcome": "FUTURE_SCHEDULING_OUTCOME"
+                      }
+                    }
+                  }
+                }
+                """.trimIndent()
+            )
+        )
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http
+        )
+
+        val response = client.get(TaskId.of("task-future")).valueOrFail()
+
+        assertNotNull(response)
+        assertEquals(TaskStatus.UNKNOWN, response?.status)
+        assertEquals(SliceOutcome.UNKNOWN, response?.outcome)
+        assertEquals(RemoteProblemStatus.UNKNOWN, response?.problemStatus)
+        assertEquals(RemoteTerminationReason.UNKNOWN, response?.terminationReason)
+        assertEquals(RemoteSolutionPresence.UNKNOWN, response?.solutionPresence)
+        assertEquals(RemoteProofStatus.UNKNOWN, response?.proofStatus)
+        assertNotNull(response?.scheduling)
+        assertEquals(PreemptionMode.UNKNOWN, response?.scheduling?.preemptionMode)
+        assertEquals(ResumeMode.UNKNOWN, response?.scheduling?.resumeMode)
+        assertEquals(SliceOutcome.UNKNOWN, response?.scheduling?.outcome)
+        assertNotNull(response?.slice)
+        assertEquals(RemoteProblemStatus.UNKNOWN, response?.slice?.problemStatus)
+        assertEquals(RemoteTerminationReason.UNKNOWN, response?.slice?.terminationReason)
+        assertEquals(RemoteSolutionPresence.UNKNOWN, response?.slice?.solutionPresence)
+        assertEquals(RemoteProofStatus.UNKNOWN, response?.slice?.proofStatus)
+        assertEquals(SliceOutcome.UNKNOWN, response?.slice?.outcome)
+        assertEquals(PreemptionMode.UNKNOWN, response?.slice?.scheduling?.preemptionMode)
+        assertEquals(ResumeMode.UNKNOWN, response?.slice?.scheduling?.resumeMode)
+        assertEquals(SliceOutcome.UNKNOWN, response?.slice?.scheduling?.outcome)
+    }
+
+    @Test
     fun getReturnsNullWhenNotFound() {
         val http = RecordingHttpHandler(RemoteSolverHttpResponse(statusCode = 404, body = "{}"))
         val client = RemoteSolverHttpClient(
@@ -387,6 +624,175 @@ class RemoteSolverHttpClientTest {
         assertEquals("http://localhost/api/v1/tasks/task-1/resume", http.requests[1].url)
         assertEquals("manual-stop", json.parseToJsonElement(http.requests[0].body ?: "").jsonObject.getValue("reason").jsonPrimitive.content)
         assertEquals("manual-resume", json.parseToJsonElement(http.requests[1].body ?: "").jsonObject.getValue("reason").jsonPrimitive.content)
+    }
+
+    @Test
+    fun stopHandleReportsRejectedActionAsFalse() = runBlocking {
+        val http = RecordingHttpHandler(
+            RemoteSolverHttpResponse(
+                statusCode = 200,
+                body = actionEnvelope(
+                    status = "RUNNING",
+                    accepted = false
+                )
+            )
+        )
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http
+        )
+        val handle = ExecutionHandle(
+            handleId = HandleId.of("handle-stop-rejected"),
+            taskId = TaskId.of("task-1"),
+            sliceId = SliceId.of("slice-1"),
+            nodeId = NodeId.of("node-1"),
+            startedAt = Instant.fromEpochMilliseconds(0L)
+        )
+
+        val result = client.stop(handle)
+
+        assertTrue(result is Ok)
+        assertFalse((result as Ok<Boolean, *, *>).value)
+    }
+
+    @Test
+    fun stopHandleConfirmsStoppingActionWithTerminalTaskView() = runBlocking {
+        val http = QueueHttpHandler(
+            mutableListOf(
+                RemoteSolverHttpResponse(
+                    statusCode = 200,
+                    body = actionEnvelope("STOPPING")
+                ),
+                RemoteSolverHttpResponse(
+                    statusCode = 200,
+                    body = taskViewEnvelope("STOPPED")
+                )
+            )
+        )
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http,
+            pollInterval = 1.milliseconds
+        )
+        val handle = ExecutionHandle(
+            handleId = HandleId.of("handle-stop-confirmed"),
+            taskId = TaskId.of("task-1"),
+            sliceId = SliceId.of("slice-1"),
+            nodeId = NodeId.of("node-1"),
+            startedAt = Instant.fromEpochMilliseconds(0L)
+        )
+
+        val result = client.stop(handle)
+
+        assertTrue(result is Ok)
+        assertTrue((result as Ok<Boolean, *, *>).value)
+        assertEquals(2, http.requests.size)
+        assertEquals("POST", http.requests[0].method)
+        assertEquals("GET", http.requests[1].method)
+    }
+
+    @Test
+    fun actionMapsIdentityFields() {
+        val http = RecordingHttpHandler(
+            RemoteSolverHttpResponse(
+                statusCode = 200,
+                body =
+                """
+                {
+                  "code": "OK",
+                  "message": "success",
+                  "data": {
+                    "taskId": "task-action",
+                    "accepted": true,
+                    "status": "STOPPING",
+                    "dispatchId": "dispatch-action",
+                    "sliceId": "slice-action",
+                    "runId": "run-action",
+                    "attemptId": "attempt-action",
+                    "artifactDigest": "artifact-action",
+                    "modelFingerprint": {
+                      "schemaVersion": "1.0",
+                      "algorithm": "SHA-256",
+                      "value": "model-action"
+                    },
+                    "configurationFingerprint": "configuration-action",
+                    "solverFingerprint": "solver-action",
+                    "fingerprints": {
+                      "extra": "extra-action"
+                    },
+                    "fingerprintSchemas": {
+                      "extra": "1.0"
+                    },
+                    "provenance": {
+                      "solverId": "solver-action",
+                      "backendName": "remote",
+                      "backendVersion": "1.2.3",
+                      "pluginVersion": "plugin-1",
+                      "requestedConfiguration": {
+                        "threads": "4"
+                      },
+                      "effectiveConfiguration": {
+                        "threads": "3"
+                      },
+                      "threadCount": 3,
+                      "randomSeed": 17,
+                      "deterministic": true,
+                      "environmentSummary": {
+                        "host": "node-1"
+                      }
+                    },
+                    "cancellationChain": [
+                      {
+                        "origin": "operator",
+                        "requestedAtEpochMs": 100
+                      },
+                      {
+                        "origin": "deadline",
+                        "requestedAtEpochMs": 200
+                      }
+                    ],
+                    "message": "stop accepted"
+                  }
+                }
+                """.trimIndent()
+            )
+        )
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http
+        )
+
+        val action = client.stop(TaskId.of("task-action")).valueOrFail()
+
+        assertTrue(action.accepted)
+        assertEquals(TaskStatus.STOPPING, action.status)
+        assertEquals(DispatchId.of("dispatch-action"), action.dispatchId)
+        assertEquals(SliceId.of("slice-action"), action.sliceId)
+        assertEquals("run-action", action.runId)
+        assertEquals("attempt-action", action.attemptId)
+        assertEquals("artifact-action", action.artifactDigest)
+        assertEquals("model-action", action.modelFingerprint)
+        assertEquals("1.0", action.modelFingerprintSchema)
+        assertEquals("configuration-action", action.configurationFingerprint)
+        assertEquals("solver-action", action.solverFingerprint)
+        assertEquals("extra-action", action.fingerprints["extra"])
+        assertEquals("solver-action", action.provenance?.solverId)
+        assertEquals("remote", action.provenance?.backendName)
+        assertEquals("1.2.3", action.provenance?.backendVersion)
+        assertEquals("4", action.provenance?.requestedConfiguration?.get("threads"))
+        assertEquals("3", action.provenance?.effectiveConfiguration?.get("threads"))
+        assertEquals("node-1", action.provenance?.environmentSummary?.get("host"))
+        assertEquals(3, action.provenance?.threadCount)
+        assertEquals(17L, action.provenance?.randomSeed)
+        assertEquals(true, action.provenance?.deterministic)
+        assertEquals(
+            listOf(
+                RemoteTaskActionCancellation("operator", 100L),
+                RemoteTaskActionCancellation("deadline", 200L)
+            ),
+            action.cancellationChain
+        )
+        assertEquals("stop accepted", action.message)
     }
 
     @Test
@@ -594,6 +1000,39 @@ class RemoteSolverHttpClientTest {
     }
 
     @Test
+    fun dispatcherSuspensionEndsSliceWithoutClientStop() = runBlocking {
+        val http = QueueHttpHandler(
+            mutableListOf(
+                RemoteSolverHttpResponse(statusCode = 200, body = taskViewEnvelope("RUNNING")),
+                RemoteSolverHttpResponse(statusCode = 200, body = taskViewEnvelope("SUSPENDED"))
+            )
+        )
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http,
+            pollInterval = 5.milliseconds
+        )
+        val handle = ExecutionHandle(
+            handleId = HandleId.of("handle-timeout"),
+            taskId = TaskId.of("task-1"),
+            sliceId = SliceId.of("slice-1"),
+            nodeId = NodeId.of("node-1"),
+            startedAt = Instant.fromEpochMilliseconds(0L)
+        )
+
+        val result = client.awaitSliceEnd(handle, 5.milliseconds)
+
+        assertTrue(result is Ok)
+        val slice = (result as Ok<SliceResult, *, *>).value
+        assertFalse(slice.completed)
+        assertEquals(SliceOutcome.CHECKPOINTED, slice.outcome)
+        assertEquals(2, http.requests.size)
+        assertEquals("GET", http.requests[0].method)
+        assertEquals("GET", http.requests[1].method)
+        assertTrue(http.requests.none { it.method == "POST" })
+    }
+
+    @Test
     fun stoppedTaskDoesNotInheritCompletedArtifactProof() = runBlocking {
         val storage = RecordingObjectStoragePort()
         storage.objects[ObjectPath.of("results/stopped")] = json.encodeToString(
@@ -635,11 +1074,128 @@ class RemoteSolverHttpClientTest {
     }
 
     @Test
-    fun strictCheckpointResumeFailsExplicitly() {
+    fun unknownTaskStatusWithSuccessfulArtifactRemainsUnknownFailure() = runBlocking {
+        val storage = RecordingObjectStoragePort()
+        storage.objects[ObjectPath.of("results/unknown-status")] = json.encodeToString(
+            SerializedSolution(
+                feasible = true,
+                optimal = true,
+                objectiveValue = Flt64(3.0),
+                solutionPresence = RemoteSolutionPresence.OPTIMAL,
+                proofStatus = RemoteProofStatus.VERIFIED,
+                terminationReason = RemoteTerminationReason.COMPLETED
+            )
+        ).encodeToByteArray()
         val client = RemoteSolverHttpClient(
             baseUrl = "http://localhost",
-            transport = RecordingHttpHandler(RemoteSolverHttpResponse(statusCode = 200, body = actionEnvelope("QUEUED"))),
-            resumeMode = RemoteSolverHttpResumeMode.STRICT_CHECKPOINT
+            transport = RecordingHttpHandler(
+                RemoteSolverHttpResponse(
+                    statusCode = 200,
+                    body = """
+                        {
+                          "code": "OK",
+                          "message": "success",
+                          "data": {
+                            "taskId": "task-1",
+                            "tenantId": "tenant-a",
+                            "status": "FUTURE_TASK_STATUS",
+                            "latestResultPath": "results/unknown-status",
+                            "consumedCost": 0.0
+                          }
+                        }
+                    """.trimIndent()
+                )
+            ),
+            objectStoragePort = storage
+        )
+
+        val result = client.fetchFinalResult(
+            ExecutionHandle(
+                handleId = HandleId.of("handle-unknown-status"),
+                taskId = TaskId.of("task-1"),
+                sliceId = SliceId.of("slice-1"),
+                nodeId = NodeId.of("node-1"),
+                startedAt = Instant.fromEpochMilliseconds(0L)
+            )
+        ).valueOrFail()
+
+        assertNotNull(result)
+        assertFalse(result!!.feasible)
+        assertFalse(result.optimal)
+        assertEquals(RemoteProblemStatus.UNKNOWN, result.problemStatus)
+        assertEquals(RemoteTerminationReason.UNKNOWN, result.terminationReason)
+        assertEquals(RemoteSolutionPresence.UNKNOWN, result.solutionPresence)
+        assertEquals(RemoteProofStatus.UNKNOWN, result.proofStatus)
+        assertEquals(SliceOutcome.UNKNOWN, result.outcome)
+    }
+
+    @Test
+    fun unknownArtifactEnumsDoNotInheritSuccessfulTaskViewSemantics() = runBlocking {
+        val storage = RecordingObjectStoragePort()
+        storage.objects[ObjectPath.of("results/unknown-artifact")] = """
+            {
+              "feasible": true,
+              "optimal": true,
+              "objectiveValue": 3.0,
+              "solutionPresence": "FUTURE_SOLUTION_PRESENCE",
+              "proofStatus": "FUTURE_PROOF_STATUS",
+              "terminationReason": "FUTURE_TERMINATION_REASON",
+              "elapsedMs": 1
+            }
+        """.trimIndent().encodeToByteArray()
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = RecordingHttpHandler(
+                RemoteSolverHttpResponse(
+                    statusCode = 200,
+                    body = """
+                        {
+                          "code": "OK",
+                          "message": "success",
+                          "data": {
+                            "taskId": "task-1",
+                            "tenantId": "tenant-a",
+                            "status": "COMPLETED",
+                            "latestResultPath": "results/unknown-artifact",
+                            "outcome": "COMPLETED",
+                            "problemStatus": "FEASIBLE",
+                            "terminationReason": "COMPLETED",
+                            "solutionPresence": "OPTIMAL",
+                            "proofStatus": "VERIFIED",
+                            "consumedCost": 0.0
+                          }
+                        }
+                    """.trimIndent()
+                )
+            ),
+            objectStoragePort = storage
+        )
+
+        val result = client.fetchFinalResult(
+            ExecutionHandle(
+                handleId = HandleId.of("handle-unknown-artifact"),
+                taskId = TaskId.of("task-1"),
+                sliceId = SliceId.of("slice-1"),
+                nodeId = NodeId.of("node-1"),
+                startedAt = Instant.fromEpochMilliseconds(0L)
+            )
+        ).valueOrFail()
+
+        assertNotNull(result)
+        assertFalse(result!!.feasible)
+        assertFalse(result.optimal)
+        assertEquals(RemoteProblemStatus.UNKNOWN, result.problemStatus)
+        assertEquals(RemoteTerminationReason.UNKNOWN, result.terminationReason)
+        assertEquals(RemoteSolutionPresence.UNKNOWN, result.solutionPresence)
+        assertEquals(RemoteProofStatus.UNKNOWN, result.proofStatus)
+        assertEquals(SliceOutcome.UNKNOWN, result.outcome)
+    }
+
+    @Test
+    fun defaultCheckpointResumeFailsExplicitly() {
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = RecordingHttpHandler(RemoteSolverHttpResponse(statusCode = 200, body = actionEnvelope("QUEUED")))
         )
 
         val result = runBlocking {
@@ -659,13 +1215,338 @@ class RemoteSolverHttpClientTest {
         assertTrue(error.message?.contains("checkpoints/specific") == true)
     }
 
-    private fun actionEnvelope(status: String): String {
+    @Test
+    fun explicitLatestResumeCallsServerLatestEndpointAfterVerifyingSourceCheckpoint() {
+        val snapshot = "{}"
+        val checkpointPath = ObjectPath.of("tenant-a/checkpoint/task-1/slice-1-123")
+        val storage = RecordingObjectStoragePort()
+        storage.objects[checkpointPath] = PortableCheckpointCodec.encode(
+            PortableCheckpointEnvelope(
+                checkpointId = "slice-1-123",
+                modelFingerprint = PortableCheckpointCodec.sha256(snapshot),
+                configurationFingerprint = "configuration-1",
+                solverFingerprint = "solver-1",
+                runId = "task-1",
+                attemptId = "slice-1",
+                createdAtEpochMs = 123L,
+                snapshotJson = snapshot
+            )
+        ).encodeToByteArray()
+        val http = RecordingHttpHandler(
+            RemoteSolverHttpResponse(
+                statusCode = 200,
+                body = """
+                    {
+                      "code": "OK",
+                      "message": "success",
+                      "data": {
+                        "taskId": "task-1",
+                        "tenantId": "tenant-a",
+                        "accepted": true,
+                        "status": "RUNNING",
+                        "runId": "task-1",
+                        "attemptId": "slice-1",
+                        "modelFingerprint": "${PortableCheckpointCodec.sha256(snapshot)}",
+                        "configurationFingerprint": "configuration-1",
+                        "solverFingerprint": "solver-1"
+                      }
+                    }
+                """.trimIndent()
+            )
+        )
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http,
+            objectStoragePort = storage,
+            resumeMode = RemoteSolverHttpResumeMode.SERVER_TASK_LATEST_CHECKPOINT
+        )
+
+        val result = runBlocking {
+            client.resume(
+                payload = SolvePayload(
+                    modelData = ModelData.raw(
+                        bytes = snapshot.encodeToByteArray(),
+                        format = "ospf-cp-snapshot-json"
+                    ),
+                    extension = mapOf(
+                        "configurationFingerprint" to "configuration-1",
+                        "solverFingerprint" to "solver-1"
+                    )
+                ),
+                checkpoint = ObjectRef.of(path = checkpointPath.value),
+                taskId = TaskId.of("task-1"),
+                sliceId = SliceId.of("slice-1"),
+                nodeId = NodeId.of("node-1"),
+                tenantId = TenantId.of("tenant-a")
+            )
+        }
+
+        assertTrue(result is Ok)
+        assertEquals("POST", http.lastRequest?.method)
+        assertEquals("http://localhost/api/v1/tasks/task-1/resume", http.lastRequest?.url)
+    }
+
+    @Test
+    fun resumeRejectsCheckpointFromAnotherTenantBeforeCallingServer() = runBlocking {
+        val http = QueueHttpHandler(mutableListOf())
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http,
+            objectStoragePort = RecordingObjectStoragePort(),
+            resumeMode = RemoteSolverHttpResumeMode.SERVER_TASK_LATEST_CHECKPOINT
+        )
+
+        val result = client.resume(
+            payload = SolvePayload(SerializedLinearModel.empty()),
+            checkpoint = ObjectRef.of("tenant-b/checkpoint/task-1/slice-1-123"),
+            taskId = TaskId.of("task-1"),
+            sliceId = SliceId.of("slice-1"),
+            nodeId = NodeId.of("node-1"),
+            tenantId = TenantId.of("tenant-a")
+        )
+
+        assertTrue(result is Failed)
+        assertTrue((result as Failed<*, *, *>).message?.contains("tenant-b") == true)
+        assertTrue(http.requests.isEmpty())
+    }
+
+    @Test
+    fun resumeRejectsCheckpointForAnotherTaskBeforeCallingServer() = runBlocking {
+        val http = QueueHttpHandler(mutableListOf())
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http,
+            objectStoragePort = RecordingObjectStoragePort(),
+            resumeMode = RemoteSolverHttpResumeMode.SERVER_TASK_LATEST_CHECKPOINT
+        )
+
+        val result = client.resume(
+            payload = SolvePayload(SerializedLinearModel.empty()),
+            checkpoint = ObjectRef.of("tenant-a/checkpoint/task-2/slice-1-123"),
+            taskId = TaskId.of("task-1"),
+            sliceId = SliceId.of("slice-1"),
+            nodeId = NodeId.of("node-1"),
+            tenantId = TenantId.of("tenant-a")
+        )
+
+        assertTrue(result is Failed)
+        assertTrue((result as Failed<*, *, *>).message?.contains("task-2") == true)
+        assertTrue(http.requests.isEmpty())
+    }
+
+    @Test
+    fun resumeRejectsTamperedCheckpointIntegrityBeforeCallingServer() = runBlocking {
+        val snapshot = "{}"
+        val checkpointPath = ObjectPath.of("tenant-a/checkpoint/task-1/slice-1-123")
+        val storage = RecordingObjectStoragePort()
+        val encoded = PortableCheckpointCodec.encode(
+            PortableCheckpointEnvelope(
+                checkpointId = "slice-1-123",
+                modelFingerprint = PortableCheckpointCodec.sha256(snapshot),
+                configurationFingerprint = "configuration-1",
+                solverFingerprint = "solver-1",
+                runId = "task-1",
+                attemptId = "slice-1",
+                createdAtEpochMs = 123L,
+                snapshotJson = snapshot
+            )
+        )
+        storage.objects[checkpointPath] = encoded
+            .replace("\"snapshotJson\":\"{}\"", "\"snapshotJson\":\"{\\\"tampered\\\":true}\"")
+            .encodeToByteArray()
+        val http = QueueHttpHandler(mutableListOf())
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http,
+            objectStoragePort = storage,
+            resumeMode = RemoteSolverHttpResumeMode.SERVER_TASK_LATEST_CHECKPOINT
+        )
+
+        val result = client.resume(
+            payload = SolvePayload(
+                modelData = ModelData.raw(snapshot.encodeToByteArray(), "ospf-cp-snapshot-json"),
+                extension = mapOf(
+                    "configurationFingerprint" to "configuration-1",
+                    "solverFingerprint" to "solver-1"
+                )
+            ),
+            checkpoint = ObjectRef.of(checkpointPath.value),
+            taskId = TaskId.of("task-1"),
+            sliceId = SliceId.of("slice-1"),
+            nodeId = NodeId.of("node-1"),
+            tenantId = TenantId.of("tenant-a")
+        )
+
+        assertTrue(result is Failed)
+        assertTrue((result as Failed<*, *, *>).message?.contains("verified portable v2") == true)
+        assertTrue(http.requests.isEmpty())
+    }
+
+    @Test
+    fun resumeRejectsCheckpointWithoutConfigurationOrSolverIdentity() = runBlocking {
+        val snapshot = "{}"
+        val checkpointPath = ObjectPath.of("tenant-a/checkpoint/task-1/slice-1-123")
+        val storage = RecordingObjectStoragePort()
+        storage.objects[checkpointPath] = PortableCheckpointCodec.encode(
+            PortableCheckpointEnvelope(
+                checkpointId = "slice-1-123",
+                modelFingerprint = PortableCheckpointCodec.sha256(snapshot),
+                runId = "task-1",
+                attemptId = "slice-1",
+                createdAtEpochMs = 123L,
+                snapshotJson = snapshot
+            )
+        ).encodeToByteArray()
+        val http = QueueHttpHandler(mutableListOf())
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http,
+            objectStoragePort = storage,
+            resumeMode = RemoteSolverHttpResumeMode.SERVER_TASK_LATEST_CHECKPOINT
+        )
+
+        val result = client.resume(
+            payload = SolvePayload(
+                modelData = ModelData.raw(snapshot.encodeToByteArray(), "ospf-cp-snapshot-json"),
+                extension = mapOf(
+                    "configurationFingerprint" to "configuration-1",
+                    "solverFingerprint" to "solver-1"
+                )
+            ),
+            checkpoint = ObjectRef.of(checkpointPath.value),
+            taskId = TaskId.of("task-1"),
+            sliceId = SliceId.of("slice-1"),
+            nodeId = NodeId.of("node-1"),
+            tenantId = TenantId.of("tenant-a")
+        )
+
+        assertTrue(result is Failed)
+        assertTrue((result as Failed<*, *, *>).message?.contains("identity is incomplete") == true)
+        assertTrue(http.requests.isEmpty())
+    }
+
+    @Test
+    fun resumeRejectsActionWithoutCanonicalCheckpointIdentity() = runBlocking {
+        val snapshot = "{}"
+        val checkpointPath = ObjectPath.of("tenant-a/checkpoint/task-1/slice-1-123")
+        val storage = RecordingObjectStoragePort()
+        storage.objects[checkpointPath] = PortableCheckpointCodec.encode(
+            PortableCheckpointEnvelope(
+                checkpointId = "slice-1-123",
+                modelFingerprint = PortableCheckpointCodec.sha256(snapshot),
+                configurationFingerprint = "configuration-1",
+                solverFingerprint = "solver-1",
+                runId = "task-1",
+                attemptId = "slice-1",
+                createdAtEpochMs = 123L,
+                snapshotJson = snapshot
+            )
+        ).encodeToByteArray()
+        val http = RecordingHttpHandler(
+            RemoteSolverHttpResponse(statusCode = 200, body = actionEnvelope("RUNNING"))
+        )
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http,
+            objectStoragePort = storage,
+            resumeMode = RemoteSolverHttpResumeMode.SERVER_TASK_LATEST_CHECKPOINT
+        )
+
+        val result = client.resume(
+            payload = SolvePayload(
+                modelData = ModelData.raw(snapshot.encodeToByteArray(), "ospf-cp-snapshot-json"),
+                extension = mapOf(
+                    "configurationFingerprint" to "configuration-1",
+                    "solverFingerprint" to "solver-1"
+                )
+            ),
+            checkpoint = ObjectRef.of(checkpointPath.value),
+            taskId = TaskId.of("task-1"),
+            sliceId = SliceId.of("slice-1"),
+            nodeId = NodeId.of("node-1"),
+            tenantId = TenantId.of("tenant-a")
+        )
+
+        assertTrue(result is Failed)
+        assertTrue((result as Failed<*, *, *>).message?.contains("selected checkpoint identity") == true)
+    }
+
+    @Test
+    fun resumeRejectsActionWithMismatchedAttemptOrFingerprint() = runBlocking {
+        val snapshot = "{}"
+        val checkpointPath = ObjectPath.of("tenant-a/checkpoint/task-1/slice-1-123")
+        val modelFingerprint = PortableCheckpointCodec.sha256(snapshot)
+        val storage = RecordingObjectStoragePort()
+        storage.objects[checkpointPath] = PortableCheckpointCodec.encode(
+            PortableCheckpointEnvelope(
+                checkpointId = "slice-1-123",
+                modelFingerprint = modelFingerprint,
+                configurationFingerprint = "configuration-1",
+                solverFingerprint = "solver-1",
+                runId = "task-1",
+                attemptId = "slice-1",
+                createdAtEpochMs = 123L,
+                snapshotJson = snapshot
+            )
+        ).encodeToByteArray()
+        val http = RecordingHttpHandler(
+            RemoteSolverHttpResponse(
+                statusCode = 200,
+                body = """
+                    {
+                      "code": "OK",
+                      "message": "success",
+                      "data": {
+                        "taskId": "task-1",
+                        "tenantId": "tenant-a",
+                        "accepted": true,
+                        "status": "RUNNING",
+                        "runId": "task-1",
+                        "attemptId": "other-slice",
+                        "modelFingerprint": "$modelFingerprint",
+                        "configurationFingerprint": "configuration-1",
+                        "solverFingerprint": "other-solver"
+                      }
+                    }
+                """.trimIndent()
+            )
+        )
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http,
+            objectStoragePort = storage,
+            resumeMode = RemoteSolverHttpResumeMode.SERVER_TASK_LATEST_CHECKPOINT
+        )
+
+        val result = client.resume(
+            payload = SolvePayload(
+                modelData = ModelData.raw(snapshot.encodeToByteArray(), "ospf-cp-snapshot-json"),
+                extension = mapOf(
+                    "configurationFingerprint" to "configuration-1",
+                    "solverFingerprint" to "solver-1"
+                )
+            ),
+            checkpoint = ObjectRef.of(checkpointPath.value),
+            taskId = TaskId.of("task-1"),
+            sliceId = SliceId.of("slice-1"),
+            nodeId = NodeId.of("node-1"),
+            tenantId = TenantId.of("tenant-a")
+        )
+
+        assertTrue(result is Failed)
+        val error = result as Failed<*, *, *>
+        assertTrue(error.message?.contains("attemptId") == true)
+        assertTrue(error.message?.contains("solverFingerprint") == true)
+    }
+
+    private fun actionEnvelope(status: String, accepted: Boolean = true): String {
         return """
             {
               "code": "OK",
               "message": "success",
               "data": {
                 "taskId": "task-1",
+                "accepted": $accepted,
                 "status": "$status"
               }
             }

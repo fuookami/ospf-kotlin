@@ -226,6 +226,25 @@ value class HandleId(val value: String) {
     }
 }
 
+/** Dispatch operation ID. / 分发操作 ID。 */
+@Serializable
+@JvmInline
+value class DispatchId(val value: String) {
+    init {
+        require(value.isNotBlank()) { "DispatchId must not be blank." }
+    }
+
+    override fun toString(): String {
+        return value
+    }
+
+    companion object {
+        fun of(value: String): DispatchId {
+            return DispatchId(value.trim())
+        }
+    }
+}
+
 /**
  * Trace ID。
  * Trace ID.

@@ -125,6 +125,8 @@ val options = FrameworkSolveOptions.Builder()
 - **client** — `RemoteSolverClient` 实现逐轮求解与检查点；`RemoteSolverHttpClient` 用于 HTTP 传输
 - **adapter** — `LocalFileObjectStoragePort` 用于本地文件系统存储；`OspfRemoteModelSerializer` 用于 OSPF 序列化格式
 
+`SolvePayload.scheduling` 携带可选的 V1.2 调度要求，包括优先级、截止时间、预算、质量目标、抢占模式和恢复模式。切片及最终结果会保留有效的 `SchedulingDecision`、结果 outcome、checkpoint/incumbent 引用、指纹、provenance 和 artifact 身份。HTTP 客户端只有在显式指定 `SERVER_TASK_LATEST_CHECKPOINT` 模式时才调用服务端“恢复最新检查点”端点；默认严格模式会拒绝按指定 checkpoint 恢复，因为该端点没有 checkpoint 选择器。
+
 ## 管线建模
 
 ### 管线层次
