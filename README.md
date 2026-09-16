@@ -2,7 +2,7 @@
 
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.fuookami.ospf.kotlin/ospf-kotlin)](https://mvnrepository.com/artifact/io.github.fuookami.ospf.kotlin/ospf-kotlin)
-[![Kotlin](https://img.shields.io/badge/Kotlin-1.9.24-yellow.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.4.20-yellow.svg?logo=kotlin)](http://kotlinlang.org)
 
 ## Introduction
 
@@ -59,7 +59,7 @@ For new module documentation, use [docs/README_TEMPLATE.md](docs/README_TEMPLATE
 
 Requirements:
 
-* JDK: 17+ or 8+
+* JDK: 25+ or 8+
 * maven: 3+
 
 ospf-kotlin has been released to the maven central repository. Therefore, if you are using maven, you only need to add a dependency in the pom.xml file:
@@ -272,8 +272,8 @@ mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*M
 
 Baseline environment used in P21-1:
 
-1. JDK: GraalVM JDK 17.0.12
-2. Maven: Apache Maven 3.9.12
+1. JDK: 25+
+2. Maven: Apache Maven 3.9.16
 3. OS: Windows (PowerShell)
 4. JVM opts recommendation (for frequent CodeHeap warnings):
    - PowerShell (current session):

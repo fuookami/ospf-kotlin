@@ -2,7 +2,7 @@
 
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.fuookami.ospf.kotlin/ospf-kotlin)](https://mvnrepository.com/artifact/io.github.fuookami.ospf.kotlin/ospf-kotlin)
-[![Kotlin](https://img.shields.io/badge/kotlin-1.9.24-yellow.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.4.20-yellow.svg?logo=kotlin)](http://kotlinlang.org)
 
 ## 介绍
 
@@ -66,7 +66,7 @@ SCIP CP 入口是一个严格的有限 MIP 支持门面，并非原生 SCIP/CIP 
 
 版本要求：
 
-* JDK: 17+ or 8+
+* JDK：25+ 或 8+
 * Maven: 3+
 
 ospf-kotlin 已经发布到 maven 中央仓库，因此，如果你使用 maven 的话，只需要在 pom.xml 文件里面添加一个依赖即可：
@@ -273,8 +273,8 @@ mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*M
 
 P21-1 基线运行环境：
 
-1. JDK：GraalVM JDK 17.0.12
-2. Maven：Apache Maven 3.9.12
+1. JDK：25+
+2. Maven：Apache Maven 3.9.16
 3. OS：Windows（PowerShell）
 4. JVM 参数建议（缓解频繁 CodeHeap warning）：
    - PowerShell（当前会话）：

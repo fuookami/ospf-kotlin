@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin</artifactId>
-        <version>1.1.0</version>
+        <version>1.1.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,13 +15,13 @@
 
     <properties>
         <!-- maven -->
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <maven.compiler.compilerVersion>17</maven.compiler.compilerVersion>
-        <maven-compiler-plugin.version>3.12.1</maven-compiler-plugin.version>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+        <maven.compiler.release>25</maven.compiler.release>
+        <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
         <maven-release-plugin.version>3.0.0</maven-release-plugin.version>
-        <maven-failsafe-plugin.version>2.22.2</maven-failsafe-plugin.version>
-        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.6.0</maven-failsafe-plugin.version>
+        <maven-surefire-plugin.version>3.6.0</maven-surefire-plugin.version>
         <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
         <maven-assembly-plugin.version>3.4.2</maven-assembly-plugin.version>
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
@@ -189,12 +189,6 @@
                         <goals>
                             <goal>compile</goal>
                         </goals>
-                        <configuration>
-                            <jvmTarget>${kotlin.compiler.jvmTarget}</jvmTarget>
-                            <args>
-                                <arg>-Xsuppress-version-warnings</arg>
-                            </args>
-                        </configuration>
                     </execution>
                     <execution>
                         <id>test-compile</id>
@@ -205,6 +199,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <jvmTarget>${kotlin.compiler.jvmTarget}</jvmTarget>
                     <compilerPlugins>
                         <plugin>kotlinx-serialization</plugin>
                     </compilerPlugins>
@@ -232,8 +227,7 @@
                 <version>${maven-compiler-plugin.version}</version>
                 <inherited>true</inherited>
                 <configuration>
-                    <source>${kotlin.compiler.jvmTarget}</source>
-                    <target>${kotlin.compiler.jvmTarget}</target>
+                    <release>${maven.compiler.release}</release>
                 </configuration>
             </plugin>
             <plugin>

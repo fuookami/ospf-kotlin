@@ -244,7 +244,7 @@ class Csp1dDomainPolicyTest {
             materials = listOf(material1, material2),
             machines = emptyList(),
             demands = listOf(demand1, demand2),
-            domainPolicies = listOf(FakeWidthDifferencePolicy(setOf(materialIdOf("mat-1"))))
+            domainPolicies = listOf(FakeWidthDifferencePolicy<Flt64>(setOf(materialIdOf("mat-1"))))
         )
         val plansWithPolicy = generator.generate(inputWithPolicy)
         assertTrue(plansWithPolicy.isNotEmpty(), "Should still have plans from mat-2")
@@ -270,7 +270,7 @@ class Csp1dDomainPolicyTest {
             materials = listOf(material),
             machines = emptyList(),
             demands = listOf(demand),
-            domainPolicies = listOf(DefaultCsp1dDomainPolicy())
+            domainPolicies = listOf(DefaultCsp1dDomainPolicy<Flt64>())
         )
 
         val generator = SimpleInitialCuttingPlanGenerator<Flt64>()
@@ -499,9 +499,9 @@ class Csp1dDomainPolicyTest {
     @Test
     fun `extension set carries all policies`() {
         val extensionSet = Csp1dExtensionSet<Flt64>(
-            domainPolicies = listOf(DefaultCsp1dDomainPolicy()),
-            objectivePolicies = listOf(FakeMaterialCostPolicy(emptyMap())),
-            generationStrategies = listOf(FakeCandidateFilterStrategy(emptySet())),
+            domainPolicies = listOf(DefaultCsp1dDomainPolicy<Flt64>()),
+            objectivePolicies = listOf(FakeMaterialCostPolicy<Flt64>(emptyMap())),
+            generationStrategies = listOf(FakeCandidateFilterStrategy<Flt64>(emptySet())),
             flowPolicies = listOf(object : Csp1dFlowPolicy<Flt64> { override val name = "test" })
         )
         assertEquals(1, extensionSet.domainPolicies.size)
@@ -698,22 +698,22 @@ class Csp1dDomainPolicyTest {
     fun allFakeDownstreamExtensionsCanBeCombinedInExtensionSet() {
         val extensionSet = Csp1dExtensionSet<Flt64>(
             modelingExtensions = listOf(
-                fakeSameUnitLengthExtension("m1"),
-                fakeSameWidthExtension("mc1")
+                fakeSameUnitLengthExtension<Flt64>("m1"),
+                fakeSameWidthExtension<Flt64>("mc1")
             ),
             domainPolicies = listOf(
-                FakeWidthDifferencePolicy(emptySet()),
-                FakeMachineCompatibilityPolicy(emptySet())
+                FakeWidthDifferencePolicy<Flt64>(emptySet()),
+                FakeMachineCompatibilityPolicy<Flt64>(emptySet())
             ),
             objectivePolicies = listOf(
-                FakeMaterialCostPolicy(emptyMap())
+                FakeMaterialCostPolicy<Flt64>(emptyMap())
             ),
             generationStrategies = listOf(
-                FakeCandidateFilterStrategy(emptySet()),
-                FakeCandidateAcceptanceStrategy(setOf(materialIdOf("m1")))
+                FakeCandidateFilterStrategy<Flt64>(emptySet()),
+                FakeCandidateAcceptanceStrategy<Flt64>(setOf(materialIdOf("m1")))
             ),
             extractionPolicies = listOf(
-                FakeOutputExtractionPolicy()
+                FakeOutputExtractionPolicy<Flt64>()
             )
         )
         // 验证 6+ 类 fake 下游扩展能力均已装入 extension set / Verify 6+ fake downstream categories are carried by extension set
@@ -733,14 +733,14 @@ class Csp1dDomainPolicyTest {
     @Test
     fun allDownstreamExtensionsCanBeInjectedViaSolveConfigBuilder() {
         val solveConfig = csp1dSolveConfig<Flt64> {
-            extension(fakeSameUnitLengthExtension("m1"))
-            extension(fakeSameWidthExtension("mc1"))
-            domainPolicy(FakeWidthDifferencePolicy(emptySet()))
-            domainPolicy(FakeMachineCompatibilityPolicy(emptySet()))
-            objectivePolicy(FakeMaterialCostPolicy(emptyMap()))
-            generationStrategy(FakeCandidateFilterStrategy(emptySet()))
-            generationStrategy(FakeCandidateAcceptanceStrategy(setOf(materialIdOf("m1"))))
-            extractionPolicy(FakeOutputExtractionPolicy())
+            extension(fakeSameUnitLengthExtension<Flt64>("m1"))
+            extension(fakeSameWidthExtension<Flt64>("mc1"))
+            domainPolicy(FakeWidthDifferencePolicy<Flt64>(emptySet()))
+            domainPolicy(FakeMachineCompatibilityPolicy<Flt64>(emptySet()))
+            objectivePolicy(FakeMaterialCostPolicy<Flt64>(emptyMap()))
+            generationStrategy(FakeCandidateFilterStrategy<Flt64>(emptySet()))
+            generationStrategy(FakeCandidateAcceptanceStrategy<Flt64>(setOf(materialIdOf("m1"))))
+            extractionPolicy(FakeOutputExtractionPolicy<Flt64>())
         }
 
         // 验证建模扩展：same unit length + same width / Verify modeling extensions
