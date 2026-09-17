@@ -21,6 +21,8 @@ import kotlinx.serialization.json.contentOrNull
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.report.CancellationRecord
+import fuookami.ospf.kotlin.core.solver.report.CancellationSource
 import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 import fuookami.ospf.kotlin.framework.solver.remote.port.*
 
@@ -430,7 +432,7 @@ class RemoteSolverHttpClient(
             "integritySha256" to envelope.integritySha256
         )
         if (requiredEnvelopeFields.any { it.value.isNullOrBlank() } ||
-            envelope.schemaVersion != "2.0" || envelope.sourceFormat != "v2" ||
+            envelope.schemaVersion != "3.0" || envelope.sourceFormat != "v2" ||
             envelope.checkpointId != pathCheckpointId || envelope.runId != taskId.value ||
             envelope.attemptId?.let { !pathCheckpointId.startsWith("$it-") } != false
         ) {
@@ -1465,12 +1467,69 @@ data class RemoteTaskActionProvenance(
     val environmentSummary: Map<String, String> = emptyMap()
 )
 
-/** Cancellation record shape returned by the Kotlin dispatcher task-action API. */
+/**
+ * Kotlin dispatcher task-action API 返回的取消事实形状。 / Cancellation-record shape returned by the Kotlin dispatcher task-action API.
+ *
+ * `origin` 与 checkpoint envelope 的取消链共用**同一份规范代码词表**（由跨语言契约
+ * `analysis-fixtures/checkpoint-wire-contract.tsv` 的 `[cancellation-origin]` 段规定），因此不能把它
+ * 当作自由文本：`backend` / `future` 这类本侧没有专用变体的代码也必须能原样往返。请用
+ * [toCancellationRecord] / [fromCancellationRecord] 做转换，而不是手工拼字符串。
+ *
+ * `reason` 是契约定义的可空字段；此前本 DTO 没有该字段，导致这一面上的取消原因无处承载。
+ *
+ * `origin` shares **one canonical code vocabulary** with the checkpoint envelope's cancellation chain
+ * (defined by the `[cancellation-origin]` section of the cross-language contract
+ * `analysis-fixtures/checkpoint-wire-contract.tsv`), so it must not be treated as free text: codes with
+ * no dedicated variant on this side, such as `backend` / `future`, must round-trip verbatim. Convert with
+ * [toCancellationRecord] / [fromCancellationRecord] rather than assembling strings by hand.
+ *
+ * `reason` is a contract-defined nullable field; this DTO previously lacked it, so a cancellation reason
+ * had nowhere to live on this face.
+ *
+ * @property origin 取消来源规范代码 / Canonical cancellation-origin code
+ * @property requestedAtEpochMs 取消请求时间（epoch 毫秒）/ Cancellation request time in epoch milliseconds
+ * @property reason 取消原因 / Cancellation reason
+ */
 @Serializable
 data class RemoteTaskActionCancellation(
     val origin: String,
-    val requestedAtEpochMs: Long
-)
+    val requestedAtEpochMs: Long,
+    val reason: String? = null
+) {
+    /**
+     * 按规范代码解析为核心取消事实。 / Parse into a core cancellation fact using the canonical code.
+     *
+     * @return 取消事实 / Cancellation fact
+     */
+    fun toCancellationRecord(): CancellationRecord {
+        val source = CancellationSource.fromWireCode(origin)
+        return CancellationRecord(
+            source = source,
+            requestedAt = java.time.Instant.ofEpochMilli(requestedAtEpochMs),
+            reason = reason,
+            // 只有兜底变体需要保留原始文本，否则 `backend` / `future` 会被写成 `Other` 的代码而失真。
+            // Only the catch-all variant needs the raw text; otherwise `backend` / `future` would be
+            // written back as `Other`'s code and lose fidelity.
+            wireOrigin = origin.takeIf { source == CancellationSource.Other }
+        )
+    }
+
+    companion object {
+        /**
+         * 由核心取消事实构造线格式形状。 / Build the wire shape from a core cancellation fact.
+         *
+         * @param record 取消事实 / Cancellation fact
+         * @return 线格式取消形状 / Wire cancellation shape
+         */
+        fun fromCancellationRecord(record: CancellationRecord): RemoteTaskActionCancellation {
+            return RemoteTaskActionCancellation(
+                origin = record.wireOrigin ?: record.source.toWireCode(),
+                requestedAtEpochMs = record.requestedAt.toEpochMilli(),
+                reason = record.reason
+            )
+        }
+    }
+}
 
 /**
  * 远程任务操作响应。 / Remote task action response.

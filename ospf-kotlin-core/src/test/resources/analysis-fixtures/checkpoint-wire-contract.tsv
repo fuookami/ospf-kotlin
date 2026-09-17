@@ -1,0 +1,197 @@
+# Portable checkpoint envelope wire contract (schema 3.0)
+# 可移植 checkpoint envelope 线格式契约（schema 3.0）
+#
+# 本文件是 ospf-kotlin 与 ospf-rust 之间 checkpoint envelope 的**权威契约**。
+# 两侧的序列化字段名与顺序、取消来源代码词表、provenance 字段集都必须与本文件一致；
+# 任一偏离都会使跨语言摘要（integritySha256）失配，因此由两侧的契约测试强制校验。
+#
+# This file is the **authoritative contract** for the checkpoint envelope shared between
+# ospf-kotlin and ospf-rust. Serialized field names and order, the cancellation-origin code
+# vocabulary, and the provenance field set must all match this file on both sides; any drift
+# breaks the cross-language integrity digest (integritySha256), so both sides enforce it in a
+# contract test.
+#
+# 行格式 / Row format: `key<TAB>value<TAB>...`，行尾不得有 TAB（两侧解析器都 trim_end）。
+# Rows never end with a TAB (both parsers trim_end).
+
+[schema]
+# envelope schema 版本 / Envelope schema version
+schema_version=3.0
+
+[envelope-field]
+# 字段名按序列化顺序排列；两侧数据类/结构体的声明顺序必须与此完全一致。
+# Field names are listed in serialization order; both sides' declaration order must match exactly.
+# 列 / Columns: index, jsonName, jsonType, nullable
+0	schemaVersion	string	no
+1	sourceFormat	string	no
+2	migratedFromLegacy	bool	no
+3	checkpointId	string	no
+4	identitySchemaVersion	string	no
+5	identityNamespace	string	no
+6	modelName	string	no
+7	modelFingerprint	string	no
+8	configurationFingerprint	string	yes
+9	solverFingerprint	string	yes
+10	runId	string	yes
+11	attemptId	string	yes
+12	parentCheckpointId	string	yes
+13	createdAtEpochMs	long	no
+14	snapshotJson	string	no
+15	incumbent	object	yes
+16	bestBound	string	yes
+17	gap	string	yes
+18	assumptions	string[]	no
+19	conflicts	object[]	no
+20	benders	object	yes
+21	cancellationChain	object[]	no
+22	provenance	object	yes
+23	metadata	string-map	no
+24	integritySha256	string	no
+
+[cancellation-record]
+# 取消事实的线格式。/ Wire shape of one cancellation fact.
+# 列 / Columns: index, jsonName, jsonType, nullable
+0	origin	string	no
+1	requestedAtEpochMs	long	no
+2	reason	string	yes
+
+[cancellation-origin]
+# 取消来源的规范代码词表与两侧枚举映射。
+# 线格式只承载**规范代码**（字符串），因此任一侧都能无损往返另一侧的取值：
+# 无法识别的代码必须落到该侧的兜底变体并原样保留代码文本。
+#
+# Canonical origin codes and the mapping to each side's enum. The wire carries only the
+# **canonical code** (a string), so either side round-trips the other side's values losslessly:
+# an unrecognized code must land in that side's catch-all variant and keep the code text verbatim.
+#
+# 列 / Columns: wireCode, rustVariant, kotlinVariant, note
+user	User	Caller	same concept, different native name
+external	External	Other	Kotlin has no dedicated variant; preserved verbatim
+callback	Callback	Callback	direct match
+frameworkLoser	FrameworkLoser	Combinatorial	same concept, different native name
+remoteStop	RemoteStop	Remote	same concept, different native name
+taskAbort	TokioTaskAbort	Coroutine	same concept, different native name
+backend	Backend	Other	Kotlin has no dedicated variant; preserved verbatim
+future	Other	Future	Rust has no dedicated variant; preserved verbatim
+timeout	Other	Timeout	Rust has no dedicated variant; preserved verbatim
+
+[provenance-field]
+# provenance 的线格式；两侧都必须按此顺序声明。
+# Wire shape of provenance; both sides declare these in this order.
+# 列 / Columns: index, jsonName, jsonType, nullable
+0	solverId	string	no
+1	backendName	string	no
+2	backendVersion	string	yes
+3	pluginVersion	string	yes
+4	requestedConfiguration	string-map	no
+5	effectiveConfiguration	string-map	no
+6	threadCount	int	yes
+7	randomSeed	long	yes
+8	deterministic	bool	yes
+9	environmentSummary	string-map	no
+
+[metadata]
+# 非敏感算法元数据的线格式。 / Wire shape of the non-sensitive algorithm metadata.
+#
+# `metadata` 是**自由形态的 string-map**（无固定键集）：恢复一个 checkpoint 所需、但不属于任何
+# 结构化字段的算法元数据放在这里，例如 provider 内部的重建提示。它与其它 string-map 受同一条
+# 规范约束——必须按键升序输出（见 [canonicalization] 第 3 条），且**不得**承载敏感信息。
+#
+# `metadata` is a **free-form string-map** with no fixed key set: algorithm metadata needed to resume a
+# checkpoint that fits no structured field lives here, such as a provider's internal rebuild hint. It
+# obeys the same canonicalization rule as every other string-map — ascending key order (see
+# [canonicalization] rule 3) — and must **never** carry sensitive information.
+value_type=string-map
+key_order=ascending
+sensitive_values_allowed=false
+
+[canonicalization]
+# 摘要可跨语言复算的前提 / Preconditions for cross-language digest recomputation
+# integritySha256 = SHA-256(UTF-8(JSON(envelope with integritySha256 = "")))
+# 1. 字段顺序必须与 [envelope-field] 一致（Kotlin data class 与 Rust struct 的声明顺序）。
+# 2. 所有可空字段必须显式输出（Kotlin encodeDefaults=true；Rust serde 不使用 skip_serializing_if）。
+# 3. 所有 string-map 必须按键升序输出（Rust BTreeMap 天然有序；Kotlin 侧必须显式排序）。
+# 4. 不得输出多余字段（两侧 ignoreUnknownKeys / deny_unknown_fields 语义见各自实现）。
+#
+# 1. Field order must match [envelope-field] (declaration order in Kotlin data class / Rust struct).
+# 2. Every nullable field must be emitted explicitly (Kotlin encodeDefaults=true; Rust serde without
+#    skip_serializing_if).
+# 3. Every string-map must be emitted in ascending key order (Rust BTreeMap is ordered; the Kotlin
+#    side must sort explicitly).
+# 4. No extra fields may be emitted.
+field_order_matters=true
+emit_nulls=true
+map_key_order=ascending
+digest_excludes_field=integritySha256
+
+[source-format]
+# `sourceFormat` 的取值词表。它是 checkpoint 的**来源族**标记，**不是**版本号——因此当前
+# envelope 的 `sourceFormat` 是 `v2` 而 `schemaVersion` 是 `3.0`，两者并不同步，这不是笔误。
+#
+# 取值：
+# - `v2`        —— 当前 envelope 族；与 [schema] 声明的 schemaVersion 搭配使用。
+# - `legacy-v1` —— 旧族，仅由**宽松读取**路径（Kotlin `decodeCompatible`）识别并迁移。
+#
+# 强制要求：
+# - 产出方必须写 `v2`。
+# - **严格**读取路径（Rust `RemoteCheckpointArtifactDto::validate`、Kotlin `decode`）只接受 `v2`，
+#   其它取值（含 `legacy-v1`）必须被拒绝。
+# - **宽松**读取路径（Kotlin `decodeCompatible`）可以额外接受 `legacy-v1` 并迁移到当前形态；Rust
+#   侧没有遗留数据需要迁移，因此不实现该路径。
+# - 当 `sourceFormat = v2` 时，`schemaVersion` 必须等于 [schema] 的取值；当 `sourceFormat =
+#   legacy-v1` 时 `migratedFromLegacy` 必须为 true。
+#
+# The value vocabulary of `sourceFormat`. It is a **source-family** tag for a checkpoint and **not** a
+# version number, which is why the current envelope has `sourceFormat = v2` while `schemaVersion = 3.0`:
+# the two are not meant to move together, and that is not a typo.
+#
+# Values:
+# - `v2`        — the current envelope family; used together with the schemaVersion declared in [schema].
+# - `legacy-v1` — the old family, recognized and migrated only by the **lenient** read path (Kotlin's
+#                 `decodeCompatible`).
+#
+# Requirements:
+# - A producer must write `v2`.
+# - The **strict** read paths (Rust `RemoteCheckpointArtifactDto::validate`, Kotlin `decode`) accept only
+#   `v2`; every other value (including `legacy-v1`) must be rejected.
+# - The **lenient** read path (Kotlin `decodeCompatible`) may additionally accept `legacy-v1` and migrate
+#   it to the current shape; the Rust side has no legacy data to migrate, so it does not implement it.
+# - When `sourceFormat = v2` the `schemaVersion` must equal the value in [schema]; when `sourceFormat =
+#   legacy-v1` the `migratedFromLegacy` flag must be true.
+current=current
+producer_value=v2
+strict_readers_accept=v2
+lenient_readers_accept=v2,legacy-v1
+legacy_marker=legacy-v1
+
+[distinct-wire-face]
+# 本契约的**字段形状**只管 checkpoint envelope。另有一条**独立**的 task-action 线（Kotlin
+# `RemoteTaskActionCancellation` / Rust `serialize_optional_cancellation_chain`）：它的文档形状与
+# envelope 不同（一个扁平的取消条目数组，而非 envelope 对象），因此**不套用** [envelope-field]。
+#
+# 但它承载的**取消来源代码词表与本契约完全共用** [cancellation-origin]，`reason` 也是可空字段——
+# 这一点是强制的，不再是"范围外"：
+# - 两个面若各写一种拼写（如 checkpoint 面写 `user` 而 task-action 面写 `USER`），同一个枚举就会在
+#   线格式上出现两种拼写；对端只能把不认识的那种当成未知代码兜底，来源语义随之丢失。
+# - `reason` 在该线上必须输出（可空，允许显式 `null`），否则取消原因在这一面被静默丢弃。
+# - 本侧没有专用变体的代码（`backend`、`future`、`timeout` 及完全未知的代码）必须**原样**往返。
+#
+# This contract's **field shape** governs the checkpoint envelope only. A second, **independent**
+# task-action wire (Kotlin `RemoteTaskActionCancellation` / Rust
+# `serialize_optional_cancellation_chain`) has a different document shape (a flat array of cancellation
+# entries rather than an envelope object), so [envelope-field] does not apply to it.
+#
+# However, the **cancellation-origin code vocabulary it carries is exactly this contract's**
+# [cancellation-origin], and `reason` is a nullable field there too — and that is now mandatory rather
+# than out of scope:
+# - If the two faces spell codes differently (e.g. the checkpoint face writes `user` while the
+#   task-action face writes `USER`), one enum surfaces two spellings on the wire; a peer can only treat
+#   the unrecognized spelling as an unknown code, losing the origin semantics.
+# - `reason` must be emitted on that wire (nullable, explicit `null` allowed); otherwise a cancellation
+#   reason is silently dropped on that face.
+# - Codes with no dedicated variant on a given side (`backend`, `future`, `timeout`, and wholly unknown
+#   codes) must round-trip **verbatim**.
+is_checkpoint_envelope_only=true
+task_action_wire_document_shape_out_of_scope=true
+task_action_wire_shares_cancellation_origin_vocabulary=true
+task_action_wire_carries_reason=true

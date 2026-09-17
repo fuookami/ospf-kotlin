@@ -2,10 +2,12 @@ package fuookami.ospf.kotlin.core.analysis
 
 import java.io.File
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.test.fail
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import fuookami.ospf.kotlin.core.solver.report.ConstraintId
 import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
 import fuookami.ospf.kotlin.core.solver.report.VariableId
@@ -23,11 +25,29 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  * `ospf-rust-core/src/analysis/fixture_contract.rs`.
  */
 class AnalysisFixtureContractTest {
+    /**
+     * 定位两端共同维护的 `analysis-fixtures`。
+     *
+     * 候选顺序：仓库同级检出、父仓库嵌套检出、仓内镜像。仓内镜像保证单仓库检出
+     * （CI、外部贡献者）也能真实执行契约测试，而不是静默通过。
+     *
+     * Locate the shared `analysis-fixtures`. Candidates are: sibling checkout, parent
+     * checkout, and an in-repo mirror. The mirror keeps a single-repository checkout
+     * (CI, outside contributors) genuinely asserting the contract instead of passing silently.
+     */
     private val fixtureRoot: File? = sequenceOf(
         File("../../analysis-fixtures"),
         File("../analysis-fixtures"),
-        File("analysis-fixtures")
+        File("analysis-fixtures"),
+        File("src/test/resources/analysis-fixtures")
     ).firstOrNull { it.isDirectory }
+
+    /**
+     * 显式跳过开关：仅在明确设置时才允许跳过跨语言契约。
+     * Explicit skip switch: the cross-language contract may only be skipped when set.
+     */
+    private val skipRequested: Boolean =
+        System.getenv(SKIP_ENV)?.let { it.isNotEmpty() && it != "0" } == true
 
     private fun sections(name: String): Map<String, List<List<String>>> {
         val root = fixtureRoot ?: return emptyMap()
@@ -70,13 +90,94 @@ class AnalysisFixtureContractTest {
         return sections(name)[section] ?: emptyList()
     }
 
+    /**
+     * 取回 fixture 根目录；缺失时**显式失败**，与 Rust 侧行为一致。
+     *
+     * 跨语言契约只有在真正被断言时才有价值，因此绝不静默通过。
+     * 唯一的跳过途径是显式设置 `OSPF_SKIP_CROSS_LANGUAGE_FIXTURE`；
+     * 该路径使用 `assumeTrue`，使测试被报告为 skipped 而不是 passed。
+     *
+     * Fetch the fixture root; **fail loudly** when absent, matching the Rust side.
+     * A cross-language contract is only worth something when actually asserted.
+     * The only skip path is an explicit `OSPF_SKIP_CROSS_LANGUAGE_FIXTURE`, and it
+     * uses `assumeTrue` so the run is reported as skipped rather than passed.
+     */
     private fun requireFixtures() {
-        assertNotNull(
-            fixtureRoot,
-            "未找到 analysis-fixtures 目录；跨语言契约测试需要 ospf-kotlin 与 ospf-rust 的同级检出 / " +
-                "analysis-fixtures not found; the cross-language contract test requires sibling checkouts"
+        if (fixtureRoot != null) {
+            return
+        }
+        assumeTrue(
+            !skipRequested,
+            "跨语言契约被显式跳过（$SKIP_ENV 已设置），本次运行未验证该契约 / " +
+                "cross-language contract explicitly skipped because $SKIP_ENV is set; " +
+                "this run did not verify it"
+        )
+        fail(
+            "analysis-fixtures not found. The cross-language semantic contract cannot be verified. " +
+                "Expected it at one of: <repo>/../../analysis-fixtures, <repo>/../analysis-fixtures, " +
+                "<repo>/analysis-fixtures, <repo>/src/test/resources/analysis-fixtures. " +
+                "Provide the shared directory, or set $SKIP_ENV=1 to skip explicitly."
         )
     }
+
+    /**
+     * 守护仓内镜像与共享副本内容一致。
+     *
+     * 单仓库检出的 CI 会读取镜像，而开发者本地读共享副本；两者漂移会导致
+     * "本地绿、CI 红"或更糟的相反情况。因此只要两者同时存在就强制比较内容。
+     * 单仓库检出时共享副本本就不存在（这正是镜像的意义），此时无事可比对。
+     *
+     * 比较前统一去掉行尾符差异：契约文件以 `* text=auto` 管理，Windows 检出会把
+     * LF 变成 CRLF，而两侧解析器都按行切分并 trimEnd，行尾符风格不承载契约语义。
+     *
+     * Guard that the in-repo mirror matches the shared copy. A single-repo CI checkout
+     * reads the mirror while a developer reads the shared copy; drift between them
+     * produces the worst outcome — one side green, the other red. Line terminators are
+     * normalized before comparison: the contract files are tracked with `* text=auto`, a
+     * Windows checkout rewrites LF as CRLF, and both parsers split on lines and trim,
+     * so line-ending style carries no contract meaning.
+     */
+    @Test
+    fun fixtureMirrorMatchesSharedCopy() {
+        val mirror = File("src/test/resources/analysis-fixtures")
+        val shared = File("../../analysis-fixtures")
+        if (!mirror.isDirectory || !shared.isDirectory) {
+            return
+        }
+
+        CONTRACT_FILES.forEach { name ->
+            val mirrorFile = File(mirror, name)
+            val sharedFile = File(shared, name)
+            assertTrue(mirrorFile.isFile, "mirror file missing: ${mirrorFile.path}")
+            assertTrue(sharedFile.isFile, "shared file missing: ${sharedFile.path}")
+            assertContentEquals(
+                lineNormalized(sharedFile),
+                lineNormalized(mirrorFile),
+                "$name 在仓内镜像与共享副本之间不一致；两者必须同步 / " +
+                    "$name differs between the in-repo mirror and the shared copy; " +
+                    "they must stay in sync"
+            )
+        }
+    }
+
+    /** 读取文件并把 CRLF 统一为 LF。 / Read a file and normalize CRLF to LF. */
+    private fun lineNormalized(file: File): ByteArray {
+        return file.readText().replace("\r\n", "\n").toByteArray(Charsets.UTF_8)
+    }
+
+    companion object {
+        /** 显式跳过开关名。 / Name of the explicit skip switch. */
+        const val SKIP_ENV: String = "OSPF_SKIP_CROSS_LANGUAGE_FIXTURE"
+
+        /** 跨语言契约文件清单。 / The cross-language contract file list. */
+        val CONTRACT_FILES: List<String> = listOf(
+            "analysis-contract.tsv",
+            "analysis-cases.tsv",
+            "checkpoint-wire-contract.tsv",
+            "checkpoint-envelope-v3.json"
+        )
+    }
+
 
     @Test
     fun contractVocabularyMatchesBothLanguageImplementations() {

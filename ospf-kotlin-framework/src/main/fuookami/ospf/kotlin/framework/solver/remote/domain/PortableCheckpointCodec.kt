@@ -1,204 +1,99 @@
+/**
+ * Remote portable checkpoint codec. / 远端可移植 checkpoint codec。
+ *
+ * 本对象曾经是 core `ConstraintProgrammingCheckpointCodec` 的一份**独立实现**：自带字段列表、
+ * 摘要算法与父链校验。两份实现靠人工保持一致，改一处漏一处（父链校验缺口就是这样出现的）。
+ * 现在它只做转发，三种入口都委托给 core，语义只有一处实现。
+ *
+ * This object used to be an **independent implementation** of core's
+ * `ConstraintProgrammingCheckpointCodec`, carrying its own field list, digest, and parent-link
+ * validation. The two copies were kept aligned by hand and drifted (which is how the parent-link gap
+ * arose). It now forwards: all three entry points delegate to core, so the semantics have exactly one
+ * implementation.
+ */
 package fuookami.ospf.kotlin.framework.solver.remote.domain
 
-import java.security.MessageDigest
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingCheckpointCodec
+import fuookami.ospf.kotlin.core.solver.report.SolveFingerprinting
 
-/** v2 checkpoint codec kept wire-compatible with the dispatcher protocol module. */
+/** Remote checkpoint codec delegating to the canonical core implementation. / 转发到 core 规范实现的远端 checkpoint codec。 */
 object PortableCheckpointCodec {
-    private const val CURRENT_SCHEMA = "2.0"
-    private val v2MarkerFields = setOf(
-        "schemaVersion", "sourceFormat", "migratedFromLegacy", "checkpointId",
-        "identitySchemaVersion", "identityNamespace", "modelFingerprint",
-        "configurationFingerprint", "solverFingerprint", "runId", "attemptId",
-        "parentCheckpointId", "createdAtEpochMs", "incumbent", "bestBound", "gap",
-        "assumptions", "conflicts", "benders", "integritySha256"
-    )
-    private val legacyV1Fields = setOf("schema", "modelName", "solverId", "snapshotJson")
-    private val codecJson = Json {
-        encodeDefaults = true
-        ignoreUnknownKeys = false
-    }
-
-    @Serializable
-    private data class LegacyBendersState(
-        val iteration: Long,
-        val masterIncumbent: String? = null,
-        val masterBestBound: String? = null,
-        val cuts: List<PortableConstraintProgrammingCut> = emptyList(),
-        val trace: List<String> = emptyList(),
-        val assumptions: List<String> = emptyList(),
-        val fixedBindings: Map<String, Long> = emptyMap(),
-        val conflicts: List<PortableConstraintProgrammingConflict> = emptyList(),
-        val convergenceVerified: Boolean = false,
-        val subproblemModelFingerprint: String? = null
-    )
-
-    @Serializable
-    private data class LegacyEnvelope(
-        val schemaVersion: String = CURRENT_SCHEMA,
-        val sourceFormat: String = "v2",
-        val migratedFromLegacy: Boolean = false,
-        val checkpointId: String,
-        val identitySchemaVersion: String = "1.0",
-        val identityNamespace: String = "model-local",
-        val modelName: String = "remote-cp",
-        val modelFingerprint: String,
-        val configurationFingerprint: String? = null,
-        val solverFingerprint: String? = null,
-        val runId: String? = null,
-        val attemptId: String? = null,
-        val parentCheckpointId: String? = null,
-        val createdAtEpochMs: Long,
-        val snapshotJson: String,
-        val incumbent: PortableConstraintProgrammingIncumbent? = null,
-        val bestBound: String? = null,
-        val gap: String? = null,
-        val assumptions: List<String> = emptyList(),
-        val conflicts: List<PortableConstraintProgrammingConflict> = emptyList(),
-        val benders: LegacyBendersState? = null,
-        val integritySha256: String = ""
-    )
-
+    /**
+     * 编码 envelope 并计算完整性摘要。 / Encode an envelope and compute its integrity digest.
+     *
+     * 完全委托 core：字段顺序、schema 版本规范化、string-map 排序与摘要都由 core 决定。
+     * Fully delegated to core: field order, schema normalization, string-map ordering, and the digest
+     * are all decided by core.
+     *
+     * 注意返回类型无法表达失败（既有公开 API 形态必须保留），因此对无法编码的 envelope
+     * **显式抛出**而不是静默产出一份永远无法解码的文档。
+     * The return type cannot express failure (the existing public API shape must be preserved), so an
+     * envelope that cannot be encoded **throws explicitly** rather than silently producing a document
+     * that can never be decoded.
+     *
+     * @param envelope checkpoint envelope / checkpoint envelope
+     * @return JSON 文本 / JSON text
+     * @throws IllegalArgumentException envelope 无法编码时抛出 / Thrown when the envelope cannot be encoded
+     */
     fun encode(envelope: PortableCheckpointEnvelope): String {
-        val migrated = envelope.sourceFormat == "legacy-v1" || envelope.migratedFromLegacy
-        val normalized = envelope.copy(
-            schemaVersion = CURRENT_SCHEMA,
-            sourceFormat = "v2",
-            migratedFromLegacy = migrated,
-            checkpointId = if (migrated) "legacy-v1-migrated" else envelope.checkpointId,
-            integritySha256 = digest(
-                envelope.copy(
-                    schemaVersion = CURRENT_SCHEMA,
-                    sourceFormat = "v2",
-                    migratedFromLegacy = migrated,
-                    checkpointId = if (migrated) "legacy-v1-migrated" else envelope.checkpointId,
-                    integritySha256 = ""
-                )
+        return when (val encoded = ConstraintProgrammingCheckpointCodec.encode(envelope)) {
+            is Ok -> encoded.value
+            is Failed -> throw IllegalArgumentException(
+                "可移植 checkpoint 编码失败 / Portable checkpoint encoding failed: ${encoded.error.message}"
             )
-        )
-        return codecJson.encodeToString(PortableCheckpointEnvelope.serializer(), normalized)
+            is Fatal -> throw IllegalArgumentException(
+                "可移植 checkpoint 编码失败 / Portable checkpoint encoding failed: " +
+                    encoded.errors.joinToString(separator = "; ") { it.message ?: "" }
+            )
+            else -> throw IllegalArgumentException(
+                "可移植 checkpoint 编码失败 / Portable checkpoint encoding failed"
+            )
+        }
     }
 
-    /** Decode only a verified v2 envelope. Legacy migration is deliberately separate. */
+    /**
+     * 仅解码当前 schema 的已验证 envelope；历史格式迁移由 [decodeCompatibleOrNull] 单独负责。 /
+     * Decode only a verified envelope of the current schema; historical-format migration is
+     * deliberately separate and handled by [decodeCompatibleOrNull].
+     *
+     * 本入口不再像收敛前那样内联回退到 schema 2.0 形状：那条回退路径本是 core 的迁移逻辑在框架侧
+     * 的第二份实现，现在只保留在 [decodeCompatibleOrNull] 中。
+     * This entry no longer falls back inline to the schema 2.0 shape the way it did before
+     * convergence: that fallback was a second framework-side copy of core's migration logic and now
+     * lives only in [decodeCompatibleOrNull].
+     *
+     * @param encoded JSON 文本 / JSON text
+     * @return envelope 或 null / Envelope, or null
+     */
     fun decodeOrNull(encoded: String): PortableCheckpointEnvelope? {
-        return runCatching {
-            val envelope = codecJson.decodeFromString(PortableCheckpointEnvelope.serializer(), encoded)
-            if (envelope.schemaVersion != CURRENT_SCHEMA || envelope.sourceFormat != "v2") {
-                return@runCatching null
-            }
-            if (!envelope.migratedFromLegacy && envelope.checkpointId == "legacy-v1") {
-                return@runCatching null
-            }
-            if (envelope.migratedFromLegacy && envelope.checkpointId != "legacy-v1-migrated") {
-                return@runCatching null
-            }
-            if (envelope.integritySha256.isBlank()) {
-                return@runCatching null
-            }
-            if (envelope.integritySha256 != digest(envelope.copy(integritySha256 = ""))) {
-                return@runCatching decodeLegacyV2OrNull(encoded)
-            }
-            if (sha256(envelope.snapshotJson) != envelope.modelFingerprint) {
-                return@runCatching null
-            }
-            envelope
-        }.getOrNull()
+        return ConstraintProgrammingCheckpointCodec.decode(encoded).value
     }
 
-    /** Decode an explicitly recognized legacy v1 snapshot and return a migrated envelope. */
+    /**
+     * 解码当前 schema、已发布的 schema 2.0 形状或 legacy v1 形状的 checkpoint。 /
+     * Decode a checkpoint of the current schema, the published schema 2.0 shape, or the legacy v1 shape.
+     *
+     * 迁移入口刻意与 [decodeOrNull] 分开，因此需要读取历史 checkpoint 的调用方必须显式选择本入口。
+     * The migration entry point is deliberately separate from [decodeOrNull], so a caller that needs to
+     * read a historical checkpoint must opt in explicitly.
+     *
+     * @param encoded JSON 文本 / JSON text
+     * @return envelope 或 null / Envelope, or null
+     */
     fun decodeCompatibleOrNull(encoded: String): PortableCheckpointEnvelope? {
-        decodeOrNull(encoded)?.let { return it }
-        return runCatching {
-            val root = codecJson.parseToJsonElement(encoded).jsonObject
-            if (root.keys.any { it in v2MarkerFields } || root.keys.any { it !in legacyV1Fields }) {
-                return@runCatching null
-            }
-            if (root["schema"]?.jsonPrimitive?.intOrNull != 1) {
-                return@runCatching null
-            }
-            val snapshotJson = root["snapshotJson"]?.jsonPrimitive?.content
-                ?: return@runCatching null
-            val snapshotRoot = codecJson.parseToJsonElement(snapshotJson).jsonObject
-            PortableCheckpointEnvelope(
-                checkpointId = "legacy-v1",
-                sourceFormat = "legacy-v1",
-                migratedFromLegacy = false,
-                identitySchemaVersion = snapshotRoot["identitySchemaVersion"]?.jsonPrimitive?.content ?: "1.0",
-                identityNamespace = snapshotRoot["identityNamespace"]?.jsonPrimitive?.content ?: "model-local",
-                modelName = root["modelName"]?.jsonPrimitive?.content
-                    ?: snapshotRoot["name"]?.jsonPrimitive?.content ?: "legacy",
-                modelFingerprint = sha256(snapshotJson),
-                createdAtEpochMs = 0L,
-                snapshotJson = snapshotJson
-            )
-        }.getOrNull()
+        return ConstraintProgrammingCheckpointCodec.decodeCompatible(encoded).value
     }
 
-    private fun digest(envelope: PortableCheckpointEnvelope): String =
-        sha256(codecJson.encodeToString(PortableCheckpointEnvelope.serializer(), envelope))
-
-    private fun digest(envelope: LegacyEnvelope): String =
-        sha256(codecJson.encodeToString(LegacyEnvelope.serializer(), envelope))
-
-    private fun decodeLegacyV2OrNull(encoded: String): PortableCheckpointEnvelope? {
-        return runCatching {
-            val legacy = codecJson.decodeFromString(LegacyEnvelope.serializer(), encoded)
-            if (legacy.schemaVersion != CURRENT_SCHEMA || legacy.sourceFormat != "v2" ||
-                (!legacy.migratedFromLegacy && legacy.checkpointId == "legacy-v1") ||
-                (legacy.migratedFromLegacy && legacy.checkpointId != "legacy-v1-migrated") ||
-                legacy.integritySha256.isBlank() ||
-                legacy.integritySha256 != digest(legacy.copy(integritySha256 = "")) ||
-                sha256(legacy.snapshotJson) != legacy.modelFingerprint
-            ) {
-                return@runCatching null
-            }
-            PortableCheckpointEnvelope(
-                schemaVersion = legacy.schemaVersion,
-                sourceFormat = legacy.sourceFormat,
-                migratedFromLegacy = legacy.migratedFromLegacy,
-                checkpointId = legacy.checkpointId,
-                identitySchemaVersion = legacy.identitySchemaVersion,
-                identityNamespace = legacy.identityNamespace,
-                modelName = legacy.modelName,
-                modelFingerprint = legacy.modelFingerprint,
-                configurationFingerprint = legacy.configurationFingerprint,
-                solverFingerprint = legacy.solverFingerprint,
-                runId = legacy.runId,
-                attemptId = legacy.attemptId,
-                parentCheckpointId = legacy.parentCheckpointId,
-                createdAtEpochMs = legacy.createdAtEpochMs,
-                snapshotJson = legacy.snapshotJson,
-                incumbent = legacy.incumbent,
-                bestBound = legacy.bestBound,
-                gap = legacy.gap,
-                assumptions = legacy.assumptions,
-                conflicts = legacy.conflicts,
-                benders = legacy.benders?.let { state ->
-                    PortableConstraintProgrammingBendersState(
-                        iteration = state.iteration,
-                        masterIncumbent = state.masterIncumbent,
-                        masterBestBound = state.masterBestBound,
-                        cuts = state.cuts,
-                        trace = state.trace,
-                        assumptions = state.assumptions,
-                        fixedBindings = state.fixedBindings,
-                        conflicts = state.conflicts,
-                        convergenceVerified = state.convergenceVerified,
-                        subproblemModelFingerprint = state.subproblemModelFingerprint
-                    )
-                },
-                integritySha256 = legacy.integritySha256
-            )
-        }.getOrNull()
+    /**
+     * 计算 UTF-8 内容的 SHA-256 摘要。 / Compute the SHA-256 digest of UTF-8 content.
+     *
+     * @param value 待摘要文本 / Text to digest
+     * @return 小写十六进制摘要 / Lowercase hexadecimal digest
+     */
+    fun sha256(value: String): String {
+        return SolveFingerprinting.sha256(value).value
     }
-
-    fun sha256(value: String): String =
-        MessageDigest.getInstance("SHA-256")
-            .digest(value.toByteArray(Charsets.UTF_8))
-            .joinToString(separator = "") { byte -> "%02x".format(byte) }
 }

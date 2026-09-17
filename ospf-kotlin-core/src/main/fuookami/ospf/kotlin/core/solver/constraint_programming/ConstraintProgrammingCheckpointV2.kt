@@ -1,7 +1,8 @@
-/** Portable CP checkpoint v2. / 可移植 CP checkpoint v2。 */
+/** Portable CP checkpoint envelope (schema 3.0). / 可移植 CP checkpoint envelope（schema 3.0）。 */
 package fuookami.ospf.kotlin.core.solver.constraint_programming
 
 import java.security.MessageDigest
+import java.time.Instant
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.intOrNull
@@ -18,6 +19,8 @@ import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgramm
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingSnapshotCodec
 import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalValue
 import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
+import fuookami.ospf.kotlin.core.solver.report.CancellationRecord
+import fuookami.ospf.kotlin.core.solver.report.CancellationSource
 import fuookami.ospf.kotlin.core.solver.report.SolveFingerprinting
 import fuookami.ospf.kotlin.core.solver.report.SolverDescriptor
 
@@ -45,11 +48,19 @@ import fuookami.ospf.kotlin.core.solver.report.SolverDescriptor
  * @property assumptions assumption 标识 / Assumption identifiers
  * @property conflicts 冲突证据 / Conflict evidence
  * @property benders Benders 状态 / Benders state
+ * @property cancellationChain 取消事实链，按发生顺序排列 / Cancellation-fact chain in occurrence order
+ * @property provenance 求解器执行来源 / Solver execution provenance
  * @property integritySha256 完整性摘要 / Integrity digest
+ *
+ * 字段名、顺序与可空性由 `analysis-fixtures/checkpoint-wire-contract.tsv` 的 `[envelope-field]`
+ * 段规定，两侧的声明顺序必须逐位一致：任何偏离都会使跨语言摘要失配。
+ * Field names, order, and nullability are fixed by the `[envelope-field]` section of
+ * `analysis-fixtures/checkpoint-wire-contract.tsv`, and both sides must declare them in exactly that
+ * order: any drift breaks the cross-language digest.
  */
 @Serializable
 data class ConstraintProgrammingCheckpointEnvelope(
-    val schemaVersion: String = "2.0",
+    val schemaVersion: String = "3.0",
     val sourceFormat: String = "v2",
     val migratedFromLegacy: Boolean = false,
     val checkpointId: String,
@@ -70,8 +81,109 @@ data class ConstraintProgrammingCheckpointEnvelope(
     val assumptions: List<String> = emptyList(),
     val conflicts: List<PortableConstraintProgrammingConflict> = emptyList(),
     val benders: PortableConstraintProgrammingBendersState? = null,
+    val cancellationChain: List<PortableCancellationRecord> = emptyList(),
+    val provenance: PortableSolverProvenance? = null,
+    val metadata: Map<String, String> = emptyMap(),
     val integritySha256: String = ""
 )
+
+/**
+ * 取消事实的线格式。 / Wire shape of one cancellation fact.
+ *
+ * 字段名、顺序与可空性由契约 `[cancellation-record]` 段规定。线格式只承载**规范代码**字符串，
+ * 因此任一侧都能无损往返另一侧的取值；无法识别的代码必须落到该侧的兜底变体并原样保留代码文本。
+ * Field names, order, and nullability come from the contract's `[cancellation-record]` section. The
+ * wire carries only the **canonical code** as a string, so either side round-trips the other side's
+ * values losslessly: an unrecognized code must land in that side's catch-all variant and keep the
+ * code text verbatim.
+ *
+ * @property origin 取消来源的规范代码 / Canonical cancellation-origin code
+ * @property requestedAtEpochMs 取消请求时间戳（epoch 毫秒） / Cancellation request timestamp in epoch milliseconds
+ * @property reason 取消原因 / Cancellation reason
+ */
+@Serializable
+data class PortableCancellationRecord(
+    val origin: String,
+    val requestedAtEpochMs: Long,
+    val reason: String? = null
+)
+
+/**
+ * 求解器执行来源的线格式。 / Wire shape of the solver execution provenance.
+ *
+ * 字段名、顺序与可空性由契约 `[provenance-field]` 段规定；三个 string-map 必须按键升序输出，
+ * 以保证摘要可跨语言复算。
+ * Field names, order, and nullability come from the contract's `[provenance-field]` section; the
+ * three string-maps must be emitted in ascending key order so the digest stays cross-language
+ * recomputable.
+ *
+ * @property solverId 求解器标识 / Solver identifier
+ * @property backendName 后端名称 / Backend name
+ * @property backendVersion 后端版本 / Backend version
+ * @property pluginVersion 插件版本 / Plugin version
+ * @property requestedConfiguration 请求的配置参数 / Requested configuration parameters
+ * @property effectiveConfiguration 实际生效的配置参数 / Effective configuration parameters
+ * @property threadCount 线程数 / Thread count
+ * @property randomSeed 随机种子 / Random seed
+ * @property deterministic 是否确定性执行 / Whether execution is deterministic
+ * @property environmentSummary 脱敏环境摘要 / Redacted environment summary
+ */
+@Serializable
+data class PortableSolverProvenance(
+    val solverId: String,
+    val backendName: String,
+    val backendVersion: String? = null,
+    val pluginVersion: String? = null,
+    val requestedConfiguration: Map<String, String> = emptyMap(),
+    val effectiveConfiguration: Map<String, String> = emptyMap(),
+    val threadCount: Int? = null,
+    val randomSeed: Long? = null,
+    val deterministic: Boolean? = null,
+    val environmentSummary: Map<String, String> = emptyMap()
+)
+
+/**
+ * 将取消事实投影为线格式，并保留原始来源代码文本。 /
+ * Project a cancellation fact onto the wire shape, preserving the original origin code text.
+ *
+ * 当 [CancellationRecord.source] 为 [CancellationSource.Other] 时，收到的原始代码（例如 Rust 的
+ * `backend`）会被写入 [CancellationRecord.wireOrigin]，因此再序列化回去仍然是同一个代码。
+ * When [CancellationRecord.source] is [CancellationSource.Other], the code that was received (for
+ * instance Rust's `backend`) is written into [CancellationRecord.wireOrigin], so re-serializing it
+ * still yields the same code.
+ *
+ * @return 线格式取消记录 / Wire-format cancellation record
+ */
+fun CancellationRecord.toPortableCancellationRecord(): PortableCancellationRecord {
+    return PortableCancellationRecord(
+        origin = wireOrigin ?: source.toWireCode(),
+        requestedAtEpochMs = requestedAt.toEpochMilli(),
+        reason = reason
+    )
+}
+
+/**
+ * 将线格式取消记录解析回取消事实。 / Parse a wire-format cancellation record back into a cancellation fact.
+ *
+ * 无法识别的代码落到 [CancellationSource.Other]，并把代码文本原样保存在
+ * [CancellationRecord.wireOrigin]，从而保证无损往返。
+ * An unrecognized code lands in [CancellationSource.Other] and keeps its text verbatim in
+ * [CancellationRecord.wireOrigin], which makes the round trip lossless.
+ *
+ * @return 取消事实 / Cancellation fact
+ */
+fun PortableCancellationRecord.toCancellationRecord(): CancellationRecord {
+    val source = CancellationSource.fromWireCode(origin)
+    return CancellationRecord(
+        source = source,
+        requestedAt = Instant.ofEpochMilli(requestedAtEpochMs),
+        reason = reason,
+        // 兜底变体必须原样保留收到的代码文本；专用变体的代码可由枚举复现，无需保留。
+        // A catch-all variant must keep the received code text verbatim; a dedicated variant's code is
+        // reproducible from the enum and needs no raw text.
+        wireOrigin = origin.takeIf { source == CancellationSource.Other }
+    )
+}
 
 /**
  * Portable incumbent representation. / 可移植 incumbent 表示。
@@ -193,9 +305,9 @@ data class ConstraintProgrammingCheckpointRestore(
     val gap: String? = envelope.gap
 )
 
-/** Encoder and verifier for portable CP checkpoint v2. / portable CP checkpoint v2 的编码与复验器。 */
+/** Encoder and verifier for the portable CP checkpoint envelope. / 可移植 CP checkpoint envelope 的编码与复验器。 */
 object ConstraintProgrammingCheckpointCodec {
-    private const val CURRENT_SCHEMA = "2.0"
+    private const val CURRENT_SCHEMA = "3.0"
     private val V2_MARKER_FIELDS = setOf(
         "schemaVersion",
         "sourceFormat",
@@ -216,6 +328,8 @@ object ConstraintProgrammingCheckpointCodec {
         "assumptions",
         "conflicts",
         "benders",
+        "cancellationChain",
+        "provenance",
         "integritySha256"
     )
     private val LEGACY_V1_FIELDS = setOf(
@@ -278,8 +392,8 @@ object ConstraintProgrammingCheckpointCodec {
     )
 
     /**
-     * Captures a v2 envelope from a snapshot and optional incumbent.
-     * 从 snapshot 和可选 incumbent 捕获 v2 envelope。
+     * Captures a schema 3.0 envelope from a snapshot and optional incumbent.
+     * 从 snapshot 和可选 incumbent 捕获 schema 3.0 envelope。
      *
      * @param snapshot CP 模型 snapshot / CP model snapshot
      * @param descriptor 求解器描述符 / Solver descriptor
@@ -295,6 +409,8 @@ object ConstraintProgrammingCheckpointCodec {
      * @param assumptions 已激活的 assumption 变量 ID / Activated assumption variable IDs
      * @param conflicts 冲突证据 / Conflict evidence
      * @param benders 可移植 Benders 状态 / Portable Benders state
+     * @param cancellationChain 取消事实链，按发生顺序 / Cancellation-fact chain in occurrence order
+     * @param provenance 求解器执行来源 / Solver execution provenance
      * @return envelope 或结构化错误 / Envelope or structured error
      */
     fun capture(
@@ -311,8 +427,23 @@ object ConstraintProgrammingCheckpointCodec {
         gap: String? = null,
         assumptions: List<String> = emptyList(),
         conflicts: List<PortableConstraintProgrammingConflict> = emptyList(),
-        benders: PortableConstraintProgrammingBendersState? = null
+        benders: PortableConstraintProgrammingBendersState? = null,
+        cancellationChain: List<CancellationRecord> = emptyList(),
+        provenance: PortableSolverProvenance? = null,
+        metadata: Map<String, String> = emptyMap()
     ): Ret<ConstraintProgrammingCheckpointEnvelope> {
+        // 捕获侧即拒绝自引用与空白父链：恢复侧校验只在显式启用时生效，若放任此类 envelope
+        // 落盘，损坏数据会先被持久化，直到恢复时才暴露。
+        //
+        // Reject a self-referencing or blank parent at capture time: restore-side validation runs
+        // only when explicitly enabled, so persisting such an envelope would first write corrupt
+        // data and only surface the problem later, on recovery.
+        parentLinkFailure(
+            checkpointId = checkpointId,
+            parentCheckpointId = parentCheckpointId,
+            validateParentLink = true,
+            expectedParentCheckpointId = null
+        )?.let { return Failed(ErrorCode.IllegalArgument, it) }
         val encoded = ConstraintProgrammingSnapshotCodec.encode(snapshot)
         if (encoded.failed) {
             return propagate(encoded)
@@ -322,6 +453,15 @@ object ConstraintProgrammingCheckpointCodec {
             return propagate(portableIncumbent)
         }
         validateBendersState(benders)?.let { return Failed(ErrorCode.IllegalArgument, it) }
+        // 取消链的顺序与 provenance 的形状同样在捕获侧即校验，理由与父链一致：链上的顺序在恢复侧是
+        // 无条件校验的，若捕获侧放过一条乱序链，损坏的审计轨迹会先落盘才被发现。
+        //
+        // The chain's ordering and the provenance's shape are validated at capture time for the same
+        // reason as the parent link: the ordering is validated unconditionally on restore, so letting a
+        // misordered chain through at capture time would persist a corrupt audit trail first.
+        validateCancellationChain(cancellationChain.map { it.toPortableCancellationRecord() })
+            ?.let { return Failed(ErrorCode.IllegalArgument, it) }
+        validateProvenance(provenance)?.let { return Failed(ErrorCode.IllegalArgument, it) }
         val envelope = ConstraintProgrammingCheckpointEnvelope(
             checkpointId = checkpointId,
             identitySchemaVersion = snapshot.identitySchemaVersion,
@@ -342,7 +482,10 @@ object ConstraintProgrammingCheckpointCodec {
             gap = gap,
             assumptions = assumptions,
             conflicts = conflicts,
-            benders = benders
+            benders = benders,
+            cancellationChain = cancellationChain.map { it.toPortableCancellationRecord() },
+            provenance = provenance,
+            metadata = metadata
         )
         val normalized = withDigest(envelope)
         return when (val restored = restore(
@@ -390,15 +533,26 @@ object ConstraintProgrammingCheckpointCodec {
     }
 
     /**
-     * Decodes and verifies a v2 envelope.
-     * 解码并复验 v2 envelope。
+     * Decodes and verifies a schema 3.0 envelope.
+     * 解码并复验 schema 3.0 envelope。
      *
      * @param encoded JSON 文本 / JSON text
      * @return envelope 或结构化错误 / Envelope or structured error
      */
     fun decode(encoded: String): Ret<ConstraintProgrammingCheckpointEnvelope> {
         return try {
-            val envelope = json.decodeFromString(ConstraintProgrammingCheckpointEnvelope.serializer(), encoded)
+            // 解码即按键升序规范化 string-map：契约 [canonicalization] 第 3 条把"string-map 升序"作为
+            // 摘要可复算的前提，因此摘要在规范化后的文本上复算，解码结果也始终是规范形态。Rust 侧
+            // 反序列化到 BTreeMap 后天然如此，两侧由此对齐：乱序 map 的文档在两侧都会被拒绝。
+            //
+            // Decoding canonicalizes the string-maps into ascending key order: contract
+            // [canonicalization] rule 3 makes ascending maps a precondition for digest recomputation, so
+            // the digest is recomputed over the canonical text and the decoded envelope is always
+            // canonical. Rust behaves this way for free by deserializing into BTreeMaps, which aligns
+            // the two sides: a document with unsorted maps is rejected on both.
+            val envelope = canonicalizeMapKeys(
+                json.decodeFromString(ConstraintProgrammingCheckpointEnvelope.serializer(), encoded)
+            )
             if (envelope.schemaVersion != CURRENT_SCHEMA) {
                 return Failed(ErrorCode.Other, "不支持的 checkpoint schema：${envelope.schemaVersion} / Unsupported checkpoint schema: ${envelope.schemaVersion}")
             }
@@ -420,6 +574,18 @@ object ConstraintProgrammingCheckpointCodec {
             if (envelope.integritySha256 != digest(envelope.copy(integritySha256 = ""))) {
                 return Failed(ErrorCode.IllegalArgument, "checkpoint 完整性摘要不匹配 / Checkpoint integrity digest mismatch")
             }
+            // 解码即校验父链自身合法性（自引用 / 空白）。调用方若已知期望父标识，应改用
+            // `restore(..., expectedParentCheckpointId = ...)` 做完整比对。
+            //
+            // Decoding validates the parent link's own legality (self-reference, blank). A caller
+            // that knows the expected parent should use `restore(..., expectedParentCheckpointId = ...)`
+            // for the full comparison.
+            parentLinkFailure(
+                checkpointId = envelope.checkpointId,
+                parentCheckpointId = envelope.parentCheckpointId,
+                validateParentLink = true,
+                expectedParentCheckpointId = null
+            )?.let { return Failed(ErrorCode.IllegalArgument, it) }
             if (SolveFingerprinting.sha256(envelope.snapshotJson).value != envelope.modelFingerprint) {
                 return Failed(
                     ErrorCode.IllegalArgument,
@@ -433,11 +599,11 @@ object ConstraintProgrammingCheckpointCodec {
     }
 
     /**
-     * Decodes v2 or the legacy v1 snapshot-only checkpoint format.
-     * 解码 v2 或 legacy v1 仅 snapshot checkpoint 格式。
+     * Decodes schema 3.0, the published schema 2.0 envelope, or the legacy v1 snapshot-only format.
+     * 解码 schema 3.0、已发布的 schema 2.0 envelope 或 legacy v1 仅 snapshot 格式。
      *
      * @param encoded checkpoint JSON / Checkpoint JSON
-     * @return verified v2-compatible envelope or structured error / 已验证的 v2 兼容 envelope 或结构化错误
+     * @return verified schema 3.0-compatible envelope or structured error / 已验证的 schema 3.0 兼容 envelope 或结构化错误
      */
     fun decodeCompatible(encoded: String): Ret<ConstraintProgrammingCheckpointEnvelope> {
         val root = try {
@@ -452,13 +618,36 @@ object ConstraintProgrammingCheckpointCodec {
         if (!current.failed) {
             return canonicalizeSnapshotEnvelope(current.value!!)
         }
-        decodeLegacyV2(encoded)?.let { return ok(it) }
+        decodeLegacyV2(encoded)?.let { legacy ->
+            // legacy v2 形状同样携带父标识，必须与当前形状接受同样的父链合法性检查。
+            // The legacy v2 shape also carries a parent identifier and must accept the same
+            // parent-link legality check as the current shape.
+            parentLinkFailure(
+                checkpointId = legacy.checkpointId,
+                parentCheckpointId = legacy.parentCheckpointId,
+                validateParentLink = true,
+                expectedParentCheckpointId = null
+            )?.let { return Failed(ErrorCode.IllegalArgument, it) }
+            return ok(legacy)
+        }
         // A document carrying any v2 marker is never eligible for legacy fallback. /
         // 含有任一 v2 标记的文档绝不能降级为 legacy。
         if (root.keys.any { it in V2_MARKER_FIELDS }) {
+            // 原样附上当前形状解码的真实失败原因：只回一句"不得降级"会把"父链自引用"这类可定位
+            // 的问题替换成一句泛化诊断，调用方无法据此判断该怎么修。降级禁令本身保持不变。
+            //
+            // Append the current shape's actual failure reason: answering only "must not downgrade"
+            // would replace a locatable problem such as a self-referencing parent link with a generic
+            // diagnostic the caller cannot act on. The downgrade prohibition itself is unchanged.
+            val reason = when (current) {
+                is Failed -> current.error.message
+                is Fatal -> current.errors.firstOrNull()?.message
+                else -> null
+            }
             return Failed(
                 ErrorCode.IllegalArgument,
-                "损坏的 v2 checkpoint 不得降级为 legacy / A malformed v2 checkpoint must not downgrade to legacy"
+                "损坏的 v2 checkpoint 不得降级为 legacy / A malformed v2 checkpoint must not downgrade to legacy" +
+                    if (reason.isNullOrBlank()) "" else "：$reason"
             )
         }
         if (root.keys.any { it !in LEGACY_V1_FIELDS }) {
@@ -600,6 +789,31 @@ object ConstraintProgrammingCheckpointCodec {
      * Normalizes an envelope and refreshes its integrity digest.
      * 规范化 envelope 并刷新完整性摘要。
      *
+     * **本摘要是完整性校验，不是真实性/防篡改证明。** / **This digest is an integrity check, not
+     * an authenticity or tamper-proof guarantee.**
+     *
+     * 它使用无密钥的 SHA-256，且本函数是公开的，任何调用方都能在改动字段后重新计算摘要。
+     * 因此它只能发现**意外损坏**（截断、写入错误、传输损坏、手工编辑失误），无法阻止**有意
+     * 伪造**：攻击者或误用者可以改掉 `parentCheckpointId`、`runId`、`attemptId`、`bestBound`
+     * 等任一字段后调用本函数重算摘要，从而通过 `decode` / `restore` 的摘要校验。
+     *
+     * 需要真实性保证的场景必须另外引入带密钥的 MAC（HMAC）或数字签名，并把密钥放在调用方
+     * 不可及的位置；仅靠本摘要无法达成。父链/身份一致性校验（见 `parentLinkFailure`、
+     * `restore` 的 `expectedRunId`/`expectedAttemptId`）用于让**调用方明确声明**期望值，
+     * 而不是替代签名。
+     *
+     * It uses unkeyed SHA-256, and this function is public, so any caller can recompute the digest
+     * after changing fields. It therefore detects only **accidental corruption** (truncation, write
+     * errors, transport damage, mistaken manual edits) and cannot prevent **deliberate forgery**: an
+     * attacker or misuser can alter `parentCheckpointId`, `runId`, `attemptId`, `bestBound`, or any
+     * other field and call this function to recompute the digest, passing the digest checks in
+     * `decode` and `restore`.
+     *
+     * Authenticity requires a keyed MAC (HMAC) or digital signature with the key held out of the
+     * caller's reach; this digest alone cannot provide it. Parent/identity consistency validation
+     * (see `parentLinkFailure` and `restore`'s `expectedRunId`/`expectedAttemptId`) lets the
+     * **caller declare** expectations; it does not replace a signature.
+     *
      * @param envelope checkpoint envelope / checkpoint envelope
      * @return 带有效摘要的 envelope / envelope with a valid integrity digest
      */
@@ -617,6 +831,12 @@ object ConstraintProgrammingCheckpointCodec {
      * @param expectedSolverFingerprint 当前求解器指纹 / Fingerprint of the active solver runtime
      * @param allowLegacyConfigurationFingerprint 是否允许调用方已独立复验的旧配置指纹 / Whether to allow a legacy configuration fingerprint independently validated by the caller
      * @param allowLegacySolverFingerprint 是否允许调用方已独立复验的旧求解器指纹 / Whether to allow a legacy solver fingerprint independently validated by the caller
+     * @param validateParentLink 是否启用父链一致性校验；默认关闭以保持既有调用行为不变 / Whether to enable parent-chain consistency validation; disabled by default so existing call behavior is unchanged
+     * @param expectedParentCheckpointId 调用方声明的期望父 checkpoint 标识；非 null 时同样启用父链一致性校验 / Expected parent checkpoint identifier declared by the caller; a non-null value also enables parent-chain consistency validation
+     * @param expectedRunId 调用方声明的期望运行标识；非 null 时校验 envelope 的 runId 一致 / Expected run identifier declared by the caller; a non-null value verifies the envelope's runId
+     * @param expectedAttemptId 调用方声明的期望尝试标识；非 null 时校验 envelope 的 attemptId 一致 / Expected attempt identifier declared by the caller; a non-null value verifies the envelope's attemptId
+     * @param expectedCancellationChain 调用方声明的期望取消链；非 null 时要求 envelope 的链以它为前缀 / Expected cancellation chain declared by the caller; a non-null value requires the envelope's chain to carry it as a prefix
+     * @param expectedProvenance 调用方声明的期望 provenance；非 null 时要求与 envelope 的 provenance 整体相同 / Expected provenance declared by the caller; a non-null value requires the envelope's provenance to match it exactly
      * @return 恢复结果 / Restore result
      */
     fun restore(
@@ -625,7 +845,13 @@ object ConstraintProgrammingCheckpointCodec {
         expectedConfigurationFingerprint: String?,
         expectedSolverFingerprint: String?,
         allowLegacyConfigurationFingerprint: Boolean = false,
-        allowLegacySolverFingerprint: Boolean = false
+        allowLegacySolverFingerprint: Boolean = false,
+        validateParentLink: Boolean = false,
+        expectedParentCheckpointId: String? = null,
+        expectedRunId: String? = null,
+        expectedAttemptId: String? = null,
+        expectedCancellationChain: List<PortableCancellationRecord>? = null,
+        expectedProvenance: PortableSolverProvenance? = null
     ): Ret<ConstraintProgrammingCheckpointRestore> {
         if (envelope.sourceFormat !in setOf("v2", "legacy-v1")) {
             return Failed(
@@ -657,6 +883,68 @@ object ConstraintProgrammingCheckpointCodec {
                 ErrorCode.IllegalArgument,
                 "legacy 迁移 checkpoint 标识无效 / Migrated legacy checkpoint identifier is invalid"
             )
+        }
+        // Parent-chain consistency validation is opt-in: callers that pass neither the flag nor an
+        // expected parent keep the historical carry-without-validation behavior, while recovery entry
+        // points that know their source checkpoint can reject forged, self-referencing and blank links.
+        // 父链一致性校验为显式启用：既不传开关也不传期望父标识的调用方保持历史“只携带不校验”行为，
+        // 而明确知道来源 checkpoint 的恢复入口可以拒绝伪造、自引用和空白父链。
+        val parentLinkValidation = validateParentLink || expectedParentCheckpointId != null
+        parentLinkFailure(
+            checkpointId = envelope.checkpointId,
+            parentCheckpointId = envelope.parentCheckpointId,
+            validateParentLink = parentLinkValidation,
+            expectedParentCheckpointId = expectedParentCheckpointId
+        )?.let { return Failed(ErrorCode.IllegalArgument, it) }
+        // 运行/尝试身份必须一次性比对：Rust `validate_resume_from` 要求 runId 与 attemptId 同时
+        // 匹配，否则"用另一个运行的 checkpoint 恢复当前运行"这类串号无法被发现。
+        // 空白期望值同样拒绝，避免调用方传入的空串被当成"匹配成功"。
+        //
+        // Run/attempt identity is compared in one pass: Rust's `validate_resume_from` requires both
+        // runId and attemptId to match, otherwise resuming a run from another run's checkpoint goes
+        // undetected. Blank expectations are rejected too, so an empty string is never treated as a
+        // successful match.
+        // 调用方声明的期望 provenance 自身必须合法：Rust `validate_resume_internal` 在比对之前先拒绝
+        // 身份为空的期望 provenance，否则一个空身份的期望值只会以"不一致"这种误导性理由失败。
+        //
+        // The caller-declared expected provenance must itself be legal: Rust's
+        // `validate_resume_internal` rejects a blank-identity expected provenance before comparing, so a
+        // blank-identity expectation does not fail with the misleading reason "does not match".
+        if (expectedProvenance != null) {
+            if (expectedProvenance.solverId.isBlank() || expectedProvenance.backendName.isBlank()) {
+                return Failed(
+                    ErrorCode.IllegalArgument,
+                    "恢复请求的 provenance 身份不能为空白 / Resume request provenance identity cannot be blank"
+                )
+            }
+        }
+        if (expectedRunId != null) {
+            if (expectedRunId.isBlank()) {
+                return Failed(
+                    ErrorCode.IllegalArgument,
+                    "期望的 checkpoint 运行标识不能为空白 / Expected checkpoint run identifier must not be blank"
+                )
+            }
+            if (envelope.runId != expectedRunId) {
+                return Failed(
+                    ErrorCode.IllegalArgument,
+                    "checkpoint 运行标识与恢复请求不一致 / Checkpoint run identity does not match the resume request"
+                )
+            }
+        }
+        if (expectedAttemptId != null) {
+            if (expectedAttemptId.isBlank()) {
+                return Failed(
+                    ErrorCode.IllegalArgument,
+                    "期望的 checkpoint 尝试标识不能为空白 / Expected checkpoint attempt identifier must not be blank"
+                )
+            }
+            if (envelope.attemptId != expectedAttemptId) {
+                return Failed(
+                    ErrorCode.IllegalArgument,
+                    "checkpoint 尝试标识与恢复请求不一致 / Checkpoint attempt identity does not match the resume request"
+                )
+            }
         }
         if (envelope.sourceFormat == "v2") {
             if (!migratedLegacyV2 &&
@@ -695,6 +983,31 @@ object ConstraintProgrammingCheckpointCodec {
                     "恢复历史界限前必须提供当前配置指纹 / Current configuration fingerprint is required before restoring historical bounds"
                 )
             }
+        }
+        // provenance 与取消链的期望值比对同样为显式启用，位置与 Rust `validate_resume_internal` 一致：
+        // 排在指纹比对之后。provenance 要求整体相同；取消链只要求以期望链为**前缀**，因为恢复请求
+        // 通常只声明自己已知的那一段因果历史，envelope 上更晚发生的取消是合法的。
+        //
+        // The expected provenance and cancellation chain are compared only when declared, in the same
+        // position as Rust's `validate_resume_internal`: after the fingerprint comparisons. Provenance is
+        // compared in full; the chain only has to carry the expected chain as a **prefix**, because a
+        // resume request usually declares just the causal history it knows about, and cancellations that
+        // happened later in the envelope are legitimate.
+        if (expectedProvenance != null && envelope.provenance != expectedProvenance) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "checkpoint provenance 与恢复请求不一致 / Checkpoint provenance does not match the resume request"
+            )
+        }
+        if (expectedCancellationChain != null &&
+            (expectedCancellationChain.size > envelope.cancellationChain.size ||
+                envelope.cancellationChain.take(expectedCancellationChain.size) != expectedCancellationChain)
+        ) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "checkpoint 取消链未保留期望前缀 / " +
+                    "Checkpoint cancellation chain does not preserve the expected prefix"
+            )
         }
         if (envelope.integritySha256.isBlank() ||
             envelope.integritySha256 != digest(envelope.copy(integritySha256 = ""))
@@ -797,6 +1110,13 @@ object ConstraintProgrammingCheckpointCodec {
             }
         }
         validateBendersState(normalizedEnvelope.benders)?.let { return Failed(ErrorCode.IllegalArgument, it) }
+        validateCancellationChain(normalizedEnvelope.cancellationChain)?.let { return Failed(ErrorCode.IllegalArgument, it) }
+        validateProvenance(normalizedEnvelope.provenance)?.let { return Failed(ErrorCode.IllegalArgument, it) }
+        validateHistoricalBounds(
+            incumbent = normalizedEnvelope.incumbent,
+            bestBound = normalizedEnvelope.bestBound,
+            gap = normalizedEnvelope.gap
+        )?.let { return Failed(ErrorCode.IllegalArgument, it) }
         val incumbent = normalizedEnvelope.incumbent?.toSolution(snapshot)
         if (incumbent != null && incumbent.failed) {
             return propagate(incumbent)
@@ -811,6 +1131,314 @@ object ConstraintProgrammingCheckpointCodec {
                 gap = restoreGap
             )
         )
+    }
+
+    /**
+     * 校验父链并返回失败消息，或在可接受时返回 null。
+     * Validate the parent link, returning a failure message or null when acceptable.
+     *
+     * 捕获、解码与恢复三条路径共用本函数，确保"某一入口能拒绝的问题，另一些入口不会放行"。
+     * 语义与 Rust `SolveCheckpoint::validate`（自引用、空白父）与 `validate_resume_from`
+     * （期望父标识必须完全匹配，含 envelope 无父链的情形）对齐。
+     *
+     * Capture, decode, and restore share this function so a problem rejected at one entry point
+     * is never let through at another. Semantics align with Rust's `SolveCheckpoint::validate`
+     * (self-reference, blank parent) and `validate_resume_from` (the expected parent must match
+     * exactly, including when the envelope carries no parent at all).
+     *
+     * @param checkpointId envelope 自身标识 / The envelope's own identifier
+     * @param parentCheckpointId envelope 携带的父标识 / The parent identifier carried by the envelope
+     * @param validateParentLink 是否校验父链自身合法性 / Whether to validate the parent link itself
+     * @param expectedParentCheckpointId 调用方声明的期望父标识 / Expected parent identifier declared by the caller
+     * @return 失败消息或 null / A failure message, or null
+     */
+    private fun parentLinkFailure(
+        checkpointId: String,
+        parentCheckpointId: String?,
+        validateParentLink: Boolean,
+        expectedParentCheckpointId: String?
+    ): String? {
+        if (validateParentLink && parentCheckpointId != null) {
+            if (parentCheckpointId.isBlank()) {
+                return "checkpoint 父标识不能为空白 / Checkpoint parent identifier must not be blank"
+            }
+            if (parentCheckpointId == checkpointId) {
+                return "checkpoint 父标识不能等于自身标识 / " +
+                        "Checkpoint parent identifier must not equal its own identifier"
+            }
+        }
+        if (expectedParentCheckpointId != null) {
+            if (expectedParentCheckpointId.isBlank()) {
+                return "期望的 checkpoint 父标识不能为空白 / " +
+                        "Expected checkpoint parent identifier must not be blank"
+            }
+            if (parentCheckpointId != expectedParentCheckpointId) {
+                return "checkpoint 父标识与恢复请求不一致 / " +
+                        "Checkpoint parent identifier does not match the resume request"
+            }
+        }
+        return null
+    }
+
+    /**
+     * 校验取消链的线格式合法性。 / Validate the cancellation chain's wire-shape legality.
+     *
+     * 校验线格式承载的全部取值：来源代码不能为空白（否则回读时无法映射回任何变体），时间戳不能为负
+     * （`requested_at_epoch_ms` 在 Rust 侧是无符号数），且时间戳必须**单调不减**——取消链表示因果
+     * 顺序，一条乱序的链意味着审计轨迹被篡改或拼接错误。未知代码是合法状态，由兜底变体承载，因此
+     * 不在这里拒绝。
+     *
+     * 语义与 Rust `SolveCheckpoint::validate` 对齐：那里的顺序校验同样是无条件的，而不是仅在恢复
+     * 请求显式声明期望链时才执行。
+     *
+     * Validates every value the wire carries: the origin code must not be blank (otherwise it cannot
+     * map back to any variant), the timestamp must not be negative (`requested_at_epoch_ms` is unsigned
+     * on the Rust side), and the timestamps must be **non-decreasing** — a cancellation chain expresses
+     * causal order, so an out-of-order chain means the audit trail was tampered with or mis-spliced. An
+     * unknown code is legitimate and lands in the catch-all variant, so it is not rejected here.
+     *
+     * Semantics align with Rust's `SolveCheckpoint::validate`, where the ordering check is likewise
+     * unconditional rather than running only when a resume request declares an expected chain.
+     *
+     * @param chain 取消事实链 / Cancellation-fact chain
+     * @return 失败消息或 null / A failure message, or null
+     */
+    private fun validateCancellationChain(chain: List<PortableCancellationRecord>): String? {
+        var previousTimestamp = 0L
+        chain.forEach { record ->
+            if (record.origin.isBlank()) {
+                return "checkpoint 取消来源代码不能为空白 / Checkpoint cancellation origin code must not be blank"
+            }
+            if (record.requestedAtEpochMs < 0L) {
+                return "checkpoint 取消时间戳不能为负 / Checkpoint cancellation timestamp must not be negative"
+            }
+            // 单调不减：与 Rust `previous_timestamp` 从 0 起步并逐项比较的实现一致。
+            // Non-decreasing: matches Rust, where `previous_timestamp` starts at 0 and is compared per
+            // entry.
+            if (record.requestedAtEpochMs < previousTimestamp) {
+                return "checkpoint 取消链顺序无效 / Checkpoint cancellation chain is not ordered"
+            }
+            previousTimestamp = record.requestedAtEpochMs
+        }
+        return null
+    }
+
+    /**
+     * 校验 provenance 的线格式合法性。 / Validate the provenance's wire-shape legality.
+     *
+     * @param provenance 求解器执行来源 / Solver execution provenance
+     * @return 失败消息或 null / A failure message, or null
+     */
+    private fun validateProvenance(provenance: PortableSolverProvenance?): String? {
+        if (provenance == null) {
+            return null
+        }
+        if (provenance.solverId.isBlank() || provenance.backendName.isBlank()) {
+            return "checkpoint provenance 缺少求解器或后端标识 / " +
+                "Checkpoint provenance is missing the solver or backend identifier"
+        }
+        if (provenance.threadCount != null && provenance.threadCount < 0) {
+            return "checkpoint provenance 线程数不能为负 / Checkpoint provenance thread count must not be negative"
+        }
+        return null
+    }
+
+    /**
+     * 校验历史 incumbent / best bound / gap 的数值语义。
+     * Validate the numeric semantics of the historical incumbent, best bound, and gap.
+     *
+     * 语义逐条对齐 Rust `SolveCheckpoint::validate`（`ospf-rust-core/src/solver/checkpoint.rs`）：
+     *
+     * 1. 非有限值一律拒绝（`NaN` / `Infinity` / 非数值文本）；
+     * 2. `gap` 不能为负；
+     * 3. `gap` 必须同时有 incumbent 目标值与 best bound —— 相对 gap 的定义就是"当前解与界之间的
+     *    相对距离"，缺少任一端时它不是"无信息"，而是**无定义**；
+     * 4. 三者齐备时必须互相自洽：`gap ≈ |objective - bound| / max(|objective|, 1)`。
+     *
+     * 第 3 条是相对此前 Kotlin 行为的**收紧**：Kotlin 过去允许只带 bound 的 gap。仅有 bound 的
+     * "gap" 无法解释，放任它会掩盖上游把 gap 写错位置这类缺陷，因此与 Rust 对齐。
+     *
+     * Semantics align item by item with Rust's `SolveCheckpoint::validate`
+     * (`ospf-rust-core/src/solver/checkpoint.rs`):
+     *
+     * 1. non-finite values (`NaN` / `Infinity` / non-numeric text) are always rejected;
+     * 2. the `gap` must not be negative;
+     * 3. the `gap` requires both an incumbent objective and a best bound — a relative gap is by
+     *    definition the relative distance between the current solution and the bound, so when either
+     *    end is missing it is not "uninformative" but **undefined**;
+     * 4. when all three are present they must be mutually consistent:
+     *    `gap ≈ |objective - bound| / max(|objective|, 1)`.
+     *
+     * Rule 3 is a **tightening** relative to Kotlin's previous behavior, which allowed a gap with
+     * only a bound. A "gap" with no incumbent cannot be interpreted, and allowing it masks upstream
+     * defects such as writing the gap into the wrong field, so it now matches Rust.
+     *
+     * @param incumbent 历史 incumbent / Historical incumbent
+     * @param bestBound 历史最佳界 / Historical best bound
+     * @param gap 历史最优间隙 / Historical optimality gap
+     * @return 失败消息或 null / A failure message, or null
+     */
+    private fun validateHistoricalBounds(
+        incumbent: PortableConstraintProgrammingIncumbent?,
+        bestBound: String?,
+        gap: String?
+    ): String? {
+        // 非数值文本同样按"非有限"处理：Rust 侧这些字段是 f64，无法表示 `NaN` 以外的任意文本，
+        // 因此不可解析的值必须被拒绝，而不是被悄悄当成"无信息"。
+        // Non-numeric text counts as non-finite too: these fields are f64 on the Rust side, so an
+        // unparseable value must be rejected rather than silently treated as "no information".
+        fun parse(value: String?, name: String): Any? {
+            if (value == null) {
+                return null
+            }
+            val parsed = value.toBigDecimalOrNull()
+                ?: return "checkpoint $name 不是有效数值 / Checkpoint $name is not a valid number"
+            return parsed
+        }
+
+        val boundValue = when (val parsed = parse(bestBound, "best bound")) {
+            is String -> return parsed
+            else -> parsed as java.math.BigDecimal?
+        }
+        val gapValue = when (val parsed = parse(gap, "relative gap")) {
+            is String -> return parsed
+            else -> parsed as java.math.BigDecimal?
+        }
+        val objectiveValue = when (val parsed = parse(incumbent?.objective, "incumbent objective")) {
+            is String -> return parsed
+            else -> parsed as java.math.BigDecimal?
+        }
+
+        if (gapValue != null && gapValue.signum() < 0) {
+            return "checkpoint 相对 gap 不能为负 / Checkpoint relative gap cannot be negative"
+        }
+        if (gapValue != null && (objectiveValue == null || boundValue == null)) {
+            return "checkpoint 相对 gap 需要同时提供 incumbent 目标值与最佳界 / " +
+                "Checkpoint relative gap requires both an incumbent objective and a best bound"
+        }
+        if (objectiveValue != null && boundValue != null && gapValue != null) {
+            val context = java.math.MathContext(34, java.math.RoundingMode.HALF_UP)
+            val scale = objectiveValue.abs().max(java.math.BigDecimal.ONE)
+            val expected = objectiveValue.subtract(boundValue).abs().divide(scale, context)
+            val tolerance = java.math.BigDecimal("1E-9").multiply(
+                expected.abs().max(gapValue.abs()).max(java.math.BigDecimal.ONE)
+            )
+            if (expected.subtract(gapValue).abs() > tolerance) {
+                return "checkpoint 相对 gap 与 incumbent 及最佳界不一致 / " +
+                    "Checkpoint relative gap does not match the incumbent and bound"
+            }
+        }
+        return null
+    }
+
+    /**
+     * 校验恢复出的子 checkpoint 是否正确指向其源 checkpoint。
+     * Validate that a resumed child checkpoint correctly points at its source checkpoint.
+     *
+     * 语义逐条对齐 Rust `SolveCheckpoint::validate_resumed_child`
+     * （`ospf-rust-core/src/solver/checkpoint.rs`），仅把"父 attempt"换成 Kotlin envelope 的
+     * "父 checkpoint"链接：Rust 的父子关系记录在 `parent_attempt_id`，而 Kotlin 的 envelope 用
+     * `parentCheckpointId` 记录同一关系。
+     *
+     * 1. 子与源必须属于**同一运行**（`runId` 相同）——否则是串号恢复；
+     * 2. 子的 `parentCheckpointId` 必须**恰好等于源的 `checkpointId`**；
+     * 3. 模型 / 配置 / 求解器指纹与 provenance 必须与源**完全一致**——恢复不得悄悄换掉身份；
+     * 4. 子的取消链必须以源的取消链为**前缀**——恢复不得抹掉既有的取消历史。
+     *
+     * Semantics align item by item with Rust's `SolveCheckpoint::validate_resumed_child`
+     * (`ospf-rust-core/src/solver/checkpoint.rs`), substituting Kotlin's parent **checkpoint** link
+     * for Rust's parent **attempt**: Rust records the relationship in `parent_attempt_id`, while the
+     * Kotlin envelope records the same relationship in `parentCheckpointId`.
+     *
+     * 1. child and source must belong to the **same run** (`runId` equal), otherwise it is a
+     *    cross-run resume;
+     * 2. the child's `parentCheckpointId` must be **exactly** the source's `checkpointId`;
+     * 3. model / configuration / solver fingerprints and provenance must match the source exactly —
+     *    a resume must not silently swap identity;
+     * 4. the child's cancellation chain must carry the source's chain as a **prefix** — a resume must
+     *    not erase prior cancellation history.
+     *
+     * @param parent 源 checkpoint / Source checkpoint
+     * @param child 恢复出的子 checkpoint / Resumed child checkpoint
+     * @return 失败消息或 null / A failure message, or null
+     */
+    fun validateResumedChild(
+        parent: ConstraintProgrammingCheckpointEnvelope,
+        child: ConstraintProgrammingCheckpointEnvelope
+    ): String? {
+        if (child.runId != parent.runId) {
+            return "恢复出的子 checkpoint 不属于源运行 / " +
+                "Resumed child checkpoint does not belong to the source run"
+        }
+        if (child.parentCheckpointId != parent.checkpointId) {
+            return "恢复出的子 checkpoint 的父链接与源 checkpoint 不一致 / " +
+                "Resumed child checkpoint parent does not match the source checkpoint"
+        }
+        if (child.modelFingerprint != parent.modelFingerprint ||
+            child.configurationFingerprint != parent.configurationFingerprint ||
+            child.solverFingerprint != parent.solverFingerprint ||
+            child.provenance != parent.provenance
+        ) {
+            return "恢复出的子 checkpoint 未保持源身份 / " +
+                "Resumed child checkpoint does not preserve source identity"
+        }
+        val sourceChain = parent.cancellationChain
+        if (child.cancellationChain.size < sourceChain.size ||
+            child.cancellationChain.take(sourceChain.size) != sourceChain
+        ) {
+            return "恢复出的子 checkpoint 丢失了源的取消历史 / " +
+                "Resumed child checkpoint lost source cancellation history"
+        }
+        return null
+    }
+
+    /**
+     * 保留父链接与取消链，派生下一次 attempt 的 checkpoint。
+     * Derive the next attempt's checkpoint while preserving the parent link and cancellation chain.
+     *
+     * 对齐 Rust `SolveCheckpoint::fork_for_resume`：新 envelope 继承源的全部内容，只把
+     * `parentCheckpointId` 指向源、替换自身标识与尝试标识、并更新时间戳，随后**强制**通过
+     * [validateResumedChild]，因此不可能派生出父子关系不成立的 checkpoint。
+     *
+     * Mirrors Rust's `SolveCheckpoint::fork_for_resume`: the new envelope inherits everything from the
+     * source, points `parentCheckpointId` at it, replaces its own identity and attempt identifier, and
+     * refreshes the timestamp, then **must** pass [validateResumedChild] — so a checkpoint with an
+     * inconsistent parent relationship cannot be produced.
+     *
+     * @param parent 源 checkpoint / Source checkpoint
+     * @param checkpointId 子 checkpoint 标识 / Child checkpoint identifier
+     * @param createdAtEpochMs 子创建时间 / Child creation time
+     * @param attemptId 子尝试标识；null 时沿用源的尝试标识 / Child attempt identifier; the source's is reused when null
+     * @return 子 envelope 或结构化错误 / Child envelope or structured error
+     */
+    fun forkForResume(
+        parent: ConstraintProgrammingCheckpointEnvelope,
+        checkpointId: String,
+        createdAtEpochMs: Long,
+        attemptId: String? = null
+    ): Ret<ConstraintProgrammingCheckpointEnvelope> {
+        if (checkpointId.isBlank()) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "fork 出的 checkpoint 标识不能为空白 / A forked checkpoint identifier must not be blank"
+            )
+        }
+        if (checkpointId == parent.checkpointId) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "fork 出的 checkpoint 标识不能与源相同 / A forked checkpoint identifier must differ from its source"
+            )
+        }
+        val child = withIntegrity(
+            parent.copy(
+                checkpointId = checkpointId,
+                attemptId = attemptId ?: parent.attemptId,
+                parentCheckpointId = parent.checkpointId,
+                createdAtEpochMs = createdAtEpochMs
+            )
+        )
+        validateResumedChild(parent, child)?.let { return Failed(ErrorCode.IllegalArgument, it) }
+        return ok(child)
     }
 
     private fun validateBendersState(state: PortableConstraintProgrammingBendersState?): String? {
@@ -836,10 +1464,54 @@ object ConstraintProgrammingCheckpointCodec {
     }
 
     private fun withDigest(envelope: ConstraintProgrammingCheckpointEnvelope): ConstraintProgrammingCheckpointEnvelope {
+        // 摘要必须建立在规范化后的文本上：契约要求所有 string-map 按键升序输出，而 Kotlin 的
+        // `Map` 保留插入顺序，调用方传入的乱序 Map 若直接进入摘要就会与 Rust 侧的 BTreeMap 失配。
+        //
+        // The digest must be computed over the canonical text: the contract requires every
+        // string-map in ascending key order, while Kotlin's `Map` preserves insertion order, so an
+        // unsorted map supplied by a caller would otherwise disagree with Rust's BTreeMap.
+        val normalized = canonicalizeMapKeys(envelope).copy(schemaVersion = CURRENT_SCHEMA)
+        return normalized.copy(
+            integritySha256 = digest(normalized.copy(integritySha256 = ""))
+        )
+    }
+
+    /**
+     * 按键升序规范化 envelope 内所有 string-map。 / Canonicalize every string-map inside the envelope into ascending key order.
+     *
+     * 列表顺序（含 `cancellationChain` 的取消链顺序）是契约语义的一部分，因此只排序 Map，不排序列表。
+     * List order (including the cancellation-chain order) is part of the contract semantics, so only
+     * maps are sorted, never lists.
+     *
+     * @param envelope checkpoint envelope / checkpoint envelope
+     * @return 所有 string-map 已按键升序排列的 envelope / Envelope whose string-maps are all in ascending key order
+     */
+    private fun canonicalizeMapKeys(
+        envelope: ConstraintProgrammingCheckpointEnvelope
+    ): ConstraintProgrammingCheckpointEnvelope {
         return envelope.copy(
-            schemaVersion = CURRENT_SCHEMA,
-            sourceFormat = envelope.sourceFormat,
-            integritySha256 = digest(envelope.copy(schemaVersion = CURRENT_SCHEMA, integritySha256 = ""))
+            incumbent = envelope.incumbent?.let { incumbent ->
+                incumbent.copy(
+                    valuesById = incumbent.valuesById.toSortedMap(),
+                    intervalsById = incumbent.intervalsById.toSortedMap()
+                )
+            },
+            conflicts = envelope.conflicts.map { it.canonicalizeMapKeys() },
+            benders = envelope.benders?.let { state ->
+                state.copy(
+                    fixedBindings = state.fixedBindings.toSortedMap(),
+                    cuts = state.cuts.map { it.canonicalizeMapKeys() },
+                    conflicts = state.conflicts.map { it.canonicalizeMapKeys() }
+                )
+            },
+            provenance = envelope.provenance?.let { provenance ->
+                provenance.copy(
+                    requestedConfiguration = provenance.requestedConfiguration.toSortedMap(),
+                    effectiveConfiguration = provenance.effectiveConfiguration.toSortedMap(),
+                    environmentSummary = provenance.environmentSummary.toSortedMap()
+                )
+            },
+            metadata = envelope.metadata.toSortedMap()
         )
     }
 
@@ -984,6 +1656,17 @@ object ConstraintProgrammingCheckpointCodec {
         }
         return ok(ConstraintProgrammingSolution(values = values, intervals = intervals))
     }
+}
+
+private fun PortableConstraintProgrammingConflict.canonicalizeMapKeys(): PortableConstraintProgrammingConflict {
+    return copy(provenance = provenance.toSortedMap())
+}
+
+private fun PortableConstraintProgrammingCut.canonicalizeMapKeys(): PortableConstraintProgrammingCut {
+    return copy(
+        provenance = provenance.toSortedMap(),
+        payload = payload.toSortedMap()
+    )
 }
 
 private fun <T> propagate(result: Ret<*>): Ret<T> {

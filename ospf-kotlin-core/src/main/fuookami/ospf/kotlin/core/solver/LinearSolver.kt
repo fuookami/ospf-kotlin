@@ -63,6 +63,14 @@ interface AbstractLinearSolver {
             is Failed -> return Failed(validation.error)
             is Fatal -> return Fatal(validation.errors)
         }
+        // 非有限数值预检：在提交给 backend 之前拒绝，避免脏数据以 "NaN" 文本进入审计指纹。
+        // Non-finite preflight: reject before handing the model to a backend so corrupt data
+        // never enters the audit fingerprint as the text "NaN".
+        when (val finite = model.toNormalizedMathematicalModel().validateFiniteValues()) {
+            is Ok -> {}
+            is Failed -> return Failed(finite.error)
+            is Fatal -> return Fatal(finite.errors)
+        }
         progressContext?.report(
             SolverProgressSnapshot(
                 stage = SolverStages.MILP,
@@ -111,6 +119,12 @@ interface AbstractLinearSolver {
             is Ok -> {}
             is Failed -> return Failed(validation.error)
             is Fatal -> return Fatal(validation.errors)
+        }
+        // 非有限数值预检，同单解路径。/ Non-finite preflight, as on the single-solution path.
+        when (val finite = model.toNormalizedMathematicalModel().validateFiniteValues()) {
+            is Ok -> {}
+            is Failed -> return Failed(finite.error)
+            is Fatal -> return Fatal(finite.errors)
         }
         progressContext?.report(
             SolverProgressSnapshot(

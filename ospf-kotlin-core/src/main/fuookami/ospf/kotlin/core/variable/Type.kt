@@ -93,13 +93,13 @@ sealed interface UIntegerVariableType<T : UIntegerNumber<T>> : VariableTypeInter
 }
 
 /** 有符号连续变量类型接口。 / Signed continuous variable type interface. */
-sealed interface ContinuesVariableType<T : FloatingNumber<T>> : VariableTypeInterface<T> {
+sealed interface ContinuousVariableType<T : FloatingNumber<T>> : VariableTypeInterface<T> {
     override val minimum get() = -constants.decimalPrecision.reciprocal()
     override val maximum get() = constants.decimalPrecision.reciprocal()
 }
 
 /** 无符号连续变量类型接口。 / Unsigned continuous variable type interface. */
-sealed interface UContinuesVariableType<T : FloatingNumber<T>> : VariableTypeInterface<T> {
+sealed interface UContinuousVariableType<T : FloatingNumber<T>> : VariableTypeInterface<T> {
     override val minimum get() = constants.zero
     override val maximum get() = constants.decimalPrecision.reciprocal()
 
@@ -150,7 +150,7 @@ data object BalancedTernary : VariableType<Int8>(Int8), IntegerVariableType<Int8
 }
 
 /** 百分比变量类型（[0, 1]）。 / Percentage variable type ([0, 1]). */
-data object Percentage : VariableType<Flt64>(Flt64), UContinuesVariableType<Flt64> {
+data object Percentage : VariableType<Flt64>(Flt64), UContinuousVariableType<Flt64> {
     override val name = "Percentage"
     override val shortName = "pct"
     override val maximum by constants::one
@@ -178,19 +178,19 @@ data object UInteger : VariableType<UInt64>(UInt64), UIntegerVariableType<UInt64
 }
 
 /** 有符号连续变量类型。 / Signed continuous variable type. */
-data object Continuous : VariableType<Flt64>(Flt64), ContinuesVariableType<Flt64> {
+data object Continuous : VariableType<Flt64>(Flt64), ContinuousVariableType<Flt64> {
     override val name = "Continuous"
     override val shortName = "real"
 
-    /** @return "Continues" */
-    override fun toString(): String = "Continues"
+    /** @return "Continuous" */
+    override fun toString(): String = "Continuous"
 }
 
 /** 无符号连续变量类型。 / Unsigned continuous variable type. */
-data object UContinuous : VariableType<Flt64>(Flt64), UContinuesVariableType<Flt64> {
+data object UContinuous : VariableType<Flt64>(Flt64), UContinuousVariableType<Flt64> {
     override val name = "UContinuous"
     override val shortName = "ureal"
 
-    /** @return "UContinues" */
-    override fun toString(): String = "UContinues"
+    /** @return "UContinuous" */
+    override fun toString(): String = "UContinuous"
 }

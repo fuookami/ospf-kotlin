@@ -606,7 +606,18 @@ data class CombinatorialSolveReport<V>(
     val selectionReason: SolveSelectionReason
 )
 
-/** 取消来源 / Cancellation source */
+/**
+ * 取消来源 / Cancellation source
+ *
+ * 线格式只承载**规范代码**（见 `analysis-fixtures/checkpoint-wire-contract.tsv` 的
+ * `[cancellation-origin]`），因此本枚举只是代码的一侧投影：多个代码可以映射到同一变体
+ * （`external` 与 `backend` 都落到 [Other]），未知代码同样落到 [Other]。
+ *
+ * The wire format carries only a **canonical code** (see the `[cancellation-origin]` section of
+ * `analysis-fixtures/checkpoint-wire-contract.tsv`), so this enum is one side's projection of that
+ * vocabulary: several codes may map onto one variant (`external` and `backend` both land in
+ * [Other]), and an unknown code lands in [Other] as well.
+ */
 enum class CancellationSource {
     Caller,
     Callback,
@@ -614,14 +625,84 @@ enum class CancellationSource {
     Future,
     Combinatorial,
     Remote,
-    Timeout
+    Timeout,
+
+    /**
+     * 兜底变体：Kotlin 没有专用变体的来源（`external`、`backend`）以及无法识别的代码。
+     *
+     * Catch-all variant for sources without a dedicated Kotlin variant (`external`, `backend`) and
+     * for unrecognized codes.
+     */
+    Other;
+
+    /**
+     * 转换为线格式的规范代码。 / Convert to the canonical wire code.
+     *
+     * [Other] 是兜底变体，没有一个能表达其全部含义的规范代码，因此它输出契约中的第一个兜底代码
+     * `external`。要让 `backend` 等其他兜底代码无损往返，必须由 [CancellationRecord.wireOrigin]
+     * 携带原始代码文本，本函数只作为缺失原始文本时的确定性回退。
+     *
+     * [Other] is a catch-all with no single canonical code expressing all of its meanings, so it
+     * emits `external`, the first catch-all row of the contract. Lossless round-tripping of other
+     * catch-all codes such as `backend` relies on [CancellationRecord.wireOrigin] carrying the
+     * original code text; this function is only the deterministic fallback when that text is absent.
+     *
+     * @return 规范线格式代码 / Canonical wire code
+     */
+    fun toWireCode(): String {
+        return when (this) {
+            Caller -> "user"
+            Callback -> "callback"
+            Coroutine -> "taskAbort"
+            Future -> "future"
+            Combinatorial -> "frameworkLoser"
+            Remote -> "remoteStop"
+            Timeout -> "timeout"
+            Other -> "external"
+        }
+    }
+
+    companion object {
+        /**
+         * 解析线格式代码；无法识别的代码落到 [Other]。 / Parse a wire code; an unknown code lands in [Other].
+         *
+         * @param code 线格式规范代码 / Canonical wire code
+         * @return 对应变体，未知代码返回 [Other] / The matching variant, or [Other] for an unknown code
+         */
+        fun fromWireCode(code: String): CancellationSource {
+            return when (code) {
+                "user" -> Caller
+                "callback" -> Callback
+                "taskAbort" -> Coroutine
+                "future" -> Future
+                "frameworkLoser" -> Combinatorial
+                "remoteStop" -> Remote
+                "timeout" -> Timeout
+                else -> Other
+            }
+        }
+    }
 }
 
-/** 取消事实 / Cancellation fact */
+/**
+ * 取消事实 / Cancellation fact
+ *
+ * @property source 取消来源 / Cancellation source
+ * @property requestedAt 取消请求时间 / Time the cancellation was requested
+ * @property reason 取消原因 / Cancellation reason
+ * @property wireOrigin 从线格式收到的原始来源代码文本；当 [source] 为 [CancellationSource.Other]
+ * 时非空。兜底变体无法由 [CancellationSource.toWireCode] 完整表达契约中的全部代码（`external` 与
+ * `backend` 都落到 [Other]），因此保留原始文本才能让 `backend` 这类代码在 Kotlin 侧解析后仍原样写回。
+ * / Verbatim origin code text received from the wire; non-null when [source] is
+ * [CancellationSource.Other]. The catch-all variant cannot express every contract code through
+ * [CancellationSource.toWireCode] (`external` and `backend` both land in [Other]), so keeping the raw
+ * text is what lets a code such as `backend` be written back verbatim after Kotlin has parsed it.
+ */
 data class CancellationRecord(
     val source: CancellationSource,
     val requestedAt: Instant,
-    val reason: String? = null
+    val reason: String? = null,
+    val wireOrigin: String? = null
 )
 
 /** 求解取消令牌 / Solve cancellation token */

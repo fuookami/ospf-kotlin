@@ -819,8 +819,7 @@ class ConstraintProgrammingEnhancementTest {
                     memberIds = listOf("constraint:${constraintId.value}", "bound:${variableId.value}:Lower")
                 )
             ),
-            bestBound = "0",
-            gap = "0"
+            bestBound = "0"
         )
         assertTrue(captured.ok)
         assertEquals(listOf(variableId.value), captured.value!!.assumptions)

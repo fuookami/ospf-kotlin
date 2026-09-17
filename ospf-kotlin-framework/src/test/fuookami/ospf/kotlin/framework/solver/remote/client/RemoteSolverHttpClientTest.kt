@@ -8,6 +8,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.core.solver.report.CancellationRecord
+import fuookami.ospf.kotlin.core.solver.report.CancellationSource
 import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 import fuookami.ospf.kotlin.framework.solver.remote.port.ObjectStoragePort
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -743,12 +745,14 @@ class RemoteSolverHttpClientTest {
                     },
                     "cancellationChain": [
                       {
-                        "origin": "operator",
-                        "requestedAtEpochMs": 100
+                        "origin": "remoteStop",
+                        "requestedAtEpochMs": 100,
+                        "reason": "operator pressed stop"
                       },
                       {
-                        "origin": "deadline",
-                        "requestedAtEpochMs": 200
+                        "origin": "backend",
+                        "requestedAtEpochMs": 200,
+                        "reason": null
                       }
                     ],
                     "message": "stop accepted"
@@ -787,12 +791,79 @@ class RemoteSolverHttpClientTest {
         assertEquals(true, action.provenance?.deterministic)
         assertEquals(
             listOf(
-                RemoteTaskActionCancellation("operator", 100L),
-                RemoteTaskActionCancellation("deadline", 200L)
+                RemoteTaskActionCancellation("remoteStop", 100L, "operator pressed stop"),
+                RemoteTaskActionCancellation("backend", 200L, null)
             ),
             action.cancellationChain
         )
         assertEquals("stop accepted", action.message)
+    }
+
+    /**
+     * 验证 task-action 取消链与 checkpoint envelope 共用**同一份**规范代码词表。
+     *
+     * 两个面此前各写一种拼写：checkpoint 面写 `user`，而 task-action 面写 SCREAMING_SNAKE 的变体名
+     * （`USER`）。同一个枚举在线格式上出现两种拼写时，对端只能把不认识的拼写当成未知代码兜底，身份
+     * 与来源语义随之丢失。本用例把两侧钉在同一词表上，并覆盖本侧没有专用变体的代码（`backend`、
+     * 完全未知的代码），它们必须原样往返。
+     *
+     * Verifies that the task-action cancellation chain and the checkpoint envelope share **one** canonical
+     * code vocabulary. The two faces previously spelled codes differently: the checkpoint face wrote `user`
+     * while the task-action face wrote the SCREAMING_SNAKE variant name (`USER`). When one enum surfaces two
+     * spellings on the wire, a peer can only treat the unrecognized spelling as an unknown code, losing the
+     * identity and origin semantics. This test pins both faces to one vocabulary and covers codes with no
+     * dedicated variant on this side (`backend`, wholly unknown codes), which must round-trip verbatim.
+     */
+    @Test
+    fun taskActionCancellationUsesTheSharedCanonicalOriginVocabulary() {
+        val sources = listOf(
+            CancellationSource.Caller,
+            CancellationSource.Callback,
+            CancellationSource.Combinatorial,
+            CancellationSource.Remote,
+            CancellationSource.Coroutine,
+            CancellationSource.Future,
+            CancellationSource.Timeout,
+            CancellationSource.Other
+        )
+        val records = sources.mapIndexed { index, source ->
+            CancellationRecord(
+                source = source,
+                requestedAt = java.time.Instant.ofEpochMilli(1_000L + index),
+                reason = "reason-$index"
+            )
+        }
+
+        records.forEach { record ->
+            val wire = RemoteTaskActionCancellation.fromCancellationRecord(record)
+            // 输出的必须是规范代码，且**不是** SCREAMING_SNAKE 变体名。
+            // The output must be the canonical code and **not** the SCREAMING_SNAKE variant name.
+            assertEquals(record.source.toWireCode(), wire.origin)
+            assertTrue(
+                !wire.origin.contains('_') && wire.origin != wire.origin.uppercase(),
+                "SCREAMING_SNAKE 变体名不得出现在线格式上 / the SCREAMING_SNAKE variant name must never reach the wire: ${wire.origin}"
+            )
+            assertEquals(record.reason, wire.reason)
+
+            // 往返必须无损：来源变体、时间戳与原因都不得变化。
+            // The round trip must be lossless: the source variant, timestamp, and reason must not change.
+            val restored = wire.toCancellationRecord()
+            assertEquals(record.source, restored.source)
+            assertEquals(record.requestedAt, restored.requestedAt)
+            assertEquals(record.reason, restored.reason)
+        }
+
+        // 本侧没有专用变体的代码必须**原样**往返，而不是被折叠成某个兜底代码。
+        // Codes with no dedicated variant on this side must round-trip **verbatim** rather than collapsing
+        // into some catch-all code.
+        listOf("backend", "future", "timeout", "wholly-unknown").forEach { code ->
+            val wire = RemoteTaskActionCancellation(code, 4_242L, "why")
+            val restored = wire.toCancellationRecord()
+            val back = RemoteTaskActionCancellation.fromCancellationRecord(restored)
+            assertEquals(code, back.origin, "代码 $code 必须原样往返 / code $code must round-trip verbatim")
+            assertEquals(4_242L, back.requestedAtEpochMs)
+            assertEquals("why", back.reason)
+        }
     }
 
     @Test
@@ -1217,12 +1288,15 @@ class RemoteSolverHttpClientTest {
 
     @Test
     fun explicitLatestResumeCallsServerLatestEndpointAfterVerifyingSourceCheckpoint() {
-        val snapshot = "{}"
+        val snapshot = REMOTE_CP_SNAPSHOT
         val checkpointPath = ObjectPath.of("tenant-a/checkpoint/task-1/slice-1-123")
         val storage = RecordingObjectStoragePort()
         storage.objects[checkpointPath] = PortableCheckpointCodec.encode(
             PortableCheckpointEnvelope(
                 checkpointId = "slice-1-123",
+                identitySchemaVersion = "1.0",
+                identityNamespace = "model-local",
+                modelName = "remote-cp",
                 modelFingerprint = PortableCheckpointCodec.sha256(snapshot),
                 configurationFingerprint = "configuration-1",
                 solverFingerprint = "solver-1",
@@ -1336,12 +1410,15 @@ class RemoteSolverHttpClientTest {
 
     @Test
     fun resumeRejectsTamperedCheckpointIntegrityBeforeCallingServer() = runBlocking {
-        val snapshot = "{}"
+        val snapshot = REMOTE_CP_SNAPSHOT
         val checkpointPath = ObjectPath.of("tenant-a/checkpoint/task-1/slice-1-123")
         val storage = RecordingObjectStoragePort()
         val encoded = PortableCheckpointCodec.encode(
             PortableCheckpointEnvelope(
                 checkpointId = "slice-1-123",
+                identitySchemaVersion = "1.0",
+                identityNamespace = "model-local",
+                modelName = "remote-cp",
                 modelFingerprint = PortableCheckpointCodec.sha256(snapshot),
                 configurationFingerprint = "configuration-1",
                 solverFingerprint = "solver-1",
@@ -1352,7 +1429,7 @@ class RemoteSolverHttpClientTest {
             )
         )
         storage.objects[checkpointPath] = encoded
-            .replace("\"snapshotJson\":\"{}\"", "\"snapshotJson\":\"{\\\"tampered\\\":true}\"")
+            .replace(jsonEscaped(REMOTE_CP_SNAPSHOT), jsonEscaped(TAMPERED_CP_SNAPSHOT))
             .encodeToByteArray()
         val http = QueueHttpHandler(mutableListOf())
         val client = RemoteSolverHttpClient(
@@ -1384,12 +1461,15 @@ class RemoteSolverHttpClientTest {
 
     @Test
     fun resumeRejectsCheckpointWithoutConfigurationOrSolverIdentity() = runBlocking {
-        val snapshot = "{}"
+        val snapshot = REMOTE_CP_SNAPSHOT
         val checkpointPath = ObjectPath.of("tenant-a/checkpoint/task-1/slice-1-123")
         val storage = RecordingObjectStoragePort()
         storage.objects[checkpointPath] = PortableCheckpointCodec.encode(
             PortableCheckpointEnvelope(
                 checkpointId = "slice-1-123",
+                identitySchemaVersion = "1.0",
+                identityNamespace = "model-local",
+                modelName = "remote-cp",
                 modelFingerprint = PortableCheckpointCodec.sha256(snapshot),
                 runId = "task-1",
                 attemptId = "slice-1",
@@ -1427,12 +1507,15 @@ class RemoteSolverHttpClientTest {
 
     @Test
     fun resumeRejectsActionWithoutCanonicalCheckpointIdentity() = runBlocking {
-        val snapshot = "{}"
+        val snapshot = REMOTE_CP_SNAPSHOT
         val checkpointPath = ObjectPath.of("tenant-a/checkpoint/task-1/slice-1-123")
         val storage = RecordingObjectStoragePort()
         storage.objects[checkpointPath] = PortableCheckpointCodec.encode(
             PortableCheckpointEnvelope(
                 checkpointId = "slice-1-123",
+                identitySchemaVersion = "1.0",
+                identityNamespace = "model-local",
+                modelName = "remote-cp",
                 modelFingerprint = PortableCheckpointCodec.sha256(snapshot),
                 configurationFingerprint = "configuration-1",
                 solverFingerprint = "solver-1",
@@ -1473,13 +1556,16 @@ class RemoteSolverHttpClientTest {
 
     @Test
     fun resumeRejectsActionWithMismatchedAttemptOrFingerprint() = runBlocking {
-        val snapshot = "{}"
+        val snapshot = REMOTE_CP_SNAPSHOT
         val checkpointPath = ObjectPath.of("tenant-a/checkpoint/task-1/slice-1-123")
         val modelFingerprint = PortableCheckpointCodec.sha256(snapshot)
         val storage = RecordingObjectStoragePort()
         storage.objects[checkpointPath] = PortableCheckpointCodec.encode(
             PortableCheckpointEnvelope(
                 checkpointId = "slice-1-123",
+                identitySchemaVersion = "1.0",
+                identityNamespace = "model-local",
+                modelName = "remote-cp",
                 modelFingerprint = modelFingerprint,
                 configurationFingerprint = "configuration-1",
                 solverFingerprint = "solver-1",
@@ -1618,5 +1704,46 @@ class RemoteSolverHttpClientTest {
         override suspend fun exists(ref: ObjectRef): Boolean {
             return objects.containsKey(ref.path)
         }
+    }
+
+    /**
+     * JSON 转义一段已序列化文本，便于在签名后的 JSON 文档中定位它。 /
+     * JSON-escape already-serialized text so it can be located inside a signed JSON document.
+     *
+     * @param text 待转义文本 / Text to escape
+     * @return 作为 JSON 字符串片段出现时使用的转义形式 / The escaped form used when it appears inside a JSON string value
+     */
+    private fun jsonEscaped(text: String): String {
+        return text.replace("\"", "\\\"")
+    }
+
+    private companion object {
+        /**
+         * 最小但**规范编码**的 CP snapshot。 / The minimal but **canonically encoded** CP snapshot.
+         *
+         * 这些用例此前使用占位的 `"{}"`：`PortableCheckpointCodec` 当时是 core codec 的一份平行实现，
+         * 完全不校验 snapshot。收敛后它委托 core，而 core 会先规范化 snapshot 再计算指纹，因此占位
+         * 串已无法解码（它甚至反序列化不成 `SnapshotPayload`）。这里改用规范编码的最小 snapshot，
+         * 用例本身的意图（校验客户端身份与指纹比对）完全不变。
+         *
+         * These cases used the placeholder `"{}"`: `PortableCheckpointCodec` was then a parallel
+         * implementation of the core codec and never validated the snapshot. After convergence it
+         * delegates to core, which canonicalizes the snapshot before fingerprinting it, so the
+         * placeholder can no longer decode (it does not even deserialize into `SnapshotPayload`). The
+         * canonically encoded minimal snapshot replaces it, leaving each case's intent — verifying the
+         * client-side identity and fingerprint comparisons — unchanged.
+         */
+        const val REMOTE_CP_SNAPSHOT: String =
+            "{\"schema\":1,\"name\":\"remote-cp\",\"objectCategory\":\"Minimum\",\"variables\":[]," +
+                "\"intervals\":[],\"expressions\":[],\"constraints\":[],\"objectives\":[]," +
+                "\"constraintGroups\":[],\"identitySchemaVersion\":\"1.0\"," +
+                "\"identityNamespace\":\"model-local\"}"
+
+        /** 用于篡改场景的替代 snapshot 内容。 / Replacement snapshot content used by the tampering scenario. */
+        const val TAMPERED_CP_SNAPSHOT: String =
+            "{\"schema\":1,\"name\":\"tampered\",\"objectCategory\":\"Minimum\",\"variables\":[]," +
+                "\"intervals\":[],\"expressions\":[],\"constraints\":[],\"objectives\":[]," +
+                "\"constraintGroups\":[],\"identitySchemaVersion\":\"1.0\"," +
+                "\"identityNamespace\":\"model-local\"}"
     }
 }

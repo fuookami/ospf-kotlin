@@ -514,6 +514,22 @@ class ConstraintProgrammingCheckpointProcessTest {
                 ConstraintProgrammingCheckpointCodec.encode(captured)
             ).value
             val root = Json.parseToJsonElement(encoded).jsonObject.toMutableMap()
+            // 本用例模拟的是**已发布的 schema 2.0 文档**：它既没有 masterFingerprint，也没有
+            // schema 3.0 才新增的 cancellationChain / provenance / metadata。因此除了删掉
+            // masterFingerprint，还必须把 schema 版本钉回 2.0 并移除那三个 3.0 独有字段——否则它就
+            // 不是一个 2.0 形状的文档，legacy 迁移会（正确地）拒绝它。用例意图（无 masterFingerprint
+            // 的已发布 v2 envelope 仍可读）完全不变。
+            //
+            // This case simulates a **published schema 2.0 document**: it has neither masterFingerprint nor
+            // the cancellationChain / provenance / metadata fields schema 3.0 added. Besides dropping
+            // masterFingerprint it must therefore pin the schema version back to 2.0 and remove those three
+            // 3.0-only fields; otherwise it is not a 2.0-shaped document and legacy migration correctly
+            // rejects it. The case's intent — a published v2 envelope without a master fingerprint stays
+            // readable — is unchanged.
+            root["schemaVersion"] = JsonPrimitive("2.0")
+            root.remove("cancellationChain")
+            root.remove("provenance")
+            root.remove("metadata")
             root["benders"] = JsonObject(root.getValue("benders").jsonObject.toMutableMap().apply {
                 remove("masterFingerprint")
             })
