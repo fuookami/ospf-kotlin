@@ -72,6 +72,12 @@
         <!-- 32 GB 开发机复用 Kotlin 编译器进程，降低多模块编译的启动与类加载峰值。 -->
         <kotlin.compiler.daemon>true</kotlin.compiler.daemon>
         <kotlin.version>2.4.20</kotlin.version>
+        <!-- spring / mybatis -->
+        <spring-boot.version>4.0.8</spring-boot.version>
+        <spring-framework.version>7.0.9</spring-framework.version>
+        <mybatis.version>3.5.19</mybatis.version>
+        <mybatis-spring.version>4.0.0</mybatis-spring.version>
+        <mybatis-plus.version>3.5.17</mybatis-plus.version>
         <!-- kotlinx -->
         <kotlinx-datetime.version>0.8.0</kotlinx-datetime.version>
         <kotlinx-coroutines.version>1.11.0</kotlinx-coroutines.version>
