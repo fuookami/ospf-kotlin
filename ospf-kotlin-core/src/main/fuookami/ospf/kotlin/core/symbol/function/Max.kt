@@ -16,6 +16,37 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.functional.*
 
+private fun <V> applyExtremumBounds(
+    resultVar: RealVar,
+    polynomials: List<LinearPolynomial<V>>,
+    converter: IntoValue<V>,
+    minimum: Boolean
+) where V : RealNumber<V>, V : NumberField<V> {
+    val bounds = polynomials.map { it.finiteBounds(converter) }
+    if (bounds.any { it == null }) {
+        return
+    }
+
+    val finiteBounds = bounds.filterNotNull()
+    val resultLower = if (minimum) {
+        finiteBounds.map { it.lower }
+            .reduce { acc, value -> if (value ls acc) value else acc }
+    } else {
+        finiteBounds.map { it.lower }
+            .reduce { acc, value -> if (value gr acc) value else acc }
+    }
+    val resultUpper = if (minimum) {
+        finiteBounds.map { it.upper }
+            .reduce { acc, value -> if (value ls acc) value else acc }
+    } else {
+        finiteBounds.map { it.upper }
+            .reduce { acc, value -> if (value gr acc) value else acc }
+    }
+
+    resultVar.range.geq(converter.fromValue(resultLower))
+    resultVar.range.leq(converter.fromValue(resultUpper))
+}
+
 /**
  * 最大/最小值函数符号 / Max/Min function symbols
  *
@@ -54,8 +85,12 @@ class MaxFunction<V>(
         require(n >= 1) { "MaxFunction requires at least one input polynomial" }
     }
 
-    val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_max")
+    val resultVar: RealVar = RealVar("${name}_max")
     val selectorVars: List<AbstractVariableItem<*, *>> = (0 until n).map { BinVar("${name}_max_sel${it}") }
+
+    init {
+        applyExtremumBounds(resultVar, polynomials, converter, minimum = false)
+    }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + selectorVars
@@ -193,8 +228,12 @@ class MinFunction<V>(
         require(n >= 1) { "MinFunction requires at least one input polynomial" }
     }
 
-    val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_min")
+    val resultVar: RealVar = RealVar("${name}_min")
     val selectorVars: List<AbstractVariableItem<*, *>> = (0 until n).map { BinVar("${name}_min_sel${it}") }
+
+    init {
+        applyExtremumBounds(resultVar, polynomials, converter, minimum = true)
+    }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + selectorVars

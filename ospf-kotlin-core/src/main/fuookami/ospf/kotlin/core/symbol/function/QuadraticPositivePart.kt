@@ -20,10 +20,11 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 二次正部函数：$y = max(p(x), 0)$。 / Quadratic positive-part function: $y = max(p(x), 0)$.
@@ -46,6 +47,9 @@ class QuadraticPositivePartFunction<V>(
     override var displayName: String? = null
 ) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase<V>
         where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+    private val inputBounds = input.finiteBounds(converter)
+    private val inputIsNonNegative = inputBounds?.lower?.compareTo(converter.zero)?.let { it >= 0 } == true
+    private val inputIsNonPositive = inputBounds?.upper?.compareTo(converter.zero)?.let { it <= 0 } == true
     private val negativeInput: QuadraticPolynomial<V> = QuadraticPolynomial(
         input.monomials.map { monomial ->
             QuadraticMonomial(-monomial.coefficient, monomial.symbol1, monomial.symbol2)
@@ -66,7 +70,7 @@ class QuadraticPositivePartFunction<V>(
     val resultVar: AbstractVariableItem<*, *>
         get() = inner.resultVar
     val selectorVars: List<AbstractVariableItem<*, *>>
-        get() = inner.binVars
+        get() = if (inputIsNonNegative || inputIsNonPositive) emptyList() else inner.binVars
     val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + selectorVars
 
@@ -131,8 +135,36 @@ class QuadraticPositivePartFunction<V>(
     override fun toRawString(unfold: UInt64): String = displayName ?: name
 
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try =
-        inner.registerAuxiliaryTokens(tokens)
+        when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
 
-    override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try =
-        inner.registerConstraints(model)
+    override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
+        if (!inputIsNonNegative && !inputIsNonPositive) {
+            return inner.registerConstraints(model)
+        }
+
+        val zero = converter.zero
+        val one = converter.one
+        val lhs = if (inputIsNonNegative) {
+            QuadraticPolynomial(
+                input.monomials + QuadraticMonomial.linear(one, resultVar),
+                input.constant
+            )
+        } else {
+            QuadraticPolynomial(
+                listOf(QuadraticMonomial.linear(one, resultVar)),
+                zero
+            )
+        }
+        val constraint = QuadraticInequalityOf(
+            lhs,
+            QuadraticPolynomial(emptyList(), zero),
+            Comparison.EQ,
+            "${name}_sign_known"
+        )
+        return addQuadraticConstraints(model, listOf(constraint)) ?: ok
+    }
 }

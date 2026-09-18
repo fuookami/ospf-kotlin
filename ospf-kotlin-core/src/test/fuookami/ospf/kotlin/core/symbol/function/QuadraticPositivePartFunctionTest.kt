@@ -51,8 +51,9 @@ class QuadraticPositivePartFunctionTest {
     @Test
     fun quadraticInputRegistersExpectedHelpersAndRows() {
         val x = RealVar("positive_part_rows_x")
+        val y = RealVar("positive_part_rows_y")
         val input = QuadraticPolynomial(
-            monomials = listOf(QuadraticMonomial.quadratic(Flt64.one, x, x)),
+            monomials = listOf(QuadraticMonomial.quadratic(Flt64.one, x, y)),
             constant = Flt64.zero
         )
         val model = QuadraticMetaModel<Flt64>(
@@ -60,7 +61,7 @@ class QuadraticPositivePartFunctionTest {
             converter = IntoValue.Identity
         )
         try {
-            assertTrue(model.add(x) is Ok)
+            assertTrue(model.add(listOf(x, y)) is Ok)
             assertTrue(model.minimize(input) is Ok)
             val function = QuadraticPositivePartFunction(
                 input = input,
@@ -90,6 +91,45 @@ class QuadraticPositivePartFunctionTest {
             val invalidRows = mechanism.constraints.size
             assertTrue(invalid.registerConstraints(mechanism) is Failed)
             assertEquals(invalidRows, mechanism.constraints.size)
+        } finally {
+            model.close()
+        }
+    }
+
+    @Test
+    fun signKnownInputAvoidsSelectorVariables() {
+        val x = RealVar("positive_part_sign_known_x")
+        x.range.geq(Flt64.one)
+        x.range.leq(Flt64(5.0))
+        val input = QuadraticPolynomial(
+            monomials = listOf(QuadraticMonomial.linear(Flt64.one, x)),
+            constant = Flt64.zero
+        )
+        val model = QuadraticMetaModel<Flt64>(
+            name = "positive-part-sign-known",
+            converter = IntoValue.Identity
+        )
+        try {
+            assertTrue(model.add(x) is Ok)
+            assertTrue(model.minimize(input) is Ok)
+            val function = QuadraticPositivePartFunction(
+                input = input,
+                converter = IntoValue.Identity,
+                name = "positive_part_sign_known"
+            )
+
+            val beforeTokens = model.tokens.tokens.size
+            assertTrue(function.registerAuxiliaryTokens(model.tokens) is Ok)
+            assertEquals(beforeTokens + 1, model.tokens.tokens.size)
+
+            val mechanismResult = runBlocking {
+                QuadraticMechanismModel.invoke<Flt64>(metaModel = model, concurrent = false)
+            }
+            assertTrue(mechanismResult is Ok)
+            val mechanism = mechanismResult.value
+            val beforeRows = mechanism.constraints.size
+            assertTrue(function.registerConstraints(mechanism) is Ok)
+            assertEquals(beforeRows + 1, mechanism.constraints.size)
         } finally {
             model.close()
         }

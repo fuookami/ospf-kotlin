@@ -46,12 +46,36 @@ class AbsFunction<V>(
     override var displayName: String? = null
 ) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
-    private val bigM: V = bigM ?: polynomial.defaultBigM(converter)
+    private val inputBounds = polynomial.finiteBounds(converter)
+    private val positiveBigM: V = bigM ?: inputBounds?.let {
+        ensurePositiveBigM(
+            if (it.upper gr converter.zero) it.upper else converter.zero,
+            converter
+        )
+    } ?: polynomial.defaultBigM(converter)
+    private val negativeBigM: V = bigM ?: inputBounds?.let {
+        ensurePositiveBigM(
+            if (it.lower ls converter.zero) -it.lower else converter.zero,
+            converter
+        )
+    } ?: polynomial.defaultBigM(converter)
 
-    val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_abs")
-    val posVar: AbstractVariableItem<*, *> = URealVar("${name}_abs_pos")
-    val negVar: AbstractVariableItem<*, *> = URealVar("${name}_abs_neg")
-    val signVar: AbstractVariableItem<*, *> = BinVar("${name}_abs_sign")
+    val resultVar: URealVar = URealVar("${name}_abs")
+    val posVar: URealVar = URealVar("${name}_abs_pos")
+    val negVar: URealVar = URealVar("${name}_abs_neg")
+    val signVar: BinVar = BinVar("${name}_abs_sign")
+
+    init {
+        inputBounds?.let {
+            resultVar.range.leq(
+                converter.fromValue(
+                    if ((-it.lower) gr it.upper) -it.lower else it.upper
+                )
+            )
+            posVar.range.leq(converter.fromValue(if (it.upper gr converter.zero) it.upper else converter.zero))
+            negVar.range.leq(converter.fromValue(if (it.lower ls converter.zero) -it.lower else converter.zero))
+        }
+    }
 
     override val resultPolynomial: LinearPolynomial<V>
         get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
@@ -99,7 +123,7 @@ class AbsFunction<V>(
         allConstraints += LinearInequality(
             LinearPolynomial(listOf(
                 LinearMonomial(one, posVar),
-                LinearMonomial(-bigM, signVar)
+                LinearMonomial(-positiveBigM, signVar)
             ), zero),
             LinearPolynomial(emptyList(), zero), Comparison.LE, "${name}_abs_pos_ub")
 
@@ -107,9 +131,9 @@ class AbsFunction<V>(
         allConstraints += LinearInequality(
             LinearPolynomial(listOf(
                 LinearMonomial(one, negVar),
-                LinearMonomial(bigM, signVar)
+                LinearMonomial(negativeBigM, signVar)
             ), zero),
-            LinearPolynomial(emptyList(), bigM), Comparison.LE, "${name}_abs_neg_ub")
+            LinearPolynomial(emptyList(), negativeBigM), Comparison.LE, "${name}_abs_neg_ub")
 
         addConstraints(model, allConstraints)?.let { return it }
         return ok

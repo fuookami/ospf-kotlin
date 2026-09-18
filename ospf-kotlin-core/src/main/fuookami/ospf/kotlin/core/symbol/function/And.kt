@@ -16,6 +16,19 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.functional.*
 
+private fun <V> LinearPolynomial<V>.binaryVariableOrNull(converter: IntoValue<V>): BinVar?
+        where V : RealNumber<V>, V : NumberField<V> {
+    if (constant.compareTo(converter.zero) != 0 || monomials.size != 1) {
+        return null
+    }
+    val monomial = monomials.single()
+    return if (monomial.coefficient.compareTo(converter.one) == 0) {
+        monomial.symbol as? BinVar
+    } else {
+        null
+    }
+}
+
 /**
  * 逻辑运算函数符号 / Logical operation function symbols
  *
@@ -64,9 +77,14 @@ class AndFunction<V>(
     val resultVar: AbstractVariableItem<*, *> = BinVar("${name}_and")
     val indicatorVars: List<AbstractVariableItem<*, *>> = (0 until n).map { BinVar("${name}_and_nz${it}") }
     val sideVars: List<AbstractVariableItem<*, *>> = (0 until n).map { BinVar("${name}_and_side${it}") }
+    private val binaryInputs: List<BinVar>? by lazy {
+        polynomials.map { it.binaryVariableOrNull(converter) }.let { inputs ->
+            inputs.takeIf { values -> values.all { it != null } }?.map { it!! }
+        }
+    }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOf(resultVar) + indicatorVars + sideVars
+        get() = if (binaryInputs != null) listOf(resultVar) else listOf(resultVar) + indicatorVars + sideVars
 
     override val resultPolynomial: LinearPolynomial<V>
         get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
@@ -92,6 +110,34 @@ class AndFunction<V>(
         val one = converter.one
         val nValue = repeatAdd(one, n)
         val allConstraints = mutableListOf<LinearInequality<V>>()
+
+        binaryInputs?.let { inputs ->
+            for ((i, input) in inputs.withIndex()) {
+                allConstraints += LinearInequality(
+                    LinearPolynomial(
+                        listOf(
+                            LinearMonomial(one, resultVar),
+                            LinearMonomial(-one, input)
+                        ),
+                        zero
+                    ),
+                    LinearPolynomial(emptyList(), zero),
+                    Comparison.LE,
+                    "${name}_binary_le_$i"
+                )
+            }
+            allConstraints += LinearInequality(
+                LinearPolynomial(
+                    inputs.map { LinearMonomial(one, it) } + LinearMonomial(-nValue, resultVar),
+                    zero
+                ),
+                LinearPolynomial(emptyList(), one - nValue),
+                Comparison.GE,
+                "${name}_binary_sum"
+            )
+            addConstraints(model, allConstraints)?.let { return it }
+            return ok
+        }
 
         // Nonzero indicators for each polynomial / 为每个多项式构建非零指示约束
         for (i in polynomials.indices) {
@@ -215,9 +261,14 @@ class OrFunction<V>(
     val resultVar: AbstractVariableItem<*, *> = BinVar("${name}_or")
     val indicatorVars: List<AbstractVariableItem<*, *>> = (0 until n).map { BinVar("${name}_or_nz${it}") }
     val sideVars: List<AbstractVariableItem<*, *>> = (0 until n).map { BinVar("${name}_or_side${it}") }
+    private val binaryInputs: List<BinVar>? by lazy {
+        polynomials.map { it.binaryVariableOrNull(converter) }.let { inputs ->
+            inputs.takeIf { values -> values.all { it != null } }?.map { it!! }
+        }
+    }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOf(resultVar) + indicatorVars + sideVars
+        get() = if (binaryInputs != null) listOf(resultVar) else listOf(resultVar) + indicatorVars + sideVars
 
     override val resultPolynomial: LinearPolynomial<V>
         get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
@@ -242,6 +293,34 @@ class OrFunction<V>(
         val zero = converter.zero
         val one = converter.one
         val allConstraints = mutableListOf<LinearInequality<V>>()
+
+        binaryInputs?.let { inputs ->
+            for ((i, input) in inputs.withIndex()) {
+                allConstraints += LinearInequality(
+                    LinearPolynomial(
+                        listOf(
+                            LinearMonomial(one, resultVar),
+                            LinearMonomial(-one, input)
+                        ),
+                        zero
+                    ),
+                    LinearPolynomial(emptyList(), zero),
+                    Comparison.GE,
+                    "${name}_binary_ge_$i"
+                )
+            }
+            allConstraints += LinearInequality(
+                LinearPolynomial(
+                    inputs.map { LinearMonomial(one, it) } + LinearMonomial(-one, resultVar),
+                    zero
+                ),
+                LinearPolynomial(emptyList(), zero),
+                Comparison.LE,
+                "${name}_binary_sum"
+            )
+            addConstraints(model, allConstraints)?.let { return it }
+            return ok
+        }
 
         // Nonzero indicators for each polynomial / 为每个多项式构建非零指示约束
         for (i in polynomials.indices) {
@@ -331,9 +410,10 @@ class NotFunction<V>(
     val indicatorVar: AbstractVariableItem<*, *> = BinVar("${name}_not_nz")
     val sideVar: AbstractVariableItem<*, *> = BinVar("${name}_not_side")
     val resultVar: AbstractVariableItem<*, *> = BinVar("${name}_not")
+    private val binaryInput: BinVar? by lazy { polynomial.binaryVariableOrNull(converter) }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOf(indicatorVar, sideVar, resultVar)
+        get() = if (binaryInput != null) listOf(resultVar) else listOf(indicatorVar, sideVar, resultVar)
 
     override val resultPolynomial: LinearPolynomial<V>
         get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
@@ -355,6 +435,23 @@ class NotFunction<V>(
         val zero = converter.zero
         val one = converter.one
         val allConstraints = mutableListOf<LinearInequality<V>>()
+
+        binaryInput?.let { input ->
+            allConstraints += LinearInequality(
+                LinearPolynomial(
+                    listOf(
+                        LinearMonomial(one, resultVar),
+                        LinearMonomial(one, input)
+                    ),
+                    zero
+                ),
+                LinearPolynomial(emptyList(), one),
+                Comparison.EQ,
+                "${name}_binary_result"
+            )
+            addConstraints(model, allConstraints)?.let { return it }
+            return ok
+        }
 
         // Nonzero indicator / 非零指示约束
         when (val result = safeNonzeroIndicatorConstraints(
