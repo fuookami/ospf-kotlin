@@ -8,6 +8,44 @@
 
 ## 函数符号一览
 
+### 二次输入函数
+
+`FunctionSymbolLifecycle<V>` 共享辅助变量注册契约。线性约束仍由
+`MathFunctionSymbolBase<V>` 注册，二次约束由公开的
+`QuadraticMathFunctionSymbolBase<V>` 注册；现有调用无需迁移。
+
+新增 `QuadraticMaxFunction`、`QuadraticAbsFunction`、`QuadraticMinMaxFunction`、
+`QuadraticMaxMinFunction`、`QuadraticMaskingFunction`、`QuadraticIfFunction`、
+`QuadraticIfInFunction`、`QuadraticIfThenFunction` 和 `QuadraticInequalityFunction`。
+这些函数实现 `QuadraticIntermediateSymbol`，可直接加入 `QuadraticMetaModel`，
+通过 `polynomial` 用于目标或约束，并支持语义求值和依赖注册。
+已有 Min、PositivePart、Slack、SlackRange、InStepRange 的二次实现保持不变。
+
+新增函数通过 `QuadraticFunctionSymbol` 显式复用对应线性函数的语义。
+每个含二次项的输入增加一个有界实变量及一条精确二次等式；仿射输入不增加绑定变量。
+结果用辅助变量表示，Masking 和 IfThen 不会将原始二次输入相乘而产生高阶项。
+这种精确组合可能产生非凸 MIQCP，需要支持非凸二次约束的求解器，不保证凸性或性能。
+
+输入必须能推导出有限上下界，不会以任意默认 Big-M 掩盖未知范围。
+范围首次用于构造函数后不得扩大，扩大时注册返回错误；收紧范围仍安全。
+Masking 的掩码为 `BinVar`。If/IfIn/IfThen 的比较间隔和 delta、
+Inequality 的零容差和严格边界与线性版本一致，间隔内可能返回 null。
+IfThen 假分支为零。MinMax/MaxMin 返回精确最值，不依赖目标方向收紧松弛。
+
+二次组合在 MechanismModel 展开，不向线性 native adapter 转发结构。
+未添加 PWL/SOS、Sin/Cos/Sigmoid 的二次近似策略。
+仅以二值变量为输入的逻辑函数无需复制，其线性约束可直接用于二次模型。
+
+```kotlin
+val absolute = QuadraticAbsFunction(
+    polynomial = quadraticInput,
+    converter = converter,
+    name = "absolute"
+)
+model.add(absolute)
+model.minimize(absolute.polynomial)
+```
+
 ### 松弛与范围
 
 | 文件 | 符号 | 说明 |

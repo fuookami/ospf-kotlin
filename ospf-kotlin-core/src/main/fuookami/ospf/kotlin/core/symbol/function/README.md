@@ -8,6 +8,51 @@ The `function` sub-package provides a collection of **function symbols** for bui
 
 ## Function Symbol Catalog
 
+### Functions with quadratic inputs
+
+`FunctionSymbolLifecycle<V>` shares auxiliary-token registration.
+`MathFunctionSymbolBase<V>` retains linear constraint registration; the public
+`QuadraticMathFunctionSymbolBase<V>` registers quadratic constraints.
+Existing callers do not need migration.
+
+The new counterparts are `QuadraticMaxFunction`, `QuadraticAbsFunction`,
+`QuadraticMinMaxFunction`, `QuadraticMaxMinFunction`, `QuadraticMaskingFunction`,
+`QuadraticIfFunction`, `QuadraticIfInFunction`, `QuadraticIfThenFunction`, and
+`QuadraticInequalityFunction`. They implement `QuadraticIntermediateSymbol`:
+add them to `QuadraticMetaModel`, use their `polynomial` in objectives or
+constraints, and evaluate them from original inputs. Existing quadratic Min,
+PositivePart, Slack, SlackRange, and InStepRange implementations remain unchanged.
+
+`QuadraticFunctionSymbol` explicitly composes each selected linear counterpart.
+Each input containing quadratic terms adds one bounded real variable and one
+exact quadratic equality. Affine inputs need no binding variables. This avoids
+cubic or quartic expansion in Masking and IfThen. The resulting formulation may
+be nonconvex MIQCP and requires a solver supporting nonconvex quadratic constraints;
+convexity and performance are not guaranteed.
+
+Inputs require inferable finite bounds; arbitrary default Big-M values do not
+substitute for unknown ranges. Widening bounds after their first use is rejected
+during registration; tightening remains safe. Masking requires a `BinVar`.
+If/IfIn/IfThen preserve the linear counterparts' boundary gaps and delta;
+Inequality preserves its tolerance and strict boundary. Evaluation inside a gap
+may return null. IfThen has a zero false branch. MinMax/MaxMin are exact extrema
+independent of objective direction.
+
+These compositions expand at MechanismModel and do not forward structures to
+linear native adapters. No quadratic approximation policy is added for PWL/SOS
+or Sin/Cos/Sigmoid. Logic over binary variables already works in quadratic models
+through linear constraints and needs no duplicate implementation.
+
+```kotlin
+val absolute = QuadraticAbsFunction(
+    polynomial = quadraticInput,
+    converter = converter,
+    name = "absolute"
+)
+model.add(absolute)
+model.minimize(absolute.polynomial)
+```
+
 ### Slack and Range
 
 | File | Symbol | Description |

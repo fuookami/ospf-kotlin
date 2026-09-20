@@ -46,3 +46,4 @@ Cargo.lock
 .supergoal/
 superpowers/
 .codex/
+logs/

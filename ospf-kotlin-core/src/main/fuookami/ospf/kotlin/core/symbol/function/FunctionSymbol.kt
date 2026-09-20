@@ -42,7 +42,17 @@ import fuookami.ospf.kotlin.core.variable.*
  * (solver boundary), so call sites pass `AddableTokenCollection<Flt64>` and
  * `AbstractLinearMechanismModel<Flt64>` which are subtypes of the V-generic interfaces.
 */
-interface MathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
+interface FunctionSymbolLifecycle<V> where V : RealNumber<V>, V : NumberField<V> {
+
+    /** 注册辅助变量。 / Register auxiliary variables.
+     * @param tokens 目标集合 / target collection
+     * @return 注册结果 / registration result
+     */
+    fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try
+}
+
+/** 线性函数注册契约。 / Linear function registration contract. */
+interface MathFunctionSymbolBase<V> : FunctionSymbolLifecycle<V> where V : RealNumber<V>, V : NumberField<V> {
 
     /** Optional immutable structure snapshot for deferred solver lowering. / 延迟求解器展开使用的可选不可变结构快照。 */
     fun deferredStructure(): DeferredFunctionStructure? = null
@@ -52,7 +62,7 @@ interface MathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> 
      * @param tokens 可添加 token 的集合 / the addable token collection
      * @return 操作结果 / operation result
     */
-    fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try
+    override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try
 
     /**
      * 将线性约束注册到机制模型 / Register linear constraints to the mechanism model
@@ -120,20 +130,20 @@ interface MathFunctionSymbol<V> : MathFunctionSymbolBase<V> where V : RealNumber
 }
 
 /**
- * 二次函数符号注册的内部非泛型基类。 / Internal non-generic base for quadratic function symbol registration.
+ * 二次函数符号的泛型注册契约。 / Generic registration contract for quadratic function symbols.
  *
  * 镜像 [MathFunctionSymbolBase]，但用于二次机制模型。
  * Mirrors [MathFunctionSymbolBase] but for quadratic mechanism models.
- * 这是一个内部求解器边界接口。 / This is an internal solver-boundary interface.
+ * 下游函数可以通过此接口接入二次模型。 / Downstream functions can use this interface to integrate with quadratic models.
 */
-internal interface QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
+interface QuadraticMathFunctionSymbolBase<V> : FunctionSymbolLifecycle<V> where V : RealNumber<V>, V : NumberField<V> {
 
     /**
      * 注册辅助变量到 token 集合 / Register auxiliary variables to the token collection
      * @param tokens 可添加 token 的集合 / the addable token collection
      * @return 操作结果 / operation result
     */
-    fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try
+    override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try
 
     /**
      * 将约束注册到二次机制模型 / Register constraints to the quadratic mechanism model
