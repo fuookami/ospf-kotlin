@@ -4,9 +4,12 @@ import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.intermediate.CoreDeferredFunctionFallbackMaterializer
+import fuookami.ospf.kotlin.core.model.intermediate.SemiStructure
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -78,5 +81,27 @@ class SemiFunctionDedicatedTest {
                 name = "semi_infinite"
             )
         }
+    }
+
+    @Test
+    fun deferredStructureRetainsNativeAndFallbackData() {
+        val function = SemiFunction(
+            lb = Flt64(2.0),
+            ub = Flt64(5.0),
+            converter = IntoValue.Identity,
+            name = "semi_deferred"
+        )
+
+        val structure = assertIs<SemiStructure<Flt64>>(function.deferredStructure())
+        assertEquals(Flt64(2.0), structure.lowerBound)
+        assertEquals(Flt64(5.0), structure.upperBound)
+        assertEquals(function.resultVar, structure.resultVariable)
+        assertEquals(function.indicatorVar, structure.indicatorVariable)
+
+        val fallback = CoreDeferredFunctionFallbackMaterializer.materialize(structure)
+        assertTrue(fallback is Ok)
+        assertEquals(2, fallback.value.constraints.size)
+        assertEquals("semi_deferred_semi_upper", fallback.value.constraints[0].name)
+        assertEquals("semi_deferred_semi_lower", fallback.value.constraints[1].name)
     }
 }

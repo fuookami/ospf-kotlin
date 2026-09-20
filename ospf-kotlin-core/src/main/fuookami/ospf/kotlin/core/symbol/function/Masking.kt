@@ -5,6 +5,8 @@ package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.ConditionalValue
+import fuookami.ospf.kotlin.core.model.intermediate.MaskingStructure
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.token.*
@@ -57,6 +59,21 @@ class MaskingFunction<V>(
     override val resultPolynomial: LinearPolynomial<V>
         get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
 
+    override fun deferredStructure(): MaskingStructure<V>? {
+        if (!mask.type.isBinaryType) return null
+        val bounds = input.finiteBounds(converter)
+        return MaskingStructure(
+            value = ConditionalValue(
+                input = LinearPolynomial(input.monomials.toList(), input.constant),
+                resultVariable = resultVar,
+                bounds = ConditionBounds(bounds?.lower ?: -bigM, bounds?.upper ?: bigM),
+                name = "${name}_masking"
+            ),
+            mask = mask,
+            converter = converter
+        )
+    }
+
     override fun evaluate(values: Map<Symbol, V>): V? {
         val maskValue = values[mask] ?: return converter.zero
         if (maskValue eq converter.zero) return converter.zero
@@ -72,6 +89,13 @@ class MaskingFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
+        deferredStructure()?.let { structure ->
+            return when (val constraints = structure.generateConstraints()) {
+                is Ok -> addConstraints(model, constraints.value) ?: ok
+                is Failed -> Failed(constraints.error)
+                is Fatal -> Fatal(constraints.errors)
+            }
+        }
         val one = converter.one
         val zero = converter.zero
         val inputPoly = input
@@ -242,6 +266,21 @@ class MaskingWithPolyMaskFunction<V>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(maskVar, resultVar)
 
+    override fun deferredStructure(): MaskingStructure<V> {
+        val bounds = input.finiteBounds(converter)
+        return MaskingStructure(
+            value = ConditionalValue(
+                input = LinearPolynomial(input.monomials.toList(), input.constant),
+                resultVariable = resultVar,
+                bounds = ConditionBounds(bounds?.lower ?: -bigM, bounds?.upper ?: bigM),
+                name = name
+            ),
+            mask = maskVar,
+            converter = converter,
+            maskDefinition = LinearPolynomial(maskPoly.monomials.toList(), maskPoly.constant)
+        )
+    }
+
     override val identifier: UInt64 get() = IdentifierGenerator.gen()
     override val index: Int get() = 0
     override val category: Category get() = Linear
@@ -375,46 +414,13 @@ class MaskingWithPolyMaskFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val zero = converter.zero
-        val inputPoly = input
-        val maskPolyF = maskPoly
-        val inputBounds = inputPoly.finiteBounds(converter)
-        val lower = inputBounds?.lower ?: -bigM
-        val upper = inputBounds?.upper ?: bigM
-        val resultIdx = LinearMonomial(converter.one, resultVar)
-        val negInputMonos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-
-        val constraints = mutableListOf<LinearInequality<V>>()
-
-        // maskPoly = maskVar constraint / maskPoly = maskVar 约束
-        val maskMonos = maskPolyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-            LinearMonomial(converter.one, maskVar)
-        constraints += LinearInequality(
-            LinearPolynomial(maskMonos, -maskPolyF.constant),
-            LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_mask_eq")
-
-        // result <= upper * maskVar / 上界：maskVar=0 时 result <= 0
-        constraints += LinearInequality(
-            LinearPolynomial(listOf(resultIdx, LinearMonomial(-upper, maskVar)), zero),
-            LinearPolynomial(emptyList(), zero), Comparison.LE, "${name}_zero_ub")
-
-        // result >= lower * maskVar / 下界：maskVar=0 时 result >= 0
-        constraints += LinearInequality(
-            LinearPolynomial(listOf(resultIdx, LinearMonomial(-lower, maskVar)), zero),
-            LinearPolynomial(emptyList(), zero), Comparison.GE, "${name}_zero_lb")
-
-        // result - input <= -lower*(1-maskVar) / maskVar=1 时 result <= input
-        constraints += LinearInequality(
-            LinearPolynomial(listOf(resultIdx) + negInputMonos + LinearMonomial(-lower, maskVar), -inputPoly.constant),
-            LinearPolynomial(emptyList(), -lower), Comparison.LE, "${name}_ub")
-
-        // result - input >= -upper*(1-maskVar) / maskVar=1 时 result >= input
-        constraints += LinearInequality(
-            LinearPolynomial(listOf(resultIdx) + negInputMonos + LinearMonomial(-upper, maskVar), -inputPoly.constant),
-            LinearPolynomial(emptyList(), -upper), Comparison.GE, "${name}_lb")
-
-        return addConstraints(model, constraints) ?: ok
-    }}
+        return when (val constraints = deferredStructure().generateConstraints()) {
+            is Ok -> addConstraints(model, constraints.value) ?: ok
+            is Failed -> Failed(constraints.error)
+            is Fatal -> Fatal(constraints.errors)
+        }
+    }
+}
 
 /**
  * 掩码范围函数：y 在 [lower*mask, upper*mask] 范围内。

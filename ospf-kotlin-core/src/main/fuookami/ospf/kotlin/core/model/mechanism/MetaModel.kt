@@ -3,6 +3,8 @@
 */
 package fuookami.ospf.kotlin.core.model.mechanism
 
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
+
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintGroupRegistry
 import fuookami.ospf.kotlin.core.solver.report.ModelElementIdentityRegistry
@@ -916,13 +918,15 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
  * @property dumpBlocking 是否阻塞式转储 / Whether to use blocking dump
  * @property withRangeSet 是否包含范围集 / Whether to include range set
  * @property checkTokenExists 是否检查符号存在性 / Whether to check token existence
+ * @property functionExpansionPolicy 函数符号展开策略 / Function symbol expansion policy
 */
 data class MetaModelConfiguration(
     internal val manualTokenAddition: Boolean = true,
     internal val concurrent: Boolean = true,
     internal val dumpBlocking: Boolean = false,
     internal val withRangeSet: Boolean = false,
-    internal val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
+    internal val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod",
+    val functionExpansionPolicy: FunctionExpansionPolicy = FunctionExpansionPolicy.EAGER
 )
 
 /**

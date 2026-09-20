@@ -380,6 +380,11 @@ interface AbstractLinearSolver {
         converter: IntoValue<V>,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<SolveReport<V>> where V : RealNumber<V>, V : NumberField<V> {
+        when (val validation = model.identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         return when (val result = invoke(model, solvingStatusCallBack)) {
             is Ok -> Ok(result.value.convertTo(converter))
             is Failed -> Failed(result.error)
@@ -403,6 +408,11 @@ interface AbstractLinearSolver {
         converter: IntoValue<V>,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<SolveReport<V>, List<Solution<V>>>> where V : RealNumber<V>, V : NumberField<V> {
+        when (val validation = model.identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         return when (val result = invoke(model, solutionAmount, solvingStatusCallBack)) {
             is Ok -> {
                 val (output, solutions) = result.value
@@ -506,8 +516,14 @@ interface AbstractLinearSolver {
         val dumped = dump(model)
         return when (val validation = dumped.identityValidation) {
             is Ok -> Ok(dumped)
-            is Failed -> Failed(validation.error)
-            is Fatal -> Fatal(validation.errors)
+            is Failed -> {
+                dumped.close()
+                Failed(validation.error)
+            }
+            is Fatal -> {
+                dumped.close()
+                Fatal(validation.errors)
+            }
         }
     }
 
@@ -544,6 +560,17 @@ interface LinearSolver : AbstractLinearSolver {
 
     override suspend fun dump(model: LinearMechanismModel<Flt64>): LinearTriadModel {
         return LinearTriadModel(
+            model = model,
+            fixedVariables = null,
+            dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+            forceDumpBounds = config.dumpIntermediateModelForceBounds,
+            concurrent = config.dumpIntermediateModelConcurrent,
+            identityRegistry = model.identityRegistry
+        )
+    }
+
+    override suspend fun dumpResult(model: LinearMechanismModel<Flt64>): Ret<LinearTriadModel> {
+        return LinearTriadModel.invokeResult(
             model = model,
             fixedVariables = null,
             dumpConstraintsToBounds = config.dumpIntermediateModelBounds,

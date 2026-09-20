@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionStructure
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
@@ -42,6 +43,9 @@ import fuookami.ospf.kotlin.core.variable.*
  * `AbstractLinearMechanismModel<Flt64>` which are subtypes of the V-generic interfaces.
 */
 interface MathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
+
+    /** Optional immutable structure snapshot for deferred solver lowering. / 延迟求解器展开使用的可选不可变结构快照。 */
+    fun deferredStructure(): DeferredFunctionStructure? = null
 
     /**
      * 注册辅助变量到 token 集合 / Register auxiliary variables to the token collection
@@ -158,6 +162,8 @@ class LinearFunctionSymbolAdapter<V>(
     val delegate: MathFunctionSymbol<V>,
     private val converter: IntoValue<V>
 ) : LinearIntermediateSymbol<V>, MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+    override fun deferredStructure(): DeferredFunctionStructure? = delegate.deferredStructure()
+
     override var name: String
         get() = delegate.name
         set(value) { delegate.name = value }

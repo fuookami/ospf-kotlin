@@ -4,6 +4,8 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionStructure
+import fuookami.ospf.kotlin.core.model.intermediate.SemiStructure
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -69,6 +71,17 @@ class SemiFunction<V>(
         get() = LinearPolynomial(
             listOf(LinearMonomial(converter.one, resultVar)), converter.zero
         )
+
+    override fun deferredStructure(): DeferredFunctionStructure {
+        return SemiStructure(
+            lowerBound = lb,
+            upperBound = ub,
+            resultVariable = resultVar,
+            indicatorVariable = indicatorVar,
+            converter = converter,
+            name = name
+        )
+    }
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val indicator = values[indicatorVar] ?: return null

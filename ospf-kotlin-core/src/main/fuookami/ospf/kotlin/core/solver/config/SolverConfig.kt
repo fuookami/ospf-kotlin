@@ -5,6 +5,7 @@ package fuookami.ospf.kotlin.core.solver.config
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.solver.report.BackendConfiguration
 
@@ -23,6 +24,7 @@ import fuookami.ospf.kotlin.core.solver.report.BackendConfiguration
  * @property dumpIntermediateModelConcurrent 是否并发转储中间模型 / Whether to dump intermediate model concurrently
  * @property dumpIntermediateModelBounds 是否转储中间模型边界 / Whether to dump intermediate model bounds
  * @property dumpIntermediateModelForceBounds 是否强制转储中间模型边界 / Whether to force dump intermediate model bounds
+ * @property functionExpansionPolicy 对允许延迟展开的模型选择原生接口或通用展开 / Select native or generic lowering for models allowing deferred expansion
  * @property backendConfiguration 可审计 backend 配置 / Auditable backend configuration
 */
 data class SolverConfig(
@@ -46,5 +48,6 @@ data class SolverConfig(
     val dumpIntermediateModelConcurrent: Boolean? = null,
     val dumpIntermediateModelBounds: Boolean? = null,
     val dumpIntermediateModelForceBounds: Boolean? = null,
+    val functionExpansionPolicy: FunctionExpansionPolicy = FunctionExpansionPolicy.EAGER,
     val backendConfiguration: BackendConfiguration? = null
 )

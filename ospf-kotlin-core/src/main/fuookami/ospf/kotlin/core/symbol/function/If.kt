@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.IndicatorStructure
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
 import fuookami.ospf.kotlin.core.variable.*
@@ -74,6 +75,40 @@ class IfFunction<V>(
     }
 
     val result: LinearPolynomial<V> get() = resultPolynomial
+
+    override fun deferredStructure(): IndicatorStructure<V>? {
+        val bounds = when (val validation = precheck()) {
+            is Ok -> validation.value
+            is Failed, is Fatal -> return null
+        }
+        val normalized = when (val result = normalizeDiscreteCondition(
+            poly = condition,
+            relation = relation,
+            bounds = bounds,
+            delta = delta,
+            strictBoundary = strictBoundary
+        )) {
+            is Ok -> result.value
+            is Failed, is Fatal -> return null
+        }
+        if (normalized.fixedValue != null) return null
+        return indicatorStructure(normalized)
+    }
+
+    private fun indicatorStructure(normalized: DiscreteConditionLinearization<V>): IndicatorStructure<V> {
+        val lowerMagnitude = normalized.bounds.lower.abs()
+        val upperMagnitude = normalized.bounds.upper.abs()
+        return IndicatorStructure(
+            input = LinearPolynomial(normalized.polynomial.monomials.toList(), normalized.polynomial.constant),
+            resultVariable = resultVar,
+            bigM = if (lowerMagnitude.compareTo(upperMagnitude) >= 0) lowerMagnitude else upperMagnitude,
+            tolerance = strictBoundary,
+            converter = converter,
+            name = "${name}_if",
+            conditionBounds = normalized.bounds,
+            equivalentResults = listOf(indicatorVar)
+        )
+    }
 
     private fun isUsableBound(value: V): Boolean {
         return isUsableConditionBound(value, converter)
@@ -231,7 +266,6 @@ class IfFunction<V>(
     ): Ret<List<LinearInequality<V>>> {
         val zero = converter.zero
         val one = converter.one
-        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         val normalized = when (val result = normalizeDiscreteCondition(
             poly = condition,
@@ -267,31 +301,7 @@ class IfFunction<V>(
             )
         }
 
-        val indicatorConstraints = when (val result = relationIndicatorConstraints(
-            poly = normalized.polynomial,
-            indicator = indicatorVar,
-            relation = Comparison.GT,
-            bounds = normalized.bounds,
-            strictBoundary = strictBoundary,
-            namePrefix = "${name}_if"
-        )) {
-            is Ok -> result.value
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-        allConstraints += indicatorConstraints
-
-        // Keep result = indicator for the stable public result contract. / 保持 result = indicator，稳定公开结果契约。
-        allConstraints += LinearInequality(
-            LinearPolynomial(
-                listOf(LinearMonomial(one, resultVar), LinearMonomial(-one, indicatorVar)),
-                zero
-            ),
-            LinearPolynomial(emptyList(), zero),
-            Comparison.EQ, "${name}_if_eq"
-        )
-
-        return Ok(allConstraints)
+        return indicatorStructure(normalized).generateConstraints()
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {

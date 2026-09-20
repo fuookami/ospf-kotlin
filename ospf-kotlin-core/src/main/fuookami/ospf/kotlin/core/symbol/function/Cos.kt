@@ -3,6 +3,7 @@
 /** 余弦函数符号 / Cosine function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionStructure
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
@@ -39,7 +40,7 @@ class CosFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String = "cos",
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
 
     private val impl: UnivariateLinearPiecewiseFunction<V> by lazy {
         val breakpoints = samplingPoints.map { converter.intoValue(it[0]) }
@@ -68,6 +69,12 @@ class CosFunction<V>(
     }
 
     val result: LinearPolynomial<V> by lazy { impl.result }
+    override val resultPolynomial: LinearPolynomial<V>
+        get() = result
+
+    override fun deferredStructure(): DeferredFunctionStructure {
+        return impl.deferredStructure()
+    }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = impl.helperVariables
@@ -83,6 +90,7 @@ class CosFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         return impl.registerConstraints(model)
     }
+
     companion object {
         /**
          * 创建余弦函数实例 / Create a cosine function instance

@@ -5,6 +5,9 @@ package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionStructure
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionConstraintRegion
 
 /**
  * 机制模型层级结构的基础层：展开的变量和约束（无目标函数）。 / Base layer of the mechanism model hierarchy: expanded variables + constraints (no objective).
@@ -20,8 +23,33 @@ import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 */
 open class BasicMechanismModel<V>(
     open val name: String,
-    open val tokens: AbstractTokenTable<V>
+    open val tokens: AbstractTokenTable<V>,
+    val functionExpansionPolicy: FunctionExpansionPolicy = FunctionExpansionPolicy.EAGER,
+    deferredFunctionStructures: List<DeferredFunctionStructure> = emptyList()
 ) where V : RealNumber<V>, V : NumberField<V> {
+
+    val deferredFunctionStructures: List<DeferredFunctionStructure> = deferredFunctionStructures.toList()
+    private val _deferredFunctionConstraintRegions = mutableListOf<DeferredFunctionConstraintRegion>()
+    val deferredFunctionConstraintRegions: List<DeferredFunctionConstraintRegion>
+        get() = _deferredFunctionConstraintRegions.toList()
+
+    internal fun recordDeferredFunctionConstraintRegion(
+        structure: DeferredFunctionStructure,
+        firstConstraintIndex: Int,
+        constraintCount: Int
+    ) {
+        if (constraintCount > 0) {
+            _deferredFunctionConstraintRegions += DeferredFunctionConstraintRegion(
+                structure = structure,
+                firstConstraintIndex = firstConstraintIndex,
+                constraintCount = constraintCount
+            )
+        }
+    }
+
+    internal fun rollbackDeferredFunctionConstraintRegions(constraintCount: Int) {
+        _deferredFunctionConstraintRegions.removeAll { it.lastConstraintIndex > constraintCount }
+    }
 
     // Query helpers / 查询辅助方法
 

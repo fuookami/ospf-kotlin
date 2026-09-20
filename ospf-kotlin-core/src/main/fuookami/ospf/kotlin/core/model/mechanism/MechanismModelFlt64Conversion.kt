@@ -220,13 +220,22 @@ private fun <V> convertLinearMechanismModelToFlt64(model: LinearMechanismModel<V
         }
     }
     val flt64SubObjects = model.objectFunction.subObjects.map { convertLinearSubObjectToFlt64(it, flt64Tokens) }
-    return Ok(LinearMechanismModel(
+    val converted = LinearMechanismModel(
         parent = flt64Parent,
         name = model.name,
         constraints = flt64Constraints,
         objectFunction = SingleObject(model.objectFunction.category, flt64SubObjects),
-        tokens = flt64Tokens
-    ))
+        tokens = flt64Tokens,
+        deferredFunctionStructures = model.deferredFunctionStructures
+    )
+    for (region in model.deferredFunctionConstraintRegions) {
+        converted.recordDeferredFunctionConstraintRegion(
+            structure = region.structure,
+            firstConstraintIndex = region.firstConstraintIndex,
+            constraintCount = region.constraintCount
+        )
+    }
+    return Ok(converted)
 }
 
 /** 将二次机制模型整体转换为 Flt64 类型 / Convert an entire quadratic mechanism model to Flt64 type */
@@ -249,13 +258,22 @@ private fun <V> convertQuadraticMechanismModelToFlt64(model: QuadraticMechanismM
         }
     }
     val flt64SubObjects = model.objectFunction.subObjects.map { convertQuadraticSubObjectToFlt64(it, flt64Tokens) }
-    return Ok(QuadraticMechanismModel(
+    val converted = QuadraticMechanismModel(
         parent = flt64Parent,
         name = model.name,
         constraints = flt64Constraints,
         objectFunction = SingleObject(model.objectFunction.category, flt64SubObjects),
-        tokens = flt64Tokens
-    ))
+        tokens = flt64Tokens,
+        deferredFunctionStructures = model.deferredFunctionStructures
+    )
+    for (region in model.deferredFunctionConstraintRegions) {
+        converted.recordDeferredFunctionConstraintRegion(
+            structure = region.structure,
+            firstConstraintIndex = region.firstConstraintIndex,
+            constraintCount = region.constraintCount
+        )
+    }
+    return Ok(converted)
 }
 
 /** 将令牌表不安全转换为目标数值类型 / Unchecked-cast a token table to the target numeric type */
@@ -288,8 +306,11 @@ internal fun <V> toFlt64FixedVariables(
  * Convert a generic MechanismModel<V> to the Flt64 solver-boundary model.
  *
  * 转换前会验证模型是具体机制模型子类，未知类型返回 Failed。 / Validates concrete mechanism-model subclasses and returns Failed for unexpected types.
+ *
+ * @param model 源机制模型 / Source mechanism model
+ * @return 独立 token 表的求解器边界副本，调用方负责关闭 / Solver-boundary copy with its own token table, owned by the caller
 */
-internal fun <V> convertMechanismModelToFlt64(model: MechanismModel<V>): Ret<MechanismModel<Flt64>>
+fun <V> convertMechanismModelToFlt64(model: MechanismModel<V>): Ret<MechanismModel<Flt64>>
         where V : RealNumber<V>, V : NumberField<V> {
     return when (model) {
         is LinearMechanismModel<*> -> {

@@ -557,8 +557,16 @@ class LinearMechanismModel<V>(
     constraints: List<LinearConstraintImpl<V>>,
     override val objectFunction: SingleObject<LinearSubObject<V>>,
     override val tokens: AbstractTokenTable<V>,
-    private val ownedTokenResources: AutoCloseable? = null
-) : BasicMechanismModel<V>(name, tokens), AbstractLinearMechanismModel<V>, SingleObjectMechanismModel<V>
+    private val ownedTokenResources: AutoCloseable? = null,
+    deferredFunctionStructures: List<DeferredFunctionStructure> = tokens.symbols.mapNotNull {
+        (it as? MathFunctionSymbolBase<*>)?.deferredStructure()
+    }
+) : BasicMechanismModel<V>(
+    name = name,
+    tokens = tokens,
+    functionExpansionPolicy = parent.configuration.functionExpansionPolicy,
+    deferredFunctionStructures = deferredFunctionStructures
+), AbstractLinearMechanismModel<V>, SingleObjectMechanismModel<V>
         where V : RealNumber<V>, V : NumberField<V> {
     override val identityRegistry: ModelElementIdentityRegistry? get() = parent.identityRegistry
     private val logger = logger()
@@ -677,14 +685,29 @@ class LinearMechanismModel<V>(
 
                     logger.trace { "Registering function symbol constraints for $metaModel" }
                     for ((i, symbol) in tokens.symbols.withIndex()) {
-                        val result = when (symbol) {
-                            is MathFunctionSymbolBase<*> -> symbol.registerConstraintsUnchecked(model)
-                            else -> ok
+                        val deferredStructure = (symbol as? MathFunctionSymbolBase<*>)?.deferredStructure()
+                        val firstConstraintIndex = model.linearConstraints.size
+                        val result = if (model.functionExpansionPolicy != FunctionExpansionPolicy.EAGER &&
+                            deferredStructure?.supportsDeferredFallback() == true
+                        ) {
+                            ok
+                        } else {
+                            when (symbol) {
+                                is MathFunctionSymbolBase<*> -> symbol.registerConstraintsUnchecked(model)
+                                else -> ok
+                            }
                         }
                         when (result) {
                             is Ok -> {}
                             is Failed -> return@operation Failed(result.error)
                             is Fatal -> return@operation Fatal(result.errors)
+                        }
+                        if (deferredStructure != null) {
+                            model.recordDeferredFunctionConstraintRegion(
+                                structure = deferredStructure,
+                                firstConstraintIndex = firstConstraintIndex,
+                                constraintCount = model.linearConstraints.size - firstConstraintIndex
+                            )
                         }
 
                         if (dumpingStatusCallBack != null && i % 100 == 0) {
@@ -941,6 +964,7 @@ class LinearMechanismModel<V>(
             )
         }
         _constraints.subList(size, _constraints.size).clear()
+        rollbackDeferredFunctionConstraintRegions(size)
         return ok
     }
 
@@ -1229,8 +1253,16 @@ class QuadraticMechanismModel<V>(
     constraints: List<QuadraticConstraintImpl<V>>,
     override val objectFunction: SingleObject<QuadraticSubObject<V>>,
     override val tokens: AbstractTokenTable<V>,
-    private val ownedTokenResources: AutoCloseable? = null
-) : BasicMechanismModel<V>(name, tokens), AbstractQuadraticMechanismModel<V>, SingleObjectMechanismModel<V>
+    private val ownedTokenResources: AutoCloseable? = null,
+    deferredFunctionStructures: List<DeferredFunctionStructure> = tokens.symbols.mapNotNull {
+        (it as? MathFunctionSymbolBase<*>)?.deferredStructure()
+    }
+) : BasicMechanismModel<V>(
+    name = name,
+    tokens = tokens,
+    functionExpansionPolicy = parent.configuration.functionExpansionPolicy,
+    deferredFunctionStructures = deferredFunctionStructures
+), AbstractQuadraticMechanismModel<V>, SingleObjectMechanismModel<V>
         where V : RealNumber<V>, V : NumberField<V> {
     override val identityRegistry: ModelElementIdentityRegistry? get() = parent.identityRegistry
     private val logger = logger()
@@ -1349,6 +1381,8 @@ class QuadraticMechanismModel<V>(
 
                     logger.trace { "Registering function symbol constraints for $metaModel" }
                     for ((i, symbol) in tokens.symbols.withIndex()) {
+                        val deferredStructure = (symbol as? MathFunctionSymbolBase<*>)?.deferredStructure()
+                        val firstConstraintIndex = model.constraints.size
                         val result = when (symbol) {
                             is QuadraticMathFunctionSymbolBase<*> -> symbol.registerConstraintsUnchecked(model)
                             is MathFunctionSymbolBase<*> -> symbol.registerConstraintsUnchecked(model)
@@ -1358,6 +1392,13 @@ class QuadraticMechanismModel<V>(
                             is Ok -> {}
                             is Failed -> return@operation Failed(result.error)
                             is Fatal -> return@operation Fatal(result.errors)
+                        }
+                        if (deferredStructure != null) {
+                            model.recordDeferredFunctionConstraintRegion(
+                                structure = deferredStructure,
+                                firstConstraintIndex = firstConstraintIndex,
+                                constraintCount = model.constraints.size - firstConstraintIndex
+                            )
                         }
 
                         if (dumpingStatusCallBack != null && i % 100 == 0) {
@@ -1640,6 +1681,7 @@ class QuadraticMechanismModel<V>(
             )
         }
         _constraints.subList(size, _constraints.size).clear()
+        rollbackDeferredFunctionConstraintRegions(size)
         return ok
     }
 

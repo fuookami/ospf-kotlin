@@ -3,7 +3,9 @@
 /** 平衡三值化函数符号 / Balanced ternaryzation function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
+import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -34,7 +36,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * - y = 0  当 -epsilon <= x <= epsilon
  * - y = -1 当 x <= -epsilon - delta
  * 零带外紧邻边界的开区间未定义（返回 `null`），以便 evaluator 与求解器约束
- * 使用相同的严格边界语义；其中 delta = 1e-10。
+ * 使用相同的严格边界语义；其中 delta = strictBoundary，默认 1e-10。
  *
  * Output:
  * - y = 1  when x >= epsilon + delta
@@ -42,7 +44,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * - y = -1 when x <= -epsilon - delta
  * Values in the open transition gaps immediately outside the zero band are
  * undefined (`null`) so that evaluator and solver rows share strict-boundary
- * semantics; here delta = 1e-10.
+ * semantics; delta = strictBoundary, defaulting to 1e-10.
  *
  * 使用正、负两个互斥指示变量的精确三状态线性化。
  * Uses an exact three-state linearization with mutually exclusive positive and negative indicators.
@@ -52,6 +54,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
+ * @property strictBoundary 双侧严格间隔 / Strict gap on both sides
  * @property fallbackBigM 输入无有限界时使用的回退 Big-M / fallback Big-M used when the input has no finite bounds
 */
 class BalanceTernaryzationFunction<V>(
@@ -60,13 +63,14 @@ class BalanceTernaryzationFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String = "bter",
     override var displayName: String? = null,
-    val fallbackBigM: Flt64 = Flt64(1e6)
+    val fallbackBigM: Flt64 = Flt64(1e6),
+    val strictBoundary: Flt64 = Flt64(NONZERO_TOLERANCE)
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
     init {
         require(epsilon geq Flt64.zero) {
             "BalanceTernaryzation epsilon must be non-negative"
         }
-        require(fallbackBigM gr epsilon + Flt64(NONZERO_TOLERANCE)) {
+        require(fallbackBigM gr epsilon + strictBoundary) {
             "BalanceTernaryzation fallbackBigM must exceed epsilon plus the strict boundary"
         }
     }
@@ -86,7 +90,7 @@ class BalanceTernaryzationFunction<V>(
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xValue = x.evaluateWith(values) ?: return null
         val epsilonValue = converter.intoValue(epsilon)
-        val strictBoundary = converter.intoValue(Flt64(NONZERO_TOLERANCE))
+        val strictBoundary = converter.intoValue(strictBoundary)
         val minusOne = converter.intoValue(Flt64(-1.0))
         return when {
             xValue geq epsilonValue + strictBoundary -> converter.one
@@ -98,6 +102,9 @@ class BalanceTernaryzationFunction<V>(
     }
 
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
+        if (!strictBoundary.isFinite() || !(strictBoundary gr Flt64.zero)) {
+            return Failed(ErrorCode.IllegalArgument, "严格间隔必须有限且为正。 / Strict gap must be finite and positive.")
+        }
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -105,11 +112,19 @@ class BalanceTernaryzationFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
+    override fun deferredStructure(): IndicatorStructure<V>? {
+        return try {
+            val structure = indicatorStructure()
+            if (structure.generateConstraints() is Ok) structure else null
+        } catch (_: RuntimeException) {
+            null
+        }
+    }
+
+    private fun indicatorStructure(): IndicatorStructure<V> {
         val zero = converter.zero
-        val one = converter.one
         val eps = converter.intoValue(epsilon)
-        val delta = converter.intoValue(Flt64(NONZERO_TOLERANCE))
+        val delta = converter.intoValue(strictBoundary)
         val bounds = x.finiteBounds(converter)
         val bigM = if (bounds != null) {
             val lowerMagnitude = if (bounds.lower ls zero) -bounds.lower else bounds.lower
@@ -119,58 +134,47 @@ class BalanceTernaryzationFunction<V>(
         } else {
             converter.intoValue(fallbackBigM)
         }
-        val constraints = listOf(
-            // y = positive - negative.
-            LinearInequality(
-                LinearPolynomial(
-                    listOf(
-                        LinearMonomial(one, resultVar),
-                        LinearMonomial(-one, positiveVar),
-                        LinearMonomial(one, negativeVar)
-                    ), zero
-                ),
-                LinearPolynomial(emptyList(), zero),
-                Comparison.EQ,
-                "${name}_bter_result"
+        val conditionBounds = ConditionBounds(delta - bigM, bigM)
+        val negative = IndicatorStructure(
+            input = LinearPolynomial(
+                monomials = x.monomials.map { LinearMonomial(-it.coefficient, it.symbol) },
+                constant = -x.constant - eps
             ),
-            // The positive and negative states are mutually exclusive.
-            LinearInequality(
-                LinearPolynomial(
-                    listOf(LinearMonomial(one, positiveVar), LinearMonomial(one, negativeVar)), zero
-                ),
-                LinearPolynomial(emptyList(), one),
-                Comparison.LE,
-                "${name}_bter_exclusive"
-            ),
-            // positive = 1 => x >= epsilon + delta; positive = 0 => x <= epsilon.
-            LinearInequality(
-                LinearPolynomial(x.monomials + LinearMonomial(-bigM, positiveVar), x.constant),
-                LinearPolynomial(emptyList(), eps + delta - bigM),
-                Comparison.GE,
-                "${name}_bter_positive_lb"
-            ),
-            LinearInequality(
-                LinearPolynomial(x.monomials + LinearMonomial(-bigM, positiveVar), x.constant),
-                LinearPolynomial(emptyList(), eps),
-                Comparison.LE,
-                "${name}_bter_positive_ub"
-            ),
-            // negative = 1 => x <= -epsilon-delta; negative = 0 => x >= -epsilon.
-            LinearInequality(
-                LinearPolynomial(x.monomials + LinearMonomial(bigM, negativeVar), x.constant),
-                LinearPolynomial(emptyList(), bigM - eps - delta),
-                Comparison.LE,
-                "${name}_bter_negative_ub"
-            ),
-            LinearInequality(
-                LinearPolynomial(x.monomials + LinearMonomial(bigM, negativeVar), x.constant),
-                LinearPolynomial(emptyList(), -eps),
-                Comparison.GE,
-                "${name}_bter_negative_lb"
+            resultVariable = negativeVar,
+            bigM = bigM,
+            tolerance = delta,
+            converter = converter,
+            name = "${name}_bter_negative",
+            conditionBounds = conditionBounds
+        )
+        return IndicatorStructure(
+            input = LinearPolynomial(x.monomials.toList(), x.constant - eps),
+            resultVariable = positiveVar,
+            bigM = bigM,
+            tolerance = delta,
+            converter = converter,
+            name = "${name}_bter_positive",
+            conditionBounds = conditionBounds,
+            difference = DifferenceIndicator(
+                condition = negative,
+                resultVariable = resultVar,
+                name = name
             )
         )
-        return addConstraints(model, constraints) ?: ok
     }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
+        return try {
+            when (val generated = indicatorStructure().generateConstraints()) {
+                is Ok -> addConstraints(model, generated.value) ?: ok
+                is Failed -> Failed(generated.error)
+                is Fatal -> Fatal(generated.errors)
+            }
+        } catch (_: RuntimeException) {
+            Failed(ErrorCode.IllegalArgument, "三值化约束生成失败。 / Failed to generate ternary constraints.")
+        }
+    }
+
     companion object {
         /**
          * 创建平衡三值化函数实例 / Create a balance ternaryzation function instance
@@ -179,6 +183,7 @@ class BalanceTernaryzationFunction<V>(
          * @param converter 值类型转换器 / value type converter
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
+         * @param strictBoundary 双侧严格间隔 / Strict gap on both sides
          * @param fallbackBigM 输入无有限界时使用的回退 Big-M / fallback Big-M used when the input has no finite bounds
          * @return [BalanceTernaryzationFunction] 实例 / [BalanceTernaryzationFunction] instance
         */
@@ -188,7 +193,8 @@ class BalanceTernaryzationFunction<V>(
             converter: IntoValue<V>,
             name: String,
             displayName: String? = null,
-            fallbackBigM: Flt64 = Flt64(1e6)
+            fallbackBigM: Flt64 = Flt64(1e6),
+            strictBoundary: Flt64 = Flt64(NONZERO_TOLERANCE)
         ): BalanceTernaryzationFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             BalanceTernaryzationFunction(
                 x = x,
@@ -196,7 +202,8 @@ class BalanceTernaryzationFunction<V>(
                 converter = converter,
                 name = name,
                 displayName = displayName,
-                fallbackBigM = fallbackBigM
+                fallbackBigM = fallbackBigM,
+                strictBoundary = strictBoundary
             )
     }
 }

@@ -4,6 +4,10 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionStructure
+import fuookami.ospf.kotlin.core.model.intermediate.UnivariateLinearPiecewiseStructure
+import fuookami.ospf.kotlin.core.model.intermediate.capturePwlInputBounds
+import fuookami.ospf.kotlin.core.model.intermediate.generateUnivariateLinearPiecewiseConstraints
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenList
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
@@ -92,6 +96,29 @@ class UnivariateLinearPiecewiseFunction<V>(
         LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
     }
     override val resultPolynomial: LinearPolynomial<V> get() = result
+
+    override fun deferredStructure(): DeferredFunctionStructure {
+        val snapshotInput = LinearPolynomial(
+            monomials = x.monomials.map { LinearMonomial(it.coefficient, it.symbol) },
+            constant = x.constant
+        )
+        return UnivariateLinearPiecewiseStructure(
+            input = snapshotInput,
+            breakpoints = breakpoints.toList(),
+            slopes = slopes.toList(),
+            intercepts = intercepts.toList(),
+            resultVariable = resultVar,
+            selectorVariables = selectorVars.toList(),
+            explicitM = explicitM,
+            converter = converter,
+            capturedInputBounds = if (explicitM == null) {
+                capturePwlInputBounds(snapshotInput, converter)
+            } else {
+                null
+            },
+            name = name
+        )
+    }
 
     private fun <T> piecewiseFailure(message: String): Ret<T> {
         return Failed(ErrorCode.IllegalArgument, message)
@@ -696,8 +723,8 @@ class UnivariateLinearPiecewiseFunction<V>(
         var constraintOperationStarted = false
         var originalConstraintCount: Int? = null
         return try {
-            val outputBounds = when (val result = outputBoundsResult) {
-                is Ok -> result.value
+            when (val result = outputBoundsResult) {
+                is Ok -> {}
                 is Failed -> return Failed(result.error)
                 is Fatal -> return Fatal(result.errors)
             }
@@ -706,140 +733,20 @@ class UnivariateLinearPiecewiseFunction<V>(
                 is Failed -> return Failed(result.error)
                 is Fatal -> return Fatal(result.errors)
             }
-            val zero = converter.zero
-            val one = converter.one
-            if (!isUsablePolynomial(x)) {
-                return piecewiseFailure(
-                    "分段线性函数的输入多项式包含非有限或不可表示值。 / The piecewise input polynomial contains a non-finite or unrepresentable value."
-                )
-            }
-            val allConstraints = mutableListOf<LinearInequality<V>>()
-            val explicitBigM = if (explicitM == null) {
-                null
-            } else {
-                when (val result = resolveBigM(explicitM!!, explicit = true)) {
-                    is Ok -> result.value
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
-            }
-            val xBounds: LinearPolynomialBounds<V>?
-            val fallbackM: V?
-            if (explicitBigM == null) {
-                xBounds = try {
-                    x.finiteBounds(converter)
-                } catch (error: RuntimeException) {
-                    return piecewiseRuntimeFailure(
-                        operation = "计算分段线性函数输入范围 / Calculate piecewise input bounds",
-                        error = error
-                    )
-                }
-                if (xBounds == null) {
-                    return piecewiseFailure(
-                        "分段线性函数缺少可证明的有限输入范围，不能自动推导 Big-M。 / The piecewise function has no provable finite input range for automatic Big-M inference."
-                    )
-                }
-                if (!isUsableBounds(xBounds)) {
-                    return piecewiseFailure(
-                        "分段线性函数的输入范围为非有限或 solver 哨兵范围。 / The piecewise input range is non-finite or a solver sentinel range."
-                    )
-                }
-                // xBounds has already been validated. Derive the fallback from that exact
-                // proof instead of calling defaultBigM, whose legacy fallback can hide a
-                // converter failure or silently manufacture a Big-M without a proof.
-                fallbackM = when (val result = resolveBigM(xBounds.absMax, explicit = false)) {
-                    is Ok -> result.value
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
-            } else {
-                xBounds = null
-                fallbackM = null
-            }
-            val outputLower = outputBounds.lower
-            val outputUpper = outputBounds.upper
-
-            // Exactly one segment must be active: sum(s[i]) = 1 / 恰好一个线段激活：sum(s[i]) = 1
-            val sumMonos = selectorVars.map { LinearMonomial(one, it) }
-            allConstraints += LinearInequality(
-                LinearPolynomial(sumMonos, zero),
-                LinearPolynomial(emptyList(), one), Comparison.EQ, "${name}_select_one")
-
-            for (i in 0 until numSegments) {
-                val sVar = selectorVars[i]
-                val bpLow = breakpoints[i]
-                val bpHigh = breakpoints[i + 1]
-                val slope = slopes[i]
-                val intercept = intercepts[i]
-                val bigMValue = if (explicitBigM != null) {
-                    explicitBigM
-                } else if (xBounds != null) {
-                    val xLower = xBounds.lower
-                    val xUpper = xBounds.upper
-                    val lineAtLower = slope * xLower + intercept
-                    val lineAtUpper = slope * xUpper + intercept
-                    val lineLower = if (lineAtLower ls lineAtUpper) lineAtLower else lineAtUpper
-                    val lineUpper = if (lineAtLower gr lineAtUpper) lineAtLower else lineAtUpper
-                    val xLowerRelax = if (bpLow gr xLower) bpLow - xLower else zero
-                    val xUpperRelax = if (xUpper gr bpHigh) xUpper - bpHigh else zero
-                    val eqUpperRelax = (outputUpper - lineLower).abs()
-                    val eqLowerRelax = (outputLower - lineUpper).abs()
-                    val candidate = listOf(
-                        xLowerRelax,
-                        xUpperRelax,
-                        eqUpperRelax,
-                        eqLowerRelax,
-                        fallbackM ?: return piecewiseFailure(
-                            "分段线性函数无法解析自动 Big-M。 / The piecewise function cannot resolve an automatic Big-M."
-                        )
-                    ).reduce { acc, value -> if (value gr acc) value else acc }
-                    when (val result = resolveBigM(candidate, explicit = false)) {
-                        is Ok -> result.value
-                        is Failed -> return Failed(result.error)
-                        is Fatal -> return Fatal(result.errors)
-                    }
-                } else {
-                    fallbackM ?: return piecewiseFailure(
-                        "分段线性函数无法解析自动 Big-M。 / The piecewise function cannot resolve an automatic Big-M."
-                    )
-                }
-
-                // Lower bound: x >= bpLow - M*(1 - s[i]) => x + M*s[i] >= bpLow - M... => x + M - M*s >= bpLow
-                // 下界：x >= bpLow - M*(1 - s[i])，即 x + M - M*s >= bpLow
-                allConstraints += LinearInequality(
-                    LinearPolynomial(x.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
-                        LinearMonomial(-bigMValue, sVar), x.constant + bigMValue),
-                    LinearPolynomial(emptyList(), bpLow), Comparison.GE, "${name}_seg_${i}_lb")
-
-                // Upper bound: x <= bpHigh + M*(1 - s[i]) => x + M*s[i] <= bpHigh + M
-                // 上界：x <= bpHigh + M*(1 - s[i])，即 x + M*s[i] <= bpHigh + M
-                allConstraints += LinearInequality(
-                    LinearPolynomial(x.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
-                        LinearMonomial(bigMValue, sVar), x.constant),
-                    LinearPolynomial(emptyList(), bpHigh + bigMValue), Comparison.LE, "${name}_seg_${i}_ub")
-
-                // y = slope*x + intercept when s[i]=1
-                // s[i]=1 时 y = slope*x + intercept
-                // y - slope*x - intercept <= M*(1 - s[i]) => y - slope*x - intercept + M*s[i] <= M
-                // y - slope*x - intercept <= M*(1 - s[i])，即 y - slope*x - intercept + M*s[i] <= M
-                val negSlopeXMonos = x.monomials.map { LinearMonomial(-it.coefficient * slope, it.symbol) }
-                allConstraints += LinearInequality(
-                    LinearPolynomial(listOf(LinearMonomial(one, resultVar)) +
-                        negSlopeXMonos + LinearMonomial(bigMValue, sVar), -intercept),
-                    LinearPolynomial(emptyList(), bigMValue), Comparison.LE, "${name}_seg_${i}_eq_ub")
-
-                // y - slope*x - intercept >= -M*(1 - s[i]) => y - slope*x - intercept - M*s[i] >= -M
-                // y - slope*x - intercept >= -M*(1 - s[i])，即 y - slope*x - intercept - M*s[i] >= -M
-                allConstraints += LinearInequality(
-                    LinearPolynomial(listOf(LinearMonomial(one, resultVar)) +
-                        negSlopeXMonos + LinearMonomial(-bigMValue, sVar), -intercept),
-                    LinearPolynomial(emptyList(), -bigMValue), Comparison.GE, "${name}_seg_${i}_eq_lb")
-            }
-
-            if (allConstraints.any { !isUsableConstraint(it) }) {
-                return piecewiseFailure(
-                    "分段线性函数生成了非有限或不可表示的约束。 / The piecewise function generated a non-finite or unrepresentable constraint."
-                )
+            val allConstraints = when (val result = generateUnivariateLinearPiecewiseConstraints(
+                input = x,
+                breakpoints = breakpoints,
+                slopes = slopes,
+                intercepts = intercepts,
+                explicitM = explicitM,
+                converter = converter,
+                resultVariable = resultVar,
+                selectorVariables = selectorVars,
+                name = name
+            )) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
 
             originalConstraintCount = try {

@@ -4,6 +4,8 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.model.intermediate.BinaryLogicOperation
+import fuookami.ospf.kotlin.core.model.intermediate.BinaryLogicStructure
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
 import fuookami.ospf.kotlin.core.variable.*
@@ -88,6 +90,10 @@ class AndFunction<V>(
 
     override val resultPolynomial: LinearPolynomial<V>
         get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
+
+    override fun deferredStructure() = binaryInputs?.let {
+        BinaryLogicStructure(BinaryLogicOperation.And, it, resultVar, converter, name)
+    }
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         for (poly in polynomials) {
@@ -273,6 +279,10 @@ class OrFunction<V>(
     override val resultPolynomial: LinearPolynomial<V>
         get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
 
+    override fun deferredStructure() = binaryInputs?.let {
+        BinaryLogicStructure(BinaryLogicOperation.Or, it, resultVar, converter, name)
+    }
+
     override fun evaluate(values: Map<Symbol, V>): V? {
         for (poly in polynomials) {
             val v = poly.evaluateWith(values) ?: return null
@@ -418,6 +428,10 @@ class NotFunction<V>(
     override val resultPolynomial: LinearPolynomial<V>
         get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
 
+    override fun deferredStructure() = binaryInput?.let {
+        BinaryLogicStructure(BinaryLogicOperation.Not, listOf(it), resultVar, converter, name)
+    }
+
     override fun evaluate(values: Map<Symbol, V>): V? {
         val v = polynomial.evaluateWith(values) ?: return null
         return if (v eq converter.zero) converter.one else converter.zero
@@ -546,6 +560,12 @@ class XorFunction<V>(
 
     override val resultPolynomial: LinearPolynomial<V>
         get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
+
+    override fun deferredStructure() = polynomials.map { it.binaryVariableOrNull(converter) }.let { inputs ->
+        inputs.takeIf { it.all { variable -> variable != null } }?.map { it!! }?.let {
+            BinaryLogicStructure(BinaryLogicOperation.Xor, it, resultVar, converter, name)
+        }
+    }
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         var count = 0

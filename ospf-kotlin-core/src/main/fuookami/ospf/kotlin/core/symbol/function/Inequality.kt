@@ -4,6 +4,8 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.model.intermediate.IndicatorStructure
+import fuookami.ospf.kotlin.core.model.intermediate.ZeroBand
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
 import fuookami.ospf.kotlin.core.variable.*
@@ -34,8 +36,8 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property sign 比较类型 / the comparison type
  * @param converter 值类型转换器 / value type converter
  * @param bigM Big-M 界限（默认从 lhs-rhs 范围推导，失败时回退到 1e6）/ Big-M bound (inferred from lhs-rhs range by default, falls back to 1e6)
- * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
- * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
+ * @param tolerance LE/GE 的正间隔及 EQ/NE 的零容差（默认 1e-6）；EQ/NE 要求 0 <= tolerance < strictBoundary / positive LE/GE gap and EQ/NE zero tolerance (default 1e-6); EQ/NE require 0 <= tolerance < strictBoundary
+ * @param strictBoundary LT/GT 真分支最小差值及 EQ/NE 带外边界（默认 0.5）；这些关系在间隔内 evaluate 返回 null / minimum LT/GT true-branch difference and EQ/NE outside-band boundary (default 0.5); evaluate returns null inside these relations' gaps
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
 */
@@ -59,7 +61,7 @@ class InequalityFunction<V>(
     private val sideVar: AbstractVariableItem<*, *> by lazy { BinVar("${name}_side") }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = if (sign == Comparison.EQ) {
+        get() = if (sign == Comparison.EQ || sign == Comparison.NE) {
             listOf(flagVar, sideVar)
         } else {
             listOf(flagVar)
@@ -69,20 +71,74 @@ class InequalityFunction<V>(
         LinearPolynomial(listOf(LinearMonomial(converter.one, flagVar)), converter.zero)
     }
 
+    override fun deferredStructure(): IndicatorStructure<V>? {
+        if (sign == Comparison.EQ || sign == Comparison.NE) {
+            return IndicatorStructure(
+                input = LinearPolynomial(lhs.monomials.toList(), lhs.constant - rhs),
+                resultVariable = flagVar,
+                bigM = bigM,
+                tolerance = strictBoundary,
+                converter = converter,
+                name = "${name}_${if (sign == Comparison.EQ) "eq" else "ne"}",
+                positiveOnZero = sign == Comparison.EQ,
+                zeroBand = ZeroBand(tolerance, sideVar)
+            )
+        }
+        val input = if (sign == Comparison.LT || sign == Comparison.GE) {
+            LinearPolynomial(lhs.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }, rhs - lhs.constant)
+        } else {
+            LinearPolynomial(lhs.monomials.toList(), lhs.constant - rhs)
+        }
+        return IndicatorStructure(
+            input = input,
+            resultVariable = flagVar,
+            bigM = bigM,
+            tolerance = if (sign == Comparison.LE || sign == Comparison.GE) tolerance else strictBoundary,
+            converter = converter,
+            name = name,
+            positiveOnZero = sign == Comparison.LE || sign == Comparison.GE
+        )
+    }
+
     override fun evaluate(values: Map<Symbol, V>): V? {
         val lhsValue = lhs.evaluateWith(values) ?: return null
-        val satisfied = when (sign) {
-            Comparison.LE -> !(lhsValue gr rhs)
-            Comparison.LT -> lhsValue ls rhs
-            Comparison.GE -> !(lhsValue ls rhs)
-            Comparison.GT -> lhsValue gr rhs
-            Comparison.EQ -> lhsValue eq rhs
-            Comparison.NE -> lhsValue neq rhs
+        if (sign == Comparison.EQ || sign == Comparison.NE) {
+            if (!validEqualityBand() || !isUsableConditionBound(lhsValue, converter) ||
+                !isUsableConditionBound(rhs, converter)
+            ) {
+                return null
+            }
+            val distance = (lhsValue - rhs).abs()
+            if (!isUsableConditionBound(distance, converter)) {
+                return null
+            }
+            val equal = when {
+                distance.compareTo(tolerance) <= 0 -> true
+                distance.compareTo(strictBoundary) >= 0 -> false
+                else -> return null
+            }
+            return if (equal == (sign == Comparison.EQ)) converter.one else converter.zero
         }
-        return if (satisfied) converter.one else converter.zero
+        return when (val classification = classify(
+            d = lhsValue - rhs,
+            relation = sign,
+            strictBoundary = if (sign == Comparison.LE || sign == Comparison.GE) tolerance else strictBoundary
+        )) {
+            is Ok -> when (classification.value) {
+                TruthValue.True -> converter.one
+                TruthValue.False -> converter.zero
+                TruthValue.Undefined -> null
+            }
+            is Failed, is Fatal -> null
+        }
     }
 
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
+        when (val constraints = checkedConstraints()) {
+            is Ok -> Unit
+            is Failed -> return Failed(constraints.error)
+            is Fatal -> return Fatal(constraints.errors)
+        }
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -91,80 +147,61 @@ class InequalityFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val bigMValue = bigM
-        val toleranceValue = tolerance
-        val rhsValue = rhs
-        val lhsMonos = lhs.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-        val allConstraints = mutableListOf<LinearInequality<V>>()
-
-        when (sign) {
-            Comparison.LE, Comparison.LT -> {
-                // lhs <= rhs + M*(1-flag)  =>  lhs + M*flag <= rhs + M
-                // 左侧 <= 右侧 + M*(1-标志)，即 左侧 + M*标志 <= 右侧 + M
-                allConstraints += LinearInequality(
-                    LinearPolynomial(lhsMonos + LinearMonomial(bigMValue, flagVar), lhs.constant),
-                    LinearPolynomial(emptyList(), rhsValue + bigMValue),
-                    Comparison.LE, "${name}_satisfied"
-                )
-
-                // lhs + M*(1-flag) >= rhs + eps  =>  lhs + M - M*flag >= rhs + eps
-                // 左侧 + M*(1-标志) >= 右侧 + eps，即 左侧 + M - M*标志 >= 右侧 + eps
-                allConstraints += LinearInequality(
-                    LinearPolynomial(lhsMonos + LinearMonomial(-bigMValue, flagVar), lhs.constant + bigMValue),
-                    LinearPolynomial(emptyList(), rhsValue + toleranceValue),
-                    Comparison.GE, "${name}_violated"
-                )
-            }
-
-            Comparison.GE, Comparison.GT -> {
-                // lhs >= rhs - M*(1-flag) => lhs + M - M*flag >= rhs
-                // 左侧 >= 右侧 - M*(1-标志)，即 左侧 + M - M*标志 >= 右侧
-                allConstraints += LinearInequality(
-                    LinearPolynomial(lhsMonos + LinearMonomial(-bigMValue, flagVar), lhs.constant + bigMValue),
-                    LinearPolynomial(emptyList(), rhsValue),
-                    Comparison.GE, "${name}_satisfied"
-                )
-
-                // lhs <= rhs - eps + M*flag => lhs - M*flag <= rhs - eps
-                // 左侧 <= 右侧 - eps + M*标志，即 左侧 - M*标志 <= 右侧 - eps
-                allConstraints += LinearInequality(
-                    LinearPolynomial(lhsMonos + LinearMonomial(bigMValue, flagVar), lhs.constant),
-                    LinearPolynomial(emptyList(), rhsValue - toleranceValue + bigMValue),
-                    Comparison.LE, "${name}_violated"
-                )
-            }
-
-            Comparison.EQ -> {
-                val diffMonos = lhsMonos
-                val diffConst = lhs.constant - rhsValue
-                when (val result = safeZeroIndicatorConstraints(
-                    poly = LinearPolynomial(diffMonos, diffConst),
-                    indicator = flagVar,
-                    sideVar = sideVar,
-                    bigM = bigMValue,
-                    tolerance = toleranceValue,
-                    strictBoundary = strictBoundary,
-                    namePrefix = "${name}_eq"
-                )) {
-                    is Ok -> allConstraints += result.value
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
-            }
-
-            Comparison.NE -> {
-                return Failed(
-                    Err(
-                        ErrorCode.ApplicationFailed,
-                        "InequalityFunction: NE comparison not supported for MIP encoding"
-                    )
-                )
-            }
+        val constraints = when (val result = checkedConstraints()) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
-
-        addConstraints(model, allConstraints)?.let { return it }
+        addConstraints(model, constraints)?.let { return it }
         return ok
     }
+
+    private fun checkedConstraints(): Ret<List<LinearInequality<V>>> {
+        return try {
+            if (!isUsableConditionBound(bigM, converter) || bigM.compareTo(converter.zero) <= 0 ||
+                !isUsableConditionBound(rhs, converter) || !hasUsableConditionSolverValues(lhs, converter)
+            ) {
+                return Failed(ErrorCode.IllegalArgument, "比较输入或 Big-M 无效。 / Invalid comparison input or Big-M.")
+            }
+            if ((sign == Comparison.LE || sign == Comparison.GE) &&
+                (!isUsableConditionBound(tolerance, converter) || tolerance.compareTo(converter.zero) <= 0)
+            ) {
+                return Failed(ErrorCode.IllegalArgument, "非严格比较需要正有限 tolerance。 / Non-strict comparisons require positive finite tolerance.")
+            }
+            val constraints = when (val result = buildConstraints()) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            for (constraint in constraints) {
+                val difference = LinearPolynomial(
+                    monomials = constraint.lhs.monomials + constraint.rhs.monomials.map {
+                        LinearMonomial(-it.coefficient, it.symbol)
+                    },
+                    constant = constraint.lhs.constant - constraint.rhs.constant
+                )
+                if (!hasUsableConditionSolverValues(difference, converter)) {
+                    return Failed(ErrorCode.IllegalArgument, "比较约束展平后数值无效。 / Invalid flattened comparison constraint values.")
+                }
+            }
+            Ok(constraints)
+        } catch (_: RuntimeException) {
+            Failed(ErrorCode.IllegalArgument, "构造比较约束失败。 / Failed to build comparison constraints.")
+        }
+    }
+
+    private fun buildConstraints(): Ret<List<LinearInequality<V>>> {
+        return deferredStructure()?.generateConstraints()
+            ?: Failed(ErrorCode.IllegalArgument, "比较关系不支持展开。 / Unsupported comparison lowering.")
+    }
+
+    private fun validEqualityBand(): Boolean {
+        return isUsableConditionBound(tolerance, converter) &&
+            isUsableConditionBound(strictBoundary, converter) &&
+            tolerance.compareTo(converter.zero) >= 0 &&
+            strictBoundary.compareTo(tolerance) > 0
+    }
+
     companion object {
         /**
          * 创建不等式满足指示函数实例 / Create an inequality function instance

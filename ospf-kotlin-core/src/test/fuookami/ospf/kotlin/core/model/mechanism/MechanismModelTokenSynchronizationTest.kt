@@ -4,6 +4,8 @@ import kotlin.test.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
+import fuookami.ospf.kotlin.core.model.intermediate.UnivariateLinearPiecewiseStructure
 import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
@@ -107,6 +109,183 @@ class MechanismModelTokenSynchronizationTest {
                 }
             } finally {
                 secondMechanism.close()
+            }
+        } finally {
+            metaModel.close()
+        }
+    }
+
+    @Test
+    fun piecewiseStructureRecordsItsFallbackConstraintRegion() = runBlocking {
+        val converter = IntoValue.Identity
+        val x = RealVar("mechanism_pwl_region_x")
+        x.range.geq(Flt64.zero)
+        x.range.leq(Flt64(2.0))
+        val function = UnivariateLinearPiecewiseFunction(
+            x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, x)), Flt64.zero),
+            breakpoints = listOf(Flt64.zero, Flt64.one, Flt64(2.0)),
+            slopes = listOf(Flt64.one, Flt64.two),
+            intercepts = listOf(Flt64.zero, -Flt64.one),
+            m = Flt64(10.0),
+            converter = converter,
+            name = "mechanism_pwl_region"
+        )
+        val metaModel = LinearMetaModel<Flt64>(
+            name = "mechanism-pwl-region",
+            converter = converter
+        )
+        try {
+            assertTrue(metaModel.add(x) is Ok)
+            assertTrue(metaModel.add(LinearFunctionSymbolAdapter(function, converter)) is Ok)
+            assertTrue(metaModel.minimize(function.resultPolynomial) is Ok)
+            assertTrue(metaModel.addConstraint(LinearInequality(
+                lhs = function.x,
+                rhs = constant(Flt64.zero),
+                comparison = Comparison.GE,
+                name = "preceding_bound"
+            )) is Ok)
+            val result = LinearMechanismModel.invoke<Flt64>(
+                metaModel = metaModel,
+                concurrent = false,
+                blocking = true
+            )
+            val mechanism = when (result) {
+                is Ok -> result.value
+                is Failed -> fail(result.error.message)
+                is Fatal -> fail(result.errors.joinToString { it.message })
+            }
+            try {
+                assertEquals(1, mechanism.deferredFunctionConstraintRegions.size)
+                val region = mechanism.deferredFunctionConstraintRegions.single()
+                assertTrue(region.constraintCount > 0)
+                assertTrue(region.firstConstraintIndex >= 0)
+                assertTrue(region.lastConstraintIndex <= mechanism.linearConstraints.size)
+                for (dumpBounds in listOf(false, true)) {
+                    val triad = LinearTriadModel(
+                        model = mechanism,
+                        dumpConstraintsToBounds = dumpBounds,
+                        concurrent = false
+                    )
+                    try {
+                        val mapped = triad.deferredFunctionConstraintRegions.single()
+                        val structure = triad.deferredFunctionStructures.single() as UnivariateLinearPiecewiseStructure<*>
+                        assertSame(structure, mapped.structure)
+                        assertTrue(structure.usage.inObjective)
+                        assertFalse(structure.usage.inConstraint)
+                        val expected = mechanism.linearConstraints.subList(region.firstConstraintIndex, region.lastConstraintIndex)
+                        assertEquals(expected, triad.constraints.origins.subList(mapped.firstConstraintIndex, mapped.lastConstraintIndex))
+                        assertEquals(if (dumpBounds) 0 else 1, mapped.firstConstraintIndex)
+                    } finally {
+                        triad.close()
+                    }
+                }
+                val fixedResultModel = LinearTriadModel(
+                    model = mechanism,
+                    fixedVariables = mapOf(function.resultVar to Flt64.one),
+                    concurrent = false
+                )
+                try {
+                    val structure = fixedResultModel.deferredFunctionStructures.single() as UnivariateLinearPiecewiseStructure<*>
+                    assertTrue(structure.usage.externallyReferenced)
+                    assertFalse(structure.usage.supportsObjectiveOnlyNative())
+                } finally {
+                    fixedResultModel.close()
+                }
+                val convertedResult = convertMechanismModelToFlt64(mechanism)
+                val converted = when (convertedResult) {
+                    is Ok -> convertedResult.value as LinearMechanismModel<Flt64>
+                    is Failed -> fail(convertedResult.error.message)
+                    is Fatal -> fail(convertedResult.errors.joinToString { it.message })
+                }
+                try {
+                    assertSame(mechanism.deferredFunctionStructures.single(), converted.deferredFunctionStructures.single())
+                    assertEquals(mechanism.deferredFunctionConstraintRegions, converted.deferredFunctionConstraintRegions)
+                    val convertedTriad = LinearTriadModel(
+                        model = converted,
+                        dumpConstraintsToBounds = true,
+                        concurrent = false
+                    )
+                    try {
+                        val convertedRegion = convertedTriad.deferredFunctionConstraintRegions.single()
+                        assertEquals(0, convertedRegion.firstConstraintIndex)
+                        assertEquals(region.constraintCount, convertedRegion.constraintCount)
+                        assertTrue((convertedRegion.structure as UnivariateLinearPiecewiseStructure<*>).usage.inObjective)
+                    } finally {
+                        convertedTriad.close()
+                    }
+                } finally {
+                    converted.close()
+                }
+                assertTrue(mechanism.addConstraint(
+                    relation = LinearInequality(
+                        lhs = constant(Flt64.one),
+                        rhs = function.resultPolynomial,
+                        comparison = Comparison.LE,
+                        name = "result_on_rhs"
+                    ),
+                    name = "result_on_rhs"
+                ) is Ok)
+                val rhsModel = LinearTriadModel(model = mechanism, concurrent = false)
+                try {
+                    val structure = rhsModel.deferredFunctionStructures.single() as UnivariateLinearPiecewiseStructure<*>
+                    assertTrue(structure.usage.inConstraint)
+                } finally {
+                    rhsModel.close()
+                }
+            } finally {
+                mechanism.close()
+            }
+        } finally {
+            metaModel.close()
+        }
+    }
+
+    @Test
+    fun piecewiseResultUsedAsAnotherInputRequiresComposableLowering() = runBlocking {
+        val input = RealVar("nested_pwl_input")
+        input.range.geq(Flt64.zero)
+        input.range.leq(Flt64.two)
+        fun piecewise(polynomial: LinearPolynomial<Flt64>, name: String) = UnivariateLinearPiecewiseFunction(
+            x = polynomial,
+            breakpoints = listOf(Flt64.zero, Flt64.one, Flt64.two),
+            slopes = listOf(Flt64.one, Flt64.one),
+            intercepts = listOf(Flt64.zero, Flt64.zero),
+            m = Flt64(10.0),
+            converter = IntoValue.Identity,
+            name = name
+        )
+        val producer = piecewise(LinearPolynomial(listOf(LinearMonomial(Flt64.one, input)), Flt64.zero), "producer")
+        val consumer = piecewise(producer.resultPolynomial, "consumer")
+        val metaModel = LinearMetaModel<Flt64>(name = "nested-pwl", converter = IntoValue.Identity)
+        try {
+            assertTrue(metaModel.add(input) is Ok)
+            assertTrue(metaModel.add(LinearFunctionSymbolAdapter(producer, IntoValue.Identity)) is Ok)
+            assertTrue(metaModel.add(LinearFunctionSymbolAdapter(consumer, IntoValue.Identity)) is Ok)
+            assertTrue(metaModel.minimize(consumer.resultPolynomial) is Ok)
+            val result = LinearMechanismModel.invoke<Flt64>(
+                metaModel = metaModel,
+                concurrent = false,
+                blocking = true
+            )
+            val mechanism = when (result) {
+                is Ok -> result.value
+                is Failed -> fail(result.error.message)
+                is Fatal -> fail(result.errors.joinToString { it.message })
+            }
+            try {
+                val triad = LinearTriadModel(model = mechanism, concurrent = false)
+                try {
+                    val structure = triad.deferredFunctionStructures.filterIsInstance<UnivariateLinearPiecewiseStructure<*>>()
+                        .single { it.resultVariable.key == producer.resultVar.key }
+                    assertTrue(structure.usage.nestedAsInput)
+                    assertFalse(structure.usage.inObjective)
+                    assertTrue(structure.usage.requiresResultVariable)
+                    assertFalse(structure.usage.supportsObjectiveOnlyNative())
+                } finally {
+                    triad.close()
+                }
+            } finally {
+                mechanism.close()
             }
         } finally {
             metaModel.close()

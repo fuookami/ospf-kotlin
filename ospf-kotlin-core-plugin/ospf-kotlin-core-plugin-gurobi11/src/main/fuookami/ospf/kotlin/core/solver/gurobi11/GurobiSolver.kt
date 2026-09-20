@@ -17,8 +17,12 @@ abstract class GurobiSolver : AutoCloseable {
 
     /** 关闭 Gurobi 11 模型和环境，释放资源 / Close Gurobi 11 model and environment, release resources */
     override fun close() {
-        grbModel.dispose()
-        env.dispose()
+        if (::grbModel.isInitialized) {
+            grbModel.dispose()
+        }
+        if (::env.isInitialized) {
+            env.dispose()
+        }
     }
 
     /**

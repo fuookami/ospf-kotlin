@@ -55,13 +55,15 @@ sealed class SubObject<V : RealNumber<V>>(
  * @param _constant 常数项 / Constant term
  * @param name 子目标名称 / Sub-objective name
  * @param origin 原始目标来源 / Original objective source
+ * @param unresolvedTerms 等待辅助 token 注册的目标项 / Objective terms awaiting helper-token registration
 */
 class LinearSubObject<V : RealNumber<V>>(
     category: ObjectCategory,
     override val cells: ArrayList<LinearCell<V>>,
     private val _constant: V,
     name: String = "",
-    origin: Any? = null
+    origin: Any? = null,
+    private val unresolvedTerms: List<Pair<V, AbstractVariableItem<*, *>>> = emptyList()
 ) : SubObject<V>(category, name, origin) {
     override val constant: V get() = _constant
 
@@ -71,10 +73,13 @@ class LinearSubObject<V : RealNumber<V>>(
      * @return 线性项列表，每项包含系数和对应的变量 / A list of linear terms, each containing a coefficient and its corresponding variable
     */
     fun linearTerms(): List<Pair<V, AbstractVariableItem<*, *>>> {
-        return cells.map { it.coefficient to it.token.variable }
+        return cells.map { it.coefficient to it.token.variable } + unresolvedTerms
     }
 
     override fun evaluate(): V? {
+        if (unresolvedTerms.isNotEmpty()) {
+            return null
+        }
         var ret = constant
         for (cell in cells) {
             ret += cell.evaluate() ?: return null
@@ -83,6 +88,9 @@ class LinearSubObject<V : RealNumber<V>>(
     }
 
     override fun evaluate(results: List<V>): V? {
+        if (unresolvedTerms.isNotEmpty()) {
+            return null
+        }
         var ret = constant
         for (cell in cells) {
             ret += cell.evaluate(results) ?: return null
@@ -121,7 +129,11 @@ class LinearSubObject<V : RealNumber<V>>(
                 cells = cells,
                 _constant = flattenData.constant,
                 name = name,
-                origin = origin
+                origin = origin,
+                unresolvedTerms = flattenData.monomials.mapNotNull { monomial ->
+                    val variable = monomial.symbol as? AbstractVariableItem<*, *> ?: return@mapNotNull null
+                    if (tokens.find(variable) == null) monomial.coefficient to variable else null
+                }
             )
         }
     }

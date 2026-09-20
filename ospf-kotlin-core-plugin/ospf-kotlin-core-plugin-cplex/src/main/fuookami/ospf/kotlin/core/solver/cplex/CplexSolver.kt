@@ -1,9 +1,11 @@
 /** CPLEX 求解器基类 / CPLEX solver base */
 package fuookami.ospf.kotlin.core.solver.cplex
 
+import ilog.concert.IloException
 import ilog.cplex.IloCplex
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.solver.environmentLost
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 
 /** CPLEX 求解器抽象基类，提供环境初始化和状态分析的通用实现 / CPLEX solver abstract base class, provides common implementation for environment initialization and status analysis */
@@ -13,8 +15,14 @@ abstract class CplexSolver : AutoCloseable {
 
     /** 关闭 CPLEX 模型和环境，释放资源 / Close CPLEX model and environment, release resources */
     override fun close() {
-        cplex.endModel()
-        cplex.end()
+        if (!::cplex.isInitialized) {
+            return
+        }
+        try {
+            cplex.endModel()
+        } finally {
+            cplex.end()
+        }
     }
 
     /**
@@ -24,9 +32,21 @@ abstract class CplexSolver : AutoCloseable {
      * @return 操作结果 / operation result
     */
     protected suspend fun init(name: String): Try {
-        cplex = IloCplex()
-        cplex.name = name
-        return ok
+        return try {
+            cplex = IloCplex()
+            cplex.name = name
+            ok
+        } catch (error: IloException) {
+            environmentLost(
+                "CPLEX 环境初始化失败：${error.message ?: error::class.simpleName} / " +
+                    "CPLEX environment initialization failed: ${error.message ?: error::class.simpleName}"
+            )
+        } catch (error: LinkageError) {
+            environmentLost(
+                "CPLEX 本地库不可用：${error.message ?: error::class.simpleName} / " +
+                    "CPLEX native library is unavailable: ${error.message ?: error::class.simpleName}"
+            )
+        }
     }
 
     /**

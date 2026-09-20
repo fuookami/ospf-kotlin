@@ -24,8 +24,12 @@ abstract class CoptSolver : AutoCloseable {
 
     /** 关闭 COPT 模型和环境，释放资源 / Close COPT model and environment, release resources */
     override fun close() {
-        coptModel.dispose()
-        env.dispose()
+        if (::coptModel.isInitialized) {
+            coptModel.dispose()
+        }
+        if (::env.isInitialized) {
+            env.dispose()
+        }
     }
 
     /**

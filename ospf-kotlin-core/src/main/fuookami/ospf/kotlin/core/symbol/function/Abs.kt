@@ -3,16 +3,20 @@
 /** 绝对值函数符号 / Absolute value function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.token.AddableTokenCollection
-import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.model.intermediate.AbsHelperBoundsSnapshot
+import fuookami.ospf.kotlin.core.model.intermediate.AbsStructure
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionStructure
+import fuookami.ospf.kotlin.core.model.intermediate.generateAbsConstraints
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.variable.*
 
 /**
  * 绝对值函数符号 / Absolute value function symbol
@@ -65,6 +69,8 @@ class AbsFunction<V>(
     val negVar: URealVar = URealVar("${name}_abs_neg")
     val signVar: BinVar = BinVar("${name}_abs_sign")
 
+    private val capturedHelperBounds: Map<VariableItemKey, AbsHelperBoundsSnapshot>
+
     init {
         inputBounds?.let {
             resultVar.range.leq(
@@ -75,6 +81,37 @@ class AbsFunction<V>(
             posVar.range.leq(converter.fromValue(if (it.upper gr converter.zero) it.upper else converter.zero))
             negVar.range.leq(converter.fromValue(if (it.lower ls converter.zero) -it.lower else converter.zero))
         }
+        capturedHelperBounds = mapOf(
+            posVar.key to captureHelperBounds(posVar),
+            negVar.key to captureHelperBounds(negVar),
+            signVar.key to captureHelperBounds(signVar)
+        )
+    }
+
+    private fun captureHelperBounds(variable: AbstractVariableItem<*, *>): AbsHelperBoundsSnapshot {
+        return AbsHelperBoundsSnapshot(
+            lower = variable.lowerBound?.value?.unwrap(),
+            upper = variable.upperBound?.value?.unwrap()
+        )
+    }
+
+    override fun deferredStructure(): DeferredFunctionStructure {
+        val snapshotInput = LinearPolynomial(
+            monomials = polynomial.monomials.map { LinearMonomial(it.coefficient, it.symbol) },
+            constant = polynomial.constant
+        )
+        return AbsStructure(
+            input = snapshotInput,
+            resultVariable = resultVar,
+            positiveVariable = posVar,
+            negativeVariable = negVar,
+            signVariable = signVar,
+            positiveBigM = positiveBigM,
+            negativeBigM = negativeBigM,
+            converter = converter,
+            name = name,
+            capturedHelperBounds = capturedHelperBounds.toMap()
+        )
     }
 
     override val resultPolynomial: LinearPolynomial<V>
@@ -97,46 +134,21 @@ class AbsFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val zero = converter.zero
-        val one = converter.one
-        val allConstraints = mutableListOf<LinearInequality<V>>()
-
-        // result = pos + neg / 结果 = 正部 + 负部
-        allConstraints += LinearInequality(
-            LinearPolynomial(listOf(
-                LinearMonomial(one, resultVar),
-                LinearMonomial(-one, posVar),
-                LinearMonomial(-one, negVar)
-            ), zero),
-            LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_abs_result")
-
-        // poly = pos - neg / 输入 = 正部 - 负部
-        val polyMonos = polynomial.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-        allConstraints += LinearInequality(
-            LinearPolynomial(polyMonos + listOf(
-                LinearMonomial(-one, posVar),
-                LinearMonomial(one, negVar)
-            ), polynomial.constant),
-            LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_abs_decompose")
-
-        // pos <= M * sign / 正部上界：pos <= M * sign
-        allConstraints += LinearInequality(
-            LinearPolynomial(listOf(
-                LinearMonomial(one, posVar),
-                LinearMonomial(-positiveBigM, signVar)
-            ), zero),
-            LinearPolynomial(emptyList(), zero), Comparison.LE, "${name}_abs_pos_ub")
-
-        // neg <= M * (1 - sign) / 负部上界：neg <= M * (1 - sign)
-        allConstraints += LinearInequality(
-            LinearPolynomial(listOf(
-                LinearMonomial(one, negVar),
-                LinearMonomial(negativeBigM, signVar)
-            ), zero),
-            LinearPolynomial(emptyList(), negativeBigM), Comparison.LE, "${name}_abs_neg_ub")
-
-        addConstraints(model, allConstraints)?.let { return it }
-        return ok
+        return when (val result = generateAbsConstraints(
+            input = polynomial,
+            resultVariable = resultVar,
+            positiveVariable = posVar,
+            negativeVariable = negVar,
+            signVariable = signVar,
+            positiveBigM = positiveBigM,
+            negativeBigM = negativeBigM,
+            converter = converter,
+            name = name
+        )) {
+            is Ok -> addConstraints(model, result.value)?.let { it } ?: ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
     }
     companion object {
         /**

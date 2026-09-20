@@ -4,6 +4,7 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionStructure
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
@@ -89,6 +90,8 @@ class SlackRangeFunction<V>(
         get() = inner.helperVariables
     override val resultPolynomial: LinearPolynomial<V>
         get() = inner.resultPolynomial
+
+    override fun deferredStructure(): DeferredFunctionStructure = inner.deferredStructure()
 
     override fun evaluate(values: Map<Symbol, V>): V? = inner.evaluate(values)
 

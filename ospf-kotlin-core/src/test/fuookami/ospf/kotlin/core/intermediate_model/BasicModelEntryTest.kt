@@ -83,7 +83,7 @@ class BasicModelEntryTest {
         )
 
         val tokenIndexMap = tokens.tokensInSolver.withIndex().associate { (index, token) -> token to index }
-        val basicModel = BasicLinearTriadModel.from(mechanismModel, tokenIndexMap)
+        val basicModel = BasicLinearTriadModel.from(mechanismModel, tokenIndexMap).valueOrFail()
 
         assertEquals("factory-model", basicModel.name)
         assertEquals(2, basicModel.variables.size)

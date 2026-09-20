@@ -164,6 +164,11 @@ suspend fun <V> AbstractLinearSolver.solveReport(
     converter: IntoValue<V>,
     solvingStatusCallBack: SolvingStatusCallBack? = null
 ): Ret<SolveReport<V>> where V : RealNumber<V>, V : NumberField<V> {
+    when (val validation = model.identityValidation) {
+        is Ok -> {}
+        is Failed -> return Failed(validation.error)
+        is Fatal -> return Fatal(validation.errors)
+    }
     return when (val result = invoke(model, solvingStatusCallBack)) {
         is Ok -> Ok(result.value.toSolveReport().withModelDiagnostics(model).convertTo(converter))
         is Failed -> Failed(result.error)
@@ -187,6 +192,11 @@ suspend fun <V> AbstractLinearSolver.solveReport(
     converter: IntoValue<V>,
     solvingStatusCallBack: SolvingStatusCallBack? = null
 ): Ret<SolveReport<V>> where V : RealNumber<V>, V : NumberField<V> {
+    when (val validation = model.identityValidation) {
+        is Ok -> {}
+        is Failed -> return Failed(validation.error)
+        is Fatal -> return Fatal(validation.errors)
+    }
     return when (val result = invoke(model, solutionAmount, solvingStatusCallBack)) {
         is Ok -> Ok(
             result.value.first.toSolveReport(solutionPool = result.value.second).withModelDiagnostics(model).convertTo(converter)
