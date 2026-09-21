@@ -36,15 +36,6 @@ fun gurobiFunctionSolverCapabilities(
     val integer = java.lang.Integer.TYPE
     val generalConstraint = GRBGenConstr::class.java
     val supported = buildSet {
-        add(FunctionNativeCapability.SemiContinuous)
-        if (listOf("addGenConstrAnd", "addGenConstrOr").all { method ->
-                has(
-                    name = method,
-                    returnType = generalConstraint,
-                    parameters = *arrayOf(variable, variables, text)
-                )
-            }
-        ) add(FunctionNativeCapability.BinaryLogic)
         if (has(
             name = "setPWLObj",
             returnType = java.lang.Void.TYPE,
@@ -81,6 +72,19 @@ fun gurobiFunctionSolverCapabilities(
             )
         }) {
             add(FunctionNativeCapability.GeneralMinMax)
+        }
+        if (modelClass == GRBModel::class.java &&
+            runCatching { GRB::class.java.getField("SEMICONT") }.isSuccess
+        ) {
+            add(FunctionNativeCapability.SemiContinuous)
+            if (listOf("addGenConstrAnd", "addGenConstrOr").all { method ->
+                    has(
+                        name = method,
+                        returnType = generalConstraint,
+                        parameters = *arrayOf(variable, variables, text)
+                    )
+                }
+            ) add(FunctionNativeCapability.BinaryLogic)
         }
     }
     return FunctionSolverCapabilities(
