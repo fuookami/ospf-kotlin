@@ -1,5 +1,5 @@
 /**
- * 变量类型（VariableType）单元测试。 / Unit tests for the variable type system.
+ * 变量类型（[VariableType]）单元测试。 / Unit tests for [VariableType].
  *
  * 变量类型决定变量取值域与分类标志，是建模正确性的基础，因此逐类型固定其契约。
  * Variable types define value ranges and classification flags; they underpin modeling
@@ -8,8 +8,8 @@
 package fuookami.ospf.kotlin.core.variable
 
 import kotlin.test.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
 
 class VariableTypeTest {
 

@@ -2,19 +2,21 @@ package fuookami.ospf.kotlin.core.solver
 
 import kotlin.test.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.value_range.Interval
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.core.model.intermediate.ZeroBand
 import fuookami.ospf.kotlin.core.model.intermediate.ConditionalValue
 import fuookami.ospf.kotlin.core.model.intermediate.ImpliedCondition
-import fuookami.ospf.kotlin.core.model.intermediate.ZeroBand
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.function.IfInFunction
+import fuookami.ospf.kotlin.core.symbol.function.ConditionBounds
 import fuookami.ospf.kotlin.core.symbol.function.BinaryzationFunction
 import fuookami.ospf.kotlin.core.symbol.function.BalanceTernaryzationFunction
-import fuookami.ospf.kotlin.core.symbol.function.ConditionBounds
-import fuookami.ospf.kotlin.core.symbol.function.IfInFunction
-import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.core.variable.BinVar
+import fuookami.ospf.kotlin.core.variable.RealVar
 
 class NativeIndicatorTest {
     @Test
@@ -231,11 +233,11 @@ class NativeIndicatorTest {
     @Test
     fun unboundedInputKeepsFallback() {
         val input = RealVar("indicator_unbounded")
-        input.range.set(fuookami.ospf.kotlin.math.algebra.value_range.ValueRange(
+        input.range.set(ValueRange(
             lb = Flt64.minimum,
             ub = Flt64.maximum,
-            lbInterval = fuookami.ospf.kotlin.math.algebra.value_range.Interval.Closed,
-            ubInterval = fuookami.ospf.kotlin.math.algebra.value_range.Interval.Closed,
+            lbInterval = Interval.Closed,
+            ubInterval = Interval.Closed,
             constants = Flt64
         ).value!!)
         val structure = BinaryzationFunction(

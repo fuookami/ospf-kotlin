@@ -1,18 +1,11 @@
 package fuookami.ospf.kotlin.core.solver.gurobi11
 
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
-import fuookami.ospf.kotlin.core.model.intermediate.AbsStructure
-import fuookami.ospf.kotlin.core.model.intermediate.MaxStructure
-import fuookami.ospf.kotlin.core.model.intermediate.SemiStructure
-import fuookami.ospf.kotlin.core.model.intermediate.IndicatorStructure
-import fuookami.ospf.kotlin.core.model.intermediate.MaskingStructure
-import fuookami.ospf.kotlin.core.model.intermediate.BinaryLogicStructure
-import fuookami.ospf.kotlin.core.model.intermediate.UnivariateLinearPiecewiseStructure
-import fuookami.ospf.kotlin.core.solver.restoreNativePiecewiseSolution
-import fuookami.ospf.kotlin.core.solver.report.SolveReport
-import fuookami.ospf.kotlin.core.token.Token
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.token.Token
+import fuookami.ospf.kotlin.core.solver.report.SolveReport
+import fuookami.ospf.kotlin.core.solver.restoreNativePiecewiseSolution
 
 /**
  * 使用 core 报告恢复逻辑，并标记 Gurobi 11 backend。 / Delegate report restoration to core and mark the Gurobi 11 backend.

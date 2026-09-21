@@ -2,26 +2,26 @@ package fuookami.ospf.kotlin.core.solver.gurobi11
 
 import kotlin.test.*
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assumptions.assumeTrue
 import com.gurobi.gurobi.GRB
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.report.SolveReport
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.function.AbsFunction
 import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /** Gurobi 11 负值 ABS 原生集成测试；无 license 时明确跳过。 / Gurobi 11 negative ABS integration test; explicitly skipped without a license. */
 class Gurobi11DeferredAbsIT {
@@ -78,7 +78,14 @@ class Gurobi11DeferredAbsIT {
                 )
 
                 assertEquals(1, shapes.single().numGenConstrs)
-                assertEquals(Flt64(1.5), valueAt(report, mechanism, function.resultVar))
+                assertEquals(
+                    expected = Flt64(1.5),
+                    actual = valueAt(
+                        report = report,
+                        model = mechanism,
+                        variable = function.resultVar
+                    )
+                )
             } finally {
                 mechanism.close()
             }

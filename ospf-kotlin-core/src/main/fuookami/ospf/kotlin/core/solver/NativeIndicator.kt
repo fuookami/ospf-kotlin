@@ -4,15 +4,16 @@ import kotlin.math.abs
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.core.model.intermediate.IndicatorStructure
 import fuookami.ospf.kotlin.core.model.intermediate.ConditionalValue
+import fuookami.ospf.kotlin.core.model.intermediate.IndicatorStructure
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * 已验证的双向正数指示数据。 / Validated bidirectional positive-indicator data.
+ *
  * @property terms 仿射系数 / Affine coefficients
  * @property constant 仿射常数 / Affine constant
  * @property tolerance 真分支阈值 / True-branch threshold
@@ -49,6 +50,7 @@ data class NativeIndicatorData(
 
 /**
  * 互斥条件差值数据。 / Exclusive condition difference data.
+ *
  * @property condition 减数条件 / Subtracted condition
  * @property resultKey 保留结果键 / Retained result key
  * @property name 链接名称 / Link name
@@ -61,6 +63,7 @@ data class NativeDifferenceIndicatorData(
 
 /**
  * 两个重化条件的合取结果。 / Conjunction result of two reified conditions.
+ *
  * @property condition 第二个条件 / Second condition
  * @property resultKey 保留的合取结果键 / Retained conjunction result key
  * @property name 链接约束名称 / Link constraint name
@@ -73,6 +76,7 @@ data class NativeConjoinedIndicatorData(
 
 /**
  * 已验证的零容差带。 / Validated zero-tolerance band.
+ *
  * @property tolerance 带内绝对值上界 / Inside-band absolute-value limit
  * @property sideKey 保留方向列的键 / Retained side column key
  */
@@ -83,6 +87,7 @@ data class NativeZeroBandData(
 
 /**
  * 已验证的条件数值结果。 / Validated conditional numeric result.
+ *
  * @property terms 真分支仿射项 / True-branch affine terms
  * @property constant 真分支常数 / True-branch constant
  * @property resultKey 保留的数值结果键 / Retained numeric result key
@@ -101,6 +106,7 @@ data class NativeConditionalValueData(
 
 /**
  * 校验完整图关系及原 M 的覆盖范围。 / Validate the complete graph relation and original M coverage.
+ *
  * @param structure 指示结构 / Indicator structure
  * @param maximumMagnitude 数值幅值上限 / Numeric magnitude limit
  * @return 已验证数据或失败 / Validated data or failure

@@ -14,7 +14,6 @@ ospf：https://github.com/fuookami/ospf
 
 :us: [English](README.md) | :cn: 简体中文
 
-
 ## 架构概览
 
 工作区采用分层架构：
@@ -196,7 +195,6 @@ ospf-kotlin 已经发布到 maven 中央仓库，因此，如果你使用 maven 
     <version>1.1.0</version>
 </dependency>
 ```
-
 
 ## 版本记录
 

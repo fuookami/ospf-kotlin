@@ -38,7 +38,11 @@ fun gurobiFunctionSolverCapabilities(
     val supported = buildSet {
         add(FunctionNativeCapability.SemiContinuous)
         if (listOf("addGenConstrAnd", "addGenConstrOr").all { method ->
-                has(method, generalConstraint, variable, variables, text)
+                has(
+                    name = method,
+                    returnType = generalConstraint,
+                    parameters = *arrayOf(variable, variables, text)
+                )
             }
         ) add(FunctionNativeCapability.BinaryLogic)
         if (has(

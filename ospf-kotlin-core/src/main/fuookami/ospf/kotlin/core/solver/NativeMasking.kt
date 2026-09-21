@@ -1,15 +1,17 @@
 package fuookami.ospf.kotlin.core.solver
 
+import kotlin.math.abs
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.intermediate.MaskingStructure
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * 已验证的二值门控。 / Validated binary masking.
+ *
  * @property maskKey 输入 mask 键 / Input mask key
  * @property value 数值结果及范围证明 / Numeric result and bounds proof
  * @property definition 可选的 mask 定义等式 / Optional mask definition equality
@@ -22,6 +24,7 @@ data class NativeMaskingData(
 
 /**
  * mask 的仿射定义，不要求表达式整个域都在 [0,1] 内。 / Affine mask definition without requiring its entire domain inside [0,1].
+ *
  * @property terms 仿射系数 / Affine coefficients
  * @property constant 常数项 / Constant term
  */
@@ -29,6 +32,7 @@ data class NativeMaskDefinitionData(val terms: Map<VariableItemKey, Double>, val
 
 /**
  * 验证门控关系及原 fallback 输入域。 / Validate masking and the original fallback input domain.
+ *
  * @param structure 门控快照 / Masking snapshot
  * @param maximumMagnitude 求解器数值幅值上限 / Solver magnitude limit
  * @return 已验证数据或错误 / Validated data or failure
@@ -49,7 +53,7 @@ private fun <V> prepareMasking(
             is Fatal -> return Fatal(constraints.errors)
         }
         val definition = structure.maskDefinition?.let { polynomial ->
-            fun usable(value: Double) = value.isFinite() && kotlin.math.abs(value) < minOf(maximumMagnitude, Double.MAX_VALUE)
+            fun usable(value: Double) = value.isFinite() && abs(value) < minOf(maximumMagnitude, Double.MAX_VALUE)
             val constant = structure.converter.fromValue(polynomial.constant).toSolverDouble(fieldName = "maskDefinition.constant")
             if (!usable(constant)) return Failed(ErrorCode.IllegalArgument, "mask 定义常数无效。 / Invalid mask definition constant.")
             val terms = linkedMapOf<VariableItemKey, Double>()

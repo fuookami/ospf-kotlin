@@ -4,41 +4,41 @@
 package fuookami.ospf.kotlin.core.solver.constraint_programming.lowering
 
 import java.math.BigInteger
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.constraint_programming.BooleanLiteral
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingComparison
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingExpression
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
-import fuookami.ospf.kotlin.core.model.constraint_programming.Cumulative
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalId
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalVariable
-import fuookami.ospf.kotlin.core.model.constraint_programming.NoOverlap
-import fuookami.ospf.kotlin.core.model.constraint_programming.ReificationDirection
 import fuookami.ospf.kotlin.core.model.mechanism.MathConstraint
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModelConfiguration
+import fuookami.ospf.kotlin.core.model.constraint_programming.NoOverlap
+import fuookami.ospf.kotlin.core.model.constraint_programming.Cumulative
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalId
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
+import fuookami.ospf.kotlin.core.model.constraint_programming.BooleanLiteral
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalVariable
+import fuookami.ospf.kotlin.core.model.constraint_programming.ReificationDirection
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingComparison
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingExpression
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
+import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
 import fuookami.ospf.kotlin.core.solver.report.ConstraintId
 import fuookami.ospf.kotlin.core.solver.report.ModelElementIdentityRegistry
-import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
-import fuookami.ospf.kotlin.core.solver.report.VariableId
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.IntVar
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * 降阶后的线性模型及 CP 变量映射。[variables] 只包含原 CP 变量；降阶器生成的辅助变量不会暴露到 CP 解中。 / Lowered linear model and CP-variable mapping. / [variables] contains only original CP variables; generated auxiliaries are not exposed in CP solutions.
@@ -49,6 +49,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * @property intervals 原 interval 映射 / Original interval mapping
  * @property domains 原 CP 值域 / Original CP domains
  * @property artifacts 降阶 artifact 与源 CP 元素的映射 / Lowered artifacts and their CP source mappings
+ * @property constraintProvenance 每个生成线性元约束的显式来源 / Explicit source provenance for each generated linear meta constraint
  */
 data class ConstraintProgrammingLoweredLinearModel(
     val model: LinearMetaModel<Flt64>,

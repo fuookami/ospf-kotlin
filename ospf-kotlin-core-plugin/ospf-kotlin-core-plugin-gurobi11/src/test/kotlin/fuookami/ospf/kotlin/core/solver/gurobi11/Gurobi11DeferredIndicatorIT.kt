@@ -5,14 +5,16 @@ import kotlinx.coroutines.runBlocking
 import com.gurobi.gurobi.GRB
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.variable.RealVar
 
@@ -34,7 +36,11 @@ class Gurobi11DeferredIndicatorIT {
                 val policy = if (mode == "eager") FunctionExpansionPolicy.EAGER else FunctionExpansionPolicy.DEFERRED_NATIVE_FIRST
                 val meta = LinearMetaModel<Flt64>(
                     name = "indicator_it",
-                    configuration = MetaModelConfiguration(concurrent = false, dumpBlocking = true, functionExpansionPolicy = policy),
+                    configuration = MetaModelConfiguration(
+                        concurrent = false,
+                        dumpBlocking = true,
+                        functionExpansionPolicy = policy
+                    ),
                     converter = IntoValue.Identity
                 )
                 try {
@@ -45,7 +51,11 @@ class Gurobi11DeferredIndicatorIT {
                     mechanism.use {
                         val shapes = mutableListOf<Pair<Int, Int>>()
                         val solver = GurobiLinearSolver(
-                            config = SolverConfig(threadNum = UInt64.one, dumpIntermediateModelBounds = false, functionExpansionPolicy = policy),
+                            config = SolverConfig(
+                                threadNum = UInt64.one,
+                                dumpIntermediateModelBounds = false,
+                                functionExpansionPolicy = policy
+                            ),
                             callBack = GurobiLinearSolverCallBack().afterModeling { _, model, _, _ ->
                                 model.update()
                                 shapes += model.get(GRB.IntAttr.NumConstrs) to model.get(GRB.IntAttr.NumGenConstrs)
@@ -56,14 +66,28 @@ class Gurobi11DeferredIndicatorIT {
                         if (mode == "failed") {
                             solver.nativeIndicatorWriter = { model, variables, structures ->
                                 writes++
-                                requireOk(addGurobiNativeIndicator(model, variables, structures))
+                                requireOk(
+                                    addGurobiNativeIndicator(
+                                        model = model,
+                                        variables = variables,
+                                        structures = structures
+                                    )
+                                )
                                 Failed(ErrorCode.OREngineModelingException, "injected failure after native write")
                             }
                         }
                         val report = requireOk(solver.solve(mechanism, IntoValue.Identity))
                         val resultIndex = mechanism.tokens.tokensInSolver.indexOfFirst { it.key == function.resultVar.key }
-                        assertEquals(if (inputValue > 0) 1.0 else 0.0, report.values[resultIndex].toDouble(), 1e-8)
-                        assertEquals(listOf(if (mode == "eager" || mode == "failed") 2 to 0 else 0 to 2), shapes, mode)
+                        assertEquals(
+                            expected = if (inputValue > 0) 1.0 else 0.0,
+                            actual = report.values[resultIndex].toDouble(),
+                            absoluteTolerance = 1e-8
+                        )
+                        assertEquals(
+                            expected = listOf(if (mode == "eager" || mode == "failed") 2 to 0 else 0 to 2),
+                            actual = shapes,
+                            message = mode
+                        )
                         assertEquals(if (mode == "failed") 1 else 0, writes)
                         if (mode == "native") {
                             assertTrue(report.fingerprints.model!!.schemaVersion.contains("indicator"))
@@ -101,7 +125,11 @@ class Gurobi11DeferredIndicatorIT {
                 ) else null
                 val meta = LinearMetaModel<Flt64>(
                     name = "indicator_usage",
-                    configuration = MetaModelConfiguration(concurrent = false, dumpBlocking = true, functionExpansionPolicy = policy),
+                    configuration = MetaModelConfiguration(
+                        concurrent = false,
+                        dumpBlocking = true,
+                        functionExpansionPolicy = policy
+                    ),
                     converter = IntoValue.Identity
                 )
                 try {
@@ -109,10 +137,10 @@ class Gurobi11DeferredIndicatorIT {
                     requireOk(meta.add(LinearFunctionSymbolAdapter(function, IntoValue.Identity)))
                     if (nested != null) requireOk(meta.add(LinearFunctionSymbolAdapter(nested, IntoValue.Identity)))
                     if (usage in listOf("constraint", "mixed", "smallM")) {
-                        val relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality(
+                        val relation = LinearInequality(
                             lhs = if (usage == "smallM") inputPolynomial else function.resultPolynomial,
                             rhs = LinearPolynomial(emptyList(), Flt64(if (usage == "smallM") 0.5 else 1.0)),
-                            comparison = fuookami.ospf.kotlin.math.symbol.inequality.Comparison.EQ,
+                            comparison = Comparison.EQ,
                             name = "external_reference"
                         )
                         requireOk(meta.addConstraint(relation = relation, name = relation.name))
@@ -124,7 +152,11 @@ class Gurobi11DeferredIndicatorIT {
                     mechanism.use {
                         val shapes = mutableListOf<Pair<Int, Int>>()
                         val solver = GurobiLinearSolver(
-                            config = SolverConfig(threadNum = UInt64.one, dumpIntermediateModelBounds = false, functionExpansionPolicy = policy),
+                            config = SolverConfig(
+                                threadNum = UInt64.one,
+                                dumpIntermediateModelBounds = false,
+                                functionExpansionPolicy = policy
+                            ),
                             callBack = GurobiLinearSolverCallBack().afterModeling { _, model, _, _ ->
                                 model.update()
                                 shapes += model.get(GRB.IntAttr.NumConstrs) to model.get(GRB.IntAttr.NumGenConstrs)
@@ -133,15 +165,28 @@ class Gurobi11DeferredIndicatorIT {
                         )
                         val report = requireOk(solver.solve(mechanism, IntoValue.Identity))
                         val index = mechanism.tokens.tokensInSolver.indexOfFirst { it.key == function.resultVar.key }
-                        assertEquals(1.0, report.values[index].toDouble(), 1e-8, "$usage $policy")
+                        assertEquals(
+                            expected = 1.0,
+                            actual = report.values[index].toDouble(),
+                            absoluteTolerance = 1e-8,
+                            message = "$usage $policy"
+                        )
                         if (nested != null) {
                             val nestedIndex = mechanism.tokens.tokensInSolver.indexOfFirst { it.key == nested.resultVar.key }
-                            assertEquals(1.0, report.values[nestedIndex].toDouble(), 1e-8)
+                            assertEquals(
+                                expected = 1.0,
+                                actual = report.values[nestedIndex].toDouble(),
+                                absoluteTolerance = 1e-8
+                            )
                         }
                         val count = if (nested == null) 2 else 4
                         val external = if (usage in listOf("constraint", "mixed", "smallM")) 1 else 0
                         val native = policy != FunctionExpansionPolicy.EAGER && usage != "smallM"
-                        assertEquals(listOf(if (native) external to count else external + count to 0), shapes, "$usage $policy")
+                        assertEquals(
+                            expected = listOf(if (native) external to count else external + count to 0),
+                            actual = shapes,
+                            message = "$usage $policy"
+                        )
                     }
                 } finally {
                     meta.close()

@@ -2,11 +2,11 @@ package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
  * 双向正数指示结构，默认由结果 1 激活 input>=tolerance，另一分支为 input<=0。
  * Bidirectional positive indicator; result one activates input>=tolerance by default, the other branch input<=0.
  *
+ * @param V 数值类型 / Numeric type
  * @property input 输入快照 / Input snapshot
  * @property resultVariable 保留的二值结果 / Retained binary result
  * @property bigM fallback 范围参数 / Fallback range parameter
@@ -50,6 +51,7 @@ data class IndicatorStructure<V>(
     val conjunction: ConjoinedIndicator<V>? = null,
     val difference: DifferenceIndicator<V>? = null
 ) : DeferredFunctionStructure where V : RealNumber<V>, V : NumberField<V> {
+
     /** 原生路径必须保留的全部结果列。 / All result columns that native lowering must retain. */
     val retainedResultVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVariable) + equivalentResults +

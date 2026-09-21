@@ -3,8 +3,8 @@ package fuookami.ospf.kotlin.core.solver.copt
 import copt.COPT
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.intermediate.*
 
 /**
  * 在机制模型编号前选择可安全交给 COPT SOS2 的 PWL 结构。 /

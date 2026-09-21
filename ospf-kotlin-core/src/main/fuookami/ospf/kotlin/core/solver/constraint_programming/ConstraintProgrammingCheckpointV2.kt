@@ -3,26 +3,28 @@ package fuookami.ospf.kotlin.core.solver.constraint_programming
 
 import java.security.MessageDigest
 import java.time.Instant
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.Serializable
 import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalId
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalValue
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingSnapshotCodec
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalValue
 import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
+import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.SolverDescriptor
 import fuookami.ospf.kotlin.core.solver.report.CancellationRecord
 import fuookami.ospf.kotlin.core.solver.report.CancellationSource
 import fuookami.ospf.kotlin.core.solver.report.SolveFingerprinting
-import fuookami.ospf.kotlin.core.solver.report.SolverDescriptor
 
 /**
  * Portable checkpoint envelope that contains no backend/native handle. / 不包含后端或 native 句柄的 checkpoint envelope。
@@ -50,6 +52,7 @@ import fuookami.ospf.kotlin.core.solver.report.SolverDescriptor
  * @property benders Benders 状态 / Benders state
  * @property cancellationChain 取消事实链，按发生顺序排列 / Cancellation-fact chain in occurrence order
  * @property provenance 求解器执行来源 / Solver execution provenance
+ * @property metadata 额外元数据 / Additional metadata
  * @property integritySha256 完整性摘要 / Integrity digest
  *
  * 字段名、顺序与可空性由 `analysis-fixtures/checkpoint-wire-contract.tsv` 的 `[envelope-field]`
@@ -411,6 +414,7 @@ object ConstraintProgrammingCheckpointCodec {
      * @param benders 可移植 Benders 状态 / Portable Benders state
      * @param cancellationChain 取消事实链，按发生顺序 / Cancellation-fact chain in occurrence order
      * @param provenance 求解器执行来源 / Solver execution provenance
+     * @param metadata 额外元数据 / Additional metadata
      * @return envelope 或结构化错误 / Envelope or structured error
      */
     fun capture(
@@ -1556,7 +1560,7 @@ object ConstraintProgrammingCheckpointCodec {
                 )
             }
         }
-        val evaluatedIntervals = linkedMapOf<fuookami.ospf.kotlin.core.model.constraint_programming.IntervalId, IntervalValue>()
+        val evaluatedIntervals = linkedMapOf<IntervalId, IntervalValue>()
         for (interval in snapshot.intervals) {
             val evaluated = interval.evaluate(values)
             if (evaluated.failed) return propagate(evaluated)
@@ -1603,7 +1607,7 @@ object ConstraintProgrammingCheckpointCodec {
         if (valuesById.keys != expectedIds) {
             return Failed(ErrorCode.IllegalArgument, "checkpoint incumbent 变量集合不匹配 / Checkpoint incumbent variable set mismatch")
         }
-        val values = valuesById.mapKeys { fuookami.ospf.kotlin.core.solver.report.VariableId(it.key) }
+        val values = valuesById.mapKeys { VariableId(it.key) }
             .mapValues { Int64(it.value) }
         if (values.any { (id, value) -> snapshot.variable(id)?.domain?.contains(value) != true }) {
             return Failed(ErrorCode.IllegalArgument, "checkpoint incumbent 超出变量值域 / Checkpoint incumbent is outside a variable domain")
@@ -1632,7 +1636,7 @@ object ConstraintProgrammingCheckpointCodec {
                 "无目标模型不应包含 checkpoint 目标值 / A model without objectives must not contain a checkpoint objective"
             )
         }
-        val intervals = linkedMapOf<fuookami.ospf.kotlin.core.model.constraint_programming.IntervalId, IntervalValue>()
+        val intervals = linkedMapOf<IntervalId, IntervalValue>()
         val expectedIntervalIds = snapshot.intervals.map { it.id.value }.toSet()
         if (intervalsById.keys != expectedIntervalIds) {
             return Failed(

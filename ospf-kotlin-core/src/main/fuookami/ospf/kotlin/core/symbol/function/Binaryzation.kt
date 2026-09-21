@@ -3,18 +3,18 @@
 /** 二值化函数符号 / Binaryzation function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.model.intermediate.IndicatorStructure
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 二值化函数符号 / Binaryzation function symbol
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [BinaryzationFunction]，使用 Big-M 方法将连续变量转换为二值变量。
  *
  * Provides [BinaryzationFunction] for converting continuous variables to binary using Big-M.
-*/
+ */
 
 /**
  * 二值化函数：使用 Big-M 方法将连续变量转换为二值变量。 / Binaryzation function: converts a continuous variable to binary using Big-M.
@@ -38,7 +38,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property displayName 可选显示名称 / optional display name
  * @param tolerance 正分支间隔，需结合求解器容差和模型尺度设置；默认保留 NONZERO_TOLERANCE。
  * Positive-branch gap, chosen for solver tolerances and model scaling; defaults to NONZERO_TOLERANCE.
-*/
+ */
 class BinaryzationFunction<V>(
     val polynomial: LinearPolynomial<V>,
     converter: IntoValue<V>,
@@ -118,6 +118,7 @@ class BinaryzationFunction<V>(
     companion object {
         /**
          * 创建二值化函数实例 / Create a binaryzation function instance
+         *
          * @param polynomial 输入线性多项式 / input linear polynomial
          * @param converter 值类型转换器 / value type converter
          * @param bigM Big-M 界限 / Big-M bound
@@ -125,7 +126,7 @@ class BinaryzationFunction<V>(
          * @param displayName 可选显示名称 / optional display name
          * @param tolerance 正分支间隔 / positive-branch gap
          * @return [BinaryzationFunction] 实例 / [BinaryzationFunction] instance
-        */
+         */
         operator fun <V> invoke(
             polynomial: LinearPolynomial<V>,
             converter: IntoValue<V>,

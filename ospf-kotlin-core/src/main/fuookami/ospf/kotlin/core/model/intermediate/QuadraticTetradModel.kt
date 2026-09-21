@@ -483,34 +483,46 @@ interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, Quadrati
     val identityValidation: Try
         get() = ok
 
-    /** 就地线性松弛（修改当前模型） / In-place linear relaxation (mutates current model)
+    /**
+     * 就地线性松弛（修改当前模型） / In-place linear relaxation (mutates current model)
+     *
      * @return 线性松弛后的模型视图 / The linearly relaxed model view
-    */
+     */
     fun linearRelax(): QuadraticTetradModelView
 
-    /** 返回线性松弛后的副本 / Return a linearly relaxed copy
+    /**
+     * 返回线性松弛后的副本 / Return a linearly relaxed copy
+     *
      * @return 线性松弛后的模型视图副本 / The linearly relaxed model view copy
-    */
+     */
     fun linearRelaxed(): QuadraticTetradModelView
 
-    /** 构造对偶模型 / Construct the dual model
+    /**
+     * 构造对偶模型 / Construct the dual model
+     *
      * @return 对偶二次四元模型 / The dual quadratic tetrad model
-    */
+     */
     suspend fun dual(): QuadraticTetradModel
 
-    /** 构造 Farkas 对偶模型 / Construct the Farkas dual model
+    /**
+     * 构造 Farkas 对偶模型 / Construct the Farkas dual model
+     *
      * @return Farkas 对偶二次四元模型 / The Farkas dual quadratic tetrad model
-    */
+     */
     suspend fun farkasDual(): QuadraticTetradModel
 
-    /** 构造可行性模型 / Construct the feasibility model
+    /**
+     * 构造可行性模型 / Construct the feasibility model
+     *
      * @return 可行性二次四元模型视图 / The feasibility quadratic tetrad model view
-    */
+     */
     fun feasibility(): QuadraticTetradModelView
 
-    /** 构造弹性模型 / Construct the elastic model
+    /**
+     * 构造弹性模型 / Construct the elastic model
+     *
      * @return 弹性二次四元模型视图 / The elastic quadratic tetrad model view
-    */
+     */
     fun elastic(): QuadraticTetradModelView
 
     /**

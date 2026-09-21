@@ -1,11 +1,11 @@
 package fuookami.ospf.kotlin.core.solver.gurobi11
 
 import com.gurobi.gurobi.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.model.intermediate.BinaryLogicOperation
 import fuookami.ospf.kotlin.core.model.intermediate.BinaryLogicStructure
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.*
 
 /** Gurobi 11 binary AND/OR native writer. / Gurobi 11 二值 AND/OR 原生写入器。 */
 internal fun addGurobiNativeBinaryLogic(
@@ -22,13 +22,26 @@ internal fun addGurobiNativeBinaryLogic(
                 return Failed(ErrorCode.IllegalArgument, "Binary logic columns must be binary variables.")
             }
             when (structure.operation) {
-                BinaryLogicOperation.And -> model.addGenConstrAnd(result, inputs, structure.name)
-                BinaryLogicOperation.Or -> model.addGenConstrOr(result, inputs, structure.name)
+                BinaryLogicOperation.And -> model.addGenConstrAnd(
+                    result,
+                    inputs,
+                    structure.name
+                )
+                BinaryLogicOperation.Or -> model.addGenConstrOr(
+                    result,
+                    inputs,
+                    structure.name
+                )
                 BinaryLogicOperation.Not -> {
                     val equality = GRBLinExpr()
                     equality.addTerm(1.0, result)
                     equality.addTerm(1.0, inputs.single())
-                    model.addConstr(equality, GRB.EQUAL, 1.0, structure.name)
+                    model.addConstr(
+                        equality,
+                        GRB.EQUAL,
+                        1.0,
+                        structure.name
+                    )
                 }
                 BinaryLogicOperation.Xor -> Unit
             }

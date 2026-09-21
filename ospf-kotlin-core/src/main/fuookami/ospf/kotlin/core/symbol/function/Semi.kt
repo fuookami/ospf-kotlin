@@ -3,22 +3,22 @@
 /** 半连续函数符号 / Semi-continuous function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionStructure
-import fuookami.ospf.kotlin.core.model.intermediate.SemiStructure
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.token.AddableTokenCollection
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.SemiStructure
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionStructure
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.BinVar
+import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * 半连续变量函数符号 / Semi-continuous variable function symbol
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [SemiFunction]，建模 y = 0 或 lb <= y <= ub 的半连续变量。
  *
  * Provides [SemiFunction] for modeling semi-continuous variables where y = 0 or lb <= y <= ub.
-*/
+ */
 
 /**
  * 半连续变量函数。 / Semi-continuous variable function.
@@ -40,7 +40,13 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
-*/
+ * @property lb 生效后的下界 / effective lower bound
+ * @property ub 生效后的上界 / effective upper bound
+ * @property resultVar 结果变量 / result variable
+ * @property indicatorVar 激活指示变量 / activation indicator variable
+ * @property helperVariables 辅助变量集合 / helper variable collection
+ * @property resultPolynomial 结果线性多项式 / result linear polynomial
+ */
 class SemiFunction<V>(
     lb: V? = null,
     ub: V? = null,
@@ -146,7 +152,7 @@ class SemiFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [SemiFunction] 实例 / [SemiFunction] instance
-        */
+         */
         fun <V> from(
             variable: AbstractVariableItem<*, *>,
             lb: V? = null,

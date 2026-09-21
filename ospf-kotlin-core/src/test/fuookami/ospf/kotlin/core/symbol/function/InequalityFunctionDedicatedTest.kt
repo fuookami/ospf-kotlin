@@ -1,30 +1,34 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.Constraint
-import fuookami.ospf.kotlin.core.model.mechanism.LinearSubObject
-import fuookami.ospf.kotlin.core.model.mechanism.Object
-import fuookami.ospf.kotlin.core.model.mechanism.SingleObject
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.solver.report.ModelElementIdentityRegistry
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.AutoTokenTable
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import kotlin.test.Test
 import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.Object
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.SingleObject
+import fuookami.ospf.kotlin.core.model.mechanism.LinearSubObject
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.token.AutoTokenTable
+import fuookami.ospf.kotlin.core.token.ManualTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.solver.report.ModelElementIdentityRegistry
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.variable.RealVar
 
-/** Dedicated contract test for the InequalityFunction symbol. */
+/** [InequalityFunction] 契约测试。 / Dedicated contract tests. */
 class InequalityFunctionDedicatedTest {
     @Test
     fun symbolImplementsMathFunctionContract() {
@@ -76,7 +80,7 @@ class InequalityFunctionDedicatedTest {
                 assertTrue(function.registerConstraints(model) is Ok)
                 for (input in listOf(-10.0, -1.0, -0.5, -0.1, -0.05, 0.0, 0.05, 0.1, 0.5, 1.0, 10.0)) {
                     for (flag in listOf(0.0, 1.0)) {
-                        val values = mapOf<fuookami.ospf.kotlin.math.symbol.Symbol, Flt64>(
+                        val values = mapOf<Symbol, Flt64>(
                             variable to Flt64(input), function.helperVariables.single() to Flt64(flag)
                         )
                         val feasible = model.relations.all { relation ->
@@ -135,11 +139,11 @@ class InequalityFunctionDedicatedTest {
             )
             val model = CapturingLinearMechanismModel()
             try {
-                fuookami.ospf.kotlin.core.token.ManualTokenTable<Flt64>(Linear, false).use { tokens ->
-                    assertTrue(function.registerAuxiliaryTokens(tokens) is fuookami.ospf.kotlin.utils.functional.Failed)
+                ManualTokenTable<Flt64>(Linear, false).use { tokens ->
+                    assertTrue(function.registerAuxiliaryTokens(tokens) is Failed)
                     assertTrue(tokens.tokens.isEmpty())
                 }
-                assertTrue(function.registerConstraints(model) is fuookami.ospf.kotlin.utils.functional.Failed)
+                assertTrue(function.registerConstraints(model) is Failed)
                 assertTrue(model.relations.isEmpty())
             } finally {
                 model.close()
@@ -163,7 +167,7 @@ class InequalityFunctionDedicatedTest {
             )
             val model = CapturingLinearMechanismModel()
             try {
-                fuookami.ospf.kotlin.core.token.ManualTokenTable<Flt64>(Linear, false).use { tokens ->
+                ManualTokenTable<Flt64>(Linear, false).use { tokens ->
                     assertTrue(function.registerAuxiliaryTokens(tokens) is Ok)
                     assertEquals(2, tokens.tokens.size)
                 }
@@ -180,7 +184,7 @@ class InequalityFunctionDedicatedTest {
                     assertEquals(expectedFlag, function.evaluate(mapOf(variable to Flt64(input))))
                     for (flag in listOf(Flt64.zero, Flt64.one)) {
                         val feasible = listOf(Flt64.zero, Flt64.one).any { side ->
-                            val values = mapOf<fuookami.ospf.kotlin.math.symbol.Symbol, Flt64>(
+                            val values = mapOf<Symbol, Flt64>(
                                 variable to Flt64(input),
                                 function.helperVariables[0] to flag,
                                 function.helperVariables[1] to side
@@ -227,11 +231,11 @@ class InequalityFunctionDedicatedTest {
                 )
                 val model = CapturingLinearMechanismModel()
                 try {
-                    fuookami.ospf.kotlin.core.token.ManualTokenTable<Flt64>(Linear, false).use { tokens ->
-                        assertTrue(function.registerAuxiliaryTokens(tokens) is fuookami.ospf.kotlin.utils.functional.Failed)
+                ManualTokenTable<Flt64>(Linear, false).use { tokens ->
+                    assertTrue(function.registerAuxiliaryTokens(tokens) is Failed)
                         assertTrue(tokens.tokens.isEmpty())
                     }
-                    assertTrue(function.registerConstraints(model) is fuookami.ospf.kotlin.utils.functional.Failed)
+                assertTrue(function.registerConstraints(model) is Failed)
                     assertTrue(model.relations.isEmpty())
                     assertEquals(null, function.evaluate(emptyMap()))
                 } finally {
@@ -304,11 +308,11 @@ class InequalityFunctionDedicatedTest {
                 )
                 val model = CapturingLinearMechanismModel()
                 try {
-                    fuookami.ospf.kotlin.core.token.ManualTokenTable<Flt64>(Linear, false).use { tokens ->
-                        assertTrue(function.registerAuxiliaryTokens(tokens) is fuookami.ospf.kotlin.utils.functional.Failed, "$sign $invalidCase")
+                    ManualTokenTable<Flt64>(Linear, false).use { tokens ->
+                        assertTrue(function.registerAuxiliaryTokens(tokens) is Failed, "$sign $invalidCase")
                         assertTrue(tokens.tokens.isEmpty())
                     }
-                    assertTrue(function.registerConstraints(model) is fuookami.ospf.kotlin.utils.functional.Failed, "$sign $invalidCase")
+                    assertTrue(function.registerConstraints(model) is Failed, "$sign $invalidCase")
                     assertTrue(model.relations.isEmpty())
                 } finally {
                     model.close()
@@ -332,11 +336,11 @@ class InequalityFunctionDedicatedTest {
                 )
                 val model = CapturingLinearMechanismModel()
                 try {
-                    fuookami.ospf.kotlin.core.token.ManualTokenTable<Flt64>(Linear, false).use { tokens ->
-                        assertTrue(function.registerAuxiliaryTokens(tokens) is fuookami.ospf.kotlin.utils.functional.Failed)
+                    ManualTokenTable<Flt64>(Linear, false).use { tokens ->
+                        assertTrue(function.registerAuxiliaryTokens(tokens) is Failed)
                         assertTrue(tokens.tokens.isEmpty())
                     }
-                    assertTrue(function.registerConstraints(model) is fuookami.ospf.kotlin.utils.functional.Failed)
+                    assertTrue(function.registerConstraints(model) is Failed)
                     assertTrue(model.relations.isEmpty())
                     assertEquals(null, function.evaluate(emptyMap()))
                 } finally {
@@ -355,10 +359,10 @@ class InequalityFunctionDedicatedTest {
             subObjects = emptyList<LinearSubObject<Flt64>>()
         )
         override val constraints: List<Constraint<Flt64, *>> get() = emptyList()
-        val relations = mutableListOf<fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>>()
+        val relations = mutableListOf<LinearInequality<Flt64>>()
 
         override fun addConstraint(
-            relation: fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>,
+            relation: LinearInequality<Flt64>,
             name: String?,
             from: Pair<IntermediateSymbol<out Flt64>, Boolean>?
         ): Try {

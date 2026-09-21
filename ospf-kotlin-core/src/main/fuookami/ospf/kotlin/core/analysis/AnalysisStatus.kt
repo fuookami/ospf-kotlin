@@ -4,11 +4,12 @@ package fuookami.ospf.kotlin.core.analysis
 import fuookami.ospf.kotlin.core.solver.report.ProblemStatus
 
 /**
- * A conclusion about whether an analysis target can be reached.
+ * 分析目标是否可达的结论。 / A conclusion about whether an analysis target can be reached.
  *
- * `Unknown` is used when the backend did not prove either side of the
- * question. `Unsupported` means that the requested analysis is outside the
- * declared capability boundary; it must not be interpreted as unreachable.
+ * 当后端没有证明目标可达或不可达时使用 `Unknown`；当分析超出声明的能力边界时使用 `Unsupported`，
+ * 不得将其解释为不可达。 / `Unknown` is used when the backend proved neither side; `Unsupported`
+ * means that the requested analysis is outside the declared capability boundary and must not be
+ * interpreted as unreachable.
  */
 enum class AnalysisStatus {
     /** The target was reached or feasibility was proved. / 目标可达或已证明可行。 */
@@ -40,6 +41,9 @@ enum class AnalysisStatus {
          * A budget-limited backend can report `Feasible` without proving optimality, so any
          * conclusion that depends on optimality (objective values, perturbation improvement,
          * effectiveness ranking) must use the proof-gated [from] overload instead.
+         *
+         * @param problemStatus Existing solver conclusion. / 现有求解结论
+         * @return Mapped analysis status. / 映射后的分析状态
          */
         fun from(problemStatus: ProblemStatus): AnalysisStatus {
             return when (problemStatus) {
@@ -64,6 +68,10 @@ enum class AnalysisStatus {
          * conclusion; otherwise the result degrades to [Unknown], so "timed out with an incumbent"
          * can never be read as proven. This is shared cross-language semantics, pinned case by case
          * by the `[status-map]` section of `analysis-fixtures/analysis-cases.tsv`.
+         *
+         * @param problemStatus Existing solver conclusion. / 现有求解结论
+         * @param proven Whether the solver proved the conclusion. / 求解器是否已形成证明
+         * @return Proof-gated analysis status. / 经证明门控的分析状态
          */
         fun from(problemStatus: ProblemStatus, proven: Boolean): AnalysisStatus {
             return when (problemStatus) {

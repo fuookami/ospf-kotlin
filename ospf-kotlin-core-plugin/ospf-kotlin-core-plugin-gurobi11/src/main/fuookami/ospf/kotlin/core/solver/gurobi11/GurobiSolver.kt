@@ -1,13 +1,12 @@
-/** Gurobi 11 求解器基类 / Gurobi 11 solver base */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.gurobi11
 
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
+import com.gurobi.gurobi.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.solver.*
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
-import fuookami.ospf.kotlin.utils.functional.*
-import com.gurobi.gurobi.*
 
 /** Gurobi 11 求解器抽象基类，提供环境初始化、求解和状态分析的通用实现 / Gurobi 11 solver abstract base class, provides common implementation for environment initialization, solving, and status analysis */
 abstract class GurobiSolver : AutoCloseable {
@@ -34,7 +33,7 @@ abstract class GurobiSolver : AutoCloseable {
      * @param name 模型名称 / model name
      * @param callBack 创建环境回调函数 / creating environment callback function
      * @return 操作结果 / operation result
-    */
+     */
     protected suspend fun init(
         server: String,
         password: String,
@@ -71,7 +70,7 @@ abstract class GurobiSolver : AutoCloseable {
      * @param name 模型名称 / model name
      * @param callBack 创建环境回调函数 / creating environment callback function
      * @return 操作结果 / operation result
-    */
+     */
     protected suspend fun init(
         name: String,
         callBack: CreatingEnvironmentFunction? = null
@@ -97,7 +96,7 @@ abstract class GurobiSolver : AutoCloseable {
      * 执行 Gurobi 11 求解 / Execute Gurobi 11 solving
      *
      * @return 操作结果 / operation result
-    */
+     */
     protected suspend fun solve(): Try {
         return try {
             grbModel.optimize()
@@ -114,7 +113,7 @@ abstract class GurobiSolver : AutoCloseable {
      * 分析 Gurobi 11 求解状态 / Analyze Gurobi 11 solving status
      *
      * @return 操作结果 / operation result
-    */
+     */
     protected suspend fun analyzeStatus(): Try {
         return try {
             status = when (grbModel.get(GRB.IntAttr.Status)) {

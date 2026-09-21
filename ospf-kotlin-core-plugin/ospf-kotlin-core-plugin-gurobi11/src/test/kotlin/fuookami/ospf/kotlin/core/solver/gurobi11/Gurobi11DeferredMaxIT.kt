@@ -2,30 +2,30 @@ package fuookami.ospf.kotlin.core.solver.gurobi11
 
 import kotlin.test.*
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assumptions.assumeTrue
 import com.gurobi.gurobi.GRB
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.plus
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.report.SolveReport
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.function.AbsFunction
-import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.symbol.function.MaxFunction
 import fuookami.ospf.kotlin.core.symbol.function.SlackRangeFunction
+import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.symbol.function.UnivariateLinearPiecewiseFunction
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /** Gurobi 11 原生 MAX 端到端集成测试。 / Gurobi 11 native MAX end-to-end integration tests. */
 class Gurobi11DeferredMaxIT {
@@ -53,7 +53,14 @@ class Gurobi11DeferredMaxIT {
                 shapes.single()
             )
             assertEquals(scenario.mechanism.tokens.tokensInSolver.size, report.values.size)
-            assertEquals(Flt64.one, valueAt(report, scenario.mechanism, scenario.function.resultVar))
+            assertEquals(
+                expected = Flt64.one,
+                actual = valueAt(
+                    report = report,
+                    model = scenario.mechanism,
+                    variable = scenario.function.resultVar
+                )
+            )
         } finally {
             scenario.close()
         }
@@ -82,9 +89,30 @@ class Gurobi11DeferredMaxIT {
                 ),
                 shapes.single()
             )
-            assertEquals(Flt64(1.5), valueAt(report, scenario.mechanism, scenario.absFunction.resultVar))
-            assertEquals(Flt64.two, valueAt(report, scenario.mechanism, scenario.pwlFunction.resultVar))
-            assertEquals(Flt64(-0.5), valueAt(report, scenario.mechanism, scenario.maxFunction.resultVar))
+            assertEquals(
+                expected = Flt64(1.5),
+                actual = valueAt(
+                    report = report,
+                    model = scenario.mechanism,
+                    variable = scenario.absFunction.resultVar
+                )
+            )
+            assertEquals(
+                expected = Flt64.two,
+                actual = valueAt(
+                    report = report,
+                    model = scenario.mechanism,
+                    variable = scenario.pwlFunction.resultVar
+                )
+            )
+            assertEquals(
+                expected = Flt64(-0.5),
+                actual = valueAt(
+                    report = report,
+                    model = scenario.mechanism,
+                    variable = scenario.maxFunction.resultVar
+                )
+            )
         } finally {
             scenario.close()
         }
@@ -105,7 +133,14 @@ class Gurobi11DeferredMaxIT {
 
             assertEquals(1, shapes.size)
             assertEquals(0, shapes.single().numGenConstrs)
-            assertEquals(Flt64(3.0), valueAt(report, scenario.mechanism, scenario.function.resultVar))
+            assertEquals(
+                expected = Flt64(3.0),
+                actual = valueAt(
+                    report = report,
+                    model = scenario.mechanism,
+                    variable = scenario.function.resultVar
+                )
+            )
         } finally {
             scenario.close()
         }
@@ -142,8 +177,22 @@ class Gurobi11DeferredMaxIT {
             assertEquals(1, writerCalls)
             assertEquals(1, shapes.size)
             assertEquals(0, shapes.single().numGenConstrs)
-            assertEquals(Flt64(2.0), valueAt(report, scenario.mechanism, scenario.first.resultVar))
-            assertEquals(Flt64(3.0), valueAt(report, scenario.mechanism, scenario.second.resultVar))
+            assertEquals(
+                expected = Flt64(2.0),
+                actual = valueAt(
+                    report = report,
+                    model = scenario.mechanism,
+                    variable = scenario.first.resultVar
+                )
+            )
+            assertEquals(
+                expected = Flt64(3.0),
+                actual = valueAt(
+                    report = report,
+                    model = scenario.mechanism,
+                    variable = scenario.second.resultVar
+                )
+            )
         } finally {
             scenario.close()
         }
@@ -172,9 +221,22 @@ class Gurobi11DeferredMaxIT {
         return try {
             assertTrue(metaModel.add(input) is Ok)
             assertTrue(metaModel.add(LinearFunctionSymbolAdapter(function, IntoValue.Identity)) is Ok)
-            assertTrue(metaModel.addConstraint(pointConstraint(input, Flt64(3.0), "gurobi11_max_slack_point")) is Ok)
+            assertTrue(
+                metaModel.addConstraint(
+                    pointConstraint(
+                        variable = input,
+                        value = Flt64(3.0),
+                        name = "gurobi11_max_slack_point"
+                    )
+                ) is Ok
+            )
             assertTrue(metaModel.maximize(function.resultPolynomial) is Ok)
-            SlackRangeScenario(metaModel, requireMechanism(metaModel), input, function)
+            SlackRangeScenario(
+                metaModel = metaModel,
+                mechanism = requireMechanism(metaModel),
+                input = input,
+                function = function
+            )
         } catch (error: Throwable) {
             metaModel.close()
             throw error
@@ -227,14 +289,52 @@ class Gurobi11DeferredMaxIT {
             assertTrue(metaModel.add(LinearFunctionSymbolAdapter(absFunction, IntoValue.Identity)) is Ok)
             assertTrue(metaModel.add(LinearFunctionSymbolAdapter(pwlFunction, IntoValue.Identity)) is Ok)
             assertTrue(metaModel.add(LinearFunctionSymbolAdapter(maxFunction, IntoValue.Identity)) is Ok)
-            assertTrue(metaModel.addConstraint(pointConstraint(absInput, Flt64(-1.5), "gurobi11_max_mixed_abs_point")) is Ok)
-            assertTrue(metaModel.addConstraint(pointConstraint(pwlInput, Flt64(1.5), "gurobi11_max_mixed_pwl_point")) is Ok)
-            assertTrue(metaModel.addConstraint(pointConstraint(maxFirst, Flt64(-1.0), "gurobi11_max_mixed_first_point")) is Ok)
-            assertTrue(metaModel.addConstraint(pointConstraint(maxSecond, Flt64(-0.5), "gurobi11_max_mixed_second_point")) is Ok)
+            assertTrue(
+                metaModel.addConstraint(
+                    pointConstraint(
+                        variable = absInput,
+                        value = Flt64(-1.5),
+                        name = "gurobi11_max_mixed_abs_point"
+                    )
+                ) is Ok
+            )
+            assertTrue(
+                metaModel.addConstraint(
+                    pointConstraint(
+                        variable = pwlInput,
+                        value = Flt64(1.5),
+                        name = "gurobi11_max_mixed_pwl_point"
+                    )
+                ) is Ok
+            )
+            assertTrue(
+                metaModel.addConstraint(
+                    pointConstraint(
+                        variable = maxFirst,
+                        value = Flt64(-1.0),
+                        name = "gurobi11_max_mixed_first_point"
+                    )
+                ) is Ok
+            )
+            assertTrue(
+                metaModel.addConstraint(
+                    pointConstraint(
+                        variable = maxSecond,
+                        value = Flt64(-0.5),
+                        name = "gurobi11_max_mixed_second_point"
+                    )
+                ) is Ok
+            )
             assertTrue(metaModel.minimize(
                 absFunction.resultPolynomial + pwlFunction.resultPolynomial + maxFunction.resultPolynomial
             ) is Ok)
-            MixedScenario(metaModel, requireMechanism(metaModel), absFunction, pwlFunction, maxFunction)
+            MixedScenario(
+                metaModel = metaModel,
+                mechanism = requireMechanism(metaModel),
+                absFunction = absFunction,
+                pwlFunction = pwlFunction,
+                maxFunction = maxFunction
+            )
         } catch (error: Throwable) {
             metaModel.close()
             throw error
@@ -248,7 +348,11 @@ class Gurobi11DeferredMaxIT {
         first.range.leq(Flt64(4.0))
         second.range.geq(Flt64.zero)
         second.range.leq(Flt64(4.0))
-        val function = maxFunction(first, second, "gurobi11_max_helper")
+        val function = maxFunction(
+            first = first,
+            second = second,
+            name = "gurobi11_max_helper"
+        )
         val metaModel = LinearMetaModel<Flt64>(
             name = "gurobi11-max-helper-fallback-it",
             configuration = MetaModelConfiguration(functionExpansionPolicy = FunctionExpansionPolicy.DEFERRED_NATIVE_FIRST),
@@ -257,8 +361,24 @@ class Gurobi11DeferredMaxIT {
         return try {
             assertTrue(metaModel.add(listOf(first, second)) is Ok)
             assertTrue(metaModel.add(LinearFunctionSymbolAdapter(function, IntoValue.Identity)) is Ok)
-            assertTrue(metaModel.addConstraint(pointConstraint(first, Flt64(2.0), "gurobi11_max_helper_first_point")) is Ok)
-            assertTrue(metaModel.addConstraint(pointConstraint(second, Flt64(3.0), "gurobi11_max_helper_second_point")) is Ok)
+            assertTrue(
+                metaModel.addConstraint(
+                    pointConstraint(
+                        variable = first,
+                        value = Flt64(2.0),
+                        name = "gurobi11_max_helper_first_point"
+                    )
+                ) is Ok
+            )
+            assertTrue(
+                metaModel.addConstraint(
+                    pointConstraint(
+                        variable = second,
+                        value = Flt64(3.0),
+                        name = "gurobi11_max_helper_second_point"
+                    )
+                ) is Ok
+            )
             assertTrue(metaModel.addConstraint(
                 LinearInequality(
                     lhs = LinearPolynomial(
@@ -272,7 +392,11 @@ class Gurobi11DeferredMaxIT {
                 name = "gurobi11_max_helper_restriction"
             ) is Ok)
             assertTrue(metaModel.minimize(function.resultPolynomial) is Ok)
-            HelperFallbackScenario(metaModel, requireMechanism(metaModel), function)
+            HelperFallbackScenario(
+                metaModel = metaModel,
+                mechanism = requireMechanism(metaModel),
+                function = function
+            )
         } catch (error: Throwable) {
             metaModel.close()
             throw error
@@ -288,8 +412,16 @@ class Gurobi11DeferredMaxIT {
             it.range.geq(Flt64.zero)
             it.range.leq(Flt64(4.0))
         }
-        val first = maxFunction(firstInput, secondInput, "gurobi11_max_failure_first")
-        val second = maxFunction(thirdInput, fourthInput, "gurobi11_max_failure_second")
+        val first = maxFunction(
+            first = firstInput,
+            second = secondInput,
+            name = "gurobi11_max_failure_first"
+        )
+        val second = maxFunction(
+            first = thirdInput,
+            second = fourthInput,
+            name = "gurobi11_max_failure_second"
+        )
         val metaModel = LinearMetaModel<Flt64>(
             name = "gurobi11-max-writer-failure-it",
             configuration = MetaModelConfiguration(functionExpansionPolicy = FunctionExpansionPolicy.DEFERRED_NATIVE_FIRST),
@@ -299,12 +431,49 @@ class Gurobi11DeferredMaxIT {
             assertTrue(metaModel.add(listOf(firstInput, secondInput, thirdInput, fourthInput)) is Ok)
             assertTrue(metaModel.add(LinearFunctionSymbolAdapter(first, IntoValue.Identity)) is Ok)
             assertTrue(metaModel.add(LinearFunctionSymbolAdapter(second, IntoValue.Identity)) is Ok)
-            assertTrue(metaModel.addConstraint(pointConstraint(firstInput, Flt64.one, "gurobi11_max_failure_first_point")) is Ok)
-            assertTrue(metaModel.addConstraint(pointConstraint(secondInput, Flt64(2.0), "gurobi11_max_failure_second_point")) is Ok)
-            assertTrue(metaModel.addConstraint(pointConstraint(thirdInput, Flt64(3.0), "gurobi11_max_failure_third_point")) is Ok)
-            assertTrue(metaModel.addConstraint(pointConstraint(fourthInput, Flt64.one, "gurobi11_max_failure_fourth_point")) is Ok)
+            assertTrue(
+                metaModel.addConstraint(
+                    pointConstraint(
+                        variable = firstInput,
+                        value = Flt64.one,
+                        name = "gurobi11_max_failure_first_point"
+                    )
+                ) is Ok
+            )
+            assertTrue(
+                metaModel.addConstraint(
+                    pointConstraint(
+                        variable = secondInput,
+                        value = Flt64(2.0),
+                        name = "gurobi11_max_failure_second_point"
+                    )
+                ) is Ok
+            )
+            assertTrue(
+                metaModel.addConstraint(
+                    pointConstraint(
+                        variable = thirdInput,
+                        value = Flt64(3.0),
+                        name = "gurobi11_max_failure_third_point"
+                    )
+                ) is Ok
+            )
+            assertTrue(
+                metaModel.addConstraint(
+                    pointConstraint(
+                        variable = fourthInput,
+                        value = Flt64.one,
+                        name = "gurobi11_max_failure_fourth_point"
+                    )
+                ) is Ok
+            )
             assertTrue(metaModel.minimize(first.resultPolynomial + second.resultPolynomial) is Ok)
-            TwoMaxScenario(metaModel, requireMechanism(metaModel), first, second)
+            TwoMaxScenario(
+                metaModel = metaModel,
+                mechanism = requireMechanism(metaModel),
+                first = first,
+                second = second
+            )
         } catch (error: Throwable) {
             metaModel.close()
             throw error

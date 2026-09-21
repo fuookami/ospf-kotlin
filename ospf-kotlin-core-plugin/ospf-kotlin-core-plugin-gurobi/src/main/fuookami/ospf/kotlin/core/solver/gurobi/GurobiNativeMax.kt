@@ -6,9 +6,9 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.model.intermediate.MaxStructure
 import fuookami.ospf.kotlin.core.solver.NativeMaxData
-import fuookami.ospf.kotlin.core.solver.NativeMaxInputData
-import fuookami.ospf.kotlin.core.solver.nativeElementName
 import fuookami.ospf.kotlin.core.solver.prepareNativeMax
+import fuookami.ospf.kotlin.core.solver.nativeElementName
+import fuookami.ospf.kotlin.core.solver.NativeMaxInputData
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
 
 /** Gurobi 10 原生 MAX 数据别名。 / Gurobi 10 native MAX data alias. */
@@ -80,7 +80,11 @@ internal fun addGurobiNativeMax(
         variableKeys = variables.keys,
         structures = structures,
         writer = GurobiNativeMaxWriter { data ->
-            addGurobiNativeMaxData(model, variables, data)
+            addGurobiNativeMaxData(
+                model = model,
+                variables = variables,
+                data = data
+            )
         }
     )
 }
@@ -165,7 +169,12 @@ private fun addGurobiNativeMaxData(
 
     val result = variables.getValue(data.resultKey)
     if (nativeInputs.isEmpty()) {
-        model.addConstr(result, GRB.EQUAL, extremumConstant ?: 0.0, data.name)
+        model.addConstr(
+            result,
+            GRB.EQUAL,
+            extremumConstant ?: 0.0,
+            data.name
+        )
     } else if (data.minimum) {
         model.addGenConstrMin(
             result,

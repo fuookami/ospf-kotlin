@@ -1,36 +1,37 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.test.Test
 import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionFallbackConstraints
-import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionFallbackTarget
-import fuookami.ospf.kotlin.core.model.intermediate.materializeDeferredFunctionFallbacks
-import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
-import fuookami.ospf.kotlin.core.model.intermediate.FunctionInputShape
-import fuookami.ospf.kotlin.core.model.intermediate.FunctionLoweringDecision
-import fuookami.ospf.kotlin.core.model.intermediate.FunctionNativeCapability
-import fuookami.ospf.kotlin.core.model.intermediate.FunctionUsageLocation
-import fuookami.ospf.kotlin.core.model.intermediate.FunctionUsageSummary
-import fuookami.ospf.kotlin.core.model.intermediate.PiecewiseContinuity
-import fuookami.ospf.kotlin.core.model.intermediate.FunctionSolverCapabilities
-import fuookami.ospf.kotlin.core.model.intermediate.decideFunctionLowering
-import fuookami.ospf.kotlin.core.model.intermediate.summarizeFunctionUsage
-import fuookami.ospf.kotlin.core.model.intermediate.UnivariateLinearPiecewiseStructure
-import fuookami.ospf.kotlin.core.symbol.function.UnivariateLinearPiecewiseFunction
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionInputShape
+import fuookami.ospf.kotlin.core.model.intermediate.PiecewiseContinuity
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionUsageSummary
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionUsageLocation
+import fuookami.ospf.kotlin.core.model.intermediate.decideFunctionLowering
+import fuookami.ospf.kotlin.core.model.intermediate.summarizeFunctionUsage
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionLoweringDecision
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionNativeCapability
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionStructure
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionSolverCapabilities
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionFallbackTarget
+import fuookami.ospf.kotlin.core.model.intermediate.UnivariateLinearPiecewiseStructure
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionFallbackConstraints
+import fuookami.ospf.kotlin.core.model.intermediate.materializeDeferredFunctionFallbacks
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.function.UnivariateLinearPiecewiseFunction
+import fuookami.ospf.kotlin.core.variable.RealVar
 
 class FunctionExpansionTest {
     @Test
@@ -147,7 +148,7 @@ class FunctionExpansionTest {
 
     @Test
     fun deferredFallbackMaterializationRollsBackOnFailure() {
-        val structure = object : fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionStructure {}
+        val structure = object : DeferredFunctionStructure {}
         val target = object : DeferredFunctionFallbackTarget {
             private var count = 0
             override val constraintCount: Int get() = count

@@ -1,10 +1,10 @@
 package fuookami.ospf.kotlin.core.solver.gurobi11
 
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-import fuookami.ospf.kotlin.core.solver.value.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.solver.value.*
 
 /** 在 solver 编号前筛选可使用 Gurobi 11 原生 PWL 的结构。 / Select Gurobi 11 native PWL structures before solver indexing. */
 internal fun selectGurobiNativePiecewise(

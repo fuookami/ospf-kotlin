@@ -23,7 +23,7 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- MongoDB -->
+        <!-- MongoDB 数据库驱动 / MongoDB database driver -->
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-sync</artifactId>

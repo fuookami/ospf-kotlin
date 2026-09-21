@@ -1,9 +1,9 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
-import kotlin.test.Test
 import kotlin.test.assertTrue
+import kotlin.test.Test
 
-/** Dedicated contract test for the QuadraticMinFunction symbol. */
+/** [QuadraticMinFunction] 契约测试。 / Dedicated contract tests. */
 class QuadraticMinFunctionDedicatedTest {
     @Test
     fun symbolImplementsMathFunctionContract() {

@@ -1,46 +1,47 @@
 package fuookami.ospf.kotlin.core.analysis
 
-import kotlinx.coroutines.runBlocking
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.test.Test
 import kotlin.time.Duration.Companion.nanoseconds
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.constraint_programming.BooleanLiteral
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingExpression
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalId
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalVariable
-import fuookami.ospf.kotlin.core.model.constraint_programming.NoOverlap
-import fuookami.ospf.kotlin.core.model.constraint_programming.Cumulative
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingFeature
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSupportLevel
-import fuookami.ospf.kotlin.core.solver.constraint_programming.FakeConstraintProgrammingSolver
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSession
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolveOptions
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolver
-import fuookami.ospf.kotlin.core.solver.report.SolverModelType
-import fuookami.ospf.kotlin.core.solver.report.SolverCapabilities
-import fuookami.ospf.kotlin.core.solver.report.SolverDescriptor
-import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
-import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolverOutput
-import fuookami.ospf.kotlin.core.solver.report.ConstraintId
-import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
-import fuookami.ospf.kotlin.core.solver.report.VariableId
-import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.core.variable.IntVar
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
+import kotlinx.coroutines.runBlocking
 import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.constraint_programming.NoOverlap
+import fuookami.ospf.kotlin.core.model.constraint_programming.Cumulative
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalId
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
+import fuookami.ospf.kotlin.core.model.constraint_programming.BooleanLiteral
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalVariable
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingExpression
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolverOutput
+import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.report.SolverModelType
+import fuookami.ospf.kotlin.core.solver.report.SolverDescriptor
+import fuookami.ospf.kotlin.core.solver.report.SolverCapabilities
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolver
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingFeature
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSession
+import fuookami.ospf.kotlin.core.solver.constraint_programming.FakeConstraintProgrammingSolver
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolveOptions
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSupportLevel
+import fuookami.ospf.kotlin.core.variable.BinVar
+import fuookami.ospf.kotlin.core.variable.IntVar
 
 class TargetConflictAnalyzerTest {
     @Test
@@ -655,7 +656,7 @@ class TargetConflictAnalyzerTest {
         override suspend fun solve(
             model: ConstraintProgrammingModel,
             options: ConstraintProgrammingSolveOptions
-        ): fuookami.ospf.kotlin.utils.functional.Ret<ConstraintProgrammingSolverOutput> {
+): Ret<ConstraintProgrammingSolverOutput> {
             if (options.collectConflict) {
                 conflictRequests += options
             }
@@ -677,7 +678,7 @@ class TargetConflictAnalyzerTest {
         override fun createSession(
             model: ConstraintProgrammingModel,
             options: ConstraintProgrammingSolveOptions
-        ): fuookami.ospf.kotlin.utils.functional.Ret<ConstraintProgrammingSession> {
+): Ret<ConstraintProgrammingSession> {
             val created = delegate.createSession(model, options)
             return when (created) {
                 is Ok -> {
@@ -695,7 +696,7 @@ class TargetConflictAnalyzerTest {
                                 assumptions: List<BooleanLiteral>,
                                 fixedValues: Map<VariableId, Int64>,
                                 hints: ConstraintProgrammingSolution?
-                            ): fuookami.ospf.kotlin.utils.functional.Ret<ConstraintProgrammingSolverOutput> {
+): Ret<ConstraintProgrammingSolverOutput> {
                                 assumptionCalls += assumptions
                                 return delegateSession.solve(assumptions, fixedValues, hints)
                             }
@@ -707,8 +708,8 @@ class TargetConflictAnalyzerTest {
                     )
                 }
 
-                is fuookami.ospf.kotlin.utils.functional.Failed -> created
-                is fuookami.ospf.kotlin.utils.functional.Fatal -> created
+            is Failed -> created
+            is Fatal -> created
             }
         }
     }

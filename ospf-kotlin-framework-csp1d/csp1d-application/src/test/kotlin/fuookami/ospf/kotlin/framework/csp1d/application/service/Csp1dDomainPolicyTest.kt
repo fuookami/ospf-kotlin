@@ -3,16 +3,17 @@ package fuookami.ospf.kotlin.framework.csp1d.application.service
 import kotlin.test.*
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.URealVar
-import fuookami.ospf.kotlin.framework.csp1d.application.model.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.*
+import fuookami.ospf.kotlin.framework.csp1d.application.model.*
 import fuookami.ospf.kotlin.framework.model.Pipeline
 
 /**
@@ -69,12 +70,21 @@ class Csp1dDomainPolicyTest {
      *
      * 模拟下游宽度差异约束：拒绝特定物料的方案。
      * Simulate downstream width difference constraint: reject plans for specific materials.
+     *
+     * @property rejectedMaterialIds 被拒绝的物料标识 / Material identifiers to reject
+     * @property name 策略名称 / Policy name
      */
     class FakeWidthDifferencePolicy<V : RealNumber<V>>(
         private val rejectedMaterialIds: Set<MaterialId>
     ) : Csp1dDomainPolicy<V> {
         override val name: String = "fake_width_diff"
 
+        /**
+         * 判断切割方案是否可行 / Determine whether a cutting plan is feasible
+         *
+         * @param context 领域计算上下文 / Domain calculation context
+         * @return 方案可行时返回 true / true when the plan is feasible
+         */
         override fun isFeasible(context: Csp1dDomainCalculationContext<V>): Boolean {
             return context.plan.material.id !in rejectedMaterialIds
         }
@@ -85,12 +95,21 @@ class Csp1dDomainPolicyTest {
      *
      * 模拟下游设备兼容性约束：拒绝特定设备上的方案。
      * Simulate downstream machine compatibility constraint: reject plans on specific machines.
+     *
+     * @property rejectedMachineIds 被拒绝的设备标识 / Machine identifiers to reject
+     * @property name 策略名称 / Policy name
      */
     class FakeMachineCompatibilityPolicy<V : RealNumber<V>>(
         private val rejectedMachineIds: Set<MachineId>
     ) : Csp1dDomainPolicy<V> {
         override val name: String = "fake_machine_compat"
 
+        /**
+         * 判断切割方案是否可行 / Determine whether a cutting plan is feasible
+         *
+         * @param context 领域计算上下文 / Domain calculation context
+         * @return 方案可行时返回 true / true when the plan is feasible
+         */
         override fun isFeasible(context: Csp1dDomainCalculationContext<V>): Boolean {
             val planMachineId = context.plan.machineId ?: return true
             return planMachineId !in rejectedMachineIds
@@ -156,8 +175,16 @@ class Csp1dDomainPolicyTest {
 
         val policy = FakeWidthDifferencePolicy<Flt64>(rejectedMaterialIds = setOf(materialIdOf("mat-1")))
 
-        val ctx1 = SimpleDomainCalculationContext(plan = plan1, planIndex = 0, domainValueSample = Flt64(1.0))
-        val ctx2 = SimpleDomainCalculationContext(plan = plan2, planIndex = 1, domainValueSample = Flt64(1.0))
+        val ctx1 = SimpleDomainCalculationContext(
+            plan = plan1,
+            planIndex = 0,
+            domainValueSample = Flt64(1.0)
+        )
+        val ctx2 = SimpleDomainCalculationContext(
+            plan = plan2,
+            planIndex = 1,
+            domainValueSample = Flt64(1.0)
+        )
 
         assertTrue(!policy.isFeasible(ctx1))
         assertTrue(policy.isFeasible(ctx2))
@@ -185,8 +212,16 @@ class Csp1dDomainPolicyTest {
 
         val policy = FakeMachineCompatibilityPolicy<Flt64>(rejectedMachineIds = setOf(machineIdOf("mc-rejected")))
 
-        val ctx1 = SimpleDomainCalculationContext(plan = planOnRejected, planIndex = 0, domainValueSample = Flt64(1.0))
-        val ctx2 = SimpleDomainCalculationContext(plan = planOnAccepted, planIndex = 1, domainValueSample = Flt64(1.0))
+        val ctx1 = SimpleDomainCalculationContext(
+            plan = planOnRejected,
+            planIndex = 0,
+            domainValueSample = Flt64(1.0)
+        )
+        val ctx2 = SimpleDomainCalculationContext(
+            plan = planOnAccepted,
+            planIndex = 1,
+            domainValueSample = Flt64(1.0)
+        )
 
         assertTrue(!policy.isFeasible(ctx1))
         assertTrue(policy.isFeasible(ctx2))
@@ -208,12 +243,16 @@ class Csp1dDomainPolicyTest {
         val widthPolicy = FakeWidthDifferencePolicy<Flt64>(rejectedMaterialIds = emptySet())
         val machinePolicy = FakeMachineCompatibilityPolicy<Flt64>(rejectedMachineIds = setOf(machineIdOf("mc-rejected")))
 
-        val ctx = SimpleDomainCalculationContext(plan = plan, planIndex = 0, domainValueSample = Flt64(1.0))
+        val ctx = SimpleDomainCalculationContext(
+            plan = plan,
+            planIndex = 0,
+            domainValueSample = Flt64(1.0)
+        )
 
-        // width policy passes, machine policy fails => allFeasible returns false
+        // 宽差策略通过、设备策略失败，因此 allFeasible 返回 false / Width policy passes, machine policy fails, so allFeasible returns false
         assertTrue(!allFeasible(listOf(widthPolicy, machinePolicy), ctx))
 
-        // only width policy => passes
+        // 仅宽差策略通过 / Only the width policy passes
         assertTrue(allFeasible(listOf(widthPolicy), ctx))
     }
 
@@ -226,7 +265,7 @@ class Csp1dDomainPolicyTest {
         val demand1 = testDemand(product1)
         val demand2 = testDemand(product2)
 
-        // Without domain policy: all material-product pairs should generate plans
+        // 无领域策略：应生成所有物料-产品组合 / Without domain policy: all material-product pairs should generate plans
         val inputNoPolicy = CuttingPlanGenerationInput(
             products = listOf(product1, product2),
             materials = listOf(material1, material2),
@@ -238,7 +277,7 @@ class Csp1dDomainPolicyTest {
         val plansNoPolicy = generator.generate(inputNoPolicy)
         assertTrue(plansNoPolicy.isNotEmpty(), "Without domain policy, should generate plans")
 
-        // With domain policy rejecting mat-1: plans from mat-1 should be filtered
+        // 使用拒绝 mat-1 的领域策略：应过滤 mat-1 方案 / With a domain policy rejecting mat-1: plans from mat-1 should be filtered
         val inputWithPolicy = CuttingPlanGenerationInput(
             products = listOf(product1, product2),
             materials = listOf(material1, material2),
@@ -281,19 +320,29 @@ class Csp1dDomainPolicyTest {
             "Default domain policy should not change generation result")
     }
 
-    // ===== Objective Policy Tests =====
+    // ===== 目标策略测试 / Objective Policy Tests =====
 
     /**
      * Fake 业务成本目标策略 / Fake business cost objective policy
      *
      * 为指定物料的方案增加额外成本系数。
      * Add extra cost coefficient for plans using specified materials.
+     *
+     * @property extraCostByMaterial 物料对应的额外成本 / Additional cost by material
+     * @property name 策略名称 / Policy name
      */
     class FakeMaterialCostPolicy<V : RealNumber<V>>(
         private val extraCostByMaterial: Map<MaterialId, Flt64>
     ) : Csp1dObjectivePolicy<V> {
         override val name: String = "fake_material_cost"
 
+        /**
+         * 修正方案的批次成本系数 / Modify a plan's batch cost coefficient
+         *
+         * @param context 领域计算上下文 / Domain calculation context
+         * @param baseCoefficient 基础成本系数 / Base cost coefficient
+         * @return 修正后的成本系数 / Modified cost coefficient
+         */
         override fun modifyBatchCoefficient(context: Csp1dDomainCalculationContext<V>, baseCoefficient: Flt64): Flt64 {
             val extra = extraCostByMaterial[context.plan.material.id] ?: Flt64.zero
             return baseCoefficient + extra
@@ -321,8 +370,16 @@ class Csp1dDomainPolicyTest {
 
         val policy = FakeMaterialCostPolicy<Flt64>(extraCostByMaterial = mapOf(materialIdOf("mat-1") to Flt64(5.0)))
 
-        val ctx1 = SimpleDomainCalculationContext(plan = plan1, planIndex = 0, domainValueSample = Flt64(1.0))
-        val ctx2 = SimpleDomainCalculationContext(plan = plan2, planIndex = 1, domainValueSample = Flt64(1.0))
+        val ctx1 = SimpleDomainCalculationContext(
+            plan = plan1,
+            planIndex = 0,
+            domainValueSample = Flt64(1.0)
+        )
+        val ctx2 = SimpleDomainCalculationContext(
+            plan = plan2,
+            planIndex = 1,
+            domainValueSample = Flt64(1.0)
+        )
 
         assertEquals(Flt64(6.0), policy.modifyBatchCoefficient(ctx1, Flt64.one),
             "mat-1 should get extra cost coefficient")
@@ -340,26 +397,40 @@ class Csp1dDomainPolicyTest {
             slices = listOf(CuttingPlanSlice(production = product, width = Quantity(Flt64(100.0), meter))),
             demandContributions = listOf(CuttingPlanDemandContribution(product = product, quantity = Quantity(Flt64(10.0), meter)))
         )
-        val ctx = SimpleDomainCalculationContext(plan = plan, planIndex = 0, domainValueSample = Flt64(1.0))
+        val ctx = SimpleDomainCalculationContext(
+            plan = plan,
+            planIndex = 0,
+            domainValueSample = Flt64(1.0)
+        )
         val policy = object : Csp1dObjectivePolicy<Flt64> {
             override val name = "empty"
         }
         assertEquals(Flt64.one, policy.modifyBatchCoefficient(ctx, Flt64.one))
     }
 
-    // ===== Generation Strategy Tests =====
+    // ===== 生成策略测试 / Generation Strategy Tests =====
 
     /**
      * Fake 候选过滤策略 / Fake candidate filter strategy
      *
      * 拒绝使用指定物料的候选方案。
      * Reject candidate plans using specified materials.
+     *
+     * @property rejectedMaterialIds 被拒绝的物料标识 / Material identifiers to reject
+     * @property name 策略名称 / Strategy name
      */
     class FakeCandidateFilterStrategy<V : RealNumber<V>>(
         private val rejectedMaterialIds: Set<MaterialId>
     ) : Csp1dGenerationStrategy<V> {
         override val name: String = "fake_candidate_filter"
 
+        /**
+         * 判断候选方案是否接受 / Determine whether a candidate plan is accepted
+         *
+         * @param candidate 候选方案 / Candidate plan
+         * @param existingPlans 现有方案列表 / Existing plan list
+         * @return 候选方案可接受时返回 true / true when the candidate is accepted
+         */
         override fun acceptCandidate(candidate: CuttingPlan<V>, existingPlans: List<CuttingPlan<V>>): Boolean {
             return candidate.material.id !in rejectedMaterialIds
         }
@@ -414,7 +485,7 @@ class Csp1dDomainPolicyTest {
         assertEquals(generator.generate(inputNoFilter).size, generator.generate(inputEmptyFilter).size)
     }
 
-    // ===== Flow Policy Tests =====
+    // ===== 流程策略测试 / Flow Policy Tests =====
 
     @Test
     fun `flow policy filterInitialPlans filters plans`() {
@@ -494,7 +565,7 @@ class Csp1dDomainPolicyTest {
         assertTrue(!policy.isEquivalent(plan, plan))
     }
 
-    // ===== ExtensionSet Integration Test =====
+    // ===== ExtensionSet 集成测试 / ExtensionSet Integration Test =====
 
     @Test
     fun `extension set carries all policies`() {
@@ -502,7 +573,11 @@ class Csp1dDomainPolicyTest {
             domainPolicies = listOf(DefaultCsp1dDomainPolicy<Flt64>()),
             objectivePolicies = listOf(FakeMaterialCostPolicy<Flt64>(emptyMap())),
             generationStrategies = listOf(FakeCandidateFilterStrategy<Flt64>(emptySet())),
-            flowPolicies = listOf(object : Csp1dFlowPolicy<Flt64> { override val name = "test" })
+            flowPolicies = listOf(
+                object : Csp1dFlowPolicy<Flt64> {
+                    override val name = "test"
+                }
+            )
         )
         assertEquals(1, extensionSet.domainPolicies.size)
         assertEquals(1, extensionSet.objectivePolicies.size)
@@ -622,7 +697,7 @@ class Csp1dDomainPolicyTest {
         val pipeline = extensionSet.modelingExtensions.first().resolvePipeline(null)
         val model = LinearMetaModel(
             name = "fake_same_unit_length_test",
-            converter = fuookami.ospf.kotlin.core.solver.value.IntoValue.Identity
+            converter = IntoValue.Identity
         )
 
         assertEquals(1, extensionSet.modelingExtensions.size)
@@ -641,7 +716,7 @@ class Csp1dDomainPolicyTest {
         val pipeline = extensionSet.modelingExtensions.first().resolvePipeline(null)
         val model = LinearMetaModel(
             name = "fake_same_width_test",
-            converter = fuookami.ospf.kotlin.core.solver.value.IntoValue.Identity
+            converter = IntoValue.Identity
         )
 
         assertEquals(1, extensionSet.modelingExtensions.size)

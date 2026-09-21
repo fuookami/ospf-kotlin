@@ -1,5 +1,5 @@
 /**
- * 变量项（AbstractVariableItem 及其实现）单元测试。 / Unit tests for variable items and their implementations.
+ * 变量项（[AbstractVariableItem] 及其实现）单元测试。 / Unit tests for [AbstractVariableItem] and its implementations.
  *
  * 覆盖独立变量、类型擦除包装器与变量组合三类，固定身份、值域、相等性与归属判定的契约。
  * Covers independent variables, the type-erased wrapper, and variable combinations, pinning
@@ -8,11 +8,11 @@
 package fuookami.ospf.kotlin.core.variable
 
 import kotlin.test.*
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.multiarray.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.unit.reciprocal
 import fuookami.ospf.kotlin.core.solver.value.IntoValue

@@ -4,10 +4,20 @@ package fuookami.ospf.kotlin.core.analysis
 import fuookami.ospf.kotlin.core.solver.report.ConstraintId
 
 /**
- * Activity result for one original constraint or variable-domain member.
+ * 一个原始约束或变量值域成员的活动性结果。 / Activity result for one original constraint or variable-domain member.
  *
- * `constraintId` is null for variable bounds and sparse domains; use [source]
- * as the stable identity for every record.
+ * 变量边界和稀疏值域的 `constraintId` 为 null；所有记录都应使用 [source] 作为稳定身份。
+ * / `constraintId` is null for variable bounds and sparse domains; use [source]` as the stable
+ * identity for every record.
+ *
+ * @property constraintId 原始约束 ID，变量或值域成员为 null / Original constraint ID, or null for variable/domain members
+ * @property group 约束所属组名称 / Constraint group name
+ * @property status 活动性结论 / Activity conclusion
+ * @property slack 有符号标量松弛，无自然度量时为 null / Signed scalar slack, or null without a natural metric
+ * @property normalizedSlack 按相关量级归一化的松弛 / Slack normalized by the relevant magnitude
+ * @property tolerance 此度量使用的绝对容差 / Absolute tolerance used for the metric
+ * @property evidence 原始模型证据 / Original-model evidence
+ * @property source 稳定来源身份 / Stable source identity
  */
 data class ConstraintActivity(
     /** Original constraint ID, or null for a variable/domain member. / 原始约束 ID，变量或值域成员为 null。 */
@@ -28,7 +38,17 @@ data class ConstraintActivity(
     val source: DiagnosticSource = evidence.source
 )
 
-/** Counts of activity states for one constraint group. / 一个约束组的活动性状态计数。 */
+/** 一个约束组的活动性状态计数。 / Counts of activity states for one constraint group.
+ *
+ * @property group 组名称，null 表示未分组约束 / Group name, or null for ungrouped constraints
+ * @property total 组内约束实例数 / Number of constraint instances in the group
+ * @property active Active 状态数量 / Number of Active records
+ * @property nearlyActive NearlyActive 状态数量 / Number of NearlyActive records
+ * @property inactive Inactive 状态数量 / Number of Inactive records
+ * @property satisfiedWithoutSlackMetric 无标量松弛度量但满足的数量 / Number satisfied without a scalar slack metric
+ * @property violated Violated 状态数量 / Number of Violated records
+ * @property unknown Unknown 状态数量 / Number of Unknown records
+ */
 data class ActivityGroupSummary(
     /** Group name; null means ungrouped constraints. / 组名称，null 表示未分组约束。 */
     val group: String?,
@@ -53,11 +73,17 @@ data class ActivityGroupSummary(
 }
 
 /**
- * Immutable activity report for one baseline assignment.
+ * 一个基线赋值的不可变活动性报告。 / Immutable activity report for one baseline assignment.
  *
- * Group summaries deliberately count only constraint instances. Variable
- * bounds and sparse domains remain available in [activities] and are exposed
- * through [variableActivities] for callers that need the full evidence set.
+ * 组汇总只统计约束实例；变量边界和稀疏值域仍保留在 [activities] 中，并通过 [variableActivities]
+ * 提供给需要完整证据集合的调用方。 / Group summaries deliberately count only constraint instances;
+ * variable bounds and sparse domains remain in [activities] and are exposed through
+ * [variableActivities] for callers that need the full evidence set.
+ *
+ * @property activities 按 snapshot 顺序排列的约束与变量活动性记录 / Constraint and variable activity records in snapshot order
+ * @property groupSummaries 原始约束的组级计数 / Group-level counts for original constraints
+ * @property tolerance 分析器使用的绝对容差 / Absolute tolerance used by the analyzer
+ * @property nearlyActiveTolerance NearlyActive 阈值 / Threshold for NearlyActive
  */
 data class ConstraintActivityReport(
     /** Constraint and variable activity records in snapshot order. / 按 snapshot 顺序排列的约束与变量活动性记录。 */
@@ -89,7 +115,11 @@ data class ConstraintActivityReport(
     val groups: List<ActivityGroupSummary>
         get() = groupSummaries
 
-    /** Find a constraint activity by stable ID. / 按稳定 ID 查找约束活动性。 */
+    /** 按稳定 ID 查找约束活动性。 / Find a constraint activity by stable ID.
+     *
+     * @param id 要查找的约束 ID / Constraint ID to find
+     * @return 匹配的活动性记录，找不到时为 null / Matching activity record, or null when absent
+     */
     fun constraint(id: ConstraintId): ConstraintActivity? {
         return constraintActivities.firstOrNull { it.constraintId == id }
     }

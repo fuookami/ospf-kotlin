@@ -2,14 +2,16 @@ package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * 两个互斥条件的有符号差值。 / Signed difference of two mutually exclusive conditions.
+ *
+ * @param V 数值类型 / Numeric type
  * @property condition 减数条件 / Subtracted condition
  * @property resultVariable 保留的数值结果 / Retained numeric result
  * @property name 链接约束名称前缀 / Link constraint name prefix
@@ -19,6 +21,7 @@ data class DifferenceIndicator<V>(
     val resultVariable: AbstractVariableItem<*, *>,
     val name: String
 ) where V : RealNumber<V>, V : NumberField<V> {
+
     internal fun generateConstraints(primary: AbstractVariableItem<*, *>): Ret<List<LinearInequality<V>>> {
         if (setOf(primary.key, condition.resultVariable.key, resultVariable.key).size != 3 ||
             condition.conjunction != null || condition.difference != null || condition.conditionalValue != null ||

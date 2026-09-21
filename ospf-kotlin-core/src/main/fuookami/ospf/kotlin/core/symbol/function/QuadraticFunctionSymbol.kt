@@ -2,28 +2,29 @@ package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.core.symbol.*
-import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.variable.*
 
 /**
- * 有限二次输入的函数组合基类。二次输入通过精确等式绑定，仿射输入直接复用。
- * / Function composition with bounded quadratic inputs; exact equalities bind quadratic inputs, affine inputs pass through.
+ * 有限二次输入的函数组合基类。二次输入通过精确等式绑定，仿射输入直接复用。 / Function composition with bounded quadratic inputs; exact equalities bind quadratic inputs, affine inputs pass through.
  *
  * @param inputs 输入多项式；构造时复制 / input polynomials, copied at construction
  * @property converter 数值转换器 / value converter
  * @property name 符号名称 / symbol name
  * @property displayName 显示名称 / display name
+ * @property helperVariables 输入绑定变量与函数辅助变量 / input-bridge and function helper variables
+ * @property polynomial 结果二次多项式 / result quadratic polynomial
  */
 abstract class QuadraticFunctionSymbol<V> protected constructor(
     inputs: List<QuadraticPolynomial<V>>,
@@ -69,6 +70,7 @@ abstract class QuadraticFunctionSymbol<V> protected constructor(
 
     /**
      * 为已绑定的输入构造对应线性函数。 / Construct the linear function for bound inputs.
+     *
      * @param inputs 已绑定的仿射输入 / bound affine inputs
      * @return 线性语义实现 / linear semantic implementation
      */

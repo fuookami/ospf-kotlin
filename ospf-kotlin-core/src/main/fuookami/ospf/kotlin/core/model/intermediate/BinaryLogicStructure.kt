@@ -1,18 +1,28 @@
 package fuookami.ospf.kotlin.core.model.intermediate
 
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /** 纯二值逻辑运算。 / Pure binary logic operation. */
 enum class BinaryLogicOperation { And, Or, Not, Xor }
 
-/** 纯二值逻辑函数的延迟快照。 / Deferred snapshot for a pure binary logic function. */
+/**
+ * 纯二值逻辑函数的延迟快照。 / Deferred snapshot for a pure binary logic function.
+ *
+ * @param V 数值类型 / Numeric type
+ * @property operation 逻辑运算 / Logic operation
+ * @property inputs 输入二值列 / Binary input columns
+ * @property resultVariable 结果列 / Result column
+ * @property converter 数值转换器 / Value converter
+ * @property name 约束名称前缀 / Constraint name prefix
+ * @property usage 使用语境 / Usage context
+ */
 data class BinaryLogicStructure<V>(
     val operation: BinaryLogicOperation,
     val inputs: List<AbstractVariableItem<*, *>>,
@@ -21,6 +31,7 @@ data class BinaryLogicStructure<V>(
     val name: String,
     val usage: FunctionUsageSummary = FunctionUsageSummary()
 ) : DeferredFunctionStructure where V : RealNumber<V>, V : NumberField<V> {
+
     internal fun materializeFallbackConstraints(): Ret<DeferredFunctionFallbackConstraints> {
         if (inputs.isEmpty() || inputs.any { !it.type.isBinaryType } || !resultVariable.type.isBinaryType ||
             operation == BinaryLogicOperation.Not && inputs.size != 1

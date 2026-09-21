@@ -1,12 +1,12 @@
 package fuookami.ospf.kotlin.core.solver.report
 
 import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation as ModelConstraintRelation
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation as ModelConstraintRelation
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 
@@ -22,6 +22,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
  * @property identityProvenance 完整身份来源集合 / Complete identity provenance
  * @property identityNamespace 元素身份命名空间 / Element identity namespace
  * @property identitySchemaVersion 元素身份 schema / Element identity schema
+ * @property name 变量名称 / Variable name
  */
 data class NormalizedVariable(
     val id: VariableId,
@@ -62,6 +63,12 @@ data class NormalizedQuadraticTerm(
  * @property identityProvenance 完整身份来源集合 / Complete identity provenance
  * @property identityNamespace 元素身份命名空间 / Element identity namespace
  * @property identitySchemaVersion 元素身份 schema / Element identity schema
+ * @property name 约束名称 / Constraint name
+ * @property source 约束来源 / Constraint source
+ * @property priority 约束优先级 / Constraint priority
+ * @property lazy 是否延迟约束 / Whether the constraint is lazy
+ * @property group 约束组 / Constraint group
+ * @property args 约束参数的稳定文本 / Stable text for constraint arguments
  */
 data class NormalizedConstraint(
     val id: ConstraintId,
@@ -121,6 +128,7 @@ data class NormalizedObjective(
  * @property objective 规范化目标 / Normalized objective
  * @property identityNamespace 身份命名空间 / Identity namespace
  * @property identitySchemaVersion 身份 schema / Identity schema
+ * @property name 模型名称 / Model name
  * @property identityValidation 身份元数据校验结果 / Identity metadata validation result
  */
 data class NormalizedMathematicalModel(

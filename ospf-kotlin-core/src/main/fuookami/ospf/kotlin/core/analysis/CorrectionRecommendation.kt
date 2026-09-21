@@ -1,14 +1,19 @@
 package fuookami.ospf.kotlin.core.analysis
 
 import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Failed
 
-/** Policy limiting correction recommendations. */
+/** 限制修正建议的策略。 / Policy limiting correction recommendations.
+ *
+ * @property maxCandidates 最多保留的候选数 / Maximum number of candidates to retain
+ * @property maxPlans 最多保留的方案数 / Maximum number of plans to retain
+ * @property requirePositiveWeight 是否要求权重为正 / Whether weights must be positive
+ */
 data class RelaxabilityPolicy(
     val maxCandidates: Int = 32,
     val maxPlans: Int = 8,
@@ -31,7 +36,12 @@ data class RelaxabilityPolicy(
     }
 }
 
-/** Original evidence that may be relaxed and its business cost. */
+/** 可放宽的原始证据及其业务成本。 / Original evidence that may be relaxed and its business cost.
+ *
+ * @property source 原始证据来源 / Original evidence source
+ * @property weight 业务权重 / Business weight
+ * @property relaxation 建议的放宽量 / Suggested relaxation amount
+ */
 data class CorrectionCandidate(
     val source: DiagnosticSource,
     val weight: Double,
@@ -66,7 +76,11 @@ data class CorrectionCandidate(
     }
 }
 
-/** Business cost and suggested relaxation amount for one evidence source. */
+/** 一个证据来源的业务成本与建议放宽量。 / Business cost and suggested relaxation amount for one evidence source.
+ *
+ * @property weight 业务权重 / Business weight
+ * @property relaxation 建议的放宽量 / Suggested relaxation amount
+ */
 data class RelaxationCost(
     val weight: Double = 1.0,
     val relaxation: Double = 1.0
@@ -100,7 +114,12 @@ data class RelaxationCost(
     }
 }
 
-/** A validated weighted correction set. */
+/** 已校验的加权修正集合。 / A validated weighted correction set.
+ *
+ * @property members 修正候选成员 / Correction candidates
+ * @property totalCost 成员总成本 / Total member cost
+ * @property minimal 是否已验证删除最小性 / Whether deletion minimality was verified
+ */
 data class CorrectionSet(
     val members: List<CorrectionCandidate>,
     val totalCost: Double,
@@ -158,15 +177,23 @@ data class CorrectionSet(
         }
     }
 
-    /** Numeric relaxation is a recommendation and always needs caller-side revalidation. */
+    /** 数值放宽只是建议，始终需要调用方重新校验。 / Numeric relaxation is a recommendation and always needs caller-side revalidation. */
     val requiresRevalidation: Boolean
         get() = true
 
-    /** Method form for callers that model this flag as an explicit capability check. */
+    /** 为使用谓词调用形式的调用方保留的方法形式。 / Method form for callers that model this flag as an explicit capability check.
+     *
+     * @return 是否需要重新校验 / Whether revalidation is required
+     */
     fun requiresRevalidation(): Boolean = requiresRevalidation
 }
 
-/** One alternative plan for reaching an objective target. */
+/** 一个达到目标条件的备选方案。 / One alternative plan for reaching an objective target.
+ *
+ * @property target 目标条件 / Objective target
+ * @property correctionSet 修正集合 / Correction set
+ * @property rank 方案排序名次 / Plan rank
+ */
 data class AlternativeImprovementPlan(
     val target: ObjectiveTarget,
     val correctionSet: CorrectionSet,
@@ -204,15 +231,23 @@ data class AlternativeImprovementPlan(
         }
     }
 
-    /** Applying a numeric candidate never proves that this target is now reachable. */
+    /** 应用数值候选项不能证明目标已经可达。 / Applying a numeric candidate never proves that this target is now reachable. */
     val requiresRevalidation: Boolean
         get() = correctionSet.requiresRevalidation
 
-    /** Method form kept alongside the property for API callers using predicate syntax. */
+    /** 与属性并存，供使用谓词语法的 API 调用方使用。 / Method form kept alongside the property for API callers using predicate syntax.
+     *
+     * @return 是否需要重新校验 / Whether revalidation is required
+     */
     fun requiresRevalidation(): Boolean = requiresRevalidation
 }
 
-/** Build a deterministic weighted correction set, retaining only policy-approved candidates. */
+/** 构造确定性的加权修正集合，只保留策略允许的候选项。 / Build a deterministic weighted correction set, retaining only policy-approved candidates.
+ *
+ * @param candidates 候选项 / Candidate corrections
+ * @param policy 修正建议策略 / Correction recommendation policy
+ * @return 加权修正集合 / Weighted correction set
+ */
 fun weightedCorrectionSet(
     candidates: List<CorrectionCandidate>,
     policy: RelaxabilityPolicy = RelaxabilityPolicy()
@@ -226,7 +261,12 @@ fun weightedCorrectionSet(
     return CorrectionSet(selected, selected.sumOf { it.weight * it.relaxation })
 }
 
-/** Result-form weighted correction builder for callers that cannot accept exceptions. / 面向不接受异常调用方的 Result 形式加权构造器。 */
+/** 面向不接受异常调用方的 Result 形式加权构造器。 / Result-form weighted correction builder for callers that cannot accept exceptions.
+ *
+ * @param candidates 候选项 / Candidate corrections
+ * @param policy 修正建议策略 / Correction recommendation policy
+ * @return 加权修正集合结果 / Result containing the weighted correction set
+ */
 fun tryWeightedCorrectionSet(
     candidates: List<CorrectionCandidate>,
     policy: RelaxabilityPolicy = RelaxabilityPolicy()
@@ -241,7 +281,13 @@ fun tryWeightedCorrectionSet(
     }
 }
 
-/** Construct an explicitly validated minimal correction set supplied by the caller's shrinker. */
+/** 构造调用方收缩器提供的、已明确校验的最小修正集合。 / Construct an explicitly validated minimal correction set supplied by the caller's shrinker.
+ *
+ * @param candidates 候选项 / Candidate corrections
+ * @param verified 是否已完成删除验证 / Whether deletion verification completed
+ * @param policy 修正建议策略 / Correction recommendation policy
+ * @return 最小修正集合 / Minimal correction set
+ */
 fun minimalCorrectionSet(
     candidates: List<CorrectionCandidate>,
     verified: Boolean,
@@ -252,10 +298,18 @@ fun minimalCorrectionSet(
     // Once the policy truncates the input, deletion verification no longer covers the returned
     // set's complete candidate universe. Keep the weighted recommendation, but do not claim it is
     // a verified minimal set.
+    // 输入一旦被策略截断，删除验证就不再覆盖返回集合的完整候选全集。
+    // 保留加权建议，但不得声称它是已验证的最小集合。
     return weighted.copy(minimal = candidates.size <= policy.maxCandidates)
 }
 
-/** Result-form minimal correction builder for callers that cannot accept exceptions. / 面向不接受异常调用方的 Result 形式最小 correction 构造器。 */
+/** 面向不接受异常调用方的 Result 形式最小修正构造器。 / Result-form minimal correction builder for callers that cannot accept exceptions.
+ *
+ * @param candidates 候选项 / Candidate corrections
+ * @param verified 是否已完成删除验证 / Whether deletion verification completed
+ * @param policy 修正建议策略 / Correction recommendation policy
+ * @return 最小修正集合结果 / Result containing the minimal correction set
+ */
 fun tryMinimalCorrectionSet(
     candidates: List<CorrectionCandidate>,
     verified: Boolean,
@@ -271,7 +325,10 @@ fun tryMinimalCorrectionSet(
     }
 }
 
-/** A conflict that is safe to project into criticality or correction recommendations. / 可安全投影到 criticality 或 correction recommendation 的冲突。 */
+/** 可安全投影到 criticality 或 correction recommendation 的冲突。 / A conflict that is safe to project into criticality or correction recommendations.
+ *
+ * @return 冲突是否满足安全投影条件 / Whether the conflict is safe to project
+ */
 fun ConflictExplanation.isVerifiedMinimalConflict(): Boolean =
     status == AnalysisStatus.Unreachable &&
         validity == ConflictValidity.Verified &&
@@ -288,8 +345,12 @@ fun ConflictExplanation.isVerifiedMinimalConflict(): Boolean =
         }
 
 /**
- * An irreducible blocking set yields one singleton correction set per member: deleting any one
- * member makes that fixed target reachable. Partial and unverified conflicts yield no MCS claim.
+ * 不可约阻塞集合为每个成员生成一个单例修正集合：删除任一成员都会使固定目标可达；部分或未校验的冲突不声明 MCS。
+ * / An irreducible blocking set yields one singleton correction set per member: deleting any one member makes
+ * that fixed target reachable. Partial and unverified conflicts yield no MCS claim.
+ *
+ * @param conflict 待投影的冲突解释 / Conflict explanation to project
+ * @return 单例修正集合 / Singleton correction sets
  */
 fun correctionSetsFromConflict(conflict: ConflictExplanation): List<CorrectionSet> {
     if (!conflict.isVerifiedMinimalConflict()) return emptyList()
@@ -298,7 +359,13 @@ fun correctionSetsFromConflict(conflict: ConflictExplanation): List<CorrectionSe
     }
 }
 
-/** Build weighted singleton correction alternatives from a verified conflict. */
+/** 从已校验冲突构造加权单例修正备选项。 / Build weighted singleton correction alternatives from a verified conflict.
+ *
+ * @param conflict 已校验的冲突解释 / Verified conflict explanation
+ * @param costs 按稳定来源 ID 给出的成本 / Costs keyed by stable source ID
+ * @param policy 修正建议策略 / Correction recommendation policy
+ * @return 加权修正集合 / Weighted correction sets
+ */
 fun weightedCorrectionSetsFromConflict(
     conflict: ConflictExplanation,
     costs: Map<String, RelaxationCost> = emptyMap(),
@@ -330,7 +397,13 @@ fun weightedCorrectionSetsFromConflict(
         .take(policy.maxPlans)
 }
 
-/** Build ranked weighted alternative-improvement plans from a verified conflict. */
+/** 从已校验冲突构造排序后的加权改进方案。 / Build ranked weighted alternative-improvement plans from a verified conflict.
+ *
+ * @param conflict 已校验的冲突解释 / Verified conflict explanation
+ * @param costs 按稳定来源 ID 给出的成本 / Costs keyed by stable source ID
+ * @param policy 修正建议策略 / Correction recommendation policy
+ * @return 排序后的改进方案 / Ranked improvement plans
+ */
 fun alternativeImprovementPlansFromConflict(
     conflict: ConflictExplanation,
     costs: Map<String, RelaxationCost> = emptyMap(),
@@ -346,7 +419,13 @@ fun alternativeImprovementPlansFromConflict(
         }
 }
 
-/** Alias emphasizing that the returned plans are relaxation recommendations. */
+/** 强调返回方案属于放宽建议的别名。 / Alias emphasizing that the returned plans are relaxation recommendations.
+ *
+ * @param conflict 已校验的冲突解释 / Verified conflict explanation
+ * @param costs 按稳定来源 ID 给出的成本 / Costs keyed by stable source ID
+ * @param policy 修正建议策略 / Correction recommendation policy
+ * @return 放宽建议方案 / Relaxation recommendation plans
+ */
 fun relaxationRecommendationsFromConflict(
     conflict: ConflictExplanation,
     costs: Map<String, RelaxationCost> = emptyMap(),

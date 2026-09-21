@@ -23,7 +23,11 @@ internal fun gurobi11NativeVersion(): String? {
 fun gurobiFunctionSolverCapabilities(
     modelClass: Class<*> = GRBModel::class.java
 ): FunctionSolverCapabilities {
-    fun has(name: String, returnType: Class<*>, vararg parameters: Class<*>): Boolean {
+    fun has(
+        name: String,
+        returnType: Class<*>,
+        vararg parameters: Class<*>
+    ): Boolean {
         return try {
             modelClass.getMethod(name, *parameters).returnType == returnType
         } catch (_: ReflectiveOperationException) {
@@ -87,11 +91,17 @@ fun gurobiFunctionSolverCapabilities(
             add(FunctionNativeCapability.GeneralMinMax)
         }
         if (runCatching { GRB::class.java.getField("SEMICONT") }.isSuccess) {
-        add(FunctionNativeCapability.SemiContinuous)
-        if (listOf("addGenConstrAnd", "addGenConstrOr").all { method ->
-                has(method, generalConstraint, variable, variables, text)
+            add(FunctionNativeCapability.SemiContinuous)
+            if (listOf("addGenConstrAnd", "addGenConstrOr").all { method ->
+                    has(
+                        name = method,
+                        returnType = generalConstraint,
+                        parameters = *arrayOf(variable, variables, text)
+                    )
+                }
+            ) {
+                add(FunctionNativeCapability.BinaryLogic)
             }
-        ) add(FunctionNativeCapability.BinaryLogic)
         }
     }
     return FunctionSolverCapabilities(

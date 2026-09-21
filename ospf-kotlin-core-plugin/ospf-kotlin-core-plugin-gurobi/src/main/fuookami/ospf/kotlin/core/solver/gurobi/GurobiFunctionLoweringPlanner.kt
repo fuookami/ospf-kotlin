@@ -1,9 +1,12 @@
 package fuookami.ospf.kotlin.core.solver.gurobi
 
 import gurobi.GRB
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.solver.prepareNativeMasking
+import fuookami.ospf.kotlin.core.solver.prepareNativeIndicator
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
@@ -43,7 +46,7 @@ fun planGurobiFunctionLowering(
                 )
                 if (model.dual || model.deferredFunctionConstraintRegions.any { it.structure == structure } ||
                     listOf(structure.resultVariable, structure.mask).any { retained -> model.variables.none { it.origin?.key == retained.key } } ||
-                    fuookami.ospf.kotlin.core.solver.prepareNativeMasking(structure, GRB.INFINITY) !is fuookami.ospf.kotlin.utils.functional.Ok
+                    prepareNativeMasking(structure, GRB.INFINITY) !is Ok
                 ) FunctionLoweringDecision(false, reason = "masking columns, bounds or fallback region are incompatible")
                 else candidate
             }
@@ -56,7 +59,7 @@ fun planGurobiFunctionLowering(
                 )
                 if (model.dual || model.deferredFunctionConstraintRegions.any { it.structure == structure } ||
                     model.variables.none { it.origin?.key == structure.resultVariable.key } ||
-                    fuookami.ospf.kotlin.core.solver.prepareNativeIndicator(structure, GRB.INFINITY) !is fuookami.ospf.kotlin.utils.functional.Ok
+                    prepareNativeIndicator(structure, GRB.INFINITY) !is Ok
                 ) {
                     FunctionLoweringDecision(false, reason = "indicator columns, bounds or fallback region are incompatible")
                 } else candidate

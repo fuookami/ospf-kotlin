@@ -4,8 +4,8 @@ import gurobi.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.NativeMaskingData
 import fuookami.ospf.kotlin.core.solver.prepareNativeMasking
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
@@ -55,15 +55,34 @@ internal fun addGurobiNativeMasking(
                 val equality = GRBLinExpr()
                 equality.addTerm(1.0, mask)
                 for ((key, coefficient) in definition.terms) equality.addTerm(-coefficient, variables.getValue(key))
-                model.addConstr(equality, GRB.EQUAL, definition.constant, "${data.value.name}_mask_eq")
+                model.addConstr(
+                    equality,
+                    GRB.EQUAL,
+                    definition.constant,
+                    "${data.value.name}_mask_eq"
+                )
             }
             val active = GRBLinExpr()
             active.addTerm(1.0, output)
             for ((key, coefficient) in data.value.terms) active.addTerm(-coefficient, variables.getValue(key))
-            model.addGenConstrIndicator(mask, 1, active, GRB.EQUAL, data.value.constant, "${data.value.name}_active")
+            model.addGenConstrIndicator(
+                mask,
+                1,
+                active,
+                GRB.EQUAL,
+                data.value.constant,
+                "${data.value.name}_active"
+            )
             val inactive = GRBLinExpr()
             inactive.addTerm(1.0, output)
-            model.addGenConstrIndicator(mask, 0, inactive, GRB.EQUAL, 0.0, "${data.value.name}_inactive")
+            model.addGenConstrIndicator(
+                mask,
+                0,
+                inactive,
+                GRB.EQUAL,
+                0.0,
+                "${data.value.name}_inactive"
+            )
         }
         model.update()
         ok

@@ -17,7 +17,7 @@
     </properties>
 
     <dependencies>
-        <!-- Redis -->
+        <!-- Redis 客户端 / Redis client -->
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>

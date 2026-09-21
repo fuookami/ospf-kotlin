@@ -18,7 +18,6 @@
             <artifactId>ospf-kotlin-framework-gantt-scheduling-infrastructure</artifactId>
             <version>${project.version}</version>
         </dependency>
-
     </dependencies>
 
     <build>

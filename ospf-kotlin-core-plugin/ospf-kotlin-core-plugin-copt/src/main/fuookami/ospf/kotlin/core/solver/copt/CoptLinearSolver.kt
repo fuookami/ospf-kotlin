@@ -1,4 +1,3 @@
-/** COPT 线性求解器 / COPT Linear Solver */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.copt
 
@@ -8,26 +7,27 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlinx.coroutines.*
 import copt.*
-import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
+import copt.Constraint
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
+import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
-import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
 import fuookami.ospf.kotlin.core.solver.*
-import fuookami.ospf.kotlin.core.solver.report.*
-import fuookami.ospf.kotlin.core.solver.config.CoptSolverConfig
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.output.*
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.config.CoptSolverConfig
+import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
 
 /**
@@ -35,7 +35,7 @@ import fuookami.ospf.kotlin.core.variable.VariableItemKey
  *
  * @property config 求解器配置 / solver configuration
  * @property callBack 线性求解器回调 / linear solver callback
-*/
+ */
 class CoptLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: CoptLinearSolverCallBack? = null
@@ -62,25 +62,45 @@ class CoptLinearSolver(
         if (config.functionExpansionPolicy == FunctionExpansionPolicy.EAGER ||
             model !is LinearMechanismModel<V> || model.functionExpansionPolicy == FunctionExpansionPolicy.EAGER
         ) {
-            return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+            return super<LinearSolver>.solve(
+                model = model,
+                converter = converter,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
         }
         val converted = when (val result = convertMechanismModelToFlt64(model)) {
             is Ok -> result.value as? LinearMechanismModel<Flt64>
-                ?: return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+                ?: return super<LinearSolver>.solve(
+                    model = model,
+                    converter = converter,
+                    solvingStatusCallBack = solvingStatusCallBack
+                )
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
         }
         try {
             val candidates = selectCoptNativePiecewise(converted)
             if (candidates.isEmpty()) {
-                return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+                return super<LinearSolver>.solve(
+                    model = model,
+                    converter = converter,
+                    solvingStatusCallBack = solvingStatusCallBack
+                )
             }
             val nativeData = ArrayList<NativePiecewiseData>(candidates.size)
             for (structure in candidates) {
                 when (val prepared = prepareCoptNativePiecewise(structure)) {
                     is Ok -> nativeData += prepared.value
-                    is Failed -> return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
-                    is Fatal -> return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+                    is Failed -> return super<LinearSolver>.solve(
+                        model = model,
+                        converter = converter,
+                        solvingStatusCallBack = solvingStatusCallBack
+                    )
+                    is Fatal -> return super<LinearSolver>.solve(
+                        model = model,
+                        converter = converter,
+                        solvingStatusCallBack = solvingStatusCallBack
+                    )
                 }
             }
             val nativeModel = when (val result = LinearTriadModel.invokeResult(
@@ -91,7 +111,11 @@ class CoptLinearSolver(
                 nativeFunctionKeys = candidates.map { it.resultVariable.key }.toSet()
             )) {
                 is Ok -> result.value
-                is Failed, is Fatal -> return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+                is Failed, is Fatal -> return super<LinearSolver>.solve(
+                    model = model,
+                    converter = converter,
+                    solvingStatusCallBack = solvingStatusCallBack
+                )
             }
             val attempt = nativeModel.use {
                 CoptLinearSolverImpl(
@@ -120,7 +144,11 @@ class CoptLinearSolver(
                 }
             }
             return when (attempt) {
-                null -> super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+                null -> super<LinearSolver>.solve(
+                    model = model,
+                    converter = converter,
+                    solvingStatusCallBack = solvingStatusCallBack
+                )
                 is Ok -> Ok(attempt.value.convertTo(converter))
                 is Failed -> Failed(attempt.error)
                 is Fatal -> Fatal(attempt.errors)
@@ -136,7 +164,7 @@ class CoptLinearSolver(
      * @param model 线性模型视图 / linear model view
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果 / solving result
-    */
+     */
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -164,7 +192,7 @@ class CoptLinearSolver(
      * @param solutionAmount 期望解的数量 / desired number of solutions
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果及多个解 / solving result with multiple solutions
-    */
+     */
     override suspend fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -185,7 +213,7 @@ class CoptLinearSolver(
                     .copyIfNotNullOr { CoptLinearSolverCallBack() }
                     .configuration { _, copt, _, _ ->
                         if (solutionAmount gr UInt64.one) {
-                            // todo: set copt parameter to limit number of solutions
+                            // 设置 COPT 参数以限制解数量 / Set the COPT parameter to limit the number of solutions
                         }
                         ok
                     }
@@ -214,7 +242,7 @@ class CoptLinearSolver(
  * @property config 求解器配置 / solver configuration
  * @property callBack 线性求解器回调 / linear solver callback
  * @property statusCallBack 求解状态回调 / solving status callback
-*/
+ */
 private class CoptLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: CoptLinearSolverCallBack? = null,
@@ -227,7 +255,7 @@ private class CoptLinearSolverImpl(
         private set
 
     private lateinit var coptVars: List<Var>
-    private lateinit var coptConstraints: List<copt.Constraint>
+    private lateinit var coptConstraints: List<Constraint>
     private lateinit var output: SolveReport<Flt64>
 
     private var initialBestObj: Flt64? = null
@@ -240,7 +268,7 @@ private class CoptLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 求解结果 / solving result
-    */
+     */
     suspend operator fun invoke(model: LinearTriadModelView): Ret<SolveReport<Flt64>> {
         val coptConfig = config.backendConfiguration as? CoptSolverConfig
         val server = coptConfig?.server
@@ -293,7 +321,7 @@ private class CoptLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun dump(model: LinearTriadModelView): Try {
         return try {
             warnIgnoredConstraintPriority("copt", model.nonNullConstraintPriorityAmount())
@@ -461,7 +489,7 @@ private class CoptLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
             coptModel.set(COPT.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
@@ -540,7 +568,7 @@ private class CoptLinearSolverImpl(
                                 }
                             }
 
-                            // todo: add lazy constraint
+                            // 添加惰性约束 / Add lazy constraints
                         }
                     }
                 }, COPT.CALL_BACK_CONTEXT_MIP_NODE)
@@ -575,7 +603,7 @@ private class CoptLinearSolverImpl(
      * 分析求解结果 / Analyze solving result
      *
      * @return 以Try包装的分析结果 / the analysis result as Try
-    */
+     */
     private suspend fun analyzeSolution(): Try {
         return try {
             if (status.succeeded) {

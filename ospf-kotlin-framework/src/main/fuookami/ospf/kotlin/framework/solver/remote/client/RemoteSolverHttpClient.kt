@@ -10,21 +10,21 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 import kotlinx.coroutines.delay
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerialName
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.solver.report.CancellationRecord
 import fuookami.ospf.kotlin.core.solver.report.CancellationSource
-import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 import fuookami.ospf.kotlin.framework.solver.remote.port.*
+import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 
 /**
  * 远程求解 HTTP 客户端。 / Remote solver HTTP client.
@@ -39,7 +39,7 @@ import fuookami.ospf.kotlin.framework.solver.remote.port.*
  * @property requestIdProvider 请求 ID 生成器 / Request ID provider
  * @property resumeMode HTTP 恢复模式 / HTTP resume mode
  * @property pollInterval 任务轮询间隔 / Task poll interval
-*/
+ */
 class RemoteSolverHttpClient(
     private val baseUrl: String,
     private val transport: RemoteSolverHttpTransport = JavaNetRemoteSolverHttpTransport(),
@@ -65,7 +65,7 @@ class RemoteSolverHttpClient(
      * 将远程求解器错误码转换为框架错误码。 / Convert remote solver error code to framework error code.
      *
      * @return 对应的框架错误码 / Corresponding framework error code
-    */
+     */
     private fun RemoteSolverErrorCode.toErrorCode(): ErrorCode {
         return when (this) {
             RemoteSolverErrorCode.INVALID_ARGUMENT -> ErrorCode.IllegalArgument
@@ -81,7 +81,7 @@ class RemoteSolverHttpClient(
      * @param message 错误描述 / Error description
      * @param metadata 附加元数据 / Additional metadata
      * @return 格式化的错误消息 / Formatted error message
-    */
+     */
     private fun remoteErrorMessage(
         code: RemoteSolverErrorCode,
         message: String,
@@ -105,7 +105,7 @@ class RemoteSolverHttpClient(
      * @param sliceId 切片 ID（可选）/ Slice ID (optional)
      * @param requestId 请求 ID（可选）/ Request ID (optional)
      * @return 失败的 Ret 结果 / Failed Ret result
-    */
+     */
     private fun <T> failedRemote(
         code: RemoteSolverErrorCode,
         message: String,
@@ -147,7 +147,7 @@ class RemoteSolverHttpClient(
      * @param requestIdProvider 请求 ID 生成器 / Request ID provider
      * @param resumeMode HTTP 恢复模式 / HTTP resume mode
      * @param pollInterval 任务轮询间隔 / Task poll interval
-    */
+     */
     constructor(
         baseUrl: String,
         transportPlugin: RemoteSolverHttpTransportPlugin,
@@ -279,9 +279,12 @@ class RemoteSolverHttpClient(
         nodeId: NodeId,
         tenantId: TenantId
     ): Ret<ExecutionHandle> {
-        // The canonical HTTP endpoint resumes a task's server-selected latest
-        // checkpoint and has no checkpoint selector. Never silently substitute
-        // that behavior for a caller-provided reference unless latest mode was explicit.
+        // 规范 HTTP 端点恢复服务端选择的最新检查点，且没有 checkpoint 选择器。
+        // The canonical HTTP endpoint resumes a task's server-selected latest checkpoint and has no
+        // checkpoint selector.
+        // 对调用方提供的引用，只有显式最新检查点模式才能采用该行为。
+        // Never silently substitute that behavior for a caller-provided reference unless latest mode
+        // was explicit.
         if (resumeMode == RemoteSolverHttpResumeMode.STRICT_CHECKPOINT) {
             return failedRemote(
                 code = RemoteSolverErrorCode.INVALID_ARGUMENT,
@@ -361,7 +364,9 @@ class RemoteSolverHttpClient(
         ))
     }
 
-    /** Load a tenant-scoped, verified v2 checkpoint before invoking task resume. */
+    /**
+     * 在调用任务恢复前加载并校验租户范围内的 v2 checkpoint。 / Load a tenant-scoped, verified v2 checkpoint before invoking task resume.
+     */
     private suspend fun validateResumeCheckpoint(
         payload: SolvePayload,
         checkpoint: ObjectRef,
@@ -544,7 +549,9 @@ class RemoteSolverHttpClient(
                 else -> Unit
             }
 
-            // The dispatcher owns the quantum and performs checkpoint/stop/requeue.
+            // 调度器负责时间片，并执行 checkpoint、停止和重新入队。
+            // The dispatcher owns the quantum and performs checkpoint, stop, and requeue.
+            // 客户端截止时间会把服务端的正常暂停误转成任务停止。
             // A client-side deadline would turn a normal server suspension into a task stop.
             delay(pollInterval.coerceAtLeast(1.milliseconds))
         }
@@ -759,7 +766,9 @@ class RemoteSolverHttpClient(
         return Ok(if (unknownSemantics) terminalResult.asUnknownOutcomeFailure() else terminalResult)
     }
 
-    /** Build a final result from an extended task view when no artifact is available. */
+    /**
+     * 在没有 artifact 时根据扩展任务视图构造最终结果。 / Build a final result from an extended task view when no artifact is available.
+     */
     private fun RemoteTaskView.toObservedSolveResult(handle: ExecutionHandle): SolveResult? {
         val hasObservation = status == TaskStatus.COMPLETED || status == TaskStatus.FAILED ||
             status == TaskStatus.STOPPED || status == TaskStatus.UNKNOWN || objectiveValue != null ||
@@ -840,7 +849,9 @@ class RemoteSolverHttpClient(
             proofStatus == RemoteProofStatus.UNKNOWN
     }
 
-    /** Preserve unknown wire semantics instead of manufacturing a successful result. */
+    /**
+     * 保留未知线格式语义，避免伪造成功结果。 / Preserve unknown wire semantics instead of manufacturing a successful result.
+     */
     private fun SolveResult.asUnknownOutcomeFailure(): SolveResult {
         return copy(
             feasible = false,
@@ -911,7 +922,7 @@ class RemoteSolverHttpClient(
      *
      * @param request 提交请求 / Submit request
      * @return 提交响应 / Submit response
-    */
+     */
     fun submit(request: RemoteTaskSubmitRequest): Ret<RemoteTaskSubmitResponse> {
         val response = send(
             request(
@@ -934,7 +945,7 @@ class RemoteSolverHttpClient(
      * 查询服务端能力和协议版本。 / Query server capabilities and protocol versions.
      *
      * @return 服务端能力摘要 / Server capability summary
-    */
+     */
     fun probeCapabilities(): Ret<RemoteSolverCapabilities> {
         val response = when (val result = send(
             request(
@@ -957,7 +968,7 @@ class RemoteSolverHttpClient(
      *
      * @param request HTTP 请求 / HTTP request
      * @return HTTP 响应或失败结果 / HTTP response or failure result
-    */
+     */
     private fun send(request: RemoteSolverHttpRequest): Ret<RemoteSolverHttpResponse> {
         return try {
             Ok(transport.send(request))
@@ -982,7 +993,7 @@ class RemoteSolverHttpClient(
      *
      * @param taskId 任务 ID / Task ID
      * @return 任务视图，不存在时返回 null / Task view, null if not found
-    */
+     */
     fun get(taskId: TaskId): Ret<RemoteTaskView?> {
         val response = when (val result = send(
             request(
@@ -1009,7 +1020,7 @@ class RemoteSolverHttpClient(
      * @param taskId 任务 ID / Task ID
      * @param request 停止请求 / Stop request
      * @return 操作响应 / Action response
-    */
+     */
     fun stop(
         taskId: TaskId,
         request: RemoteTaskStopRequest = RemoteTaskStopRequest()
@@ -1037,7 +1048,7 @@ class RemoteSolverHttpClient(
      * @param taskId 任务 ID / Task ID
      * @param request 恢复请求 / Resume request
      * @return 操作响应 / Action response
-    */
+     */
     fun resume(
         taskId: TaskId,
         request: RemoteTaskResumeRequest = RemoteTaskResumeRequest()
@@ -1066,7 +1077,7 @@ class RemoteSolverHttpClient(
      * @param path 请求路径 / Request path
      * @param body 请求体（可选）/ Request body (optional)
      * @return HTTP 请求对象 / HTTP request object
-    */
+     */
     private fun request(
         method: String,
         path: String,
@@ -1096,7 +1107,7 @@ class RemoteSolverHttpClient(
      * @param response HTTP 响应 / HTTP response
      * @param dataDeserializer 数据反序列化器 / Data deserializer
      * @return 解析后的数据或失败结果 / Parsed data or failure result
-    */
+     */
     private fun <T> decodeEnvelope(
         response: RemoteSolverHttpResponse,
         dataDeserializer: KSerializer<T>
@@ -1145,7 +1156,7 @@ class RemoteSolverHttpClient(
      *
      * @param response HTTP 响应 / HTTP response
      * @return 包含错误详情的失败结果 / Failure result with error details
-    */
+     */
     private fun <T> decodeError(response: RemoteSolverHttpResponse): Ret<T> {
         val body = response.body
         val envelope = runCatching {
@@ -1173,7 +1184,7 @@ class RemoteSolverHttpClient(
      * Convert string error code to RemoteSolverErrorCode enum.
      *
      * @return 对应的远程求解错误码，无法识别时返回 INTERNAL_ERROR / Corresponding remote solver error code, or INTERNAL_ERROR if unrecognized
-    */
+     */
     private fun String.toRemoteErrorCode(): RemoteSolverErrorCode {
         return runCatching { RemoteSolverErrorCode.valueOf(this) }
             .getOrDefault(RemoteSolverErrorCode.INTERNAL_ERROR)
@@ -1187,7 +1198,7 @@ class RemoteSolverHttpClient(
      * @param sliceId 切片 ID / Slice ID
      * @param tenantId 租户 ID / Tenant ID
      * @return 对象引用或失败结果 / Object reference or failure result
-    */
+     */
     private suspend fun putPayload(
         payload: SolvePayload,
         taskId: TaskId,
@@ -1222,7 +1233,9 @@ class RemoteSolverHttpClient(
         }
     }
 
-    /** Decode result artifacts while preserving newer enum values as explicit UNKNOWN. */
+    /**
+     * 解码结果 artifact，并将新枚举值保留为明确的 UNKNOWN。 / Decode result artifacts while preserving newer enum values as explicit UNKNOWN.
+     */
     private fun decodeSerializedSolution(body: String): SerializedSolution {
         val root = json.parseToJsonElement(body) as? JsonObject ?: return json.decodeFromString(
             SerializedSolution.serializer(),
@@ -1267,7 +1280,7 @@ class RemoteSolverHttpClient(
 
 /**
  * HTTP 恢复模式。 / HTTP resume mode.
-*/
+ */
 enum class RemoteSolverHttpResumeMode {
     /** 恢复服务端任务的最新检查点 / Resume server task from its latest checkpoint */
     SERVER_TASK_LATEST_CHECKPOINT,
@@ -1278,7 +1291,7 @@ enum class RemoteSolverHttpResumeMode {
 
 /**
  * 远程求解 HTTP 传输接口。 / Remote solver HTTP transport.
-*/
+ */
 fun interface RemoteSolverHttpTransport {
 
     /**
@@ -1286,7 +1299,7 @@ fun interface RemoteSolverHttpTransport {
      *
      * @param request HTTP 请求 / HTTP request
      * @return HTTP 响应 / HTTP response
-    */
+     */
     fun send(request: RemoteSolverHttpRequest): RemoteSolverHttpResponse
 }
 
@@ -1297,7 +1310,7 @@ fun interface RemoteSolverHttpTransport {
  * @property url 请求 URL / Request URL
  * @property headers 请求头 / Request headers
  * @property body 请求体 / Request body
-*/
+ */
 data class RemoteSolverHttpRequest(
     val method: String,
     val url: String,
@@ -1310,7 +1323,7 @@ data class RemoteSolverHttpRequest(
  *
  * @property statusCode HTTP 状态码 / HTTP status code
  * @property body 响应体 / Response body
-*/
+ */
 data class RemoteSolverHttpResponse(
     val statusCode: Int,
     val body: String
@@ -1321,7 +1334,7 @@ data class RemoteSolverHttpResponse(
  *
  * @property client JDK HTTP 客户端 / JDK HTTP client
  * @property config HTTP 传输配置 / HTTP transport config
-*/
+ */
 class JavaNetRemoteSolverHttpTransport(
     private val client: HttpClient = HttpClient.newHttpClient(),
     private val config: RemoteSolverHttpTransportConfig = RemoteSolverHttpTransportConfig()
@@ -1361,7 +1374,7 @@ class JavaNetRemoteSolverHttpTransport(
  * @property budgetLimit 预算上限 / Budget limit
  * @property deadline 截止时间戳 / Deadline timestamp
  * @property scheduling V1.2 调度请求 / V1.2 scheduling request
-*/
+ */
 @Serializable
 data class RemoteTaskSubmitRequest(
     val payloadRef: ObjectPath,
@@ -1385,7 +1398,7 @@ data class RemoteTaskSubmitRequest(
  * @property accepted 是否接受 / Whether accepted
  * @property status 任务状态 / Task status
  * @property message 响应消息 / Response message
-*/
+ */
 data class RemoteTaskSubmitResponse(
     val taskId: TaskId,
     val accepted: Boolean,
@@ -1403,7 +1416,45 @@ data class RemoteTaskSubmitResponse(
  * @property latestCheckpointRef 最新检查点引用 / Latest checkpoint reference
  * @property latestResultRef 最新结果引用 / Latest result reference
  * @property consumedCost 已消耗成本 / Consumed cost
-*/
+ * @property requestId 请求 ID / Request ID
+ * @property complexity 任务复杂度 / Task complexity
+ * @property timeSensitivity 时间敏感度 / Time sensitivity
+ * @property priority 优先级 / Priority
+ * @property budgetScope 预算范围 / Budget scope
+ * @property budgetLimit 预算上限 / Budget limit
+ * @property sliceId 当前切片 ID / Current slice ID
+ * @property objectiveValue 目标值 / Objective value
+ * @property objectiveValueInt64 CP 精确整数目标值 / Exact Int64 CP objective value
+ * @property bestBound 当前最佳界 / Current best bound
+ * @property bound 当前界 / Current bound
+ * @property gap 最优间隙 / Optimality gap
+ * @property progress 求解进度 / Solve progress
+ * @property deadlineRisk 截止时间风险 / Deadline risk
+ * @property deadline 截止时间 / Deadline
+ * @property dispatchId 分发操作 ID / Dispatch operation ID
+ * @property runId 求解运行标识 / Solve run identifier
+ * @property attemptId 求解尝试标识 / Solve attempt identifier
+ * @property artifactDigest artifact 摘要 / Artifact digest
+ * @property incumbentRef incumbent 引用 / Incumbent reference
+ * @property modelFingerprint 模型指纹 / Model fingerprint
+ * @property modelFingerprintSchema 模型指纹 schema / Model fingerprint schema
+ * @property configurationFingerprint 配置指纹 / Configuration fingerprint
+ * @property configurationFingerprintSchema 配置指纹 schema / Configuration fingerprint schema
+ * @property solverFingerprint 求解器指纹 / Solver fingerprint
+ * @property solverFingerprintSchema 求解器指纹 schema / Solver fingerprint schema
+ * @property fingerprints 审计指纹 / Audit fingerprints
+ * @property provenance 脱敏执行来源 / Redacted execution provenance
+ * @property scheduling 有效调度信息 / Effective scheduling information
+ * @property outcome 明确切片结果 / Explicit slice outcome
+ * @property problemStatus 正交问题结论 / Orthogonal problem conclusion
+ * @property terminationReason 正交终止原因 / Orthogonal termination reason
+ * @property solutionPresence 解存在性 / Solution presence
+ * @property proofStatus 证明状态 / Proof status
+ * @property statistics 求解统计 / Solve statistics
+ * @property diagnostics 结构化诊断 / Structured diagnostics
+ * @property fingerprintSchemas 指纹 schema / Fingerprint schemas
+ * @property slice 嵌入切片结果 / Embedded slice result
+ */
 data class RemoteTaskView(
     val taskId: TaskId,
     val tenantId: TenantId,
@@ -1452,7 +1503,20 @@ data class RemoteTaskView(
     val slice: SliceResult? = null
 )
 
-/** Provenance shape returned by the Kotlin dispatcher task-action API. */
+/**
+ * Kotlin dispatcher task-action API 返回的来源信息形状。 / Provenance shape returned by the Kotlin dispatcher task-action API.
+ *
+ * @property solverId 求解器 ID / Solver ID
+ * @property backendName 后端名称 / Backend name
+ * @property backendVersion 后端版本 / Backend version
+ * @property pluginVersion 插件版本 / Plugin version
+ * @property requestedConfiguration 请求配置 / Requested configuration
+ * @property effectiveConfiguration 生效配置 / Effective configuration
+ * @property threadCount 线程数 / Thread count
+ * @property randomSeed 随机种子 / Random seed
+ * @property deterministic 是否确定性执行 / Whether execution is deterministic
+ * @property environmentSummary 环境摘要 / Environment summary
+ */
 @Serializable
 data class RemoteTaskActionProvenance(
     val solverId: String = "unknown",
@@ -1536,7 +1600,7 @@ data class RemoteTaskActionCancellation(
  *
  * @property taskId 任务 ID / Task ID
  * @property status 任务状态 / Task status
-*/
+ */
 data class RemoteTaskAction(
     val taskId: TaskId,
     val status: TaskStatus,
@@ -1586,7 +1650,7 @@ data class RemoteTaskAction(
  * @property reason 停止原因 / Stop reason
  * @property operator 操作者 / Operator
  * @property source 来源 / Source
-*/
+ */
 @Serializable
 data class RemoteTaskStopRequest(
     val reason: ReasonCode? = null,
@@ -1600,7 +1664,7 @@ data class RemoteTaskStopRequest(
  * @property operator 操作者 / Operator
  * @property source 来源 / Source
  * @property reason 恢复原因 / Resume reason
-*/
+ */
 @Serializable
 data class RemoteTaskResumeRequest(
     val operator: OperatorId? = null,
@@ -1617,7 +1681,7 @@ data class RemoteTaskResumeRequest(
  * @property message 响应消息 / the response message
  * @property traceId 追踪 ID，可为 null / the trace ID, nullable
  * @property data 响应数据，可为 null / the response data, nullable
-*/
+ */
 @Serializable
 private data class ApiEnvelope<T>(
     val code: String,
@@ -1634,7 +1698,7 @@ private data class ApiEnvelope<T>(
  * @property accepted 是否接受 / whether the task was accepted
  * @property status 任务状态字符串 / the task status string
  * @property message 响应消息 / the response message
-*/
+ */
 @Serializable
 private data class SubmitTaskHttpResponse(
     val taskId: String,
@@ -1648,7 +1712,7 @@ private data class SubmitTaskHttpResponse(
      * 转换为领域模型。
      *
      * @return 领域提交响应 / the domain submit response
-    */
+     */
     fun toDomain(): RemoteTaskSubmitResponse {
         return RemoteTaskSubmitResponse(
             taskId = TaskId.of(taskId),
@@ -1670,7 +1734,7 @@ private data class SubmitTaskHttpResponse(
  * @property latestCheckpointPath 最新检查点路径，可为 null / the latest checkpoint path, nullable
  * @property latestResultPath 最新结果路径，可为 null / the latest result path, nullable
  * @property consumedCost 已消耗成本 / the consumed cost
-*/
+ */
 @Serializable
 private data class TaskViewHttpResponse(
     val taskId: String,
@@ -1731,7 +1795,7 @@ private data class TaskViewHttpResponse(
      * 转换为领域模型。
      *
      * @return 领域任务视图 / the domain task view
-    */
+     */
     fun toDomain(): RemoteTaskView {
         val effectiveSliceId = (sliceId ?: currentSliceId)?.let { SliceId.of(it) }
         val parsedModelFingerprint = modelFingerprint.toFingerprintValueOrNull()
@@ -1805,7 +1869,6 @@ private data class TaskViewHttpResponse(
             slice = slice.toSliceResultOrNull()
         )
     }
-
 }
 
 /**
@@ -1814,7 +1877,7 @@ private data class TaskViewHttpResponse(
  *
  * @property taskId 任务 ID / the task ID
  * @property status 任务状态字符串 / the task status string
-*/
+ */
 @Serializable
 private data class TaskActionHttpResponse(
     val taskId: String,
@@ -1868,7 +1931,7 @@ private data class TaskActionHttpResponse(
      * 转换为领域模型。
      *
      * @return 领域任务操作 / the domain task action
-    */
+     */
     fun toDomain(): RemoteTaskAction {
         val parsedModelFingerprint = modelFingerprint.toFingerprintValueOrNull()
         val parsedConfigurationFingerprint = configurationFingerprint.toFingerprintValueOrNull()
@@ -1963,7 +2026,7 @@ private fun RemoteTaskView.identityFingerprintSchemas(): Map<String, String> {
     }
 }
 
-/** Parse task states without making an older client fail on a newer state. */
+/** 解析任务状态，避免旧客户端因新状态而失败。 / Parse task states without making an older client fail on a newer state. */
 private fun String.toTaskStatusOrUnknown(): TaskStatus {
     return runCatching { TaskStatus.valueOf(trim().uppercase()) }
         .getOrDefault(TaskStatus.UNKNOWN)

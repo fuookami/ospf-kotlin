@@ -1,15 +1,15 @@
 package fuookami.ospf.kotlin.core.solver.cplex
 
-import ilog.concert.IloNumVar
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.test.Test
+import ilog.concert.IloNumVar
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.core.model.intermediate.FunctionNativeCapability
 import fuookami.ospf.kotlin.core.solver.NativePiecewiseData
 import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Ok
 
 /** CPLEX 原生 PWL writer 定向测试。 / Directed tests for the CPLEX native PWL writer. */
 class CplexNativePiecewiseTest {
@@ -43,7 +43,11 @@ class CplexNativePiecewiseTest {
     fun convertsSdkWriteFailureToFailedAfterPriorWrites() {
         val writtenNames = ArrayList<String>()
         val outcome = writeCplexNativePiecewise(
-            variableKeys = setOf(input.key, result.key, secondResult.key),
+            variableKeys = setOf(
+                input.key,
+                result.key,
+                secondResult.key
+            ),
             data = listOf(data(name = "first"), data(name = "second").copy(resultKey = secondResult.key)),
             writer = CplexNativePiecewiseWriter { piecewise ->
                 writtenNames += piecewise.name
@@ -61,7 +65,11 @@ class CplexNativePiecewiseTest {
     fun validBatchWritesEveryPiecewiseRelationExactlyOnce() {
         val writtenNames = ArrayList<String>()
         val outcome = writeCplexNativePiecewise(
-            variableKeys = setOf(input.key, result.key, secondResult.key),
+            variableKeys = setOf(
+                input.key,
+                result.key,
+                secondResult.key
+            ),
             data = listOf(data(name = "first"), data(name = "second").copy(resultKey = secondResult.key)),
             writer = CplexNativePiecewiseWriter { piecewise -> writtenNames += piecewise.name }
         )
@@ -72,12 +80,20 @@ class CplexNativePiecewiseTest {
 
     private fun data(
         name: String,
-        yPoints: DoubleArray = doubleArrayOf(0.0, 1.0, 3.0)
+        yPoints: DoubleArray = doubleArrayOf(
+            0.0,
+            1.0,
+            3.0
+        )
     ): NativePiecewiseData {
         return NativePiecewiseData(
             inputKey = input.key,
             resultKey = result.key,
-            xPoints = doubleArrayOf(0.0, 1.0, 2.0),
+            xPoints = doubleArrayOf(
+                0.0,
+                1.0,
+                2.0
+            ),
             yPoints = yPoints,
             name = name
         )

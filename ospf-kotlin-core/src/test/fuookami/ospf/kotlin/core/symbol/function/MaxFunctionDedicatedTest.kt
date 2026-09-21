@@ -1,16 +1,16 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import kotlin.test.Test
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.RealVar
 
-/** Dedicated contract test for the MaxFunction symbol. */
+/** [MaxFunction] 契约测试。 / Dedicated contract tests. */
 class MaxFunctionDedicatedTest {
     @Test
     fun symbolImplementsMathFunctionContract() {

@@ -3,10 +3,11 @@ package fuookami.ospf.kotlin.core.solver.gurobi
 import gurobi.GRB
 import gurobi.GRBModel
 import gurobi.GRBVar
-import fuookami.ospf.kotlin.core.model.intermediate.SemiStructure
-import fuookami.ospf.kotlin.core.variable.VariableItemKey
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.intermediate.SemiStructure
+import fuookami.ospf.kotlin.core.variable.VariableItemKey
 
 internal data class GurobiNativeSemiData(
     val resultKey: VariableItemKey,
@@ -22,7 +23,14 @@ internal fun prepareGurobiNativeSemi(structure: SemiStructure<*>): Ret<GurobiNat
         if (!lower.isFinite() || !upper.isFinite() || lower <= 0.0 || lower > upper) {
             Failed(ErrorCode.IllegalArgument, "Gurobi SEMICONT bounds are invalid / Gurobi SEMICONT 边界无效")
         } else {
-            Ok(GurobiNativeSemiData(structure.resultVariable.key, lower, upper, structure.name))
+            Ok(
+                GurobiNativeSemiData(
+                    resultKey = structure.resultVariable.key,
+                    lowerBound = lower,
+                    upperBound = upper,
+                    name = structure.name
+                )
+            )
         }
     } catch (error: RuntimeException) {
         Failed(ErrorCode.IllegalArgument, "Gurobi SEMICONT data conversion failed: ${error.message} / Gurobi SEMICONT 数据转换失败：${error.message}")

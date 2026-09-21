@@ -1,30 +1,28 @@
 @file:Suppress("unused")
-
-/** 二次绝对松弛函数符号 / Quadratic absolute-slack function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
-import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.symbol.SolverBoundaryCasts
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.AddableTokenCollection
-import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.symbol.Category
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.Category
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.Quadratic
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.symbol.SolverBoundaryCasts
+import fuookami.ospf.kotlin.core.symbol.QuadraticIntermediateSymbol
+import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
 
 /**
  * 二次绝对松弛函数：$s = |L(x)-R(x)|$。
@@ -33,6 +31,16 @@ import fuookami.ospf.kotlin.utils.functional.Try
  * 两个正部函数分别精确表达差值的正、负部分，因此不依赖目标函数压低松弛量。
  * Two exact positive-part functions model the positive and negative sides of the difference,
  * so correctness does not depend on minimizing the slack in the objective.
+ *
+ * @property left 左侧二次多项式 / left quadratic polynomial
+ * @property right 右侧二次多项式 / right quadratic polynomial
+ * @property bigM 可选显式 Big-M / optional explicit Big-M
+ * @property converter 值类型转换器 / value type converter
+ * @property name 函数名称 / function name
+ * @property displayName 可选显示名称 / optional display name
+ * @property positivePart 差值正部 / positive part of the difference
+ * @property negativePart 反向差值正部 / positive part of the reverse difference
+ * @property polynomial 结果二次多项式 / result quadratic polynomial
  */
 class QuadraticSlackFunction<V>(
     val left: QuadraticPolynomial<V>,

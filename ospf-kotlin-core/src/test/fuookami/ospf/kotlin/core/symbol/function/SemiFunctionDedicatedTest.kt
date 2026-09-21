@@ -1,21 +1,21 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
-import kotlinx.coroutines.runBlocking
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.model.intermediate.CoreDeferredFunctionFallbackMaterializer
-import fuookami.ospf.kotlin.core.model.intermediate.SemiStructure
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import kotlin.test.Test
+import kotlinx.coroutines.runBlocking
 import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.intermediate.SemiStructure
+import fuookami.ospf.kotlin.core.model.intermediate.CoreDeferredFunctionFallbackMaterializer
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
-/** Dedicated contract test for the SemiFunction symbol. */
+/** [SemiFunction] 契约测试。 / Dedicated contract tests. */
 class SemiFunctionDedicatedTest {
     @Test
     fun symbolImplementsMathFunctionContract() {

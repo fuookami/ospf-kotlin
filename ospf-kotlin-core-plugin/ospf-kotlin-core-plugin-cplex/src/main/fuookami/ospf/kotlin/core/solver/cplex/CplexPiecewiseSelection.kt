@@ -2,8 +2,8 @@ package fuookami.ospf.kotlin.core.solver.cplex
 
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.prepareNativePiecewise
 
 /** 在变量编号前选择可由 CPLEX SOS2 表达的连续一元 PWL。 / Select continuous univariate PWLs expressible by CPLEX SOS2 before indexing. */

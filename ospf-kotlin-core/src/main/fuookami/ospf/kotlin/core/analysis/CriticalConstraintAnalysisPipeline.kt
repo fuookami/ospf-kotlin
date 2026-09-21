@@ -1,18 +1,18 @@
 /** 临界约束分析流水线编排。 / Critical-constraint analysis pipeline orchestration. */
 package fuookami.ospf.kotlin.core.analysis
 
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolveOptions
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolver
 import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
 import fuookami.ospf.kotlin.core.solver.report.ConstraintId
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolver
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolveOptions
 
 /**
  * 流水线选项。
@@ -21,6 +21,15 @@ import fuookami.ospf.kotlin.utils.functional.ok
  *
  * Pipeline options. Every stage can be disabled independently; a disabled stage is explicitly
  * `null` in the report with a recorded reason and is never inferred to mean "ineffective".
+ *
+ * @property funnel 候选漏斗配置 / Candidate funnel configuration
+ * @property perturbation 扰动策略 / Perturbation policy
+ * @property conflict 冲突分析选项 / Conflict analysis options
+ * @property lp 固定整数 LP 选项 / Fixed-integer LP options
+ * @property solveOptions CP 求解选项 / CP solve options
+ * @property runPerturbation 是否运行扰动阶段 / Whether to run the perturbation stage
+ * @property runTargetAnalysis 是否运行目标与冲突阶段 / Whether to run target and conflict stages
+ * @property candidateLimit 昂贵分析候选上限 / Candidate limit for expensive analysis
  */
 data class CriticalConstraintAnalysisOptions(
     /** 候选漏斗配置。 / Candidate funnel configuration. */
@@ -78,7 +87,7 @@ class CriticalConstraintAnalysisPipeline(
     /** Capability matrix; defaults to the solver descriptor. / 能力矩阵，默认取自求解器描述符。 */
     private val capabilityMatrix: CapabilityMatrix = CapabilityMatrix.from(solver.descriptor)
 ) {
-    /** Injected analysis backends may add capability for the stage they implement. */
+    /** 注入的分析后端可以为其实现的阶段增加能力。 / Injected analysis backends may add capability for the stage they implement. */
     private val effectiveCapabilityMatrix: CapabilityMatrix = if (
         lpBackend != null &&
         capabilityMatrix.analysisCapabilities[AnalysisCapability.FixedIntegerLpSensitivity] !=
@@ -103,6 +112,7 @@ class CriticalConstraintAnalysisPipeline(
      * @param objectiveId 目标身份 / Objective identity
      * @param target 可选目标突破条件 / Optional objective target
      * @param options 流水线选项 / Pipeline options
+     * @return 统一临界约束分析报告结果 / Unified critical-constraint analysis report result
      */
     suspend fun analyze(
         snapshot: ConstraintProgrammingModelSnapshot,
@@ -158,6 +168,7 @@ class CriticalConstraintAnalysisPipeline(
 
         // 阶段 2：固定整数 LP 局部有效性。缺失后端时显式 Unsupported。
         // Stage 2: fixed-integer LP local sensitivity; an absent backend is explicitly Unsupported.
+        // / 阶段 2：固定整数 LP 局部有效性；缺失后端时显式返回 Unsupported。
         var localSensitivity: FixedIntegerLpSensitivityReport? = null
         if (lpBackend == null) {
             builder.noteUnavailable(
@@ -281,6 +292,15 @@ class CriticalConstraintAnalysisPipeline(
      *
      * 便捷入口，等价于 [analyze] 后再读取报告。
      * Convenience entry point equivalent to running [analyze] and reading the report.
+     *
+     * @param snapshot 不可变基线 snapshot / Immutable baseline snapshot
+     * @param baselineSolution 基线 CP 解 / Baseline CP solution
+     * @param baselineObjective 基线目标值 / Baseline objective value
+     * @param baselineProvenOptimal 基线是否已证明最优 / Whether the baseline is proven optimal
+     * @param objectiveId 目标身份 / Objective identity
+     * @param target 可选目标突破条件 / Optional objective target
+     * @param options 流水线选项 / Pipeline options
+     * @return 报告及阻塞摘要 / Report and blocking summary
      */
     suspend fun analyzeAndExplain(
         snapshot: ConstraintProgrammingModelSnapshot,
@@ -318,6 +338,11 @@ class CriticalConstraintAnalysisPipeline(
  * Extract the candidates most worth attention from perturbation reports, ordered by proven
  * objective improvement and falling back to |dual|. This only sorts and never emits an
  * "ineffective" verdict.
+ *
+ * @param ranking 有效性排序，可为 null / Effectiveness ranking, or null
+ * @param funnel 候选漏斗排序，可为 null / Candidate funnel ranking, or null
+ * @param limit 返回候选上限 / Maximum number of candidates to return
+ * @return 按优先级排列的约束 ID / Constraint IDs ordered by priority
  */
 fun rankConstraintCandidates(
     ranking: EffectivenessRanking?,

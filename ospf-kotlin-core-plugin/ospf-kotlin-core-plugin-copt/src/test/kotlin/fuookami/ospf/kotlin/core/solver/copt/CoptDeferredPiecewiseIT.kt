@@ -1,31 +1,32 @@
 package fuookami.ospf.kotlin.core.solver.copt
 
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.Test
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assumptions.assumeTrue
 import copt.COPT
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
 import fuookami.ospf.kotlin.core.solver.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.report.SolveReport
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.symbol.function.UnivariateLinearPiecewiseFunction
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
+/** COPT 延迟 PWL 真实 SDK 集成测试。 / Real-SDK integration tests for deferred COPT PWL. */
 class CoptDeferredPiecewiseIT {
     @Test
     fun eagerAndDeferredNativeUseEquivalentResultsAndExpectedShapes() = runBlocking {
@@ -42,7 +43,14 @@ class CoptDeferredPiecewiseIT {
                 "COPT eager PWL"
             )
             assertEquals(1, eagerShapes.size)
-            assertEquals(NativeModelShape(cols = 4, rows = 10, soss = 0), eagerShapes.single())
+            assertEquals(
+                NativeModelShape(
+                    cols = 4,
+                    rows = 10,
+                    soss = 0
+                ),
+                eagerShapes.single()
+            )
 
             val nativeShapes = ArrayList<NativeModelShape>()
             val nativeResult = requireAvailable(
@@ -53,11 +61,50 @@ class CoptDeferredPiecewiseIT {
                 "COPT native PWL"
             )
             assertEquals(1, nativeShapes.size)
-            assertEquals(NativeModelShape(cols = 5, rows = 4, soss = 1), nativeShapes.single())
-            assertEquals(point.toDouble(), valueAt(eagerResult, eager.mechanism, eager.input).toDouble(), 1e-6)
-            assertEquals(point.toDouble(), valueAt(nativeResult, native.mechanism, native.input).toDouble(), 1e-6)
-            assertEquals(2.0, valueAt(eagerResult, eager.mechanism, eager.function.resultVar).toDouble(), 1e-6)
-            assertEquals(2.0, valueAt(nativeResult, native.mechanism, native.function.resultVar).toDouble(), 1e-6)
+            assertEquals(
+                NativeModelShape(
+                    cols = 5,
+                    rows = 4,
+                    soss = 1
+                ),
+                nativeShapes.single()
+            )
+            assertEquals(
+                expected = point.toDouble(),
+                actual = valueAt(
+                    report = eagerResult,
+                    model = eager.mechanism,
+                    variable = eager.input
+                ).toDouble(),
+                absoluteTolerance = 1e-6
+            )
+            assertEquals(
+                expected = point.toDouble(),
+                actual = valueAt(
+                    report = nativeResult,
+                    model = native.mechanism,
+                    variable = native.input
+                ).toDouble(),
+                absoluteTolerance = 1e-6
+            )
+            assertEquals(
+                expected = 2.0,
+                actual = valueAt(
+                    report = eagerResult,
+                    model = eager.mechanism,
+                    variable = eager.function.resultVar
+                ).toDouble(),
+                absoluteTolerance = 1e-6
+            )
+            assertEquals(
+                expected = 2.0,
+                actual = valueAt(
+                    report = nativeResult,
+                    model = native.mechanism,
+                    variable = native.function.resultVar
+                ).toDouble(),
+                absoluteTolerance = 1e-6
+            )
         } finally {
             eager.close()
             native.close()
@@ -76,7 +123,11 @@ class CoptDeferredPiecewiseIT {
             )
             solver.nativePiecewiseWriter = { model, variables, data ->
                 writerCalls++
-                val nativeWrite = addCoptNativePiecewise(model, variables, data)
+                val nativeWrite = addCoptNativePiecewise(
+                    model = model,
+                    variables = variables,
+                    data = data
+                )
                 assertTrue(nativeWrite is Ok)
                 Failed(
                     ErrorCode.OREngineModelingException,
@@ -90,8 +141,25 @@ class CoptDeferredPiecewiseIT {
             )
 
             assertEquals(1, writerCalls)
-            assertEquals(listOf(NativeModelShape(cols = 4, rows = 10, soss = 0)), observedModels)
-            assertEquals(2.0, valueAt(result, scenario.mechanism, scenario.function.resultVar).toDouble(), 1e-6)
+            assertEquals(
+                listOf(
+                    NativeModelShape(
+                        cols = 4,
+                        rows = 10,
+                        soss = 0
+                    )
+                ),
+                observedModels
+            )
+            assertEquals(
+                expected = 2.0,
+                actual = valueAt(
+                    report = result,
+                    model = scenario.mechanism,
+                    variable = scenario.function.resultVar
+                ).toDouble(),
+                absoluteTolerance = 1e-6
+            )
         } finally {
             scenario.close()
         }
@@ -109,7 +177,11 @@ class CoptDeferredPiecewiseIT {
                 monomials = listOf(LinearMonomial(Flt64.one, input)),
                 constant = Flt64.zero
             ),
-            breakpoints = listOf(Flt64.zero, Flt64.one, Flt64.two),
+            breakpoints = listOf(
+                Flt64.zero,
+                Flt64.one,
+                Flt64.two
+            ),
             slopes = listOf(Flt64.one, Flt64.two),
             intercepts = listOf(Flt64.zero, Flt64(-1.0)),
             converter = IntoValue.Identity,
@@ -140,7 +212,12 @@ class CoptDeferredPiecewiseIT {
                 is Failed -> error(result.error.message ?: "COPT scenario construction failed")
                 is Fatal -> error(result.errors.joinToString { it.message ?: "" })
             }
-            Scenario(metaModel, mechanism, input, function)
+            Scenario(
+                metaModel = metaModel,
+                mechanism = mechanism,
+                input = input,
+                function = function
+            )
         } catch (error: Throwable) {
             metaModel.close()
             throw error

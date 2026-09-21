@@ -3,26 +3,26 @@
 /** 不等式函数符号 / Inequality function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-import fuookami.ospf.kotlin.core.model.intermediate.IndicatorStructure
-import fuookami.ospf.kotlin.core.model.intermediate.ZeroBand
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.token.AddableTokenCollection
-import fuookami.ospf.kotlin.core.variable.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.model.intermediate.ZeroBand
+import fuookami.ospf.kotlin.core.model.intermediate.IndicatorStructure
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.*
 
 /**
  * 不等式满足指示函数符号 / Inequality satisfaction indicator function symbol
  *
  * 提供 [InequalityFunction]，判断不等式是否满足并返回二值指示变量。 / Provides [InequalityFunction] for checking inequality satisfaction and returning a binary indicator.
-*/
+ */
 
 /**
  * 不等式满足指示函数。 / Inequality satisfaction indicator function.
@@ -40,7 +40,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param strictBoundary LT/GT 真分支最小差值及 EQ/NE 带外边界（默认 0.5）；这些关系在间隔内 evaluate 返回 null / minimum LT/GT true-branch difference and EQ/NE outside-band boundary (default 0.5); evaluate returns null inside these relations' gaps
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
-*/
+ */
 class InequalityFunction<V>(
     val lhs: LinearPolynomial<V>,
     val rhs: V,
@@ -205,6 +205,7 @@ class InequalityFunction<V>(
     companion object {
         /**
          * 创建不等式满足指示函数实例 / Create an inequality function instance
+         *
          * @param lhs 左侧线性多项式 / left-hand side linear polynomial
          * @param rhs 右侧常数值 / right-hand side constant value
          * @param sign 比较类型 / comparison type
@@ -213,7 +214,7 @@ class InequalityFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [InequalityFunction] 实例 / [InequalityFunction] instance
-        */
+         */
         operator fun <V> invoke(
             lhs: LinearPolynomial<V>,
             rhs: V,

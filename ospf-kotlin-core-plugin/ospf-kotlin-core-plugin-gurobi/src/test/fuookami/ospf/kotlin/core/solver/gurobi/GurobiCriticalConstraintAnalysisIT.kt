@@ -1,37 +1,44 @@
 package fuookami.ospf.kotlin.core.solver.gurobi
 
-import kotlinx.coroutines.runBlocking
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.core.analysis.AnalysisStatus
-import fuookami.ospf.kotlin.core.analysis.analyzeCriticalityTargets
-import fuookami.ospf.kotlin.core.analysis.CapabilityMatrix
-import fuookami.ospf.kotlin.core.analysis.ConstraintPerturbationAnalyzer
-import fuookami.ospf.kotlin.core.analysis.ConstraintPerturbationPolicy
-import fuookami.ospf.kotlin.core.analysis.ConstraintPerturbationReport
-import fuookami.ospf.kotlin.core.analysis.CriticalConstraintAnalysisOptions
-import fuookami.ospf.kotlin.core.analysis.CriticalityProfileAnalysisResult
-import fuookami.ospf.kotlin.core.analysis.FixedIntegerLpSensitivityAnalyzer
-import fuookami.ospf.kotlin.core.analysis.LocalSensitivityScope
-import fuookami.ospf.kotlin.core.analysis.PerturbationOutcome
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingExpression
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
-import fuookami.ospf.kotlin.core.solver.constraint_programming.MipBackedConstraintProgrammingSolver
-import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingFeasibleOutput
-import fuookami.ospf.kotlin.core.solver.report.ConstraintId
-import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
-import fuookami.ospf.kotlin.core.solver.report.SolverModelType
-import fuookami.ospf.kotlin.core.variable.IntVar
+import kotlin.test.Test
+import kotlinx.coroutines.runBlocking
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingExpression
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingFeasibleOutput
+import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.report.SolverModelType
+import fuookami.ospf.kotlin.core.solver.constraint_programming.MipBackedConstraintProgrammingSolver
+import fuookami.ospf.kotlin.core.analysis.AnalysisStatus
+import fuookami.ospf.kotlin.core.analysis.ObjectiveTarget
+import fuookami.ospf.kotlin.core.analysis.CapabilityMatrix
+import fuookami.ospf.kotlin.core.analysis.ConflictValidity
+import fuookami.ospf.kotlin.core.analysis.CriticalityProfile
+import fuookami.ospf.kotlin.core.analysis.PerturbationOutcome
+import fuookami.ospf.kotlin.core.analysis.LocalSensitivityScope
+import fuookami.ospf.kotlin.core.analysis.analyzeCriticalityTargets
+import fuookami.ospf.kotlin.core.analysis.ConstraintPerturbationPolicy
+import fuookami.ospf.kotlin.core.analysis.ConstraintPerturbationReport
+import fuookami.ospf.kotlin.core.analysis.ConstraintPerturbationAnalyzer
+import fuookami.ospf.kotlin.core.analysis.FixedIntegerLpSensitivityReport
+import fuookami.ospf.kotlin.core.analysis.CriticalityProfileAnalysisResult
+import fuookami.ospf.kotlin.core.analysis.CriticalConstraintAnalysisOptions
+import fuookami.ospf.kotlin.core.analysis.FixedIntegerLpSensitivityAnalyzer
+import fuookami.ospf.kotlin.core.variable.IntVar
 
 /**
  * 使用真实 Gurobi 验证固定整数 LP 局部有效性与 RHS 敏感性范围。
@@ -116,9 +123,9 @@ class GurobiCriticalConstraintAnalysisIT {
             // 先求解再取 snapshot：取 snapshot 不应成为求解的前提。
             // Solve first, snapshot afterwards: snapshotting must not be a precondition for solving.
             val baselineResult = solver.solve(fixture.model)
-            val baseline = assertIs<Ok<fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolverOutput, *, *>>(
+            val baseline = assertIs<Ok<ConstraintProgrammingSolverOutput, *, *>>(
                 baselineResult,
-                (baselineResult as? fuookami.ospf.kotlin.utils.functional.Failed<*, *, *>)?.error?.message
+                (baselineResult as? Failed<*, *, *>)?.error?.message
                     ?: baselineResult.toString()
             ).value!!
             val feasible = assertIs<ConstraintProgrammingFeasibleOutput>(baseline)
@@ -129,10 +136,10 @@ class GurobiCriticalConstraintAnalysisIT {
             // assertions are meaningless.
             assertEquals(12.0, feasible.objective!!.toDouble(), 1e-6)
             assertEquals(4L, feasible.solution.values[fixture.x.let {
-                fuookami.ospf.kotlin.core.solver.report.VariableId("${it.identifier}:${it.index}")
+                VariableId("${it.identifier}:${it.index}")
             }]!!.toLong())
 
-            val report = assertIs<Ok<fuookami.ospf.kotlin.core.analysis.FixedIntegerLpSensitivityReport, *, *>>(
+            val report = assertIs<Ok<FixedIntegerLpSensitivityReport, *, *>>(
                 FixedIntegerLpSensitivityAnalyzer(gurobiFixedIntegerLpBackend()).analyze(
                     snapshot = snapshot,
                     solution = feasible.solution,
@@ -228,9 +235,9 @@ class GurobiCriticalConstraintAnalysisIT {
         try {
             val baselineResult = solver.solve(fixture.model)
             val feasible = assertIs<ConstraintProgrammingFeasibleOutput>(
-                assertIs<Ok<fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolverOutput, *, *>>(
+                assertIs<Ok<ConstraintProgrammingSolverOutput, *, *>>(
                     baselineResult,
-                    (baselineResult as? fuookami.ospf.kotlin.utils.functional.Failed<*, *, *>)?.error?.message
+                    (baselineResult as? Failed<*, *, *>)?.error?.message
                         ?: baselineResult.toString()
                 ).value!!
             )
@@ -288,14 +295,14 @@ class GurobiCriticalConstraintAnalysisIT {
         try {
             val baselineResult = solver.solve(fixture.model)
             val feasible = assertIs<ConstraintProgrammingFeasibleOutput>(
-                assertIs<Ok<fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolverOutput, *, *>>(
+                assertIs<Ok<ConstraintProgrammingSolverOutput, *, *>>(
                     baselineResult,
-                    (baselineResult as? fuookami.ospf.kotlin.utils.functional.Failed<*, *, *>)?.error?.message
+                    (baselineResult as? Failed<*, *, *>)?.error?.message
                         ?: baselineResult.toString()
                 ).value!!
             )
             val snapshot = fixture.model.snapshot().value!!
-            val report = assertIs<Ok<fuookami.ospf.kotlin.core.analysis.FixedIntegerLpSensitivityReport, *, *>>(
+            val report = assertIs<Ok<FixedIntegerLpSensitivityReport, *, *>>(
                 FixedIntegerLpSensitivityAnalyzer(gurobiFixedIntegerLpBackend()).analyze(
                     snapshot = snapshot,
                     solution = feasible.solution,
@@ -328,17 +335,17 @@ class GurobiCriticalConstraintAnalysisIT {
         val solver = MipBackedConstraintProgrammingSolver(GurobiLinearSolver())
         val analyzer = FixedIntegerLpSensitivityAnalyzer(gurobiFixedIntegerLpBackend())
 
-        suspend fun report(fixture: Fixture): fuookami.ospf.kotlin.core.analysis.FixedIntegerLpSensitivityReport {
+        suspend fun report(fixture: Fixture): FixedIntegerLpSensitivityReport {
             val baselineResult = solver.solve(fixture.model)
             val feasible = assertIs<ConstraintProgrammingFeasibleOutput>(
-                assertIs<Ok<fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolverOutput, *, *>>(
+                assertIs<Ok<ConstraintProgrammingSolverOutput, *, *>>(
                     baselineResult,
-                    (baselineResult as? fuookami.ospf.kotlin.utils.functional.Failed<*, *, *>)?.error?.message
+                    (baselineResult as? Failed<*, *, *>)?.error?.message
                         ?: baselineResult.toString()
                 ).value!!
             )
             val snapshot = fixture.model.snapshot().value!!
-            return assertIs<Ok<fuookami.ospf.kotlin.core.analysis.FixedIntegerLpSensitivityReport, *, *>>(
+            return assertIs<Ok<FixedIntegerLpSensitivityReport, *, *>>(
                 analyzer.analyze(
                     snapshot = snapshot,
                     solution = feasible.solution,
@@ -366,13 +373,13 @@ class GurobiCriticalConstraintAnalysisIT {
         val solver = MipBackedConstraintProgrammingSolver(GurobiLinearSolver())
         try {
             val snapshot = fixture.model.snapshot().value!!
-            val profile = assertIs<Ok<fuookami.ospf.kotlin.core.analysis.CriticalityProfile, *, *>>(
+            val profile = assertIs<Ok<CriticalityProfile, *, *>>(
                 analyzeCriticalityTargets(
                     solver = solver,
                     snapshot = snapshot,
                     targets = listOf(
-                        fuookami.ospf.kotlin.core.analysis.ObjectiveTarget.AtLeast(ObjectiveId("profit"), Flt64(12.0)),
-                        fuookami.ospf.kotlin.core.analysis.ObjectiveTarget.AtLeast(ObjectiveId("profit"), Flt64(13.0))
+                        ObjectiveTarget.AtLeast(ObjectiveId("profit"), Flt64(12.0)),
+                        ObjectiveTarget.AtLeast(ObjectiveId("profit"), Flt64(13.0))
                     )
                 )
             ).value!!
@@ -391,9 +398,9 @@ class GurobiCriticalConstraintAnalysisIT {
         try {
             val baselineResult = baselineSolver.solve(fixture.model)
             val feasible = assertIs<ConstraintProgrammingFeasibleOutput>(
-                assertIs<Ok<fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolverOutput, *, *>>(
+                assertIs<Ok<ConstraintProgrammingSolverOutput, *, *>>(
                     baselineResult,
-                    (baselineResult as? fuookami.ospf.kotlin.utils.functional.Failed<*, *, *>)?.error?.message
+                    (baselineResult as? Failed<*, *, *>)?.error?.message
                         ?: baselineResult.toString()
                 ).value!!
             )
@@ -407,11 +414,11 @@ class GurobiCriticalConstraintAnalysisIT {
                     baselineProvenOptimal = true,
                     objectiveId = "profit",
                     targets = listOf(
-                        fuookami.ospf.kotlin.core.analysis.ObjectiveTarget.AtLeast(
+                        ObjectiveTarget.AtLeast(
                             ObjectiveId("profit"),
                             Flt64(12.0)
                         ),
-                        fuookami.ospf.kotlin.core.analysis.ObjectiveTarget.AtLeast(
+                        ObjectiveTarget.AtLeast(
                             ObjectiveId("profit"),
                             Flt64(13.0)
                         )
@@ -432,8 +439,8 @@ class GurobiCriticalConstraintAnalysisIT {
             assertEquals(AnalysisStatus.Unreachable, result.status)
             assertEquals(1, result.profile.provenTargetCount)
             assertTrue(result.reports[0].effectiveness != null)
-            assertTrue(result.reports[1].conflict?.validity == fuookami.ospf.kotlin.core.analysis.ConflictValidity.Verified)
-            // Recommendations are emitted only when the conflict's deletion checks proved an MUS.
+            assertTrue(result.reports[1].conflict?.validity == ConflictValidity.Verified)
+            // 只有冲突删除检查证明存在 MUS 时才生成建议。 / Recommendations are emitted only when the conflict's deletion checks proved an MUS.
             result.improvementPlans.forEach { plan ->
                 assertTrue(plan.correctionSet.minimal)
                 assertTrue(plan.correctionSet.members.isNotEmpty())

@@ -3,19 +3,19 @@
 /** 阶梯范围函数符号 / Step range function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.token.AddableTokenCollection
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.BinVar
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 private const val MAX_STEP_POINTS: Int = 4096
 
@@ -25,7 +25,7 @@ private const val MAX_STEP_POINTS: Int = 4096
  * 提供 [InStepRangeFunction]，计算 y = lb + floor((x - lb) / step) * step 的线性化建模。
  *
  * Provides [InStepRangeFunction] for linearized modeling of y = lb + floor((x - lb) / step) * step.
-*/
+ */
 
 /**
  * 步进区间函数：y = lb + floor((ub - lb) / step) * step。
@@ -46,7 +46,7 @@ private const val MAX_STEP_POINTS: Int = 4096
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
-*/
+ */
 class InStepRangeFunction<V>(
     val lb: LinearPolynomial<V>,
     val ub: LinearPolynomial<V>,
@@ -152,6 +152,7 @@ class InStepRangeFunction<V>(
     companion object {
         /**
          * 创建步进区间函数实例 / Create an in-step-range function instance
+         *
          * @param lb 下界线性多项式 / lower bound linear polynomial
          * @param ub 上界线性多项式 / upper bound linear polynomial
          * @param step 步长 / step size
@@ -159,7 +160,7 @@ class InStepRangeFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [InStepRangeFunction] 实例 / [InStepRangeFunction] instance
-        */
+         */
         operator fun <V> invoke(
             lb: LinearPolynomial<V>,
             ub: LinearPolynomial<V>,
@@ -176,9 +177,17 @@ class InStepRangeFunction<V>(
  * 步进集合成员指示函数：输入值属于 `{lower + k * step}` 时结果为 1。
  * Stepped-set membership indicator: returns 1 exactly on `{lower + k * step}`.
  *
- * This is intentionally separate from [InStepRangeFunction], whose result is
- * the largest stepped endpoint below an upper bound. Both implementations use
- * the same positive-step, finite-bound contract and the same boundary epsilon.
+ * 此类独立于 [InStepRangeFunction]，后者返回上界以下最大的步进端点；两者共享正步长、有限边界和相同边界 epsilon 契约。
+ * This class is intentionally separate from [InStepRangeFunction], whose result is the largest stepped endpoint below an upper bound; both implementations use the same positive-step, finite-bound contract and boundary epsilon.
+ *
+ * @property input 待判断的线性多项式 / input linear polynomial
+ * @property lower 步进集合下界 / lower endpoint of the stepped set
+ * @property upper 步进集合上界 / upper endpoint of the stepped set
+ * @property step 正步长 / positive step size
+ * @param bigM 可选显式 Big-M / optional explicit Big-M
+ * @param converter 值类型转换器 / value type converter
+ * @property name 函数名称 / function name
+ * @property displayName 可选显示名称 / optional display name
  */
 class InStepRangeIndicatorFunction<V>(
     val input: LinearPolynomial<V>,
@@ -248,15 +257,15 @@ class InStepRangeIndicatorFunction<V>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + pointVars + sideVars
 
-    /** Step-point indicator variables used by the membership encoding. */
+    /** 步进点成员指示变量 / Step-point indicator variables used by the membership encoding. */
     val pointIndicatorVars: List<AbstractVariableItem<*, *>>
         get() = pointVars
 
-    /** Outside-band helper variables used by the strict complement encoding. */
+    /** 区间外容差带辅助变量 / Outside-band helper variables used by the strict complement encoding. */
     val pointSideVars: List<AbstractVariableItem<*, *>>
         get() = sideVars
 
-    /** Explicit Big-M, or null when the shared default policy is used. */
+    /** 显式 Big-M；使用共享默认策略时为 null / Explicit Big-M, or null when the shared default policy is used. */
     val bigM: V?
         get() = explicitBigM
 
@@ -362,7 +371,19 @@ class InStepRangeIndicatorFunction<V>(
     }
 
     companion object {
-        /** Create a stepped-set membership indicator. */
+        /**
+         * 创建步进集合成员指示函数。 / Create a stepped-set membership indicator.
+         *
+         * @param input 待判断的线性多项式 / input linear polynomial
+         * @param lower 步进集合下界 / lower endpoint of the stepped set
+         * @param upper 步进集合上界 / upper endpoint of the stepped set
+         * @param step 正步长 / positive step size
+         * @param bigM 可选显式 Big-M / optional explicit Big-M
+         * @param converter 值类型转换器 / value type converter
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return 步进集合成员指示函数 / [InStepRangeIndicatorFunction] instance
+         */
         operator fun <V> invoke(
             input: LinearPolynomial<V>,
             lower: V,

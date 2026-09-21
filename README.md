@@ -14,7 +14,6 @@ documentation: https://fuookami.github.io/ospf/
 
 :us: English | :cn: [简体中文](README_ch.md)
 
-
 ## Architecture Overview
 
 The workspace follows a layered shape:
@@ -190,8 +189,6 @@ If you need to use the network scheduling development package, add the dependenc
 </dependency>
 ```
 
-
-
 ## Constraint Programming Boundary
 
 `ospf-kotlin-core` exposes an integer-domain constraint-programming model with immutable snapshots, stable IDs, source verification, and a unified solver report. The generic MIP lowerer uses checked arithmetic internally and only crosses the existing floating-point solver boundary when every integer coefficient, bound, and generated Big-M is exactly representable.
@@ -288,4 +285,3 @@ Baseline environment used in P21-1:
 The ospf-kotlin is licensed under the terms of the Apache License 2.0.
 
 See [LICENSE](LICENSE) for more information.
-

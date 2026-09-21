@@ -2,27 +2,28 @@
 package fuookami.ospf.kotlin.core.analysis
 
 import kotlin.time.Duration
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.intermediate.solveDual
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
+import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.report.ProblemStatus
+import fuookami.ospf.kotlin.core.solver.report.SolutionPresence
 import fuookami.ospf.kotlin.core.solver.LinearSolver
 import fuookami.ospf.kotlin.core.solver.constraint_programming.lowering.ConstraintProgrammingLoweredLinearModel
 import fuookami.ospf.kotlin.core.solver.constraint_programming.lowering.ConstraintProgrammingToLinearModelLowerer
-import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
-import fuookami.ospf.kotlin.core.solver.report.ProblemStatus
-import fuookami.ospf.kotlin.core.solver.report.SolutionPresence
-import fuookami.ospf.kotlin.core.solver.report.ConstraintId
-import fuookami.ospf.kotlin.core.solver.report.VariableId
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.ok
 
 /** Scope of a sensitivity value. / 敏感性值的作用域。 */
 enum class LocalSensitivityScope {
@@ -33,7 +34,11 @@ enum class LocalSensitivityScope {
 /** Compatibility alias matching the explicit scope wording in the plan. / 与计划明确作用域术语兼容的别名。 */
 typealias FixedIntegerIncumbentScope = LocalSensitivityScope
 
-/** A finite RHS range reported by an LP backend, when available. / LP 后端可用时返回的有限 RHS 敏感性范围。 */
+/** LP 后端可用时返回的有限 RHS 敏感性范围。 / A finite RHS range reported by an LP backend, when available.
+ *
+ * @property lower 已知时的范围下界 / Lower end of the valid range, if known
+ * @property upper 已知时的范围上界 / Upper end of the valid range, if known
+ */
 data class SensitivityRange(
     /** Lower end of the valid range, if known. / 已知时的范围下界。 */
     val lower: Flt64? = null,
@@ -53,7 +58,15 @@ data class SensitivityRange(
     }
 }
 
-/** Local sensitivity of one original CP constraint. / 单个原始 CP 约束的局部敏感性。 */
+/** 单个原始 CP 约束的局部敏感性。 / Local sensitivity of one original CP constraint.
+ *
+ * @property constraintId 原始稳定约束 ID / Original stable constraint ID
+ * @property dualValue 固定整数结构下的 LP 对偶值 / LP dual under the fixed-integer pattern
+ * @property activity 同一基线约束的活动性证据 / Activity evidence for the baseline constraint
+ * @property localEffective 局部对偶值是否超过阈值 / Whether the local dual exceeds the threshold
+ * @property sensitivityRange 可选的有效 RHS 敏感性范围 / Optional valid RHS sensitivity range
+ * @property scope 敏感性值作用域 / Scope of the sensitivity value
+ */
 data class LocalConstraintSensitivity(
     /** Original stable constraint ID. / 原始稳定约束 ID。 */
     val constraintId: ConstraintId,
@@ -77,7 +90,15 @@ data class LocalConstraintSensitivity(
         get() = localEffective
 }
 
-/** Result returned by a fixed-integer LP backend. / 固定整数 LP 后端返回的结果。 */
+/** 固定整数 LP 后端返回的结果。 / Result returned by a fixed-integer LP backend.
+ *
+ * @property status 派生 LP 的求解结论 / Solver conclusion for the derived LP
+ * @property objectiveValue 存在解时的派生 LP 目标值 / Derived LP objective value, when available
+ * @property duals 按原始稳定约束 ID 编索引的对偶值 / Duals keyed by original stable constraint ID
+ * @property sensitivityRanges 按原始稳定约束 ID 编索引的可选范围 / Optional ranges keyed by original stable constraint ID
+ * @property solveTime 后端求解耗时 / Backend solve duration
+ * @property message 保留用于诊断的后端详情 / Backend detail retained for diagnostics
+ */
 data class FixedIntegerLpSolveResult(
     /** Solver conclusion for the derived LP. / 派生 LP 的求解结论。 */
     val status: AnalysisStatus,
@@ -106,7 +127,13 @@ data class FixedIntegerLpSolveResult(
         get() = duals
 }
 
-/** Fixed-integer LP backend request. / 固定整数 LP 后端请求。 */
+/** 固定整数 LP 后端请求。 / Fixed-integer LP backend request.
+ *
+ * @property snapshot 不可变源 snapshot / Immutable source snapshot
+ * @property fixedValues 为每个原始整数变量固定的值 / Values fixed for every original integer variable
+ * @property baselineSolution 用作热启动和证据来源的基线解 / Baseline solution used as warm-start and evidence source
+ * @property options 分析器选项 / Analyzer options
+ */
 data class FixedIntegerLpRequest(
     /** Immutable source snapshot. / 不可变源 snapshot。 */
     val snapshot: ConstraintProgrammingModelSnapshot,
@@ -120,11 +147,18 @@ data class FixedIntegerLpRequest(
 
 /** Backend-neutral fixed-integer LP solver hook. / 与后端无关的固定整数 LP 求解钩子。 */
 fun interface FixedIntegerLpBackend {
-    /** Solve one fixed-integer derived LP. / 求解一个固定整数的派生 LP。 */
+    /** 求解一个固定整数的派生 LP。 / Solve one fixed-integer derived LP.
+     *
+     * @param request 固定整数 LP 请求 / Fixed-integer LP request
+     * @return 后端求解结果 / Backend solve result
+     */
     suspend fun solve(request: FixedIntegerLpRequest): Ret<FixedIntegerLpSolveResult>
 }
 
-/** Options for fixed-integer LP analysis. / 固定整数 LP 分析选项。 */
+/** 固定整数 LP 分析选项。 / Options for fixed-integer LP analysis.
+ *
+ * @property dualTolerance 判定非零对偶值的绝对阈值 / Absolute threshold for a non-zero dual
+ */
 data class FixedIntegerLpSensitivityOptions(
     /** Absolute threshold for classifying a non-zero dual. / 判定非零对偶值的绝对阈值。 */
     val dualTolerance: Double = DEFAULT_DUAL_TOLERANCE
@@ -141,7 +175,17 @@ data class FixedIntegerLpSensitivityOptions(
     }
 }
 
-/** Fixed-integer LP sensitivity report. / 固定整数 LP 敏感性报告。 */
+/** 固定整数 LP 敏感性报告。 / Fixed-integer LP sensitivity report.
+ *
+ * @property status 分析结论 / Analysis conclusion
+ * @property scope 报告中所有对偶值的作用域 / Scope of all dual values in the report
+ * @property baselineObjective 调用方提供的基线目标值 / Baseline objective supplied by the caller
+ * @property fixedValues 固定的 incumbent 值 / Fixed incumbent values
+ * @property sensitivities 按 snapshot 顺序排列的原始约束敏感性 / Original constraint sensitivities in snapshot order
+ * @property objectiveValue 可用时的派生 LP 目标值 / Derived LP objective, if available
+ * @property solveTime 派生 LP 求解耗时 / Derived LP solve duration
+ * @property message 调度或后端诊断详情 / Diagnostics from dispatch or backend
+ */
 data class FixedIntegerLpSensitivityReport(
     /** Analysis conclusion; Unsupported and Unknown remain distinct. / 分析结论，Unsupported 与 Unknown 保持区分。 */
     val status: AnalysisStatus,
@@ -164,7 +208,11 @@ data class FixedIntegerLpSensitivityReport(
     val localSensitivities: List<LocalConstraintSensitivity>
         get() = sensitivities
 
-    /** Find one original constraint's sensitivity. / 查找一个原始约束的敏感性。 */
+    /** 查找一个原始约束的敏感性。 / Find one original constraint's sensitivity.
+     *
+     * @param id 要查找的约束 ID / Constraint ID to find
+     * @return 匹配的敏感性记录，找不到时为 null / Matching sensitivity, or null when absent
+     */
     fun constraint(id: ConstraintId): LocalConstraintSensitivity? {
         return sensitivities.firstOrNull { it.constraintId == id }
     }
@@ -301,8 +349,10 @@ class LinearSolverFixedIntegerLpBackend(
             }
             // 证明门控：只有真正形成最优解时才升格为 Reachable；受限求解返回的 incumbent
             // 必须保持 Unknown，不得被读成"已证明最优"（计划 8.14 / 3.5）。
-            // Proof gating: only a genuinely optimal solve upgrades to `Reachable`; an incumbent
-            // from a budget-limited solve stays `Unknown` and is never read as a proven optimum.
+            // Proof gating: only a genuinely optimal solve upgrades to `Reachable`.
+            // / 证明门控：只有真正形成最优解时才升格为 `Reachable`。
+            // An incumbent from a budget-limited solve stays `Unknown` and is never read as proven.
+            // / 受限求解返回的 incumbent 必须保持 `Unknown`，不得被读成已证明最优。
             val proven = report.problemStatus == ProblemStatus.Feasible &&
                 report.solutionPresence == SolutionPresence.Optimal
             val status = AnalysisStatus.from(report.problemStatus, proven)
@@ -315,7 +365,7 @@ class LinearSolverFixedIntegerLpBackend(
                     )
                 )
             }
-            val duals = when (val dualResult = fuookami.ospf.kotlin.core.model.intermediate.solveDual(triad, dualSolver)) {
+            val duals = when (val dualResult = solveDual(triad, dualSolver)) {
                 is Ok -> mapOriginalDuals(request.snapshot, triad, lowered, dualResult.value!!)
                 is Failed -> return ok(
                     FixedIntegerLpSolveResult(
@@ -347,8 +397,10 @@ class LinearSolverFixedIntegerLpBackend(
             }
             // 后端提供原生 ranging 时映射回原始约束身份；只有"唯一降阶行"才回映，
             // 多行 lowering 不冒充单约束范围。 / When the backend supplies native ranging, map it
-            // back onto original constraint identities; only a unique lowered row is mapped, so a
-            // multi-row lowering never impersonates a single constraint's range.
+            // back onto original constraint identities; only a unique lowered row is mapped.
+            // / 回映为原始约束身份；只有唯一降阶行才会被映射。
+            // A multi-row lowering never impersonates a single constraint's range.
+            // / 多行 lowering 不得冒充单个约束的范围。
             val ranges = sensitivityRanges?.let { provider ->
                 val byRow = provider(triad)
                 if (byRow.isEmpty()) {
@@ -419,6 +471,13 @@ class LinearSolverFixedIntegerLpBackend(
  * This function and [mapExplicitProvenanceRanges] form the public mapping boundary for backend
  * adapters: a backend plugin obtains native duals and ranges but **must** remap them through here
  * into original constraint identities, never exposing row indices.
+ *
+ * @param T 降阶行来源类型 / Lowered-row provenance type
+ * @param rowProvenance 每个降阶行对应的原始约束 ID / Original constraint ID for each lowered row
+ * @param rowOrigins 每个降阶行的来源对象 / Origin object for each lowered row
+ * @param dualsByOrigin 按来源对象索引的对偶值 / Dual values keyed by origin object
+ * @param originalIds 允许返回的原始约束 ID / Original constraint IDs allowed in the result
+ * @return 按原始约束 ID 映射的对偶值 / Dual values keyed by original constraint ID
  */
 fun <T : Any> mapExplicitProvenanceDuals(
     rowProvenance: List<ConstraintId?>,
@@ -454,8 +513,16 @@ fun <T : Any> mapExplicitProvenanceDuals(
  * This follows the same rule as dual mapping: a source range is returned only when exactly one
  * lowered row carries that source ID. Otherwise the range is omitted rather than passing off one
  * row's range as the original constraint's range.
+ *
+ * @param T 降阶行来源类型 / Lowered-row provenance type
+ * @param rowProvenance 每个降阶行对应的原始约束 ID / Original constraint ID for each lowered row
+ * @param rowOrigins 每个降阶行的来源对象 / Origin object for each lowered row
+ * @param rangesByOrigin 按来源对象索引的敏感性范围 / Sensitivity ranges keyed by origin object
+ * @param originalIds 允许返回的原始约束 ID / Original constraint IDs allowed in the result
+ * @return 按原始约束 ID 映射的敏感性范围 / Sensitivity ranges keyed by original constraint ID
  */
-fun <T : Any> mapExplicitProvenanceRanges(    rowProvenance: List<ConstraintId?>,
+fun <T : Any> mapExplicitProvenanceRanges(
+    rowProvenance: List<ConstraintId?>,
     rowOrigins: List<T?>,
     rangesByOrigin: Map<T, SensitivityRange>,
     originalIds: Set<ConstraintId>
@@ -489,7 +556,12 @@ class FixedIntegerLpSensitivityAnalyzer(
     /** Activity analyzer reused for the same baseline. / 复用同一基线的活动性分析器。 */
     private val activityAnalyzer: ConstraintActivityAnalyzer = ConstraintActivityAnalyzer()
 ) {
-    /** Analyze the baseline attached to a session. / 分析 session 附带的基线。 */
+    /** 分析 session 附带的基线。 / Analyze the baseline attached to a session.
+     *
+     * @param session 分析 session / Analysis session
+     * @param options 固定整数 LP 分析选项 / Fixed-integer LP analysis options
+     * @return 固定整数 LP 敏感性报告结果 / Fixed-integer LP sensitivity report result
+     */
     suspend fun analyze(
         session: CriticalConstraintAnalysisSession,
         options: FixedIntegerLpSensitivityOptions = FixedIntegerLpSensitivityOptions()
@@ -523,7 +595,15 @@ class FixedIntegerLpSensitivityAnalyzer(
         }
     }
 
-    /** Analyze a snapshot using an explicit baseline solution. / 使用显式基线解分析 snapshot。 */
+    /** 使用显式基线解分析 snapshot。 / Analyze a snapshot using an explicit baseline solution.
+     *
+     * @param snapshot 不可变 CP snapshot / Immutable CP snapshot
+     * @param solution 基线解，可为 null / Baseline solution, or null
+     * @param baselineObjective 可选基线目标值 / Optional baseline objective value
+     * @param capabilityMatrix 分析能力矩阵 / Analysis capability matrix
+     * @param options 固定整数 LP 分析选项 / Fixed-integer LP analysis options
+     * @return 固定整数 LP 敏感性报告结果 / Fixed-integer LP sensitivity report result
+     */
     suspend fun analyze(
         snapshot: ConstraintProgrammingModelSnapshot,
         solution: ConstraintProgrammingSolution?,

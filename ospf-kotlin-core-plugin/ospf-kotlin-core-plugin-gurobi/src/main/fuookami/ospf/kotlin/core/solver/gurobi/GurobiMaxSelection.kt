@@ -4,9 +4,9 @@ import kotlin.math.abs
 import gurobi.GRB
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.model.intermediate.FunctionNativeCapability
-import fuookami.ospf.kotlin.core.model.intermediate.MaxStructure
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.intermediate.MaxStructure
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionNativeCapability
 import fuookami.ospf.kotlin.core.token.Token
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
 

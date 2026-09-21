@@ -1,32 +1,34 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotSame
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionFallbackMaterializer
-import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionFallbackTarget
-import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionStructure
-import fuookami.ospf.kotlin.core.model.intermediate.UnivariateLinearPiecewiseStructure
-import fuookami.ospf.kotlin.core.model.intermediate.generateUnivariateLinearPiecewiseConstraints
-import fuookami.ospf.kotlin.core.model.intermediate.materializeDeferredFunctionFallbacks
-import fuookami.ospf.kotlin.core.model.intermediate.PwlFallbackMaterializer
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.function.UnivariateLinearPiecewiseFunction
-import fuookami.ospf.kotlin.core.symbol.function.evaluateWith
-import fuookami.ospf.kotlin.core.variable.RealVar
+import kotlin.test.Test
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.model.intermediate.PwlFallbackMaterializer
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionStructure
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionFallbackTarget
+import fuookami.ospf.kotlin.core.model.intermediate.UnivariateLinearPiecewiseStructure
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionFallbackMaterializer
+import fuookami.ospf.kotlin.core.model.intermediate.materializeDeferredFunctionFallbacks
+import fuookami.ospf.kotlin.core.model.intermediate.generateUnivariateLinearPiecewiseConstraints
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.function.evaluateWith
+import fuookami.ospf.kotlin.core.symbol.function.UnivariateLinearPiecewiseFunction
+import fuookami.ospf.kotlin.core.variable.RealVar
 
 class PwlFallbackMaterializerTest {
     @Test
@@ -277,7 +279,7 @@ class PwlFallbackMaterializerTest {
         ).value!!
     }
 
-    private fun <T> requireOk(result: fuookami.ospf.kotlin.utils.functional.Ret<T>): T {
+    private fun <T> requireOk(result: Ret<T>): T {
         return when (result) {
             is Ok -> result.value
             is Failed -> error(result.error.message)
@@ -286,7 +288,7 @@ class PwlFallbackMaterializerTest {
     }
 
     private fun satisfies(
-        constraint: fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>,
+        constraint: LinearInequality<Flt64>,
         values: Map<Symbol, Flt64>
     ): Boolean {
         val lhs = constraint.lhs.evaluateWith(values) ?: return false
@@ -302,12 +304,12 @@ class PwlFallbackMaterializerTest {
     private class RecordingTarget(
         private val failAppend: Boolean = false
     ) : DeferredFunctionFallbackTarget {
-        private val constraints = mutableListOf<fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>>()
+    private val constraints = mutableListOf<LinearInequality<Flt64>>()
 
         override val constraintCount: Int
             get() = constraints.size
 
-        override fun append(constraints: List<fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>>): Try {
+    override fun append(constraints: List<LinearInequality<Flt64>>): Try {
             this.constraints += constraints
             return if (failAppend) {
                 Failed(ErrorCode.ApplicationError, "append failed")

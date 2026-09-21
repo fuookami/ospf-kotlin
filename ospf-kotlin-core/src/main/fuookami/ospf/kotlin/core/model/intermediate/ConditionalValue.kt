@@ -2,16 +2,18 @@ package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * 条件结果：指示列为 1 时取 input，否则为 0。 / Value equals input on indicator one, otherwise zero.
+ *
+ * @param V 数值类型 / Numeric type
  * @property input 真分支输入 / True-branch input
  * @property resultVariable 保留的数值结果列 / Retained value result column
  * @property bounds 原真分支范围 / Original true-branch bounds
@@ -23,6 +25,7 @@ data class ConditionalValue<V>(
     val bounds: ConditionBounds<V>,
     val name: String
 ) where V : RealNumber<V>, V : NumberField<V> {
+
     internal fun generateConstraints(indicator: AbstractVariableItem<*, *>, converter: IntoValue<V>): Ret<List<LinearInequality<V>>> {
         return try {
             if (resultVariable.key == indicator.key || !indicator.type.isBinaryType ||

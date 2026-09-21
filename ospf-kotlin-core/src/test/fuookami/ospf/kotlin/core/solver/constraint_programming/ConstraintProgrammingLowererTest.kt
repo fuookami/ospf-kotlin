@@ -1,32 +1,32 @@
 package fuookami.ospf.kotlin.core.solver.constraint_programming
 
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import kotlin.test.Test
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.constraint_programming.NoOverlap
+import fuookami.ospf.kotlin.core.model.constraint_programming.Cumulative
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalId
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
 import fuookami.ospf.kotlin.core.model.constraint_programming.BooleanLiteral
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalVariable
+import fuookami.ospf.kotlin.core.model.constraint_programming.ReificationDirection
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingExpression
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
-import fuookami.ospf.kotlin.core.model.constraint_programming.Cumulative
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalId
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalVariable
-import fuookami.ospf.kotlin.core.model.constraint_programming.NoOverlap
-import fuookami.ospf.kotlin.core.model.constraint_programming.ReificationDirection
-import fuookami.ospf.kotlin.core.solver.constraint_programming.lowering.ConstraintProgrammingLoweredLinearModel
-import fuookami.ospf.kotlin.core.solver.constraint_programming.lowering.ConstraintProgrammingLoweringPolicy
-import fuookami.ospf.kotlin.core.solver.constraint_programming.lowering.ConstraintProgrammingToLinearModelLowerer
-import fuookami.ospf.kotlin.core.solver.report.ConstraintId
-import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
 import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.constraint_programming.lowering.ConstraintProgrammingLoweringPolicy
+import fuookami.ospf.kotlin.core.solver.constraint_programming.lowering.ConstraintProgrammingLoweredLinearModel
+import fuookami.ospf.kotlin.core.solver.constraint_programming.lowering.ConstraintProgrammingToLinearModelLowerer
 import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.IntVar
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 class ConstraintProgrammingLowererTest {
     @Test

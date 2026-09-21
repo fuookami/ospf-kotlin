@@ -3,24 +3,24 @@
 /** 松弛变量函数符号 / Slack variable function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.token.AddableTokenCollection
-import fuookami.ospf.kotlin.core.variable.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.variable.*
 
 /**
  * 松弛变量函数符号 / Slack variable function symbol
  *
  * 提供 [SlackFunction]，为不等式引入正/负松弛变量。 / Provides [SlackFunction] for introducing positive/negative slack variables for inequalities.
-*/
+ */
 
 /**
  * 松弛变量函数 / Slack variable function
@@ -39,7 +39,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property sideVar 绝对值分支变量 / Absolute-value branch variable
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
-*/
+ */
 class SlackFunction<V>(
     val x: LinearPolynomial<V>,
     val y: LinearPolynomial<V>,
@@ -98,7 +98,7 @@ class SlackFunction<V>(
      *
      * @param baseName 变量基础名称 / base variable name
      * @return 创建的变量项 / the created variable item
-    */
+     */
     private fun createVariable(baseName: String): AbstractVariableItem<*, *> {
         return if (type.isIntegerType) UIntVar(baseName) else URealVar(baseName)
     }
@@ -134,9 +134,7 @@ class SlackFunction<V>(
         val zero = converter.zero
         val constraints = mutableListOf<LinearInequality<V>>()
 
-        // When both directions are requested, use the exact four-row absolute
-        // value formulation. This prevents the two nonnegative parts from
-        // growing together when no objective minimizes the result.
+        // 同时启用两个方向时使用精确的四行绝对值公式，避免无目标压低结果时两个非负部分共同增长。 / When both directions are requested, use the exact four-row absolute-value formulation to prevent the two nonnegative parts from growing together when no objective minimizes the result.
         if (withNegative && withPositive && negVar != null && posVar != null && sideVar != null) {
             val branchVar = sideVar!!
             val difference = LinearPolynomial(
@@ -152,9 +150,7 @@ class SlackFunction<V>(
                 result.monomials + difference.monomials,
                 result.constant + difference.constant
             )
-            // Each inactive branch can expose twice the absolute difference,
-            // so M must cover 2 * max(|x - y|), not only max(|x - y|).
-            // 非激活分支可能暴露两倍绝对差值，因此 M 必须覆盖 2 * max(|x - y|)，不能只取 max(|x - y|)。
+            // 非激活分支可能暴露两倍绝对差值，因此 M 必须覆盖 2 * max(|x - y|)，不能只取 max(|x - y|)。 / Each inactive branch can expose twice the absolute difference, so M must cover 2 * max(|x - y|), not only max(|x - y|).
             val bigM = difference.defaultBigM(converter) * (one + one)
 
             constraints += LinearInequality(
@@ -228,7 +224,7 @@ class SlackFunction<V>(
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name
          * @return 松弛函数实例 / slack function instance
-        */
+         */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             y: LinearPolynomial<V>,
@@ -270,7 +266,7 @@ class SlackFunction<V>(
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name
          * @return 松弛函数实例 / slack function instance
-        */
+         */
         operator fun <V> invoke(
             x: LinearIntermediateSymbol<V>,
             y: LinearPolynomial<V>,
@@ -312,7 +308,7 @@ class SlackFunction<V>(
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name
          * @return 松弛函数实例 / slack function instance
-        */
+         */
         operator fun <V> invoke(
             x: ToLinearPolynomial<V>,
             y: ToLinearPolynomial<V>,

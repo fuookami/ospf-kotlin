@@ -5,14 +5,16 @@ import kotlinx.coroutines.runBlocking
 import gurobi.GRB
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.variable.RealVar
 
@@ -109,10 +111,10 @@ class GurobiDeferredIndicatorIT {
                     requireOk(meta.add(LinearFunctionSymbolAdapter(function, IntoValue.Identity)))
                     if (nested != null) requireOk(meta.add(LinearFunctionSymbolAdapter(nested, IntoValue.Identity)))
                     if (usage in listOf("constraint", "mixed", "smallM")) {
-                        val relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality(
+                        val relation = LinearInequality(
                             lhs = if (usage == "smallM") inputPolynomial else function.resultPolynomial,
                             rhs = LinearPolynomial(emptyList(), Flt64(if (usage == "smallM") 0.5 else 1.0)),
-                            comparison = fuookami.ospf.kotlin.math.symbol.inequality.Comparison.EQ,
+                            comparison = Comparison.EQ,
                             name = "external_reference"
                         )
                         requireOk(meta.addConstraint(relation = relation, name = relation.name))

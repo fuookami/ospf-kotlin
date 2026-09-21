@@ -13,48 +13,50 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingSnapshotCodec
 import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalId
 import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalValue
-import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingFeasibleOutput
-import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingInfeasibleOutput
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingSnapshotCodec
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
+import fuookami.ospf.kotlin.core.solver.output.toCompatibilityFlt64
 import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
 import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingUnknownOutput
-import fuookami.ospf.kotlin.core.solver.output.toCompatibilityFlt64
-import fuookami.ospf.kotlin.core.solver.output.SolverStatus
-import fuookami.ospf.kotlin.core.solver.report.AuditFingerprint
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingFeasibleOutput
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingInfeasibleOutput
 import fuookami.ospf.kotlin.core.solver.report.BoundSide
-import fuookami.ospf.kotlin.core.solver.report.ConstraintId
-import fuookami.ospf.kotlin.core.solver.report.EvidenceCompleteness
-import fuookami.ospf.kotlin.core.solver.report.EvidenceExactness
-import fuookami.ospf.kotlin.core.solver.report.EvidenceMinimality
-import fuookami.ospf.kotlin.core.solver.report.EvidenceValidity
-import fuookami.ospf.kotlin.core.solver.report.InfeasibilityEvidence
-import fuookami.ospf.kotlin.core.solver.report.InfeasibilityMember
-import fuookami.ospf.kotlin.core.solver.report.InfeasibilityEvidenceSource
 import fuookami.ospf.kotlin.core.solver.report.SolveIssue
-import fuookami.ospf.kotlin.core.solver.report.SolveIssueCategory
-import fuookami.ospf.kotlin.core.solver.report.ProblemStatus
-import fuookami.ospf.kotlin.core.solver.report.ProofStatus
-import fuookami.ospf.kotlin.core.solver.report.SolveDiagnostics
-import fuookami.ospf.kotlin.core.solver.report.SolveFingerprints
 import fuookami.ospf.kotlin.core.solver.report.SolveProof
 import fuookami.ospf.kotlin.core.solver.report.SolveRunId
-import fuookami.ospf.kotlin.core.solver.report.SolveStatistics
-import fuookami.ospf.kotlin.core.solver.report.SolverCapabilities
-import fuookami.ospf.kotlin.core.solver.report.SolverDescriptor
-import fuookami.ospf.kotlin.core.solver.report.SolverModelType
-import fuookami.ospf.kotlin.core.solver.report.SolverProvenance
-import fuookami.ospf.kotlin.core.solver.report.SolveReport
 import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.ProofStatus
+import fuookami.ospf.kotlin.core.solver.report.SolveReport
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.report.ProblemStatus
+import fuookami.ospf.kotlin.core.solver.report.SolveSolution
+import fuookami.ospf.kotlin.core.solver.report.SolverModelType
+import fuookami.ospf.kotlin.core.solver.report.SolveStatistics
+import fuookami.ospf.kotlin.core.solver.report.AuditFingerprint
+import fuookami.ospf.kotlin.core.solver.report.EvidenceValidity
+import fuookami.ospf.kotlin.core.solver.report.SolutionPresence
+import fuookami.ospf.kotlin.core.solver.report.SolveDiagnostics
+import fuookami.ospf.kotlin.core.solver.report.SolverDescriptor
+import fuookami.ospf.kotlin.core.solver.report.SolverProvenance
 import fuookami.ospf.kotlin.core.solver.report.VariableBoundRef
+import fuookami.ospf.kotlin.core.solver.report.EvidenceExactness
+import fuookami.ospf.kotlin.core.solver.report.SolveFingerprints
 import fuookami.ospf.kotlin.core.solver.report.VariableDomainRef
-import fuookami.ospf.kotlin.framework.solver.remote.adapter.ospf.OspfRemoteModelSerializer
-import fuookami.ospf.kotlin.framework.solver.remote.domain.*
+import fuookami.ospf.kotlin.core.solver.report.EvidenceMinimality
+import fuookami.ospf.kotlin.core.solver.report.SolveIssueCategory
+import fuookami.ospf.kotlin.core.solver.report.SolverCapabilities
+import fuookami.ospf.kotlin.core.solver.report.InfeasibilityMember
+import fuookami.ospf.kotlin.core.solver.report.EvidenceCompleteness
+import fuookami.ospf.kotlin.core.solver.report.InfeasibilityEvidence
+import fuookami.ospf.kotlin.core.solver.report.InfeasibilityEvidenceSource
 import fuookami.ospf.kotlin.framework.solver.remote.port.ObjectStoragePort
 import fuookami.ospf.kotlin.framework.solver.remote.port.SolverExecutionPort
+import fuookami.ospf.kotlin.framework.solver.remote.domain.*
+import fuookami.ospf.kotlin.framework.solver.remote.adapter.ospf.OspfRemoteModelSerializer
 
 /**
  * 将 portable CP snapshot 接入统一远程执行端口。 / Connect a portable CP snapshot to the shared remote execution port.
@@ -927,7 +929,7 @@ class RemoteConstraintProgrammingClient(
             solver = fingerprints["solver"]?.let { AuditFingerprint(fingerprintSchemas["solver"] ?: schemaVersion, "SHA-256", it) }
         )
         val reportSolution = solution?.let { values ->
-            fuookami.ospf.kotlin.core.solver.report.SolveSolution<Int64>(
+            SolveSolution<Int64>(
                 values = values.asList(values.values.keys.toList()),
                 objective = objectiveValueInt64?.let(::Int64)
             )
@@ -1092,12 +1094,12 @@ class RemoteConstraintProgrammingClient(
         }
     }
 
-    private fun RemoteSolutionPresence.toCoreSolutionPresence(): fuookami.ospf.kotlin.core.solver.report.SolutionPresence {
+    private fun RemoteSolutionPresence.toCoreSolutionPresence(): SolutionPresence {
         return when (this) {
-            RemoteSolutionPresence.NONE -> fuookami.ospf.kotlin.core.solver.report.SolutionPresence.None
-            RemoteSolutionPresence.INCUMBENT -> fuookami.ospf.kotlin.core.solver.report.SolutionPresence.Incumbent
-            RemoteSolutionPresence.OPTIMAL -> fuookami.ospf.kotlin.core.solver.report.SolutionPresence.Optimal
-            RemoteSolutionPresence.UNKNOWN -> fuookami.ospf.kotlin.core.solver.report.SolutionPresence.None
+            RemoteSolutionPresence.NONE -> SolutionPresence.None
+            RemoteSolutionPresence.INCUMBENT -> SolutionPresence.Incumbent
+            RemoteSolutionPresence.OPTIMAL -> SolutionPresence.Optimal
+            RemoteSolutionPresence.UNKNOWN -> SolutionPresence.None
         }
     }
 

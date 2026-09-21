@@ -6,8 +6,8 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.intermediate.MaxStructure
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * MAX 的仿射输入。 / An affine input to MAX.
@@ -32,6 +32,7 @@ data class NativeMaxInputData(
  * @property selectorKeys 待恢复的选择变量键 / Selector keys to restore
  * @property bigMValues 覆盖输入域的 fallback Big-M / Fallback Big-M values covering the input domain
  * @property name 函数名 / Function name
+ * @property minimum 是否计算最小值 / Whether to compute the minimum
  */
 data class NativeMaxData(
     val inputs: List<NativeMaxInputData>,

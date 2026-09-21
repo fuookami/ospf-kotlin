@@ -1,30 +1,30 @@
 /**
  * 机制模型 / Mechanism model
-*/
+ */
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.usize
+import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.Quadratic
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.error.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.report.ModelElementIdentityRegistry
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.*
-import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.operation.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.usize
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 机制模型密封接口 / Sealed interface for mechanism models
@@ -38,7 +38,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property objectFunction 目标函数 / Objective function
  * @property tokens 符号表 / Token table
  * @property identityRegistry 可选的稳定身份注册表 / Optional stable identity registry
-*/
+ */
 sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
     val name: String
     val constraints: List<Constraint<V, *>>
@@ -57,7 +57,7 @@ sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : 
  * 支持添加线性不等式约束。 / Supports adding linear inequality constraints.
  *
  * @param V 数值类型 / The number type
-*/
+ */
 interface AbstractLinearMechanismModel<V> : MechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
 
     /**
@@ -68,11 +68,11 @@ interface AbstractLinearMechanismModel<V> : MechanismModel<V> where V : RealNumb
      * @param name 约束名称 / Constraint name
      * @param from 来源中间符号及其惰性标记 / Origin intermediate symbol and its lazy flag
      * @return 添加结果 / Result of adding the constraint
-    */
+     */
     fun addConstraint(
         relation: LinearInequality<V>,
         name: String? = null,
-        from: Pair<IntermediateSymbol<out V>, Boolean>? = null,
+        from: Pair<IntermediateSymbol<out V>, Boolean>? = null
     ): Try
 
     /**
@@ -82,11 +82,11 @@ interface AbstractLinearMechanismModel<V> : MechanismModel<V> where V : RealNumb
      * @param name 约束名称 / Constraint name
      * @param from 来源中间符号 / Origin intermediate symbol
      * @return 添加结果 / Result of adding the constraint
-    */
+     */
     fun addConstraint(
         relation: LinearInequality<V>,
         name: String? = null,
-        from: IntermediateSymbol<out V>?,
+        from: IntermediateSymbol<out V>?
     ): Try {
         return addConstraint(
             relation = relation,
@@ -115,7 +115,7 @@ interface AbstractLinearMechanismModel<V> : MechanismModel<V> where V : RealNumb
  * 扩展线性机制模型，支持添加二次不等式约束。 / Extends linear mechanism model, supports adding quadratic inequality constraints.
  *
  * @param V 数值类型 / The number type
-*/
+ */
 interface AbstractQuadraticMechanismModel<V> : AbstractLinearMechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
 
     /**
@@ -126,7 +126,7 @@ interface AbstractQuadraticMechanismModel<V> : AbstractLinearMechanismModel<V> w
      * @param name 约束名称 / Constraint name
      * @param from 来源中间符号及其惰性标记 / Origin intermediate symbol and its lazy flag
      * @return 添加结果 / Result of adding the constraint
-    */
+     */
     fun addConstraint(
         relation: QuadraticInequalityOf<V>,
         name: String? = null,
@@ -141,7 +141,7 @@ interface AbstractQuadraticMechanismModel<V> : AbstractLinearMechanismModel<V> w
      * @param name 约束名称 / Constraint name
      * @param from 来源中间符号 / Origin intermediate symbol
      * @return 添加结果 / Result of adding the constraint
-    */
+     */
     fun addConstraint(
         relation: QuadraticInequalityOf<V>,
         name: String? = null,
@@ -160,7 +160,7 @@ interface AbstractQuadraticMechanismModel<V> : AbstractLinearMechanismModel<V> w
  *
  * @param V 数值类型 / The number type
  * @property objectFunction 单目标函数 / Single objective function
-*/
+ */
 interface SingleObjectMechanismModel<V> : MechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
     override val objectFunction: SingleObject<SubObject<V>>
 }
@@ -173,15 +173,15 @@ interface SingleObjectMechanismModel<V> : MechanismModel<V> where V : RealNumber
  * @param constraints 约束列表 / Constraint list
  * @param dualById 按约束名称索引的对偶值映射 / Dual value mapping indexed by constraint name
  * @param log 日志记录器 / Logger instance
-*/
+ */
 private fun validateDualById(
     constraints: List<Constraint<*, *>>,
     dualById: Map<String, *>,
     log: org.apache.logging.log4j.kotlin.KotlinLogger
 ) {
+    // 检测重复约束名称 - 同名约束会静默复用 by-id 映射中的同一对偶值。
     // Detect duplicate constraint names - multiple constraints sharing the same name
     // would silently reuse the same dual value from the by-id map.
-    // 检测重复约束名称 - 同名约束会静默复用 by-id 映射中的同一对偶值。
     val nameCounts = HashMap<String, Int>()
     for (c in constraints) {
         nameCounts[c.name] = (nameCounts[c.name] ?: 0) + 1
@@ -191,8 +191,8 @@ private fun validateDualById(
             log.warn { "Duplicate constraint name '$name' appears $count times in model; by_id lookup will use the same dual value for all" }
         }
     }
-    // Detect names in dualById that don't match any constraint - likely a caller error.
     // 检测 dualById 中不匹配任何约束的名称 - 可能是调用方错误。
+    // Detect names in dualById that don't match any constraint - likely a caller error.
     val constraintNames = nameCounts.keys
     for (name in dualById.keys) {
         if (name !in constraintNames) {
@@ -437,7 +437,7 @@ private suspend fun <V, T> withMechanismTokenTransaction(
  * @param metaModel 线性元模型 / The linear meta model
  * @param tokens 符号表 / The token table
  * @return 包含线性约束列表的结果，或错误 / Result containing the mutable list of linear constraints, or an error
-*/
+ */
 private fun <V> buildConstraints(
     metaModel: LinearMetaModel<V>,
     tokens: AbstractTokenTable<V>
@@ -516,7 +516,7 @@ private fun <V> synchronizeUnfoldedTokens(
  * @param metaModel 二次元模型 / The quadratic meta model
  * @param tokens 符号表 / The token table
  * @return 包含二次约束列表的结果，或错误 / Result containing the mutable list of quadratic constraints, or an error
-*/
+ */
 private fun <V> buildConstraints(
     metaModel: QuadraticMetaModel<V>,
     tokens: AbstractTokenTable<V>
@@ -548,9 +548,10 @@ private fun <V> buildConstraints(
  * @property parent 父元模型 / Parent meta model
  * @property name 模型名称 / Model name
  * @param constraints 线性约束列表 / Linear constraint list
+ * @param deferredFunctionStructures 延迟函数结构快照 / Deferred function structure snapshots
  * @property objectFunction 单目标函数 / Single objective function
  * @property tokens 符号表 / Token table
-*/
+ */
 class LinearMechanismModel<V>(
     internal val parent: LinearMetaModel<V>,
     override var name: String,
@@ -574,7 +575,7 @@ class LinearMechanismModel<V>(
     /**
      * 约束存储。从 BasicMechanismModel 继承查询辅助方法（numVariables）。
      * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
-    */
+     */
     private val _constraints: MutableList<LinearConstraintImpl<V>> = constraints.toMutableList()
     internal val concurrent by parent.configuration::concurrent
     override val constraints: List<Constraint<V, *>> get() = _constraints
@@ -588,7 +589,7 @@ class LinearMechanismModel<V>(
          * 使用 V 类型 SubObject 伴随对象重载和 IntoValue<V> 转换器。
          * V-generic factory: create LinearMechanismModel<V> from LinearMetaModel<V>.
          * Uses the V-generic SubObject companion overload with IntoValue<V> converter.
-        */
+         */
         suspend operator fun <V> invoke(
             metaModel: LinearMetaModel<V>,
             concurrent: Boolean? = null,
@@ -745,7 +746,7 @@ class LinearMechanismModel<V>(
          * @param scope 用于异步执行的协程作用域 / Coroutine scope for async execution
          * @param callBack 转储状态回调 / Dumping status callback
          * @return 构建的线性机制模型，或错误 / The constructed linear mechanism model, or error
-        */
+         */
         private suspend fun <V> dumpAsync(
             metaModel: LinearMetaModel<V>,
             tokens: AbstractTokenTable<V>,
@@ -793,7 +794,7 @@ class LinearMechanismModel<V>(
          * @param toFlt64 从 V 到 Flt64 的转换函数 / Conversion function from V to Flt64
          * @param callBack 注册状态回调 / Registration status callback
          * @return 展开后的不可变符号表，或错误 / The unfolded immutable token table, or error
-        */
+         */
         private suspend fun <V> unfold(
             tokens: AbstractMutableTokenTable<V>,
             fixedVariables: Map<AbstractVariableItem<*, *>, V>? = null,
@@ -977,7 +978,7 @@ class LinearMechanismModel<V>(
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
      * @param dualSolution 对偶解，约束到对偶值的映射 / Dual solution, mapping from constraint to dual value
      * @return 线性不等式列表 / List of linear inequalities representing the cut
-    */
+     */
     fun generateOptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -1002,7 +1003,7 @@ class LinearMechanismModel<V>(
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
      * @param farkasDualSolution Farkas 对偶解，约束到对偶值的映射 / Farkas dual solution, mapping from constraint to dual value
      * @return 线性不等式列表 / List of linear inequalities representing the cut
-    */
+     */
     fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolution: Map<Constraint<V, Linear>, V>
@@ -1024,7 +1025,7 @@ class LinearMechanismModel<V>(
      *
      * @param cut 待转换的线性不等式 / The linear inequality to convert
      * @return Flt64 类型的线性不等式 / The linear inequality with Flt64 coefficients
-    */
+     */
     private fun toFlt64LinearCut(cut: LinearInequality<V>): LinearInequality<Flt64> {
         return LinearInequality(
             lhs = LinearPolynomial(
@@ -1051,7 +1052,7 @@ class LinearMechanismModel<V>(
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
      * @param dualSolutionById 按约束名称索引的对偶解 / Dual solution indexed by constraint name
      * @return 线性不等式列表 / List of linear inequalities representing the cut
-    */
+     */
     internal fun generateOptimalCutById(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -1079,7 +1080,7 @@ class LinearMechanismModel<V>(
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
      * @param farkasDualSolutionById 按约束名称索引的 Farkas 对偶解 / Farkas dual solution indexed by constraint name
      * @return 线性不等式列表 / List of linear inequalities representing the cut
-    */
+     */
     internal fun generateFeasibleCutById(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolutionById: Map<String, V>
@@ -1108,7 +1109,7 @@ class LinearMechanismModel<V>(
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
      * @param dualSolution Flt64 类型对偶解 / Flt64 dual solution mapping from constraint to dual value
      * @return Flt64 线性不等式列表 / List of Flt64 linear inequalities representing the cut
-    */
+     */
     fun generateFlt64OptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -1141,7 +1142,7 @@ class LinearMechanismModel<V>(
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
      * @param farkasDualSolution Flt64 类型 Farkas 对偶解 / Flt64 Farkas dual solution mapping from constraint to dual value
      * @return Flt64 线性不等式列表 / List of Flt64 linear inequalities representing the cut
-    */
+     */
     fun generateFlt64FeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolution: Map<Constraint<Flt64, Linear>, Flt64>
@@ -1178,7 +1179,7 @@ class LinearMechanismModel<V>(
      * @return list of linear cuts
      *
      * 求解器边界：dualValues 与返回值使用 Flt64，因为它们表示求解器原始输出。 / Solver boundary: dualValues and return type are Flt64 because they represent raw solver output.
-    */
+     */
     internal fun generateOptimalCutFromOutput(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -1205,7 +1206,7 @@ class LinearMechanismModel<V>(
      * @return list of linear cuts
      *
      * 求解器边界：farkasDualValues 与返回值使用 Flt64，因为它们表示求解器原始输出。 / Solver boundary: farkasDualValues and return type are Flt64 because they represent raw solver output.
-    */
+     */
     internal fun generateFeasibleCutFromOutput(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualValues: List<Flt64>,
@@ -1219,7 +1220,7 @@ class LinearMechanismModel<V>(
      * 约束数量 / Number of constraints
      *
      * 返回模型中当前存储的线性约束总数。 / Returns the total number of linear constraints currently stored in the model.
-    */
+     */
     val numConstraints: Int get() = _constraints.size
 
     override fun close() {
@@ -1244,9 +1245,10 @@ class LinearMechanismModel<V>(
  * @property parent 父元模型 / Parent meta model
  * @property name 模型名称 / Model name
  * @param constraints 二次约束列表 / Quadratic constraint list
+ * @param deferredFunctionStructures 延迟函数结构快照 / Deferred function structure snapshots
  * @property objectFunction 单目标函数 / Single objective function
  * @property tokens 符号表 / Token table
-*/
+ */
 class QuadraticMechanismModel<V>(
     internal val parent: QuadraticMetaModel<V>,
     override var name: String,
@@ -1270,7 +1272,7 @@ class QuadraticMechanismModel<V>(
     /**
      * 约束存储。从 BasicMechanismModel 继承查询辅助方法（numVariables）。
      * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
-    */
+     */
     private val _constraints: MutableList<QuadraticConstraintImpl<V>> = constraints.toMutableList()
     internal val concurrent by parent.configuration::concurrent
     override val constraints: List<Constraint<V, *>> get() = _constraints
@@ -1284,7 +1286,7 @@ class QuadraticMechanismModel<V>(
          * 使用 V 类型 SubObject 伴随对象重载和 IntoValue<V> 转换器。
          * V-generic factory: create QuadraticMechanismModel<V> from QuadraticMetaModel<V>.
          * Uses the V-generic SubObject companion overload with IntoValue<V> converter.
-        */
+         */
         suspend operator fun <V> invoke(
             metaModel: QuadraticMetaModel<V>,
             concurrent: Boolean? = null,
@@ -1436,7 +1438,7 @@ class QuadraticMechanismModel<V>(
          * @param scope 用于异步执行的协程作用域 / Coroutine scope for async execution
          * @param callBack 转储状态回调 / Dumping status callback
          * @return 构建的二次机制模型，或错误 / The constructed quadratic mechanism model, or error
-        */
+         */
         private suspend fun <V> dumpAsync(
             metaModel: QuadraticMetaModel<V>,
             tokens: AbstractTokenTable<V>,
@@ -1484,7 +1486,7 @@ class QuadraticMechanismModel<V>(
          * @param toFlt64 从 V 到 Flt64 的转换函数 / Conversion function from V to Flt64
          * @param callBack 注册状态回调 / Registration status callback
          * @return 展开后的不可变符号表，或错误 / The unfolded immutable token table, or error
-        */
+         */
         private suspend fun <V> unfold(
             tokens: AbstractMutableTokenTable<V>,
             fixedVariables: Map<AbstractVariableItem<*, *>, V>? = null,
@@ -1629,8 +1631,8 @@ class QuadraticMechanismModel<V>(
         from: Pair<IntermediateSymbol<out V>, Boolean>?
     ): Try {
         val flattenData = relation.toLinearFlattenData().getOrElse { return Failed(Err(ErrorCode.IllegalArgument, it.message ?: "Failed to flatten linear inequality")) }
-        // Promote linear flatten data to quadratic (each linear monomial c*x becomes quadratic c*x*null)
         // 将线性扁平化数据提升为二次（每个线性单项式 c*x 变为二次 c*x*null）
+        // Promote linear flatten data to quadratic (each linear monomial c*x becomes quadratic c*x*null)
         val qMonomials = flattenData.monomials.map { QuadraticMonomial(it.coefficient, it.symbol, null) }
         val qFlattenData = QuadraticFlattenData<V>(qMonomials, flattenData.constant)
         val constraint = when (val result = QuadraticConstraintImpl(
@@ -1694,7 +1696,7 @@ class QuadraticMechanismModel<V>(
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
      * @param dualSolution 对偶解，约束到对偶值的映射 / Dual solution, mapping from constraint to dual value
      * @return 割平面列表（线性或二次不等式）/ List of cuts (linear or quadratic inequalities)
-    */
+     */
     fun generateOptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -1719,7 +1721,7 @@ class QuadraticMechanismModel<V>(
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
      * @param farkasDualSolution Farkas 对偶解，约束到对偶值的映射 / Farkas dual solution, mapping from constraint to dual value
      * @return 割平面列表（线性或二次不等式）/ List of cuts (linear or quadratic inequalities)
-    */
+     */
     fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolution: Map<Constraint<V, Quadratic>, V>
@@ -1741,7 +1743,7 @@ class QuadraticMechanismModel<V>(
      *
      * @param cut 待转换的割平面（线性或二次不等式）/ The cut to convert (linear or quadratic inequality)
      * @return Flt64 类型的割平面 / The cut with Flt64 coefficients
-    */
+     */
     private fun toFlt64Cut(cut: Any): Any {
         val linearCut = SolverBoundaryCasts.linearInequalityAs<V>(cut)
         if (linearCut != null) {
@@ -1791,7 +1793,7 @@ class QuadraticMechanismModel<V>(
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
      * @param dualSolutionById 按约束名称索引的对偶解 / Dual solution indexed by constraint name
      * @return 割平面列表（线性或二次不等式）/ List of cuts (linear or quadratic inequalities)
-    */
+     */
     internal fun generateOptimalCutById(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -1819,7 +1821,7 @@ class QuadraticMechanismModel<V>(
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
      * @param farkasDualSolutionById 按约束名称索引的 Farkas 对偶解 / Farkas dual solution indexed by constraint name
      * @return 割平面列表（线性或二次不等式）/ List of cuts (linear or quadratic inequalities)
-    */
+     */
     internal fun generateFeasibleCutById(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolutionById: Map<String, V>
@@ -1848,11 +1850,11 @@ class QuadraticMechanismModel<V>(
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
      * @param dualSolution Flt64 类型对偶解 / Flt64 dual solution mapping from constraint to dual value
      * @return Flt64 割平面列表 / List of Flt64 cuts (linear or quadratic inequalities)
-    */
+     */
     fun generateFlt64OptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        dualSolution: Map<Constraint<Flt64, Quadratic>, Flt64>,
+        dualSolution: Map<Constraint<Flt64, Quadratic>, Flt64>
     ): Ret<List<Any>> {
         val dualByConstraint: MutableMap<Constraint<V, Quadratic>, V> = LinkedHashMap()
         for (constraint in quadraticConstraints) {
@@ -1881,10 +1883,10 @@ class QuadraticMechanismModel<V>(
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
      * @param farkasDualSolution Flt64 类型 Farkas 对偶解 / Flt64 Farkas dual solution mapping from constraint to dual value
      * @return Flt64 割平面列表 / List of Flt64 cuts (linear or quadratic inequalities)
-    */
+     */
     fun generateFlt64FeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        farkasDualSolution: Map<Constraint<Flt64, Quadratic>, Flt64>,
+        farkasDualSolution: Map<Constraint<Flt64, Quadratic>, Flt64>
     ): Ret<List<Any>> {
         val dualByConstraint: MutableMap<Constraint<V, Quadratic>, V> = LinkedHashMap()
         for (constraint in quadraticConstraints) {
@@ -1919,7 +1921,7 @@ class QuadraticMechanismModel<V>(
      * @return list of cuts (linear or quadratic inequalities)
      *
      * 求解器边界：dualValues 与返回值使用 Flt64，因为它们表示求解器原始输出。 / Solver boundary: dualValues and return type are Flt64 because they represent raw solver output.
-    */
+     */
     internal fun generateOptimalCutFromOutput(
         objective: Flt64,
         objectVariable: AbstractVariableItem<*, *>,
@@ -1947,7 +1949,7 @@ class QuadraticMechanismModel<V>(
      * @return list of cuts (linear or quadratic inequalities)
      *
      * 求解器边界：farkasDualValues 与返回值使用 Flt64，因为它们表示求解器原始输出。 / Solver boundary: farkasDualValues and return type are Flt64 because they represent raw solver output.
-    */
+     */
     internal fun generateFeasibleCutFromOutput(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualValues: List<Flt64>,
@@ -1961,7 +1963,7 @@ class QuadraticMechanismModel<V>(
      * 约束数量 / Number of constraints
      *
      * 返回模型中当前存储的二次约束总数。 / Returns the total number of quadratic constraints currently stored in the model.
-    */
+     */
     val numConstraints: Int get() = _constraints.size
 
     override fun close() {

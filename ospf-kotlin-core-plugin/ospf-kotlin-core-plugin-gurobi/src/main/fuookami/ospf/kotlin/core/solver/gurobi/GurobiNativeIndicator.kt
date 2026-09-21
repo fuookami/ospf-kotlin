@@ -4,8 +4,8 @@ import gurobi.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.NativeIndicatorData
 import fuookami.ospf.kotlin.core.solver.prepareNativeIndicator
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
@@ -79,11 +79,21 @@ internal fun addGurobiNativeIndicator(
                 equality.addTerm(1.0, variables.getValue(combined.resultKey))
                 equality.addTerm(-1.0, result)
                 equality.addTerm(1.0, second)
-                model.addConstr(equality, GRB.EQUAL, 0.0, "${combined.name}_bter_result")
+                model.addConstr(
+                    equality,
+                    GRB.EQUAL,
+                    0.0,
+                    "${combined.name}_bter_result"
+                )
                 val exclusive = GRBLinExpr()
                 exclusive.addTerm(1.0, result)
                 exclusive.addTerm(1.0, second)
-                model.addConstr(exclusive, GRB.LESS_EQUAL, 1.0, "${combined.name}_bter_exclusive")
+                model.addConstr(
+                    exclusive,
+                    GRB.LESS_EQUAL,
+                    1.0,
+                    "${combined.name}_bter_exclusive"
+                )
             }
             data.conjunction?.let { combined ->
                 val output = variables.getValue(combined.resultKey)
@@ -91,25 +101,68 @@ internal fun addGurobiNativeIndicator(
                 val firstLink = GRBLinExpr()
                 firstLink.addTerm(1.0, output)
                 firstLink.addTerm(-1.0, result)
-                model.addConstr(firstLink, GRB.LESS_EQUAL, 0.0, "${combined.name}_link_ge")
+                model.addConstr(
+                    firstLink,
+                    GRB.LESS_EQUAL,
+                    0.0,
+                    "${combined.name}_link_ge"
+                )
                 val secondLink = GRBLinExpr()
                 secondLink.addTerm(1.0, output)
                 secondLink.addTerm(-1.0, second)
-                model.addConstr(secondLink, GRB.LESS_EQUAL, 0.0, "${combined.name}_link_le")
+                model.addConstr(
+                    secondLink,
+                    GRB.LESS_EQUAL,
+                    0.0,
+                    "${combined.name}_link_le"
+                )
                 val lowerLink = GRBLinExpr()
                 lowerLink.addTerm(1.0, output)
                 lowerLink.addTerm(-1.0, result)
                 lowerLink.addTerm(-1.0, second)
-                model.addConstr(lowerLink, GRB.GREATER_EQUAL, -1.0, "${combined.name}_link_lb")
+                model.addConstr(
+                    lowerLink,
+                    GRB.GREATER_EQUAL,
+                    -1.0,
+                    "${combined.name}_link_lb"
+                )
             }
             val positiveValue = if (data.positiveOnZero) 0 else 1
             val band = data.zeroBand
             if (band == null) {
-                model.addGenConstrIndicator(result, positiveValue, expression, GRB.GREATER_EQUAL, data.tolerance - data.constant, "${data.name}_positive")
-                model.addGenConstrIndicator(result, 1 - positiveValue, expression, GRB.LESS_EQUAL, -data.constant, "${data.name}_nonpositive")
+                model.addGenConstrIndicator(
+                    result,
+                    positiveValue,
+                    expression,
+                    GRB.GREATER_EQUAL,
+                    data.tolerance - data.constant,
+                    "${data.name}_positive"
+                )
+                model.addGenConstrIndicator(
+                    result,
+                    1 - positiveValue,
+                    expression,
+                    GRB.LESS_EQUAL,
+                    -data.constant,
+                    "${data.name}_nonpositive"
+                )
             } else {
-                model.addGenConstrIndicator(result, 1 - positiveValue, expression, GRB.LESS_EQUAL, band.tolerance - data.constant, "${data.name}_inside_upper")
-                model.addGenConstrIndicator(result, 1 - positiveValue, expression, GRB.GREATER_EQUAL, -band.tolerance - data.constant, "${data.name}_inside_lower")
+                model.addGenConstrIndicator(
+                    result,
+                    1 - positiveValue,
+                    expression,
+                    GRB.LESS_EQUAL,
+                    band.tolerance - data.constant,
+                    "${data.name}_inside_upper"
+                )
+                model.addGenConstrIndicator(
+                    result,
+                    1 - positiveValue,
+                    expression,
+                    GRB.GREATER_EQUAL,
+                    -band.tolerance - data.constant,
+                    "${data.name}_inside_lower"
+                )
                 val lower = GRBLinExpr()
                 val upper = GRBLinExpr()
                 for ((key, coefficient) in data.terms) {
@@ -122,33 +175,78 @@ internal fun addGurobiNativeIndicator(
                 val lowerBound = if (data.positiveOnZero) data.tolerance else -band.tolerance
                 val upperBound = if (data.positiveOnZero) -data.tolerance else band.tolerance
                 val side = variables.getValue(band.sideKey)
-                model.addGenConstrIndicator(side, 1, lower, GRB.GREATER_EQUAL, lowerBound - data.constant, "${data.name}_side_positive")
-                model.addGenConstrIndicator(side, 0, upper, GRB.LESS_EQUAL, upperBound - data.constant, "${data.name}_side_negative")
+                model.addGenConstrIndicator(
+                    side,
+                    1,
+                    lower,
+                    GRB.GREATER_EQUAL,
+                    lowerBound - data.constant,
+                    "${data.name}_side_positive"
+                )
+                model.addGenConstrIndicator(
+                    side,
+                    0,
+                    upper,
+                    GRB.LESS_EQUAL,
+                    upperBound - data.constant,
+                    "${data.name}_side_negative"
+                )
             }
             data.impliedCondition?.let { value ->
                 val consequent = GRBLinExpr()
                 for ((key, coefficient) in value.terms) consequent.addTerm(coefficient, variables.getValue(key))
-                model.addGenConstrIndicator(result, 1, consequent, GRB.GREATER_EQUAL, data.tolerance - value.constant, "${value.name}_con_implied")
+                model.addGenConstrIndicator(
+                    result,
+                    1,
+                    consequent,
+                    GRB.GREATER_EQUAL,
+                    data.tolerance - value.constant,
+                    "${value.name}_con_implied"
+                )
                 val link = GRBLinExpr()
                 link.addTerm(1.0, result)
                 link.addTerm(-1.0, variables.getValue(value.resultKey))
-                model.addConstr(link, GRB.LESS_EQUAL, 0.0, "${value.name}_imply_link")
+                model.addConstr(
+                    link,
+                    GRB.LESS_EQUAL,
+                    0.0,
+                    "${value.name}_imply_link"
+                )
             }
             data.conditionalValue?.let { value ->
                 val output = variables.getValue(value.resultKey)
                 val trueExpression = GRBLinExpr()
                 trueExpression.addTerm(1.0, output)
                 for ((key, coefficient) in value.terms) trueExpression.addTerm(-coefficient, variables.getValue(key))
-                model.addGenConstrIndicator(result, 1, trueExpression, GRB.EQUAL, value.constant, "${value.name}_then")
+                model.addGenConstrIndicator(
+                    result,
+                    1,
+                    trueExpression,
+                    GRB.EQUAL,
+                    value.constant,
+                    "${value.name}_then"
+                )
                 val falseExpression = GRBLinExpr()
                 falseExpression.addTerm(1.0, output)
-                model.addGenConstrIndicator(result, 0, falseExpression, GRB.EQUAL, 0.0, "${value.name}_zero")
+                model.addGenConstrIndicator(
+                    result,
+                    0,
+                    falseExpression,
+                    GRB.EQUAL,
+                    0.0,
+                    "${value.name}_zero"
+                )
             }
             for ((index, key) in data.equivalentResultKeys.withIndex()) {
                 val equality = GRBLinExpr()
                 equality.addTerm(1.0, result)
                 equality.addTerm(-1.0, variables.getValue(key))
-                model.addConstr(equality, GRB.EQUAL, 0.0, "${data.name}_equivalent_$index")
+                model.addConstr(
+                    equality,
+                    GRB.EQUAL,
+                    0.0,
+                    "${data.name}_equivalent_$index"
+                )
             }
         }
         model.update()

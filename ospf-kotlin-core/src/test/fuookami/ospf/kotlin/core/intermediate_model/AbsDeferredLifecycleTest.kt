@@ -1,36 +1,36 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotSame
 import kotlin.test.assertTrue
+import kotlin.test.Test
 import kotlinx.coroutines.runBlocking
-import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.model.intermediate.AbsFallbackMaterializer
-import fuookami.ospf.kotlin.core.model.intermediate.AbsStructure
-import fuookami.ospf.kotlin.core.model.intermediate.CoreDeferredFunctionFallbackMaterializer
-import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionFallbackTarget
-import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
-import fuookami.ospf.kotlin.core.model.intermediate.generateAbsConstraints
-import fuookami.ospf.kotlin.core.model.intermediate.materializeDeferredFunctionFallbacks
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModelConfiguration
+import fuookami.ospf.kotlin.core.model.intermediate.AbsStructure
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
+import fuookami.ospf.kotlin.core.model.intermediate.generateAbsConstraints
+import fuookami.ospf.kotlin.core.model.intermediate.AbsFallbackMaterializer
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionFallbackTarget
+import fuookami.ospf.kotlin.core.model.intermediate.materializeDeferredFunctionFallbacks
+import fuookami.ospf.kotlin.core.model.intermediate.CoreDeferredFunctionFallbackMaterializer
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.function.AbsFunction
 import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.symbol.function.UnivariateLinearPiecewiseFunction
 import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
 class AbsDeferredLifecycleTest {
     @Test
@@ -184,7 +184,7 @@ class AbsDeferredLifecycleTest {
         override val constraintCount: Int
             get() = names.size
 
-        override fun append(constraints: List<fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>>): Try {
+    override fun append(constraints: List<LinearInequality<Flt64>>): Try {
             names += constraints.map { it.name }
             return ok
         }

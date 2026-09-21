@@ -2,29 +2,30 @@
 package fuookami.ospf.kotlin.core.analysis
 
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
 import fuookami.ospf.kotlin.core.model.constraint_programming.BooleanLiteral
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolveOptions
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolver
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingActivationSnapshot
 import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingConflict
 import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingInfeasibleOutput
 import fuookami.ospf.kotlin.core.solver.report.BoundSide
+import fuookami.ospf.kotlin.core.solver.report.VariableId
 import fuookami.ospf.kotlin.core.solver.report.ConstraintId
-import fuookami.ospf.kotlin.core.solver.report.InfeasibilityMember
 import fuookami.ospf.kotlin.core.solver.report.VariableBoundRef
 import fuookami.ospf.kotlin.core.solver.report.VariableDomainRef
-import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.InfeasibilityMember
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolver
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolveOptions
 import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
 
 /** Minimality conclusion for a conflict explanation. / 冲突解释的最小性结论。 */
 enum class ConflictMinimality {
@@ -555,7 +556,7 @@ class ConflictAnalyzer(
         )
     }
 
-    private fun sourceOf(activation: fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingActivationSnapshot): DiagnosticSource {
+    private fun sourceOf(activation: ConstraintProgrammingActivationSnapshot): DiagnosticSource {
         return when (val member = activation.member) {
             is InfeasibilityMember.Constraint -> DiagnosticSource.Constraint(member.id)
             is InfeasibilityMember.VariableBound -> when (member.ref.side) {
@@ -785,7 +786,7 @@ class ConflictAnalyzer(
         }
     }
 
-    /** Project backend members, activation IDs, and assumptions to original sources only. */
+    /** Project backend members, activation IDs, and assumptions to original sources only. / 仅将后端成员、激活 ID 和假设映射回原始来源。 */
     private fun remapBackendConflict(
         snapshot: ConstraintProgrammingModelSnapshot,
         conflict: ConstraintProgrammingConflict?,

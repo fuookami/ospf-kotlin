@@ -4,17 +4,18 @@ import kotlin.test.*
 import kotlinx.coroutines.runBlocking
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.core.symbol.*
-import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.variable.*
 
 class QuadraticFunctionCompositionTest {
     private val converter = IntoValue.Identity
@@ -188,7 +189,7 @@ class QuadraticFunctionCompositionTest {
     @Test
     fun invalidBoundsAndEmptyInputsFailBeforeAddingTokens() {
         val input = RealVar("unbounded")
-        input.range.set(fuookami.ospf.kotlin.math.algebra.value_range.ValueRange(Flt64.negativeInfinity, Flt64.infinity).value!!)
+        input.range.set(ValueRange(Flt64.negativeInfinity, Flt64.infinity).value!!)
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         val unbounded = QuadraticAbsFunction(polynomial = square(input), converter = converter)
         assertIs<Failed<*, *, *>>(unbounded.registerAuxiliaryTokens(tokens))
@@ -245,7 +246,7 @@ class QuadraticFunctionCompositionTest {
         val input = variable("widened")
         val function = QuadraticAbsFunction(polynomial = square(input), converter = converter)
         function.helperVariables
-        input.range.set(fuookami.ospf.kotlin.math.algebra.value_range.ValueRange(Flt64(-10.0), Flt64(10.0)).value!!)
+        input.range.set(ValueRange(Flt64(-10.0), Flt64(10.0)).value!!)
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         assertIs<Failed<*, *, *>>(function.registerAuxiliaryTokens(tokens))
         assertEquals(0, tokens.tokens.size)

@@ -16,14 +16,14 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.*
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.iis.FarkasInfeasibilityAnalyzer
 import fuookami.ospf.kotlin.core.solver.iis.IISConfig
 import fuookami.ospf.kotlin.core.solver.iis.InfeasibilityAnalyzer
-import fuookami.ospf.kotlin.core.solver.output.*
-import fuookami.ospf.kotlin.core.solver.report.*
+import fuookami.ospf.kotlin.core.solver.iis.FarkasInfeasibilityAnalyzer
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
 
 /**
@@ -132,7 +132,7 @@ class ScipLinearSolver(
          * 中文从 JAR 包中加载 SCIP 原生库
          *
          * @return 以Try包装的加载结果 / the load result as Try
-        */
+         */
         @JvmStatic
         fun loadLibraryInJar(): Try {
             return ScipSolver.loadLibraryInJar()
@@ -254,7 +254,6 @@ class ScipLinearSolver(
         }
     }
 }
-
 /**
  * SCIP linear solver implementation
  *
@@ -263,7 +262,7 @@ class ScipLinearSolver(
  * @property config 求解器配置 / solver configuration
  * @property callBack 求解器回调 / solver callback
  * @property statusCallBack 求解状态回调 / solving status callback
-*/
+ */
 private class ScipLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: ScipSolverCallBack? = null,
@@ -331,7 +330,7 @@ private class ScipLinearSolverImpl(
      *
      * @param model 线性三元模型视图 / linear triad model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun dump(model: LinearTriadModelView): Try {
         warnIgnoredConstraintPriority("scip", model.nonNullConstraintPriorityAmount())
 
@@ -547,7 +546,7 @@ private class ScipLinearSolverImpl(
      *
      * @param model 线性三元模型视图 / linear triad model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun configure(model: LinearTriadModelView): Try {
         when (val cancellation = registerCancellation(cancellationToken)) {
             is Failed -> return cancellation
@@ -677,7 +676,7 @@ private class ScipLinearSolverImpl(
      *
      * @param model 线性三元模型视图 / linear triad model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun analyzeSolution(model: LinearTriadModelView): Try {
         return if (status.succeeded) {
             val solution = scip.bestSol
@@ -748,4 +747,3 @@ private class ScipLinearSolverImpl(
         }
     }
 }
-

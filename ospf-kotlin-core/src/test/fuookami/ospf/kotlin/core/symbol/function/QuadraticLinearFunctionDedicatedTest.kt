@@ -1,20 +1,20 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
-import kotlinx.coroutines.runBlocking
 import kotlin.test.assertEquals
-import kotlin.test.Test
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.core.variable.RealVar
+import kotlin.test.Test
+import kotlinx.coroutines.runBlocking
 import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.Quadratic
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.RealVar
 
-/** Dedicated contract test for the QuadraticLinearFunction symbol. */
+/** [QuadraticLinearFunction] 契约测试。 / Dedicated contract tests. */
 class QuadraticLinearFunctionDedicatedTest {
     @Test
     fun symbolImplementsMathFunctionContract() {

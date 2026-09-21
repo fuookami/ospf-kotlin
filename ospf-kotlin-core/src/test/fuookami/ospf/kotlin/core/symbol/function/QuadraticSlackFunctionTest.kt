@@ -1,22 +1,22 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
-import kotlinx.coroutines.runBlocking
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.token.AutoTokenTable
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.utils.functional.Failed
+import kotlin.test.Test
+import kotlinx.coroutines.runBlocking
 import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.Quadratic
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
+import fuookami.ospf.kotlin.core.token.AutoTokenTable
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.RealVar
 
-/** 二次绝对松弛函数的独立契约测试。 / Dedicated quadratic absolute-slack contract tests. */
+/** [QuadraticSlackFunction] 的独立契约测试。 / Dedicated contract tests. */
 class QuadraticSlackFunctionTest {
     @Test
     fun returnsExactAbsoluteDifferenceOnBothSides() {

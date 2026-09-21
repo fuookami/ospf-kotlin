@@ -4,9 +4,9 @@ import kotlin.math.abs
 import gurobi.GRB
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.model.intermediate.AbsStructure
 import fuookami.ospf.kotlin.core.model.intermediate.FunctionNativeCapability
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 
 /** 选择可直接使用 Gurobi 10 ABS 的结构。 / Select structures eligible for direct Gurobi 10 ABS. */
 internal fun selectGurobiNativeAbs(

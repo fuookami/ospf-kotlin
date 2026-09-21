@@ -1,10 +1,10 @@
 /**
- * 变量范围（Range）单元测试。 / Unit tests for the variable range.
+ * 变量范围（[Range]）单元测试。 / Unit tests for [Range].
  *
- * Range 由变量类型派生初始值域，并通过 intersectWith 家族**原地收窄**。
+ * [Range] 由变量类型派生初始值域，并通过 intersectWith 家族**原地收窄**。
  * 原地变更与"空值域不可恢复"是这里最容易误用的语义，因此逐条固定。
  *
- * A Range derives its initial value range from the variable type and **narrows in place**
+ * [Range] derives its initial value range from the variable type and **narrows in place**
  * through the intersectWith family. In-place mutation and the non-recoverable empty range
  * are the easiest semantics to misuse, so they are pinned here case by case.
  */
@@ -12,23 +12,23 @@ package fuookami.ospf.kotlin.core.variable
 
 import kotlin.test.*
 import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 class VariableRangeTest {
 
-    /** 构造二值变量范围 / Build a binary variable range. */
+/** 构造二值 [Range] / Build a binary [Range]. */
     private fun binaryRange() = Range(Binary, UInt8)
 
-    /** 构造三值变量范围 / Build a ternary variable range. */
+/** 构造三值 [Range] / Build a ternary [Range]. */
     private fun ternaryRange() = Range(Ternary, UInt8)
 
-    /** 构造 [lb, ∞) 形式的值范围，用作求交输入。/ Build a `[lb, ∞)` value range used as an intersection input. */
+    /** 构造 `[lb, ∞)` 形式的值范围，用作求交输入。 / Build a `[lb, ∞)` value range used as an intersection input. */
     private fun geqRange(lb: UInt8) =
         ValueRange(lb, Infinity, Interval.Closed, UInt8).value!!
 
-    /** 构造 (-∞, ub] 形式的值范围 / Build a `(-∞, ub]` value range. */
+    /** 构造 `(-∞, ub]` 形式的值范围 / Build a `(-∞, ub]` value range. */
     private fun leqRange(ub: UInt8) =
         ValueRange(NegativeInfinity, ub, Interval.Closed, UInt8).value!!
 

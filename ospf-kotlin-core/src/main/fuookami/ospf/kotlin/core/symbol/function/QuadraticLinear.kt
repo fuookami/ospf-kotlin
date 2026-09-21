@@ -3,19 +3,19 @@
 /** 二次线性函数符号 / Quadratic linear function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
-import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 二次线性函数符号 / Quadratic linear function symbol
@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [QuadraticLinearFunction]，将二次多项式包装为二次中间符号。
  *
  * Provides [QuadraticLinearFunction] for wrapping a quadratic polynomial as a quadratic intermediate symbol.
-*/
+ */
 
 /**
  * 二次线性函数：将 QuadraticPolynomial 包装为二次中间符号。
@@ -35,7 +35,8 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
-*/
+ * @property polynomial 结果二次多项式 / result quadratic polynomial
+ */
 class QuadraticLinearFunction<V>(
     private val _polynomial: QuadraticPolynomial<V>,
     private val converter: IntoValue<V>,
@@ -86,7 +87,7 @@ class QuadraticLinearFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-    */
+     */
     private fun evaluateSymbol(
         symbol: Symbol,
         tokenTable: AbstractTokenTable<V>,
@@ -107,7 +108,7 @@ class QuadraticLinearFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-    */
+     */
     private fun evaluateSymbol(
         symbol: Symbol,
         results: List<V>,
@@ -133,7 +134,7 @@ class QuadraticLinearFunction<V>(
      * @param tokenTable 可选的 token 表 / optional token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-    */
+     */
     private fun evaluateSymbol(
         symbol: Symbol,
         values: Map<Symbol, V>,
@@ -153,7 +154,7 @@ class QuadraticLinearFunction<V>(
      * @param poly 要求值的二次多项式 / the quadratic polynomial to evaluate
      * @param resolve 符号解析函数 / symbol resolution function
      * @return 多项式值或 null / polynomial value or null
-    */
+     */
     private fun evaluateQuadratic(
         poly: QuadraticPolynomial<V>,
         resolve: (Symbol) -> V?
@@ -178,7 +179,7 @@ class QuadraticLinearFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param converter 值类型转换器 / value type converter
      * @return 预计算结果或 null / pre-computed result or null
-    */
+     */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         val targetValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         return if (targetValues.isNullOrEmpty()) {
@@ -199,7 +200,7 @@ class QuadraticLinearFunction<V>(
      * @param tokenList Flt64 token 列表 / Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 始终返回 null / always returns null
-    */
+     */
     internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
 
     /**
@@ -209,7 +210,7 @@ class QuadraticLinearFunction<V>(
      * @param tokenList Flt64 token 列表 / Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 始终返回 null / always returns null
-    */
+     */
     internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
 
     /**
@@ -219,7 +220,7 @@ class QuadraticLinearFunction<V>(
      * @param tokenList 可选的 Flt64 token 列表 / optional Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 始终返回 null / always returns null
-    */
+     */
     internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? = null
 
     override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
@@ -253,7 +254,7 @@ class QuadraticLinearFunction<V>(
      * @param converter 值类型转换器 / value type converter
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 求值结果或 null / evaluation result or null
-    */
+     */
     internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetResults = results.map { converter.intoValue(it) }
         return evaluate(targetResults, tokenTable, converter, zeroIfNone)
@@ -267,7 +268,7 @@ class QuadraticLinearFunction<V>(
      * @param converter 值类型转换器 / value type converter
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 求值结果或 null / evaluation result or null
-    */
+     */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetValues = SolverBoundaryCasts.mapValues(values, converter)
         return evaluate(targetValues, tokenTable, converter, zeroIfNone)
@@ -277,7 +278,10 @@ class QuadraticLinearFunction<V>(
 
     /**
      * 将辅助变量 y 注册到 token 集合中（仅当为二次时）。 / Register helper variable y with the token collection (only if quadratic).
-    */
+     *
+     * @param tokens 目标 token 集合 / target token collection
+     * @return 注册结果 / registration result
+     */
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
         if (!isLinear && y != null) {
             return when (val result = tokens.add(listOf(y!!))) {
@@ -291,7 +295,10 @@ class QuadraticLinearFunction<V>(
 
     /**
      * 注册二次等式约束 y = polynomial（仅当为二次时）。 / Register the quadratic equality constraint y = polynomial (only if quadratic).
-    */
+     *
+     * @param model 二次机制模型 / quadratic mechanism model
+     * @return 注册结果 / registration result
+     */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         if (!isLinear && y != null) {
             val yMon = QuadraticMonomial.linear(converter.one, y!!)
@@ -311,7 +318,15 @@ class QuadraticLinearFunction<V>(
     }
 
     companion object {
-        /** 创建 [QuadraticLinearFunction] 实例。 / Create a [QuadraticLinearFunction] instance. */
+        /**
+         * 创建二次线性函数实例。 / Create a quadratic linear function instance.
+         *
+         * @param polynomial 封装的二次多项式 / quadratic polynomial to wrap
+         * @param converter 值类型转换器 / value type converter
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return 二次线性函数实例 / [QuadraticLinearFunction] instance
+         */
         operator fun <V> invoke(
             polynomial: QuadraticPolynomial<V>,
             converter: IntoValue<V>,

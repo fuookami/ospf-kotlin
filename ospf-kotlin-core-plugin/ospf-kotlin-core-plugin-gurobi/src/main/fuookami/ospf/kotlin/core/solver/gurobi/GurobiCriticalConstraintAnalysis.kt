@@ -1,24 +1,24 @@
 /** Gurobi 临界约束分析后端。 / Gurobi critical-constraint analysis backends. */
 package fuookami.ospf.kotlin.core.solver.gurobi
 
+import kotlin.math.abs
 import gurobi.GRB
 import gurobi.GRBConstr
 import gurobi.GRBModel
-import kotlin.math.abs
-import fuookami.ospf.kotlin.core.analysis.CapabilityMatrix
-import fuookami.ospf.kotlin.core.analysis.ConstraintPerturbationBackend
-import fuookami.ospf.kotlin.core.analysis.ConstraintProgrammingPerturbationBackend
-import fuookami.ospf.kotlin.core.analysis.CriticalConstraintAnalysisPipeline
-import fuookami.ospf.kotlin.core.analysis.FixedIntegerLpBackend
-import fuookami.ospf.kotlin.core.analysis.LinearSolverFixedIntegerLpBackend
-import fuookami.ospf.kotlin.core.analysis.SensitivityRange
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.constraint_programming.MipBackedConstraintProgrammingSolver
-import fuookami.ospf.kotlin.core.solver.constraint_programming.lowering.ConstraintProgrammingToLinearModelLowerer
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.constraint_programming.lowering.ConstraintProgrammingToLinearModelLowerer
+import fuookami.ospf.kotlin.core.solver.constraint_programming.MipBackedConstraintProgrammingSolver
+import fuookami.ospf.kotlin.core.analysis.CapabilityMatrix
+import fuookami.ospf.kotlin.core.analysis.SensitivityRange
+import fuookami.ospf.kotlin.core.analysis.FixedIntegerLpBackend
+import fuookami.ospf.kotlin.core.analysis.ConstraintPerturbationBackend
+import fuookami.ospf.kotlin.core.analysis.LinearSolverFixedIntegerLpBackend
+import fuookami.ospf.kotlin.core.analysis.CriticalConstraintAnalysisPipeline
+import fuookami.ospf.kotlin.core.analysis.ConstraintProgrammingPerturbationBackend
 
 /**
  * 使用真实 Gurobi 求解 CP 固定整数 LP，产出原始约束级对偶值与 RHS 敏感性范围。
@@ -36,6 +36,10 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * sensitivity ranges. The implementation reuses the backend-neutral
  * [LinearSolverFixedIntegerLpBackend]; Gurobi only adds a native ranging hook, so both backends share
  * one tested path with no duplicated logic.
+ *
+ * @param config 求解器配置 / Solver configuration
+ * @param lowerer CP 到线性模型的降阶器 / CP-to-linear-model lowerer
+ * @return 固定整数 LP 后端 / Fixed-integer LP backend
  */
 fun gurobiFixedIntegerLpBackend(
     config: SolverConfig = SolverConfig(),
@@ -69,7 +73,11 @@ fun gurobiFixedIntegerLpBackend(
                     if (!primarySolved) {
                         primarySolved = true
                         if (status != null && status.succeeded) {
-                            captureSensitivityRanges(gurobi, constraints, captured)
+                            captureSensitivityRanges(
+                                gurobi = gurobi,
+                                constraints = constraints,
+                                target = captured
+                            )
                         }
                     }
                     ok
@@ -161,6 +169,9 @@ private fun captureSensitivityRanges(
  * Reoptimize perturbed and removal models through Gurobi's CP path. This reuses the
  * backend-neutral [ConstraintProgrammingPerturbationBackend]: a warm start only affects
  * performance, and an improvement is reported only when the solve proves optimality.
+ *
+ * @param config 求解器配置 / Solver configuration
+ * @return 约束扰动后端 / Constraint perturbation backend
  */
 fun gurobiPerturbationBackend(
     config: SolverConfig = SolverConfig()
@@ -171,12 +182,18 @@ fun gurobiPerturbationBackend(
 }
 
 /**
- * Build the complete critical-constraint pipeline backed by one real Gurobi configuration.
+ * 构建由单一真实 Gurobi 配置驱动的完整临界约束分析管线。 / Build the complete
+ * critical-constraint pipeline backed by one real Gurobi configuration.
  *
+ * CP 求解器描述符提供精确降阶和重复求解冲突能力，线性描述符提供 Gurobi 对偶能力；将两者置于同一能力矩阵，
+ * 可让管线执行目标/冲突分析与固定整数 LP 分析，而不虚构线性求解器原生支持全部 CP 特性。 /
  * The CP solver descriptor supplies exact lowering and repeated-solving conflict capabilities;
  * the linear descriptor contributes Gurobi's dual capability. Keeping both parts in one matrix
  * lets the pipeline execute target/conflict analysis and fixed-integer LP analysis without
  * pretending that the linear solver natively supports every CP feature.
+ *
+ * @param config 求解器配置 / Solver configuration
+ * @return 临界约束分析管线 / Critical-constraint analysis pipeline
  */
 fun gurobiCriticalConstraintAnalysisPipeline(
     config: SolverConfig = SolverConfig()

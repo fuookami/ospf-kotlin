@@ -1,17 +1,18 @@
 package fuookami.ospf.kotlin.core.analysis
 
 import java.io.File
-import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.test.fail
+import kotlin.test.Test
 import org.junit.jupiter.api.Assumptions.assumeTrue
-import fuookami.ospf.kotlin.core.solver.report.ConstraintId
-import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
-import fuookami.ospf.kotlin.core.solver.report.VariableId
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.report.ProblemStatus
 
 /**
  * 跨语言语义契约测试（计划 12.1 / 12.3 S0–S6 阶段门）。
@@ -178,7 +179,6 @@ class AnalysisFixtureContractTest {
         )
     }
 
-
     @Test
     fun contractVocabularyMatchesBothLanguageImplementations() {
         requireFixtures()
@@ -316,7 +316,7 @@ class AnalysisFixtureContractTest {
             val statusName = row[0]
             val proven = row[1].toBooleanStrict()
             val expected = AnalysisStatus.valueOf(row[2])
-            val status = fuookami.ospf.kotlin.core.solver.report.ProblemStatus.valueOf(statusName)
+            val status = ProblemStatus.valueOf(statusName)
             val actual = proofGatedStatus(status, proven)
             assertEquals(expected, actual, "status-map $statusName/$proven")
             // 未证明时永远不得给出已证明结论。
@@ -496,7 +496,7 @@ class AnalysisFixtureContractTest {
 
     private fun candidate(id: String, tier: CandidateTier, priority: Int): ConstraintCandidate {
         return ConstraintCandidate(
-            constraintId = fuookami.ospf.kotlin.core.solver.report.ConstraintId(id),
+            constraintId = ConstraintId(id),
             group = null,
             tier = tier,
             activity = when (tier) {
@@ -565,19 +565,19 @@ class AnalysisFixtureContractTest {
 
     /** 与实现一致的证明门控映射，供 fixture 断言使用。 */
     private fun proofGatedStatus(
-        status: fuookami.ospf.kotlin.core.solver.report.ProblemStatus,
+        status: ProblemStatus,
         proven: Boolean
     ): AnalysisStatus {
         return when (status) {
-            fuookami.ospf.kotlin.core.solver.report.ProblemStatus.Feasible ->
+            ProblemStatus.Feasible ->
                 if (proven) AnalysisStatus.Reachable else AnalysisStatus.Unknown
 
-            fuookami.ospf.kotlin.core.solver.report.ProblemStatus.Infeasible ->
+            ProblemStatus.Infeasible ->
                 if (proven) AnalysisStatus.Unreachable else AnalysisStatus.Unknown
 
-            fuookami.ospf.kotlin.core.solver.report.ProblemStatus.Unbounded,
-            fuookami.ospf.kotlin.core.solver.report.ProblemStatus.InfeasibleOrUnbounded,
-            fuookami.ospf.kotlin.core.solver.report.ProblemStatus.Unknown -> AnalysisStatus.Unknown
+            ProblemStatus.Unbounded,
+            ProblemStatus.InfeasibleOrUnbounded,
+            ProblemStatus.Unknown -> AnalysisStatus.Unknown
         }
     }
 }

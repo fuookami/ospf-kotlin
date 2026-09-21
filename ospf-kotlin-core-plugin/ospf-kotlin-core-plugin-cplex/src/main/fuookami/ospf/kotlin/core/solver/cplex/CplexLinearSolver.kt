@@ -1,4 +1,3 @@
-/** CPLEX 线性求解器 / CPLEX Linear Solver */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.cplex
 
@@ -7,27 +6,31 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlinx.coroutines.*
-import org.apache.logging.log4j.kotlin.logger
 import ilog.concert.*
 import ilog.cplex.IloCplex
-import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
+import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.output.*
 import fuookami.ospf.kotlin.core.solver.report.*
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
 
-/** CPLEX 线性求解器 / CPLEX linear solver */
+/**
+ * CPLEX 线性求解器 / CPLEX linear solver
+ *
+ * @property config 求解器配置 / solver configuration
+ */
 class CplexLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: CplexSolverCallBack? = null
@@ -52,18 +55,30 @@ class CplexLinearSolver(
         if (config.functionExpansionPolicy == FunctionExpansionPolicy.EAGER ||
             model !is LinearMechanismModel<V> || model.functionExpansionPolicy == FunctionExpansionPolicy.EAGER
         ) {
-            return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+            return super<LinearSolver>.solve(
+                model = model,
+                converter = converter,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
         }
         val converted = when (val result = convertMechanismModelToFlt64(model)) {
             is Ok -> result.value as? LinearMechanismModel<Flt64>
-                ?: return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+                ?: return super<LinearSolver>.solve(
+                    model = model,
+                    converter = converter,
+                    solvingStatusCallBack = solvingStatusCallBack
+                )
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
         }
         try {
             val candidates = selectCplexNativePiecewise(converted)
             if (candidates.isEmpty()) {
-                return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+                return super<LinearSolver>.solve(
+                    model = model,
+                    converter = converter,
+                    solvingStatusCallBack = solvingStatusCallBack
+                )
             }
             val nativeData = ArrayList<NativePiecewiseData>(candidates.size)
             for (structure in candidates) {
@@ -81,7 +96,11 @@ class CplexLinearSolver(
                 nativeFunctionKeys = candidates.map { it.resultVariable.key }.toSet()
             )) {
                 is Ok -> result.value
-                is Failed, is Fatal -> return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+                is Failed, is Fatal -> return super<LinearSolver>.solve(
+                    model = model,
+                    converter = converter,
+                    solvingStatusCallBack = solvingStatusCallBack
+                )
             }
             val attempt = nativeModel.use {
                 CplexLinearSolverImpl(
@@ -110,7 +129,11 @@ class CplexLinearSolver(
                 }
             }
             return when (attempt) {
-                null -> super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+                null -> super<LinearSolver>.solve(
+                    model = model,
+                    converter = converter,
+                    solvingStatusCallBack = solvingStatusCallBack
+                )
                 is Ok -> Ok(attempt.value.convertTo(converter))
                 is Failed -> Failed(attempt.error)
                 is Fatal -> Fatal(attempt.errors)
@@ -128,7 +151,7 @@ class CplexLinearSolver(
      * @param model 线性模型视图 / linear model view
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果 / solving result
-    */
+     */
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -156,7 +179,7 @@ class CplexLinearSolver(
      * @param solutionAmount 期望解的数量 / desired number of solutions
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果及多个解 / solving result with multiple solutions
-    */
+     */
     override suspend fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -211,7 +234,6 @@ class CplexLinearSolver(
         }
     }
 }
-
 /** CPLEX 线性求解器内部实现 / CPLEX linear solver internal implementation */
 private class CplexLinearSolverImpl(
     private val config: SolverConfig,
@@ -240,7 +262,7 @@ private class CplexLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 求解结果 / solving result
-    */
+     */
     suspend operator fun invoke(model: LinearTriadModelView): Ret<SolveReport<Flt64>> {
         val processes = arrayOf(
             { it.init(model.name) },
@@ -271,7 +293,7 @@ private class CplexLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun dump(model: LinearTriadModelView): Try {
         logger.trace { "Dumping to cplex model for $model" }
         warnIgnoredConstraintPriority("cplex", model.nonNullConstraintPriorityAmount())
@@ -380,7 +402,11 @@ private class CplexLinearSolverImpl(
                             model.constraints.sparseLhs.forEachEntry(ii) { colIndex, coefficient ->
                                 lhs.addTerm(coefficient.toSolverDouble("linear.constraints.lhs[$ii][$colIndex].coefficient"), cplexVars[colIndex])
                             }
-                            ii to Triple(lb, lhs, ub)
+                            ii to Triple(
+                                first = lb,
+                                second = lhs,
+                                third = ub
+                            )
                         }
                         cleanupOnSolverMemoryPressure()
                         constraints
@@ -478,7 +504,7 @@ private class CplexLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun configure(model: LinearTriadModelView): Try {
         cplex.setParam(IloCplex.Param.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
         cplex.setParam(IloCplex.Param.MIP.Tolerances.MIPGap, config.gap.toSolverDouble("linear.config.gap"))
@@ -552,7 +578,7 @@ private class CplexLinearSolverImpl(
                         }
                     }
 
-                    // todo: add lazy constraint
+                    // 添加惰性约束 / Add lazy constraints
                 }
             })
         }
@@ -582,7 +608,7 @@ private class CplexLinearSolverImpl(
      * Execute CPLEX solving
      *
      * @return 以Try包装的求解结果 / the solve result as Try
-    */
+     */
     private suspend fun solve(): Try {
         when (val result = callBack?.execIfContain(
             point = Point.Solving,
@@ -618,7 +644,7 @@ private class CplexLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun analyzeSolution(model: LinearTriadModelView): Try {
         return if (status.succeeded) {
             val obj = Flt64(cplex.objValue) + model.objective.constant
@@ -675,4 +701,3 @@ private class CplexLinearSolverImpl(
         }
     }
 }
-

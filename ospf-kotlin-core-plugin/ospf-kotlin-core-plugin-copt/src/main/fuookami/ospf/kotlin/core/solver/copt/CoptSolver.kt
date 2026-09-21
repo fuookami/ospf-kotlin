@@ -1,14 +1,13 @@
-/** COPT 求解器基类 / COPT solver base */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.copt
 
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
+import copt.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.core.solver.*
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.functional.*
-import copt.*
 
 /**
  * COPT 求解器抽象基类，提供环境初始化、求解和状态分析的通用实现 / COPT solver abstract base class, provides common implementation for environment initialization, solving, and status analysis
@@ -16,7 +15,7 @@ import copt.*
  * @property env COPT 环境 / COPT environment
  * @property coptModel COPT 模型 / COPT model
  * @property status 求解状态 / solving status
-*/
+ */
 abstract class CoptSolver : AutoCloseable {
     protected lateinit var env: Envr
     protected lateinit var coptModel: Model
@@ -42,7 +41,7 @@ abstract class CoptSolver : AutoCloseable {
      * @param name 模型名称 / model name
      * @param callBack 创建环境回调函数 / creating environment callback function
      * @return 操作结果 / operation result
-    */
+     */
     protected suspend fun init(
         server: String,
         port: UInt64,
@@ -78,7 +77,7 @@ abstract class CoptSolver : AutoCloseable {
      * @param name 模型名称 / model name
      * @param callBack 创建环境回调函数 / creating environment callback function
      * @return 操作结果 / operation result
-    */
+     */
     protected suspend fun init(
         name: String,
         callBack: CreatingEnvironmentFunction? = null
@@ -104,7 +103,7 @@ abstract class CoptSolver : AutoCloseable {
      * 执行 COPT 求解 / Execute COPT solving
      *
      * @return 操作结果 / operation result
-    */
+     */
     protected suspend fun solve(): Try {
         return try {
             if (coptModel.get(COPT.IntAttr.IsMIP) != 0) {
@@ -124,7 +123,7 @@ abstract class CoptSolver : AutoCloseable {
      * 分析 COPT 求解状态 / Analyze COPT solving status
      *
      * @return 操作结果 / operation result
-    */
+     */
     protected suspend fun analyzeStatus(): Try {
         return try {
             status = when (if (coptModel.get(COPT.IntAttr.IsMIP) != 0) {
@@ -164,5 +163,3 @@ abstract class CoptSolver : AutoCloseable {
         }
     }
 }
-
-

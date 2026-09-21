@@ -5,8 +5,10 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.prepareNativeMax
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.solver.prepareNativeMasking
+import fuookami.ospf.kotlin.core.solver.prepareNativeIndicator
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 internal fun nativeFunctionSelectorKeys(
     model: LinearMechanismModel<Flt64>,
@@ -30,7 +32,7 @@ internal fun nativeFunctionSelectorKeys(
         if (retained.any { variable -> fixedVariables?.keys?.any { it.key == variable.key } == true ||
                 model.tokens.tokens.none { it.key == variable.key } }
         ) return invalid("masking columns would be missing or substituted out")
-        when (val prepared = fuookami.ospf.kotlin.core.solver.prepareNativeMasking(structure)) {
+        when (val prepared = prepareNativeMasking(structure)) {
             is Ok -> Unit
             is Failed -> return invalid(prepared.error.message)
             is Fatal -> return Fatal(prepared.errors)
@@ -41,7 +43,7 @@ internal fun nativeFunctionSelectorKeys(
         if (publicResults.any { variable -> fixedVariables?.keys?.any { it.key == variable.key } == true }) {
             return invalid("indicator result columns would be substituted out")
         }
-        when (val prepared = fuookami.ospf.kotlin.core.solver.prepareNativeIndicator(structure)) {
+        when (val prepared = prepareNativeIndicator(structure)) {
             is Ok -> Unit
             is Failed -> return invalid(prepared.error.message)
             is Fatal -> return Fatal(prepared.errors)
@@ -168,7 +170,6 @@ internal fun nativeFunctionSelectorKeys(
             }
         }
     }
-
 
     for (structure in selected.filterIsInstance<AbsStructure<*>>()) {
         val inputKey = structure.inputVariableKeyOrNull()

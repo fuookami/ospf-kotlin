@@ -1,6 +1,6 @@
 /**
  * 线性三元模型 / Linear triad model
-*/
+ */
 package fuookami.ospf.kotlin.core.model.intermediate
 
 import java.io.OutputStreamWriter
@@ -8,39 +8,39 @@ import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.math.ordinary.*
-import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.Token
+import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
 import fuookami.ospf.kotlin.core.solver.report.ConstraintId
 import fuookami.ospf.kotlin.core.solver.report.ModelElementKind
-import fuookami.ospf.kotlin.core.solver.report.ModelElementIdentityRegistry
-import fuookami.ospf.kotlin.core.solver.report.ModelElementOrigin
 import fuookami.ospf.kotlin.core.solver.report.ModelElementScope
-import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
-import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.ModelElementOrigin
 import fuookami.ospf.kotlin.core.solver.report.derivedModelElementIdentity
+import fuookami.ospf.kotlin.core.solver.report.ModelElementIdentityRegistry
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.token.Token
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.VariableItemKey
-import fuookami.ospf.kotlin.core.variable.BalancedTernary
 import fuookami.ospf.kotlin.core.variable.Binary
-import fuookami.ospf.kotlin.core.variable.Continuous
 import fuookami.ospf.kotlin.core.variable.Integer
-import fuookami.ospf.kotlin.core.variable.Percentage
 import fuookami.ospf.kotlin.core.variable.Ternary
-import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.core.variable.UInteger
+import fuookami.ospf.kotlin.core.variable.Continuous
+import fuookami.ospf.kotlin.core.variable.Percentage
+import fuookami.ospf.kotlin.core.variable.UContinuous
+import fuookami.ospf.kotlin.core.variable.BalancedTernary
+import fuookami.ospf.kotlin.core.variable.VariableItemKey
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * 将任意数值类型转换为 Flt64（求解器边界用） / Convert any numeric value to Flt64 (for solver boundary use)
  *
  * @return 转换后的 Flt64 值 / The converted Flt64 value
-*/
+ */
 private fun Any?.toSolverFlt64(): Flt64 {
     return when (this) {
         is Flt64 -> this
@@ -53,7 +53,7 @@ private fun Any?.toSolverFlt64(): Flt64 {
  * 判断此线性约束是否为单变量边界约束（系数为1的单项约束） / Check whether this linear constraint is a single-variable bound constraint (single term with coefficient 1)
  *
  * @return 是否为边界约束 / Whether this is a bound constraint
-*/
+ */
 private fun LinearConstraintImpl<Flt64>.isBound(): Boolean {
     val lhs = (this as LinearConstraintImpl<*>).lhs
     return lhs.size == 1
@@ -65,7 +65,7 @@ private fun LinearConstraintImpl<Flt64>.isBound(): Boolean {
  * 将求解器边界单元格令牌视为 Flt64 令牌 / Treat a solver-boundary cell token as an Flt64 token
  *
  * @return 转型后的 Flt64 令牌 / The cast Flt64 token
-*/
+ */
 @Suppress("UNCHECKED_CAST")
 private fun LinearCell<*>.tokenAsFlt64(): Token<Flt64> {
     return token as Token<Flt64>
@@ -80,7 +80,7 @@ private fun LinearCell<*>.tokenAsFlt64(): Token<Flt64> {
  * @property rowIndex 行索引 / Row index
  * @property colIndex 列索引 / Column index
  * @param coefficient 系数 / Coefficient
-*/
+ */
 class LinearConstraintCell(
     override val rowIndex: Int,
     val colIndex: Int,
@@ -129,7 +129,7 @@ class LinearConstraintCell(
  * @param identityOrigins 每行稳定身份来源 / Stable identity origin for each row
  * @param identityProvenance 每行完整身份来源集合 / Complete identity provenance for each row
  * @param identityMetadataValidationOverride 复制或过滤时保留的身份元数据校验结果 / Identity metadata validation result preserved across copies or filters
-*/
+ */
 class LinearConstraintBatch(
     val sparseLhs: SparseMatrix<Flt64>,
     signs: List<ConstraintRelation>,
@@ -167,7 +167,7 @@ class LinearConstraintBatch(
      * 这是主要的约束表示形式。 / Sparse representation of the LHS matrix.
      * Each row is a SparseVector<Flt64> where entry.index = colIndex, entry.value = coefficient.
      * This is the primary constraint representation.
-    */
+     */
     override val lhs: List<List<LinearConstraintCell>> by lazy {
         sparseLhs.rows.mapIndexed { rowIndex, row ->
             row.entries.map { entry ->
@@ -194,7 +194,7 @@ class LinearConstraintBatch(
      *
      * @param condition 过滤条件，参数为行索引 / Filter condition, parameter is row index
      * @return 过滤后的约束批次 / Filtered constraint batch
-    */
+     */
     fun filter(condition: (Int) -> Boolean): LinearConstraintBatch {
         val filteredSparseLhs = SparseMatrix<Flt64>()
         for ((i, row) in sparseLhs.rows.withIndex()) {
@@ -263,7 +263,7 @@ class LinearConstraintBatch(
  *
  * @property colIndex 列索引 / Column index
  * @param coefficient 系数 / Coefficient
-*/
+ */
 class LinearObjectiveCell(
     val colIndex: Int,
     coefficient: Flt64
@@ -285,12 +285,12 @@ class LinearObjectiveCell(
 
 /**
  * 线性目标函数类型别名 / Type alias for linear objective function
-*/
+ */
 typealias LinearObjective = Objective<LinearObjectiveCell>
 
 /**
  * 基础线性三元模型视图类型别名 / Type alias for basic linear triad model view
-*/
+ */
 typealias BasicLinearTriadModelView = BasicModelView<LinearConstraintCell>
 
 /**
@@ -324,7 +324,7 @@ typealias BasicLinearTriadModelView = BasicModelView<LinearConstraintCell>
  * @property variables 求解器索引的变量列表 / Solver-indexed variable list
  * @property constraints 线性约束批次 / Linear constraint batch
  * @property name 模型名称（用于日志和调试）/ Model name (for logging and debugging)
-*/
+ */
 class BasicLinearTriadModel(
     override val variables: List<Variable>,
     override val constraints: LinearConstraintBatch,
@@ -348,7 +348,7 @@ class BasicLinearTriadModel(
          * @param fixedVariables  固定为常量值的变量（将被代换消除）/ variables fixed to constant values (substituted out)
          * @param identityRegistry 可选的稳定身份注册表 / optional stable identity registry
          * @return 包含变量与约束的模型或函数物化错误 / Extracted model or function materialization error
-        */
+         */
         fun from(
             model: LinearMechanismModel<Flt64>,
             tokenIndexMap: Map<Token<Flt64>, Int>,
@@ -389,7 +389,7 @@ class BasicLinearTriadModel(
      *
      * 将整数变量类型松弛为连续类型（Binary->Percentage, Integer->Continuous 等）。
      * Relaxes integer variable types to continuous types (Binary->Percentage, Integer->Continuous, etc.).
-    */
+     */
     fun linearRelax() {
         variables.forEach {
             when (it.type) {
@@ -414,7 +414,7 @@ class BasicLinearTriadModel(
      * 返回线性松弛后的副本 / Return a linearly relaxed copy
      *
      * @return 线性松弛后的模型副本 / Linearly relaxed model copy
-    */
+     */
     fun linearRelaxed(): BasicLinearTriadModel {
         return BasicLinearTriadModel(
             variables = variables.map {
@@ -536,7 +536,10 @@ class BasicLinearTriadModel(
  *
  * @property constraints 线性约束批次 / Linear constraint batch
  * @property dual 是否为对偶模型 / Whether this is a dual model
-*/
+ * @property functionExpansionPolicy 函数符号展开策略 / Function symbol expansion policy
+ * @property deferredFunctionStructures 延迟函数结构快照 / Deferred function structure snapshots
+ * @property deferredFunctionConstraintRegions 延迟函数约束区域 / Deferred function constraint regions
+ */
 interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjectiveCell> {
     override val constraints: LinearConstraintBatch
     val dual: Boolean
@@ -558,28 +561,28 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
      * 就地线性松弛（修改当前模型） / In-place linear relaxation (modifies the current model)
      *
      * @return 松弛后的自身引用 / Self reference after relaxation
-    */
+     */
     fun linearRelax(): LinearTriadModelView
 
     /**
      * 返回线性松弛后的副本 / Return a linearly relaxed copy
      *
      * @return 线性松弛后的模型视图副本 / Linearly relaxed model view copy
-    */
+     */
     fun linearRelaxed(): LinearTriadModelView
 
     /**
      * 构建 Farkas 对偶模型 / Build Farkas dual model
      *
      * @return Farkas 对偶线性三元模型视图 / Farkas dual linear triad model view
-    */
+     */
     suspend fun farkasDual(): LinearTriadModelView
 
     /**
      * 构建可行性模型（最小化人工变量） / Build feasibility model (minimize artificial variables)
      *
      * @return 可行性线性三元模型视图 / Feasibility linear triad model view
-    */
+     */
     fun feasibility(): LinearTriadModelView
 
     /**
@@ -588,7 +591,7 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
      * @param minmaxSlack  是否启用最小-最大松弛 / Whether to enable min-max slack
      * @param minSlackAmount  最小松弛量限制 / Minimum slack amount limit
      * @return 弹性线性三元模型视图 / Elastic linear triad model view
-    */
+     */
     fun elastic(
         minmaxSlack: Boolean = false,
         minSlackAmount: Pair<UInt64, Flt64>? = null
@@ -599,7 +602,7 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
      *
      * @param solution 求解器返回的对偶解向量 / Dual solution vector returned by the solver
      * @return 完整对偶值到原始约束的映射 / Mapping from complete dual values to original constraints
-    */
+     */
     fun tidyDualSolution(solution: List<Flt64>): kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64> {
         return if (dual) {
             variables.associateNotNull {
@@ -629,8 +632,11 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
  * @property impl 基础模型实现 / Basic model implementation
  * @property tokensInSolver 求解器中的符号列表 / Token list in solver
  * @property objective 目标函数 / Objective function
+ * @property functionExpansionPolicy 函数符号展开策略 / Function symbol expansion policy
+ * @property deferredFunctionStructures 延迟函数结构快照 / Deferred function structure snapshots
+ * @property deferredFunctionConstraintRegions 延迟函数约束区域 / Deferred function constraint regions
  * @property dualOrigin 对偶模型来源 / Dual model origin
-*/
+ */
 data class LinearTriadModel(
     private val impl: BasicLinearTriadModel,
     val tokensInSolver: List<Token<Flt64>>,
@@ -1039,7 +1045,7 @@ data class LinearTriadModel(
      * 构建对偶模型 / Build dual model
      *
      * @return 对偶线性三元模型 / Dual linear triad model
-    */
+     */
     suspend fun dual(): LinearTriadModel {
         if (identityValidation !is Ok) {
             return copy()

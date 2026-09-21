@@ -1,26 +1,26 @@
 package fuookami.ospf.kotlin.core.solver.gurobi11
 
 import kotlin.test.*
-import com.gurobi.gurobi.GRB
 import kotlinx.coroutines.runBlocking
+import com.gurobi.gurobi.GRB
 import org.junit.jupiter.api.Assumptions.assumeTrue
-import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.report.SolveReport
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.solver.*
-import fuookami.ospf.kotlin.core.symbol.function.*
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
+import fuookami.ospf.kotlin.core.solver.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.report.SolveReport
+import fuookami.ospf.kotlin.core.symbol.function.*
+import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /** Gurobi 11 连续一元 PWL 原生单解最小 IT。 / Minimal Gurobi 11 single-solution IT for continuous univariate native PWL. */
 class Gurobi11DeferredPiecewiseIT {
@@ -85,8 +85,22 @@ class Gurobi11DeferredPiecewiseIT {
             assertEquals(2, shapes.single().numVars)
             assertEquals(1, shapes.single().numConstrs)
             assertEquals(1, shapes.single().numGenConstrs)
-            assertEquals(Flt64(1.5), valueAt(report, mechanism, input))
-            assertEquals(Flt64(2.0), valueAt(report, mechanism, function.resultVar))
+            assertEquals(
+                expected = Flt64(1.5),
+                actual = valueAt(
+                    report = report,
+                    model = mechanism,
+                    variable = input
+                )
+            )
+            assertEquals(
+                expected = Flt64(2.0),
+                actual = valueAt(
+                    report = report,
+                    model = mechanism,
+                    variable = function.resultVar
+                )
+            )
         } finally {
             mechanism.close()
             metaModel.close()

@@ -3,27 +3,29 @@ package fuookami.ospf.kotlin.core.analysis
 
 import kotlin.time.Duration
 import kotlin.time.TimeSource
-import fuookami.ospf.kotlin.core.model.constraint_programming.BooleanLiteral
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolveOptions
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolver
-import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingFeasibleOutput
-import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingInfeasibleOutput
-import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
-import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingUnknownOutput
-import fuookami.ospf.kotlin.core.solver.report.ProblemStatus
-import fuookami.ospf.kotlin.core.solver.report.ProofStatus
-import fuookami.ospf.kotlin.core.solver.report.SolutionPresence
-import fuookami.ospf.kotlin.core.solver.report.VariableId
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.model.constraint_programming.BooleanLiteral
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingUnknownOutput
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingFeasibleOutput
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingInfeasibleOutput
+import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.ProofStatus
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.report.ProblemStatus
+import fuookami.ospf.kotlin.core.solver.report.SolutionPresence
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolver
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolveOptions
 
 /**
  * 通用 CP 扰动后端。
@@ -74,8 +76,8 @@ class ConstraintProgrammingPerturbationBackend(
             }
             val session = sessionResult.value!!
             try {
-                // Warm start is a hint only; a rejected or ignored hint must not change the
-                // conclusion. / 热启动只是提示；提示被拒绝或忽略都不得改变结论。
+                // Warm start is a hint only; a rejected or ignored hint must not change the conclusion.
+                // / 热启动只是提示；提示被拒绝或忽略都不得改变结论。
                 val hints = if (request.warmStart != null) request.warmStart else null
                 val outputResult = session.solve(hints = hints)
                 val elapsed = startedAt.elapsedNow()
@@ -92,7 +94,7 @@ class ConstraintProgrammingPerturbationBackend(
     }
 
     private fun mapOutput(
-        output: fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolverOutput,
+        output: ConstraintProgrammingSolverOutput,
         elapsed: Duration
     ): ConstraintPerturbationSolveResult {
         return when (output) {
@@ -158,8 +160,8 @@ internal fun ConstraintProgrammingFeasibleOutput.isProvenOptimal(): Boolean {
             unified.solutionPresence == SolutionPresence.Optimal
     } else {
         // 没有统一报告时只能依赖输出自身的证明声明；`None` 表示没有证明。
-        // Without a unified report the output's own proof claim is the only signal; `None` means
-        // no proof.
+        // Without a unified report the output's own proof claim is the only signal; `None` means no proof.
+        // / 没有统一报告时只能依赖输出自身的证明声明；`None` 表示没有证明。
         proofStatus == ProofStatus.Verified || proofStatus == ProofStatus.Claimed
     }
 }
@@ -195,10 +197,15 @@ internal fun ConstraintProgrammingInfeasibleOutput.isProvenInfeasible(): Boolean
  * it never fabricates an assumption for a constraint that cannot be expressed as one.
  */
 object ConstraintProgrammingAssumptionMapper {
-    /** 从激活集合推导 assumption 列表。 / Derive assumptions from an activation set. */
+    /** 从激活集合推导 assumption 列表。 / Derive assumptions from an activation set.
+     *
+     * @param activations 原始证据激活集合 / Original-evidence activation set
+     * @param literals 按约束 ID 编索引的布尔文字 / Boolean literals keyed by constraint ID
+     * @return 后端 assumption 列表 / Backend assumption list
+     */
     fun assumptions(
         activations: DiagnosticActivationSet,
-        literals: Map<fuookami.ospf.kotlin.core.solver.report.ConstraintId, BooleanLiteral>
+        literals: Map<ConstraintId, BooleanLiteral>
     ): List<BooleanLiteral> {
         return activations.activeSources()
             .mapNotNull { source ->
@@ -217,12 +224,22 @@ object ConstraintProgrammingAssumptionMapper {
  * solution. This only projects and never approximates: `Int64` values reach the backend unchanged.
  */
 object FixedIntegerProjection {
-    /** 从基线解提取固定值。 / Extract fixed values from a baseline solution. */
+    /** 从基线解提取固定值。 / Extract fixed values from a baseline solution.
+     *
+     * @param solution 基线 CP 解，可为 null / Baseline CP solution, or null
+     * @return 按变量 ID 编索引的固定值 / Fixed values keyed by variable ID
+     */
     fun fixedValues(solution: ConstraintProgrammingSolution?): Map<VariableId, Int64> {
         return solution?.values.orEmpty()
     }
 
-    /** 派生 LP 目标与基线目标的一致性校验。 / Validate that a derived LP objective matches the baseline. */
+    /** 派生 LP 目标与基线目标的一致性校验。 / Validate that a derived LP objective matches the baseline.
+     *
+     * @param baseline 基线目标值 / Baseline objective value
+     * @param derived 派生目标值 / Derived objective value
+     * @param tolerance 相对容差 / Relative tolerance
+     * @return 两个目标值是否一致 / Whether the objective values agree
+     */
     fun objectivesAgree(baseline: Flt64?, derived: Flt64?, tolerance: Double): Boolean {
         if (baseline == null || derived == null) {
             return false
@@ -235,7 +252,14 @@ object FixedIntegerProjection {
     }
 }
 
-fun <T> propagateBackendFailure(result: Ret<*>): Ret<T> {    return when (result) {
+/** 将后端失败映射为调用方结果类型。 / Map a backend failure to the caller's result type.
+ *
+ * @param T 结果值类型 / Result value type
+ * @param result 后端结果 / Backend result
+ * @return 映射后的结果 / Mapped result
+ */
+fun <T> propagateBackendFailure(result: Ret<*>): Ret<T> {
+    return when (result) {
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
         is Ok -> Failed(

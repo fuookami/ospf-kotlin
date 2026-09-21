@@ -1,16 +1,16 @@
 /** 候选漏斗、有效性排序与统一分析报告。 / Candidate funnel, effectiveness ranking, and the unified report. */
 package fuookami.ospf.kotlin.core.analysis
 
-import fuookami.ospf.kotlin.core.solver.report.ConstraintId
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
 
 /** 统一报告 schema。 / Unified report schema. */
 const val CRITICAL_ANALYSIS_REPORT_SCHEMA_VERSION: String = "1.0"
@@ -284,7 +284,7 @@ fun buildCandidateFunnel(
     activity: ConstraintActivityReport,
     sensitivity: FixedIntegerLpSensitivityReport?,
     config: CandidateFunnelConfig = CandidateFunnelConfig()
-): fuookami.ospf.kotlin.utils.functional.Ret<CandidateFunnelRanking> {
+): Ret<CandidateFunnelRanking> {
     when (val validation = config.validation) {
         is Ok -> {}
         is Failed -> return Failed(validation.error)
@@ -434,6 +434,7 @@ data class EffectivenessRanking(
                 )
             }
             // 局部判决只在对偶值确实可用时才允许存在。
+            // Local decisions are allowed only when a dual value is actually available.
             if (entry.localEffective != null && entry.dualValue == null) {
                 return Failed(
                     ErrorCode.IllegalArgument,
@@ -458,7 +459,7 @@ fun buildEffectivenessRanking(
     baselineObjective: Flt64,
     funnel: CandidateFunnelRanking?,
     perturbationReports: List<ConstraintPerturbationReport>
-): fuookami.ospf.kotlin.utils.functional.Ret<EffectivenessRanking> {
+): Ret<EffectivenessRanking> {
     if (!baselineObjective.isFinite()) {
         return Failed(ErrorCode.IllegalArgument, "基线目标值必须有限 / Baseline objective must be finite")
     }
@@ -654,7 +655,7 @@ class CriticalConstraintAnalysisReportBuilder {
     /** 构建报告。 / Build the report. */
     fun build(
         config: CandidateFunnelConfig = CandidateFunnelConfig()
-    ): fuookami.ospf.kotlin.utils.functional.Ret<CriticalConstraintAnalysisReport> {
+    ): Ret<CriticalConstraintAnalysisReport> {
         val baseline = this.baseline
             ?: return Failed(
                 ErrorCode.IllegalArgument,

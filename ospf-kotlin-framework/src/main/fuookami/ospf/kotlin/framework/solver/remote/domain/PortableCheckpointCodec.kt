@@ -13,11 +13,11 @@
  */
 package fuookami.ospf.kotlin.framework.solver.remote.domain
 
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingCheckpointCodec
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.core.solver.report.SolveFingerprinting
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingCheckpointCodec
 
 /** Remote checkpoint codec delegating to the canonical core implementation. / 转发到 core 规范实现的远端 checkpoint codec。 */
 object PortableCheckpointCodec {
@@ -34,7 +34,7 @@ object PortableCheckpointCodec {
      * envelope that cannot be encoded **throws explicitly** rather than silently producing a document
      * that can never be decoded.
      *
-     * @param envelope checkpoint envelope / checkpoint envelope
+     * @param envelope 检查点信封 / Checkpoint envelope
      * @return JSON 文本 / JSON text
      * @throws IllegalArgumentException envelope 无法编码时抛出 / Thrown when the envelope cannot be encoded
      */

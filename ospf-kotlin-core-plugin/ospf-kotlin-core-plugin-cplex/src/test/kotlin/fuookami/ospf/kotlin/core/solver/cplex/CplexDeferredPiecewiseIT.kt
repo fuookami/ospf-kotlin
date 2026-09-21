@@ -1,31 +1,31 @@
 package fuookami.ospf.kotlin.core.solver.cplex
 
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
+import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assumptions.assumeTrue
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.solver.*
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.report.SolveReport
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
-import fuookami.ospf.kotlin.core.symbol.function.UnivariateLinearPiecewiseFunction
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.FunctionExpansionPolicy
+import fuookami.ospf.kotlin.core.solver.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.report.SolveReport
+import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
+import fuookami.ospf.kotlin.core.symbol.function.UnivariateLinearPiecewiseFunction
+import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /** CPLEX deferred SOS2 PWL 真实 SDK 集成测试。 / Real-SDK integration tests for deferred CPLEX SOS2 PWL. */
 class CplexDeferredPiecewiseIT {
@@ -41,7 +41,14 @@ class CplexDeferredPiecewiseIT {
                         callBack = afterModelingCallback(eagerShapes)
                     ).solve(eager.mechanism, IntoValue.Identity)
                 }
-                assertEquals(NativeModelShape(numVars = 4, numRows = 10, sos2 = 0), eagerShapes.single())
+                assertEquals(
+                    NativeModelShape(
+                        numVars = 4,
+                        numRows = 10,
+                        sos2 = 0
+                    ),
+                    eagerShapes.single()
+                )
 
                 for (policy in nativePolicies) {
                     val native = buildScenario(policy, point)
@@ -54,13 +61,45 @@ class CplexDeferredPiecewiseIT {
                             ).solve(native.mechanism, IntoValue.Identity)
                         }
                         assertEquals(
-                            NativeModelShape(numVars = 5, numRows = 4, sos2 = 1),
+                            NativeModelShape(
+                                numVars = 5,
+                                numRows = 4,
+                                sos2 = 1
+                            ),
                             nativeShapes.single()
                         )
-                        assertValueEquals(point, valueAt(nativeResult, native.mechanism, native.input))
-                        assertValueEquals(point, valueAt(eagerResult, eager.mechanism, eager.input))
-                        assertValueEquals(expected, valueAt(eagerResult, eager.mechanism, eager.function.resultVar))
-                        assertValueEquals(expected, valueAt(nativeResult, native.mechanism, native.function.resultVar))
+                        assertValueEquals(
+                            point,
+                            valueAt(
+                                report = nativeResult,
+                                model = native.mechanism,
+                                variable = native.input
+                            )
+                        )
+                        assertValueEquals(
+                            point,
+                            valueAt(
+                                report = eagerResult,
+                                model = eager.mechanism,
+                                variable = eager.input
+                            )
+                        )
+                        assertValueEquals(
+                            expected,
+                            valueAt(
+                                report = eagerResult,
+                                model = eager.mechanism,
+                                variable = eager.function.resultVar
+                            )
+                        )
+                        assertValueEquals(
+                            expected,
+                            valueAt(
+                                report = nativeResult,
+                                model = native.mechanism,
+                                variable = native.function.resultVar
+                            )
+                        )
                         assertEquals(native.mechanism.tokens.tokensInSolver.size, nativeResult.values.size)
                     } finally {
                         native.close()
@@ -84,7 +123,11 @@ class CplexDeferredPiecewiseIT {
             )
             solver.nativePiecewiseWriter = { model, variables, data ->
                 writerCalls++
-                val nativeWrite = addCplexNativePiecewise(model, variables, data)
+                val nativeWrite = addCplexNativePiecewise(
+                    model = model,
+                    variables = variables,
+                    data = data
+                )
                 assertTrue(nativeWrite is Ok)
                 Failed(ErrorCode.Other, "intentional native PWL failure / intentional native PWL failure")
             }
@@ -94,9 +137,30 @@ class CplexDeferredPiecewiseIT {
             }
 
             assertEquals(1, writerCalls)
-            assertEquals(NativeModelShape(numVars = 4, numRows = 10, sos2 = 0), observedShapes.single())
-            assertValueEquals(Flt64(1.5), valueAt(report, scenario.mechanism, scenario.input))
-            assertValueEquals(Flt64(2.0), valueAt(report, scenario.mechanism, scenario.function.resultVar))
+            assertEquals(
+                NativeModelShape(
+                    numVars = 4,
+                    numRows = 10,
+                    sos2 = 0
+                ),
+                observedShapes.single()
+            )
+            assertValueEquals(
+                Flt64(1.5),
+                valueAt(
+                    report = report,
+                    model = scenario.mechanism,
+                    variable = scenario.input
+                )
+            )
+            assertValueEquals(
+                Flt64(2.0),
+                valueAt(
+                    report = report,
+                    model = scenario.mechanism,
+                    variable = scenario.function.resultVar
+                )
+            )
         } finally {
             scenario.close()
         }
@@ -114,7 +178,11 @@ class CplexDeferredPiecewiseIT {
                 monomials = listOf(LinearMonomial(Flt64.one, input)),
                 constant = Flt64.zero
             ),
-            breakpoints = listOf(Flt64.zero, Flt64.one, Flt64.two),
+            breakpoints = listOf(
+                Flt64.zero,
+                Flt64.one,
+                Flt64.two
+            ),
             slopes = listOf(Flt64.one, Flt64.two),
             intercepts = listOf(Flt64.zero, Flt64(-1.0)),
             converter = IntoValue.Identity,
@@ -146,7 +214,12 @@ class CplexDeferredPiecewiseIT {
                 is Failed -> fail(result.error.message)
                 is Fatal -> fail(result.errors.joinToString { it.message ?: "" })
             }
-            Scenario(metaModel, mechanism, input, function)
+            Scenario(
+                metaModel = metaModel,
+                mechanism = mechanism,
+                input = input,
+                function = function
+            )
         } catch (error: Throwable) {
             metaModel.close()
             throw error
@@ -174,7 +247,11 @@ class CplexDeferredPiecewiseIT {
     }
 
     private fun assertValueEquals(expected: Flt64, actual: Flt64) {
-        assertEquals(expected.toDouble(), actual.toDouble(), 1e-6)
+        assertEquals(
+            expected = expected.toDouble(),
+            actual = actual.toDouble(),
+            absoluteTolerance = 1e-6
+        )
     }
 
     private fun valueAt(

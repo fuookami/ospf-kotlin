@@ -2,13 +2,20 @@ package fuookami.ospf.kotlin.core.solver.gurobi11
 
 import kotlin.math.abs
 import com.gurobi.gurobi.GRB
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.solver.prepareNativeMasking
+import fuookami.ospf.kotlin.core.solver.prepareNativeIndicator
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
-/** 不修改 Gurobi 模型的函数原生展开候选。 / A native function-lowering candidate that does not mutate a Gurobi model. */
+/**
+ * 不修改 Gurobi 模型的函数原生展开候选。 / A native function-lowering candidate that does not mutate a Gurobi model.
+ *
+ * @property structure 待展开的函数结构 / Function structure to lower
+ * @property decision 原生展开决策 / Native lowering decision
+ */
 data class GurobiFunctionLoweringPlan(
     val structure: DeferredFunctionStructure,
     val decision: FunctionLoweringDecision
@@ -38,7 +45,7 @@ fun planGurobiFunctionLowering(
                 )
                 if (model.dual || model.deferredFunctionConstraintRegions.any { it.structure == structure } ||
                     listOf(structure.resultVariable, structure.mask).any { retained -> model.variables.none { it.origin?.key == retained.key } } ||
-                    fuookami.ospf.kotlin.core.solver.prepareNativeMasking(structure, GRB.INFINITY) !is fuookami.ospf.kotlin.utils.functional.Ok
+                    prepareNativeMasking(structure, GRB.INFINITY) !is Ok
                 ) FunctionLoweringDecision(false, reason = "masking columns, bounds or fallback region are incompatible")
                 else candidate
             }
@@ -51,7 +58,7 @@ fun planGurobiFunctionLowering(
                 )
                 if (model.dual || model.deferredFunctionConstraintRegions.any { it.structure == structure } ||
                     model.variables.none { it.origin?.key == structure.resultVariable.key } ||
-                    fuookami.ospf.kotlin.core.solver.prepareNativeIndicator(structure, GRB.INFINITY) !is fuookami.ospf.kotlin.utils.functional.Ok
+                    prepareNativeIndicator(structure, GRB.INFINITY) !is Ok
                 ) {
                     FunctionLoweringDecision(false, reason = "indicator columns, bounds or fallback region are incompatible")
                 } else candidate

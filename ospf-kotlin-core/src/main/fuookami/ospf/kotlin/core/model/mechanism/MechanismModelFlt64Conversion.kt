@@ -1,19 +1,19 @@
 /**
  * 机制模型 Flt64 转换 / Mechanism model Flt64 conversion
-*/
+ */
 package fuookami.ospf.kotlin.core.model.mechanism
 
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.symbol.SolverBoundaryCasts
-import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 在星投影线性函数符号上注册约束（不安全转换）。 / Register constraints on a star-projected linear function symbol (unchecked cast).
@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @param model 目标线性机制模型 / target linear mechanism model
  * @return 注册结果 / registration result
-*/
+ */
 internal fun MathFunctionSymbolBase<*>.registerConstraintsUnchecked(model: AbstractLinearMechanismModel<*>): Try {
     return SolverBoundaryCasts.registerConstraintsLinearStar(this, model)
 }
@@ -33,7 +33,7 @@ internal fun MathFunctionSymbolBase<*>.registerConstraintsUnchecked(model: Abstr
  *
  * @param model 目标二次机制模型 / target quadratic mechanism model
  * @return 注册结果 / registration result
-*/
+ */
 internal fun QuadraticMathFunctionSymbolBase<*>.registerConstraintsUnchecked(model: AbstractQuadraticMechanismModel<*>): Try {
     return SolverBoundaryCasts.registerConstraintsQuadraticStar(this, model)
 }
@@ -307,9 +307,10 @@ internal fun <V> toFlt64FixedVariables(
  *
  * 转换前会验证模型是具体机制模型子类，未知类型返回 Failed。 / Validates concrete mechanism-model subclasses and returns Failed for unexpected types.
  *
+ * @param V 数值类型 / Numeric type
  * @param model 源机制模型 / Source mechanism model
  * @return 独立 token 表的求解器边界副本，调用方负责关闭 / Solver-boundary copy with its own token table, owned by the caller
-*/
+ */
 fun <V> convertMechanismModelToFlt64(model: MechanismModel<V>): Ret<MechanismModel<Flt64>>
         where V : RealNumber<V>, V : NumberField<V> {
     return when (model) {

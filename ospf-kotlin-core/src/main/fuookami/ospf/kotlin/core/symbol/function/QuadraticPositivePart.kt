@@ -1,43 +1,44 @@
 @file:Suppress("unused")
-
-/** 二次正部函数符号 / Quadratic positive-part function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
-import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.symbol.SolverBoundaryCasts
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.AddableTokenCollection
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.symbol.Category
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.Quadratic
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.symbol.SolverBoundaryCasts
+import fuookami.ospf.kotlin.core.symbol.QuadraticIntermediateSymbol
+import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * 二次正部函数：$y = max(p(x), 0)$。 / Quadratic positive-part function: $y = max(p(x), 0)$.
  *
- * 该函数通过精确的 `-min(-p(x), 0)` 公式复用 [QuadraticMinFunction]，不再借用半连续变量的名称。
- * / The function reuses [QuadraticMinFunction] through the exact identity `-min(-p(x), 0)` and no longer
- * borrows the name of a semi-continuous variable.
+ * 该函数通过精确的 `-min(-p(x), 0)` 公式复用 [QuadraticMinFunction]，不再借用半连续变量的名称。 / The function reuses [QuadraticMinFunction] through the exact identity `-min(-p(x), 0)` and no longer borrows the name of a semi-continuous variable.
  *
  * @property input 二次输入多项式 / quadratic input polynomial
- * @param bigM 精确选择模型的 Big-M；为空时从候选范围推导 / Big-M for the exact selector model; inferred from candidate bounds when null
+ * @property bigM 精确选择模型的 Big-M；为空时从候选范围推导 / Big-M for the exact selector model; inferred from candidate bounds when null
  * @param converter 值类型转换器 / value converter
  * @property name 唯一名称 / unique name
  * @property displayName 可选显示名称 / optional display name
+ * @property resultVar 结果变量 / result variable
+ * @property selectorVars 精确选择变量 / exact selector variables
+ * @property helperVariables 辅助变量集合 / helper variable collection
+ * @property polynomial 结果二次多项式 / result quadratic polynomial
  */
 class QuadraticPositivePartFunction<V>(
     val input: QuadraticPolynomial<V>,
@@ -77,7 +78,7 @@ class QuadraticPositivePartFunction<V>(
     override val identifier: UInt64 by lazy { IdentifierGenerator.gen() }
     override val index: Int = 0
     override val category: Category = Linear
-    override val operationCategory: Category = fuookami.ospf.kotlin.math.symbol.Quadratic
+    override val operationCategory: Category = Quadratic
     override val parent: IntermediateSymbol<out V>? = null
     override val dependencies: Set<IntermediateSymbol<out V>>
         get() = inner.dependencies

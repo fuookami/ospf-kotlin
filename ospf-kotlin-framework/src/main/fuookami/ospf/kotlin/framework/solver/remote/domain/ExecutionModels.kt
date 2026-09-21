@@ -3,13 +3,13 @@ package fuookami.ospf.kotlin.framework.solver.remote.domain
 
 import kotlin.time.Duration
 import kotlin.time.Instant
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
  * 求解器类型。 / Solver type.
-*/
+ */
 @Serializable
 enum class SolverType {
     /** SCIP 求解器 / SCIP solver */
@@ -46,7 +46,7 @@ enum class RemoteTerminationReason {
     NUMERICAL_FAILURE,
     BACKEND_FAILURE,
 
-    /** Unknown value received from a newer server; never treated as success. */
+    /** 新服务端返回的未知值，不得视为成功。 / Unknown value from a newer server; never treat it as success. */
     UNKNOWN
 }
 
@@ -99,7 +99,7 @@ data class RemoteSolverCapabilities(
  * @property nodeId 节点 ID / Node ID
  * @property startedAt 启动时间戳 / Started timestamp
  * @property scheduling 有效调度信息 / Effective scheduling information
-*/
+ */
 @Serializable
 data class ExecutionHandle(
     val handleId: HandleId,
@@ -120,6 +120,7 @@ data class ExecutionHandle(
  * @property feasible 是否可行 / Whether feasible
  * @property objectiveValue 目标值 / Objective value
  * @property objectiveValueInt64 CP 精确整数目标值 / Exact Int64 CP objective value
+ * @property bestBound 当前最佳界 / Current best bound
  * @property gap 最优间隙 / Optimality gap
  * @property elapsed 耗时 / Elapsed
  * @property message 结果消息 / Result message
@@ -142,7 +143,7 @@ data class ExecutionHandle(
  * @property modelFingerprint 模型指纹 / Model fingerprint
  * @property scheduling 有效调度信息 / Effective scheduling information
  * @property outcome 明确切片结果 / Explicit slice outcome
-*/
+ */
 @Serializable
 data class SliceResult(
     val sliceId: SliceId,
@@ -191,6 +192,7 @@ data class SliceResult(
  * @property optimal 是否最优 / Whether optimal
  * @property objectiveValue 目标值 / Objective value
  * @property objectiveValueInt64 CP 精确整数目标值 / Exact Int64 CP objective value
+ * @property bestBound 当前最佳界 / Current best bound
  * @property gap 最优间隙 / Optimality gap
  * @property elapsed 总耗时 / Total elapsed
  * @property checkpointRef 检查点引用 / Checkpoint reference
@@ -214,7 +216,7 @@ data class SliceResult(
  * @property modelFingerprint 模型指纹 / Model fingerprint
  * @property scheduling 有效调度信息 / Effective scheduling information
  * @property outcome 明确切片结果 / Explicit slice outcome
-*/
+ */
 @Serializable
 data class SolveResult(
     val feasible: Boolean,

@@ -2,16 +2,18 @@ package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * 只在前件为真时激活的后件。 / Consequent activated only by a true antecedent.
+ *
+ * @param V 数值类型 / Numeric type
  * @property input 归一化后件输入 / Normalized consequent input
  * @property indicatorVariable 保留的后件指示列 / Retained consequent indicator
  * @property bounds 原后件范围 / Original consequent bounds
@@ -23,6 +25,7 @@ data class ImpliedCondition<V>(
     val bounds: ConditionBounds<V>,
     val name: String
 ) where V : RealNumber<V>, V : NumberField<V> {
+
     internal fun generateConstraints(
         antecedent: AbstractVariableItem<*, *>,
         tolerance: V,

@@ -14,23 +14,27 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.*
-import fuookami.ospf.kotlin.core.solver.config.GurobiSolverConfig
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.iis.IISConfig
 import fuookami.ospf.kotlin.core.solver.iis.InfeasibilityAnalyzer
-import fuookami.ospf.kotlin.core.solver.nativeElementName
-import fuookami.ospf.kotlin.core.solver.output.*
-import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.config.GurobiSolverConfig
+import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
+import fuookami.ospf.kotlin.core.solver.nativeElementName
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
 
-/** Gurobi 线性求解器 / Gurobi linear solver */
+/**
+ * Gurobi 线性求解器 / Gurobi linear solver
+ *
+ * @property config 求解器配置 / Solver configuration
+ */
 class GurobiLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: GurobiLinearSolverCallBack? = null
@@ -212,6 +216,12 @@ class GurobiLinearSolver(
         )
     )
 
+    /**
+     * 创建线性模型不可行性分析器 / Create infeasibility analyzers for linear models
+     *
+     * @param config 不可行性分析配置 / Infeasibility analysis configuration
+     * @return 不可行性分析器列表 / Infeasibility analyzers
+     */
     override fun diagnosticAnalyzers(
         config: IISConfig
     ): List<InfeasibilityAnalyzer<LinearTriadModelView>> {
@@ -227,7 +237,7 @@ class GurobiLinearSolver(
      * @param model 线性模型视图 / linear model view
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果 / solving result
-    */
+     */
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -235,6 +245,14 @@ class GurobiLinearSolver(
         return invoke(model, solvingStatusCallBack, null)
     }
 
+    /**
+     * 求解线性模型并支持取消 / Solve a linear model with cancellation support
+     *
+     * @param model 线性模型视图 / Linear model view
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @param cancellationToken 取消令牌 / Cancellation token
+     * @return 求解结果 / Solving result
+     */
     override suspend fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?,
@@ -266,7 +284,7 @@ class GurobiLinearSolver(
      * @param solutionAmount 期望解的数量 / desired number of solutions
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果及多个解 / solving result with multiple solutions
-    */
+     */
     override suspend fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -275,6 +293,15 @@ class GurobiLinearSolver(
         return invoke(model, solutionAmount, solvingStatusCallBack, null)
     }
 
+    /**
+     * 求解线性模型并获取多个解，支持取消 / Solve a linear model for multiple solutions with cancellation support
+     *
+     * @param model 线性模型视图 / Linear model view
+     * @param solutionAmount 期望解的数量 / Desired number of solutions
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @param cancellationToken 取消令牌 / Cancellation token
+     * @return 求解结果及多个解 / Solving result with multiple solutions
+     */
     override suspend fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -351,7 +378,7 @@ private class GurobiLinearSolverImpl(
         ::addGurobiNativeMasking,
     private val nativeBinaryLogicStructures: List<BinaryLogicStructure<*>> = emptyList(),
     private val nativeBinaryLogicWriter: (GRBModel, Map<VariableItemKey, GRBVar>, List<BinaryLogicStructure<*>>) -> Try =
-        ::addGurobiNativeBinaryLogic,
+        ::addGurobiNativeBinaryLogic
 ) : GurobiSolver() {
     var nativePiecewiseFailed: Boolean = false
         private set
@@ -382,7 +409,7 @@ private class GurobiLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 求解结果 / solving result
-    */
+     */
     suspend operator fun invoke(model: LinearTriadModelView): Ret<SolveReport<Flt64>> {
         if (cancellationToken?.isCancellationRequested == true) {
             return Ok(cancelledSolveReport(cancellationToken.record?.reason))
@@ -436,7 +463,7 @@ private class GurobiLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun dump(model: LinearTriadModelView): Try {
         return try {
             warnIgnoredConstraintPriority("gurobi", model.nonNullConstraintPriorityAmount())
@@ -638,7 +665,7 @@ private class GurobiLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
             when (val cancellation = registerCancellation(cancellationToken)) {
@@ -759,7 +786,7 @@ private class GurobiLinearSolverImpl(
      * 分析求解结果 / Analyze solving result
      *
      * @return 以Try包装的分析结果 / the analysis result as Try
-    */
+     */
     private suspend fun analyzeSolution(): Try {
         return try {
             if (status.succeeded) {

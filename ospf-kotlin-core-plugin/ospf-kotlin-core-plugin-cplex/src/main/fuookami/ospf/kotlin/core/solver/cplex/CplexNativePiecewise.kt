@@ -110,10 +110,26 @@ internal fun addCplexNativePiecewise(
                 xLink.addTerm(piecewise.xPoints[index], lambda[index])
                 yLink.addTerm(piecewise.yPoints[index], lambda[index])
             }
-            model.addEq(sum, 1.0, "${piecewise.name}_lambda_sum")
-            model.addEq(input, xLink, "${piecewise.name}_x_link")
-            model.addEq(result, yLink, "${piecewise.name}_y_link")
-            model.addSOS2(lambda, piecewise.xPoints, "${piecewise.name}_sos2")
+            model.addEq(
+                sum,
+                1.0,
+                "${piecewise.name}_lambda_sum"
+            )
+            model.addEq(
+                input,
+                xLink,
+                "${piecewise.name}_x_link"
+            )
+            model.addEq(
+                result,
+                yLink,
+                "${piecewise.name}_y_link"
+            )
+            model.addSOS2(
+                lambda,
+                piecewise.xPoints,
+                "${piecewise.name}_sos2"
+            )
         }
     )
 }

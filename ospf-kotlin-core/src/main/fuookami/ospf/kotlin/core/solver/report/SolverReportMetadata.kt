@@ -2,11 +2,11 @@
 package fuookami.ospf.kotlin.core.solver.report
 
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
-import fuookami.ospf.kotlin.core.solver.config.SCIPSolverConfig
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.config.SCIPSolverConfig
 
 /**
  * Build a redacted snapshot for common and backend-specific solver parameters. /

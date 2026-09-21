@@ -1,25 +1,27 @@
 package fuookami.ospf.kotlin.core.analysis
 
-import fuookami.ospf.kotlin.core.solver.report.ConstraintId
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolveOptions
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolver
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolver
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolveOptions
 
-/** Classification of a constraint across multiple objective targets. */
+/** Classification of a constraint across multiple objective targets. / 跨多个目标条件对约束进行分类。 */
 enum class CriticalityKind {
     LocalBottleneck,
     PersistentBottleneck,
     StructuralBottleneck
 }
 
-/** One target result used to build a multi-target profile. */
+/** One target result used to build a multi-target profile. / 用于构建多目标 profile 的单个 target 结果。 */
 data class CriticalityObservation(
     val target: ObjectiveTarget,
     val status: AnalysisStatus,
@@ -32,17 +34,17 @@ data class CriticalityObservation(
     }
 }
 
-/** Stable multi-target criticality profile. */
+/** Stable multi-target criticality profile. / 稳定的多目标 criticality profile。 */
 data class CriticalityProfile(
     val observations: List<CriticalityObservation>,
     val classifications: Map<ConstraintId, Set<CriticalityKind>>,
     val schemaVersion: String = "1.0"
 ) {
-    /** Constraints classified for a given kind. */
+    /** Constraints classified for a given kind. / 按指定类型分类的约束。 */
     fun constraints(kind: CriticalityKind): Set<ConstraintId> =
         classifications.filterValues { kind in it }.keys
 
-    /** Only proven unreachable targets participate in bottleneck classification. */
+    /** Only proven unreachable targets participate in bottleneck classification. / 只有已证明不可达的目标参与瓶颈分类。 */
     val provenTargetCount: Int
         get() = observations.count { it.status == AnalysisStatus.Unreachable }
 
@@ -105,6 +107,10 @@ data class CriticalityProfile(
  * A constraint in one proven unreachable target is local, in more than one is persistent, and in
  * every proven unreachable target is structural. Unknown/Unsupported/Reachable observations are
  * retained for auditability but never become bottleneck evidence.
+ *
+ * 根据目标观测构建确定性的 profile。
+ * 一个已证明不可达目标中的约束属于局部瓶颈，出现在多个目标中属于持续瓶颈，出现在每个已证明不可达目标中属于结构瓶颈。
+ * Unknown、Unsupported 和 Reachable 观测仅为审计保留，不会形成瓶颈证据。
  */
 fun buildCriticalityProfile(
     observations: List<CriticalityObservation>
@@ -140,6 +146,7 @@ private fun criticalityClassifications(
             if (count > 1) add(CriticalityKind.PersistentBottleneck)
             // A single target is a local observation; structural stability requires a
             // genuinely multi-target profile.
+            // 单个 target 只是局部观测；结构稳定性要求真正的多目标 profile。
             if (total > 1 && count == total) add(CriticalityKind.StructuralBottleneck)
         }
     }
@@ -152,6 +159,10 @@ private fun criticalityClassifications(
  * evidence without reconstructing it from the aggregate profile. Recommendations are derived
  * only from deletion-verified conflicts; an unknown or unsupported target never produces a
  * correction claim.
+ *
+ * 多目标 pipeline 运行的完整结果。
+ * 保留各个报告，使调用方无需从汇总 profile 重建 target、扰动和 conflict 证据即可检查它们。
+ * 修正建议只来源于已通过删除验证的冲突；Unknown 或 Unsupported target 绝不会产生修正结论。
  */
 data class CriticalityProfileAnalysisResult(
     /** One complete pipeline report per requested target, in input order. */
@@ -204,8 +215,8 @@ data class CriticalityProfileAnalysisResult(
 suspend fun analyzeCriticalityTargets(
     pipeline: CriticalConstraintAnalysisPipeline,
     snapshot: ConstraintProgrammingModelSnapshot,
-    baselineSolution: fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution?,
-    baselineObjective: fuookami.ospf.kotlin.math.algebra.number.Flt64?,
+    baselineSolution: ConstraintProgrammingSolution?,
+    baselineObjective: Flt64?,
     baselineProvenOptimal: Boolean,
     objectiveId: String,
     targets: List<ObjectiveTarget>,
@@ -292,7 +303,7 @@ suspend fun analyzeCriticalityTargets(
     val targetStatus = observations
         .map { it.status }
         .reduce(::combineStatus)
-    return fuookami.ospf.kotlin.utils.functional.ok(
+    return ok(
         CriticalityProfileAnalysisResult(
             reports = reports,
             profile = profile,

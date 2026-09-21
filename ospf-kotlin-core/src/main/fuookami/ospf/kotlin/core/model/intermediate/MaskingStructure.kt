@@ -2,17 +2,19 @@ package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.function.hasUsableConditionFlattenedValues
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * 由现有二值 mask 门控的数值结果。 / Numeric result gated by an existing binary mask.
+ *
+ * @param V 数值类型 / Numeric type
  * @property value 条件数值关系及原范围 / Conditional value and original bounds
  * @property mask 保留的输入 mask，可由多个结构共享 / Retained input mask, potentially shared
  * @property converter 数值转换器 / Value converter
@@ -26,10 +28,14 @@ data class MaskingStructure<V>(
     val usage: FunctionUsageSummary = FunctionUsageSummary(),
     val maskDefinition: LinearPolynomial<V>? = null
 ) : DeferredFunctionStructure where V : RealNumber<V>, V : NumberField<V> {
+    /** 条件数值结果列。 / Conditional numeric result column. */
     val resultVariable: AbstractVariableItem<*, *> get() = value.resultVariable
+
     /** 本结构定义并必须保留的公开列。 / Public columns defined and retained by this structure. */
     val retainedResultVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVariable) + if (maskDefinition != null) listOf(mask) else emptyList()
+
+    /** 代表 mask 列的线性多项式。 / Linear polynomial representing the mask column. */
     val maskPolynomial: LinearPolynomial<V>
         get() = LinearPolynomial(listOf(LinearMonomial(converter.one, mask)), converter.zero)
 

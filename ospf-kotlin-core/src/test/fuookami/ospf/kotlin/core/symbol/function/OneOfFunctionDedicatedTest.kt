@@ -1,9 +1,9 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
-import kotlin.test.Test
 import kotlin.test.assertTrue
+import kotlin.test.Test
 
-/** Dedicated contract test for the OneOfFunction symbol. */
+/** [OneOfFunction] 契约测试。 / Dedicated contract tests. */
 class OneOfFunctionDedicatedTest {
     @Test
     fun symbolImplementsMathFunctionContract() {

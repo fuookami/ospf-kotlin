@@ -1,26 +1,27 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
-import kotlinx.coroutines.runBlocking
-import kotlin.test.Test
-import kotlin.test.assertFalse
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
+import kotlin.test.Test
+import kotlinx.coroutines.runBlocking
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.Quadratic
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.core.variable.URealVar
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Ok
 
-/** Dedicated contract test for the QuadraticMaskingRangeFunction symbol. */
+/** [QuadraticMaskingRangeFunction] 契约测试。 / Dedicated contract tests. */
 class QuadraticMaskingRangeFunctionDedicatedTest {
     @Test
     fun symbolImplementsMathFunctionContract() {
@@ -46,7 +47,7 @@ class QuadraticMaskingRangeFunctionDedicatedTest {
 
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         tokens.add(listOf(x, z))
-        val valuesOn = mapOf<fuookami.ospf.kotlin.math.symbol.Symbol, Flt64>(x to Flt64(-2.0), z to Flt64.one)
+        val valuesOn = mapOf<Symbol, Flt64>(x to Flt64(-2.0), z to Flt64.one)
         val valuesOff = valuesOn + (z to Flt64.zero)
         assertEquals(Flt64(4.0), function.evaluate(valuesOn, tokens, IntoValue.Identity, false))
         assertEquals(Flt64.zero, function.evaluate(valuesOff, tokens, IntoValue.Identity, false))
@@ -112,7 +113,7 @@ class QuadraticMaskingRangeFunctionDedicatedTest {
             assertEquals(
                 Flt64.zero,
                 function.evaluate(
-                    mapOf<fuookami.ospf.kotlin.math.symbol.Symbol, Flt64>(x to Flt64(-2.0)),
+                    mapOf<Symbol, Flt64>(x to Flt64(-2.0)),
                     tokens,
                     IntoValue.Identity,
                     false

@@ -1,12 +1,11 @@
-/** CPLEX 求解器基类 / CPLEX solver base */
 package fuookami.ospf.kotlin.core.solver.cplex
 
 import ilog.concert.IloException
 import ilog.cplex.IloCplex
-import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
-import fuookami.ospf.kotlin.core.solver.environmentLost
+import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
+import fuookami.ospf.kotlin.core.solver.environmentLost
 
 /** CPLEX 求解器抽象基类，提供环境初始化和状态分析的通用实现 / CPLEX solver abstract base class, provides common implementation for environment initialization and status analysis */
 abstract class CplexSolver : AutoCloseable {
@@ -30,7 +29,7 @@ abstract class CplexSolver : AutoCloseable {
      *
      * @param name 模型名称 / model name
      * @return 操作结果 / operation result
-    */
+     */
     protected suspend fun init(name: String): Try {
         return try {
             cplex = IloCplex()
@@ -53,7 +52,7 @@ abstract class CplexSolver : AutoCloseable {
      * 分析 CPLEX 求解状态 / Analyze CPLEX solving status
      *
      * @return 操作结果 / operation result
-    */
+     */
     protected suspend fun analyzeStatus(): Try {
         status = when (cplex.status) {
             IloCplex.Status.Optimal -> {

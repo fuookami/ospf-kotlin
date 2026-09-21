@@ -2,16 +2,18 @@ package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.function.LinearPolynomialBounds
 import fuookami.ospf.kotlin.core.symbol.function.finiteBounds
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.symbol.function.LinearPolynomialBounds
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /** 求解器无关的函数结构快照。 / Solver-independent function structure snapshot. */
 interface DeferredFunctionStructure
@@ -28,6 +30,7 @@ data class DeferredFunctionConstraintRegion(
     val firstConstraintIndex: Int,
     val constraintCount: Int
 ) {
+    /** 区域末端的排他索引。 / Exclusive end index of the region. */
     val lastConstraintIndex: Int
         get() = firstConstraintIndex + constraintCount
 }
@@ -35,6 +38,7 @@ data class DeferredFunctionConstraintRegion(
 /**
  * 分段线性函数的结构与 fallback 证明快照。 / Piecewise structure and fallback proof snapshot.
  *
+ * @param V 数值类型 / Numeric type
  * @property input 输入多项式 / Input polynomial
  * @property breakpoints 严格有序的断点 / Strictly ordered breakpoints
  * @property slopes 分段斜率 / Segment slopes
@@ -45,6 +49,7 @@ data class DeferredFunctionConstraintRegion(
  * @property explicitM 可选的显式 Big-M / Optional explicit Big-M
  * @property converter 求解器边界值转换 / Solver-boundary value conversion
  * @property name 函数名称 / Function name
+ * @property capturedInputBounds 创建快照时捕获的输入范围证明 / Input-bound proof captured when the snapshot was created
  */
 data class UnivariateLinearPiecewiseStructure<V>(
     val input: LinearPolynomial<V>,
@@ -57,8 +62,6 @@ data class UnivariateLinearPiecewiseStructure<V>(
     val explicitM: V? = null,
     val converter: IntoValue<V>? = null,
     val name: String = "piecewise",
-    /** Automatic Big-M input bounds captured at snapshot creation; null means explicit M.
-     * 在快照创建时捕获的自动 Big-M 输入范围；null 表示使用显式 M。 */
     val capturedInputBounds: Ret<LinearPolynomialBounds<V>>? = null
 ) : DeferredFunctionStructure where V : RealNumber<V>, V : NumberField<V> {
     internal fun validateFallbackInputBounds(): Try {
@@ -125,7 +128,12 @@ data class UnivariateLinearPiecewiseStructure<V>(
     }
 }
 
-/** ABS helper range captured before later model restrictions. / ABS helper 后续模型限制前捕获的范围。 */
+/**
+ * ABS helper range captured before later model restrictions. / ABS helper 后续模型限制前捕获的范围。
+ *
+ * @property lower 辅助变量下界 / Helper lower bound
+ * @property upper 辅助变量上界 / Helper upper bound
+ */
 data class AbsHelperBoundsSnapshot(
     val lower: Flt64?,
     val upper: Flt64?
@@ -134,6 +142,7 @@ data class AbsHelperBoundsSnapshot(
 /**
  * ABS 函数的结构与 fallback 证明快照。 / Absolute-value structure and fallback proof snapshot.
  *
+ * @param V 数值类型 / Numeric type
  * @property input 输入线性多项式 / Input linear polynomial
  * @property resultVariable 对外结果变量 / Externally visible result variable
  * @property positiveVariable 正部 helper / Positive-part helper
@@ -143,6 +152,8 @@ data class AbsHelperBoundsSnapshot(
  * @property negativeBigM 负部 Big-M / Negative-part Big-M
  * @property converter 值类型转换器 / Value converter
  * @property name 函数名称 / Function name
+ * @property usage 使用语境 / Usage context
+ * @property capturedHelperBounds 创建快照时捕获的辅助变量范围 / Helper bounds captured when the snapshot was created
  */
 data class AbsStructure<V>(
     val input: LinearPolynomial<V>,
@@ -157,6 +168,7 @@ data class AbsStructure<V>(
     val usage: FunctionUsageSummary = FunctionUsageSummary(),
     val capturedHelperBounds: Map<VariableItemKey, AbsHelperBoundsSnapshot> = emptyMap()
 ) : DeferredFunctionStructure where V : RealNumber<V>, V : NumberField<V> {
+    /** fallback 路径需要保留的辅助变量。 / Helper variables retained by the fallback path. */
     val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(positiveVariable, negativeVariable, signVariable)
 
@@ -186,6 +198,7 @@ data class AbsStructure<V>(
 /**
  * MAX 函数的结构与 fallback 快照。 / MAX function structure and fallback snapshot.
  *
+ * @param V 数值类型 / Numeric type
  * @property inputs 输入线性多项式 / Input linear polynomials
  * @property resultVariable 对外结果变量 / Externally visible result variable
  * @property selectorVariables 候选选择变量 / Candidate selector variables
@@ -193,6 +206,8 @@ data class AbsStructure<V>(
  * @property converter 值类型转换器 / Value converter
  * @property name 函数名称 / Function name
  * @property usage 使用语境 / Usage context
+ * @property capturedInputBounds 创建快照时捕获的输入范围证明 / Input-bound proofs captured when the snapshot was created
+ * @property minimum 是否取最小值 / Whether to compute the minimum
  */
 data class MaxStructure<V>(
     val inputs: List<LinearPolynomial<V>>,
@@ -205,6 +220,7 @@ data class MaxStructure<V>(
     val capturedInputBounds: List<LinearPolynomialBounds<V>?>? = null,
     val minimum: Boolean = false
 ) : DeferredFunctionStructure where V : RealNumber<V>, V : NumberField<V> {
+    /** fallback 路径需要保留的选择变量。 / Selector variables retained by the fallback path. */
     val helperVariables: List<AbstractVariableItem<*, *>>
         get() = selectorVariables
 
@@ -244,7 +260,18 @@ data class MaxStructure<V>(
     }
 }
 
-/** 半连续变量的结构与 fallback 快照。 / Semi-continuous variable structure and fallback snapshot. */
+/**
+ * 半连续变量的结构与 fallback 快照。 / Semi-continuous variable structure and fallback snapshot.
+ *
+ * @param V 数值类型 / Numeric type
+ * @property lowerBound 正值下界 / Positive lower bound
+ * @property upperBound 上界 / Upper bound
+ * @property resultVariable 数值结果列 / Numeric result column
+ * @property indicatorVariable 激活指示列 / Activation indicator column
+ * @property converter 数值转换器 / Value converter
+ * @property name 函数名称 / Function name
+ * @property usage 使用语境 / Usage context
+ */
 data class SemiStructure<V>(
     val lowerBound: V,
     val upperBound: V,
@@ -254,6 +281,7 @@ data class SemiStructure<V>(
     val name: String = "semi",
     val usage: FunctionUsageSummary = FunctionUsageSummary()
 ) : DeferredFunctionStructure where V : RealNumber<V>, V : NumberField<V> {
+    /** fallback 路径需要保留的指示列。 / Indicator column retained by the fallback path. */
     val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(indicatorVariable)
 
@@ -265,25 +293,25 @@ data class SemiStructure<V>(
                 LinearInequality(
                     lhs = LinearPolynomial(
                         listOf(
-                            fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial(one, resultVariable),
-                            fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial(-upperBound, indicatorVariable)
+                            LinearMonomial(one, resultVariable),
+                            LinearMonomial(-upperBound, indicatorVariable)
                         ),
                         zero
                     ),
                     rhs = LinearPolynomial(emptyList(), zero),
-                    comparison = fuookami.ospf.kotlin.math.symbol.inequality.Comparison.LE,
+                    comparison = Comparison.LE,
                     name = "${name}_semi_upper"
                 ),
                 LinearInequality(
                     lhs = LinearPolynomial(
                         listOf(
-                            fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial(one, resultVariable),
-                            fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial(-lowerBound, indicatorVariable)
+                            LinearMonomial(one, resultVariable),
+                            LinearMonomial(-lowerBound, indicatorVariable)
                         ),
                         zero
                     ),
                     rhs = LinearPolynomial(emptyList(), zero),
-                    comparison = fuookami.ospf.kotlin.math.symbol.inequality.Comparison.GE,
+                    comparison = Comparison.GE,
                     name = "${name}_semi_lower"
                 )
             )
@@ -418,6 +446,7 @@ data class FunctionUsageSummary(
     val inputShape: FunctionInputShape = FunctionInputShape.Unknown,
     val continuity: PiecewiseContinuity = PiecewiseContinuity.Unknown
 ) {
+    /** 函数结果的使用位置。 / Location where the function result is used. */
     val location: FunctionUsageLocation
         get() = when {
             nestedAsInput -> FunctionUsageLocation.Nested
@@ -428,9 +457,15 @@ data class FunctionUsageSummary(
             else -> FunctionUsageLocation.Unused
         }
 
+    /** 是否必须保留结果变量。 / Whether the result variable must be retained. */
     val requiresResultVariable: Boolean
         get() = inConstraint || nestedAsInput || externallyReferenced || (inObjective && inConstraint)
 
+    /**
+     * 判断是否满足仅目标函数原生接口的条件。 / Check whether objective-only native lowering is supported.
+     *
+     * @return 是否支持仅目标函数原生展开 / Whether objective-only native lowering is supported
+     */
     fun supportsObjectiveOnlyNative(): Boolean =
         location == FunctionUsageLocation.ObjectiveOnly &&
             !nestedAsInput &&
@@ -450,6 +485,12 @@ data class FunctionSolverCapabilities(
     val version: String? = null,
     val supported: Set<FunctionNativeCapability> = emptySet()
 ) {
+    /**
+     * 判断当前求解器是否支持指定接口。 / Check whether the solver supports a capability.
+     *
+     * @param capability 待检查的接口 / Capability to check
+     * @return 是否支持 / Whether it is supported
+     */
     fun supports(capability: FunctionNativeCapability): Boolean = capability in supported
 }
 
@@ -501,6 +542,7 @@ fun decideFunctionLowering(
 /**
  * 汇总尚未规范化的多项式引用。 / Summarize references in polynomials before normalization.
  *
+ * @param V 数值类型 / Numeric type
  * @param resultVariable 函数结果变量 / Function result variable
  * @param objectivePolynomials 目标多项式 / Objective polynomials
  * @param constraints 原始不等式 / Original inequalities

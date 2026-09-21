@@ -4,18 +4,18 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.core.model.intermediate.AbsHelperBoundsSnapshot
-import fuookami.ospf.kotlin.core.model.intermediate.AbsStructure
-import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionStructure
-import fuookami.ospf.kotlin.core.model.intermediate.generateAbsConstraints
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.model.intermediate.AbsStructure
+import fuookami.ospf.kotlin.core.model.intermediate.generateAbsConstraints
+import fuookami.ospf.kotlin.core.model.intermediate.AbsHelperBoundsSnapshot
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionStructure
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.*
 
 /**
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.core.variable.*
  * 提供 [AbsFunction]，实现 y = |x| 的线性化建模。
  *
  * Provides [AbsFunction] for linearized modeling of y = |x|.
-*/
+ */
 
 /**
  * 绝对值函数 / Absolute value function
@@ -41,7 +41,7 @@ import fuookami.ospf.kotlin.core.variable.*
  * @param bigM Big-M 界限（默认从输入范围推导，失败时回退到 1e6）/ Big-M bound (inferred from input range by default, falls back to 1e6)
  * @property name 函数名称 / function name
  * @property displayName 可选显示名称 / optional display name
-*/
+ */
 class AbsFunction<V>(
     val polynomial: LinearPolynomial<V>,
     converter: IntoValue<V>,
@@ -153,13 +153,14 @@ class AbsFunction<V>(
     companion object {
         /**
          * 创建绝对值函数实例 / Create an absolute value function instance
+         *
          * @param polynomial 输入线性多项式 / input linear polynomial
          * @param converter 值类型转换器 / value type converter
          * @param bigM Big-M 界限 / Big-M bound
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [AbsFunction] 实例 / [AbsFunction] instance
-        */
+         */
         operator fun <V> invoke(
             polynomial: LinearPolynomial<V>,
             converter: IntoValue<V>,

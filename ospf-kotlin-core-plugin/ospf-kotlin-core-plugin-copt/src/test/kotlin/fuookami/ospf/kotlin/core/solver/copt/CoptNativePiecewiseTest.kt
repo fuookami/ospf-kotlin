@@ -1,13 +1,14 @@
 package fuookami.ospf.kotlin.core.solver.copt
 
-import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.test.Test
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.core.solver.NativePiecewiseData
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.functional.Failed
 
+/** COPT 原生 PWL 定向测试。 / Directed tests for the COPT native PWL writer. */
 class CoptNativePiecewiseTest {
     private val inputKey = VariableItemKey(UInt64(1), 0)
     private val resultKey = VariableItemKey(UInt64(2), 0)

@@ -3,22 +3,22 @@
 /** 平衡三值化函数符号 / Balanced ternaryzation function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.token.AddableTokenCollection
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.BinVar
+import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * 平衡三值化函数符号 / Balance ternaryzation function symbol
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [BalanceTernaryzationFunction]，将输入映射到 {-1, 0, 1}。
  *
  * Provides [BalanceTernaryzationFunction] for mapping inputs to {-1, 0, 1}.
-*/
+ */
 
 /**
  * 平衡三值化函数：将 x 映射为 sign(x) 取值 {-1, 0, 1}。 / Balance Ternaryzation function: maps x to sign(x) in {-1, 0, 1}.
@@ -56,7 +56,12 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  * @property strictBoundary 双侧严格间隔 / Strict gap on both sides
  * @property fallbackBigM 输入无有限界时使用的回退 Big-M / fallback Big-M used when the input has no finite bounds
-*/
+ * @property resultVar 结果变量 / result variable
+ * @property positiveVar 正分支指示变量 / positive-branch indicator variable
+ * @property negativeVar 负分支指示变量 / negative-branch indicator variable
+ * @property result 结果线性多项式 / result linear polynomial
+ * @property helperVariables 辅助变量集合 / helper variable collection
+ */
 class BalanceTernaryzationFunction<V>(
     val x: LinearPolynomial<V>,
     val epsilon: Flt64 = Flt64(1e-6),
@@ -178,6 +183,7 @@ class BalanceTernaryzationFunction<V>(
     companion object {
         /**
          * 创建平衡三值化函数实例 / Create a balance ternaryzation function instance
+         *
          * @param x 输入线性多项式 / input linear polynomial
          * @param epsilon 零阈值 / zero threshold
          * @param converter 值类型转换器 / value type converter
@@ -186,7 +192,7 @@ class BalanceTernaryzationFunction<V>(
          * @param strictBoundary 双侧严格间隔 / Strict gap on both sides
          * @param fallbackBigM 输入无有限界时使用的回退 Big-M / fallback Big-M used when the input has no finite bounds
          * @return [BalanceTernaryzationFunction] 实例 / [BalanceTernaryzationFunction] instance
-        */
+         */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             epsilon: Flt64 = Flt64(1e-6),

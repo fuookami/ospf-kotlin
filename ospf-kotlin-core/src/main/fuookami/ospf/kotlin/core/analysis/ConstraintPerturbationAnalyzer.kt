@@ -4,20 +4,20 @@ package fuookami.ospf.kotlin.core.analysis
 import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
 import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
 import fuookami.ospf.kotlin.core.solver.report.ConstraintId
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.ok
 
 /** Perturbation operation applied to one original constraint. / 施加到一个原始约束的扰动操作。 */
 enum class ConstraintPerturbationKind {
@@ -56,6 +56,16 @@ enum class AdaptivePerturbationOutcome {
 }
 
 /** Policy for adaptive delta growth and optional threshold refinement. / 自适应 delta 增长及可选阈值细化策略。 */
+/**
+ * 自适应 delta 增长及可选阈值细化策略。 / Policy for adaptive delta growth and optional threshold refinement.
+ *
+ * @property initialDelta 第一个正 RHS delta / First positive RHS delta
+ * @property growthFactor 乘法增长因子 / Multiplicative growth factor
+ * @property maxDelta 允许尝试的最大 delta / Largest delta to try
+ * @property maxSteps 增长阶段最多尝试次数 / Maximum number of growth attempts
+ * @property refineThreshold 是否细化首次有效区间 / Whether to refine the first effective interval
+ * @property refinementIterations 二分细化最多调用次数 / Maximum binary refinement calls
+ */
 data class AdaptivePerturbationPolicy(
     /** First positive RHS delta. / 第一个正 RHS delta。 */
     val initialDelta: Flt64 = Flt64.one,
@@ -85,7 +95,16 @@ data class AdaptivePerturbationPolicy(
     }
 }
 
-/** Policy for one constraint's RHS and removal analysis. / 一个约束的 RHS 与删除分析策略。 */
+/** 一个约束的 RHS 与删除分析策略。 / Policy for one constraint's RHS and removal analysis.
+ *
+ * @property deltas 显式正 RHS delta 列表 / Explicit positive RHS deltas
+ * @property adaptive 可选自适应序列 / Optional adaptive sequence
+ * @property removalTest 是否执行单约束删除测试 / Whether to run the single-constraint removal test
+ * @property objectiveTolerance 目标改善判定阈值 / Objective improvement threshold
+ * @property maxSolves 后端求解调用总次数上限 / Maximum backend solve calls
+ * @property timeBudget 此候选的墙钟时间预算 / Wall-clock budget for this candidate
+ * @property warmStart 是否传递上次可行解提示 / Whether to pass the previous feasible solution as a hint
+ */
 data class ConstraintPerturbationPolicy(
     /** Explicit positive RHS deltas. / 显式正 RHS delta 列表。 */
     val deltas: List<Flt64> = listOf(Flt64.one),
@@ -125,7 +144,17 @@ typealias PerturbationPolicy = ConstraintPerturbationPolicy
 /** Compatibility alias for callers naming the operation by its RHS. / 以 RHS 命名操作的调用方兼容别名。 */
 typealias RhsPerturbationPolicy = ConstraintPerturbationPolicy
 
-/** One derived-model solve request. / 一次派生模型求解请求。 */
+/** 一次派生模型求解请求。 / One derived-model solve request.
+ *
+ * @property baselineSnapshot 不可变基线 snapshot / Immutable baseline snapshot
+ * @property derivedSnapshot 不可变派生 snapshot / Immutable derived snapshot
+ * @property constraintId 候选原始约束 ID / Candidate original constraint ID
+ * @property kind 施加的操作 / Applied operation
+ * @property delta RHS 请求的 delta / RHS delta for an RHS request
+ * @property perturbedRhs 可表示时的结果 RHS / Resulting RHS when representable
+ * @property baselineSolution 可用时的基线 incumbent / Baseline incumbent, when available
+ * @property warmStart 启用时使用的上一次可行解 / Previous feasible solution used as a warm start
+ */
 data class ConstraintPerturbationRequest(
     /** Immutable baseline snapshot. / 不可变基线 snapshot。 */
     val baselineSnapshot: ConstraintProgrammingModelSnapshot,
@@ -153,7 +182,14 @@ data class ConstraintPerturbationRequest(
         get() = kind == ConstraintPerturbationKind.Removal
 }
 
-/** Backend result for one perturbed model. / 一次扰动模型的后端结果。 */
+/** 一次扰动模型的后端结果。 / Backend result for one perturbed model.
+ *
+ * @property status 求解结论 / Solve conclusion
+ * @property objectiveValue 可用时的新最优目标值 / New optimal objective value, when available
+ * @property solution 可用时的新 incumbent / New incumbent, when available
+ * @property solveTime 后端求解耗时 / Backend solve duration
+ * @property message 保留用于诊断的后端详情 / Backend detail retained for diagnostics
+ */
 data class ConstraintPerturbationSolveResult(
     /** Solve conclusion, preserving Unknown and Unsupported. / 保留 Unknown 与 Unsupported 的求解结论。 */
     val status: AnalysisStatus,
@@ -175,11 +211,29 @@ data class ConstraintPerturbationSolveResult(
 
 /** Backend-neutral reoptimization hook. / 与后端无关的重新优化钩子。 */
 fun interface ConstraintPerturbationBackend {
-    /** Solve the request's immutable derived model. / 求解请求中的不可变派生模型。 */
+    /** 求解请求中的不可变派生模型。 / Solve the request's immutable derived model.
+     *
+     * @param request 派生模型求解请求 / Derived-model solve request
+     * @return 后端求解结果 / Backend solve result
+     */
     suspend fun solve(request: ConstraintPerturbationRequest): Ret<ConstraintPerturbationSolveResult>
 }
 
-/** One observed perturbation point. / 一个扰动观测点。 */
+/** 一个扰动观测点。 / One observed perturbation point.
+ *
+ * @property constraintId 候选原始约束 ID / Candidate original constraint ID
+ * @property kind RHS 或删除操作 / RHS or removal operation
+ * @property delta RHS delta，删除时为 null / RHS delta, null for removal
+ * @property perturbedRhs 结果 RHS，无法派生时为 null / Resulting RHS, null when not derivable
+ * @property status 后端求解状态 / Backend solve status
+ * @property baselineObjective 基线目标值 / Baseline objective
+ * @property newObjective 扰动后的目标值 / Perturbed objective
+ * @property objectiveImprovement 按优化方向计算的改善量 / Improvement in the optimization direction
+ * @property integerPatternChanged incumbent 整数结构是否变化 / Whether the incumbent integer pattern changed
+ * @property solveTime 后端耗时 / Backend duration
+ * @property outcome 区分有效、无效与未知 / Outcome distinguishing effective, no-effect, and unknown
+ * @property message 诊断详情 / Diagnostic detail
+ */
 data class ConstraintPerturbationObservation(
     /** Candidate original constraint. / 候选原始约束。 */
     val constraintId: ConstraintId,
@@ -215,7 +269,14 @@ data class ConstraintPerturbationObservation(
         get() = if (kind == ConstraintPerturbationKind.Removal) outcome == PerturbationOutcome.Effective else null
 }
 
-/** Summary of adaptive probing. / 自适应探测汇总。 */
+/** 自适应探测汇总。 / Summary of adaptive probing.
+ *
+ * @property outcome 自适应结论 / Adaptive conclusion
+ * @property firstEffectiveDelta 首次有效 delta / First effective delta
+ * @property lowerBound 阈值区间已证明无效的下端点 / Proven no-effect lower endpoint
+ * @property upperBound 阈值区间已证明有效的上端点 / Proven effective upper endpoint
+ * @property attempts 自适应观测数量 / Number of adaptive observations
+ */
 data class AdaptivePerturbationResult(
     /** Adaptive conclusion. / 自适应结论。 */
     val outcome: AdaptivePerturbationOutcome,
@@ -237,7 +298,16 @@ data class AdaptivePerturbationResult(
         get() = upperBound
 }
 
-/** Report for one candidate constraint. / 一个候选约束的扰动报告。 */
+/** 一个候选约束的扰动报告。 / Report for one candidate constraint.
+ *
+ * @property constraintId 候选原始约束 ID / Candidate original constraint ID
+ * @property status 聚合分析状态 / Aggregate analysis status
+ * @property baselineObjective 基线目标值 / Baseline objective
+ * @property observations 显式及自适应 RHS 观测 / Explicit and adaptive RHS observations
+ * @property adaptive 自适应策略汇总 / Adaptive summary
+ * @property removal 可选单约束删除观测 / Optional single-removal observation
+ * @property message 诊断详情 / Diagnostic detail
+ */
 data class ConstraintPerturbationReport(
     /** Candidate original constraint. / 候选原始约束。 */
     val constraintId: ConstraintId,
@@ -280,7 +350,13 @@ class ConstraintPerturbationAnalyzer(
     /** Optional reoptimization backend. / 可选重新优化后端。 */
     private val backend: ConstraintPerturbationBackend? = null
 ) {
-    /** Analyze one candidate using the session baseline and cache the report. / 使用 session 基线分析一个候选并缓存报告。 */
+    /** 使用 session 基线分析一个候选并缓存报告。 / Analyze one candidate using the session baseline and cache the report.
+     *
+     * @param session 分析 session / Analysis session
+     * @param constraintId 候选约束 ID / Candidate constraint ID
+     * @param policy 扰动策略 / Perturbation policy
+     * @return 扰动报告结果 / Perturbation report result
+     */
     suspend fun analyze(
         session: CriticalConstraintAnalysisSession,
         constraintId: ConstraintId,
@@ -316,7 +392,16 @@ class ConstraintPerturbationAnalyzer(
         }
     }
 
-    /** Analyze one candidate snapshot with an explicit baseline. / 使用显式基线分析一个候选 snapshot。 */
+    /** 使用显式基线分析一个候选 snapshot。 / Analyze one candidate snapshot with an explicit baseline.
+     *
+     * @param snapshot 不可变 CP snapshot / Immutable CP snapshot
+     * @param constraintId 候选约束 ID / Candidate constraint ID
+     * @param baselineSolution 可选基线解 / Optional baseline solution
+     * @param baselineObjective 可选基线目标值 / Optional baseline objective
+     * @param capabilityMatrix 分析能力矩阵 / Analysis capability matrix
+     * @param policy 扰动策略 / Perturbation policy
+     * @return 扰动报告结果 / Perturbation report result
+     */
     suspend fun analyze(
         snapshot: ConstraintProgrammingModelSnapshot,
         constraintId: ConstraintId,

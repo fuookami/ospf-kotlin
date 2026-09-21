@@ -14,9 +14,16 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- MyBatis-Plus 3.5.17 publishes Spring Boot 2.7 coordinates transitively.
-                 Override only the Boot artifacts here so the project's Kotlin and other
-                 dependency versions remain controlled by ospf-kotlin-dependencies. -->
+            <!--
+                MyBatis-Plus 3.5.17 会传递引入 Spring Boot 2.7 的依赖坐标。
+                此处仅覆盖 Spring Boot 组件，Kotlin 及其他依赖版本仍由
+                ospf-kotlin-dependencies 统一管理。
+
+                MyBatis-Plus 3.5.17 transitively brings in Spring Boot 2.7 dependency
+                coordinates. Only the Spring Boot artifacts are overridden here; Kotlin
+                and other dependency versions remain controlled by
+                ospf-kotlin-dependencies.
+            -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot</artifactId>
@@ -114,7 +121,7 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- MyBatis-Plus -->
+        <!-- MyBatis-Plus 依赖 / MyBatis-Plus dependency -->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-boot-starter</artifactId>

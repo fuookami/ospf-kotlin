@@ -105,7 +105,11 @@ internal fun addCoptNativePiecewise(
                 "The current COPT SDK does not expose addSos(Var[], double[], int): Sos"
         )
     }
-    when (val validation = validateCoptNativePiecewiseData(variables.keys, data, COPT.INFINITY)) {
+    when (val validation = validateCoptNativePiecewiseData(
+        variableKeys = variables.keys,
+        data = data,
+        infinity = COPT.INFINITY
+    )) {
         is Ok -> {}
         is Failed -> return Failed(validation.error)
         is Fatal -> return Fatal(validation.errors)

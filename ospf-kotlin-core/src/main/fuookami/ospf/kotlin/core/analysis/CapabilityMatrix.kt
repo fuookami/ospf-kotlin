@@ -1,18 +1,18 @@
 /** Analysis capability declaration and dispatch helpers. / 分析能力声明与调度辅助。 */
 package fuookami.ospf.kotlin.core.analysis
 
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingFeature
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSupportLevel
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
+import fuookami.ospf.kotlin.core.model.constraint_programming.NoOverlap
 import fuookami.ospf.kotlin.core.model.constraint_programming.Cumulative
 import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
-import fuookami.ospf.kotlin.core.model.constraint_programming.NoOverlap
-import fuookami.ospf.kotlin.core.solver.report.SolverCapabilities
-import fuookami.ospf.kotlin.core.solver.report.SolverDescriptor
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
 import fuookami.ospf.kotlin.core.solver.report.SolverModelType
+import fuookami.ospf.kotlin.core.solver.report.SolverDescriptor
+import fuookami.ospf.kotlin.core.solver.report.SolverCapabilities
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingFeature
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSupportLevel
 
-/** Analysis operations whose backend support can be dispatched. */
+/** 后端支持可以被调度的分析操作。 / Analysis operations whose backend support can be dispatched. */
 enum class AnalysisCapability {
     Activity,
     FixedIntegerLpSensitivity,
@@ -41,15 +41,26 @@ enum class CapabilitySupport {
     Unsupported
 }
 
-/** Compatibility alias for callers that prefer the longer name. */
+/** 偏好完整名称的调用方使用的兼容别名。 / Compatibility alias for callers that prefer the longer name. */
 typealias AnalysisCapabilitySupport = CapabilitySupport
 
 /**
- * Solver-neutral capability matrix used by analysis dispatch.
+ * 用于分析调度、与求解器无关的能力矩阵。 / Solver-neutral capability matrix used by analysis dispatch.
  *
- * The primitive flags mirror `SolverCapabilities`; the analysis map allows a
- * backend adapter to override a stage when its support depends on details
+ * 基础标志映射 `SolverCapabilities`；当某阶段的支持取决于通用求解器描述符无法推断的细节时，
+ * 分析能力映射允许后端适配器覆盖该阶段。 / The primitive flags mirror `SolverCapabilities`; the
+ * analysis map allows a backend adapter to override a stage when its support depends on details
  * that cannot be inferred from the generic solver descriptor.
+ *
+ * @property modelTypes 支持的求解器模型类型 / Supported solver model types
+ * @property nativeAssumptionSolving 是否原生支持 assumption 求解 / Whether assumption solving is native
+ * @property nativeUnsatCore 是否原生支持 unsat core / Whether unsat-core extraction is native
+ * @property fallbackSatisfactionOnly 是否支持仅满足性回退 / Whether satisfaction-only fallback is available
+ * @property dual 是否支持对偶值 / Whether dual values are available
+ * @property warmStart 是否支持 warm start / Whether warm starts are supported
+ * @property exactCpLowering 是否支持精确 CP 降阶 / Whether exact CP lowering is supported
+ * @property constraintProgrammingFeatures CP 特性支持级别 / CP feature support levels
+ * @property analysisCapabilities 显式分析能力覆盖项 / Explicit analysis capability overrides
  */
 data class CapabilityMatrix(
     val modelTypes: Set<SolverModelType> = emptySet(),
@@ -66,17 +77,29 @@ data class CapabilityMatrix(
     val lpDual: Boolean
         get() = dual
 
-    /** Return the declared or inferred support for an operation. */
+    /** 返回操作声明或推断出的支持级别。 / Return the declared or inferred support for an operation.
+     *
+     * @param capability 要查询的分析操作 / Analysis operation to query
+     * @return 操作支持级别 / Operation support level
+     */
     fun support(capability: AnalysisCapability): CapabilitySupport {
         return analysisCapabilities[capability] ?: inferredSupport(capability)
     }
 
-    /** Conditional support is usable after the analyzer performs its checks. */
+    /** 分析器完成检查后即可使用条件支持。 / Conditional support is usable after the analyzer performs its checks.
+     *
+     * @param capability 要检查的分析操作 / Analysis operation to check
+     * @return 是否存在可用实现 / Whether a usable implementation exists
+     */
     fun supports(capability: AnalysisCapability): Boolean {
         return support(capability) != CapabilitySupport.Unsupported
     }
 
-    /** Whether the declared support is native rather than a framework fallback. */
+    /** 声明的支持是否为原生实现而非框架回退。 / Whether the declared support is native rather than a framework fallback.
+     *
+     * @param capability 要检查的分析操作 / Analysis operation to check
+     * @return 是否为原生支持 / Whether native support is declared
+     */
     fun isNative(capability: AnalysisCapability): Boolean {
         return when (capability) {
             AnalysisCapability.AssumptionSolving -> nativeAssumptionSolving
@@ -87,12 +110,20 @@ data class CapabilityMatrix(
         }
     }
 
-    /** CP feature support with the existing CP support-level vocabulary. */
+    /** 使用现有 CP 支持级别词汇查询 CP 特性支持。 / CP feature support with the existing CP support-level vocabulary.
+     *
+     * @param feature 要查询的 CP 特性 / CP feature to query
+     * @return CP 特性支持级别 / CP feature support level
+     */
     fun cpSupport(feature: ConstraintProgrammingFeature): ConstraintProgrammingSupportLevel {
         return constraintProgrammingFeatures[feature] ?: ConstraintProgrammingSupportLevel.Unsupported
     }
 
-    /** Whether a CP feature is available at native or exact-lowering level. */
+    /** CP 特性是否以原生或精确降阶级别可用。 / Whether a CP feature is available at native or exact-lowering level.
+     *
+     * @param feature 要检查的 CP 特性 / CP feature to check
+     * @return CP 特性是否可用 / Whether the CP feature is available
+     */
     fun supports(feature: ConstraintProgrammingFeature): Boolean {
         return cpSupport(feature) != ConstraintProgrammingSupportLevel.Unsupported
     }
@@ -161,19 +192,26 @@ data class CapabilityMatrix(
     }
 
     companion object {
-        /** Build a matrix from the existing solver descriptor. */
+        /** 从现有求解器描述符构造矩阵。 / Build a matrix from the existing solver descriptor.
+         *
+         * @param descriptor 求解器描述符 / Solver descriptor
+         * @return 能力矩阵 / Capability matrix
+         */
         fun from(descriptor: SolverDescriptor): CapabilityMatrix {
             return from(descriptor.capabilities)
         }
 
-        /** Build a matrix from the existing solver capability record. */
+        /** 从现有求解器能力记录构造矩阵。 / Build a matrix from the existing solver capability record.
+         *
+         * @param capabilities 求解器能力记录 / Solver capability record
+         * @return 能力矩阵 / Capability matrix
+         */
         fun from(capabilities: SolverCapabilities): CapabilityMatrix {
             val cpFeatures = capabilities.constraintProgrammingFeatures.toMap()
-            // A satisfaction-only fallback may only be claimed when the backend actually declares
-            // a CP satisfaction path. Deriving it from "any model type is present" made a
-            // linear/MIP-only backend advertise a fallback it cannot honour.
-            // 只有在后端确实声明了 CP 满足路径时，才允许声称 satisfaction-only 回退。
-            // 以"存在任意模型类型"推导会让仅支持线性/MIP 的后端声称自己无法兑现的回退。
+            // A satisfaction-only fallback may only be claimed when the backend declares a CP
+            // satisfaction path. / 只有后端声明 CP 满足路径时，才允许声称 satisfaction-only 回退。
+            // Deriving it from any model type made linear/MIP-only backends advertise an unusable
+            // fallback. / 从任意模型类型推导会让仅支持线性/MIP 的后端声称无法兑现的回退。
             val cpSatisfaction = cpFeatures[ConstraintProgrammingFeature.BooleanLogic] != null &&
                 cpFeatures[ConstraintProgrammingFeature.BooleanLogic] != ConstraintProgrammingSupportLevel.Unsupported
             return CapabilityMatrix(

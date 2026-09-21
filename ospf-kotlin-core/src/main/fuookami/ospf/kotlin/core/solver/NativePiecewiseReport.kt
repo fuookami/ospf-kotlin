@@ -5,22 +5,22 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.intermediate.AbsStructure
-import fuookami.ospf.kotlin.core.model.intermediate.BinaryLogicStructure
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.intermediate.MaxStructure
 import fuookami.ospf.kotlin.core.model.intermediate.SemiStructure
-import fuookami.ospf.kotlin.core.model.intermediate.IndicatorStructure
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.intermediate.MaskingStructure
+import fuookami.ospf.kotlin.core.model.intermediate.IndicatorStructure
+import fuookami.ospf.kotlin.core.model.intermediate.BinaryLogicStructure
 import fuookami.ospf.kotlin.core.model.intermediate.UnivariateLinearPiecewiseStructure
-import fuookami.ospf.kotlin.core.solver.report.AuditFingerprint
-import fuookami.ospf.kotlin.core.solver.report.ConstraintEvaluation
+import fuookami.ospf.kotlin.core.token.Token
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.solver.report.SolveReport
 import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.report.AuditFingerprint
 import fuookami.ospf.kotlin.core.solver.report.ConstraintRelation
 import fuookami.ospf.kotlin.core.solver.report.SolveFingerprinting
-import fuookami.ospf.kotlin.core.solver.report.SolveReport
+import fuookami.ospf.kotlin.core.solver.report.ConstraintEvaluation
 import fuookami.ospf.kotlin.core.solver.report.toNormalizedMathematicalModel
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.token.Token
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
 
 private val PIECEWISE_TOLERANCE = Flt64(1e-6)
@@ -848,6 +848,10 @@ private fun nativeFingerprint(
  * @param backendName backend 名称，用于关系 ID 和指纹 schema / Backend name used for relation IDs and fingerprint schema
  * @param absStructures 原生处理的绝对值结构 / Absolute-value structures handled natively
  * @param maxStructures 原生处理的最大值结构 / Maximum-value structures handled natively
+ * @param semiStructures 原生处理的半连续结构 / Semi-continuous structures handled natively
+ * @param binaryLogicStructures 原生处理的二元逻辑结构 / Binary-logic structures handled natively
+ * @param indicatorStructures 原生处理的指示结构 / Indicator structures handled natively
+ * @param maskingStructures 原生处理的门控结构 / Masking structures handled natively
  * @return 恢复后的求解报告或错误 / Restored solve report or an error
  */
 public fun restoreNativePiecewiseSolution(
@@ -1032,7 +1036,7 @@ public fun restoreNativePiecewiseSolution(
             if (!second.isFinite() || !output.isFinite()) return failure("Non-finite difference solution")
             val roundedSecond = if (second >= 0.5) 1.0 else 0.0
             val expected = roundedFlag - roundedSecond
-            val difference = maxOf(kotlin.math.abs(output - expected), roundedFlag + roundedSecond - 1.0)
+            val difference = maxOf(abs(output - expected), roundedFlag + roundedSecond - 1.0)
             indicatorResiduals += ConstraintEvaluation(
                 constraintId = ConstraintId("$backendName-difference:${keyText(combined.resultKey)}"),
                 lhs = Flt64(output),
@@ -1051,7 +1055,7 @@ public fun restoreNativePiecewiseSolution(
             val output = solution.values.getOrNull(outputColumn)?.toDouble() ?: return failure("Conjunction result value missing")
             if (!second.isFinite() || !output.isFinite()) return failure("Non-finite conjunction solution")
             val expected = if (roundedFlag == 1.0 && second >= 0.5) 1.0 else 0.0
-            val difference = kotlin.math.abs(output - expected)
+            val difference = abs(output - expected)
             indicatorResiduals += ConstraintEvaluation(
                 constraintId = ConstraintId("$backendName-conjunction:${keyText(combined.resultKey)}"),
                 lhs = Flt64(output),
@@ -1070,12 +1074,12 @@ public fun restoreNativePiecewiseSolution(
             val side = solution.values.getOrNull(sideColumn)?.toDouble() ?: return failure("Zero-band side value missing")
             if (!side.isFinite()) return failure("Non-finite zero-band side value")
             val roundedSide = if (side >= 0.5) 1.0 else 0.0
-            sideIntegrality = kotlin.math.abs(side - roundedSide)
-            if (!active) kotlin.math.abs(input) else if (roundedSide == 1.0) input else -input
+            sideIntegrality = abs(side - roundedSide)
+            if (!active) abs(input) else if (roundedSide == 1.0) input else -input
         }
         val bound = if (active) structure.tolerance else band?.tolerance ?: 0.0
         val violation = maxOf(0.0, if (active) bound - measuredInput else measuredInput - bound,
-            kotlin.math.abs(flag - roundedFlag), sideIntegrality)
+            abs(flag - roundedFlag), sideIntegrality)
         indicatorResiduals += ConstraintEvaluation(
             constraintId = ConstraintId("$backendName-${if (band == null) "indicator" else "zero-band"}:${keyText(structure.resultKey)}"),
             lhs = Flt64(measuredInput),
@@ -1091,8 +1095,8 @@ public fun restoreNativePiecewiseSolution(
             val equivalent = solution.values.getOrNull(column)?.toDouble()
                 ?: return failure("Indicator equivalent result value missing")
             if (!equivalent.isFinite()) return failure("Non-finite indicator equivalent result")
-            val difference = kotlin.math.abs(equivalent - flag)
-            val integrality = kotlin.math.abs(equivalent - if (equivalent >= 0.5) 1.0 else 0.0)
+            val difference = abs(equivalent - flag)
+            val integrality = abs(equivalent - if (equivalent >= 0.5) 1.0 else 0.0)
             val equivalentViolation = maxOf(difference, integrality)
             indicatorResiduals += ConstraintEvaluation(
                 constraintId = ConstraintId("$backendName-indicator-equivalence:${keyText(structure.resultKey)}:${keyText(key)}"),
@@ -1115,7 +1119,7 @@ public fun restoreNativePiecewiseSolution(
             }
             if (!consequentFlag.isFinite() || !consequentInput.isFinite()) return failure("Non-finite implied solution")
             val linkViolation = maxOf(0.0, flag - consequentFlag,
-                kotlin.math.abs(consequentFlag - if (consequentFlag >= 0.5) 1.0 else 0.0))
+                abs(consequentFlag - if (consequentFlag >= 0.5) 1.0 else 0.0))
             indicatorResiduals += ConstraintEvaluation(
                 constraintId = ConstraintId("$backendName-imply-link:${keyText(value.resultKey)}"),
                 lhs = Flt64(flag),
@@ -1150,7 +1154,7 @@ public fun restoreNativePiecewiseSolution(
             }
             if (!output.isFinite() || !trueValue.isFinite()) return failure("Non-finite conditional value solution")
             val expected = if (roundedFlag == 1.0) trueValue else 0.0
-            val valueViolation = kotlin.math.abs(output - expected)
+            val valueViolation = abs(output - expected)
             indicatorResiduals += ConstraintEvaluation(
                 constraintId = ConstraintId("$backendName-conditional-value:${keyText(value.resultKey)}"),
                 lhs = Flt64(output),
@@ -1182,7 +1186,7 @@ public fun restoreNativePiecewiseSolution(
                 definedMask += coefficient * (solution.values.getOrNull(column)?.toDouble() ?: return failure("Mask definition input missing"))
             }
             if (!definedMask.isFinite()) return failure("Non-finite mask definition value")
-            val definitionViolation = kotlin.math.abs(mask - definedMask)
+            val definitionViolation = abs(mask - definedMask)
             indicatorResiduals += ConstraintEvaluation(
                 constraintId = ConstraintId("$backendName-mask-definition:${keyText(structure.value.resultKey)}"),
                 lhs = Flt64(mask),
@@ -1195,8 +1199,8 @@ public fun restoreNativePiecewiseSolution(
             )
         }
         val expected = if (roundedMask == 1.0) input else 0.0
-        val difference = kotlin.math.abs(output - expected)
-        val violation = maxOf(difference, kotlin.math.abs(mask - roundedMask))
+        val difference = abs(output - expected)
+        val violation = maxOf(difference, abs(mask - roundedMask))
         indicatorResiduals += ConstraintEvaluation(
             constraintId = ConstraintId("$backendName-masking:${keyText(structure.value.resultKey)}"),
             lhs = Flt64(output),

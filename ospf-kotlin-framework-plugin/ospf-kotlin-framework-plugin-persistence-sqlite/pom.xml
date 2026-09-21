@@ -18,7 +18,7 @@
     </properties>
 
     <dependencies>
-        <!-- ktorm-sqlite -->
+        <!-- Ktorm SQLite 支持 / Ktorm SQLite support -->
         <dependency>
             <groupId>org.ktorm</groupId>
             <artifactId>ktorm-support-sqlite</artifactId>
@@ -34,13 +34,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- sqlite3-jdbc -->
+        <!-- SQLite JDBC 驱动 / SQLite JDBC driver -->
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
             <version>${splite-jdbc.version}</version>
         </dependency>
-        <!-- dbcp -->
+        <!-- DBCP 连接池 / DBCP connection pool -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-dbcp2</artifactId>

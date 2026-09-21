@@ -4,29 +4,31 @@ package fuookami.ospf.kotlin.core.analysis
 import java.math.BigInteger
 import kotlin.math.abs
 import kotlin.math.max
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingComparison
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraintSnapshot
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
 import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
 import fuookami.ospf.kotlin.core.solver.report.BoundSide
-import fuookami.ospf.kotlin.core.solver.report.ConstraintId
 import fuookami.ospf.kotlin.core.solver.report.VariableId
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
 
 /**
- * Computes activity at one immutable CP snapshot and baseline assignment.
+ * 在一个不可变 CP snapshot 与基线赋值上计算活动性。 / Computes activity at one immutable CP snapshot and baseline assignment.
  *
- * Integer comparisons expose an exact scalar slack metric. Global constraints
- * and sparse domains are evaluated through their semantic contract and never
- * receive a fabricated LP-style slack.
+ * 整数比较暴露精确的标量松弛度量；全局约束与稀疏值域按语义契约求值，绝不伪造 LP 风格松弛。
+ * / Integer comparisons expose an exact scalar slack metric. Global constraints and sparse domains
+ * are evaluated through their semantic contract and never receive a fabricated LP-style slack.
  *
  * @property tolerance absolute active tolerance / Active 的绝对容差
  * @property nearlyActiveTolerance upper threshold for NearlyActive / NearlyActive 的上限
@@ -49,12 +51,21 @@ class ConstraintActivityAnalyzer(
         }
     }
 
-    /** Analyze the baseline held by a session, caching the immutable report. */
+    /** 分析 session 持有的基线并缓存不可变报告。 / Analyze the baseline held by a session, caching the immutable report.
+     *
+     * @param session 分析会话 / Analysis session
+     * @return 活动性报告结果 / Activity report result
+     */
     fun analyze(session: CriticalConstraintAnalysisSession): Ret<ConstraintActivityReport> {
         return analyze(session, session.baselineSolution)
     }
 
-    /** Analyze an explicit assignment within a session. */
+    /** 分析 session 中的显式赋值。 / Analyze an explicit assignment within a session.
+     *
+     * @param session 分析会话 / Analysis session
+     * @param solution 要分析的赋值，可为 null / Assignment to analyze, or null
+     * @return 活动性报告结果 / Activity report result
+     */
     fun analyze(
         session: CriticalConstraintAnalysisSession,
         solution: ConstraintProgrammingSolution?
@@ -76,7 +87,12 @@ class ConstraintActivityAnalyzer(
         }
     }
 
-    /** Analyze a snapshot; a null solution yields Unknown records. */
+    /** 分析 snapshot；solution 为 null 时生成 Unknown 记录。 / Analyze a snapshot; a null solution yields Unknown records.
+     *
+     * @param snapshot 不可变 CP snapshot / Immutable CP snapshot
+     * @param solution 要分析的赋值，可为 null / Assignment to analyze, or null
+     * @return 活动性报告结果 / Activity report result
+     */
     fun analyze(
         snapshot: ConstraintProgrammingModelSnapshot,
         solution: ConstraintProgrammingSolution? = null
@@ -96,7 +112,12 @@ class ConstraintActivityAnalyzer(
         return ok(buildReport(snapshot, solution))
     }
 
-    /** Analyze a snapshot with values keyed by stable variable ID. */
+    /** 使用稳定变量 ID 作为键的值映射分析 snapshot。 / Analyze a snapshot with values keyed by stable variable ID.
+     *
+     * @param snapshot 不可变 CP snapshot / Immutable CP snapshot
+     * @param values 按稳定变量 ID 索引的值 / Values keyed by stable variable ID
+     * @return 活动性报告结果 / Activity report result
+     */
     fun analyze(
         snapshot: ConstraintProgrammingModelSnapshot,
         values: Map<VariableId, Int64>
@@ -104,13 +125,18 @@ class ConstraintActivityAnalyzer(
         return analyze(snapshot, ConstraintProgrammingSolution(values = values))
     }
 
-    /** Snapshot a mutable CP model and analyze its baseline assignment. */
+    /** 对可变 CP model 创建 snapshot 并分析其基线赋值。 / Snapshot a mutable CP model and analyze its baseline assignment.
+     *
+     * @param model 可变 CP model / Mutable CP model
+     * @param solution 要分析的赋值，可为 null / Assignment to analyze, or null
+     * @return 活动性报告结果 / Activity report result
+     */
     fun analyze(
         model: ConstraintProgrammingModel,
         solution: ConstraintProgrammingSolution? = null
     ): Ret<ConstraintActivityReport> {
         return when (val snapshot = model.snapshot()) {
-            is fuookami.ospf.kotlin.utils.functional.Ok -> analyze(snapshot.value!!, solution)
+            is Ok -> analyze(snapshot.value!!, solution)
             is Failed -> Failed(snapshot.error)
             is Fatal -> Fatal(snapshot.errors)
         }
@@ -154,7 +180,7 @@ class ConstraintActivityAnalyzer(
     }
 
     private fun activityForConstraint(
-        definition: fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraintSnapshot,
+        definition: ConstraintProgrammingConstraintSnapshot,
         solution: ConstraintProgrammingSolution?
     ): ConstraintActivity {
         val source = DiagnosticSource.Constraint(definition.id)
@@ -238,10 +264,11 @@ class ConstraintActivityAnalyzer(
         val satisfied = evaluated.value!!
         // 只有在语义上存在无歧义标量"边界距离"的 global constraint 才给出 margin；其余按计划 2.2
         // 保持 `SatisfiedWithoutSlackMetric`，绝不伪造 slack。两端（Kotlin / Rust）语义一致。
-        //
-        // Only global constraints with an unambiguous scalar boundary distance receive a margin. The
-        // rest keep `SatisfiedWithoutSlackMetric` per plan 2.2 and never receive fabricated slack. The
-        // semantics match the Rust implementation.
+        // Only global constraints with an unambiguous scalar boundary distance receive a margin.
+        // / 只有语义上存在无歧义标量边界距离的全局约束才会得到 margin。
+        // The rest keep `SatisfiedWithoutSlackMetric` and never receive fabricated slack; both
+        // languages follow the same semantics. / 其余成员保持 `SatisfiedWithoutSlackMetric`，绝不伪造 slack；
+        // 两端实现遵循相同语义。
         val margin = allDifferentMargin(constraint, values)
         if (margin != null) {
             return ConstraintActivity(
@@ -400,8 +427,9 @@ class ConstraintActivityAnalyzer(
             // 少于两个表达式时不存在两两间距。 / Fewer than two expressions means no pairwise gap.
             return null
         }
-        // Keep the pairwise distance in BigInteger: two valid Int64 values can be separated by
-        // more than Long.MAX_VALUE, and computing the gap as Long would wrap to a negative margin.
+        // Keep the pairwise distance in BigInteger because two valid Int64 values can be separated
+        // by more than Long.MAX_VALUE. / 使用 BigInteger 保存两两距离，因为两个合法 Int64 值的差距可能超过 Long.MAX_VALUE。
+        // Computing the gap as Long would wrap to a negative margin. / 若用 Long 计算，差值会回绕成负 margin。
         // 使用 BigInteger 保存两两距离：两个合法 Int64 值的差距可能超过 Long.MAX_VALUE，若先用
         // Long 计算会回绕成负 margin。
         val evaluated = ArrayList<BigInteger>(expressions.size)
@@ -415,7 +443,7 @@ class ConstraintActivityAnalyzer(
         evaluated.sort()
         val minGap = evaluated.zipWithNext { left, right -> right.subtract(left) }.min()
         // 经受控转换边界把整数间距投影为标量 margin。 / Project the integer gap onto the scalar
-        // margin through the controlled conversion boundary.
+        // margin through the controlled conversion boundary. / 通过受控转换边界投影为标量 margin。
         return reportMetric(minGap.subtract(BigInteger.ONE))
     }
 
@@ -483,6 +511,7 @@ class ConstraintActivityAnalyzer(
         val right = BigInteger.valueOf(rhs.toLong())
         return when (comparison) {
             // Equality has no one-sided slack: a non-zero residual is a violation.
+            // / 等式没有单侧 slack：非零残差必须作为违反处理。
             // 等式没有单侧 slack：非零残差必须作为违反处理。
             ConstraintProgrammingComparison.Equal -> right.subtract(left).let {
                 if (it.signum() == 0) it else it.negate().abs()

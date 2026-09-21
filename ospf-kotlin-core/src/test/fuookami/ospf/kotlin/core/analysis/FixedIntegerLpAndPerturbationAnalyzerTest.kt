@@ -1,39 +1,41 @@
 package fuookami.ospf.kotlin.core.analysis
 
-import kotlinx.coroutines.runBlocking
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.test.Test
+import kotlinx.coroutines.runBlocking
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingExpression
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
-import fuookami.ospf.kotlin.core.solver.LinearSolver
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.solver.report.ConstraintId
-import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
-import fuookami.ospf.kotlin.core.solver.report.ProblemStatus
-import fuookami.ospf.kotlin.core.solver.report.ProofStatus
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
 import fuookami.ospf.kotlin.core.solver.report.SolveProof
+import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
+import fuookami.ospf.kotlin.core.solver.report.ProofStatus
 import fuookami.ospf.kotlin.core.solver.report.SolveReport
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.report.ProblemStatus
 import fuookami.ospf.kotlin.core.solver.report.SolveSolution
 import fuookami.ospf.kotlin.core.solver.report.SolutionPresence
 import fuookami.ospf.kotlin.core.solver.report.TerminationReason
-import fuookami.ospf.kotlin.core.solver.report.VariableId
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.solver.LinearSolver
+import fuookami.ospf.kotlin.core.variable.IntVar
 
 class FixedIntegerLpAndPerturbationAnalyzerTest {
     @Test
@@ -63,7 +65,7 @@ class FixedIntegerLpAndPerturbationAnalyzerTest {
     @Test
     fun fixedIntegerLpFixesEveryVariableAndCachesBySession() = runBlocking {
         val model = ConstraintProgrammingModel("fixed-lp", ObjectCategory.Maximum)
-        val x = fuookami.ospf.kotlin.core.variable.IntVar("x")
+        val x = IntVar("x")
         try {
             model.registerVariable(x, IntegerDomain.interval(0, 10).value!!)
             val expression = ConstraintProgrammingExpression.Variable(x)
@@ -121,7 +123,7 @@ class FixedIntegerLpAndPerturbationAnalyzerTest {
     @Test
     fun dualFailureDegradesFixedIntegerLpToUnsupported() = runBlocking {
         val model = ConstraintProgrammingModel("fixed-lp-dual-failure", ObjectCategory.Maximum)
-        val x = fuookami.ospf.kotlin.core.variable.IntVar("x")
+        val x = IntVar("x")
         try {
             model.registerVariable(x, IntegerDomain.interval(0, 2).value!!)
             val expression = ConstraintProgrammingExpression.Variable(x)
@@ -158,7 +160,7 @@ class FixedIntegerLpAndPerturbationAnalyzerTest {
     @Test
     fun missingBaselineRemainsUnknownAndUnsupportedRemainsDistinct() = runBlocking {
         val model = ConstraintProgrammingModel("fixed-lp-unknown")
-        val x = fuookami.ospf.kotlin.core.variable.IntVar("x")
+        val x = IntVar("x")
         try {
             model.registerVariable(x, IntegerDomain.interval(0, 10).value!!)
             val expression = ConstraintProgrammingExpression.Variable(x)
@@ -192,7 +194,7 @@ class FixedIntegerLpAndPerturbationAnalyzerTest {
     @Test
     fun adaptivePerturbationFindsFirstEffectiveDelta() = runBlocking {
         val model = ConstraintProgrammingModel("adaptive", ObjectCategory.Maximum)
-        val x = fuookami.ospf.kotlin.core.variable.IntVar("x")
+        val x = IntVar("x")
         try {
             model.registerVariable(x, IntegerDomain.interval(0, 100).value!!)
             val expression = ConstraintProgrammingExpression.Variable(x)
@@ -258,7 +260,7 @@ class FixedIntegerLpAndPerturbationAnalyzerTest {
     @Test
     fun removalTestUsesDerivedSnapshotAndCanBeCached() = runBlocking {
         val model = ConstraintProgrammingModel("removal", ObjectCategory.Maximum)
-        val x = fuookami.ospf.kotlin.core.variable.IntVar("x")
+        val x = IntVar("x")
         try {
             model.registerVariable(x, IntegerDomain.interval(0, 100).value!!)
             val expression = ConstraintProgrammingExpression.Variable(x)
@@ -324,7 +326,7 @@ class FixedIntegerLpAndPerturbationAnalyzerTest {
     @Test
     fun removalOnlyDoesNotRequireRhsCapability() = runBlocking {
         val model = ConstraintProgrammingModel("removal-only", ObjectCategory.Maximum)
-        val x = fuookami.ospf.kotlin.core.variable.IntVar("x")
+        val x = IntVar("x")
         try {
             model.registerVariable(x, IntegerDomain.interval(0, 100).value!!)
             val expression = ConstraintProgrammingExpression.Variable(x)
@@ -367,7 +369,7 @@ class FixedIntegerLpAndPerturbationAnalyzerTest {
         }
     }
 
-    private fun variableId(variable: fuookami.ospf.kotlin.core.variable.IntVar): VariableId {
+    private fun variableId(variable: IntVar): VariableId {
         return VariableId("${variable.identifier}:${variable.index}")
     }
 }
@@ -401,7 +403,7 @@ private class PrimaryThenDualFailureLinearSolver : LinearSolver {
 
     override suspend fun invoke(
         model: LinearTriadModelView,
-        solutionAmount: fuookami.ospf.kotlin.math.algebra.number.UInt64,
+        solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<Pair<SolveReport<Flt64>, List<List<Flt64>>>> {
         return invoke(model, solvingStatusCallBack).map { it to emptyList() }

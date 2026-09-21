@@ -3,20 +3,20 @@
 /** 逻辑与函数符号 / Logical AND function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.model.intermediate.BinaryLogicOperation
 import fuookami.ospf.kotlin.core.model.intermediate.BinaryLogicStructure
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.functional.*
 
 private fun <V> LinearPolynomial<V>.binaryVariableOrNull(converter: IntoValue<V>): BinVar?
         where V : RealNumber<V>, V : NumberField<V> {
@@ -37,7 +37,7 @@ private fun <V> LinearPolynomial<V>.binaryVariableOrNull(converter: IntoValue<V>
  * 提供 [AndFunction]、[OrFunction]、[NotFunction]、[XorFunction]，
  * 用于将逻辑运算线性化建模。 / Provides [AndFunction], [OrFunction], [NotFunction], and [XorFunction]
  * for linearized modeling of logical operations.
-*/
+ */
 
 /**
  * AND 逻辑函数 / AND logical function
@@ -56,7 +56,7 @@ private fun <V> LinearPolynomial<V>.binaryVariableOrNull(converter: IntoValue<V>
  * @param strictBoundary 严格边界值（默认约 1.6e-9）/ strict boundary value (default about 1.6e-9)
  * @property name 函数名称 / function name
  * @property displayName 可选显示名称 / optional display name
-*/
+ */
 class AndFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
     converter: IntoValue<V>,
@@ -182,6 +182,7 @@ class AndFunction<V>(
     companion object {
         /**
          * 创建 AND 逻辑函数实例 / Create an AND logical function instance
+         *
          * @param polynomials 输入线性多项式列表 / list of input linear polynomials
          * @param converter 值类型转换器 / value type converter
          * @param bigM Big-M 界限 / Big-M bound
@@ -190,7 +191,7 @@ class AndFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [AndFunction] 实例 / [AndFunction] instance
-        */
+         */
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             converter: IntoValue<V>,
@@ -202,13 +203,14 @@ class AndFunction<V>(
 
         /**
          * 从可转换为线性多项式的对象创建 AND 函数 / Create AND function from objects convertible to linear polynomials
+         *
          * @param polynomials 可转换为线性多项式的对象列表 / list of objects convertible to linear polynomials
          * @param converter 值类型转换器 / value type converter
          * @param bigM Big-M 界限 / Big-M bound
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return 包装后的线性函数符号适配器 / wrapped linear function symbol adapter
-        */
+         */
         fun <V> fromLinearPolynomials(
             polynomials: List<ToLinearPolynomial<V>>,
             converter: IntoValue<V>,
@@ -244,7 +246,7 @@ class AndFunction<V>(
  * @param strictBoundary 严格边界值（默认约 1.6e-9）/ strict boundary value (default about 1.6e-9)
  * @property name 函数名称 / function name
  * @property displayName 可选显示名称 / optional display name
-*/
+ */
 class OrFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
     converter: IntoValue<V>,
@@ -369,13 +371,14 @@ class OrFunction<V>(
     companion object {
         /**
          * 创建 OR 逻辑函数实例 / Create an OR logical function instance
+         *
          * @param polynomials 输入线性多项式列表 / list of input linear polynomials
          * @param converter 值类型转换器 / value type converter
          * @param bigM Big-M 界限 / Big-M bound
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [OrFunction] 实例 / [OrFunction] instance
-        */
+         */
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             converter: IntoValue<V>,
@@ -402,7 +405,7 @@ class OrFunction<V>(
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property name 函数名称 / function name
  * @property displayName 可选显示名称 / optional display name
-*/
+ */
 class NotFunction<V>(
     val polynomial: LinearPolynomial<V>,
     converter: IntoValue<V>,
@@ -493,13 +496,14 @@ class NotFunction<V>(
     companion object {
         /**
          * 创建 NOT 逻辑函数实例 / Create a NOT logical function instance
+         *
          * @param polynomial 输入线性多项式 / input linear polynomial
          * @param converter 值类型转换器 / value type converter
          * @param bigM Big-M 界限 / Big-M bound
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [NotFunction] 实例 / [NotFunction] instance
-        */
+         */
         operator fun <V> invoke(
             polynomial: LinearPolynomial<V>,
             converter: IntoValue<V>,
@@ -514,8 +518,7 @@ class NotFunction<V>(
 /**
  * 异或逻辑函数：当且仅当恰好一个输入非零时 y = 1。 / XOR function: y = 1 iff exactly one input is nonzero.
  *
- * 使用非零指示变量，并精确强制结果等价于“恰好一个指示变量为 1”。
- * Uses nonzero indicators and exactly enforces that the result is one iff exactly one indicator is one.
+ * 使用非零指示变量，并精确强制结果等价于“恰好一个指示变量为 1”。 / Uses nonzero indicators and exactly enforces that the result is one iff exactly one indicator is one.
  *
  * @property polynomials 输入线性多项式列表 / List of input linear polynomials
  * @property resultVar 结果变量 / Result variable
@@ -527,7 +530,7 @@ class NotFunction<V>(
  * @param strictBoundary 严格边界值（默认约 1.6e-9）/ strict boundary value (default about 1.6e-9)
  * @property name 函数名称 / function name
  * @property displayName 可选显示名称 / optional display name
-*/
+ */
 class XorFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
     converter: IntoValue<V>,
@@ -624,8 +627,7 @@ class XorFunction<V>(
             "${name}_xor_sum_ub"
         )
 
-        // y >= a_i - sum_{j != i}(a_j).  If exactly a_i is one, this forces y = 1.
-        // 若只有 a_i 为 1，则该行强制 y = 1。
+        // y >= a_i - sum_{j != i}(a_j); if exactly a_i is one, this forces y = 1. / 若只有 a_i 为 1，则该行强制 y = 1。
         for (i in indicatorVars.indices) {
             val monomials = buildList {
                 add(LinearMonomial(one, resultVar))
@@ -641,8 +643,7 @@ class XorFunction<V>(
             )
         }
 
-        // Any selected pair forces y = 0: y + a_i + a_j <= 2.
-        // 任意两个指示变量同时为 1 时，强制 y = 0。
+        // Any selected pair forces y = 0: y + a_i + a_j <= 2. / 任意两个指示变量同时为 1 时，强制 y = 0。
         for (i in indicatorVars.indices) {
             for (j in (i + 1) until indicatorVars.size) {
                 allConstraints += LinearInequality(
@@ -667,13 +668,14 @@ class XorFunction<V>(
     companion object {
         /**
          * 创建 XOR 逻辑函数实例 / Create an XOR logical function instance
+         *
          * @param polynomials 输入线性多项式列表 / list of input linear polynomials
          * @param converter 值类型转换器 / value type converter
          * @param bigM Big-M 界限 / Big-M bound
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [XorFunction] 实例 / [XorFunction] instance
-        */
+         */
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             converter: IntoValue<V>,

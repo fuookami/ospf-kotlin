@@ -4,39 +4,41 @@ package fuookami.ospf.kotlin.core.analysis
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.constraint_programming.BooleanLiteral
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingExpression
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
+import fuookami.ospf.kotlin.core.model.mechanism.MetaConstraintGroup
+import fuookami.ospf.kotlin.core.model.constraint_programming.NoOverlap
 import fuookami.ospf.kotlin.core.model.constraint_programming.Cumulative
 import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
+import fuookami.ospf.kotlin.core.model.constraint_programming.BooleanLiteral
 import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalVariable
-import fuookami.ospf.kotlin.core.model.constraint_programming.NoOverlap
-import fuookami.ospf.kotlin.core.model.mechanism.MetaConstraintGroup
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolver
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolveOptions
-import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingFeasibleOutput
-import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingInfeasibleOutput
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingExpression
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
 import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
 import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingUnknownOutput
-import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingFeasibleOutput
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingInfeasibleOutput
+import fuookami.ospf.kotlin.core.solver.report.VariableId
 import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
 import fuookami.ospf.kotlin.core.solver.report.ProofStatus
 import fuookami.ospf.kotlin.core.solver.report.SolveReport
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
 import fuookami.ospf.kotlin.core.solver.report.TerminationReason
-import fuookami.ospf.kotlin.core.solver.report.VariableId
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolver
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingFeature
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolveOptions
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * Feasibility result for one objective target.
@@ -190,7 +192,7 @@ internal object ConstraintProgrammingSnapshotBuilder {
         // rebinding is required only when conflict checks selectively deactivate evidence.
         // 全部成员激活的普通路径保持 snapshot AST 不变；只有 conflict 选择性停用证据时才需要重绑值域。
         val domains = activeSources?.let { activeDomains(snapshot, it) }.orEmpty()
-        val sourceVariables = LinkedHashMap<VariableId, fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>>()
+        val sourceVariables = LinkedHashMap<VariableId, AbstractVariableItem<*, *>>()
         collectExpressionVariables(snapshot.expressions.map { it.expression }, sourceVariables)
         collectExpressionVariables(snapshot.objectives.map { it.expression }, sourceVariables)
         snapshot.intervals.forEach { interval ->
@@ -461,7 +463,7 @@ internal object ConstraintProgrammingSnapshotBuilder {
 
     private fun collectExpressionVariables(
         expressions: Iterable<ConstraintProgrammingExpression>,
-        target: MutableMap<VariableId, fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>>
+        target: MutableMap<VariableId, AbstractVariableItem<*, *>>
     ) {
         expressions.forEach { expression ->
             when (expression) {
@@ -477,7 +479,7 @@ internal object ConstraintProgrammingSnapshotBuilder {
 
     private fun collectLiteralVariable(
         literal: BooleanLiteral?,
-        target: MutableMap<VariableId, fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>>
+        target: MutableMap<VariableId, AbstractVariableItem<*, *>>
     ) {
         val variable = literal?.variable ?: return
         val id = literal.variableId ?: return
@@ -486,7 +488,7 @@ internal object ConstraintProgrammingSnapshotBuilder {
 
     private fun collectConstraintVariables(
         constraint: ConstraintProgrammingConstraint,
-        target: MutableMap<VariableId, fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>>
+        target: MutableMap<VariableId, AbstractVariableItem<*, *>>
     ) {
         when (constraint) {
             is ConstraintProgrammingConstraint.IntegerComparison -> collectExpressionVariables(listOf(constraint.expression), target)
@@ -701,7 +703,7 @@ class TargetFeasibilityAnalyzer(
 
     private fun unsupportedTargetReport(
         target: ObjectiveTarget,
-        features: Set<fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingFeature>
+        features: Set<ConstraintProgrammingFeature>
     ): TargetFeasibilityReport {
         val names = features.joinToString { it.name }
         return TargetFeasibilityReport(

@@ -2,8 +2,8 @@ package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
 
@@ -15,9 +15,15 @@ import fuookami.ospf.kotlin.core.variable.VariableItemKey
 class MechanismFunctionFallbackTarget(
     private val model: LinearMechanismModel<Flt64>
 ) : DeferredFunctionFallbackTarget {
+    /** 当前约束行数。 / Current number of constraint rows. */
     override val constraintCount: Int
         get() = model.constraints.size
 
+    /** 追加 fallback 约束。 / Append fallback constraints.
+     *
+     * @param constraints 待追加的线性约束 / Linear constraints to append
+     * @return 追加结果 / Append result
+     */
     override fun append(constraints: List<LinearInequality<Flt64>>): Try {
         for (constraint in constraints) {
             when (val result = model.addConstraint(relation = constraint, name = constraint.name)) {
@@ -29,6 +35,11 @@ class MechanismFunctionFallbackTarget(
         return ok
     }
 
+    /** 回滚到指定约束行。 / Roll back to the specified constraint row.
+     *
+     * @param constraintCount 目标约束行数 / Target number of constraint rows
+     * @return 回滚结果 / Rollback result
+     */
     override fun rollback(constraintCount: Int): Try {
         return model.rollbackConstraintsTo(constraintCount)
     }
@@ -83,6 +94,7 @@ class MechanismFunctionFallbackTarget(
  * 在独立约束容器中展开延迟节点，保留源模型。 / Expand deferred nodes in an isolated row container, preserving the source.
  *
  * @param model 尚未编号的机制模型 / Mechanism model before solver indexing
+ * @param nativeFunctionKeys 由调用方负责原生建模的结果变量键 / Result keys whose native relations the caller must build
  * @return 已物化副本；无延迟节点时返回源模型 / Materialized copy, or the source when no nodes are deferred
  */
 internal fun materializeMechanismFunctionFallbacks(

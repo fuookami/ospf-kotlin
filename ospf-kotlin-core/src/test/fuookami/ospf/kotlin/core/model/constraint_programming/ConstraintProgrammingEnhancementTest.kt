@@ -1,31 +1,32 @@
 package fuookami.ospf.kotlin.core.model.constraint_programming
 
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import kotlin.test.Test
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingCheckpointCodec
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingCheckpointSupport
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingCheckpointSupportEvaluator
-import fuookami.ospf.kotlin.core.solver.constraint_programming.FakeConstraintProgrammingSolver
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolveOptions
-import fuookami.ospf.kotlin.core.solver.constraint_programming.PortableConstraintProgrammingConflict
 import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
 import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingUnknownOutput
-import fuookami.ospf.kotlin.core.solver.report.ConstraintId
-import fuookami.ospf.kotlin.core.solver.report.ModelElementOrigin
 import fuookami.ospf.kotlin.core.solver.report.VariableId
 import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
 import fuookami.ospf.kotlin.core.solver.report.SolveHandle
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.report.TerminationReason
+import fuookami.ospf.kotlin.core.solver.report.ModelElementOrigin
+import fuookami.ospf.kotlin.core.solver.constraint_programming.FakeConstraintProgrammingSolver
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolveOptions
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingCheckpointCodec
+import fuookami.ospf.kotlin.core.solver.constraint_programming.PortableConstraintProgrammingConflict
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingCheckpointSupport
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingCheckpointSupportEvaluator
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.IntVar
 
@@ -539,7 +540,7 @@ class ConstraintProgrammingEnhancementTest {
                 ConstraintProgrammingSolveOptions(cancellationToken = handle.token)
             )
             val unknown = assertIs<ConstraintProgrammingUnknownOutput>(assertIs<Ok<*, *, *>>(result).value)
-            assertEquals(fuookami.ospf.kotlin.core.solver.report.TerminationReason.Cancelled, unknown.terminationReason)
+            assertEquals(TerminationReason.Cancelled, unknown.terminationReason)
 
             val captured = ConstraintProgrammingCheckpointCodec.capture(
                 snapshot = model.model.snapshot().value!!,

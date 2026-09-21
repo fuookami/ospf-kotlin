@@ -310,7 +310,6 @@ class ScipFixedIntegerLpBackend(
         val objective: Flt64?
     )
 
-
     /**
      * 把按来源对象编索引的对偶映射回映为原始约束身份。
      *
@@ -448,7 +447,12 @@ fun scipPerturbationBackend(
 }
 
 /**
+ * 构建由真实 SCIP 适配器支持的完整临界约束分析流水线。
+ *
  * Build the complete critical-constraint pipeline backed by real SCIP adapters.
+ *
+ * SCIP 原生 CP 求解器负责目标与冲突分析路径，线性 SCIP 适配器负责固定整数 LP 证据。
+ * 合并后的能力矩阵记录两类能力，并显式保留不支持的 CP 特性，避免将其静默视为线性支持。
  *
  * SCIP's native CP solver supplies the target/conflict path, while the linear SCIP adapter is
  * used for fixed-integer LP evidence. The merged capability matrix records both facts and keeps

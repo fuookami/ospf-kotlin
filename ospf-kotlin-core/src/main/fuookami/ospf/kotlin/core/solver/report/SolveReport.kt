@@ -7,21 +7,23 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.time.Duration
 import kotlinx.serialization.Serializable
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.core.model.basic.Solution
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingFeature
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSupportLevel
-import fuookami.ospf.kotlin.core.solver.output.LinearInfeasibleSolverOutput
-import fuookami.ospf.kotlin.core.solver.output.LinearSolverOutput
-import fuookami.ospf.kotlin.core.solver.output.QuadraticInfeasibleSolverOutput
-import fuookami.ospf.kotlin.core.solver.output.QuadraticSolverOutput
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
+import fuookami.ospf.kotlin.core.solver.output.LinearSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.UnifiedSolverOutput
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.solver.output.QuadraticSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.LinearInfeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.QuadraticInfeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingFeature
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSupportLevel
 
 /** 问题结论 / Problem conclusion */
 enum class ProblemStatus {
@@ -1001,8 +1003,8 @@ private fun SolveDiagnostics<Flt64>.withInfeasibilityEvidence(
  * @return 转换后的报告 / Converted report
  */
 fun <V> SolveReport<Flt64>.convertTo(converter: IntoValue<V>): SolveReport<V>
-        where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>,
-              V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+    where V : RealNumber<V>,
+          V : NumberField<V> {
     return SolveReport(
         schemaVersion = schemaVersion,
         runId = runId,

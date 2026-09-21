@@ -2,21 +2,21 @@
 package fuookami.ospf.kotlin.core.analysis
 
 import java.util.EnumMap
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolver
-import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
-import fuookami.ospf.kotlin.core.solver.report.SolverDescriptor
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolution
+import fuookami.ospf.kotlin.core.solver.report.SolverDescriptor
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSolver
 
-/** Analysis-stage cache buckets reserved for later analyzers. */
+/** 为后续分析器预留的分析阶段缓存桶。 / Analysis-stage cache buckets reserved for later analyzers. */
 enum class AnalysisCacheKind {
     Activity,
     FixedIntegerLp,
@@ -26,12 +26,19 @@ enum class AnalysisCacheKind {
 }
 
 /**
- * Coordinates analysis stages around one immutable CP snapshot.
+ * 围绕一个不可变 CP snapshot 协调分析阶段。 / Coordinates analysis stages around one immutable CP snapshot.
  *
- * This type intentionally does not solve, lower, perturb, or mutate a model.
- * It provides the lifecycle and stable inputs that S1+ analyzers can share.
- * Cache access is internal so algorithm packages in this module can reuse the
- * session without exposing solver artifacts through the public API.
+ * 此类型刻意不求解、降阶、扰动或修改模型；它提供 S1+ 分析器可共享的生命周期与稳定输入。缓存访问
+ * 保持 internal，使本模块算法包可复用 session 而不通过公共 API 暴露 solver 产物。
+ * / This type intentionally does not solve, lower, perturb, or mutate a model. It provides the
+ * lifecycle and stable inputs that S1+ analyzers can share. Cache access is internal so algorithm
+ * packages in this module can reuse the session without exposing solver artifacts through the public API.
+ *
+ * @property baselineSnapshot 不可变模型基线 / Immutable model baseline
+ * @property baselineSolution 可选基线 incumbent / Optional baseline incumbent
+ * @property baselineObjectiveValue 可选基线目标值 / Optional baseline objective value
+ * @property solverDescriptor 用于调度与来源记录的求解器描述 / Solver descriptor for dispatch and provenance
+ * @property capabilityMatrix 分析能力矩阵 / Analysis capability matrix
  */
 class CriticalConstraintAnalysisSession(
     /** Immutable model baseline. / 不可变模型基线。 */
@@ -60,25 +67,25 @@ class CriticalConstraintAnalysisSession(
     @Volatile
     private var closed = false
 
-    /** Compatibility alias for analyzers that call the baseline simply snapshot. */
+    /** 分析器使用的基线 snapshot 兼容别名。 / Compatibility alias for analyzers that call the baseline simply snapshot. */
     val snapshot: ConstraintProgrammingModelSnapshot
         get() = baselineSnapshot
 
-    /** Compatibility alias for the baseline objective. */
+    /** 基线目标值兼容别名。 / Compatibility alias for the baseline objective. */
     val baselineObjective: Flt64?
         get() = baselineObjectiveValue
 
-    /** Whether this session has released its analysis caches. */
+    /** session 是否已释放分析缓存。 / Whether this session has released its analysis caches. */
     val isClosed: Boolean
         get() = closed
 
-    /** Current cache sizes, useful for lifecycle tests and diagnostics. */
+    /** 当前缓存大小，便于生命周期测试与诊断。 / Current cache sizes, useful for lifecycle tests and diagnostics. */
     val cacheSizes: Map<AnalysisCacheKind, Int>
         get() = synchronized(caches) {
             AnalysisCacheKind.values().associateWith { caches[it]?.size ?: 0 }
         }
 
-    /** Remove all derived analysis cache entries. */
+    /** 删除所有派生分析缓存项。 / Remove all derived analysis cache entries. */
     fun clearCaches() {
         synchronized(caches) {
             caches.values.forEach { it.clear() }
@@ -123,11 +130,17 @@ class CriticalConstraintAnalysisSession(
 
     companion object {
         /**
-         * Snapshot a mutable CP model and create a session.
+         * 对可变 CP model 创建 snapshot 并生成 session。 / Snapshot a mutable CP model and create a session.
          *
-         * The returned `Ret` preserves the model's existing structured
-         * validation errors and keeps this protocol compatible with the CP
-         * model API.
+         * 返回的 `Ret` 保留 model 已有的结构化校验错误，并保持与 CP model API 的兼容。
+         * / The returned `Ret` preserves the model's existing structured validation errors and keeps
+         * this protocol compatible with the CP model API.
+         *
+         * @param model 可变 CP model / Mutable CP model
+         * @param baselineSolution 可选基线解 / Optional baseline solution
+         * @param baselineObjectiveValue 可选基线目标值 / Optional baseline objective value
+         * @param solverDescriptor 可选求解器描述 / Optional solver descriptor
+         * @return 分析 session 结果 / Analysis session result
          */
         fun from(
             model: ConstraintProgrammingModel,
@@ -145,7 +158,15 @@ class CriticalConstraintAnalysisSession(
             }
         }
 
-        /** Create a session from an already validated immutable snapshot. */
+        /** 从已校验的不可变 snapshot 创建 session。 / Create a session from an already validated immutable snapshot.
+         *
+         * @param snapshot 不可变 CP snapshot / Immutable CP snapshot
+         * @param baselineSolution 可选基线解 / Optional baseline solution
+         * @param baselineObjectiveValue 可选基线目标值 / Optional baseline objective value
+         * @param solverDescriptor 可选求解器描述 / Optional solver descriptor
+         * @param capabilityMatrix 能力矩阵 / Capability matrix
+         * @return 分析 session / Analysis session
+         */
         fun fromSnapshot(
             snapshot: ConstraintProgrammingModelSnapshot,
             baselineSolution: ConstraintProgrammingSolution? = null,
@@ -163,7 +184,15 @@ class CriticalConstraintAnalysisSession(
             )
         }
 
-        /** Create a validated session result from an immutable snapshot. / 从不可变 snapshot 创建带校验结果的安全 session。 */
+        /** 从不可变 snapshot 创建带校验结果的安全 session。 / Create a validated session result from an immutable snapshot.
+         *
+         * @param snapshot 不可变 CP snapshot / Immutable CP snapshot
+         * @param baselineSolution 可选基线解 / Optional baseline solution
+         * @param baselineObjectiveValue 可选基线目标值 / Optional baseline objective value
+         * @param solverDescriptor 可选求解器描述 / Optional solver descriptor
+         * @param capabilityMatrix 能力矩阵 / Capability matrix
+         * @return 带校验结果的分析 session / Validated analysis session result
+         */
         fun tryFromSnapshot(
             snapshot: ConstraintProgrammingModelSnapshot,
             baselineSolution: ConstraintProgrammingSolution? = null,
@@ -187,8 +216,15 @@ class CriticalConstraintAnalysisSession(
         }
 
         /**
-         * Create a session using a solver descriptor without retaining the
-         * solver handle. Solver ownership remains with the caller.
+         * 使用 solver descriptor 创建 session，但不保留 solver 句柄；solver 所有权仍由调用方持有。
+         * / Create a session using a solver descriptor without retaining the solver handle. Solver
+         * ownership remains with the caller.
+         *
+         * @param snapshot 不可变 CP snapshot / Immutable CP snapshot
+         * @param solver 求解器实例，仅读取 descriptor / Solver instance, used only for its descriptor
+         * @param baselineSolution 可选基线解 / Optional baseline solution
+         * @param baselineObjectiveValue 可选基线目标值 / Optional baseline objective value
+         * @return 分析 session / Analysis session
          */
         fun fromSnapshot(
             snapshot: ConstraintProgrammingModelSnapshot,

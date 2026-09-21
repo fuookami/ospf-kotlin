@@ -1,40 +1,43 @@
 package fuookami.ospf.kotlin.core.solver.scip
 
-import kotlinx.coroutines.runBlocking
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.core.analysis.AnalysisStatus
-import fuookami.ospf.kotlin.core.analysis.analyzeCriticalityTargets
-import fuookami.ospf.kotlin.core.analysis.CapabilityMatrix
-import fuookami.ospf.kotlin.core.analysis.ConstraintPerturbationPolicy
-import fuookami.ospf.kotlin.core.analysis.CriticalConstraintAnalysisOptions
-import fuookami.ospf.kotlin.core.analysis.CriticalityProfileAnalysisResult
-import fuookami.ospf.kotlin.core.analysis.FixedIntegerLpRequest
-import fuookami.ospf.kotlin.core.analysis.FixedIntegerLpSensitivityAnalyzer
-import fuookami.ospf.kotlin.core.analysis.FixedIntegerLpSensitivityOptions
-import fuookami.ospf.kotlin.core.analysis.FixedIntegerLpSensitivityReport
-import fuookami.ospf.kotlin.core.analysis.FixedIntegerLpSolveResult
-import fuookami.ospf.kotlin.core.analysis.LocalSensitivityScope
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingExpression
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
-import fuookami.ospf.kotlin.core.solver.constraint_programming.MipBackedConstraintProgrammingSolver
-import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingFeasibleOutput
-import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolverOutput
-import fuookami.ospf.kotlin.core.solver.report.ConstraintId
-import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
-import fuookami.ospf.kotlin.core.solver.report.SolverModelType
-import fuookami.ospf.kotlin.core.solver.report.VariableId
-import fuookami.ospf.kotlin.core.variable.IntVar
+import kotlin.test.Test
+import kotlinx.coroutines.runBlocking
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingExpression
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingFeasibleOutput
+import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.report.SolverModelType
+import fuookami.ospf.kotlin.core.solver.constraint_programming.MipBackedConstraintProgrammingSolver
+import fuookami.ospf.kotlin.core.analysis.AnalysisStatus
+import fuookami.ospf.kotlin.core.analysis.ObjectiveTarget
+import fuookami.ospf.kotlin.core.analysis.CapabilityMatrix
+import fuookami.ospf.kotlin.core.analysis.ConflictValidity
+import fuookami.ospf.kotlin.core.analysis.CriticalityProfile
+import fuookami.ospf.kotlin.core.analysis.FixedIntegerLpRequest
+import fuookami.ospf.kotlin.core.analysis.LocalSensitivityScope
+import fuookami.ospf.kotlin.core.analysis.analyzeCriticalityTargets
+import fuookami.ospf.kotlin.core.analysis.FixedIntegerLpSolveResult
+import fuookami.ospf.kotlin.core.analysis.ConstraintPerturbationPolicy
+import fuookami.ospf.kotlin.core.analysis.FixedIntegerLpSensitivityReport
+import fuookami.ospf.kotlin.core.analysis.CriticalityProfileAnalysisResult
+import fuookami.ospf.kotlin.core.analysis.FixedIntegerLpSensitivityOptions
+import fuookami.ospf.kotlin.core.analysis.CriticalConstraintAnalysisOptions
+import fuookami.ospf.kotlin.core.analysis.FixedIntegerLpSensitivityAnalyzer
+import fuookami.ospf.kotlin.core.variable.IntVar
 
 /**
  * 使用真实 SCIP 验证固定整数 LP 局部有效性与跨后端一致性。
@@ -236,6 +239,7 @@ class ScipCriticalConstraintAnalysisIT {
             assertEquals(AnalysisStatus.Unsupported, report.status, dump)
             assertNotNull(report.message, "an Unsupported dual result must carry a reason [$dump]")
             // 不得出现任何未经验证的数值：要么缺失，要么是有限的真实对偶。
+            // No unverified values may be exposed: every dual must be absent or a finite, genuine value.
             report.sensitivities.forEach { sensitivity ->
                 val dual = sensitivity.dualValue
                 assertTrue(
@@ -244,6 +248,7 @@ class ScipCriticalConstraintAnalysisIT {
                 )
             }
             // 整体降级：不得留下部分对偶集合。
+            // Whole-result degradation must not leave a partial dual set.
             assertEquals(
                 0,
                 report.sensitivities.count { it.dualValue != null },
@@ -295,11 +300,11 @@ class ScipCriticalConstraintAnalysisIT {
                 solver = solver,
                 snapshot = snapshot,
                 targets = listOf(
-                    fuookami.ospf.kotlin.core.analysis.ObjectiveTarget.AtLeast(ObjectiveId("profit"), fuookami.ospf.kotlin.math.algebra.number.Flt64(12.0)),
-                    fuookami.ospf.kotlin.core.analysis.ObjectiveTarget.AtLeast(ObjectiveId("profit"), fuookami.ospf.kotlin.math.algebra.number.Flt64(13.0))
+            ObjectiveTarget.AtLeast(ObjectiveId("profit"), Flt64(12.0)),
+            ObjectiveTarget.AtLeast(ObjectiveId("profit"), Flt64(13.0))
                 )
             )
-            val profile = assertIs<Ok<fuookami.ospf.kotlin.core.analysis.CriticalityProfile, *, *>>(result).value!!
+        val profile = assertIs<Ok<CriticalityProfile, *, *>>(result).value!!
             assertEquals(2, profile.observations.size)
             assertEquals(1, profile.provenTargetCount)
             assertTrue(profile.classifications.isNotEmpty())
@@ -323,11 +328,11 @@ class ScipCriticalConstraintAnalysisIT {
                     baselineProvenOptimal = true,
                     objectiveId = "profit",
                     targets = listOf(
-                        fuookami.ospf.kotlin.core.analysis.ObjectiveTarget.AtLeast(
+            ObjectiveTarget.AtLeast(
                             ObjectiveId("profit"),
                             Flt64(12.0)
                         ),
-                        fuookami.ospf.kotlin.core.analysis.ObjectiveTarget.AtLeast(
+            ObjectiveTarget.AtLeast(
                             ObjectiveId("profit"),
                             Flt64(13.0)
                         )
@@ -348,8 +353,9 @@ class ScipCriticalConstraintAnalysisIT {
             assertEquals(AnalysisStatus.Unreachable, result.status)
             assertEquals(1, result.profile.provenTargetCount)
             assertTrue(result.reports[0].effectiveness != null)
-            assertTrue(result.reports[1].conflict?.validity == fuookami.ospf.kotlin.core.analysis.ConflictValidity.Verified)
+        assertTrue(result.reports[1].conflict?.validity == ConflictValidity.Verified)
             // Recommendations are emitted only when the conflict's deletion checks proved an MUS.
+            // 仅当冲突删除检查证明了 MUS 时，才会生成修正建议。
             result.improvementPlans.forEach { plan ->
                 assertTrue(plan.correctionSet.minimal)
                 assertTrue(plan.correctionSet.members.isNotEmpty())

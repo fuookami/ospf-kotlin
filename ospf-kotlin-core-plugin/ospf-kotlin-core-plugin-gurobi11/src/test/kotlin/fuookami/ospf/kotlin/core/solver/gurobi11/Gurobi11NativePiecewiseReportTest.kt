@@ -1,15 +1,11 @@
 package fuookami.ospf.kotlin.core.solver.gurobi11
 
 import kotlin.test.*
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModel
-import fuookami.ospf.kotlin.core.model.intermediate.LinearConstraintBatch
-import fuookami.ospf.kotlin.core.model.intermediate.LinearObjective
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
-import fuookami.ospf.kotlin.core.model.intermediate.SparseMatrix
-import fuookami.ospf.kotlin.core.solver.report.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.solver.report.*
 
 class Gurobi11NativePiecewiseReportTest {
     @Test
