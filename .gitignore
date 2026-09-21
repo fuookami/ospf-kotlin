@@ -44,7 +44,9 @@ package-lock.json
 Cargo.lock
 .VSCodeCounter/
 .tmp-*/
-/.codegraph/
+.codegraph/
 .claude/
-/.supergoal/
+.supergoal/
 superpowers/
+.codex/
+logs/

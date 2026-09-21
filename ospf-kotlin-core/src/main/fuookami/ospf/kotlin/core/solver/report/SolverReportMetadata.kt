@@ -2,11 +2,11 @@
 package fuookami.ospf.kotlin.core.solver.report
 
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
-import fuookami.ospf.kotlin.core.solver.config.SCIPSolverConfig
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.config.SCIPSolverConfig
 
 /**
  * Build a redacted snapshot for common and backend-specific solver parameters. /
@@ -20,6 +20,7 @@ fun SolverConfig.configurationSnapshot(): BackendConfigurationSnapshot {
         add(BackendParameter("time", BackendParameterValue.Text(time.toString())))
         add(BackendParameter("threadNum", BackendParameterValue.Integer(threadNum.toLong())))
         add(BackendParameter("gap", BackendParameterValue.Decimal(gap.toString())))
+        add(BackendParameter("functionExpansionPolicy", BackendParameterValue.Text(functionExpansionPolicy.name)))
         notImprovementTime?.let { add(BackendParameter("notImprovementTime", BackendParameterValue.Text(it.toString()))) }
         add(BackendParameter("improveThreshold", BackendParameterValue.Decimal(improveThreshold.toString())))
         interruptibleTime?.let { add(BackendParameter("interruptibleTime", BackendParameterValue.Text(it.toString()))) }
@@ -50,6 +51,7 @@ fun solverProvenance(
     effective["time"] = config.time.toString()
     effective["threadNum"] = config.threadNum.toString()
     effective["gap"] = config.gap.toString()
+    effective["functionExpansionPolicy"] = config.functionExpansionPolicy.name
     config.notImprovementTime?.let { effective["notImprovementTime"] = it.toString() }
     effective["improveThreshold"] = config.improveThreshold.toString()
     config.interruptibleTime?.let { effective["interruptibleTime"] = it.toString() }

@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.framework.network_scheduling.domain.route_generation.model
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.NetworkNodeId
 
 /**
@@ -8,8 +8,8 @@ import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.NetworkN
  *
  * 不可变资源标签，包含：
  * - reducedCost：当前累计 reduced cost
- * - time：当前时间（solver 数值）
- * - load：当前负载（solver 数值）
+ * - time：当前时间（领域数值）
+ * - load：当前负载（领域数值）
  * - currentNode：当前节点
  * - visited：已访问客户
  * - forbidden：不可达客户
@@ -17,8 +17,8 @@ import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.NetworkN
  *
  * Immutable resource label containing:
  * - reducedCost: accumulated reduced cost so far
- * - time: current time (solver numeric)
- * - load: current load (solver numeric)
+ * - time: current time (domain numeric)
+ * - load: current load (domain numeric)
  * - currentNode: current node
  * - visited: visited customers
  * - forbidden: unreachable customers
@@ -33,10 +33,10 @@ import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.NetworkN
  * @property predecessor 前驱标签索引 / Predecessor label index (-1 for root)
  * @property routeIndex 路线在迭代中的索引 / Route index within iteration (for variable naming)
  */
-data class EspprcLabel(
-    val reducedCost: Flt64,
-    val time: Flt64,
-    val load: Flt64,
+data class EspprcLabel<V : RealNumber<V>>(
+    val reducedCost: V,
+    val time: V,
+    val load: V,
     val currentNode: NetworkNodeId,
     val visited: VisitedCustomers,
     val forbidden: ForbiddenCustomers,

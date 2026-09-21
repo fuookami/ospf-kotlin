@@ -2,7 +2,7 @@
 
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.fuookami.ospf.kotlin/ospf-kotlin)](https://mvnrepository.com/artifact/io.github.fuookami.ospf.kotlin/ospf-kotlin)
-[![Kotlin](https://img.shields.io/badge/kotlin-1.9.24-yellow.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.4.20-yellow.svg?logo=kotlin)](http://kotlinlang.org)
 
 ## 介绍
 
@@ -13,6 +13,24 @@ ospf：https://github.com/fuookami/ospf
 文档：https://fuookami.github.io/ospf/
 
 :us: [English](README.md) | :cn: 简体中文
+
+## 架构概览
+
+工作区采用分层架构：
+
+1. `utils`、`multiarray`、`math`、`quantities` 提供可复用的基础能力。
+2. `core` 负责优化建模原语和求解器模型转换。
+3. `framework` 添加求解器编排、流水线抽象、影子价格、持久化契约和远程求解。
+4. 领域框架模块围绕 `MetaModel` 组装可复用的业务建模上下文。
+5. `example` 展示当前公开流程和兼容性路径。
+
+领域框架模块应将优化语义保持在上下文/聚合/模型组件/流水线层。应用服务负责协调求解器选择、生命周期、追踪/KPI/渲染组装和恢复边界。
+
+## 约束规划边界
+
+`ospf-kotlin-core` 提供整数域约束规划模型，支持不可变快照、稳定 ID、来源验证和统一的求解器报告。通用 MIP 降阶器内部使用检查算术，仅当所有整数系数、边界和生成的 Big-M 都可精确表示时才跨越现有的浮点求解器边界。
+
+SCIP CP 入口是一个严格的有限 MIP 支持门面，并非原生 SCIP/CIP CP 后端。声明的 CP 能力范围是完整的：通用 MIP 降阶对支持的有限子集返回验证过的精确降阶结果，对 `Cumulative`、`Circuit`、`Automaton`、`Reservoir` 返回结构化的不支持错误；原始累积 FFI 是有条件的研究探针，真正的增量 CP 会话仍不支持。
 
 ## 模块文档
 
@@ -47,7 +65,7 @@ ospf：https://github.com/fuookami/ospf
 
 版本要求：
 
-* JDK: 17+ or 8+
+* JDK：25+ 或 8+
 * Maven: 3+
 
 ospf-kotlin 已经发布到 maven 中央仓库，因此，如果你使用 maven 的话，只需要在 pom.xml 文件里面添加一个依赖即可：
@@ -267,8 +285,8 @@ mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*M
 
 P21-1 基线运行环境：
 
-1. JDK：GraalVM JDK 17.0.12
-2. Maven：Apache Maven 3.9.12
+1. JDK：25+
+2. Maven：Apache Maven 3.9.16
 3. OS：Windows（PowerShell）
 4. JVM 参数建议（缓解频繁 CodeHeap warning）：
    - PowerShell（当前会话）：

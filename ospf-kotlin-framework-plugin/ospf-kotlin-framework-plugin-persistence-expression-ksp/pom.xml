@@ -6,15 +6,26 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
         <artifactId>ospf-kotlin-framework-plugin</artifactId>
-        <version>1.1.0</version>
+        <version>1.1.1</version>
     </parent>
 
     <artifactId>ospf-kotlin-framework-plugin-persistence-expression-ksp${ospf.kotlin.artifact.suffix}</artifactId>
     <name>ospf-kotlin-framework-plugin-persistence-expression-ksp</name>
 
     <properties>
-        <ksp.version>2.2.20-2.0.4</ksp.version>
-        <kotlin-compile-testing.version>0.10.1</kotlin-compile-testing.version>
+        <!--
+            KSP 与 Kotlin 版本必须匹配：kctfork 0.14.0 打包 kotlin-stdlib 2.4.20 和
+            symbol-processing 2.3.12，与本项目 kotlin.version=2.4.20 一致。旧组合
+            （kctfork 0.10.1 + KSP 2.2.20-2.0.4）会因 kotlin-reflect 元数据版本不匹配
+            （2.4.0 与期望的 2.2.0）导致编译测试失败。
+
+            KSP and Kotlin versions must match: kctfork 0.14.0 bundles kotlin-stdlib 2.4.20 and
+            symbol-processing 2.3.12, matching this project's kotlin.version=2.4.20. The previous
+            combination (kctfork 0.10.1 + KSP 2.2.20-2.0.4) failed in compile-testing because of a
+            kotlin-reflect metadata version mismatch (2.4.0 vs. the expected 2.2.0).
+        -->
+        <ksp.version>2.3.12</ksp.version>
+        <kotlin-compile-testing.version>0.14.0</kotlin-compile-testing.version>
     </properties>
 
     <dependencies>
@@ -33,6 +44,27 @@
             <artifactId>ksp</artifactId>
             <version>${kotlin-compile-testing.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <!--
+                    KSP 2.3.x 起，`symbol-processing` 只发布 POM（聚合/依赖描述），不再发布 jar；
+                    可执行实现已迁移到 `symbol-processing-aa-embeddable`（同版本，仍由本依赖传递引入）。
+                    kctfork 0.14.0 的 POM 仍按旧布局要求 `symbol-processing` 的 runtime jar，导致
+                    "Could not find artifact ...:symbol-processing:jar:2.3.12"。排除该依赖即可，
+                    实际编译所需的类由 aa-embeddable 提供。
+
+                    Since KSP 2.3.x, `symbol-processing` publishes only a POM (an aggregator) and no
+                    longer ships a jar; the executable implementation moved to
+                    `symbol-processing-aa-embeddable` (same version, still pulled in transitively).
+                    kctfork 0.14.0's POM still requests the old runtime jar, producing
+                    "Could not find artifact ...:symbol-processing:jar:2.3.12". Excluding this
+                    dependency is safe because the classes needed for compile-testing come from
+                    aa-embeddable.
+                -->
+                <exclusion>
+                    <groupId>com.google.devtools.ksp</groupId>
+                    <artifactId>symbol-processing</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

@@ -6,21 +6,25 @@ import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
-import fuookami.ospf.kotlin.core.solver.*
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.iis.FarkasInfeasibilityAnalyzer
-import fuookami.ospf.kotlin.core.solver.iis.IISConfig
-import fuookami.ospf.kotlin.core.solver.iis.InfeasibilityAnalyzer
-import fuookami.ospf.kotlin.core.solver.output.*
-import fuookami.ospf.kotlin.core.solver.report.*
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import jscip.*
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
 import fuookami.ospf.kotlin.utils.functional.*
-import jscip.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.solver.*
+import fuookami.ospf.kotlin.core.solver.iis.IISConfig
+import fuookami.ospf.kotlin.core.solver.iis.InfeasibilityAnalyzer
+import fuookami.ospf.kotlin.core.solver.iis.FarkasInfeasibilityAnalyzer
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
+import fuookami.ospf.kotlin.core.variable.VariableItemKey
 
 /**
  * SCIP linear solver
@@ -34,6 +38,91 @@ class ScipLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: ScipSolverCallBack? = null
 ) : LinearSolver {
+    internal var nativePiecewiseWriter: (Scip, Map<VariableItemKey, jscip.Variable>, List<NativePiecewiseData>) -> Try =
+        ::addScipNativePiecewise
+
+    /**
+     * 在最终编号前选择 SOS2，失败时重建完整 fallback。 / Select SOS2 before indexing and rebuild fallback after native-write failure.
+     *
+     * @param model 机制模型 / Mechanism model
+     * @param converter 结果转换器 / Result converter
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解报告或错误 / Solve report or error
+     */
+    override suspend fun <V> solve(
+        model: MechanismModel<V>,
+        converter: IntoValue<V>,
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<SolveReport<V>> where V : RealNumber<V>, V : NumberField<V> {
+        if (config.functionExpansionPolicy == FunctionExpansionPolicy.EAGER ||
+            model !is LinearMechanismModel<V> || model.functionExpansionPolicy == FunctionExpansionPolicy.EAGER
+        ) {
+            return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+        }
+        val converted = when (val result = convertMechanismModelToFlt64(model)) {
+            is Ok -> result.value as? LinearMechanismModel<Flt64>
+                ?: return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        try {
+            val candidates = selectScipNativePiecewise(converted)
+            if (candidates.isEmpty()) {
+                return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+            }
+            val nativeModel = when (val result = LinearTriadModel.invokeResult(
+                model = converted,
+                dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+                forceDumpBounds = config.dumpIntermediateModelForceBounds,
+                concurrent = config.dumpIntermediateModelConcurrent,
+                nativeFunctionKeys = candidates.map { it.resultVariable.key }.toSet()
+            )) {
+                is Ok -> result.value
+                is Failed, is Fatal -> return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+            }
+            val attempt = nativeModel.use {
+                val data = ArrayList<NativePiecewiseData>(candidates.size)
+                for (structure in candidates) {
+                    when (val prepared = prepareNativePiecewise(structure)) {
+                        is Ok -> data += prepared.value
+                        else -> return@use null
+                    }
+                }
+                ScipLinearSolverImpl(
+                    config = config,
+                    callBack = callBack,
+                    statusCallBack = solvingStatusCallBack,
+                    nativePiecewiseData = data,
+                    nativePiecewiseWriter = nativePiecewiseWriter
+                ).use { implementation ->
+                    val result = implementation(it)
+                    if (implementation.nativePiecewiseFailed) {
+                        null
+                    } else {
+                        when (result) {
+                            is Ok -> restoreNativePiecewiseSolution(
+                                report = result.value.withLinearBackendMetadata(it, config, descriptor),
+                                nativeModel = it,
+                                originalTokens = converted.tokens.tokensInSolver,
+                                structures = candidates,
+                                backendName = "scip"
+                            )
+                            is Failed -> Failed(result.error)
+                            is Fatal -> Fatal(result.errors)
+                        }
+                    }
+                }
+            }
+            return when (attempt) {
+                null -> super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+                is Ok -> Ok(attempt.value.convertTo(converter))
+                is Failed -> Failed(attempt.error)
+                is Fatal -> Fatal(attempt.errors)
+            }
+        } finally {
+            converted.close()
+        }
+    }
 
     /** Companion object providing library loading utility / 伴生对象，提供库加载工具 */
     companion object {
@@ -43,7 +132,7 @@ class ScipLinearSolver(
          * 中文从 JAR 包中加载 SCIP 原生库
          *
          * @return 以Try包装的加载结果 / the load result as Try
-        */
+         */
         @JvmStatic
         fun loadLibraryInJar(): Try {
             return ScipSolver.loadLibraryInJar()
@@ -165,7 +254,6 @@ class ScipLinearSolver(
         }
     }
 }
-
 /**
  * SCIP linear solver implementation
  *
@@ -174,17 +262,22 @@ class ScipLinearSolver(
  * @property config 求解器配置 / solver configuration
  * @property callBack 求解器回调 / solver callback
  * @property statusCallBack 求解状态回调 / solving status callback
-*/
+ */
 private class ScipLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: ScipSolverCallBack? = null,
     private val statusCallBack: SolvingStatusCallBack? = null,
-    private val cancellationToken: CancellationToken? = null
+    private val cancellationToken: CancellationToken? = null,
+    private val nativePiecewiseData: List<NativePiecewiseData> = emptyList(),
+    private val nativePiecewiseWriter: (Scip, Map<VariableItemKey, jscip.Variable>, List<NativePiecewiseData>) -> Try =
+        ::addScipNativePiecewise
 ) : ScipSolver() {
+    var nativePiecewiseFailed: Boolean = false
+        private set
     private var mip: Boolean = false
 
-    private lateinit var scipVars: List<jscip.Variable>
-    private lateinit var scipConstraints: List<jscip.Constraint>
+    private var scipVars: List<jscip.Variable> = emptyList()
+    private var scipConstraints: List<jscip.Constraint> = emptyList()
     private lateinit var output: SolveReport<Flt64>
     private var initialBestObj: Flt64? = null
     private var bestObj: Flt64? = null
@@ -205,7 +298,7 @@ private class ScipLinearSolverImpl(
         if (cancellationToken?.isCancellationRequested == true) {
             return Ok(cancelledSolveReport(cancellationToken.record?.reason))
         }
-        mip = model.containsNotBinaryInteger
+        mip = model.containsNotBinaryInteger || nativePiecewiseData.isNotEmpty()
         val processes: Array<suspend (ScipLinearSolverImpl) -> Try> = arrayOf(
             { solver -> solver.init(model.name) },
             { solver -> solver.dump(model) },
@@ -237,7 +330,7 @@ private class ScipLinearSolverImpl(
      *
      * @param model 线性三元模型视图 / linear triad model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun dump(model: LinearTriadModelView): Try {
         warnIgnoredConstraintPriority("scip", model.nonNullConstraintPriorityAmount())
 
@@ -264,7 +357,39 @@ private class ScipLinearSolverImpl(
         }
         scipVars = vars
 
-        if (variableDumpingData.initialResults.size == model.variables.size) {
+        if (nativePiecewiseData.isNotEmpty()) {
+            val variablesByKey = model.variables.mapIndexedNotNull { index, variable ->
+                variable.origin?.key?.let { it to scipVars[index] }
+            }.toMap()
+            val nativeWrite = NativeFunctionWriterRegistry(
+                listOf(
+                    NativeFunctionWriter<Scip, jscip.Variable> { nativeModel, nativeVariables, batch ->
+                        nativePiecewiseWriter(
+                            nativeModel,
+                            nativeVariables,
+                            batch.filterIsInstance<NativePiecewiseData>()
+                        )
+                    }
+                )
+            ).write(
+                model = scip,
+                variables = variablesByKey,
+                batches = listOf(nativePiecewiseData.map { it as Any })
+            )
+            when (val result = nativeWrite) {
+                is Ok -> {}
+                is Failed -> {
+                    nativePiecewiseFailed = true
+                    return Failed(result.error)
+                }
+                is Fatal -> {
+                    nativePiecewiseFailed = true
+                    return Fatal(result.errors)
+                }
+            }
+        }
+
+        if (variableDumpingData.initialResults.size == model.variables.size && nativePiecewiseData.isEmpty()) {
             val initialSolution = scip.createSol()
             for ((col, initialResult) in variableDumpingData.initialResults) {
                 scip.setSolVal(initialSolution, scipVars[col], initialResult)
@@ -421,7 +546,7 @@ private class ScipLinearSolverImpl(
      *
      * @param model 线性三元模型视图 / linear triad model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun configure(model: LinearTriadModelView): Try {
         when (val cancellation = registerCancellation(cancellationToken)) {
             is Failed -> return cancellation
@@ -551,7 +676,7 @@ private class ScipLinearSolverImpl(
      *
      * @param model 线性三元模型视图 / linear triad model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun analyzeSolution(model: LinearTriadModelView): Try {
         return if (status.succeeded) {
             val solution = scip.bestSol
@@ -622,4 +747,3 @@ private class ScipLinearSolverImpl(
         }
     }
 }
-

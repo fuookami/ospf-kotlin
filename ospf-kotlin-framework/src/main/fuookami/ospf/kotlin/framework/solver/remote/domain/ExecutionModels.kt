@@ -3,13 +3,13 @@ package fuookami.ospf.kotlin.framework.solver.remote.domain
 
 import kotlin.time.Duration
 import kotlin.time.Instant
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
  * 求解器类型。 / Solver type.
-*/
+ */
 @Serializable
 enum class SolverType {
     /** SCIP 求解器 / SCIP solver */
@@ -44,7 +44,10 @@ enum class RemoteTerminationReason {
     CANCELLED,
     INTERRUPTED,
     NUMERICAL_FAILURE,
-    BACKEND_FAILURE
+    BACKEND_FAILURE,
+
+    /** 新服务端返回的未知值，不得视为成功。 / Unknown value from a newer server; never treat it as success. */
+    UNKNOWN
 }
 
 /** 远程解存在性 / Remote solution presence */
@@ -52,7 +55,8 @@ enum class RemoteTerminationReason {
 enum class RemoteSolutionPresence {
     NONE,
     INCUMBENT,
-    OPTIMAL
+    OPTIMAL,
+    UNKNOWN
 }
 
 /** 远程证明状态 / Remote proof status */
@@ -60,7 +64,8 @@ enum class RemoteSolutionPresence {
 enum class RemoteProofStatus {
     NONE,
     CLAIMED,
-    VERIFIED
+    VERIFIED,
+    UNKNOWN
 }
 
 /**
@@ -93,7 +98,8 @@ data class RemoteSolverCapabilities(
  * @property sliceId 切片 ID / Slice ID
  * @property nodeId 节点 ID / Node ID
  * @property startedAt 启动时间戳 / Started timestamp
-*/
+ * @property scheduling 有效调度信息 / Effective scheduling information
+ */
 @Serializable
 data class ExecutionHandle(
     val handleId: HandleId,
@@ -102,7 +108,8 @@ data class ExecutionHandle(
     val nodeId: NodeId,
     @SerialName("startedAtEpochMs")
     @Serializable(with = RemoteSolverEpochMillisecondsInstantSerializer::class)
-    val startedAt: Instant
+    val startedAt: Instant,
+    val scheduling: SchedulingDecision? = null
 )
 
 /**
@@ -113,6 +120,7 @@ data class ExecutionHandle(
  * @property feasible 是否可行 / Whether feasible
  * @property objectiveValue 目标值 / Objective value
  * @property objectiveValueInt64 CP 精确整数目标值 / Exact Int64 CP objective value
+ * @property bestBound 当前最佳界 / Current best bound
  * @property gap 最优间隙 / Optimality gap
  * @property elapsed 耗时 / Elapsed
  * @property message 结果消息 / Result message
@@ -130,7 +138,12 @@ data class ExecutionHandle(
  * @property runId 求解运行标识 / Solve run identifier
  * @property attemptId 求解尝试标识 / Solve attempt identifier
  * @property artifactDigest 结果 artifact 摘要 / Result artifact digest
-*/
+ * @property checkpointRef 切片检查点引用 / Slice checkpoint reference
+ * @property incumbentRef incumbent 引用 / Incumbent reference
+ * @property modelFingerprint 模型指纹 / Model fingerprint
+ * @property scheduling 有效调度信息 / Effective scheduling information
+ * @property outcome 明确切片结果 / Explicit slice outcome
+ */
 @Serializable
 data class SliceResult(
     val sliceId: SliceId,
@@ -163,7 +176,13 @@ data class SliceResult(
     val runId: String? = null,
     val attemptId: String? = null,
     val artifactDigest: String? = null,
-    val objectiveValueInt64: Long? = null
+    val objectiveValueInt64: Long? = null,
+    val bestBound: Flt64? = null,
+    val checkpointRef: ObjectRef? = null,
+    val incumbentRef: ObjectRef? = null,
+    val modelFingerprint: String? = null,
+    val scheduling: SchedulingDecision? = null,
+    val outcome: SliceOutcome? = null
 )
 
 /**
@@ -173,6 +192,7 @@ data class SliceResult(
  * @property optimal 是否最优 / Whether optimal
  * @property objectiveValue 目标值 / Objective value
  * @property objectiveValueInt64 CP 精确整数目标值 / Exact Int64 CP objective value
+ * @property bestBound 当前最佳界 / Current best bound
  * @property gap 最优间隙 / Optimality gap
  * @property elapsed 总耗时 / Total elapsed
  * @property checkpointRef 检查点引用 / Checkpoint reference
@@ -192,7 +212,11 @@ data class SliceResult(
  * @property runId 求解运行标识 / Solve run identifier
  * @property attemptId 求解尝试标识 / Solve attempt identifier
  * @property artifactDigest 结果 artifact 摘要 / Result artifact digest
-*/
+ * @property incumbentRef incumbent 引用 / Incumbent reference
+ * @property modelFingerprint 模型指纹 / Model fingerprint
+ * @property scheduling 有效调度信息 / Effective scheduling information
+ * @property outcome 明确切片结果 / Explicit slice outcome
+ */
 @Serializable
 data class SolveResult(
     val feasible: Boolean,
@@ -227,5 +251,10 @@ data class SolveResult(
     val runId: String? = null,
     val attemptId: String? = null,
     val artifactDigest: String? = null,
-    val objectiveValueInt64: Long? = null
+    val objectiveValueInt64: Long? = null,
+    val bestBound: Flt64? = null,
+    val incumbentRef: ObjectRef? = null,
+    val modelFingerprint: String? = null,
+    val scheduling: SchedulingDecision? = null,
+    val outcome: SliceOutcome? = null
 )

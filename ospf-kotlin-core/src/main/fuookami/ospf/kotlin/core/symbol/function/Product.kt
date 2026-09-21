@@ -4,23 +4,23 @@
  * 提供 [ProductFunction]，实现两个线性多项式乘积 y = left * right 的二次建模。
  *
  * Provides [ProductFunction] for quadratic modeling of the product of two linear polynomials y = left * right.
-*/
+ */
 package fuookami.ospf.kotlin.core.symbol.function
 
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.multiarray.Shape
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
-import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.multiarray.Shape
-import fuookami.ospf.kotlin.utils.functional.*
 
 private typealias ProductIntermediate<V> = IntermediateSymbol<out V>
 
@@ -33,7 +33,7 @@ private typealias ProductIntermediate<V> = IntermediateSymbol<out V>
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  * @param V 多项式系数的值类型 / value type for the polynomial coefficients.
-*/
+ */
 class ProductFunction<V>(
     val left: LinearPolynomial<V>,
     val right: LinearPolynomial<V>,
@@ -84,7 +84,7 @@ class ProductFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-    */
+     */
     private fun evaluateSymbol(
         symbol: Symbol,
         tokenTable: AbstractTokenTable<V>,
@@ -105,7 +105,7 @@ class ProductFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-    */
+     */
     private fun evaluateSymbol(
         symbol: Symbol,
         results: List<V>,
@@ -131,7 +131,7 @@ class ProductFunction<V>(
      * @param tokenTable 可选的 token 表 / optional token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-    */
+     */
     private fun evaluateSymbol(
         symbol: Symbol,
         values: Map<Symbol, V>,
@@ -152,7 +152,7 @@ class ProductFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 多项式值或 null / polynomial value or null
-    */
+     */
     private fun evaluateLinear(
         poly: LinearPolynomial<V>,
         tokenTable: AbstractTokenTable<V>,
@@ -174,7 +174,7 @@ class ProductFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 多项式值或 null / polynomial value or null
-    */
+     */
     private fun evaluateLinearFromResults(
         poly: LinearPolynomial<V>,
         results: List<V>,
@@ -197,7 +197,7 @@ class ProductFunction<V>(
      * @param tokenTable 可选的 token 表 / optional token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 多项式值或 null / polynomial value or null
-    */
+     */
     private fun evaluateLinearFromValues(
         poly: LinearPolynomial<V>,
         values: Map<Symbol, V>,
@@ -219,7 +219,7 @@ class ProductFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param converter 值类型转换器 / value type converter
      * @return 预计算结果或 null / pre-computed result or null
-    */
+     */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         val targetValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         val leftValue = if (targetValues.isNullOrEmpty()) {
@@ -241,7 +241,7 @@ class ProductFunction<V>(
      * 将 left * right 展开为 V 类型二次多项式。 / Expand left * right into a V-generic quadratic polynomial.
      *
      * @return 展开后的二次多项式 / the expanded quadratic polynomial
-    */
+     */
     private fun expandedQuadraticPoly(): QuadraticPolynomial<V> {
         val leftC = left
         val rightC = right
@@ -320,7 +320,7 @@ class ProductFunction<V>(
      * @param converter 值类型转换器 / value type converter
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 求值结果或 null / evaluation result or null
-    */
+     */
     internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetResults = results.map { converter.intoValue(it) }
         return evaluate(targetResults, tokenTable, converter, zeroIfNone)
@@ -334,7 +334,7 @@ class ProductFunction<V>(
      * @param converter 值类型转换器 / value type converter
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 求值结果或 null / evaluation result or null
-    */
+     */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetValues = SolverBoundaryCasts.mapValues(values, converter)
         return evaluate(targetValues, tokenTable, converter, zeroIfNone)
@@ -360,12 +360,14 @@ class ProductFunction<V>(
 
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try = ok
 
-    override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
-        val poly = polynomial
-        val rhs = QuadraticPolynomial<V>(constant = converter.zero)
-        val inequality = QuadraticInequalityOf(poly, rhs, Comparison.EQ, "${name}_eq")
-        return addQuadraticConstraints(model, listOf(inequality)) ?: ok
-    }
+    /**
+     * 乘积是表达式级中间符号，不是结果变量。 / A product is an expression-level intermediate symbol, not a result variable.
+     * 展开后的多项式由目标函数或外层约束直接消费；此处不提交无关的零乘积约束。 / Its expanded polynomial is consumed by the objective or an enclosing constraint, so no unrelated zero-product row is emitted here.
+     *
+     * @param model 二次机制模型 / quadratic mechanism model
+     * @return 注册结果 / registration result
+     */
+    override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try = ok
 
     companion object {
         /** 创建 [ProductFunction] 实例。 / Create a [ProductFunction] instance. */

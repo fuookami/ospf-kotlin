@@ -1,0 +1,96 @@
+# 跨语言纯函数用例 / Cross-language pure-function cases
+# 这些函数不依赖 backend，因此要求两端逐字一致。
+# 格式：case_id<TAB>input...<TAB>expected...
+# # 开头为注释；空行忽略。
+
+# status-map<TAB>problem_status<TAB>proof_available<TAB>expected
+# 证明门控：Feasible 只有在同时证明最优性时才升格为 Reachable。
+# 受限求解返回的 Feasible/Infeasible 一律保持 Unknown。
+[status-map]
+Feasible	true	Reachable
+Feasible	false	Unknown
+Infeasible	true	Unreachable
+Infeasible	false	Unknown
+Unbounded	true	Unknown
+Unbounded	false	Unknown
+InfeasibleOrUnbounded	true	Unknown
+InfeasibleOrUnbounded	false	Unknown
+Unknown	true	Unknown
+Unknown	false	Unknown
+
+# classify<TAB>activity_status<TAB>dual_available<TAB>dual_abs<TAB>threshold<TAB>expected
+# 缺少对偶证据时不得分层（Unclassified），而不是默认归入低优先级。
+# inactive ≠ ineffective：Tier C 只是优先级最低，仍然保留。
+# dual = 0 ≠ globally ineffective：这里只产出 TierB，绝不产出"无效"结论。
+[classify]
+Active	true	12.5	1e-9	TierA
+Active	true	0.0	1e-9	TierB
+Active	false	0.0	1e-9	Unclassified
+NearlyActive	true	3.0	1e-9	TierA
+NearlyActive	true	0.0	1e-9	TierB
+NearlyActive	false	0.0	1e-9	Unclassified
+Inactive	true	9.0	1e-9	TierC
+Inactive	false	0.0	1e-9	TierC
+SatisfiedWithoutSlackMetric	true	0.0	1e-9	TierC
+SatisfiedWithoutSlackMetric	false	0.0	1e-9	TierC
+Violated	false	0.0	1e-9	Unclassified
+Unknown	false	0.0	1e-9	Unclassified
+
+# combine<TAB>current<TAB>next<TAB>expected
+# 总体结论取最弱环节；未证明的阶段不得被更强的结论掩盖。
+[combine]
+Reachable	Unreachable	Unreachable
+Reachable	Unknown	Unknown
+Reachable	Unsupported	Unsupported
+Unreachable	Unknown	Unknown
+Unreachable	Unsupported	Unsupported
+Unreachable	Reachable	Unreachable
+Unknown	Unsupported	Unsupported
+Unknown	Reachable	Unknown
+Unsupported	Reachable	Unsupported
+Unknown	Unreachable	Unknown
+
+# shortlist<TAB>tier_a<TAB>tier_b<TAB>tier_c<TAB>limit<TAB>returned<TAB>tier_c_returned<TAB>unclassified<TAB>unclassified_returned
+# Tier A/B 优先进入短名单；名额未满时 Tier C 与 Unclassified 必须按序补位，绝不被永久丢弃。
+# tier_c_returned / unclassified_returned 分别是返回结果中该层级的条数。
+# 名额被 preferred 填满时，低层级拿不到名额但仍保留在候选集合中。
+[shortlist]
+4	0	4	2	2	0	0	0
+4	0	4	8	8	4	0	0
+2	2	4	4	4	0	0	0
+2	2	4	6	6	2	0	0
+2	2	4	10	8	4	0	0
+0	0	4	0	0	0	0	0
+0	0	0	5	0	0	0	0
+1	1	1	4	4	1	2	1
+0	0	2	5	4	2	2	2
+3	0	0	1	1	0	4	0
+
+# criticality<TAB>observations<TAB>local_ids<TAB>persistent_ids<TAB>structural_ids<TAB>proven_target_count
+# observations 用 ";" 分隔多个 target，每个 target 编码为 status|verified|blocking_ids；
+# blocking_ids 用 "," 分隔，"-" 表示空集。只有 status=Unreachable 且 verified=true 才携带阻塞证据。
+# 分类：出现 1 次 → Local；出现 >1 次 → Persistent；覆盖全部已证明 target → Structural。
+# proven_target_count 只统计 status=Unreachable，与 verified 无关。
+[criticality]
+no-proven-target	Reachable|true|C7;Unknown|false|-;Unsupported|false|-	-	-	-	0
+unverified-unreachable-dropped	Unreachable|false|C1;Unreachable|false|C1;Unreachable|true|C2	C2	-	-	3
+partial-conflict-no-blocking-evidence	Unreachable|true|-;Unreachable|true|C1	C1	-	-	2
+three-levels-distinct	Unreachable|true|C1,C2;Unreachable|true|C1,C3;Unreachable|true|C1,C2	C3	C1,C2	C1	3
+unknown-unsupported-not-structural	Unreachable|true|C1;Unknown|false|C1;Unsupported|false|C1	C1	-	-	1
+
+# correction<TAB>operation<TAB>max_candidates<TAB>max_plans<TAB>require_positive_weight<TAB>verified<TAB>candidates<TAB>members<TAB>total_cost<TAB>minimal<TAB>accepted
+# candidates 用 ";" 分隔，"约束id:weight:relaxation" 或 "变量来源:变量id:weight:relaxation"。
+# 排序按 weight*relaxation 升序，同成本按 stableId 升序，随后按 max_candidates 截断。
+# members 是 correction.members 的 stableId 顺序（去掉 "constraint:" 前缀），"-" 表示空。
+# weighted 的 minimal 恒为 false；minimal 的 minimal = 候选总数 <= max_candidates，截断后必须 false。
+# verified 列只在 minimal 操作被读取；weighted 分支不读该列但仍须占位。
+[correction]
+weighted-orders-by-weighted-cost	weighted	32	8	true	true	c1:2:1;c2:1:3;c3:1:1	c3,c1,c2	6.0	false	true
+weighted-tie-breaks-on-stable-id	weighted	32	8	true	true	c10:1:1;c2:1:1	c10,c2	2.0	false	true
+weighted-rejects-nonpositive-weight	weighted	32	8	true	true	c1:0:1	-	0.0	false	false
+weighted-allows-zero-weight-when-policy-permits	weighted	32	8	false	true	c1:0:2;c2:1:1	c1,c2	1.0	false	true
+minimal-verified-full-set-is-minimal	minimal	32	8	true	true	c1:3:1;c2:1:1	c2,c1	4.0	true	true
+minimal-truncated-set-is-not-minimal	minimal	2	8	true	true	c1:5:1;c2:1:1;c3:3:1	c2,c3	4.0	false	true
+minimal-without-deletion-verification-fails	minimal	32	8	true	false	c1:1:1	-	0.0	false	false
+weighted-empty-candidates-fails	weighted	32	8	true	true		-	0.0	false	false
+weighted-variable-and-domain-sources	weighted	32	8	true	true	variable-lower-bound:v1:2:1;sparse-domain:v2:1:1	variable:v2:domain,variable:v1:lower	3.0	false	true

@@ -4,6 +4,9 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.model.intermediate.DeferredFunctionStructure
+import fuookami.ospf.kotlin.core.model.intermediate.MaxStructure
+import fuookami.ospf.kotlin.core.model.intermediate.generateMaxConstraints
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
@@ -15,6 +18,37 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.functional.*
+
+private fun <V> applyExtremumBounds(
+    resultVar: RealVar,
+    polynomials: List<LinearPolynomial<V>>,
+    converter: IntoValue<V>,
+    minimum: Boolean
+) where V : RealNumber<V>, V : NumberField<V> {
+    val bounds = polynomials.map { it.finiteBounds(converter) }
+    if (bounds.any { it == null }) {
+        return
+    }
+
+    val finiteBounds = bounds.filterNotNull()
+    val resultLower = if (minimum) {
+        finiteBounds.map { it.lower }
+            .reduce { acc, value -> if (value ls acc) value else acc }
+    } else {
+        finiteBounds.map { it.lower }
+            .reduce { acc, value -> if (value gr acc) value else acc }
+    }
+    val resultUpper = if (minimum) {
+        finiteBounds.map { it.upper }
+            .reduce { acc, value -> if (value ls acc) value else acc }
+    } else {
+        finiteBounds.map { it.upper }
+            .reduce { acc, value -> if (value gr acc) value else acc }
+    }
+
+    resultVar.range.geq(converter.fromValue(resultLower))
+    resultVar.range.leq(converter.fromValue(resultUpper))
+}
 
 /**
  * 最大/最小值函数符号 / Max/Min function symbols
@@ -54,8 +88,61 @@ class MaxFunction<V>(
         require(n >= 1) { "MaxFunction requires at least one input polynomial" }
     }
 
-    val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_max")
+    val resultVar: RealVar = RealVar("${name}_max")
     val selectorVars: List<AbstractVariableItem<*, *>> = (0 until n).map { BinVar("${name}_max_sel${it}") }
+
+    init {
+        applyExtremumBounds(resultVar, polynomials, converter, minimum = false)
+    }
+
+    private fun automaticBigMValues(bounds: List<LinearPolynomialBounds<V>?>): List<V> {
+        if (bounds.all { it != null }) {
+            val finiteBounds = bounds.map { it!! }
+            var maximumUpper = finiteBounds.first().upper
+            for (bound in finiteBounds.drop(1)) {
+                if (bound.upper gr maximumUpper) {
+                    maximumUpper = bound.upper
+                }
+            }
+            return finiteBounds.map { bound ->
+                ensurePositiveBigM(maximumUpper - bound.lower, converter)
+            }
+        }
+        val fallback = polynomials.defaultBigM(converter)
+        return List(n) { fallback }
+    }
+
+    private fun currentBigMValues(): List<V> {
+        val explicit = explicitBigM
+        if (explicit != null) {
+            return List(n) { explicit }
+        }
+        return automaticBigMValues(polynomials.map { it.finiteBounds(converter) })
+    }
+
+    override fun deferredStructure(): DeferredFunctionStructure {
+        val snapshotInputs = polynomials.map { input ->
+            LinearPolynomial(
+                monomials = input.monomials.map { LinearMonomial(it.coefficient, it.symbol) },
+                constant = input.constant
+            )
+        }
+        val capturedInputBounds = if (explicitBigM == null) {
+            polynomials.map { it.finiteBounds(converter) }
+                .takeIf { bounds -> bounds.all { it != null } }
+        } else {
+            null
+        }
+        return MaxStructure(
+            inputs = snapshotInputs,
+            resultVariable = resultVar,
+            selectorVariables = selectorVars.toList(),
+            bigMValues = capturedInputBounds?.let { automaticBigMValues(it) } ?: currentBigMValues(),
+            converter = converter,
+            name = name,
+            capturedInputBounds = capturedInputBounds
+        )
+    }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + selectorVars
@@ -83,52 +170,18 @@ class MaxFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val zero = converter.zero
-        val one = converter.one
-        val resultMon = LinearMonomial(one, resultVar)
-        val allConstraints = mutableListOf<LinearInequality<V>>()
-        val bounds = if (explicitBigM == null) {
-            polynomials.map { it.finiteBounds(converter) }.takeIf { it.all { bound -> bound != null } }
-        } else {
-            null
+        return when (val result = generateMaxConstraints(
+            inputs = polynomials,
+            resultVariable = resultVar,
+            selectorVariables = selectorVars,
+            bigMValues = currentBigMValues(),
+            converter = converter,
+            name = name
+        )) {
+            is Ok -> addConstraints(model, result.value)?.let { it } ?: ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
         }
-        val maxUpper = bounds?.map { it!!.upper }?.reduce { acc, value ->
-            if (value gr acc) value else acc
-        }
-
-        // result >= poly[i] for each i / 结果大于等于每个 poly[i]
-        for (i in polynomials.indices) {
-            val poly = polynomials[i]
-            val lbMonos = listOf(resultMon) + poly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-            allConstraints += LinearInequality(
-                LinearPolynomial(lbMonos, -poly.constant),
-                LinearPolynomial(emptyList(), zero), Comparison.GE)
-        }
-
-        // result - poly[i] + M*sel[i] <= M / 结果 - poly[i] + M*选择变量 <= M
-        for (i in polynomials.indices) {
-            val poly = polynomials[i]
-            val currentBigM = explicitBigM ?: if (bounds != null && maxUpper != null) {
-                ensurePositiveBigM(maxUpper - bounds[i]!!.lower, converter)
-            } else {
-                polynomials.defaultBigM(converter)
-            }
-            val ubMonos = listOf(resultMon) +
-                poly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-                LinearMonomial(currentBigM, selectorVars[i])
-            allConstraints += LinearInequality(
-                LinearPolynomial(ubMonos, -poly.constant),
-                LinearPolynomial(emptyList(), currentBigM), Comparison.LE)
-        }
-
-        // sum(sel[i]) = 1 / 选择变量之和等于 1
-        val selMonos = selectorVars.map { LinearMonomial(one, it) }
-        allConstraints += LinearInequality(
-            LinearPolynomial(selMonos, zero),
-            LinearPolynomial(emptyList(), one), Comparison.EQ)
-
-        addConstraints(model, allConstraints)?.let { return it }
-        return ok
     }
     companion object {
         /** 创建 [MaxFunction] 实例。 / Create a [MaxFunction] instance. */
@@ -193,14 +246,50 @@ class MinFunction<V>(
         require(n >= 1) { "MinFunction requires at least one input polynomial" }
     }
 
-    val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_min")
+    val resultVar: RealVar = RealVar("${name}_min")
     val selectorVars: List<AbstractVariableItem<*, *>> = (0 until n).map { BinVar("${name}_min_sel${it}") }
+
+    init {
+        applyExtremumBounds(resultVar, polynomials, converter, minimum = true)
+    }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + selectorVars
 
     override val resultPolynomial: LinearPolynomial<V>
         get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
+
+    override fun deferredStructure(): DeferredFunctionStructure {
+        val snapshotInputs = polynomials.map { input ->
+            LinearPolynomial(
+                monomials = input.monomials.map { LinearMonomial(it.coefficient, it.symbol) },
+                constant = input.constant
+            )
+        }
+        val capturedInputBounds = if (explicitBigM == null) {
+            polynomials.map { it.finiteBounds(converter) }
+                .takeIf { bounds -> bounds.all { it != null } }
+        } else null
+        val bigMValues = if (capturedInputBounds != null) {
+            val lower = capturedInputBounds.map { it!!.lower }
+                .reduce { acc, value -> if (value ls acc) value else acc }
+            capturedInputBounds.map { ensurePositiveBigM(it!!.upper - lower, converter) }
+        } else if (explicitBigM != null) {
+            List(n) { explicitBigM }
+        } else {
+            List(n) { polynomials.defaultBigM(converter) }
+        }
+        return MaxStructure(
+            inputs = snapshotInputs,
+            resultVariable = resultVar,
+            selectorVariables = selectorVars.toList(),
+            bigMValues = bigMValues,
+            converter = converter,
+            name = name,
+            capturedInputBounds = capturedInputBounds,
+            minimum = true
+        )
+    }
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         var minVal: V? = null
@@ -228,44 +317,26 @@ class MinFunction<V>(
         val allConstraints = mutableListOf<LinearInequality<V>>()
         val bounds = if (explicitBigM == null) {
             polynomials.map { it.finiteBounds(converter) }.takeIf { it.all { bound -> bound != null } }
-        } else {
-            null
-        }
-        val minLower = bounds?.map { it!!.lower }?.reduce { acc, value ->
-            if (value ls acc) value else acc
-        }
-
-        // result <= poly[i] for each i / 结果小于等于每个 poly[i]
+        } else null
+        val minLower = bounds?.map { it!!.lower }?.reduce { acc, value -> if (value ls acc) value else acc }
         for (i in polynomials.indices) {
             val poly = polynomials[i]
             val ubMonos = listOf(resultMon) + poly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-            allConstraints += LinearInequality(
-                LinearPolynomial(ubMonos, -poly.constant),
-                LinearPolynomial(emptyList(), zero), Comparison.LE)
+            allConstraints += LinearInequality(LinearPolynomial(ubMonos, -poly.constant), LinearPolynomial(emptyList(), zero), Comparison.LE)
         }
-
-        // result - poly[i] + M*sel[i] >= 0 / 结果 - poly[i] + M*选择变量 >= 0
         for (i in polynomials.indices) {
             val poly = polynomials[i]
             val currentBigM = explicitBigM ?: if (bounds != null && minLower != null) {
                 ensurePositiveBigM(bounds[i]!!.upper - minLower, converter)
-            } else {
-                polynomials.defaultBigM(converter)
-            }
-            val lbMonos = listOf(resultMon) +
-                poly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-                LinearMonomial(currentBigM, selectorVars[i])
-            allConstraints += LinearInequality(
-                LinearPolynomial(lbMonos, -poly.constant),
-                LinearPolynomial(emptyList(), zero), Comparison.GE)
+            } else polynomials.defaultBigM(converter)
+            val lbMonos = listOf(resultMon) + poly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+                LinearMonomial(-currentBigM, selectorVars[i])
+            allConstraints += LinearInequality(LinearPolynomial(lbMonos, -poly.constant), LinearPolynomial(emptyList(), -currentBigM), Comparison.GE)
         }
-
-        // sum(sel[i]) = 1 / 选择变量之和等于 1
-        val selMonos = selectorVars.map { LinearMonomial(one, it) }
         allConstraints += LinearInequality(
-            LinearPolynomial(selMonos, zero),
-            LinearPolynomial(emptyList(), one), Comparison.EQ)
-
+            LinearPolynomial(selectorVars.map { LinearMonomial(one, it) }, zero),
+            LinearPolynomial(emptyList(), one), Comparison.EQ
+        )
         addConstraints(model, allConstraints)?.let { return it }
         return ok
     }

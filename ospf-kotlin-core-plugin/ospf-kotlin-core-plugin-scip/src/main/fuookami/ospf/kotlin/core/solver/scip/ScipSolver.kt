@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.core.solver.scip
 
 import java.io.File
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.*
 import kotlin.time.*
 import fuookami.ospf.kotlin.core.solver.config.SCIPSolverConfig
@@ -46,7 +47,7 @@ abstract class ScipSolver : AutoCloseable {
             val explicit = System.getProperty("ospf.scip.library")?.takeUnless { it.isBlank() }
             return try {
                 if (explicit != null) {
-                    val path = Path.of(explicit).toAbsolutePath().normalize()
+                    val path = Paths.get(explicit).toAbsolutePath().normalize()
                     System.load(path.toString())
                     loadedLibraryPath = path
                     loadedLibraryMode = "explicit"
@@ -55,7 +56,7 @@ abstract class ScipSolver : AutoCloseable {
                     loadedLibraryPath = System.getProperty("java.library.path")
                         ?.split(File.pathSeparator)
                         ?.asSequence()
-                        ?.map { Path.of(it).resolve(System.mapLibraryName("jscip")) }
+                        ?.map { Paths.get(it).resolve(System.mapLibraryName("jscip")) }
                         ?.firstOrNull { java.nio.file.Files.isRegularFile(it) }
                     loadedLibraryMode = "system"
                 }
@@ -103,7 +104,7 @@ abstract class ScipSolver : AutoCloseable {
                         // Unix bundle 使用 `libjscip.so` 文件名，但 JVM 逻辑库名为 `jscip`；
                         // 两种拼写都应登记为主 binding，确保运行时 provenance 一致。
                         if (lib == "jscip" || lib == "libjscip") {
-                            loadedLibraryPath = Path.of(target).toAbsolutePath().normalize()
+                            loadedLibraryPath = Paths.get(target).toAbsolutePath().normalize()
                             loadedLibraryMode = "jar"
                             loadedLibrary = true
                         }

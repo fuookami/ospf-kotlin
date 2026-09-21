@@ -1,44 +1,46 @@
 package fuookami.ospf.kotlin.core.solver.constraint_programming
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
-import java.nio.file.Path
+import java.nio.file.Paths
 import java.security.MessageDigest
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.test.Test
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.put
-import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingExpression
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingSnapshotCodec
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingCheckpointEnvelope
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingCheckpointRestore
-import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSession
-import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingFeasibleOutput
 import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingUnknownOutput
+import fuookami.ospf.kotlin.core.solver.output.ConstraintProgrammingFeasibleOutput
+import fuookami.ospf.kotlin.core.solver.report.VariableId
 import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
 import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.report.TerminationReason
 import fuookami.ospf.kotlin.core.solver.report.ModelElementOrigin
 import fuookami.ospf.kotlin.core.solver.report.SolveFingerprinting
-import fuookami.ospf.kotlin.core.solver.report.TerminationReason
-import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingSession
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingCheckpointRestore
+import fuookami.ospf.kotlin.core.solver.constraint_programming.ConstraintProgrammingCheckpointEnvelope
 import fuookami.ospf.kotlin.core.variable.IntVar
 
 /**
@@ -77,8 +79,8 @@ class ConstraintProgrammingCheckpointProcessTest {
 
             val checkpointFile = Files.createTempFile("ospf-cp-checkpoint-", ".json")
             try {
-                Files.writeString(checkpointFile, encoded)
-                val javaExecutable = Path.of(
+                Files.write(checkpointFile, encoded.toByteArray(StandardCharsets.UTF_8))
+                val javaExecutable = Paths.get(
                     System.getProperty("java.home"),
                     "bin",
                     if (System.getProperty("os.name").contains("win", ignoreCase = true)) "java.exe" else "java"
@@ -184,7 +186,7 @@ class ConstraintProgrammingCheckpointProcessTest {
             val currentSnapshotJson = ConstraintProgrammingSnapshotCodec.encode(snapshot).value!!
             val root = Json.parseToJsonElement(currentSnapshotJson).jsonObject.toMutableMap()
 
-            fun historicalElement(element: kotlinx.serialization.json.JsonElement): JsonObject {
+            fun historicalElement(element: JsonElement): JsonObject {
                 val elementRoot = element.jsonObject.toMutableMap()
                 elementRoot.remove("identityProvenance")
                 elementRoot["scope"] = JsonPrimitive("STABLE")
@@ -235,7 +237,7 @@ class ConstraintProgrammingCheckpointProcessTest {
             val currentSnapshotJson = ConstraintProgrammingSnapshotCodec.encode(snapshot).value!!
             val root = Json.parseToJsonElement(currentSnapshotJson).jsonObject.toMutableMap()
 
-            fun historicalElement(element: kotlinx.serialization.json.JsonElement): JsonObject {
+            fun historicalElement(element: JsonElement): JsonObject {
                 val elementRoot = element.jsonObject.toMutableMap()
                 elementRoot.remove("identityProvenance")
                 elementRoot["scope"] = JsonPrimitive("STABLE")
@@ -471,7 +473,7 @@ class ConstraintProgrammingCheckpointProcessTest {
                 ConstraintProgrammingCheckpointCodec.encode(captured)
             ).value
             val root = Json.parseToJsonElement(encoded).jsonObject.toMutableMap()
-            root["schema"] = kotlinx.serialization.json.JsonPrimitive(1)
+            root["schema"] = JsonPrimitive(1)
             val malformed = Json.encodeToString(JsonObject(root))
             assertTrue(ConstraintProgrammingCheckpointCodec.decodeCompatible(malformed).failed)
         } finally {
@@ -514,6 +516,22 @@ class ConstraintProgrammingCheckpointProcessTest {
                 ConstraintProgrammingCheckpointCodec.encode(captured)
             ).value
             val root = Json.parseToJsonElement(encoded).jsonObject.toMutableMap()
+            // 本用例模拟的是**已发布的 schema 2.0 文档**：它既没有 masterFingerprint，也没有
+            // schema 3.0 才新增的 cancellationChain / provenance / metadata。因此除了删掉
+            // masterFingerprint，还必须把 schema 版本钉回 2.0 并移除那三个 3.0 独有字段——否则它就
+            // 不是一个 2.0 形状的文档，legacy 迁移会（正确地）拒绝它。用例意图（无 masterFingerprint
+            // 的已发布 v2 envelope 仍可读）完全不变。
+            //
+            // This case simulates a **published schema 2.0 document**: it has neither masterFingerprint nor
+            // the cancellationChain / provenance / metadata fields schema 3.0 added. Besides dropping
+            // masterFingerprint it must therefore pin the schema version back to 2.0 and remove those three
+            // 3.0-only fields; otherwise it is not a 2.0-shaped document and legacy migration correctly
+            // rejects it. The case's intent — a published v2 envelope without a master fingerprint stays
+            // readable — is unchanged.
+            root["schemaVersion"] = JsonPrimitive("2.0")
+            root.remove("cancellationChain")
+            root.remove("provenance")
+            root.remove("metadata")
             root["benders"] = JsonObject(root.getValue("benders").jsonObject.toMutableMap().apply {
                 remove("masterFingerprint")
             })
@@ -730,7 +748,7 @@ object ConstraintProgrammingCheckpointProcessProbe {
     @JvmStatic
     fun main(args: Array<String>) {
         check(args.size == 1) { "Expected one checkpoint file path" }
-        val encoded = Files.readString(Path.of(args[0]))
+        val encoded = String(Files.readAllBytes(Paths.get(args[0])), StandardCharsets.UTF_8)
         val decoded = ConstraintProgrammingCheckpointCodec.decodeCompatible(encoded)
         check(decoded.ok && decoded.value?.incumbent != null) {
             "Checkpoint decode failed in independent JVM: $decoded"

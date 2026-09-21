@@ -1,18 +1,16 @@
 package fuookami.ospf.kotlin.example
 
-import fuookami.ospf.kotlin.example.test.flt64TestConverter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.symbol.function.IfFunction
 import fuookami.ospf.kotlin.core.symbol.function.SlackRangeFunction
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.example.test.flt64TestConverter
 
 /** Smoke test for if and slack-range framework-level function evaluation. */
 class FrameworkDemoTest {
@@ -29,15 +27,9 @@ class FrameworkDemoTest {
             name = "framework_if"
         )
         val slackRange = SlackRangeFunction(
-            x = xPoly,
-            lb = LinearPolynomial(
-                monomials = emptyList(),
-                constant = -Flt64.two
-            ),
-            ub = LinearPolynomial(
-                monomials = emptyList(),
-                constant = Flt64.two
-            ),
+            input = xPoly,
+            lower = -Flt64.two,
+            upper = Flt64.two,
             converter = flt64TestConverter,
             name = "framework_slack_range"
         )

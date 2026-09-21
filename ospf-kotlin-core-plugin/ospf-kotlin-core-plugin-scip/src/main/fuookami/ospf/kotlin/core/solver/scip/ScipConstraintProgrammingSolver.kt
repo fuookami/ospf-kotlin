@@ -6,6 +6,7 @@ package fuookami.ospf.kotlin.core.solver.scip
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.security.MessageDigest
 import kotlin.math.abs
 import kotlin.math.roundToLong
@@ -107,13 +108,13 @@ private fun runtimeLibraryLocation(): RuntimeLibraryLocation {
     }
     val explicit = System.getProperty("ospf.scip.library")?.takeUnless { it.isBlank() }
     val library = if (explicit != null) {
-        runCatching { Path.of(explicit).toAbsolutePath().normalize() }.getOrNull()
+        runCatching { Paths.get(explicit).toAbsolutePath().normalize() }.getOrNull()
     } else {
         val fileName = System.mapLibraryName("jscip")
         System.getProperty("java.library.path")
             ?.split(java.io.File.pathSeparator)
             ?.asSequence()
-            ?.mapNotNull { directory -> runCatching { Path.of(directory).resolve(fileName) }.getOrNull() }
+            ?.mapNotNull { directory -> runCatching { Paths.get(directory).resolve(fileName) }.getOrNull() }
             ?.firstOrNull { Files.isRegularFile(it) }
     }
     return RuntimeLibraryLocation(
@@ -144,7 +145,7 @@ private fun runtimeSearchDirectories(library: Path): List<Path> {
                 ?.split(java.io.File.pathSeparator)
                 ?.filter { it.isNotBlank() }
                 ?.mapNotNullTo(this) { directory ->
-                    runCatching { Path.of(directory).toAbsolutePath().normalize() }.getOrNull()
+                    runCatching { Paths.get(directory).toAbsolutePath().normalize() }.getOrNull()
                 }
         }
     }
@@ -229,7 +230,7 @@ private fun legacySystemLibrary(searchPath: String?): Path? {
     return searchPath
         ?.split(java.io.File.pathSeparator)
         ?.asSequence()
-        ?.mapNotNull { directory -> runCatching { Path.of(directory).resolve(fileName) }.getOrNull() }
+        ?.mapNotNull { directory -> runCatching { Paths.get(directory).resolve(fileName) }.getOrNull() }
         ?.firstOrNull { Files.isRegularFile(it) }
 }
 
@@ -240,7 +241,7 @@ private fun legacyRuntimeLibraryLocation(): LegacyRuntimeLibraryLocation {
     val primary = if (explicit != null) {
         LegacyRuntimeLibraryLocation(
             mode = "explicit",
-            path = runCatching { Path.of(explicit).toAbsolutePath().normalize() }.getOrNull(),
+            path = runCatching { Paths.get(explicit).toAbsolutePath().normalize() }.getOrNull(),
             searchPath = searchPath
         )
     } else {
@@ -706,7 +707,7 @@ private class ScipConstraintProgrammingSession(
         }
         val explicit = System.getProperty("ospf.scip.library")
         if (ScipSolver.loadedLibrary && !explicit.isNullOrBlank()) {
-            val requested = runCatching { Path.of(explicit).toAbsolutePath().normalize() }.getOrNull()
+            val requested = runCatching { Paths.get(explicit).toAbsolutePath().normalize() }.getOrNull()
             val loaded = ScipSolver.loadedLibraryPath
             val sameLibrary = requested != null && loaded != null && runCatching {
                 Files.isSameFile(requested, loaded)
@@ -722,7 +723,7 @@ private class ScipConstraintProgrammingSession(
         if (!ScipSolver.loadedLibrary) {
             try {
                 if (!explicit.isNullOrBlank()) {
-                    val path = Path.of(explicit).toAbsolutePath().normalize()
+                    val path = Paths.get(explicit).toAbsolutePath().normalize()
                     System.load(path.toString())
                     ScipSolver.loadedLibraryPath = path
                     ScipSolver.loadedLibraryMode = "explicit"
@@ -733,7 +734,7 @@ private class ScipConstraintProgrammingSession(
                         ?.asSequence()
                         ?.mapNotNull { directory ->
                             runCatching {
-                                Path.of(directory).resolve(System.mapLibraryName("jscip"))
+                                Paths.get(directory).resolve(System.mapLibraryName("jscip"))
                             }.getOrNull()
                         }
                         ?.firstOrNull { Files.isRegularFile(it) }

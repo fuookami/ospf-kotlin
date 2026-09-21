@@ -12,6 +12,8 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.model.intermediate.ImpliedCondition
+import fuookami.ospf.kotlin.core.model.intermediate.IndicatorStructure
 import fuookami.ospf.kotlin.core.model.mechanism.toLinearFlattenData
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
@@ -323,6 +325,58 @@ class ImplyFunction<V>(
         } catch (_: RuntimeException) {
             null
         }
+    }
+
+    override fun deferredStructure(): IndicatorStructure<V>? {
+        return try {
+            val bounds = when (val result = precheck()) {
+                is Ok -> result.value
+                is Failed, is Fatal -> return null
+            }
+            val normalizedAntecedent = when (val result = normalizeImplyCondition(
+                poly = antecedent,
+                bounds = bounds.antecedent,
+                label = "前件范围 / Antecedent bounds"
+            )) {
+                is Ok -> result.value
+                is Failed, is Fatal -> return null
+            }
+            val normalizedConsequent = when (val result = normalizeImplyCondition(
+                poly = consequent,
+                bounds = bounds.consequent,
+                label = "后件范围 / Consequent bounds"
+            )) {
+                is Ok -> result.value
+                is Failed, is Fatal -> return null
+            }
+            if (normalizedAntecedent.fixedValue != null || normalizedConsequent.fixedValue != null) return null
+            indicatorStructure(normalizedAntecedent, normalizedConsequent)
+        } catch (_: RuntimeException) {
+            null
+        }
+    }
+
+    private fun indicatorStructure(
+        normalizedAntecedent: DiscreteConditionLinearization<V>,
+        normalizedConsequent: DiscreteConditionLinearization<V>
+    ): IndicatorStructure<V> {
+        val lowerMagnitude = normalizedAntecedent.bounds.lower.abs()
+        val upperMagnitude = normalizedAntecedent.bounds.upper.abs()
+        return IndicatorStructure(
+            input = LinearPolynomial(normalizedAntecedent.polynomial.monomials.toList(), normalizedAntecedent.polynomial.constant),
+            resultVariable = antecedentIndicatorVar,
+            bigM = if (lowerMagnitude.compareTo(upperMagnitude) >= 0) lowerMagnitude else upperMagnitude,
+            tolerance = strictBoundary,
+            converter = converter,
+            name = "${name}_ant",
+            conditionBounds = normalizedAntecedent.bounds,
+            impliedCondition = ImpliedCondition(
+                input = LinearPolynomial(normalizedConsequent.polynomial.monomials.toList(), normalizedConsequent.polynomial.constant),
+                indicatorVariable = consequentIndicatorVar,
+                bounds = normalizedConsequent.bounds,
+                name = name
+            )
+        )
     }
 
     private fun validatePolynomial(
@@ -855,6 +909,15 @@ class ImplyFunction<V>(
             is Ok -> result.value
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
+        }
+
+        if (antecedentCondition.fixedValue == null && consequentCondition.fixedValue == null) {
+            when (val result = indicatorStructure(antecedentCondition, consequentCondition).generateConstraints()) {
+                is Ok -> allConstraints += result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            return finish()
         }
 
         when (val fixedValue = consequentCondition.fixedValue) {

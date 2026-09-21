@@ -147,7 +147,7 @@ class PredicateSchemaProcessorValidationTest {
                 )
             )
             inheritClassPath = true
-            jvmTarget = "17"
+            jvmTarget = "1.8"
         }.compile()
         assertEquals(KotlinCompilation.ExitCode.OK, usageResult.exitCode, usageResult.messages)
         assertEquals("class", usageResult.classLoader.loadClass("fixture.UsageKt")
@@ -280,7 +280,7 @@ class PredicateSchemaProcessorValidationTest {
                 withCompilation = true
             }
             inheritClassPath = true
-            jvmTarget = "17"
+            jvmTarget = "1.8"
             messageOutputStream = output
         }.compile()
     }

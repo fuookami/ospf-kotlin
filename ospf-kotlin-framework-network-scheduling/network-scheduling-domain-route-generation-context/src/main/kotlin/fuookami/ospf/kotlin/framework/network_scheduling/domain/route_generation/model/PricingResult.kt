@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.framework.network_scheduling.domain.route_generation.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.Route
 
 /**
@@ -23,7 +22,7 @@ import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.Route
  */
 data class PricingResult<V : RealNumber<V>>(
     val routes: List<Route<V>>,
-    val minReducedCost: Flt64,
+    val minReducedCost: V,
     val exactPricingComplete: Boolean,
     val interrupted: Boolean = false
 )

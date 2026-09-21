@@ -17,7 +17,12 @@ The framework covers the following domain capabilities:
 - **Produce/consumption tracking**: material production and consumption with demand satisfaction
 - **Time infrastructure**: time ranges, time windows, working calendars, duration ranges
 
-Downstream business concepts such as task dependency DAGs beyond step graphs, complex shift calendars, and custom cost formulas are not modeled here until they first become generic domain entities.
+Explicit non-goals:
+
+1. Downstream request DTOs, tenant context, formula languages, and project runtime policies.
+2. Task dependency DAGs beyond step graphs, complex shift calendars, and custom cost formulas.
+3. Solver backend installation, license management, or backend plugin ownership.
+4. Concurrent tree execution and solver-native node callbacks.
 
 ## Architecture Overview
 

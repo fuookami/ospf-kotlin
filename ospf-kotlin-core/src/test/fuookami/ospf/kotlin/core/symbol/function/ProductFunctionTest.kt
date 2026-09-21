@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.core.variable.RealVar
 
 class ProductFunctionTest {
     @Test
-    fun registerConstraintsShouldAddConstraintToModel() {
+    fun registerConstraintsShouldNotAddImplicitZeroProductConstraint() {
         val x = RealVar("x")
         val y = RealVar("y")
 
@@ -45,10 +45,7 @@ class ProductFunctionTest {
 
         val result = product.registerConstraints(model)
         assertTrue(result is Ok)
-        assertEquals(1, model.constraints.size)
-        val constraint = model.constraints.first()
-        assertTrue(constraint is QuadraticConstraintImpl)
-        assertEquals(ConstraintRelation.Equal, constraint.sign)
+        assertEquals(0, model.constraints.size)
 
         metaModel.close()
     }

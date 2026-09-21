@@ -6,6 +6,22 @@
 
 ospf-kotlin-core is the **core module** of the OSPF (Open Solver Platform Framework) Kotlin project. It implements the complete mathematical optimization model lifecycle — from variable definition and symbol expression construction, through model building and flattening, to solver abstraction and result retrieval.
 
+## Scope
+
+This module covers:
+
+1. Variable and token systems.
+2. Symbolic expression and function-symbol systems.
+3. `MetaModel`, mechanism model, intermediate standard-form models, and callback model layers.
+4. Solver traits, options, outputs, value conversion, heuristic interfaces, IIS diagnostics, and solver backend plugins.
+5. Constraint-programming models, snapshots, sessions, and MIP-backed lowering.
+
+Explicit non-goals:
+
+1. Framework-level column-generation orchestration, Benders combinators, persistence, and remote solving; those belong in `ospf-kotlin-framework`.
+2. Domain-specific modeling such as cutting stock, packing, or scheduling.
+3. Solver installation and license management beyond backend setup notes.
+
 ## Architecture Overview
 
 ```
@@ -34,6 +50,20 @@ ospf-kotlin-core is the **core module** of the OSPF (Open Solver Platform Framew
 | `solver` | Solver abstraction — linear/quadratic solvers, heuristics, IIS diagnostics, output | [README](src/main/fuookami/ospf/kotlin/core/solver/README.md) |
 | `error` | Core error code definitions | — |
 
+## Public API
+
+| API | Responsibility | Stability |
+| --- | --- | --- |
+| `MetaModel<V>` | Primary user-facing model assembly object. | stable |
+| `Variable`, `VariableRange`, `VariableType` | Decision variable definitions and ranges. | stable |
+| `Token`, `TokenList`, `TokenTable` | Solver-order token mapping and result/cache access. | stable |
+| `symbol.function` | Preferred function-symbol path. | stable |
+| `symbol.flatten` | Preferred expression-flattening path. | stable |
+| `model.mechanism` | Mechanism model and constraint/objective lowering. | stable |
+| `LinearTriadModel`, `QuadraticTetradModel` | Standard-form solver input models. | stable |
+| `Solver`, `SolveOptions` | Unified solver abstraction and solve options. | stable |
+| `solver.config` | Solver-specific configuration. | stable |
+
 ## Constraint Programming
 
 The `model.constraint_programming` package provides integer-domain CP models, Boolean literals, intervals, global constraints, immutable snapshots, and a portable snapshot codec. The `solver.constraint_programming` package provides the solver/session SPI, a fake contract solver, SCIP integration, and an exact MIP-backed path. The MIP path supports the declared bounded subset, including optional intervals and variable duration; unsupported formulations return structured `Ret` errors.
@@ -43,6 +73,36 @@ For Logic-Based Benders, use `LogicBasedBendersEngine` from `ospf-kotlin-framewo
 CP model elements carry an explicit identity scope. Use `scope = "stable"` with a caller-owned `origin` when an ID must survive model rebuilds; the default `model-local` scope is only valid within the current model instance. Snapshot, remote result, diagnostic, and checkpoint codecs preserve these IDs and reject duplicate or incomplete identity metadata. The closed repository-wide stable-ID contract (`OSPF-SOL-013`) and its SCIP/Gurobi evidence are recorded in [the release plan](../plans/release.md); adapters for plugins that have not yet passed this contract are governed by [the solver CP plan](../plans/solver_cp.md).
 
 `ConstraintProgrammingCheckpointCodec` writes portable checkpoint v2 envelopes containing the snapshot fingerprint, solver/configuration provenance, validated incumbent, interval values, and audit fields. Restoring a checkpoint rebuilds from the snapshot and revalidates the incumbent; no SCIP/JNI search tree or native handle is persisted, so the capability is `RebuildFromSnapshot`, not `Native`.
+
+
+## Unified Solve Contract
+
+The core module defines a unified solve contract for consistent solver behavior across all backends:
+
+### Core Contract
+
+- **Result type**: `Ret<SolveReport<V>>` as the primary result contract.
+- **Terminal states**: `Optimal`, `Feasible`, `Infeasible`, `Unbounded`, `TimeLimit`, `NodeLimit`, `SolverStopped`.
+- **Proof gates**: `Exact` mode requires proven optimality; `Heuristic` mode allows best-effort solutions.
+- **Attempt identity**: Each solve attempt carries a unique identifier for traceability.
+
+### Cancellation
+
+- `CancellationToken` supports cooperative cancellation.
+- Long-running solves check cancellation at regular intervals.
+- Cancellation preserves partial solution when available.
+
+### Error Handling
+
+- **Solver failures**: Wrapped in structured error types with trace context.
+- **Infeasibility**: Reported as valid terminal state with IIS evidence when available.
+- **Numeric issues**: Overflow and precision loss reported explicitly.
+
+### Fingerprint and Provenance
+
+- `SolveReport` includes solution fingerprint for integrity verification.
+- Provenance metadata records solver version, configuration, and execution environment.
+- Checkpoint codec enables portable snapshot and incumbent serialization.
 
 ## Four-Layer Model Architecture
 

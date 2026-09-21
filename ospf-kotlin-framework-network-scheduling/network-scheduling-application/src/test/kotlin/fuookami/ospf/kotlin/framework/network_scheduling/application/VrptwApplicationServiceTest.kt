@@ -6,19 +6,23 @@ import kotlin.test.*
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.Instant
+import kotlin.time.toDuration
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.toSolveReport
 import fuookami.ospf.kotlin.core.solver.report.SolveReport
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow as SchedulingTimeWindow
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindowValueConverters
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.infrastructure.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.*
@@ -86,6 +90,63 @@ class VrptwApplicationServiceTest {
         ).value
     )
 
+    private val fltXSchedulingWindow = SchedulingTimeWindow(
+        window = TimeRange(
+            start = Instant.parse("2026-01-01T00:00:00Z"),
+            end = Instant.parse("2026-01-01T01:00:00Z")
+        ),
+        durationUnit = DurationUnit.SECONDS,
+        fromDouble = { FltX(it.toString()) },
+        toDouble = { it.toDouble() },
+        fromDuration = TimeWindowValueConverters::durationToFltX,
+        toDuration = TimeWindowValueConverters::fltXToDuration
+    )
+
+    private fun fltXNode(id: String, x: String): NetworkNode<FltX> = assertNotNull(
+        NetworkNode(
+            id = NetworkNodeId(id),
+            attributes = mapOf(
+                "x" to Quantity(FltX(x), Meter),
+                "y" to Quantity(FltX("0"), Meter)
+            )
+        ).value
+    )
+
+    private fun fltXWindow(ready: String, due: String): ServiceTimeWindow = assertNotNull(
+        ServiceTimeWindow(
+            readyTime = fltXSchedulingWindow.instantOf(FltX(ready)),
+            dueTime = fltXSchedulingWindow.instantOf(FltX(due))
+        ).value
+    )
+
+    private fun makeFltXInstance(): VrptwInstance<FltX> = assertNotNull(
+        VrptwInstance(
+            name = "test-fltx-customer",
+            startDepot = Depot(fltXNode("start-x", "0"), fltXWindow("0", "100")),
+            endDepot = Depot(fltXNode("end-x", "2"), fltXWindow("0", "100")),
+            customers = listOf(
+                assertNotNull(Customer(
+                    id = CustomerId("c1-x"),
+                    node = fltXNode("c1-x", "1"),
+                    demand = Quantity(FltX("1"), Kilogram),
+                    timeWindow = fltXWindow("0.000000002", "50"),
+                    serviceTime = 1.toDuration(DurationUnit.NANOSECONDS)
+                ).value)
+            ),
+            vehicleTypes = listOf(
+                assertNotNull(VehicleType(
+                    id = VehicleTypeId("v1-x"),
+                    capacity = Quantity(FltX("2"), Kilogram),
+                    fixedCost = Quantity(FltX("10"), NoneUnit),
+                    amount = 1
+                ).value)
+            ),
+            units = units,
+            schedulingWindow = fltXSchedulingWindow,
+            tolerances = VrptwTolerances.default
+        ).value
+    )
+
     private fun makePolicy() = BranchAndPriceAlgorithm.Policy(
         valueAdapter = Flt64NetworkSchedulingSolverValueAdapter,
         distanceCalculator = object : DistanceCalculator<Flt64> {
@@ -116,6 +177,22 @@ class VrptwApplicationServiceTest {
                 return ok(vehicleType.fixedCost)
             }
         }
+    )
+
+    private fun makeFltXPolicy(instance: VrptwInstance<FltX>) = BranchAndPriceAlgorithm.Policy(
+        valueAdapter = FltXNetworkSchedulingSolverValueAdapter,
+        distanceCalculator = EuclideanDistanceCalculator<FltX>(Meter),
+        travelTimeCalculator = object : TravelTimeCalculator<FltX> {
+            override fun travelTime(
+                from: NetworkNode<FltX>,
+                to: NetworkNode<FltX>,
+                vehicleType: VehicleType<FltX>
+            ): Ret<Duration> {
+                return ok(1.toDuration(DurationUnit.NANOSECONDS))
+            }
+        },
+        arcCostCalculator = DistanceArcCostCalculator<FltX>(Meter, NoneUnit),
+        routeCostPolicy = Demo17CostPolicy<FltX>(NoneUnit)
     )
 
     // ========== VrptwSolveResult Tests ==========
@@ -289,9 +366,43 @@ class VrptwApplicationServiceTest {
         assertTrue(result.failed, "solver-call failure should map to Failed, not a normal terminal state")
     }
 
+    @Test
+    fun vrptwApplicationServiceShouldSolveFltXWithExactTimeWindowConversion() = kotlinx.coroutines.runBlocking {
+        val instance = makeFltXInstance()
+        val solver = SuccessfulLpSolver()
+        val service = VrptwApplicationService(
+            instance = instance,
+            solver = solver,
+            configuration = BranchAndPriceAlgorithm.Configuration(maxCGIterationsPerNode = 2),
+            policy = makeFltXPolicy(instance)
+        )
+
+        val result = service.solve()
+
+        assertTrue(result.ok, "FltX solve should return a normal terminal result")
+        val solveResult = assertNotNull(result.value)
+        assertEquals(BranchAndPriceStatus.Optimal, solveResult.status)
+        val route = assertNotNull(solveResult.solution).routes.single()
+        assertEquals(3, solver.lpCalls, "the application should reach Phase I, Phase II, and final LP")
+        val start = instance.schedulingWindow.start
+        assertEquals(start, route.stops[0].departure)
+        assertEquals(start + 1.toDuration(DurationUnit.NANOSECONDS), route.stops[1].arrival)
+        assertEquals(start + 2.toDuration(DurationUnit.NANOSECONDS), route.stops[1].serviceStart)
+        assertEquals(start + 3.toDuration(DurationUnit.NANOSECONDS), route.stops[1].departure)
+        assertEquals(start + 4.toDuration(DurationUnit.NANOSECONDS), route.stops[2].arrival)
+        assertEquals(
+            FltX("0.000000001"),
+            instance.schedulingWindow.valueOf(1.toDuration(DurationUnit.NANOSECONDS))
+        )
+        assertEquals(
+            1.toDuration(DurationUnit.NANOSECONDS),
+            instance.schedulingWindow.durationOf(FltX("0.000000001"))
+        )
+    }
+
     // ========== Stub Solver ==========
 
-    private class StubSolver : ColumnGenerationSolver {
+    private open class StubSolver : ColumnGenerationSolver {
         override val name: String = "stub"
 
         override suspend fun solveMILP(
@@ -312,6 +423,40 @@ class VrptwApplicationServiceTest {
             solvingStatusCallBack: SolvingStatusCallBack?
         ): Ret<ColumnGenerationSolver.LPResult> {
             return networkSchedulingFailure("StubSolver does not support LP")
+        }
+    }
+
+    private class SuccessfulLpSolver : StubSolver() {
+        var lpCalls: Int = 0
+            private set
+
+        override val name: String = "successful-stub"
+
+        override suspend fun solveLP(
+            name: String,
+            metaModel: LinearMetaModel<Flt64>,
+            toLogModel: Boolean,
+            registrationStatusCallBack: RegistrationStatusCallBack?,
+            solvingStatusCallBack: SolvingStatusCallBack?
+        ): Ret<ColumnGenerationSolver.LPResult> {
+            lpCalls++
+            val phaseOne = name.contains("_phase1_")
+            val objective = if (phaseOne) Flt64.zero else Flt64(12.0)
+            val values = metaModel.tokens.tokens.map { token ->
+                if (token.name.startsWith("x_")) Flt64.one else Flt64.zero
+            }
+            return ok(
+                ColumnGenerationSolver.LPResult(
+                    result = SolverStatus.Optimal.toSolveReport(
+                        objective = objective,
+                        values = values,
+                        solveTime = Duration.ZERO,
+                        bestBound = objective,
+                        gap = Flt64.zero
+                    ),
+                    dualSolution = emptyMap()
+                )
+            )
         }
     }
 }

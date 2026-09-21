@@ -30,7 +30,7 @@ fun interface PricingInterruptionChecker {
  * @property instance VRPTW 实例 / VRPTW instance
  * @property duals 定价对偶 / Pricing duals
  * @property branchMask 分支掩码 / Branch mask (null if no branching)
- * @property pricingTolerance 定价容差 / Pricing tolerance
+ * @property pricingTolerance solver 边界上的定价容差 / Pricing tolerance at the solver boundary
  * @property maxColumnsPerPricing 每次定价最大返回列数 / Max columns returned per pricing call
  * @property vehicleTypeId 当前定价的车辆类型 / Vehicle type being priced
  * @property interruptionChecker 定价中断检查器 / Pricing interruption checker

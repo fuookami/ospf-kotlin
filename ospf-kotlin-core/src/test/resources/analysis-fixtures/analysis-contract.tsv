@@ -1,0 +1,95 @@
+# 跨语言语义契约 / Cross-language semantic contract
+# 两端测试必须逐字断言本文件。Kotlin: AnalysisFixtureContractTest / Rust: fixture_contract.rs
+# 修改本文件即修改公共协议，必须同时更新两端测试与实现。
+# 格式：section 行以 [name] 开头；数据行为 TAB 分隔的字段；# 开头的行是注释。
+
+[schema]
+critical_analysis_report=1.0
+activity_report=1.0
+fixed_integer_lp_report=1.0
+perturbation_report=1.0
+adaptive_perturbation_report=1.0
+target_feasibility_report=1.0
+multi_target_analysis_report=1.0
+conflict_report=1.0
+activation_protocol=1.0
+criticality_profile=1.0
+correction_set=1.0
+
+[status]
+Reachable
+Unreachable
+Unknown
+Unsupported
+
+[proven]
+Reachable=true
+Unreachable=true
+Unknown=false
+Unsupported=false
+
+[activity-status]
+Active
+NearlyActive
+Inactive
+SatisfiedWithoutSlackMetric
+Violated
+Unknown
+
+[evidence-kind]
+constraint
+variable-lower-bound
+variable-upper-bound
+sparse-domain
+objective-target
+
+[forbidden-evidence]
+solver_row
+solver_column
+auxiliary_variable
+auxiliary_constraint
+native_handle
+
+# tier<TAB>shortlist_default<TAB>retained
+# Tier C 只被降权，永不删除；未分层同样保留。
+[candidate-tier]
+TierA	true	true
+TierB	true	true
+TierC	false	true
+Unclassified	false	true
+
+# minimality<TAB>minimality_proven
+# 只有 Irreducible 才算"已证明最小"；超时/预算耗尽必须是 Partial。
+[minimality]
+Irreducible	true
+Partial	false
+NotChecked	false
+
+# priority<TAB>tier<TAB>native<TAB>available
+# 事项 K 的三级优先顺序：原生 core → assumption 提取 → 重复求解回退。
+[extraction-tier]
+1	NativeUnsatCore	true	true
+2	AssumptionExtraction	false	true
+3	RepeatedSolving	false	true
+
+[scope]
+local_dual=FixedIntegerIncumbent
+forbidden_label=MILP global shadow price
+
+# kind
+# 三层证据必须可区分：Local 只出现一次，Persistent 跨多个 target 复现，Structural 覆盖全部已证明 target。
+# 顺序必须与两端枚举声明顺序一致。
+[criticality-kind]
+LocalBottleneck
+PersistentBottleneck
+StructuralBottleneck
+
+# key<TAB>value
+# 修正推荐策略的默认值，必须与两端 RelaxabilityPolicy 默认构造一致。
+# 注意：numeric_relaxation_requires_revalidation 不是策略字段，它是 CorrectionSet 的不变量
+# （数值松弛结果必须重新验证），此处登记以固定跨语言措辞。
+[relaxability-policy]
+max_candidates	32
+max_plans	8
+require_positive_weight	true
+numeric_relaxation_requires_revalidation	true

@@ -1,25 +1,21 @@
 package fuookami.ospf.kotlin.example.linear_function
 
 import kotlinx.coroutines.runBlocking
-
-import fuookami.ospf.kotlin.example.test.flt64TestConverter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-
 import fuookami.ospf.kotlin.utils.functional.Ok
-
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.symbol.function.AbsFunction
 import fuookami.ospf.kotlin.core.symbol.function.SlackRangeFunction
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.example.test.flt64TestConverter
 
 /** Verifies that abs and slack-range functions expose the expected constraint shapes without invoking a solver. */
 class LinearFunctionBuildOnlyStructureTest {
@@ -36,9 +32,9 @@ class LinearFunctionBuildOnlyStructureTest {
             name = "example_abs_build"
         )
         val slackRange = SlackRangeFunction(
-            x = xPoly,
-            lb = LinearPolynomial(emptyList(), -Flt64.two),
-            ub = LinearPolynomial(emptyList(), Flt64.two),
+            input = xPoly,
+            lower = -Flt64.two,
+            upper = Flt64.two,
             converter = flt64TestConverter,
             name = "example_slack_range_build"
         )
@@ -64,17 +60,14 @@ class LinearFunctionBuildOnlyStructureTest {
             assertTrue(slackRange.registerConstraints(mechanismModel) is Ok)
             val appended = mechanismModel.constraints.subList(before, mechanismModel.constraints.size)
 
-            assertEquals(6, appended.size, "abs(4条)+slackRange(2条) 应追加 6 条约束")
+            assertEquals(11, appended.size, "abs(4条)+slackRange 精确 max(7条) 应追加 11 条约束")
             val absRows = appended.filter { it.name.startsWith("example_abs_build") }
-            val slackRows = appended.filter { it.name.startsWith("example_slack_range_build") }
             assertEquals(4, absRows.size)
-            assertEquals(2, slackRows.size)
 
             assertTrue(absRows.any { it.sign == ConstraintRelation.Equal })
-            assertTrue(slackRows.any { it.sign == ConstraintRelation.GreaterEqual })
             assertNotNull(abs.resultVar)
-            assertNotNull(slackRange.pos)
-            assertNotNull(slackRange.neg)
+            assertNotNull(slackRange.resultVar)
+            assertEquals(3, slackRange.selectorVars.size)
         } finally {
             model.close()
         }

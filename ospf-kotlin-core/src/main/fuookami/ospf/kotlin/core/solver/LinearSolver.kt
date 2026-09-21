@@ -1,6 +1,6 @@
 /**
  * 线性求解器接口定义 / Linear solver interface definitions
-*/
+ */
 package fuookami.ospf.kotlin.core.solver
 
 import java.util.concurrent.CompletableFuture
@@ -14,15 +14,18 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.iis.IISConfig
 import fuookami.ospf.kotlin.core.solver.iis.InfeasibilityAnalyzer
-import fuookami.ospf.kotlin.core.solver.report.*
-import fuookami.ospf.kotlin.core.solver.progress.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
+import fuookami.ospf.kotlin.core.solver.progress.*
 
 /**
  * 线性求解器的抽象接口，定义了求解、异步求解和泛型求解等核心能力。 / Abstract interface for linear solvers, defining core capabilities for solving, async solving, and generic solving.
-*/
+ *
+ * @property name 求解器名称 / Solver name
+ * @property descriptor 求解器能力描述 / Solver capability descriptor
+ */
 interface AbstractLinearSolver {
     val name: String
 
@@ -39,6 +42,9 @@ interface AbstractLinearSolver {
      *
      * 默认返回空列表，使未迁移的旧 solver 继续使用 core 的 legacy IIS 路径。 / The default is empty so
      * legacy solvers continue to use the core fallback path until they opt into the diagnostic SPI.
+     *
+     * @param config IIS 配置 / IIS configuration
+     * @return backend 提供的不可行诊断分析器 / Backend-provided infeasibility analyzers
      */
     fun diagnosticAnalyzers(
         config: IISConfig
@@ -62,6 +68,14 @@ interface AbstractLinearSolver {
             is Ok -> {}
             is Failed -> return Failed(validation.error)
             is Fatal -> return Fatal(validation.errors)
+        }
+        // 非有限数值预检：在提交给 backend 之前拒绝，避免脏数据以 "NaN" 文本进入审计指纹。
+        // Non-finite preflight: reject before handing the model to a backend so corrupt data
+        // never enters the audit fingerprint as the text "NaN".
+        when (val finite = model.toNormalizedMathematicalModel().validateFiniteValues()) {
+            is Ok -> {}
+            is Failed -> return Failed(finite.error)
+            is Fatal -> return Fatal(finite.errors)
         }
         progressContext?.report(
             SolverProgressSnapshot(
@@ -112,6 +126,12 @@ interface AbstractLinearSolver {
             is Failed -> return Failed(validation.error)
             is Fatal -> return Fatal(validation.errors)
         }
+        // 非有限数值预检，同单解路径。/ Non-finite preflight, as on the single-solution path.
+        when (val finite = model.toNormalizedMathematicalModel().validateFiniteValues()) {
+            is Ok -> {}
+            is Failed -> return Failed(finite.error)
+            is Fatal -> return Fatal(finite.errors)
+        }
         progressContext?.report(
             SolverProgressSnapshot(
                 stage = SolverStages.MILP,
@@ -143,13 +163,20 @@ interface AbstractLinearSolver {
      * @param model 线性三元模型视图 / Linear triad model view
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @return 求解结果 / Solve result
-    */
+     */
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<SolveReport<Flt64>>
 
-    /** 使用取消令牌求解线性模型。 / Solve a linear model with a cancellation token. */
+    /**
+     * 使用取消令牌求解线性模型。 / Solve a linear model with a cancellation token.
+     *
+     * @param model 线性三元模型视图 / Linear triad model view
+     * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
+     * @param cancellationToken 求解取消令牌 / Solve cancellation token
+     * @return 求解结果 / Solve result
+     */
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -165,7 +192,7 @@ interface AbstractLinearSolver {
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @param iisConfig IIS 配置 / IIS configuration
      * @return 求解结果（可能包含 IIS）/ Solve result (may contain IIS)
-    */
+     */
     suspend operator fun invoke(
         model: LinearTriadModel,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -186,8 +213,9 @@ interface AbstractLinearSolver {
      * @param model 线性三元模型视图 / Linear triad model view
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @param callBack 结果回调（可选）/ Result callback (optional)
+     * @param cancellationToken 求解取消令牌 / Solve cancellation token
      * @return 异步求解结果 / Async solve result
-    */
+     */
     fun solveAsync(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -213,8 +241,9 @@ interface AbstractLinearSolver {
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @param iisConfig IIS 配置 / IIS configuration
      * @param callBack 结果回调（可选）/ Result callback (optional)
+     * @param cancellationToken 求解取消令牌 / Solve cancellation token
      * @return 异步求解结果 / Async solve result
-    */
+     */
     fun solveAsync(
         model: LinearTriadModel,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -244,14 +273,22 @@ interface AbstractLinearSolver {
      * @param solutionAmount 期望解数量 / Desired solution amount
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @return 求解结果与解列表 / Solve result with solution list
-    */
+     */
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<SolveReport<Flt64>, List<List<Flt64>>>>
 
-    /** 使用取消令牌获取多个线性解。 / Solve for multiple linear solutions with a cancellation token. */
+    /**
+     * 使用取消令牌获取多个线性解。 / Solve for multiple linear solutions with a cancellation token.
+     *
+     * @param model 线性三元模型视图 / Linear triad model view
+     * @param solutionAmount 期望解数量 / Desired solution amount
+     * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
+     * @param cancellationToken 求解取消令牌 / Solve cancellation token
+     * @return 求解结果与解列表 / Solve result with solution list
+     */
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -269,7 +306,7 @@ interface AbstractLinearSolver {
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @param iisConfig IIS 配置 / IIS configuration
      * @return 求解结果与解列表（可能包含 IIS）/ Solve result with solution list (may contain IIS)
-    */
+     */
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -293,8 +330,9 @@ interface AbstractLinearSolver {
      * @param solutionAmount 期望解数量 / Desired solution amount
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @param callBack 结果回调（可选）/ Result callback (optional)
+     * @param cancellationToken 求解取消令牌 / Solve cancellation token
      * @return 异步求解结果与解列表 / Async solve result with solution list
-    */
+     */
     fun solveAsync(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -323,8 +361,9 @@ interface AbstractLinearSolver {
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @param iisConfig IIS 配置 / IIS configuration
      * @param callBack 结果回调（可选）/ Result callback (optional)
+     * @param cancellationToken 求解取消令牌 / Solve cancellation token
      * @return 异步求解结果与解列表 / Async solve result with solution list
-    */
+     */
     fun solveAsync(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -360,12 +399,17 @@ interface AbstractLinearSolver {
      * @param converter 值转换器 / Value converter
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @return 求解结果 / Solve result
-    */
+     */
     suspend fun <V> solve(
         model: LinearTriadModelView,
         converter: IntoValue<V>,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<SolveReport<V>> where V : RealNumber<V>, V : NumberField<V> {
+        when (val validation = model.identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         return when (val result = invoke(model, solvingStatusCallBack)) {
             is Ok -> Ok(result.value.convertTo(converter))
             is Failed -> Failed(result.error)
@@ -382,13 +426,18 @@ interface AbstractLinearSolver {
      * @param converter 值转换器 / Value converter
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @return 求解结果与解列表 / Solve result with solution list
-    */
+     */
     suspend fun <V> solve(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         converter: IntoValue<V>,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<SolveReport<V>, List<Solution<V>>>> where V : RealNumber<V>, V : NumberField<V> {
+        when (val validation = model.identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         return when (val result = invoke(model, solutionAmount, solvingStatusCallBack)) {
             is Ok -> {
                 val (output, solutions) = result.value
@@ -408,7 +457,7 @@ interface AbstractLinearSolver {
      * @param converter 值转换器 / Value converter
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @return 求解结果 / Solve result
-    */
+     */
     suspend fun <V> solve(
         model: MechanismModel<V>,
         converter: IntoValue<V>,
@@ -444,7 +493,7 @@ interface AbstractLinearSolver {
      * @param converter 值转换器 / Value converter
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @return 求解结果与解列表 / Solve result with solution list
-    */
+     */
     suspend fun <V> solve(
         model: MechanismModel<V>,
         solutionAmount: UInt64,
@@ -477,7 +526,7 @@ interface AbstractLinearSolver {
      *
      * @param model 线性机制模型 / Linear mechanism model
      * @return 线性三元组模型 / Linear triad model
-    */
+     */
     suspend fun dump(model: LinearMechanismModel<Flt64>): LinearTriadModel {
         return LinearTriadModel(model)
     }
@@ -492,8 +541,14 @@ interface AbstractLinearSolver {
         val dumped = dump(model)
         return when (val validation = dumped.identityValidation) {
             is Ok -> Ok(dumped)
-            is Failed -> Failed(validation.error)
-            is Fatal -> Fatal(validation.errors)
+            is Failed -> {
+                dumped.close()
+                Failed(validation.error)
+            }
+            is Fatal -> {
+                dumped.close()
+                Fatal(validation.errors)
+            }
         }
     }
 
@@ -504,7 +559,7 @@ interface AbstractLinearSolver {
      * @param registrationStatusCallBack 注册状态回调（可选）/ Registration status callback (optional)
      * @param dumpingStatusCallBack 转储状态回调（可选）/ Dumping status callback (optional)
      * @return 线性机制模型 / Linear mechanism model
-    */
+     */
     suspend fun dump(
         model: LinearMetaModel<Flt64>,
         registrationStatusCallBack: RegistrationStatusCallBack?,
@@ -522,12 +577,18 @@ interface AbstractLinearSolver {
  * 线性求解器接口，扩展 [AbstractLinearSolver] 并提供配置驱动的模型转储能力。 / Linear solver interface extending [AbstractLinearSolver] with configuration-driven model dumping.
  *
  * @property config 求解器配置 / Solver configuration
-*/
+ */
 interface LinearSolver : AbstractLinearSolver {
 
     /** Solver configuration / 求解器配置 */
     val config: SolverConfig
 
+    /**
+     * 转储线性机制模型为三元组模型。 / Dump a linear mechanism model to a triad model.
+     *
+     * @param model 线性机制模型 / Linear mechanism model
+     * @return 线性三元组模型 / Linear triad model
+     */
     override suspend fun dump(model: LinearMechanismModel<Flt64>): LinearTriadModel {
         return LinearTriadModel(
             model = model,
@@ -539,6 +600,31 @@ interface LinearSolver : AbstractLinearSolver {
         )
     }
 
+    /**
+     * 转储并校验线性机制模型。 / Dump and validate a linear mechanism model.
+     *
+     * @param model 线性机制模型 / Linear mechanism model
+     * @return 已校验的线性三元模型或结构化错误 / Validated linear triad model or a structured error
+     */
+    override suspend fun dumpResult(model: LinearMechanismModel<Flt64>): Ret<LinearTriadModel> {
+        return LinearTriadModel.invokeResult(
+            model = model,
+            fixedVariables = null,
+            dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+            forceDumpBounds = config.dumpIntermediateModelForceBounds,
+            concurrent = config.dumpIntermediateModelConcurrent,
+            identityRegistry = model.identityRegistry
+        )
+    }
+
+    /**
+     * 转储线性元模型为机制模型。 / Dump a linear meta model to a mechanism model.
+     *
+     * @param model 线性元模型 / Linear meta model
+     * @param registrationStatusCallBack 注册状态回调（可选）/ Registration status callback (optional)
+     * @param dumpingStatusCallBack 转储状态回调（可选）/ Dumping status callback (optional)
+     * @return 线性机制模型 / Linear mechanism model
+     */
     override suspend fun dump(
         model: LinearMetaModel<Flt64>,
         registrationStatusCallBack: RegistrationStatusCallBack?,

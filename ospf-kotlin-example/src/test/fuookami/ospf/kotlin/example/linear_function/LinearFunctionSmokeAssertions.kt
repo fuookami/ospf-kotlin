@@ -1,18 +1,16 @@
 package fuookami.ospf.kotlin.example.linear_function
 
-import fuookami.ospf.kotlin.example.test.flt64TestConverter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
-
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.example.test.flt64TestConverter
 
 /** Shared smoke-test assertions for all supported linear function types. */
 object LinearFunctionSmokeAssertions {
@@ -254,9 +252,9 @@ object LinearFunctionSmokeAssertions {
     fun assertSlackRangeFunctionWorks() {
         val x = RealVar("example_slack_range_x")
         val function = SlackRangeFunction(
-            x = polyOf(x),
-            lb = LinearPolynomial(emptyList(), -Flt64.two),
-            ub = LinearPolynomial(emptyList(), Flt64.two),
+            input = polyOf(x),
+            lower = -Flt64.two,
+            upper = Flt64.two,
             converter = flt64TestConverter,
             name = "example_slack_range"
         )

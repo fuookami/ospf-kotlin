@@ -13,6 +13,8 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.ConditionalValue
+import fuookami.ospf.kotlin.core.model.intermediate.IndicatorStructure
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenList
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
@@ -251,6 +253,52 @@ class IfThenFunction<V>(
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(indicatorVar, resultVar)
+
+    override fun deferredStructure(): IndicatorStructure<V>? {
+        return try {
+            val bounds = when (val resolved = resolveRegistrationBounds()) {
+                is Ok -> resolved.value
+                is Failed, is Fatal -> return null
+            }
+            val normalized = when (val normalized = normalizeDiscreteCondition(
+                poly = condition,
+                relation = relation,
+                bounds = bounds.condition,
+                delta = delta,
+                strictBoundary = strictBoundary
+            )) {
+                is Ok -> normalized.value
+                is Failed, is Fatal -> return null
+            }
+            if (normalized.fixedValue != null) return null
+            indicatorStructure(normalized, bounds.then)
+        } catch (_: RuntimeException) {
+            null
+        }
+    }
+
+    private fun indicatorStructure(
+        normalized: DiscreteConditionLinearization<V>,
+        thenBounds: ConditionBounds<V>
+    ): IndicatorStructure<V> {
+        val lowerMagnitude = normalized.bounds.lower.abs()
+        val upperMagnitude = normalized.bounds.upper.abs()
+        return IndicatorStructure(
+            input = LinearPolynomial(normalized.polynomial.monomials.toList(), normalized.polynomial.constant),
+            resultVariable = indicatorVar,
+            bigM = if (lowerMagnitude.compareTo(upperMagnitude) >= 0) lowerMagnitude else upperMagnitude,
+            tolerance = strictBoundary,
+            converter = converter,
+            name = "${name}_cond",
+            conditionBounds = normalized.bounds,
+            conditionalValue = ConditionalValue(
+                input = LinearPolynomial(thenPoly.monomials.toList(), thenPoly.constant),
+                resultVariable = resultVar,
+                bounds = thenBounds,
+                name = name
+            )
+        )
+    }
 
     val result: LinearPolynomial<V> by lazy {
         LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
@@ -692,69 +740,11 @@ class IfThenFunction<V>(
             return finish(constraints)
         }
 
-        val indicatorConstraints = when (val result = relationIndicatorConstraints(
-            poly = normalized.polynomial,
-            indicator = indicatorVar,
-            relation = Comparison.GT,
-            bounds = normalized.bounds,
-            strictBoundary = strictBoundary,
-            namePrefix = "${name}_cond"
-        )) {
-            is Ok -> result.value
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
+        return when (val constraints = indicatorStructure(normalized, bounds.then).generateConstraints()) {
+            is Ok -> finish(constraints.value)
+            is Failed -> Failed(constraints.error)
+            is Fatal -> Fatal(constraints.errors)
         }
-
-        val lower = bounds.then.lower
-        val upper = bounds.then.upper
-        val yMono = LinearMonomial(one, resultVar)
-        val negThenMonomials = thenPoly.monomials.map {
-            LinearMonomial(-it.coefficient, it.symbol)
-        }
-        val thenConstraints = listOf(
-            // y <= upper * indicator / 上界：条件不满足时 y <= 0
-            LinearInequality(
-                lhs = LinearPolynomial(
-                    monomials = listOf(yMono, LinearMonomial(-upper, indicatorVar)),
-                    constant = zero
-                ),
-                rhs = LinearPolynomial(emptyList(), zero),
-                comparison = Comparison.LE,
-                name = "${name}_zero_ub"
-            ),
-            // y >= lower * indicator / 下界：条件不满足时 y >= 0
-            LinearInequality(
-                lhs = LinearPolynomial(
-                    monomials = listOf(yMono, LinearMonomial(-lower, indicatorVar)),
-                    constant = zero
-                ),
-                rhs = LinearPolynomial(emptyList(), zero),
-                comparison = Comparison.GE,
-                name = "${name}_zero_lb"
-            ),
-            // y - thenPoly <= -lower * (1 - indicator) / 条件满足时 y <= thenPoly
-            LinearInequality(
-                lhs = LinearPolynomial(
-                    monomials = negThenMonomials + listOf(yMono, LinearMonomial(-lower, indicatorVar)),
-                    constant = -thenPoly.constant
-                ),
-                rhs = LinearPolynomial(emptyList(), -lower),
-                comparison = Comparison.LE,
-                name = "${name}_then_ub"
-            ),
-            // y - thenPoly >= -upper * (1 - indicator) / 条件满足时 y >= thenPoly
-            LinearInequality(
-                lhs = LinearPolynomial(
-                    monomials = negThenMonomials + listOf(yMono, LinearMonomial(-upper, indicatorVar)),
-                    constant = -thenPoly.constant
-                ),
-                rhs = LinearPolynomial(emptyList(), -upper),
-                comparison = Comparison.GE,
-                name = "${name}_then_lb"
-            )
-        )
-        val constraints = indicatorConstraints + thenConstraints
-        return finish(constraints)
     }
 
     private fun addConstraintsAtomically(

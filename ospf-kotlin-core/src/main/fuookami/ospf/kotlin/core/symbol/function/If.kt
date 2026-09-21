@@ -5,15 +5,16 @@ package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.model.intermediate.IndicatorStructure
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.*
 
 /**
@@ -22,7 +23,7 @@ import fuookami.ospf.kotlin.core.variable.*
  * 提供 [IfFunction]，实现按比较关系选择 0/1 的线性化建模。
  *
  * Provides [IfFunction] for relation-aware linearized modeling of a binary result.
-*/
+ */
 
 /**
  * 条件函数：满足 [relation] 时 y = 1，否则 y = 0。
@@ -41,7 +42,7 @@ import fuookami.ospf.kotlin.core.variable.*
  * @param conditionBounds 条件多项式的显式有限范围 / explicit finite bounds of the condition polynomial
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
-*/
+ */
 class IfFunction<V>(
     val condition: LinearPolynomial<V>,
     converter: IntoValue<V>,
@@ -75,6 +76,40 @@ class IfFunction<V>(
 
     val result: LinearPolynomial<V> get() = resultPolynomial
 
+    override fun deferredStructure(): IndicatorStructure<V>? {
+        val bounds = when (val validation = precheck()) {
+            is Ok -> validation.value
+            is Failed, is Fatal -> return null
+        }
+        val normalized = when (val result = normalizeDiscreteCondition(
+            poly = condition,
+            relation = relation,
+            bounds = bounds,
+            delta = delta,
+            strictBoundary = strictBoundary
+        )) {
+            is Ok -> result.value
+            is Failed, is Fatal -> return null
+        }
+        if (normalized.fixedValue != null) return null
+        return indicatorStructure(normalized)
+    }
+
+    private fun indicatorStructure(normalized: DiscreteConditionLinearization<V>): IndicatorStructure<V> {
+        val lowerMagnitude = normalized.bounds.lower.abs()
+        val upperMagnitude = normalized.bounds.upper.abs()
+        return IndicatorStructure(
+            input = LinearPolynomial(normalized.polynomial.monomials.toList(), normalized.polynomial.constant),
+            resultVariable = resultVar,
+            bigM = if (lowerMagnitude.compareTo(upperMagnitude) >= 0) lowerMagnitude else upperMagnitude,
+            tolerance = strictBoundary,
+            converter = converter,
+            name = "${name}_if",
+            conditionBounds = normalized.bounds,
+            equivalentResults = listOf(indicatorVar)
+        )
+    }
+
     private fun isUsableBound(value: V): Boolean {
         return isUsableConditionBound(value, converter)
     }
@@ -106,7 +141,7 @@ class IfFunction<V>(
      *
      * @param values 符号到值的映射 / mapping from symbols to values
      * @return 条件判定结果；缺失输入或非法关系时失败 / condition result; failure for missing input or an invalid relation
-    */
+     */
     fun classify(values: Map<Symbol, V>): Ret<TruthValue> {
         return try {
             val condValue = condition.evaluateWith(values)
@@ -225,13 +260,12 @@ class IfFunction<V>(
      * 构建条件指示约束列表。 / Build the list of condition indicator constraints.
      *
      * @return 线性不等式约束列表 / list of linear inequality constraints
-    */
+     */
     private fun buildConstraints(
         bounds: ConditionBounds<V>
     ): Ret<List<LinearInequality<V>>> {
         val zero = converter.zero
         val one = converter.one
-        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         val normalized = when (val result = normalizeDiscreteCondition(
             poly = condition,
@@ -267,31 +301,7 @@ class IfFunction<V>(
             )
         }
 
-        val indicatorConstraints = when (val result = relationIndicatorConstraints(
-            poly = normalized.polynomial,
-            indicator = indicatorVar,
-            relation = Comparison.GT,
-            bounds = normalized.bounds,
-            strictBoundary = strictBoundary,
-            namePrefix = "${name}_if"
-        )) {
-            is Ok -> result.value
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-        allConstraints += indicatorConstraints
-
-        // Keep result = indicator for the stable public result contract. / 保持 result = indicator，稳定公开结果契约。
-        allConstraints += LinearInequality(
-            LinearPolynomial(
-                listOf(LinearMonomial(one, resultVar), LinearMonomial(-one, indicatorVar)),
-                zero
-            ),
-            LinearPolynomial(emptyList(), zero),
-            Comparison.EQ, "${name}_if_eq"
-        )
-
-        return Ok(allConstraints)
+        return indicatorStructure(normalized).generateConstraints()
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
@@ -312,6 +322,7 @@ class IfFunction<V>(
     companion object {
         /**
          * 创建条件函数实例 / Create an if function instance
+         *
          * @param condition 条件线性多项式 / condition linear polynomial
          * @param converter 值类型转换器 / value type converter
          * @param bigM Big-M 界限 / Big-M bound
@@ -324,7 +335,7 @@ class IfFunction<V>(
          * @param conditionBounds 条件多项式的显式有限范围 / explicit finite bounds of the condition polynomial
          * @param delta 离散步长 / discrete step
          * @return [IfFunction] 实例 / [IfFunction] instance
-        */
+         */
         operator fun <V> invoke(
             condition: LinearPolynomial<V>,
             converter: IntoValue<V>,
@@ -354,6 +365,7 @@ class IfFunction<V>(
 
         /**
          * 约束输入工厂：从约束输入提取条件多项式。 / Constraint-input factory: extracts the condition polynomial from the constraint input.
+         *
          * @param inequality 约束输入 / constraint input
          * @param converter 值类型转换器 / value type converter
          * @param bigM Big-M 界限 / Big-M bound
@@ -365,7 +377,7 @@ class IfFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return 包装后的线性函数符号适配器 / wrapped linear function symbol adapter
-        */
+         */
         fun <V> from(
             inequality: LinearConstraintInput<V>,
             converter: IntoValue<V>,

@@ -3,13 +3,14 @@
  */
 package fuookami.ospf.kotlin.core.model.constraint_programming
 
-import fuookami.ospf.kotlin.core.solver.report.VariableId
-import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.core.solver.report.VariableId
 
 /** 整数关系。 / Integer relation. */
 enum class ConstraintProgrammingComparison {
@@ -120,7 +121,7 @@ private fun <T> propagateFailure(result: Ret<*>): Ret<T> {
 
 private inline fun <T, U> Ret<T>.flatMapResult(transform: (T) -> Ret<U>): Ret<U> {
     return when (this) {
-        is fuookami.ospf.kotlin.utils.functional.Ok -> transform(value)
+            is Ok -> transform(value)
         is Failed -> Failed(error)
         is Fatal -> Fatal(errors)
     }
@@ -596,8 +597,15 @@ sealed interface ConstraintProgrammingConstraint {
             var level = java.math.BigInteger.valueOf(initialLevel.toLong())
             val minimum = java.math.BigInteger.valueOf(minimumLevel.toLong())
             val maximum = java.math.BigInteger.valueOf(maximumLevel.toLong())
-            for ((_, change) in evaluated) {
-                level = level.add(java.math.BigInteger.valueOf(change))
+            var index = 0
+            while (index < evaluated.size) {
+                val time = evaluated[index].first
+                var totalChange = java.math.BigInteger.ZERO
+                while (index < evaluated.size && evaluated[index].first == time) {
+                    totalChange = totalChange.add(java.math.BigInteger.valueOf(evaluated[index].second))
+                    index++
+                }
+                level = level.add(totalChange)
                 if (level < minimum || level > maximum) {
                     return ok(false)
                 }

@@ -7,16 +7,16 @@ import java.util.concurrent.CompletableFuture
 import kotlinx.coroutines.future.future
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.iis.IISConfig
-import fuookami.ospf.kotlin.core.solver.output.*
-import fuookami.ospf.kotlin.core.solver.progress.*
-import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.value.*
+import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
+import fuookami.ospf.kotlin.core.solver.progress.*
 
 /**
  * 使用解池入口返回线性统一报告。 / Return a unified report from the linear solution-pool entry point.
@@ -28,22 +28,22 @@ import fuookami.ospf.kotlin.core.solver.value.*
  * @param cancellationToken 求解取消令牌 / Solve cancellation token
  * @return 统一求解报告 / Unified solve report
  */
- suspend fun AbstractLinearSolver.solveReport(
-     model: LinearTriadModelView,
-     solutionAmount: UInt64,
-     solvingStatusCallBack: SolvingStatusCallBack? = null,
+suspend fun AbstractLinearSolver.solveReport(
+    model: LinearTriadModelView,
+    solutionAmount: UInt64,
+    solvingStatusCallBack: SolvingStatusCallBack? = null,
     progressContext: SolverProgressContext? = null,
     cancellationToken: CancellationToken? = null
- ): Ret<SolveReport<Flt64>> {
-     return solveReportWithSolutionPool(
-         model = model,
-         solutionAmount = solutionAmount,
-         solvingStatusCallBack = solvingStatusCallBack,
-         progressContext = progressContext,
+): Ret<SolveReport<Flt64>> {
+    return solveReportWithSolutionPool(
+        model = model,
+        solutionAmount = solutionAmount,
+        solvingStatusCallBack = solvingStatusCallBack,
+        progressContext = progressContext,
         valueConversionPolicy = SolveValueConversionPolicy.AllowRounding,
         cancellationToken = cancellationToken
-     )
- }
+    )
+}
 
 private suspend fun AbstractLinearSolver.solveReportWithSolutionPool(
     model: LinearTriadModelView,
@@ -52,11 +52,11 @@ private suspend fun AbstractLinearSolver.solveReportWithSolutionPool(
     progressContext: SolverProgressContext? = null,
     valueConversionPolicy: SolveValueConversionPolicy,
     cancellationToken: CancellationToken? = null
- ): Ret<SolveReport<Flt64>> {
+): Ret<SolveReport<Flt64>> {
     if (cancellationToken?.isCancellationRequested == true) {
         return Ok(cancelledSolveReport(cancellationToken.record?.reason))
     }
-     when (val validation = model.identityValidation) {
+    when (val validation = model.identityValidation) {
         is Ok -> {}
         is Failed -> return Failed(validation.error)
         is Fatal -> return Fatal(validation.errors)
@@ -67,7 +67,7 @@ private suspend fun AbstractLinearSolver.solveReportWithSolutionPool(
         is Fatal -> return Fatal(validation.errors)
     }
     reportLinearProgress(progressContext, name, 0)
-     return withSolveValueConversionPolicy(valueConversionPolicy) {
+    return withSolveValueConversionPolicy(valueConversionPolicy) {
         when (val result = invoke(model, solutionAmount, solvingStatusCallBack, cancellationToken)) {
             is Ok -> {
                 reportLinearProgress(progressContext, name, 100)
@@ -94,22 +94,22 @@ private suspend fun AbstractLinearSolver.solveReportWithSolutionPool(
  * @param cancellationToken 求解取消令牌 / Solve cancellation token
  * @return 统一求解报告 / Unified solve report
  */
- suspend fun AbstractQuadraticSolver.solveReport(
-     model: QuadraticTetradModelView,
-     solutionAmount: UInt64,
-     solvingStatusCallBack: SolvingStatusCallBack? = null,
+suspend fun AbstractQuadraticSolver.solveReport(
+    model: QuadraticTetradModelView,
+    solutionAmount: UInt64,
+    solvingStatusCallBack: SolvingStatusCallBack? = null,
     progressContext: SolverProgressContext? = null,
     cancellationToken: CancellationToken? = null
- ): Ret<SolveReport<Flt64>> {
-     return solveReportWithSolutionPool(
-         model = model,
-         solutionAmount = solutionAmount,
-         solvingStatusCallBack = solvingStatusCallBack,
-         progressContext = progressContext,
+): Ret<SolveReport<Flt64>> {
+    return solveReportWithSolutionPool(
+        model = model,
+        solutionAmount = solutionAmount,
+        solvingStatusCallBack = solvingStatusCallBack,
+        progressContext = progressContext,
         valueConversionPolicy = SolveValueConversionPolicy.AllowRounding,
         cancellationToken = cancellationToken
-     )
- }
+    )
+}
 
 private suspend fun AbstractQuadraticSolver.solveReportWithSolutionPool(
     model: QuadraticTetradModelView,
@@ -118,11 +118,11 @@ private suspend fun AbstractQuadraticSolver.solveReportWithSolutionPool(
     progressContext: SolverProgressContext? = null,
     valueConversionPolicy: SolveValueConversionPolicy,
     cancellationToken: CancellationToken? = null
- ): Ret<SolveReport<Flt64>> {
+): Ret<SolveReport<Flt64>> {
     if (cancellationToken?.isCancellationRequested == true) {
         return Ok(cancelledSolveReport(cancellationToken.record?.reason))
     }
-     when (val validation = model.identityValidation) {
+    when (val validation = model.identityValidation) {
         is Ok -> {}
         is Failed -> return Failed(validation.error)
         is Fatal -> return Fatal(validation.errors)
@@ -133,7 +133,7 @@ private suspend fun AbstractQuadraticSolver.solveReportWithSolutionPool(
         is Fatal -> return Fatal(validation.errors)
     }
     reportQuadraticProgress(progressContext, name, 0)
-     return withSolveValueConversionPolicy(valueConversionPolicy) {
+    return withSolveValueConversionPolicy(valueConversionPolicy) {
         when (val result = invoke(model, solutionAmount, solvingStatusCallBack, cancellationToken)) {
             is Ok -> {
                 reportQuadraticProgress(progressContext, name, 100)
@@ -164,6 +164,11 @@ suspend fun <V> AbstractLinearSolver.solveReport(
     converter: IntoValue<V>,
     solvingStatusCallBack: SolvingStatusCallBack? = null
 ): Ret<SolveReport<V>> where V : RealNumber<V>, V : NumberField<V> {
+    when (val validation = model.identityValidation) {
+        is Ok -> {}
+        is Failed -> return Failed(validation.error)
+        is Fatal -> return Fatal(validation.errors)
+    }
     return when (val result = invoke(model, solvingStatusCallBack)) {
         is Ok -> Ok(result.value.toSolveReport().withModelDiagnostics(model).convertTo(converter))
         is Failed -> Failed(result.error)
@@ -187,6 +192,11 @@ suspend fun <V> AbstractLinearSolver.solveReport(
     converter: IntoValue<V>,
     solvingStatusCallBack: SolvingStatusCallBack? = null
 ): Ret<SolveReport<V>> where V : RealNumber<V>, V : NumberField<V> {
+    when (val validation = model.identityValidation) {
+        is Ok -> {}
+        is Failed -> return Failed(validation.error)
+        is Fatal -> return Fatal(validation.errors)
+    }
     return when (val result = invoke(model, solutionAmount, solvingStatusCallBack)) {
         is Ok -> Ok(
             result.value.first.toSolveReport(solutionPool = result.value.second).withModelDiagnostics(model).convertTo(converter)
@@ -574,6 +584,7 @@ suspend fun AbstractQuadraticSolver.solveReport(
  * @param model 线性三元模型视图 / Linear triad model view
  * @param progressContext 统一进度上下文 / Unified progress context
  * @param callBack 结果回调 / Result callback
+ * @param cancellationToken 求解取消令牌 / Solve cancellation token
  * @return 异步报告结果 / Asynchronous report result
  */
 fun AbstractLinearSolver.solveReportAsync(
@@ -598,6 +609,7 @@ fun AbstractLinearSolver.solveReportAsync(
  * @param solvingStatusCallBack 求解状态回调 / Solving status callback
  * @param progressContext 统一进度上下文 / Unified progress context
  * @param callBack 结果回调 / Result callback
+ * @param cancellationToken 求解取消令牌 / Solve cancellation token
  * @return 异步报告结果 / Asynchronous report result
  */
 fun AbstractLinearSolver.solveReportAsync(
@@ -630,6 +642,7 @@ fun AbstractLinearSolver.solveReportAsync(
  * @param model 二次四元模型视图 / Quadratic tetrad model view
  * @param progressContext 统一进度上下文 / Unified progress context
  * @param callBack 结果回调 / Result callback
+ * @param cancellationToken 求解取消令牌 / Solve cancellation token
  * @return 异步报告结果 / Asynchronous report result
  */
 fun AbstractQuadraticSolver.solveReportAsync(
@@ -684,6 +697,7 @@ private fun reportQuadraticProgress(
  * @param solvingStatusCallBack 求解状态回调 / Solving status callback
  * @param progressContext 统一进度上下文 / Unified progress context
  * @param callBack 结果回调 / Result callback
+ * @param cancellationToken 求解取消令牌 / Solve cancellation token
  * @return 异步报告结果 / Asynchronous report result
  */
 fun AbstractQuadraticSolver.solveReportAsync(

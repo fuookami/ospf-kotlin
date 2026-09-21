@@ -1,27 +1,22 @@
 package fuookami.ospf.kotlin.example.quadratic_function
 
 import kotlinx.coroutines.runBlocking
-
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-
 import fuookami.ospf.kotlin.utils.functional.Ok
-
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.function.ProductFunction
 import fuookami.ospf.kotlin.core.variable.RealVar
 
-/** Verifies that the product function appends a quadratic equality constraint without invoking a solver. */
+/** 验证乘积函数在不调用求解器的情况下追加二次等式约束。 / Verifies that the product function appends a quadratic equality constraint without invoking a solver. */
 class QuadraticProductBuildOnlyStructureTest {
     @Test
     fun productFunctionShouldAppendQuadraticEqualityWithoutSolver() {
@@ -58,7 +53,7 @@ class QuadraticProductBuildOnlyStructureTest {
                 ) is Ok
             )
 
-            // Structure assertions on MetaModel
+            // MetaModel 结构断言 / Structure assertions on MetaModel
             assertEquals(2, model.tokens.tokens.size, "MetaModel should have 2 tokens (x, y)")
             val mechanismRet = runBlocking {
                 QuadraticMechanismModel.invoke<Flt64>(metaModel = model)
@@ -66,7 +61,7 @@ class QuadraticProductBuildOnlyStructureTest {
             assertTrue(mechanismRet is Ok)
             val mechanismModel = requireNotNull(mechanismRet.value)
 
-            // MechanismModel structure: variables + objective
+            // MechanismModel 结构：变量与目标函数 / MechanismModel structure: variables + objective
             assertEquals(2, mechanismModel.numVariables, "MechanismModel should have 2 variables")
             assertTrue(mechanismModel.objectFunction.subObjects.isNotEmpty(),
                 "MechanismModel objective should have sub-objects")
@@ -75,12 +70,14 @@ class QuadraticProductBuildOnlyStructureTest {
             assertTrue(function.registerConstraints(mechanismModel) is Ok)
             val appended = mechanismModel.constraints.subList(before, mechanismModel.constraints.size)
 
-            // ProductFunction constraint assertions
-            assertEquals(1, appended.size, "product should append exactly 1 equality constraint")
-            assertEquals(ConstraintRelation.Equal, appended.first().sign)
-            assertTrue(appended.first().name.contains("example_product_build"))
-            assertTrue(appended.first().lhs.isNotEmpty(),
-                "product constraint lhs should have cells (quadratic terms)")
+            // ProductFunction 位于表达式层，其展开多项式由目标函数或外层约束消费，
+            // 因此注册它不会新增辅助约束行。 / ProductFunction is expression-level; its expanded polynomial is consumed by the
+            // objective or enclosing constraint, so registering it adds no auxiliary row.
+            assertEquals(
+                0,
+                appended.size,
+                "expression-level product should not append an auxiliary constraint"
+            )
         } finally {
             model.close()
         }

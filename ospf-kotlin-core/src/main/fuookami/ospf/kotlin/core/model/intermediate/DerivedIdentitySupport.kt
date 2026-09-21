@@ -230,40 +230,47 @@ internal fun validateDerivedIdentitySet(
     }
 
     variables.forEach { variable ->
-        if (addIdentity(
-                kind = ModelElementKind.Variable,
-                id = variable.id?.value,
-                scope = variable.identityScope,
-                origin = variable.identityOrigin,
-                provenance = variable.identityProvenance,
-                namespace = variable.identityNamespace,
-                schemaVersion = variable.identitySchemaVersion
-            ) is Failed
-        ) {
+        val identity = addIdentity(
+            kind = ModelElementKind.Variable,
+            id = variable.id?.value,
+            scope = variable.identityScope,
+            origin = variable.identityOrigin,
+            provenance = variable.identityProvenance,
+            namespace = variable.identityNamespace,
+            schemaVersion = variable.identitySchemaVersion
+        )
+        if (identity is Failed) {
+            // 保留底层原因：泛化消息会让"为什么身份无效"完全不可诊断。
+            // Preserve the underlying reason: a generic message makes "why is this identity
+            // invalid" completely undiagnosable.
             return Failed(
                 ErrorCode.IllegalArgument,
-                "派生变量身份无效 / Invalid derived variable identity"
+                "派生变量身份无效（变量 ${variable.id?.value ?: "<anonymous>"}）：${identity.error.message} / " +
+                    "Invalid derived variable identity (variable ${variable.id?.value ?: "<anonymous>"}): ${identity.error.message}"
             )
         }
     }
     constraints.indices.forEach { index ->
-        if (addIdentity(
-                kind = ModelElementKind.Constraint,
-                id = constraints.ids.getOrNull(index)?.value,
-                scope = constraints.identityScopeAt(index),
-                origin = constraints.identityOriginAt(index),
-                provenance = constraints.identityProvenanceAt(index),
-                namespace = constraints.identityNamespace,
-                schemaVersion = constraints.identitySchemaVersion
-            ) is Failed
-        ) {
+        val identity = addIdentity(
+            kind = ModelElementKind.Constraint,
+            id = constraints.ids.getOrNull(index)?.value,
+            scope = constraints.identityScopeAt(index),
+            origin = constraints.identityOriginAt(index),
+            provenance = constraints.identityProvenanceAt(index),
+            namespace = constraints.identityNamespace,
+            schemaVersion = constraints.identitySchemaVersion
+        )
+        if (identity is Failed) {
             return Failed(
                 ErrorCode.IllegalArgument,
-                "派生约束身份无效 / Invalid derived constraint identity"
+                "派生约束身份无效（约束 ${constraints.ids.getOrNull(index)?.value ?: "<anonymous>"}）：" +
+                    "${identity.error.message} / Invalid derived constraint identity " +
+                    "(constraint ${constraints.ids.getOrNull(index)?.value ?: "<anonymous>"}): ${identity.error.message}"
             )
         }
     }
-    if (addIdentity(
+    run {
+        val identity = addIdentity(
             kind = ModelElementKind.Objective,
             id = objective.id?.value,
             scope = objective.identityScope,
@@ -271,12 +278,14 @@ internal fun validateDerivedIdentitySet(
             provenance = objective.identityProvenance,
             namespace = objective.identityNamespace,
             schemaVersion = objective.identitySchemaVersion
-    ) is Failed
-    ) {
-        return Failed(
-            ErrorCode.IllegalArgument,
-            "派生目标身份无效 / Invalid derived objective identity"
         )
+        if (identity is Failed) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "派生目标身份无效（目标 ${objective.id?.value ?: "<anonymous>"}）：${identity.error.message} / " +
+                    "Invalid derived objective identity (objective ${objective.id?.value ?: "<anonymous>"}): ${identity.error.message}"
+            )
+        }
     }
 
     val namespaces = buildList {

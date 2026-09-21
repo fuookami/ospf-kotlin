@@ -230,28 +230,22 @@ open class SatisfiedAmountInequalityFunction<V>(
             val lbValue = repeatAdd(one, currentAmount.lowerBound.value.unwrap().toInt())
             val ubValue = repeatAdd(one, currentAmount.upperBound.value.unwrap().toInt())
 
-            // sum(u) >= amount.lowerBound - n*(1-y) / sum(u) >= amount 下界 - n*(1-y)
+            // sum(u) >= amount.lowerBound * y / y=0 时下界由 sum(u) >= 0 提供
             val lbPoly = LinearPolynomial(
-                sumPoly.monomials + listOf(LinearMonomial(nAsValue, y)),
+                sumPoly.monomials + listOf(LinearMonomial(-lbValue, y)),
                 sumPoly.constant
             )
-            val lbRhs = LinearPolynomial(
-                emptyList(),
-                lbValue + nAsValue
-            )
+            val lbRhs = LinearPolynomial(emptyList(), zero)
             constraints += LinearInequality(
                 lbPoly, lbRhs, Comparison.GE, "${name}_amount_lb"
             )
 
-            // sum(u) <= amount.upperBound + n*(1-y) / sum(u) <= amount 上界 + n*(1-y)
+            // sum(u) + (n-upperBound)*y <= n / y=1 时收紧到数量上界
             val ubPoly = LinearPolynomial(
-                sumPoly.monomials + listOf(LinearMonomial(-nAsValue, y)),
+                sumPoly.monomials + listOf(LinearMonomial(nAsValue - ubValue, y)),
                 sumPoly.constant
             )
-            val ubRhs = LinearPolynomial(
-                emptyList(),
-                ubValue + nAsValue
-            )
+            val ubRhs = LinearPolynomial(emptyList(), nAsValue)
             constraints += LinearInequality(
                 ubPoly, ubRhs, Comparison.LE, "${name}_amount_ub"
             )

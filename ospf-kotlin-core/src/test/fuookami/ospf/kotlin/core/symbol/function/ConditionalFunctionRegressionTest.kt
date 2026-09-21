@@ -256,8 +256,13 @@ class ConditionalFunctionRegressionTest {
                 )
                 assertEquals(
                     Flt64(-1.0),
-                    lower.lhs.single { it.token.variable.name == "conditional_precedence_if_if_nz" }.coefficient
+                    lower.lhs.single { it.token.key == function.resultVar.key }.coefficient
                 )
+                val equality = appended.filterIsInstance<LinearConstraintImpl<Flt64>>()
+                    .single { it.name == "conditional_precedence_if_if_equivalent_0" }
+                assertEquals(Flt64.one, equality.lhs.single { it.token.key == function.resultVar.key }.coefficient)
+                assertEquals(-Flt64.one, equality.lhs.single { it.token.key == function.indicatorVar.key }.coefficient)
+                assertEquals(0.0, equality.rhs.toDouble(), 0.0)
             }
         } finally {
             model.close()

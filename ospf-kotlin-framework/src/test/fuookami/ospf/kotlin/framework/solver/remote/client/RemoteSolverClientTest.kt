@@ -209,7 +209,8 @@ class RemoteSolverClientTest {
                     elapsed = 20.milliseconds,
                     message = "done",
                     solutionPresence = RemoteSolutionPresence.OPTIMAL,
-                    proofStatus = RemoteProofStatus.CLAIMED
+                    proofStatus = RemoteProofStatus.CLAIMED,
+                    bestBound = Flt64(7.5)
                 )
             ),
             checkpoints = mutableListOf(
@@ -239,12 +240,14 @@ class RemoteSolverClientTest {
         assertEquals(Flt64(8.0), value.objectiveValue)
         assertEquals(30.milliseconds, value.elapsed)
         assertEquals(ObjectRef.of(path = "checkpoints/2"), value.checkpointRef)
+        assertEquals(Flt64(7.5), value.bestBound)
         assertEquals("done", value.message)
     }
 
     @Test
     fun solveResumesWhenSnapshotExists() = runBlocking {
         val snapshotRef = ObjectRef.of(path = "checkpoints/origin")
+        val producedCheckpointRef = ObjectRef.of(path = "checkpoints/produced")
         val port = RecordingExecutionPort(
             sliceResults = mutableListOf(
                 SliceResult(
@@ -253,7 +256,8 @@ class RemoteSolverClientTest {
                     feasible = true,
                     objectiveValue = Flt64.one,
                     gap = Flt64.zero,
-                    elapsed = 5.milliseconds
+                    elapsed = 5.milliseconds,
+                    checkpointRef = producedCheckpointRef
                 )
             )
         )
@@ -274,7 +278,7 @@ class RemoteSolverClientTest {
         assertEquals(1, port.resumeCalls)
         assertEquals(snapshotRef, port.resumeCheckpoint)
         assertEquals(1, port.stopCalls)
-        assertEquals(snapshotRef, (result as Ok).value.checkpointRef)
+        assertEquals(producedCheckpointRef, (result as Ok).value.checkpointRef)
     }
 
     /** 验证超过最大轮次时求解失败并停止 / Verify solve fails and stops when max rounds exceeded */

@@ -2,27 +2,22 @@ package fuookami.ospf.kotlin.example.linear_function
 
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-
 import kotlinx.coroutines.runBlocking
-
-import fuookami.ospf.kotlin.example.core_demo.ScipAvailability
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
-
 import fuookami.ospf.kotlin.utils.functional.Ok
-
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.scip.ScipLinearSolver
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.function.AbsFunction
-import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.symbol.function.SlackRangeFunction
+import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.example.core_demo.ScipAvailability
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
 /** End-to-end solve tests for abs and slack-range linear functions using SCIP. */
 class LinearFunctionSolveTest {
@@ -84,9 +79,9 @@ class LinearFunctionSolveTest {
             constant = Flt64.zero
         )
         val slackFn = SlackRangeFunction(
-            x = xPoly,
-            lb = LinearPolynomial(emptyList(), Flt64(2.0)),
-            ub = LinearPolynomial(emptyList(), Flt64(4.0)),
+            input = xPoly,
+            lower = Flt64(2.0),
+            upper = Flt64(4.0),
             converter = converter,
             name = "p11_slack_range"
         )
@@ -99,13 +94,13 @@ class LinearFunctionSolveTest {
         try {
             assertTrue(model.add(x) is Ok, "x should be accepted")
             assertTrue(model.add(slackSymbol) is Ok, "slackRange symbol should be added to model")
-            assertTrue(model.minimize(slackSymbol.pos!!) is Ok, "minimize positive slack objective should be accepted")
+            assertTrue(model.minimize(slackSymbol) is Ok, "minimize exact range distance objective should be accepted")
 
             val solver = ScipLinearSolver()
             val result = runBlocking { solveLinearMetaModel(solver, model) }
             assertNotNull(result.value, "Solver should return a feasible solution")
             val objective = result.value!!.solution?.objective ?: error("Solver returned no incumbent objective")
-            assertTrue(objective ls Flt64(4.0), "positive slack should be less than upper bound")
+            assertTrue(objective eq Flt64.zero, "range distance should be zero inside the interval")
 
             model.setSolution(result.value!!.values)
             val xVal = model.tokens.find(x)?.result

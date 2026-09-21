@@ -1,49 +1,148 @@
-/** CPLEX 线性求解器 / CPLEX Linear Solver */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.cplex
 
-import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.math.min
-import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.Duration
-import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.Duration.Companion.seconds
-import fuookami.ospf.kotlin.core.solver.report.*
 import kotlin.time.DurationUnit
-import fuookami.ospf.kotlin.core.solver.report.*
 import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.core.solver.report.*
+import ilog.concert.*
+import ilog.cplex.IloCplex
 import org.apache.logging.log4j.kotlin.logger
-import fuookami.ospf.kotlin.core.solver.report.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.solver.report.*
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
-import fuookami.ospf.kotlin.core.solver.report.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.*
-import fuookami.ospf.kotlin.core.solver.report.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.output.*
 import fuookami.ospf.kotlin.core.solver.report.*
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.solver.report.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.solver.report.*
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.core.solver.report.*
-import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
-import fuookami.ospf.kotlin.core.solver.report.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.solver.report.*
-import ilog.concert.*
-import fuookami.ospf.kotlin.core.solver.report.*
-import ilog.cplex.IloCplex
+import fuookami.ospf.kotlin.core.variable.VariableItemKey
 
-/** CPLEX 线性求解器 / CPLEX linear solver */
+/**
+ * CPLEX 线性求解器 / CPLEX linear solver
+ *
+ * @property config 求解器配置 / solver configuration
+ */
 class CplexLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: CplexSolverCallBack? = null
 ) : LinearSolver {
+    internal var nativePiecewiseWriter: (IloCplex, Map<VariableItemKey, IloNumVar>, List<NativePiecewiseData>) -> Try =
+        ::addCplexNativePiecewise
+
+    /**
+     * 在最终编号前选择原生 SOS2，写入失败时重建完整 fallback。 /
+     * Select native SOS2 before indexing and rebuild the complete fallback after a write failure.
+     *
+     * @param model 机制模型 / Mechanism model
+     * @param converter 结果转换器 / Result converter
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解报告或错误 / Solve report or error
+     */
+    override suspend fun <V> solve(
+        model: MechanismModel<V>,
+        converter: IntoValue<V>,
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<SolveReport<V>> where V : RealNumber<V>, V : NumberField<V> {
+        if (config.functionExpansionPolicy == FunctionExpansionPolicy.EAGER ||
+            model !is LinearMechanismModel<V> || model.functionExpansionPolicy == FunctionExpansionPolicy.EAGER
+        ) {
+            return super<LinearSolver>.solve(
+                model = model,
+                converter = converter,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
+        }
+        val converted = when (val result = convertMechanismModelToFlt64(model)) {
+            is Ok -> result.value as? LinearMechanismModel<Flt64>
+                ?: return super<LinearSolver>.solve(
+                    model = model,
+                    converter = converter,
+                    solvingStatusCallBack = solvingStatusCallBack
+                )
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        try {
+            val candidates = selectCplexNativePiecewise(converted)
+            if (candidates.isEmpty()) {
+                return super<LinearSolver>.solve(
+                    model = model,
+                    converter = converter,
+                    solvingStatusCallBack = solvingStatusCallBack
+                )
+            }
+            val nativeData = ArrayList<NativePiecewiseData>(candidates.size)
+            for (structure in candidates) {
+                when (val prepared = prepareNativePiecewise(structure)) {
+                    is Ok -> nativeData += prepared.value
+                    is Failed -> return Failed(prepared.error)
+                    is Fatal -> return Fatal(prepared.errors)
+                }
+            }
+            val nativeModel = when (val result = LinearTriadModel.invokeResult(
+                model = converted,
+                dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+                forceDumpBounds = config.dumpIntermediateModelForceBounds,
+                concurrent = config.dumpIntermediateModelConcurrent,
+                nativeFunctionKeys = candidates.map { it.resultVariable.key }.toSet()
+            )) {
+                is Ok -> result.value
+                is Failed, is Fatal -> return super<LinearSolver>.solve(
+                    model = model,
+                    converter = converter,
+                    solvingStatusCallBack = solvingStatusCallBack
+                )
+            }
+            val attempt = nativeModel.use {
+                CplexLinearSolverImpl(
+                    config = config,
+                    callBack = callBack,
+                    statusCallBack = solvingStatusCallBack,
+                    nativePiecewiseData = nativeData,
+                    nativePiecewiseWriter = nativePiecewiseWriter
+                ).use { implementation ->
+                    val result = implementation(it)
+                    if (implementation.nativePiecewiseFailed) {
+                        null
+                    } else {
+                        when (result) {
+                            is Ok -> restoreNativePiecewiseSolution(
+                                report = result.value.withLinearBackendMetadata(it, config, descriptor),
+                                nativeModel = it,
+                                originalTokens = converted.tokens.tokensInSolver,
+                                structures = candidates,
+                                backendName = "cplex"
+                            )
+                            is Failed -> Failed(result.error)
+                            is Fatal -> Fatal(result.errors)
+                        }
+                    }
+                }
+            }
+            return when (attempt) {
+                null -> super<LinearSolver>.solve(
+                    model = model,
+                    converter = converter,
+                    solvingStatusCallBack = solvingStatusCallBack
+                )
+                is Ok -> Ok(attempt.value.convertTo(converter))
+                is Failed -> Failed(attempt.error)
+                is Fatal -> Fatal(attempt.errors)
+            }
+        } finally {
+            converted.close()
+        }
+    }
+
     override val name = "cplex"
 
     /**
@@ -52,7 +151,7 @@ class CplexLinearSolver(
      * @param model 线性模型视图 / linear model view
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果 / solving result
-    */
+     */
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -80,7 +179,7 @@ class CplexLinearSolver(
      * @param solutionAmount 期望解的数量 / desired number of solutions
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果及多个解 / solving result with multiple solutions
-    */
+     */
     override suspend fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -135,13 +234,18 @@ class CplexLinearSolver(
         }
     }
 }
-
 /** CPLEX 线性求解器内部实现 / CPLEX linear solver internal implementation */
 private class CplexLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: CplexSolverCallBack? = null,
-    private val statusCallBack: SolvingStatusCallBack?
+    private val statusCallBack: SolvingStatusCallBack?,
+    private val nativePiecewiseData: List<NativePiecewiseData> = emptyList(),
+    private val nativePiecewiseWriter: (IloCplex, Map<VariableItemKey, IloNumVar>, List<NativePiecewiseData>) -> Try =
+        ::addCplexNativePiecewise
 ) : CplexSolver() {
+    var nativePiecewiseFailed: Boolean = false
+        private set
+
     private lateinit var cplexVars: List<IloNumVar>
     private lateinit var cplexConstraints: List<IloRange>
     private lateinit var output: SolveReport<Flt64>
@@ -158,7 +262,7 @@ private class CplexLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 求解结果 / solving result
-    */
+     */
     suspend operator fun invoke(model: LinearTriadModelView): Ret<SolveReport<Flt64>> {
         val processes = arrayOf(
             { it.init(model.name) },
@@ -189,7 +293,7 @@ private class CplexLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun dump(model: LinearTriadModelView): Try {
         logger.trace { "Dumping to cplex model for $model" }
         warnIgnoredConstraintPriority("cplex", model.nonNullConstraintPriorityAmount())
@@ -209,6 +313,52 @@ private class CplexLinearSolverImpl(
             )
         }
         cplexVars = vars
+
+        if (nativePiecewiseData.isNotEmpty()) {
+            val variablesByKey = model.variables.mapIndexedNotNull { index, variable ->
+                variable.origin?.key?.let { it to cplexVars[index] }
+            }.toMap()
+            val nativeWrite = try {
+                NativeFunctionWriterRegistry(
+                    listOf(
+                        NativeFunctionWriter<IloCplex, IloNumVar> { nativeModel, nativeVariables, batch ->
+                            nativePiecewiseWriter(
+                                nativeModel,
+                                nativeVariables,
+                                batch.filterIsInstance<NativePiecewiseData>()
+                            )
+                        }
+                    )
+                ).write(
+                    model = cplex,
+                    variables = variablesByKey,
+                    batches = listOf(nativePiecewiseData.map { it as Any })
+                )
+            } catch (error: LinkageError) {
+                Failed(
+                    ErrorCode.OREngineModelingException,
+                    "CPLEX 原生 PWL SDK 不可用：${error.message ?: error::class.simpleName} / " +
+                        "CPLEX native PWL SDK is unavailable: ${error.message ?: error::class.simpleName}"
+                )
+            } catch (error: Exception) {
+                Failed(
+                    ErrorCode.OREngineModelingException,
+                    "CPLEX 原生 PWL 写入异常：${error.message ?: error::class.simpleName} / " +
+                        "CPLEX native PWL write raised an exception: ${error.message ?: error::class.simpleName}"
+                )
+            }
+            when (nativeWrite) {
+                is Ok -> {}
+                is Failed -> {
+                    nativePiecewiseFailed = true
+                    return Failed(nativeWrite.error)
+                }
+                is Fatal -> {
+                    nativePiecewiseFailed = true
+                    return Fatal(nativeWrite.errors)
+                }
+            }
+        }
 
         if (cplex.isMIP && variableDumpingData.initialResults.isNotEmpty()) {
             val initialVars = ArrayList<IloNumVar>(variableDumpingData.initialResults.size)
@@ -252,7 +402,11 @@ private class CplexLinearSolverImpl(
                             model.constraints.sparseLhs.forEachEntry(ii) { colIndex, coefficient ->
                                 lhs.addTerm(coefficient.toSolverDouble("linear.constraints.lhs[$ii][$colIndex].coefficient"), cplexVars[colIndex])
                             }
-                            ii to Triple(lb, lhs, ub)
+                            ii to Triple(
+                                first = lb,
+                                second = lhs,
+                                third = ub
+                            )
                         }
                         cleanupOnSolverMemoryPressure()
                         constraints
@@ -350,7 +504,7 @@ private class CplexLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun configure(model: LinearTriadModelView): Try {
         cplex.setParam(IloCplex.Param.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
         cplex.setParam(IloCplex.Param.MIP.Tolerances.MIPGap, config.gap.toSolverDouble("linear.config.gap"))
@@ -424,7 +578,7 @@ private class CplexLinearSolverImpl(
                         }
                     }
 
-                    // todo: add lazy constraint
+                    // 添加惰性约束 / Add lazy constraints
                 }
             })
         }
@@ -454,7 +608,7 @@ private class CplexLinearSolverImpl(
      * Execute CPLEX solving
      *
      * @return 以Try包装的求解结果 / the solve result as Try
-    */
+     */
     private suspend fun solve(): Try {
         when (val result = callBack?.execIfContain(
             point = Point.Solving,
@@ -490,7 +644,7 @@ private class CplexLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun analyzeSolution(model: LinearTriadModelView): Try {
         return if (status.succeeded) {
             val obj = Flt64(cplex.objValue) + model.objective.constant
@@ -547,4 +701,3 @@ private class CplexLinearSolverImpl(
         }
     }
 }
-

@@ -4,39 +4,41 @@
 package fuookami.ospf.kotlin.core.solver.constraint_programming.lowering
 
 import java.math.BigInteger
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.MathConstraint
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModelConfiguration
+import fuookami.ospf.kotlin.core.model.constraint_programming.NoOverlap
+import fuookami.ospf.kotlin.core.model.constraint_programming.Cumulative
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalId
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
 import fuookami.ospf.kotlin.core.model.constraint_programming.BooleanLiteral
+import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalVariable
+import fuookami.ospf.kotlin.core.model.constraint_programming.ReificationDirection
+import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingComparison
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingConstraint
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingExpression
-import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModel
 import fuookami.ospf.kotlin.core.model.constraint_programming.ConstraintProgrammingModelSnapshot
-import fuookami.ospf.kotlin.core.model.constraint_programming.Cumulative
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntegerDomain
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalId
-import fuookami.ospf.kotlin.core.model.constraint_programming.IntervalVariable
-import fuookami.ospf.kotlin.core.model.constraint_programming.NoOverlap
-import fuookami.ospf.kotlin.core.model.constraint_programming.ReificationDirection
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModelConfiguration
-import fuookami.ospf.kotlin.core.solver.report.ConstraintId
-import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
 import fuookami.ospf.kotlin.core.solver.report.VariableId
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
+import fuookami.ospf.kotlin.core.solver.report.ModelElementIdentityRegistry
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.IntVar
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * 降阶后的线性模型及 CP 变量映射。[variables] 只包含原 CP 变量；降阶器生成的辅助变量不会暴露到 CP 解中。 / Lowered linear model and CP-variable mapping. / [variables] contains only original CP variables; generated auxiliaries are not exposed in CP solutions.
@@ -47,6 +49,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * @property intervals 原 interval 映射 / Original interval mapping
  * @property domains 原 CP 值域 / Original CP domains
  * @property artifacts 降阶 artifact 与源 CP 元素的映射 / Lowered artifacts and their CP source mappings
+ * @property constraintProvenance 每个生成线性元约束的显式来源 / Explicit source provenance for each generated linear meta constraint
  */
 data class ConstraintProgrammingLoweredLinearModel(
     val model: LinearMetaModel<Flt64>,
@@ -54,7 +57,9 @@ data class ConstraintProgrammingLoweredLinearModel(
     val variableIds: List<VariableId>,
     val intervals: Map<IntervalId, IntervalVariable> = emptyMap(),
     val domains: Map<VariableId, IntegerDomain> = emptyMap(),
-    val artifacts: Map<String, ConstraintProgrammingLoweredArtifact> = emptyMap()
+    val artifacts: Map<String, ConstraintProgrammingLoweredArtifact> = emptyMap(),
+    /** Explicit source provenance for each generated linear meta constraint. / 每个生成线性元约束的显式来源。 */
+    val constraintProvenance: Map<MathConstraint, ConstraintId> = emptyMap()
 ) : AutoCloseable {
     override fun close() {
         model.close()
@@ -125,7 +130,11 @@ class ConstraintProgrammingToLinearModelLowerer(
         val linear = LinearMetaModel(
             name = "${snapshot.name}-mip",
             objectCategory = snapshot.objectCategory,
-            configuration = MetaModelConfiguration(concurrent = false, dumpBlocking = true)
+            configuration = MetaModelConfiguration(concurrent = false, dumpBlocking = true),
+            identityRegistry = ModelElementIdentityRegistry(
+                namespace = snapshot.identityNamespace,
+                schemaVersion = snapshot.identitySchemaVersion
+            )
         )
         val compiler = Compiler(linear, snapshot, policy)
         val result = compiler.compile(assumptions, fixedValues)
@@ -140,7 +149,8 @@ class ConstraintProgrammingToLinearModelLowerer(
                 variableIds = snapshot.variables.map { it.id },
                 intervals = snapshot.intervals.associateBy { it.id },
                 domains = snapshot.variables.associate { it.id to it.domain },
-                artifacts = compiler.artifacts.toMap()
+                artifacts = compiler.artifacts.toMap(),
+                constraintProvenance = compiler.constraintProvenance.toMap()
             )
         )
     }
@@ -155,7 +165,9 @@ class ConstraintProgrammingToLinearModelLowerer(
         private val sourceReferences = LinkedHashMap<VariableId, AbstractVariableItem<*, *>>()
         private val intervals = LinkedHashMap<IntervalId, LoweredInterval>()
         val artifacts = LinkedHashMap<String, ConstraintProgrammingLoweredArtifact>()
+        val constraintProvenance = java.util.IdentityHashMap<MathConstraint, ConstraintId>()
         private var auxiliaryVariables = 0
+        private var activeSourceConstraintId: ConstraintId? = null
 
         fun compile(
             assumptions: List<BooleanLiteral>,
@@ -171,7 +183,9 @@ class ConstraintProgrammingToLinearModelLowerer(
                 return propagate(intervalsResult)
             }
             for (entry in snapshot.constraints) {
+                activeSourceConstraintId = entry.id
                 val result = compileConstraint(entry.constraint, entry.id.value)
+                activeSourceConstraintId = null
                 if (result.failed) {
                     return propagate(result)
                 }
@@ -311,6 +325,35 @@ class ConstraintProgrammingToLinearModelLowerer(
                 val added = linear.add(variable)
                 if (added.failed) {
                     return propagate(added)
+                }
+                if (isStableSourceId(definition.id.value)) {
+                    // 身份注册表一律以 `Stable` 作用域登记，并要求 provenance 非空。源变量若只是
+                    // model-local（没有稳定来源），把降阶变量登记成稳定身份会生成"声称稳定但无来源"
+                    // 的非法身份，使 `validateDerivedIdentitySet` 拒绝整个降阶模型——真实后端
+                    // （Gurobi/SCIP）的 dump→triad 路径正是这样失败的。
+                    //
+                    // 因此这里只在源变量确实携带稳定来源时才登记，并把来源原样传递，保证
+                    // `scope == Stable ⟹ provenance 非空` 这一不变量成立。
+                    //
+                    // The identity registry always registers with `Stable` scope and requires
+                    // non-empty provenance. When the source variable is only model-local, registering
+                    // the lowered variable as stable produces a "claims stable but has no origin"
+                    // identity, and `validateDerivedIdentitySet` then rejects the whole lowered model
+                    // — exactly how the real backend (Gurobi/SCIP) dump→triad path failed. Register
+                    // only when the source genuinely carries stable provenance, and forward it, so
+                    // the `scope == Stable ⟹ provenance non-empty` invariant holds.
+                    val provenance = definition.identityProvenance
+                    if (provenance.isNotEmpty()) {
+                        val registered = linear.identityRegistry?.registerVariable(
+                            element = variable,
+                            id = definition.id,
+                            origin = provenance.first(),
+                            provenance = provenance
+                        )
+                        if (registered != null && registered.failed) {
+                            return propagate(registered)
+                        }
+                    }
                 }
                 variables[definition.id] = variable
                 registerArtifact(
@@ -1001,7 +1044,7 @@ class ConstraintProgrammingToLinearModelLowerer(
             registerArtifact(
                 artifactId = "variable:${variable.identifier}:${variable.index}",
                 role = "auxiliary-variable",
-                originId = sourceOriginId(name)
+                originId = activeSourceConstraintId?.value
             )
             return ok(variable)
         }
@@ -1024,37 +1067,10 @@ class ConstraintProgrammingToLinearModelLowerer(
             )
         }
 
-        private fun sourceOriginId(name: String): String? {
-            val constraintMatches = snapshot.constraints.filter { entry ->
-                val id = entry.id.value
-                val sanitizedId = sanitize(id)
-                containsToken(name, id) || containsToken(name, sanitizedId)
-            }
-            if (constraintMatches.size == 1) {
-                return constraintMatches.single().id.value
-            }
-            val intervalMatches = snapshot.intervals.filter { interval ->
-                val id = interval.id.value
-                val sanitizedId = sanitize(id)
-                containsToken(name, id) || containsToken(name, sanitizedId)
-            }
-            return intervalMatches.singleOrNull()?.id?.value
-        }
-
-        private fun containsToken(value: String, token: String): Boolean {
-            if (token.isBlank()) {
-                return false
-            }
-            return value == token ||
-                value.startsWith("$token-") ||
-                value.endsWith("-$token") ||
-                value.contains("-$token-") ||
-                value.startsWith("$token:") ||
-                value.endsWith(":$token") ||
-                value.contains(":$token:") ||
-                value.startsWith("${token}_") ||
-                value.endsWith("_${token}") ||
-                value.contains("_${token}_")
+        private fun isStableSourceId(id: String): Boolean {
+            return id.isNotBlank() &&
+                !id.startsWith("model-local-") &&
+                !id.startsWith("artifact:")
         }
 
         private fun form(
@@ -1120,8 +1136,12 @@ class ConstraintProgrammingToLinearModelLowerer(
                 registerArtifact(
                     artifactId = "constraint:$name",
                     role = "compiled-constraint",
-                    originId = sourceOriginId(name)
+                    originId = activeSourceConstraintId?.value
                 )
+                val sourceId = activeSourceConstraintId
+                if (sourceId != null) {
+                    constraintProvenance[linear.relationConstraints.last()] = sourceId
+                }
                 added
             } catch (error: Throwable) {
                 Failed(

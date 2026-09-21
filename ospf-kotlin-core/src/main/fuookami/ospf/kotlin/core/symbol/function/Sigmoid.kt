@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.model.intermediate.IndicatorStructure
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
 import fuookami.ospf.kotlin.core.variable.*
@@ -69,6 +70,39 @@ class SigmoidFunction<V>(
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(indicatorVar)
+
+    override fun deferredStructure(): IndicatorStructure<V>? {
+        val bounds = when (val validation = precheck()) {
+            is Ok -> validation.value
+            is Failed, is Fatal -> return null
+        }
+        val normalized = when (val result = normalizeDiscreteCondition(
+            poly = condition,
+            relation = relation,
+            bounds = bounds,
+            delta = delta,
+            strictBoundary = strictBoundary
+        )) {
+            is Ok -> result.value
+            is Failed, is Fatal -> return null
+        }
+        if (normalized.fixedValue != null) return null
+        return indicatorStructure(normalized)
+    }
+
+    private fun indicatorStructure(normalized: DiscreteConditionLinearization<V>): IndicatorStructure<V> {
+        val lowerMagnitude = normalized.bounds.lower.abs()
+        val upperMagnitude = normalized.bounds.upper.abs()
+        return IndicatorStructure(
+            input = LinearPolynomial(normalized.polynomial.monomials.toList(), normalized.polynomial.constant),
+            resultVariable = indicatorVar,
+            bigM = if (lowerMagnitude.compareTo(upperMagnitude) >= 0) lowerMagnitude else upperMagnitude,
+            tolerance = strictBoundary,
+            converter = converter,
+            name = "${name}_sig",
+            conditionBounds = normalized.bounds
+        )
+    }
 
     private fun isUsableBound(value: V): Boolean {
         return isUsableConditionBound(value, converter)
@@ -247,14 +281,7 @@ class SigmoidFunction<V>(
             return ok
         }
 
-        val constraints = when (val result = relationIndicatorConstraints(
-            poly = normalized.polynomial,
-            indicator = indicatorVar,
-            relation = Comparison.GT,
-            bounds = normalized.bounds,
-            strictBoundary = strictBoundary,
-            namePrefix = "${name}_sig"
-        )) {
+        val constraints = when (val result = indicatorStructure(normalized).generateConstraints()) {
             is Ok -> result.value
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)

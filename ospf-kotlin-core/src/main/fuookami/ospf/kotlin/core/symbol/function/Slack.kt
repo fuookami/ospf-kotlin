@@ -3,24 +3,24 @@
 /** 松弛变量函数符号 / Slack variable function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.token.AddableTokenCollection
-import fuookami.ospf.kotlin.core.variable.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.variable.*
 
 /**
  * 松弛变量函数符号 / Slack variable function symbol
  *
  * 提供 [SlackFunction]，为不等式引入正/负松弛变量。 / Provides [SlackFunction] for introducing positive/negative slack variables for inequalities.
-*/
+ */
 
 /**
  * 松弛变量函数 / Slack variable function
@@ -36,9 +36,10 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property constraint 是否添加约束 / Whether to add constraints
  * @property negVar 负松弛变量 / Negative slack variable
  * @property posVar 正松弛变量 / Positive slack variable
+ * @property sideVar 绝对值分支变量 / Absolute-value branch variable
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
-*/
+ */
 class SlackFunction<V>(
     val x: LinearPolynomial<V>,
     val y: LinearPolynomial<V>,
@@ -61,9 +62,12 @@ class SlackFunction<V>(
     internal val posVar: AbstractVariableItem<*, *>? by lazy {
         if (withPositive) createVariable("${name}_pos") else null
     }
+    private val sideVar: AbstractVariableItem<*, *>? by lazy {
+        if (withNegative && withPositive) BinVar("${name}_side") else null
+    }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOfNotNull(negVar, posVar)
+        get() = listOfNotNull(negVar, posVar, sideVar)
 
     override val resultPolynomial: LinearPolynomial<V> by lazy {
         val monomials = buildList {
@@ -94,7 +98,7 @@ class SlackFunction<V>(
      *
      * @param baseName 变量基础名称 / base variable name
      * @return 创建的变量项 / the created variable item
-    */
+     */
     private fun createVariable(baseName: String): AbstractVariableItem<*, *> {
         return if (type.isIntegerType) UIntVar(baseName) else URealVar(baseName)
     }
@@ -127,15 +131,66 @@ class SlackFunction<V>(
             return ok
         }
         val one = converter.one
+        val zero = converter.zero
         val constraints = mutableListOf<LinearInequality<V>>()
 
-        if (!threshold) {
+        // 同时启用两个方向时使用精确的四行绝对值公式，避免无目标压低结果时两个非负部分共同增长。 / When both directions are requested, use the exact four-row absolute-value formulation to prevent the two nonnegative parts from growing together when no objective minimizes the result.
+        if (withNegative && withPositive && negVar != null && posVar != null && sideVar != null) {
+            val branchVar = sideVar!!
+            val difference = LinearPolynomial(
+                x.monomials + y.monomials.map { LinearMonomial(-it.coefficient, it.symbol) },
+                x.constant - y.constant
+            )
+            val result = resultPolynomial
+            val resultMinusDifference = LinearPolynomial(
+                result.monomials + difference.monomials.map { LinearMonomial(-it.coefficient, it.symbol) },
+                result.constant - difference.constant
+            )
+            val resultPlusDifference = LinearPolynomial(
+                result.monomials + difference.monomials,
+                result.constant + difference.constant
+            )
+            // 非激活分支可能暴露两倍绝对差值，因此 M 必须覆盖 2 * max(|x - y|)，不能只取 max(|x - y|)。 / Each inactive branch can expose twice the absolute difference, so M must cover 2 * max(|x - y|), not only max(|x - y|).
+            val bigM = difference.defaultBigM(converter) * (one + one)
+
+            constraints += LinearInequality(
+                resultMinusDifference,
+                LinearPolynomial(emptyList(), zero),
+                Comparison.GE,
+                "${name}_abs_ge_difference"
+            )
+            constraints += LinearInequality(
+                resultPlusDifference,
+                LinearPolynomial(emptyList(), zero),
+                Comparison.GE,
+                "${name}_abs_ge_negative_difference"
+            )
+            constraints += LinearInequality(
+                LinearPolynomial(
+                    resultMinusDifference.monomials + LinearMonomial(bigM, branchVar),
+                    resultMinusDifference.constant
+                ),
+                LinearPolynomial(emptyList(), bigM),
+                Comparison.LE,
+                "${name}_abs_branch_positive"
+            )
+            constraints += LinearInequality(
+                LinearPolynomial(
+                    resultPlusDifference.monomials + LinearMonomial(-bigM, branchVar),
+                    resultPlusDifference.constant
+                ),
+                LinearPolynomial(emptyList(), zero),
+                Comparison.LE,
+                "${name}_abs_branch_negative"
+            )
+        } else if (!threshold) {
             constraints += LinearInequality(polyX, y, Comparison.EQ, name)
         } else {
             if (withNegative && negVar != null) {
                 val lhs = LinearPolynomial(x.monomials + LinearMonomial(one, negVar!!), x.constant)
                 constraints += LinearInequality(lhs, y, Comparison.GE, "${name}_neg")
-            } else if (withPositive && posVar != null) {
+            }
+            if (withPositive && posVar != null) {
                 val lhs = LinearPolynomial(x.monomials + LinearMonomial(-one, posVar!!), x.constant)
                 constraints += LinearInequality(lhs, y, Comparison.LE, "${name}_pos")
             }
@@ -169,7 +224,7 @@ class SlackFunction<V>(
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name
          * @return 松弛函数实例 / slack function instance
-        */
+         */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             y: LinearPolynomial<V>,
@@ -211,7 +266,7 @@ class SlackFunction<V>(
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name
          * @return 松弛函数实例 / slack function instance
-        */
+         */
         operator fun <V> invoke(
             x: LinearIntermediateSymbol<V>,
             y: LinearPolynomial<V>,
@@ -253,7 +308,7 @@ class SlackFunction<V>(
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name
          * @return 松弛函数实例 / slack function instance
-        */
+         */
         operator fun <V> invoke(
             x: ToLinearPolynomial<V>,
             y: ToLinearPolynomial<V>,

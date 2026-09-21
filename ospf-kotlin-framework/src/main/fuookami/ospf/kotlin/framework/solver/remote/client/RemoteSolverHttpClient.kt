@@ -8,15 +8,21 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 import kotlinx.coroutines.delay
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.json.Json
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.framework.solver.remote.domain.*
+import fuookami.ospf.kotlin.core.solver.report.CancellationRecord
+import fuookami.ospf.kotlin.core.solver.report.CancellationSource
 import fuookami.ospf.kotlin.framework.solver.remote.port.*
+import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 
 /**
  * 远程求解 HTTP 客户端。 / Remote solver HTTP client.
@@ -31,7 +37,7 @@ import fuookami.ospf.kotlin.framework.solver.remote.port.*
  * @property requestIdProvider 请求 ID 生成器 / Request ID provider
  * @property resumeMode HTTP 恢复模式 / HTTP resume mode
  * @property pollInterval 任务轮询间隔 / Task poll interval
-*/
+ */
 class RemoteSolverHttpClient(
     private val baseUrl: String,
     private val transport: RemoteSolverHttpTransport = JavaNetRemoteSolverHttpTransport(),
@@ -48,7 +54,7 @@ class RemoteSolverHttpClient(
     private val requestIdProvider: (TaskId, SliceId, TenantId) -> RequestId = { taskId, _, _ ->
         RequestId.of(taskId.value)
     },
-    private val resumeMode: RemoteSolverHttpResumeMode = RemoteSolverHttpResumeMode.SERVER_TASK_LATEST_CHECKPOINT,
+    private val resumeMode: RemoteSolverHttpResumeMode = RemoteSolverHttpResumeMode.STRICT_CHECKPOINT,
     private val pollInterval: Duration = 200.milliseconds
 ) : SolverExecutionPort {
     private val normalizedBaseUrl = baseUrl.trim().trimEnd('/')
@@ -57,7 +63,7 @@ class RemoteSolverHttpClient(
      * 将远程求解器错误码转换为框架错误码。 / Convert remote solver error code to framework error code.
      *
      * @return 对应的框架错误码 / Corresponding framework error code
-    */
+     */
     private fun RemoteSolverErrorCode.toErrorCode(): ErrorCode {
         return when (this) {
             RemoteSolverErrorCode.INVALID_ARGUMENT -> ErrorCode.IllegalArgument
@@ -73,7 +79,7 @@ class RemoteSolverHttpClient(
      * @param message 错误描述 / Error description
      * @param metadata 附加元数据 / Additional metadata
      * @return 格式化的错误消息 / Formatted error message
-    */
+     */
     private fun remoteErrorMessage(
         code: RemoteSolverErrorCode,
         message: String,
@@ -97,7 +103,7 @@ class RemoteSolverHttpClient(
      * @param sliceId 切片 ID（可选）/ Slice ID (optional)
      * @param requestId 请求 ID（可选）/ Request ID (optional)
      * @return 失败的 Ret 结果 / Failed Ret result
-    */
+     */
     private fun <T> failedRemote(
         code: RemoteSolverErrorCode,
         message: String,
@@ -139,7 +145,7 @@ class RemoteSolverHttpClient(
      * @param requestIdProvider 请求 ID 生成器 / Request ID provider
      * @param resumeMode HTTP 恢复模式 / HTTP resume mode
      * @param pollInterval 任务轮询间隔 / Task poll interval
-    */
+     */
     constructor(
         baseUrl: String,
         transportPlugin: RemoteSolverHttpTransportPlugin,
@@ -157,7 +163,7 @@ class RemoteSolverHttpClient(
         requestIdProvider: (TaskId, SliceId, TenantId) -> RequestId = { taskId, _, _ ->
             RequestId.of(taskId.value)
         },
-        resumeMode: RemoteSolverHttpResumeMode = RemoteSolverHttpResumeMode.SERVER_TASK_LATEST_CHECKPOINT,
+        resumeMode: RemoteSolverHttpResumeMode = RemoteSolverHttpResumeMode.STRICT_CHECKPOINT,
         pollInterval: Duration = 200.milliseconds
     ) : this(
         baseUrl = baseUrl,
@@ -226,12 +232,33 @@ class RemoteSolverHttpClient(
             RemoteTaskSubmitRequest(
                 payloadRef = payloadRef.path,
                 requestId = requestIdProvider(taskId, sliceId, tenantId),
-                tenantId = tenantId
+                tenantId = tenantId,
+                complexity = payload.scheduling?.complexity,
+                timeSensitivity = payload.scheduling?.timeSensitivity,
+                priority = payload.scheduling?.priority,
+                budgetScope = payload.scheduling?.budgetScope,
+                budgetLimit = payload.scheduling?.budgetLimit,
+                deadline = payload.scheduling?.deadline,
+                scheduling = payload.scheduling
             )
         )) {
             is Ok -> result.value
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
+        }
+        if (!response.accepted || response.status == TaskStatus.UNKNOWN) {
+            return failedRemote(
+                code = RemoteSolverErrorCode.INVALID_TASK_STATE_TRANSITION,
+                message = response.message.ifBlank { "Remote task submission returned an unknown or rejected status." },
+                metadata = mapOf(
+                    "taskId" to response.taskId.value,
+                    "sliceId" to sliceId.value,
+                    "status" to response.status.name,
+                    "accepted" to "false"
+                ),
+                taskId = response.taskId.value,
+                sliceId = sliceId.value
+            )
         }
         return Ok(ExecutionHandle(
             handleId = HandleId.of(response.taskId.value),
@@ -250,38 +277,231 @@ class RemoteSolverHttpClient(
         nodeId: NodeId,
         tenantId: TenantId
     ): Ret<ExecutionHandle> {
+        // 规范 HTTP 端点恢复服务端选择的最新检查点，且没有 checkpoint 选择器。
+        // The canonical HTTP endpoint resumes a task's server-selected latest checkpoint and has no
+        // checkpoint selector.
+        // 对调用方提供的引用，只有显式最新检查点模式才能采用该行为。
+        // Never silently substitute that behavior for a caller-provided reference unless latest mode
+        // was explicit.
         if (resumeMode == RemoteSolverHttpResumeMode.STRICT_CHECKPOINT) {
             return failedRemote(
                 code = RemoteSolverErrorCode.INVALID_ARGUMENT,
-                message = "HTTP task resume API does not support checkpoint-specific resume.",
+                message = "HTTP task resume API does not support checkpoint-specific resume; latest resume requires explicit SERVER_TASK_LATEST_CHECKPOINT mode.",
                 metadata = mapOf(
                     "taskId" to taskId.value,
-                    "checkpointPath" to checkpoint.path.value
+                    "checkpointPath" to checkpoint.path.value,
+                    "resumeMode" to resumeMode.name
                 ),
                 taskId = taskId.value,
                 sliceId = sliceId.value
             )
         }
-        when (val result = resume(taskId = taskId)) {
-            is Ok -> {}
+        val sourceCheckpoint = when (val result = validateResumeCheckpoint(
+            payload = payload,
+            checkpoint = checkpoint,
+            taskId = taskId,
+            sliceId = sliceId,
+            tenantId = tenantId
+        )) {
+            is Ok -> result.value
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
+        }
+        val action = when (val result = resume(taskId = taskId)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        if (!action.accepted || action.status == TaskStatus.FAILED || action.status == TaskStatus.UNKNOWN) {
+            return failedRemote(
+                code = RemoteSolverErrorCode.INVALID_TASK_STATE_TRANSITION,
+                message = action.message ?: "Remote task resume returned an unknown or rejected status.",
+                metadata = mapOf(
+                    "taskId" to taskId.value,
+                    "status" to action.status.name,
+                    "resumeMode" to resumeMode.name
+                ),
+                taskId = taskId.value,
+                sliceId = sliceId.value
+            )
+        }
+        val actionIdentityError = listOf(
+            "taskId" to (action.taskId.value == taskId.value),
+            "tenantId" to (action.tenantId?.value == tenantId.value),
+            "runId" to (action.runId != null && action.runId == sourceCheckpoint.runId),
+            "attemptId" to (action.attemptId != null && action.attemptId == sourceCheckpoint.attemptId),
+            "modelFingerprint" to (action.modelFingerprint != null && action.modelFingerprint == sourceCheckpoint.modelFingerprint),
+            "configurationFingerprint" to (action.configurationFingerprint != null &&
+                action.configurationFingerprint == sourceCheckpoint.configurationFingerprint),
+            "solverFingerprint" to (action.solverFingerprint != null &&
+                action.solverFingerprint == sourceCheckpoint.solverFingerprint)
+        ).filterNot { it.second }.map { it.first }
+        if (actionIdentityError.isNotEmpty()) {
+            return failedRemote(
+                code = RemoteSolverErrorCode.INVALID_ARGUMENT,
+                message = "Remote resume action does not preserve the selected checkpoint identity.",
+                metadata = mapOf(
+                    "taskId" to taskId.value,
+                    "checkpointPath" to checkpoint.path.value,
+                    "mismatchedFields" to actionIdentityError.joinToString(","),
+                    "checkpointId" to sourceCheckpoint.checkpointId,
+                    "checkpointRunId" to (sourceCheckpoint.runId ?: ""),
+                    "checkpointAttemptId" to (sourceCheckpoint.attemptId ?: "")
+                ),
+                taskId = taskId.value,
+                sliceId = sliceId.value
+            )
         }
         return Ok(ExecutionHandle(
             handleId = HandleId.of(taskId.value),
             taskId = taskId,
             sliceId = sliceId,
             nodeId = nodeId,
-            startedAt = Clock.System.now()
+            startedAt = Clock.System.now(),
+            scheduling = action.scheduling
         ))
+    }
+
+    /**
+     * 在调用任务恢复前加载并校验租户范围内的 v2 checkpoint。 / Load a tenant-scoped, verified v2 checkpoint before invoking task resume.
+     */
+    private suspend fun validateResumeCheckpoint(
+        payload: SolvePayload,
+        checkpoint: ObjectRef,
+        taskId: TaskId,
+        sliceId: SliceId,
+        tenantId: TenantId
+    ): Ret<PortableCheckpointEnvelope> {
+        val segments = checkpoint.path.value.split('/')
+        if (segments.size != 4 || segments[0] != tenantId.value || segments[1] != "checkpoint" ||
+            segments[2] != taskId.value || segments[3].isBlank() || segments.any { it == "." || it == ".." }
+        ) {
+            return failedRemote(
+                code = RemoteSolverErrorCode.CHECKPOINT_EXPORT_FAILED,
+                message = "Checkpoint reference is not a tenant-scoped reference for this task.",
+                metadata = mapOf(
+                    "taskId" to taskId.value,
+                    "tenantId" to tenantId.value,
+                    "checkpointPath" to checkpoint.path.value
+                ),
+                taskId = taskId.value,
+                sliceId = sliceId.value
+            )
+        }
+        val storage = objectStoragePort ?: return failedRemote(
+            code = RemoteSolverErrorCode.CHECKPOINT_EXPORT_FAILED,
+            message = "objectStoragePort is required to verify a checkpoint before resume.",
+            metadata = mapOf("taskId" to taskId.value, "checkpointPath" to checkpoint.path.value),
+            taskId = taskId.value,
+            sliceId = sliceId.value
+        )
+        val bytes = try {
+            storage.get(checkpoint)
+        } catch (error: Exception) {
+            return failedRemote(
+                code = RemoteSolverErrorCode.STORAGE_IO_FAILED,
+                message = "Failed to read checkpoint before resume: ${error.message}",
+                metadata = mapOf("taskId" to taskId.value, "checkpointPath" to checkpoint.path.value),
+                taskId = taskId.value,
+                sliceId = sliceId.value
+            )
+        } ?: return failedRemote(
+            code = RemoteSolverErrorCode.CHECKPOINT_EXPORT_FAILED,
+            message = "Checkpoint object is missing.",
+            metadata = mapOf("taskId" to taskId.value, "checkpointPath" to checkpoint.path.value),
+            taskId = taskId.value,
+            sliceId = sliceId.value
+        )
+        val envelope = PortableCheckpointCodec.decodeOrNull(bytes.decodeToString())
+            ?: return failedRemote(
+                code = RemoteSolverErrorCode.CHECKPOINT_EXPORT_FAILED,
+                message = "Checkpoint is not a verified portable v2 envelope.",
+                metadata = mapOf("taskId" to taskId.value, "checkpointPath" to checkpoint.path.value),
+                taskId = taskId.value,
+                sliceId = sliceId.value
+            )
+        val pathCheckpointId = segments[3]
+        val requiredEnvelopeFields = mapOf(
+            "schemaVersion" to envelope.schemaVersion,
+            "sourceFormat" to envelope.sourceFormat,
+            "checkpointId" to envelope.checkpointId,
+            "identitySchemaVersion" to envelope.identitySchemaVersion,
+            "identityNamespace" to envelope.identityNamespace,
+            "modelFingerprint" to envelope.modelFingerprint,
+            "configurationFingerprint" to envelope.configurationFingerprint,
+            "solverFingerprint" to envelope.solverFingerprint,
+            "runId" to envelope.runId,
+            "attemptId" to envelope.attemptId,
+            "integritySha256" to envelope.integritySha256
+        )
+        if (requiredEnvelopeFields.any { it.value.isNullOrBlank() } ||
+            envelope.schemaVersion != "3.0" || envelope.sourceFormat != "v2" ||
+            envelope.checkpointId != pathCheckpointId || envelope.runId != taskId.value ||
+            envelope.attemptId?.let { !pathCheckpointId.startsWith("$it-") } != false
+        ) {
+            return failedRemote(
+                code = RemoteSolverErrorCode.CHECKPOINT_EXPORT_FAILED,
+                message = "Checkpoint identity is incomplete or does not belong to this task/reference.",
+                metadata = requiredEnvelopeFields.mapValues { it.value ?: "" } +
+                    mapOf("taskId" to taskId.value, "checkpointPath" to checkpoint.path.value),
+                taskId = taskId.value,
+                sliceId = sliceId.value
+            )
+        }
+        val expectedModel = payload.scheduling?.modelFingerprint
+            ?: payload.extension["modelFingerprint"]
+            ?: payload.modelData.rawBytes
+                ?.takeIf { payload.modelData.format == "ospf-cp-snapshot-json" }
+                ?.let { PortableCheckpointCodec.sha256(it.decodeToString()) }
+        val expectedConfiguration = payload.scheduling?.metadata?.get("configurationFingerprint")
+            ?: payload.extension["configurationFingerprint"]
+        val expectedSolver = payload.scheduling?.metadata?.get("solverFingerprint")
+            ?: payload.extension["solverFingerprint"]
+        val expected = mapOf(
+            "modelFingerprint" to expectedModel,
+            "configurationFingerprint" to expectedConfiguration,
+            "solverFingerprint" to expectedSolver
+        )
+        if (expected.any { it.value.isNullOrBlank() }) {
+            return failedRemote(
+                code = RemoteSolverErrorCode.INVALID_ARGUMENT,
+                message = "Resume payload must declare model, configuration, and solver fingerprints.",
+                metadata = expected.mapValues { it.value ?: "" } + mapOf("taskId" to taskId.value),
+                taskId = taskId.value,
+                sliceId = sliceId.value
+            )
+        }
+        val mismatched = expected.filter { (key, value) ->
+            when (key) {
+                "modelFingerprint" -> value != envelope.modelFingerprint
+                "configurationFingerprint" -> value != envelope.configurationFingerprint
+                "solverFingerprint" -> value != envelope.solverFingerprint
+                else -> true
+            }
+        }.keys
+        if (mismatched.isNotEmpty()) {
+            return failedRemote(
+                code = RemoteSolverErrorCode.INVALID_ARGUMENT,
+                message = "Resume payload identity does not match the selected checkpoint.",
+                metadata = mapOf(
+                    "taskId" to taskId.value,
+                    "checkpointPath" to checkpoint.path.value,
+                    "mismatchedFields" to mismatched.joinToString(",")
+                ),
+                taskId = taskId.value,
+                sliceId = sliceId.value
+            )
+        }
+        return Ok(envelope)
     }
 
     override suspend fun awaitSliceEnd(handle: ExecutionHandle, quantum: Duration): Ret<SliceResult> {
         if (quantum <= Duration.ZERO) {
             return Failed(ErrorCode.IllegalArgument, "quantum must be positive.")
         }
-        var elapsed = Duration.ZERO
-        while (elapsed < quantum) {
+        val startedAt = Clock.System.now()
+        while (true) {
+            val wallElapsed = Clock.System.now() - startedAt
             val view = when (val result = get(handle.taskId)) {
                 is Ok -> result.value ?: return failedRemote(
                     code = RemoteSolverErrorCode.TASK_FAILED,
@@ -293,90 +513,172 @@ class RemoteSolverHttpClient(
                 is Failed -> return Failed(result.error)
                 is Fatal -> return Fatal(result.errors)
             }
+            val elapsed = if (wallElapsed < Duration.ZERO) Duration.ZERO else wallElapsed
             when (view.status) {
-                TaskStatus.COMPLETED -> {
+                TaskStatus.COMPLETED,
+                TaskStatus.FAILED,
+                TaskStatus.STOPPED -> {
                     val result = when (val ret = fetchFinalResult(handle)) {
                         is Ok -> ret.value
                         is Failed -> return Failed(ret.error)
                         is Fatal -> return Fatal(ret.errors)
                     }
-                    return Ok(SliceResult(
-                        sliceId = handle.sliceId,
-                        completed = true,
-                        feasible = result?.feasible ?: true,
-                        objectiveValue = result?.objectiveValue,
-                        objectiveValueInt64 = result?.objectiveValueInt64,
-                        gap = result?.gap,
-                        elapsed = result?.elapsed ?: elapsed,
-                        message = result?.message,
-                        schemaVersion = result?.schemaVersion ?: "1.0",
-                        problemStatus = result?.problemStatus ?: RemoteProblemStatus.UNKNOWN,
-                        terminationReason = result?.terminationReason ?: RemoteTerminationReason.COMPLETED,
-                        solutionPresence = result?.solutionPresence ?: RemoteSolutionPresence.NONE,
-                        proofStatus = result?.proofStatus ?: RemoteProofStatus.NONE,
-                        resultRef = result?.resultRef,
-                        provenance = result?.provenance ?: emptyMap(),
-                        fingerprints = result?.fingerprints ?: emptyMap(),
-                        statistics = result?.statistics ?: emptyMap(),
-                        diagnostics = result?.diagnostics ?: emptyMap(),
-                        runId = result?.runId,
-                        attemptId = result?.attemptId,
-                        artifactDigest = result?.artifactDigest
-                    ))
+                    return Ok(view.toSliceResult(handle, result, elapsed))
                 }
 
-                TaskStatus.FAILED, TaskStatus.STOPPED -> {
-                    val terminalResult = when (val ret = fetchFinalResult(handle)) {
-                        is Ok -> ret.value
-                        is Failed -> return Failed(ret.error)
-                        is Fatal -> return Fatal(ret.errors)
-                    }
-                    val terminationReason = when (view.status) {
-                        TaskStatus.STOPPED -> RemoteTerminationReason.CANCELLED
-                        TaskStatus.FAILED -> terminalResult?.terminationReason
-                            ?.takeIf { it != RemoteTerminationReason.COMPLETED }
-                            ?: RemoteTerminationReason.BACKEND_FAILURE
-                        else -> RemoteTerminationReason.BACKEND_FAILURE
-                    }
-                    return Ok(SliceResult(
-                        sliceId = handle.sliceId,
-                        completed = true,
-                        feasible = terminalResult?.feasible ?: false,
-                        objectiveValue = terminalResult?.objectiveValue,
-                        objectiveValueInt64 = terminalResult?.objectiveValueInt64,
-                        gap = terminalResult?.gap,
-                        elapsed = elapsed,
-                        message = terminalResult?.message ?: "Remote task ended with status ${view.status}.",
-                        schemaVersion = terminalResult?.schemaVersion ?: "1.0",
-                        problemStatus = terminalResult?.problemStatus ?: RemoteProblemStatus.UNKNOWN,
-                        terminationReason = terminationReason,
-                        solutionPresence = terminalResult?.solutionPresence ?: RemoteSolutionPresence.NONE,
-                        proofStatus = terminalResult?.proofStatus ?: RemoteProofStatus.NONE,
-                        resultRef = terminalResult?.resultRef,
-                        provenance = terminalResult?.provenance ?: emptyMap(),
-                        fingerprints = terminalResult?.fingerprints ?: emptyMap(),
-                        statistics = terminalResult?.statistics ?: emptyMap(),
-                        diagnostics = terminalResult?.diagnostics ?: emptyMap(),
-                        runId = terminalResult?.runId,
-                        attemptId = terminalResult?.attemptId,
-                        artifactDigest = terminalResult?.artifactDigest
-                    ))
+                TaskStatus.SUSPENDED -> {
+                    return Ok(view.toSliceResult(handle, result = null, elapsed = elapsed))
                 }
 
-                else -> {}
+                TaskStatus.UNKNOWN -> {
+                    return failedRemote(
+                        code = RemoteSolverErrorCode.INVALID_ARGUMENT,
+                        message = "Remote task returned an unknown status; refusing to infer a slice result.",
+                        metadata = mapOf(
+                            "taskId" to handle.taskId.value,
+                            "sliceId" to handle.sliceId.value,
+                            "status" to view.status.name
+                        ),
+                        taskId = handle.taskId.value,
+                        sliceId = handle.sliceId.value
+                    )
+                }
+
+                else -> Unit
             }
-            val wait = minOf(pollInterval, quantum - elapsed)
-            delay(wait)
-            elapsed += wait
+
+            // 调度器负责时间片，并执行 checkpoint、停止和重新入队。
+            // The dispatcher owns the quantum and performs checkpoint, stop, and requeue.
+            // 客户端截止时间会把服务端的正常暂停误转成任务停止。
+            // A client-side deadline would turn a normal server suspension into a task stop.
+            delay(pollInterval.coerceAtLeast(1.milliseconds))
         }
-        return Ok(SliceResult(
-            sliceId = handle.sliceId,
-            completed = false,
-            feasible = false,
-            objectiveValue = null,
-            gap = null,
-            elapsed = quantum
-        ))
+    }
+
+    /** Map a task observation to the canonical slice contract. / 将任务观测映射为规范切片契约。 */
+    private fun RemoteTaskView.toSliceResult(
+        handle: ExecutionHandle,
+        result: SolveResult?,
+        elapsed: Duration,
+        forceTimeout: Boolean = false
+    ): SliceResult {
+        val unknownSemantics = hasUnknownOutcomeSemantics() || result?.hasUnknownOutcomeSemantics() == true
+        val checkpoint = result?.checkpointRef ?: latestCheckpointRef ?: scheduling?.checkpointRef
+        val incumbent = result?.incumbentRef ?: incumbentRef ?: scheduling?.incumbentRef
+        val inferredFeasible = result?.feasible ?: (
+            solutionPresence == RemoteSolutionPresence.INCUMBENT ||
+                solutionPresence == RemoteSolutionPresence.OPTIMAL ||
+                incumbent != null
+            )
+        val feasible = if (unknownSemantics) false else inferredFeasible
+        val inferredOutcome = result?.outcome ?: outcome ?: when {
+            status == TaskStatus.STOPPED -> SliceOutcome.CANCELLED
+            status == TaskStatus.FAILED -> SliceOutcome.FAILED
+            status == TaskStatus.COMPLETED -> SliceOutcome.COMPLETED
+            checkpoint != null -> SliceOutcome.CHECKPOINTED
+            feasible -> SliceOutcome.RESUMABLE
+            else -> SliceOutcome.PREEMPTED
+        }
+        val effectiveOutcome = if (unknownSemantics) SliceOutcome.UNKNOWN else inferredOutcome
+        val effectiveTermination = if (unknownSemantics) {
+            RemoteTerminationReason.UNKNOWN
+        } else {
+            when {
+                forceTimeout -> RemoteTerminationReason.TIME_LIMIT
+                status == TaskStatus.STOPPED -> RemoteTerminationReason.CANCELLED
+                status == TaskStatus.FAILED -> result?.terminationReason
+                    ?.takeIf { it != RemoteTerminationReason.COMPLETED }
+                    ?: terminationReason?.takeIf { it != RemoteTerminationReason.COMPLETED }
+                    ?: RemoteTerminationReason.BACKEND_FAILURE
+                else -> result?.terminationReason ?: terminationReason
+                    ?: if (effectiveOutcome == SliceOutcome.COMPLETED) {
+                        RemoteTerminationReason.COMPLETED
+                    } else {
+                        RemoteTerminationReason.TIME_LIMIT
+                    }
+            }
+        }
+        val effectiveScheduling = (result?.scheduling ?: scheduling ?: handle.scheduling)?.let {
+            it.copy(
+                taskId = it.taskId ?: taskId,
+                sliceId = it.sliceId ?: (sliceId ?: handle.sliceId),
+                nodeId = it.nodeId ?: currentNodeId,
+                checkpointRef = it.checkpointRef ?: checkpoint,
+                incumbentRef = it.incumbentRef ?: incumbent,
+                modelFingerprint = it.modelFingerprint ?: (result?.modelFingerprint ?: modelFingerprint),
+                outcome = if (unknownSemantics) SliceOutcome.UNKNOWN else it.outcome ?: effectiveOutcome
+            )
+        }
+        val effectiveStatistics = result?.statistics ?: statistics
+        val effectiveProvenance = buildMap {
+            putAll(provenance)
+            putAll(result?.provenance ?: emptyMap())
+        }
+        val effectiveFingerprints = buildMap {
+            putAll(identityFingerprints())
+            putAll(result?.fingerprints ?: emptyMap())
+        }
+        val effectiveFingerprintSchemas = buildMap {
+            putAll(identityFingerprintSchemas())
+            putAll(result?.fingerprintSchemas ?: emptyMap())
+        }
+        return SliceResult(
+            sliceId = sliceId ?: handle.sliceId,
+            completed = status != TaskStatus.UNKNOWN &&
+                (status == TaskStatus.COMPLETED || status == TaskStatus.FAILED || status == TaskStatus.STOPPED),
+            feasible = feasible,
+            objectiveValue = result?.objectiveValue ?: objectiveValue,
+            objectiveValueInt64 = result?.objectiveValueInt64 ?: objectiveValueInt64,
+            gap = result?.gap ?: gap,
+            elapsed = result?.elapsed ?: elapsed,
+            message = result?.message ?: if (forceTimeout) {
+                "Remote slice quantum expired while task status was $status."
+            } else {
+                null
+            },
+            schemaVersion = result?.schemaVersion ?: "1.0",
+            problemStatus = if (unknownSemantics) {
+                RemoteProblemStatus.UNKNOWN
+            } else {
+                result?.problemStatus ?: problemStatus ?: if (feasible) {
+                    RemoteProblemStatus.FEASIBLE
+                } else {
+                    RemoteProblemStatus.UNKNOWN
+                }
+            },
+            terminationReason = effectiveTermination,
+            solutionPresence = if (unknownSemantics) {
+                RemoteSolutionPresence.UNKNOWN
+            } else {
+                result?.solutionPresence ?: solutionPresence ?: if (feasible) {
+                    RemoteSolutionPresence.INCUMBENT
+                } else {
+                    RemoteSolutionPresence.NONE
+                }
+            },
+            proofStatus = if (unknownSemantics) {
+                RemoteProofStatus.UNKNOWN
+            } else {
+                result?.proofStatus ?: proofStatus ?: RemoteProofStatus.NONE
+            },
+            resultRef = result?.resultRef ?: latestResultRef,
+            provenance = effectiveProvenance,
+            fingerprints = effectiveFingerprints,
+            fingerprintSchemas = effectiveFingerprintSchemas,
+            statistics = effectiveStatistics,
+            diagnostics = (result?.diagnostics ?: emptyMap()) + diagnostics,
+            runId = result?.runId ?: runId,
+            attemptId = result?.attemptId ?: attemptId,
+            artifactDigest = result?.artifactDigest ?: artifactDigest,
+            bestBound = result?.bestBound ?: bestBound ?: bound
+                ?: effectiveStatistics["bestBound"]?.toDoubleOrNull()?.let(::Flt64),
+            checkpointRef = checkpoint,
+            incumbentRef = incumbent,
+            modelFingerprint = result?.modelFingerprint ?: modelFingerprint
+                ?: effectiveScheduling?.modelFingerprint,
+            scheduling = effectiveScheduling,
+            outcome = effectiveOutcome
+        )
     }
 
     override suspend fun exportCheckpoint(handle: ExecutionHandle): Ret<ObjectRef?> {
@@ -389,14 +691,14 @@ class RemoteSolverHttpClient(
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
         }
-        val resultRef = view.latestResultRef ?: return Ok(null)
-        val storage = objectStoragePort ?: return Ok(null)
-        val bytes = storage.get(resultRef) ?: return Ok(null)
+        val resultRef = view.latestResultRef
+        if (resultRef == null) {
+            return Ok(view.toObservedSolveResult(handle))
+        }
+        val storage = objectStoragePort ?: return Ok(view.toObservedSolveResult(handle))
+        val bytes = storage.get(resultRef) ?: return Ok(view.toObservedSolveResult(handle))
         val solution = try {
-            json.decodeFromString(
-                SerializedSolution.serializer(),
-                bytes.decodeToString()
-            )
+            decodeSerializedSolution(bytes.decodeToString())
         } catch (e: Exception) {
             return failedRemote(
                 code = RemoteSolverErrorCode.INTERNAL_ERROR,
@@ -413,43 +715,150 @@ class RemoteSolverHttpClient(
         val result = SolveResult(
             feasible = solution.feasible,
             optimal = solution.optimal,
-            objectiveValue = solution.objectiveValue,
-            objectiveValueInt64 = solution.objectiveValueInt64,
-            gap = solution.gap,
+            objectiveValue = solution.objectiveValue ?: view.objectiveValue,
+            objectiveValueInt64 = solution.objectiveValueInt64 ?: view.objectiveValueInt64,
+            gap = solution.gap ?: view.gap,
             elapsed = solution.elapsed,
-            checkpointRef = view.latestCheckpointRef,
+            checkpointRef = view.latestCheckpointRef ?: view.scheduling?.checkpointRef,
             resultRef = resultRef,
             message = solution.message,
             schemaVersion = solution.schemaVersion,
             problemStatus = solution.problemStatus ?: if (solution.feasible) {
                 RemoteProblemStatus.FEASIBLE
             } else {
-                RemoteProblemStatus.UNKNOWN
+                view.problemStatus ?: RemoteProblemStatus.UNKNOWN
             },
-            terminationReason = solution.terminationReason ?: RemoteTerminationReason.COMPLETED,
+            terminationReason = solution.terminationReason ?: view.terminationReason
+                ?: RemoteTerminationReason.COMPLETED,
             solutionPresence = solution.solutionPresence ?: when {
                 solution.optimal -> RemoteSolutionPresence.OPTIMAL
                 solution.feasible -> RemoteSolutionPresence.INCUMBENT
-                else -> RemoteSolutionPresence.NONE
+                else -> view.solutionPresence ?: RemoteSolutionPresence.NONE
             },
-            proofStatus = solution.proofStatus ?: RemoteProofStatus.NONE,
-            provenance = solution.provenance,
-            fingerprints = solution.fingerprints,
+            proofStatus = solution.proofStatus ?: view.proofStatus ?: RemoteProofStatus.NONE,
+            provenance = view.provenance + solution.provenance,
+            fingerprints = view.identityFingerprints() + solution.fingerprints,
+            fingerprintSchemas = view.identityFingerprintSchemas() + solution.fingerprintSchemas,
             statistics = solution.statistics,
             diagnostics = solution.diagnostics,
-            runId = solution.runId,
-            attemptId = solution.attemptId,
-            artifactDigest = solution.artifactDigest
+            runId = solution.runId ?: view.runId,
+            attemptId = solution.attemptId ?: view.attemptId,
+            artifactDigest = solution.artifactDigest ?: view.artifactDigest,
+            bestBound = view.bestBound ?: view.bound
+                ?: solution.statistics["bestBound"]?.toDoubleOrNull()?.let(::Flt64),
+            incumbentRef = view.incumbentRef ?: view.scheduling?.incumbentRef,
+            modelFingerprint = view.modelFingerprint ?: view.scheduling?.modelFingerprint
+                ?: solution.fingerprints["model"],
+            scheduling = view.scheduling,
+            outcome = view.outcome
         )
-        return Ok(
-            when (view.status) {
-                TaskStatus.STOPPED -> result.asTerminalFailure(RemoteTerminationReason.CANCELLED)
-                TaskStatus.FAILED -> result.asTerminalFailure(
-                    result.terminationReason.takeIf { it != RemoteTerminationReason.COMPLETED }
-                        ?: RemoteTerminationReason.BACKEND_FAILURE
-                )
-                else -> result
-            }
+        val unknownSemantics = view.hasUnknownOutcomeSemantics() || result.hasUnknownOutcomeSemantics()
+        val terminalResult = when (view.status) {
+            TaskStatus.STOPPED -> result.asTerminalFailure(RemoteTerminationReason.CANCELLED)
+            TaskStatus.FAILED -> result.asTerminalFailure(
+                result.terminationReason.takeIf { it != RemoteTerminationReason.COMPLETED }
+                    ?: RemoteTerminationReason.BACKEND_FAILURE
+            )
+            else -> result
+        }
+        return Ok(if (unknownSemantics) terminalResult.asUnknownOutcomeFailure() else terminalResult)
+    }
+
+    /**
+     * 在没有 artifact 时根据扩展任务视图构造最终结果。 / Build a final result from an extended task view when no artifact is available.
+     */
+    private fun RemoteTaskView.toObservedSolveResult(handle: ExecutionHandle): SolveResult? {
+        val hasObservation = status == TaskStatus.COMPLETED || status == TaskStatus.FAILED ||
+            status == TaskStatus.STOPPED || status == TaskStatus.UNKNOWN || objectiveValue != null ||
+            objectiveValueInt64 != null || gap != null || incumbentRef != null || latestResultRef != null ||
+            hasUnknownOutcomeSemantics()
+        if (!hasObservation) {
+            return null
+        }
+        val feasible = status == TaskStatus.COMPLETED ||
+            solutionPresence == RemoteSolutionPresence.INCUMBENT ||
+            solutionPresence == RemoteSolutionPresence.OPTIMAL || incumbentRef != null
+        val terminalReason = when (status) {
+            TaskStatus.STOPPED -> RemoteTerminationReason.CANCELLED
+            TaskStatus.FAILED -> terminationReason?.takeIf { it != RemoteTerminationReason.COMPLETED }
+                ?: RemoteTerminationReason.BACKEND_FAILURE
+            else -> terminationReason ?: RemoteTerminationReason.COMPLETED
+        }
+        val result = SolveResult(
+            feasible = feasible,
+            optimal = solutionPresence == RemoteSolutionPresence.OPTIMAL,
+            objectiveValue = objectiveValue,
+            objectiveValueInt64 = objectiveValueInt64,
+            gap = gap,
+            elapsed = slice?.elapsed ?: Duration.ZERO,
+            checkpointRef = latestCheckpointRef ?: scheduling?.checkpointRef,
+            resultRef = latestResultRef,
+            schemaVersion = "1.0",
+            problemStatus = problemStatus ?: if (feasible) {
+                RemoteProblemStatus.FEASIBLE
+            } else {
+                RemoteProblemStatus.UNKNOWN
+            },
+            terminationReason = terminalReason,
+            solutionPresence = solutionPresence ?: if (feasible) {
+                RemoteSolutionPresence.INCUMBENT
+            } else {
+                RemoteSolutionPresence.NONE
+            },
+            proofStatus = proofStatus ?: RemoteProofStatus.NONE,
+            provenance = provenance,
+            fingerprints = identityFingerprints(),
+            fingerprintSchemas = identityFingerprintSchemas(),
+            statistics = statistics,
+            diagnostics = diagnostics,
+            runId = runId,
+            attemptId = attemptId,
+            artifactDigest = artifactDigest,
+            bestBound = bestBound ?: bound,
+            incumbentRef = incumbentRef ?: scheduling?.incumbentRef,
+            modelFingerprint = modelFingerprint ?: scheduling?.modelFingerprint,
+            scheduling = scheduling,
+            outcome = outcome
+        )
+        return if (hasUnknownOutcomeSemantics()) {
+            result.asUnknownOutcomeFailure()
+        } else {
+            result
+        }
+    }
+
+    private fun RemoteTaskView.hasUnknownOutcomeSemantics(): Boolean {
+        return status == TaskStatus.UNKNOWN ||
+            outcome == SliceOutcome.UNKNOWN ||
+            terminationReason == RemoteTerminationReason.UNKNOWN ||
+            solutionPresence == RemoteSolutionPresence.UNKNOWN ||
+            proofStatus == RemoteProofStatus.UNKNOWN ||
+            scheduling?.outcome == SliceOutcome.UNKNOWN ||
+            slice?.outcome == SliceOutcome.UNKNOWN ||
+            slice?.terminationReason == RemoteTerminationReason.UNKNOWN ||
+            slice?.solutionPresence == RemoteSolutionPresence.UNKNOWN ||
+            slice?.proofStatus == RemoteProofStatus.UNKNOWN
+    }
+
+    private fun SolveResult.hasUnknownOutcomeSemantics(): Boolean {
+        return outcome == SliceOutcome.UNKNOWN ||
+            terminationReason == RemoteTerminationReason.UNKNOWN ||
+            solutionPresence == RemoteSolutionPresence.UNKNOWN ||
+            proofStatus == RemoteProofStatus.UNKNOWN
+    }
+
+    /**
+     * 保留未知线格式语义，避免伪造成功结果。 / Preserve unknown wire semantics instead of manufacturing a successful result.
+     */
+    private fun SolveResult.asUnknownOutcomeFailure(): SolveResult {
+        return copy(
+            feasible = false,
+            optimal = false,
+            problemStatus = RemoteProblemStatus.UNKNOWN,
+            terminationReason = RemoteTerminationReason.UNKNOWN,
+            solutionPresence = RemoteSolutionPresence.UNKNOWN,
+            proofStatus = RemoteProofStatus.UNKNOWN,
+            outcome = SliceOutcome.UNKNOWN
         )
     }
 
@@ -461,7 +870,8 @@ class RemoteSolverHttpClient(
      * @return 终态语义一致的结果 / Result with consistent terminal semantics
      */
     private fun SolveResult.asTerminalFailure(terminationReason: RemoteTerminationReason): SolveResult {
-        val hasIncumbent = feasible || solutionPresence != RemoteSolutionPresence.NONE
+        val hasIncumbent = feasible || solutionPresence == RemoteSolutionPresence.INCUMBENT ||
+            solutionPresence == RemoteSolutionPresence.OPTIMAL || incumbentRef != null
         return copy(
             optimal = false,
             problemStatus = if (hasIncumbent) {
@@ -480,7 +890,29 @@ class RemoteSolverHttpClient(
     }
 
     override suspend fun stop(handle: ExecutionHandle): Ret<Boolean> {
-        return stop(taskId = handle.taskId).map { it.status != TaskStatus.FAILED }
+        val action = when (val result = stop(taskId = handle.taskId)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        if (!action.accepted || action.status == TaskStatus.FAILED || action.status == TaskStatus.UNKNOWN) {
+            return Ok(false)
+        }
+        var status = action.status
+        var attempts = 0
+        while (!status.isTerminal() && attempts < STOP_CONFIRMATION_ATTEMPTS) {
+            val view = when (val result = get(handle.taskId)) {
+                is Ok -> result.value ?: return Ok(false)
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            status = view.status
+            attempts += 1
+            if (!status.isTerminal()) {
+                delay(pollInterval.coerceAtLeast(1.milliseconds))
+            }
+        }
+        return Ok(status == TaskStatus.STOPPED || status == TaskStatus.COMPLETED)
     }
 
     /**
@@ -488,7 +920,7 @@ class RemoteSolverHttpClient(
      *
      * @param request 提交请求 / Submit request
      * @return 提交响应 / Submit response
-    */
+     */
     fun submit(request: RemoteTaskSubmitRequest): Ret<RemoteTaskSubmitResponse> {
         val response = send(
             request(
@@ -511,7 +943,7 @@ class RemoteSolverHttpClient(
      * 查询服务端能力和协议版本。 / Query server capabilities and protocol versions.
      *
      * @return 服务端能力摘要 / Server capability summary
-    */
+     */
     fun probeCapabilities(): Ret<RemoteSolverCapabilities> {
         val response = when (val result = send(
             request(
@@ -534,7 +966,7 @@ class RemoteSolverHttpClient(
      *
      * @param request HTTP 请求 / HTTP request
      * @return HTTP 响应或失败结果 / HTTP response or failure result
-    */
+     */
     private fun send(request: RemoteSolverHttpRequest): Ret<RemoteSolverHttpResponse> {
         return try {
             Ok(transport.send(request))
@@ -559,7 +991,7 @@ class RemoteSolverHttpClient(
      *
      * @param taskId 任务 ID / Task ID
      * @return 任务视图，不存在时返回 null / Task view, null if not found
-    */
+     */
     fun get(taskId: TaskId): Ret<RemoteTaskView?> {
         val response = when (val result = send(
             request(
@@ -586,7 +1018,7 @@ class RemoteSolverHttpClient(
      * @param taskId 任务 ID / Task ID
      * @param request 停止请求 / Stop request
      * @return 操作响应 / Action response
-    */
+     */
     fun stop(
         taskId: TaskId,
         request: RemoteTaskStopRequest = RemoteTaskStopRequest()
@@ -614,7 +1046,7 @@ class RemoteSolverHttpClient(
      * @param taskId 任务 ID / Task ID
      * @param request 恢复请求 / Resume request
      * @return 操作响应 / Action response
-    */
+     */
     fun resume(
         taskId: TaskId,
         request: RemoteTaskResumeRequest = RemoteTaskResumeRequest()
@@ -643,7 +1075,7 @@ class RemoteSolverHttpClient(
      * @param path 请求路径 / Request path
      * @param body 请求体（可选）/ Request body (optional)
      * @return HTTP 请求对象 / HTTP request object
-    */
+     */
     private fun request(
         method: String,
         path: String,
@@ -673,7 +1105,7 @@ class RemoteSolverHttpClient(
      * @param response HTTP 响应 / HTTP response
      * @param dataDeserializer 数据反序列化器 / Data deserializer
      * @return 解析后的数据或失败结果 / Parsed data or failure result
-    */
+     */
     private fun <T> decodeEnvelope(
         response: RemoteSolverHttpResponse,
         dataDeserializer: KSerializer<T>
@@ -722,7 +1154,7 @@ class RemoteSolverHttpClient(
      *
      * @param response HTTP 响应 / HTTP response
      * @return 包含错误详情的失败结果 / Failure result with error details
-    */
+     */
     private fun <T> decodeError(response: RemoteSolverHttpResponse): Ret<T> {
         val body = response.body
         val envelope = runCatching {
@@ -750,7 +1182,7 @@ class RemoteSolverHttpClient(
      * Convert string error code to RemoteSolverErrorCode enum.
      *
      * @return 对应的远程求解错误码，无法识别时返回 INTERNAL_ERROR / Corresponding remote solver error code, or INTERNAL_ERROR if unrecognized
-    */
+     */
     private fun String.toRemoteErrorCode(): RemoteSolverErrorCode {
         return runCatching { RemoteSolverErrorCode.valueOf(this) }
             .getOrDefault(RemoteSolverErrorCode.INTERNAL_ERROR)
@@ -764,7 +1196,7 @@ class RemoteSolverHttpClient(
      * @param sliceId 切片 ID / Slice ID
      * @param tenantId 租户 ID / Tenant ID
      * @return 对象引用或失败结果 / Object reference or failure result
-    */
+     */
     private suspend fun putPayload(
         payload: SolvePayload,
         taskId: TaskId,
@@ -798,11 +1230,55 @@ class RemoteSolverHttpClient(
             )
         }
     }
+
+    /**
+     * 解码结果 artifact，并将新枚举值保留为明确的 UNKNOWN。 / Decode result artifacts while preserving newer enum values as explicit UNKNOWN.
+     */
+    private fun decodeSerializedSolution(body: String): SerializedSolution {
+        val root = json.parseToJsonElement(body) as? JsonObject ?: return json.decodeFromString(
+            SerializedSolution.serializer(),
+            body
+        )
+        val normalized = root
+            .filterKnownEnum("problemStatus", setOf(
+                RemoteProblemStatus.FEASIBLE.name,
+                RemoteProblemStatus.INFEASIBLE.name,
+                RemoteProblemStatus.UNBOUNDED.name,
+                RemoteProblemStatus.INFEASIBLE_OR_UNBOUNDED.name,
+                RemoteProblemStatus.UNKNOWN.name
+            ))
+            .filterKnownEnum("terminationReason", setOf(
+                RemoteTerminationReason.COMPLETED.name,
+                RemoteTerminationReason.TIME_LIMIT.name,
+                RemoteTerminationReason.NODE_LIMIT.name,
+                RemoteTerminationReason.ITERATION_LIMIT.name,
+                RemoteTerminationReason.SOLUTION_LIMIT.name,
+                RemoteTerminationReason.OBJECTIVE_LIMIT.name,
+                RemoteTerminationReason.CANCELLED.name,
+                RemoteTerminationReason.INTERRUPTED.name,
+                RemoteTerminationReason.NUMERICAL_FAILURE.name,
+                RemoteTerminationReason.BACKEND_FAILURE.name,
+                RemoteTerminationReason.UNKNOWN.name
+            ))
+            .filterKnownEnum("solutionPresence", setOf(
+                RemoteSolutionPresence.NONE.name,
+                RemoteSolutionPresence.INCUMBENT.name,
+                RemoteSolutionPresence.OPTIMAL.name,
+                RemoteSolutionPresence.UNKNOWN.name
+            ))
+            .filterKnownEnum("proofStatus", setOf(
+                RemoteProofStatus.NONE.name,
+                RemoteProofStatus.CLAIMED.name,
+                RemoteProofStatus.VERIFIED.name,
+                RemoteProofStatus.UNKNOWN.name
+            ))
+        return json.decodeFromJsonElement(SerializedSolution.serializer(), normalized)
+    }
 }
 
 /**
  * HTTP 恢复模式。 / HTTP resume mode.
-*/
+ */
 enum class RemoteSolverHttpResumeMode {
     /** 恢复服务端任务的最新检查点 / Resume server task from its latest checkpoint */
     SERVER_TASK_LATEST_CHECKPOINT,
@@ -813,7 +1289,7 @@ enum class RemoteSolverHttpResumeMode {
 
 /**
  * 远程求解 HTTP 传输接口。 / Remote solver HTTP transport.
-*/
+ */
 fun interface RemoteSolverHttpTransport {
 
     /**
@@ -821,7 +1297,7 @@ fun interface RemoteSolverHttpTransport {
      *
      * @param request HTTP 请求 / HTTP request
      * @return HTTP 响应 / HTTP response
-    */
+     */
     fun send(request: RemoteSolverHttpRequest): RemoteSolverHttpResponse
 }
 
@@ -832,7 +1308,7 @@ fun interface RemoteSolverHttpTransport {
  * @property url 请求 URL / Request URL
  * @property headers 请求头 / Request headers
  * @property body 请求体 / Request body
-*/
+ */
 data class RemoteSolverHttpRequest(
     val method: String,
     val url: String,
@@ -845,7 +1321,7 @@ data class RemoteSolverHttpRequest(
  *
  * @property statusCode HTTP 状态码 / HTTP status code
  * @property body 响应体 / Response body
-*/
+ */
 data class RemoteSolverHttpResponse(
     val statusCode: Int,
     val body: String
@@ -855,7 +1331,7 @@ data class RemoteSolverHttpResponse(
  * JDK 标准 HTTP 传输实现。 / JDK standard HTTP transport implementation.
  *
  * @property config HTTP 传输配置 / HTTP transport config
-*/
+ */
 class JavaNetRemoteSolverHttpTransport(
     private val config: RemoteSolverHttpTransportConfig = RemoteSolverHttpTransportConfig()
 ) : RemoteSolverHttpTransport {
@@ -907,7 +1383,8 @@ class JavaNetRemoteSolverHttpTransport(
  * @property budgetScope 预算范围 / Budget scope
  * @property budgetLimit 预算上限 / Budget limit
  * @property deadline 截止时间戳 / Deadline timestamp
-*/
+ * @property scheduling V1.2 调度请求 / V1.2 scheduling request
+ */
 @Serializable
 data class RemoteTaskSubmitRequest(
     val payloadRef: ObjectPath,
@@ -920,7 +1397,8 @@ data class RemoteTaskSubmitRequest(
     val budgetLimit: Flt64? = null,
     @SerialName("deadlineEpochMs")
     @Serializable(with = RemoteSolverEpochMillisecondsInstantSerializer::class)
-    val deadline: Instant? = null
+    val deadline: Instant? = null,
+    val scheduling: SchedulingRequest? = null
 )
 
 /**
@@ -930,7 +1408,7 @@ data class RemoteTaskSubmitRequest(
  * @property accepted 是否接受 / Whether accepted
  * @property status 任务状态 / Task status
  * @property message 响应消息 / Response message
-*/
+ */
 data class RemoteTaskSubmitResponse(
     val taskId: TaskId,
     val accepted: Boolean,
@@ -948,7 +1426,45 @@ data class RemoteTaskSubmitResponse(
  * @property latestCheckpointRef 最新检查点引用 / Latest checkpoint reference
  * @property latestResultRef 最新结果引用 / Latest result reference
  * @property consumedCost 已消耗成本 / Consumed cost
-*/
+ * @property requestId 请求 ID / Request ID
+ * @property complexity 任务复杂度 / Task complexity
+ * @property timeSensitivity 时间敏感度 / Time sensitivity
+ * @property priority 优先级 / Priority
+ * @property budgetScope 预算范围 / Budget scope
+ * @property budgetLimit 预算上限 / Budget limit
+ * @property sliceId 当前切片 ID / Current slice ID
+ * @property objectiveValue 目标值 / Objective value
+ * @property objectiveValueInt64 CP 精确整数目标值 / Exact Int64 CP objective value
+ * @property bestBound 当前最佳界 / Current best bound
+ * @property bound 当前界 / Current bound
+ * @property gap 最优间隙 / Optimality gap
+ * @property progress 求解进度 / Solve progress
+ * @property deadlineRisk 截止时间风险 / Deadline risk
+ * @property deadline 截止时间 / Deadline
+ * @property dispatchId 分发操作 ID / Dispatch operation ID
+ * @property runId 求解运行标识 / Solve run identifier
+ * @property attemptId 求解尝试标识 / Solve attempt identifier
+ * @property artifactDigest artifact 摘要 / Artifact digest
+ * @property incumbentRef incumbent 引用 / Incumbent reference
+ * @property modelFingerprint 模型指纹 / Model fingerprint
+ * @property modelFingerprintSchema 模型指纹 schema / Model fingerprint schema
+ * @property configurationFingerprint 配置指纹 / Configuration fingerprint
+ * @property configurationFingerprintSchema 配置指纹 schema / Configuration fingerprint schema
+ * @property solverFingerprint 求解器指纹 / Solver fingerprint
+ * @property solverFingerprintSchema 求解器指纹 schema / Solver fingerprint schema
+ * @property fingerprints 审计指纹 / Audit fingerprints
+ * @property provenance 脱敏执行来源 / Redacted execution provenance
+ * @property scheduling 有效调度信息 / Effective scheduling information
+ * @property outcome 明确切片结果 / Explicit slice outcome
+ * @property problemStatus 正交问题结论 / Orthogonal problem conclusion
+ * @property terminationReason 正交终止原因 / Orthogonal termination reason
+ * @property solutionPresence 解存在性 / Solution presence
+ * @property proofStatus 证明状态 / Proof status
+ * @property statistics 求解统计 / Solve statistics
+ * @property diagnostics 结构化诊断 / Structured diagnostics
+ * @property fingerprintSchemas 指纹 schema / Fingerprint schemas
+ * @property slice 嵌入切片结果 / Embedded slice result
+ */
 data class RemoteTaskView(
     val taskId: TaskId,
     val tenantId: TenantId,
@@ -956,18 +1472,186 @@ data class RemoteTaskView(
     val currentNodeId: NodeId? = null,
     val latestCheckpointRef: ObjectRef? = null,
     val latestResultRef: ObjectRef? = null,
-    val consumedCost: Flt64
+    val consumedCost: Flt64 = Flt64.zero,
+    val requestId: RequestId? = null,
+    val complexity: TaskComplexity? = null,
+    val timeSensitivity: TimeSensitivity? = null,
+    val priority: Int? = null,
+    val budgetScope: BudgetScopeId? = null,
+    val budgetLimit: Flt64? = null,
+    val sliceId: SliceId? = null,
+    val objectiveValue: Flt64? = null,
+    val objectiveValueInt64: Long? = null,
+    val bestBound: Flt64? = null,
+    val bound: Flt64? = null,
+    val gap: Flt64? = null,
+    val progress: Flt64? = null,
+    val deadlineRisk: Flt64? = null,
+    val deadline: Instant? = null,
+    val dispatchId: DispatchId? = null,
+    val runId: String? = null,
+    val attemptId: String? = null,
+    val artifactDigest: String? = null,
+    val incumbentRef: ObjectRef? = null,
+    val modelFingerprint: String? = null,
+    val modelFingerprintSchema: String? = null,
+    val configurationFingerprint: String? = null,
+    val configurationFingerprintSchema: String? = null,
+    val solverFingerprint: String? = null,
+    val solverFingerprintSchema: String? = null,
+    val fingerprints: Map<String, String> = emptyMap(),
+    val provenance: Map<String, String> = emptyMap(),
+    val scheduling: SchedulingDecision? = null,
+    val outcome: SliceOutcome? = null,
+    val problemStatus: RemoteProblemStatus? = null,
+    val terminationReason: RemoteTerminationReason? = null,
+    val solutionPresence: RemoteSolutionPresence? = null,
+    val proofStatus: RemoteProofStatus? = null,
+    val statistics: Map<String, String> = emptyMap(),
+    val diagnostics: Map<String, String> = emptyMap(),
+    val fingerprintSchemas: Map<String, String> = emptyMap(),
+    val slice: SliceResult? = null
 )
+
+/**
+ * Kotlin dispatcher task-action API 返回的来源信息形状。 / Provenance shape returned by the Kotlin dispatcher task-action API.
+ *
+ * @property solverId 求解器 ID / Solver ID
+ * @property backendName 后端名称 / Backend name
+ * @property backendVersion 后端版本 / Backend version
+ * @property pluginVersion 插件版本 / Plugin version
+ * @property requestedConfiguration 请求配置 / Requested configuration
+ * @property effectiveConfiguration 生效配置 / Effective configuration
+ * @property threadCount 线程数 / Thread count
+ * @property randomSeed 随机种子 / Random seed
+ * @property deterministic 是否确定性执行 / Whether execution is deterministic
+ * @property environmentSummary 环境摘要 / Environment summary
+ */
+@Serializable
+data class RemoteTaskActionProvenance(
+    val solverId: String = "unknown",
+    val backendName: String = "unknown",
+    val backendVersion: String? = null,
+    val pluginVersion: String? = null,
+    val requestedConfiguration: Map<String, String> = emptyMap(),
+    val effectiveConfiguration: Map<String, String> = emptyMap(),
+    val threadCount: Int? = null,
+    val randomSeed: Long? = null,
+    val deterministic: Boolean? = null,
+    val environmentSummary: Map<String, String> = emptyMap()
+)
+
+/**
+ * Kotlin dispatcher task-action API 返回的取消事实形状。 / Cancellation-record shape returned by the Kotlin dispatcher task-action API.
+ *
+ * `origin` 与 checkpoint envelope 的取消链共用**同一份规范代码词表**（由跨语言契约
+ * `analysis-fixtures/checkpoint-wire-contract.tsv` 的 `[cancellation-origin]` 段规定），因此不能把它
+ * 当作自由文本：`backend` / `future` 这类本侧没有专用变体的代码也必须能原样往返。请用
+ * [toCancellationRecord] / [fromCancellationRecord] 做转换，而不是手工拼字符串。
+ *
+ * `reason` 是契约定义的可空字段；此前本 DTO 没有该字段，导致这一面上的取消原因无处承载。
+ *
+ * `origin` shares **one canonical code vocabulary** with the checkpoint envelope's cancellation chain
+ * (defined by the `[cancellation-origin]` section of the cross-language contract
+ * `analysis-fixtures/checkpoint-wire-contract.tsv`), so it must not be treated as free text: codes with
+ * no dedicated variant on this side, such as `backend` / `future`, must round-trip verbatim. Convert with
+ * [toCancellationRecord] / [fromCancellationRecord] rather than assembling strings by hand.
+ *
+ * `reason` is a contract-defined nullable field; this DTO previously lacked it, so a cancellation reason
+ * had nowhere to live on this face.
+ *
+ * @property origin 取消来源规范代码 / Canonical cancellation-origin code
+ * @property requestedAtEpochMs 取消请求时间（epoch 毫秒）/ Cancellation request time in epoch milliseconds
+ * @property reason 取消原因 / Cancellation reason
+ */
+@Serializable
+data class RemoteTaskActionCancellation(
+    val origin: String,
+    val requestedAtEpochMs: Long,
+    val reason: String? = null
+) {
+    /**
+     * 按规范代码解析为核心取消事实。 / Parse into a core cancellation fact using the canonical code.
+     *
+     * @return 取消事实 / Cancellation fact
+     */
+    fun toCancellationRecord(): CancellationRecord {
+        val source = CancellationSource.fromWireCode(origin)
+        return CancellationRecord(
+            source = source,
+            requestedAt = java.time.Instant.ofEpochMilli(requestedAtEpochMs),
+            reason = reason,
+            // 只有兜底变体需要保留原始文本，否则 `backend` / `future` 会被写成 `Other` 的代码而失真。
+            // Only the catch-all variant needs the raw text; otherwise `backend` / `future` would be
+            // written back as `Other`'s code and lose fidelity.
+            wireOrigin = origin.takeIf { source == CancellationSource.Other }
+        )
+    }
+
+    companion object {
+        /**
+         * 由核心取消事实构造线格式形状。 / Build the wire shape from a core cancellation fact.
+         *
+         * @param record 取消事实 / Cancellation fact
+         * @return 线格式取消形状 / Wire cancellation shape
+         */
+        fun fromCancellationRecord(record: CancellationRecord): RemoteTaskActionCancellation {
+            return RemoteTaskActionCancellation(
+                origin = record.wireOrigin ?: record.source.toWireCode(),
+                requestedAtEpochMs = record.requestedAt.toEpochMilli(),
+                reason = record.reason
+            )
+        }
+    }
+}
 
 /**
  * 远程任务操作响应。 / Remote task action response.
  *
  * @property taskId 任务 ID / Task ID
  * @property status 任务状态 / Task status
-*/
+ */
 data class RemoteTaskAction(
     val taskId: TaskId,
-    val status: TaskStatus
+    val status: TaskStatus,
+    val accepted: Boolean = true,
+    val tenantId: TenantId? = null,
+    val currentNodeId: NodeId? = null,
+    val latestCheckpointRef: ObjectRef? = null,
+    val latestResultRef: ObjectRef? = null,
+    val consumedCost: Flt64 = Flt64.zero,
+    val requestId: RequestId? = null,
+    val complexity: TaskComplexity? = null,
+    val timeSensitivity: TimeSensitivity? = null,
+    val priority: Int? = null,
+    val deadline: Instant? = null,
+    val budgetScope: BudgetScopeId? = null,
+    val budgetLimit: Flt64? = null,
+    val dispatchId: DispatchId? = null,
+    val sliceId: SliceId? = null,
+    val runId: String? = null,
+    val attemptId: String? = null,
+    val artifactDigest: String? = null,
+    val modelFingerprint: String? = null,
+    val modelFingerprintSchema: String? = null,
+    val configurationFingerprint: String? = null,
+    val configurationFingerprintSchema: String? = null,
+    val solverFingerprint: String? = null,
+    val solverFingerprintSchema: String? = null,
+    val fingerprints: Map<String, String> = emptyMap(),
+    val fingerprintSchemas: Map<String, String> = emptyMap(),
+    val provenance: RemoteTaskActionProvenance? = null,
+    val cancellationChain: List<RemoteTaskActionCancellation> = emptyList(),
+    val scheduling: SchedulingDecision? = null,
+    val outcome: SliceOutcome? = null,
+    val problemStatus: RemoteProblemStatus? = null,
+    val terminationReason: RemoteTerminationReason? = null,
+    val solutionPresence: RemoteSolutionPresence? = null,
+    val proofStatus: RemoteProofStatus? = null,
+    val statistics: Map<String, String> = emptyMap(),
+    val diagnostics: Map<String, String> = emptyMap(),
+    val slice: SliceResult? = null,
+    val message: String? = null
 )
 
 /**
@@ -976,7 +1660,7 @@ data class RemoteTaskAction(
  * @property reason 停止原因 / Stop reason
  * @property operator 操作者 / Operator
  * @property source 来源 / Source
-*/
+ */
 @Serializable
 data class RemoteTaskStopRequest(
     val reason: ReasonCode? = null,
@@ -990,7 +1674,7 @@ data class RemoteTaskStopRequest(
  * @property operator 操作者 / Operator
  * @property source 来源 / Source
  * @property reason 恢复原因 / Resume reason
-*/
+ */
 @Serializable
 data class RemoteTaskResumeRequest(
     val operator: OperatorId? = null,
@@ -1007,7 +1691,7 @@ data class RemoteTaskResumeRequest(
  * @property message 响应消息 / the response message
  * @property traceId 追踪 ID，可为 null / the trace ID, nullable
  * @property data 响应数据，可为 null / the response data, nullable
-*/
+ */
 @Serializable
 private data class ApiEnvelope<T>(
     val code: String,
@@ -1024,7 +1708,7 @@ private data class ApiEnvelope<T>(
  * @property accepted 是否接受 / whether the task was accepted
  * @property status 任务状态字符串 / the task status string
  * @property message 响应消息 / the response message
-*/
+ */
 @Serializable
 private data class SubmitTaskHttpResponse(
     val taskId: String,
@@ -1038,12 +1722,12 @@ private data class SubmitTaskHttpResponse(
      * 转换为领域模型。
      *
      * @return 领域提交响应 / the domain submit response
-    */
+     */
     fun toDomain(): RemoteTaskSubmitResponse {
         return RemoteTaskSubmitResponse(
             taskId = TaskId.of(taskId),
             accepted = accepted,
-            status = TaskStatus.valueOf(status),
+            status = status.toTaskStatusOrUnknown(),
             message = message
         )
     }
@@ -1060,16 +1744,60 @@ private data class SubmitTaskHttpResponse(
  * @property latestCheckpointPath 最新检查点路径，可为 null / the latest checkpoint path, nullable
  * @property latestResultPath 最新结果路径，可为 null / the latest result path, nullable
  * @property consumedCost 已消耗成本 / the consumed cost
-*/
+ */
 @Serializable
 private data class TaskViewHttpResponse(
     val taskId: String,
     val tenantId: String,
     val status: String,
     val currentNodeId: String? = null,
-    val latestCheckpointPath: String? = null,
-    val latestResultPath: String? = null,
-    val consumedCost: Double
+    val latestCheckpointPath: JsonElement? = null,
+    val latestResultPath: JsonElement? = null,
+    val latestCheckpointRef: JsonElement? = null,
+    val latestResultRef: JsonElement? = null,
+    val consumedCost: JsonElement? = null,
+    val requestId: String? = null,
+    val complexity: String? = null,
+    val timeSensitivity: String? = null,
+    val priority: Int? = null,
+    val budgetScope: String? = null,
+    val budgetLimit: JsonElement? = null,
+    val sliceId: String? = null,
+    @SerialName("currentSliceId")
+    val currentSliceId: String? = null,
+    val objectiveValue: JsonElement? = null,
+    val objectiveValueInt64: JsonElement? = null,
+    val bestBound: JsonElement? = null,
+    val bound: JsonElement? = null,
+    val gap: JsonElement? = null,
+    val progress: JsonElement? = null,
+    val deadlineRisk: JsonElement? = null,
+    @SerialName("deadlineEpochMs")
+    val deadlineEpochMs: JsonElement? = null,
+    val deadline: JsonElement? = null,
+    val dispatchId: String? = null,
+    val runId: String? = null,
+    val attemptId: String? = null,
+    val artifactDigest: String? = null,
+    val incumbentRef: JsonElement? = null,
+    val modelFingerprint: JsonElement? = null,
+    val modelFingerprintSchema: String? = null,
+    val configurationFingerprint: JsonElement? = null,
+    val configurationFingerprintSchema: String? = null,
+    val solverFingerprint: JsonElement? = null,
+    val solverFingerprintSchema: String? = null,
+    val fingerprints: JsonElement? = null,
+    val provenance: JsonElement? = null,
+    val scheduling: JsonElement? = null,
+    val outcome: String? = null,
+    val problemStatus: String? = null,
+    val terminationReason: String? = null,
+    val solutionPresence: String? = null,
+    val proofStatus: String? = null,
+    val statistics: Map<String, String> = emptyMap(),
+    val diagnostics: Map<String, String> = emptyMap(),
+    val fingerprintSchemas: Map<String, String> = emptyMap(),
+    val slice: JsonElement? = null
 ) {
 
     /**
@@ -1077,16 +1805,78 @@ private data class TaskViewHttpResponse(
      * 转换为领域模型。
      *
      * @return 领域任务视图 / the domain task view
-    */
+     */
     fun toDomain(): RemoteTaskView {
+        val effectiveSliceId = (sliceId ?: currentSliceId)?.let { SliceId.of(it) }
+        val parsedModelFingerprint = modelFingerprint.toFingerprintValueOrNull()
+        val parsedConfigurationFingerprint = configurationFingerprint.toFingerprintValueOrNull()
+        val parsedSolverFingerprint = solverFingerprint.toFingerprintValueOrNull()
+        val parsedFingerprints = buildMap {
+            putAll(fingerprints.toFingerprintMap())
+            parsedModelFingerprint?.let { put("model", it) }
+            parsedConfigurationFingerprint?.let { put("configuration", it) }
+            parsedSolverFingerprint?.let { put("solver", it) }
+        }
+        val parsedFingerprintSchemas = buildMap {
+            putAll(fingerprintSchemas)
+            modelFingerprint.toFingerprintSchemaOrNull()?.let { put("model", it) }
+            modelFingerprintSchema?.let { put("model", it) }
+            configurationFingerprint.toFingerprintSchemaOrNull()?.let { put("configuration", it) }
+            configurationFingerprintSchema?.let { put("configuration", it) }
+            solverFingerprint.toFingerprintSchemaOrNull()?.let { put("solver", it) }
+            solverFingerprintSchema?.let { put("solver", it) }
+        }
         return RemoteTaskView(
             taskId = TaskId.of(taskId),
             tenantId = TenantId.of(tenantId),
-            status = TaskStatus.valueOf(status),
+            status = status.toTaskStatusOrUnknown(),
             currentNodeId = currentNodeId?.let { NodeId.of(it) },
-            latestCheckpointRef = latestCheckpointPath?.let { ObjectRef.of(path = it) },
-            latestResultRef = latestResultPath?.let { ObjectRef.of(path = it) },
-            consumedCost = Flt64(consumedCost)
+            latestCheckpointRef = latestCheckpointRef.toObjectRefOrNull()
+                ?: latestCheckpointPath.toObjectRefOrNull(),
+            latestResultRef = latestResultRef.toObjectRefOrNull()
+                ?: latestResultPath.toObjectRefOrNull(),
+            consumedCost = consumedCost.toFlt64OrNull() ?: Flt64.zero,
+            requestId = requestId?.takeIf { it.isNotBlank() }?.let(RequestId::of),
+            complexity = complexity.toTaskComplexityOrNull(),
+            timeSensitivity = timeSensitivity.toTimeSensitivityOrNull(),
+            priority = priority,
+            budgetScope = budgetScope?.takeIf { it.isNotBlank() }?.let(BudgetScopeId::of),
+            budgetLimit = budgetLimit.toFlt64OrNull(),
+            sliceId = effectiveSliceId,
+            objectiveValue = objectiveValue.toFlt64OrNull(),
+            objectiveValueInt64 = objectiveValueInt64.toLongOrNull(),
+            bestBound = bestBound.toFlt64OrNull(),
+            bound = bound.toFlt64OrNull(),
+            gap = gap.toFlt64OrNull(),
+            progress = progress.toFlt64OrNull(),
+            deadlineRisk = deadlineRisk.toFlt64OrNull(),
+            deadline = deadlineEpochMs.toInstantOrNull() ?: deadline.toInstantOrNull(),
+            dispatchId = dispatchId?.let(DispatchId::of),
+            runId = runId,
+            attemptId = attemptId,
+            artifactDigest = artifactDigest,
+            incumbentRef = incumbentRef.toObjectRefOrNull(),
+            modelFingerprint = parsedModelFingerprint,
+            modelFingerprintSchema = modelFingerprint.toFingerprintSchemaOrNull()
+                ?: modelFingerprintSchema,
+            configurationFingerprint = parsedConfigurationFingerprint,
+            configurationFingerprintSchema = configurationFingerprint.toFingerprintSchemaOrNull()
+                ?: configurationFingerprintSchema,
+            solverFingerprint = parsedSolverFingerprint,
+            solverFingerprintSchema = solverFingerprint.toFingerprintSchemaOrNull()
+                ?: solverFingerprintSchema,
+            fingerprints = parsedFingerprints,
+            provenance = provenance.toFlatStringMap(),
+            scheduling = scheduling.toSchedulingDecisionOrNull(),
+            outcome = outcome.toSliceOutcomeOrNull(),
+            problemStatus = problemStatus.toRemoteProblemStatusOrNull(),
+            terminationReason = terminationReason.toRemoteTerminationReasonOrNull(),
+            solutionPresence = solutionPresence.toRemoteSolutionPresenceOrNull(),
+            proofStatus = proofStatus.toRemoteProofStatusOrNull(),
+            statistics = statistics,
+            diagnostics = diagnostics,
+            fingerprintSchemas = parsedFingerprintSchemas,
+            slice = slice.toSliceResultOrNull()
         )
     }
 }
@@ -1097,11 +1887,53 @@ private data class TaskViewHttpResponse(
  *
  * @property taskId 任务 ID / the task ID
  * @property status 任务状态字符串 / the task status string
-*/
+ */
 @Serializable
 private data class TaskActionHttpResponse(
     val taskId: String,
-    val status: String
+    val tenantId: String? = null,
+    val status: String,
+    val accepted: Boolean = true,
+    val currentNodeId: String? = null,
+    val latestCheckpointPath: JsonElement? = null,
+    val latestResultPath: JsonElement? = null,
+    val latestCheckpointRef: JsonElement? = null,
+    val latestResultRef: JsonElement? = null,
+    val consumedCost: JsonElement? = null,
+    val requestId: String? = null,
+    val complexity: String? = null,
+    val timeSensitivity: String? = null,
+    val priority: Int? = null,
+    @SerialName("deadlineEpochMs")
+    val deadlineEpochMs: JsonElement? = null,
+    val deadline: JsonElement? = null,
+    val budgetScope: String? = null,
+    val budgetLimit: JsonElement? = null,
+    val dispatchId: String? = null,
+    val sliceId: String? = null,
+    val runId: String? = null,
+    val attemptId: String? = null,
+    val artifactDigest: String? = null,
+    val modelFingerprint: JsonElement? = null,
+    val modelFingerprintSchema: String? = null,
+    val configurationFingerprint: JsonElement? = null,
+    val configurationFingerprintSchema: String? = null,
+    val solverFingerprint: JsonElement? = null,
+    val solverFingerprintSchema: String? = null,
+    val fingerprints: JsonElement? = null,
+    val fingerprintSchemas: Map<String, String> = emptyMap(),
+    val provenance: RemoteTaskActionProvenance? = null,
+    val cancellationChain: List<RemoteTaskActionCancellation> = emptyList(),
+    val scheduling: JsonElement? = null,
+    val outcome: String? = null,
+    val problemStatus: String? = null,
+    val terminationReason: String? = null,
+    val solutionPresence: String? = null,
+    val proofStatus: String? = null,
+    val statistics: Map<String, String> = emptyMap(),
+    val diagnostics: Map<String, String> = emptyMap(),
+    val slice: JsonElement? = null,
+    val message: String? = null
 ) {
 
     /**
@@ -1109,11 +1941,315 @@ private data class TaskActionHttpResponse(
      * 转换为领域模型。
      *
      * @return 领域任务操作 / the domain task action
-    */
+     */
     fun toDomain(): RemoteTaskAction {
+        val parsedModelFingerprint = modelFingerprint.toFingerprintValueOrNull()
+        val parsedConfigurationFingerprint = configurationFingerprint.toFingerprintValueOrNull()
+        val parsedSolverFingerprint = solverFingerprint.toFingerprintValueOrNull()
+        val parsedFingerprints = buildMap {
+            putAll(fingerprints.toFingerprintMap())
+            parsedModelFingerprint?.let { put("model", it) }
+            parsedConfigurationFingerprint?.let { put("configuration", it) }
+            parsedSolverFingerprint?.let { put("solver", it) }
+        }
+        val parsedFingerprintSchemas = buildMap {
+            putAll(fingerprintSchemas)
+            modelFingerprint.toFingerprintSchemaOrNull()?.let { put("model", it) }
+            modelFingerprintSchema?.let { put("model", it) }
+            configurationFingerprint.toFingerprintSchemaOrNull()?.let { put("configuration", it) }
+            configurationFingerprintSchema?.let { put("configuration", it) }
+            solverFingerprint.toFingerprintSchemaOrNull()?.let { put("solver", it) }
+            solverFingerprintSchema?.let { put("solver", it) }
+        }
         return RemoteTaskAction(
             taskId = TaskId.of(taskId),
-            status = TaskStatus.valueOf(status)
+            status = status.toTaskStatusOrUnknown(),
+            accepted = accepted,
+            tenantId = tenantId?.takeIf { it.isNotBlank() }?.let(TenantId::of),
+            currentNodeId = currentNodeId?.let(NodeId::of),
+            latestCheckpointRef = latestCheckpointRef.toObjectRefOrNull()
+                ?: latestCheckpointPath.toObjectRefOrNull(),
+            latestResultRef = latestResultRef.toObjectRefOrNull()
+                ?: latestResultPath.toObjectRefOrNull(),
+            consumedCost = consumedCost.toFlt64OrNull() ?: Flt64.zero,
+            requestId = requestId?.takeIf { it.isNotBlank() }?.let(RequestId::of),
+            complexity = complexity.toTaskComplexityOrNull(),
+            timeSensitivity = timeSensitivity.toTimeSensitivityOrNull(),
+            priority = priority,
+            deadline = deadlineEpochMs.toInstantOrNull() ?: deadline.toInstantOrNull(),
+            budgetScope = budgetScope?.takeIf { it.isNotBlank() }?.let(BudgetScopeId::of),
+            budgetLimit = budgetLimit.toFlt64OrNull(),
+            dispatchId = dispatchId?.let(DispatchId::of),
+            sliceId = sliceId?.let(SliceId::of),
+            runId = runId,
+            attemptId = attemptId,
+            artifactDigest = artifactDigest,
+            modelFingerprint = parsedModelFingerprint,
+            modelFingerprintSchema = modelFingerprint.toFingerprintSchemaOrNull()
+                ?: modelFingerprintSchema,
+            configurationFingerprint = parsedConfigurationFingerprint,
+            configurationFingerprintSchema = configurationFingerprint.toFingerprintSchemaOrNull()
+                ?: configurationFingerprintSchema,
+            solverFingerprint = parsedSolverFingerprint,
+            solverFingerprintSchema = solverFingerprint.toFingerprintSchemaOrNull()
+                ?: solverFingerprintSchema,
+            fingerprints = parsedFingerprints,
+            fingerprintSchemas = parsedFingerprintSchemas,
+            provenance = provenance,
+            cancellationChain = cancellationChain,
+            scheduling = scheduling.toSchedulingDecisionOrNull(),
+            outcome = outcome.toSliceOutcomeOrNull(),
+            problemStatus = problemStatus.toRemoteProblemStatusOrNull(),
+            terminationReason = terminationReason.toRemoteTerminationReasonOrNull(),
+            solutionPresence = solutionPresence.toRemoteSolutionPresenceOrNull(),
+            proofStatus = proofStatus.toRemoteProofStatusOrNull(),
+            statistics = statistics,
+            diagnostics = diagnostics,
+            slice = slice.toSliceResultOrNull(),
+            message = message
         )
+    }
+}
+
+private val remoteSolverHttpDecodeJson = Json {
+    ignoreUnknownKeys = true
+    isLenient = true
+}
+
+private fun RemoteTaskView.identityFingerprints(): Map<String, String> {
+    return buildMap {
+        putAll(fingerprints)
+        modelFingerprint?.let { put("model", it) }
+        configurationFingerprint?.let { put("configuration", it) }
+        solverFingerprint?.let { put("solver", it) }
+        scheduling?.modelFingerprint?.let { put("model", it) }
+    }
+}
+
+private fun RemoteTaskView.identityFingerprintSchemas(): Map<String, String> {
+    return buildMap {
+        putAll(fingerprintSchemas)
+        modelFingerprintSchema?.let { put("model", it) }
+        configurationFingerprintSchema?.let { put("configuration", it) }
+        solverFingerprintSchema?.let { put("solver", it) }
+        scheduling?.modelFingerprintSchema?.let { put("model", it) }
+    }
+}
+
+/** 解析任务状态，避免旧客户端因新状态而失败。 / Parse task states without making an older client fail on a newer state. */
+private fun String.toTaskStatusOrUnknown(): TaskStatus {
+    return runCatching { TaskStatus.valueOf(trim().uppercase()) }
+        .getOrDefault(TaskStatus.UNKNOWN)
+}
+
+private fun String?.toTaskComplexityOrNull(): TaskComplexity? {
+    return this?.let { runCatching { TaskComplexity.valueOf(it.uppercase()) }.getOrNull() }
+}
+
+private fun String?.toTimeSensitivityOrNull(): TimeSensitivity? {
+    return this?.let { runCatching { TimeSensitivity.valueOf(it.uppercase()) }.getOrNull() }
+}
+
+private const val STOP_CONFIRMATION_ATTEMPTS = 3
+
+private fun TaskStatus.isTerminal(): Boolean {
+    return this == TaskStatus.COMPLETED || this == TaskStatus.FAILED || this == TaskStatus.STOPPED
+}
+
+private fun JsonElement?.toTextOrNull(): String? {
+    return (this as? JsonPrimitive)?.contentOrNull
+}
+
+private fun JsonElement?.toFlt64OrNull(): Flt64? {
+    return toTextOrNull()?.toDoubleOrNull()?.takeIf { it.isFinite() }?.let(::Flt64)
+}
+
+private fun JsonElement?.toLongOrNull(): Long? {
+    return toTextOrNull()?.toLongOrNull()
+}
+
+private fun JsonElement?.toInstantOrNull(): Instant? {
+    val primitive = this as? JsonPrimitive ?: return null
+    val text = primitive.contentOrNull ?: return null
+    return text.toLongOrNull()?.let(Instant::fromEpochMilliseconds)
+        ?: runCatching { Instant.parse(text) }.getOrNull()
+}
+
+private fun JsonElement?.toObjectRefOrNull(): ObjectRef? {
+    val primitive = this as? JsonPrimitive
+    if (primitive != null) {
+        return primitive.contentOrNull?.takeIf { it.isNotBlank() }?.let(ObjectRef::of)
+    }
+    val objectValue = this as? JsonObject ?: return null
+    val path = objectValue["path"]?.toTextOrNull()
+        ?: objectValue["objectPath"]?.toTextOrNull()
+        ?: return null
+    return ObjectRef.of(
+        path = path,
+        version = objectValue["version"]?.toTextOrNull(),
+        etag = objectValue["etag"]?.toTextOrNull()
+    )
+}
+
+private fun JsonElement?.toFingerprintValueOrNull(): String? {
+    toTextOrNull()?.takeIf { it.isNotBlank() }?.let { return it }
+    val objectValue = this as? JsonObject ?: return null
+    return objectValue["value"]?.toTextOrNull()?.takeIf { it.isNotBlank() }
+}
+
+private fun JsonElement?.toFingerprintSchemaOrNull(): String? {
+    val objectValue = this as? JsonObject ?: return null
+    return objectValue["schemaVersion"]?.toTextOrNull()
+        ?: objectValue["schema"]?.toTextOrNull()
+}
+
+private fun JsonElement?.toFingerprintMap(): Map<String, String> {
+    val objectValue = this as? JsonObject ?: return emptyMap()
+    return objectValue.mapNotNull { (key, value) ->
+        value.toFingerprintValueOrNull()?.let { key to it }
+    }.toMap()
+}
+
+private fun JsonElement?.toFlatStringMap(): Map<String, String> {
+    val objectValue = this as? JsonObject ?: return emptyMap()
+    return objectValue.mapNotNull { (key, value) ->
+        value.toTextOrNull()?.let { key to it }
+    }.toMap()
+}
+
+private fun String?.toSliceOutcomeOrNull(): SliceOutcome? {
+    return this?.let { runCatching { SliceOutcome.valueOf(it.uppercase()) }.getOrDefault(SliceOutcome.UNKNOWN) }
+}
+
+private fun String?.toRemoteTerminationReasonOrNull(): RemoteTerminationReason? {
+    return this?.let {
+        runCatching { RemoteTerminationReason.valueOf(it.uppercase()) }
+            .getOrDefault(RemoteTerminationReason.UNKNOWN)
+    }
+}
+
+private fun String?.toRemoteProblemStatusOrNull(): RemoteProblemStatus? {
+    return this?.let {
+        runCatching { RemoteProblemStatus.valueOf(it.uppercase()) }
+            .getOrDefault(RemoteProblemStatus.UNKNOWN)
+    }
+}
+
+private fun String?.toRemoteSolutionPresenceOrNull(): RemoteSolutionPresence? {
+    return this?.let {
+        runCatching { RemoteSolutionPresence.valueOf(it.uppercase()) }
+            .getOrDefault(RemoteSolutionPresence.UNKNOWN)
+    }
+}
+
+private fun String?.toRemoteProofStatusOrNull(): RemoteProofStatus? {
+    return this?.let {
+        runCatching { RemoteProofStatus.valueOf(it.uppercase()) }
+            .getOrDefault(RemoteProofStatus.UNKNOWN)
+    }
+}
+
+private fun JsonElement?.toSliceResultOrNull(): SliceResult? {
+    return this?.let {
+        runCatching {
+            remoteSolverHttpDecodeJson.decodeFromJsonElement(
+                SliceResult.serializer(),
+                it.toKnownSliceEnums()
+            )
+        }.getOrNull()
+    }
+}
+
+private fun JsonElement?.toSchedulingDecisionOrNull(): SchedulingDecision? {
+    return this?.let {
+        runCatching {
+            remoteSolverHttpDecodeJson.decodeFromJsonElement(
+                SchedulingDecision.serializer(),
+                it.toKnownSchedulingEnums()
+            )
+        }.getOrNull()
+    }
+}
+
+private fun JsonElement?.toKnownSchedulingEnums(): JsonElement {
+    val objectValue = this as? JsonObject ?: return this ?: JsonObject(emptyMap())
+    return JsonObject(objectValue.filterKnownEnum("preemptionMode", setOf(
+        PreemptionMode.NON_PREEMPTIBLE.name,
+        PreemptionMode.CONTROLLED_RETURN.name,
+        PreemptionMode.NATIVE.name,
+        PreemptionMode.UNKNOWN.name
+    )).filterKnownEnum("resumeMode", setOf(
+        ResumeMode.NONE.name,
+        ResumeMode.WARM_START.name,
+        ResumeMode.BASIS.name,
+        ResumeMode.NATIVE_CHECKPOINT.name,
+        ResumeMode.UNKNOWN.name
+    )).filterKnownEnum("outcome", setOf(
+        SliceOutcome.COMPLETED.name,
+        SliceOutcome.PREEMPTED.name,
+        SliceOutcome.CHECKPOINTED.name,
+        SliceOutcome.RESUMABLE.name,
+        SliceOutcome.CANCELLED.name,
+        SliceOutcome.FAILED.name,
+        SliceOutcome.UNKNOWN.name
+    )))
+}
+
+private fun JsonElement?.toKnownSliceEnums(): JsonElement {
+    val objectValue = this as? JsonObject ?: return this ?: JsonObject(emptyMap())
+    val normalized = objectValue
+        .filterKnownEnum("problemStatus", setOf(
+            RemoteProblemStatus.FEASIBLE.name,
+            RemoteProblemStatus.INFEASIBLE.name,
+            RemoteProblemStatus.UNBOUNDED.name,
+            RemoteProblemStatus.INFEASIBLE_OR_UNBOUNDED.name,
+            RemoteProblemStatus.UNKNOWN.name
+        ))
+        .filterKnownEnum("terminationReason", setOf(
+            RemoteTerminationReason.COMPLETED.name,
+            RemoteTerminationReason.TIME_LIMIT.name,
+            RemoteTerminationReason.NODE_LIMIT.name,
+            RemoteTerminationReason.ITERATION_LIMIT.name,
+            RemoteTerminationReason.SOLUTION_LIMIT.name,
+            RemoteTerminationReason.OBJECTIVE_LIMIT.name,
+            RemoteTerminationReason.CANCELLED.name,
+            RemoteTerminationReason.INTERRUPTED.name,
+            RemoteTerminationReason.NUMERICAL_FAILURE.name,
+            RemoteTerminationReason.BACKEND_FAILURE.name,
+            RemoteTerminationReason.UNKNOWN.name
+        ))
+        .filterKnownEnum("solutionPresence", setOf(
+            RemoteSolutionPresence.NONE.name,
+            RemoteSolutionPresence.INCUMBENT.name,
+            RemoteSolutionPresence.OPTIMAL.name,
+            RemoteSolutionPresence.UNKNOWN.name
+        ))
+        .filterKnownEnum("proofStatus", setOf(
+            RemoteProofStatus.NONE.name,
+            RemoteProofStatus.CLAIMED.name,
+            RemoteProofStatus.VERIFIED.name,
+            RemoteProofStatus.UNKNOWN.name
+        ))
+        .filterKnownEnum("outcome", setOf(
+            SliceOutcome.COMPLETED.name,
+            SliceOutcome.PREEMPTED.name,
+            SliceOutcome.CHECKPOINTED.name,
+            SliceOutcome.RESUMABLE.name,
+            SliceOutcome.CANCELLED.name,
+            SliceOutcome.FAILED.name,
+            SliceOutcome.UNKNOWN.name
+        ))
+    return JsonObject(normalized.mapValues { (key, value) ->
+        if (key == "scheduling") value.toKnownSchedulingEnums() else value
+    })
+}
+
+private fun JsonObject.filterKnownEnum(key: String, known: Set<String>): JsonObject {
+    val value = this[key] as? JsonPrimitive ?: return this
+    val text = value.contentOrNull ?: return this
+    return if (text.uppercase() in known) {
+        this
+    } else {
+        JsonObject(toMutableMap().apply { this[key] = JsonPrimitive("UNKNOWN") })
     }
 }

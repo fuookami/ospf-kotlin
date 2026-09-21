@@ -26,6 +26,20 @@ This repository currently focuses on:
 4. Guarded horizontal cylinder known-coordinate packing (`Axis3.X` / `Axis3.Z`) when final coordinates are already known.
 5. Conservative 3D stacking/hanging support for horizontal cylinders only when they are on the floor or on cuboid support intervals that cover the full cylinder axis and the bottom support line.
 
+
+## Public API
+
+| API | Responsibility | Stability |
+| --- | --- | --- |
+| `ColumnGenerationApplicationAlgorithmFactory` | Algorithm assembly factory for column generation. | stable |
+| `ColumnGenerationStandardExecutors` | Standard RMP and final-solver executor wiring. | stable |
+| `ColumnGenerationRmpModelExtension` | RMP model extension with shadow prices. | stable |
+| `ColumnGenerationFinalModelExtension` | Final-MILP model extension. | stable |
+| `ColumnGenerationAlgorithm` | Column-generation algorithm with lifecycle hooks. | stable |
+| `PackingGeometryGuard` | Shape-aware geometry validation. | stable |
+| `PackingRendererAdapter` | Renderer DTO output adapter. | stable |
+| `BlockMultiArray` / `MultiArray` | Sparse and dense array support for packing. | stable |
+
 ## Column-Generation Extension Points
 
 The application layer supports downstream dynamic constraints without copying the standard RMP/final model assembly:

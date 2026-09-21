@@ -27,14 +27,18 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property table 固定的 Ktorm 表 / Fixed Ktorm table
  * @property resolveColumnDetailed 数据源内字段解析器 / Field resolver within the source
  * @property defaultColumns 无显式投影时允许返回的注册字段路径 / Registered field paths allowed for implicit projections
+ * @property defaultColumnExpressions 适配器明确允许的默认投影列 / Adapter-approved columns for implicit projections
  */
 class KtormQuerySource(
     val source: QuerySource,
     val table: BaseTable<*>,
     val resolveColumnDetailed: DiagnosticPersistenceFieldResolver<ColumnDeclaring<*>>,
-    defaultColumns: List<String> = emptyList()
+    defaultColumns: List<String> = emptyList(),
+    defaultColumnExpressions: List<ColumnDeclaring<*>> = emptyList()
 ) {
     val defaultColumns: List<String> = Collections.unmodifiableList(defaultColumns.map(String::trim))
+    val defaultColumnExpressions: List<ColumnDeclaring<*>> =
+        Collections.unmodifiableList(defaultColumnExpressions.toList())
 }
 
 /** Ktorm 关系计划编译结果 / Compiled Ktorm relational query */
@@ -93,13 +97,22 @@ data class QueryExecutionResult<T>(
  * @property sources 由适配器维护的数据源白名单 / Adapter-owned source allowlist
  * @property unsupportedPredicatePolicy 不支持谓词策略 / Unsupported predicate policy
  * @property targetConstantBinder 目标 SQL 类型感知的常量绑定器 / Target-SQL-type-aware constant binder
+ * @property patternMatchPolicy 模式匹配策略 / Pattern match policy
+ * @property nullsOrderSupport 空值排序支持 / NULL ordering support
+ * @property dialect framework 查询方言声明 / Framework query dialect declaration
  */
 class KtormRelationalQueryCompiler(
     private val database: Database,
-    private val sources: Map<String, KtormQuerySource>,
+    sources: Map<String, KtormQuerySource>,
     private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.FailFast,
-    private val targetConstantBinder: KtormTargetConstantBinder? = null
-) {
+    private val targetConstantBinder: KtormTargetConstantBinder? = null,
+    private val patternMatchPolicy: PatternMatchPolicy = DefaultPatternMatchPolicy,
+    private val nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto,
+    override val dialect: RelationalQueryDialect = RelationalQueryDialect.SQLite
+) : RelationalQueryCompiler<KtormCompiledQuery> {
+
+    private val sources: Map<String, KtormQuerySource> =
+        Collections.unmodifiableMap(sources.toMap())
 
     private data class BoundSource(
         val definition: KtormQuerySource,
@@ -121,14 +134,29 @@ class KtormRelationalQueryCompiler(
      * @param plan 通用关系查询计划 / Generic relational query plan
      * @return 编译结果或结构化错误 / Compiled query or structured error
      */
-    fun compile(plan: RelationalQueryPlan): Ret<KtormCompiledQuery> {
+    override fun compile(plan: RelationalQueryPlan): Ret<KtormCompiledQuery> {
         val validation = plan.validate()
         if (validation.failed) {
             return validationFailure(validation)
         }
+        val page = plan.page
+        if (page != null && page.limit == null && dialect == RelationalQueryDialect.MySQL) {
+            return failure(
+                category = QueryExecutionErrorCategory.UnsupportedDialect,
+                field = "page.limit",
+                reason = "MySQL requires a finite LIMIT for offset-only pagination / " +
+                    "MySQL 的仅偏移分页必须提供有限 LIMIT"
+            )
+        }
 
-        val parameterTypes = mutableListOf<String>()
-        val builtResult = buildSources(plan, parameterTypes::add)
+        val joinParameterTypes = mutableListOf<String>()
+        val rootParameterTypes = mutableListOf<String>()
+        val existsParameterTypes = mutableListOf<String>()
+        val builtResult = buildSources(
+            plan = plan,
+            joinParameterTypeSink = joinParameterTypes::add,
+            existsParameterTypeSink = existsParameterTypes::add
+        )
         if (builtResult.failed) {
             @Suppress("UNCHECKED_CAST")
             val failed = builtResult as Failed<BuildResult, ErrorCode, Error<ErrorCode>>
@@ -143,7 +171,7 @@ class KtormRelationalQueryCompiler(
             val translated = translatePredicate(
                 expression = expression,
                 bound = built.allSources,
-                parameterTypeSink = parameterTypes::add,
+                parameterTypeSink = rootParameterTypes::add,
                 fallbackCategory = QueryExecutionErrorCategory.SqlGeneration,
                 field = "predicate"
             )
@@ -215,8 +243,8 @@ class KtormRelationalQueryCompiler(
         if (orders.isNotEmpty()) query = query.orderBy(*orders.toTypedArray())
 
         plan.page?.let {
-            query = query.limit(it.limit)
-            if (it.offset > 0) query = query.offset(it.offset)
+            it.limit?.let { limit -> query = query.limit(limit) }
+            if (it.offset > 0 || it.limit == null) query = query.offset(it.offset)
         }
         val sqlTemplate = try {
             query.sql
@@ -234,7 +262,11 @@ class KtormRelationalQueryCompiler(
                 rootColumns = built.root.columns,
                 audit = QueryAuditSummary(
                     sqlTemplate = sqlTemplate,
-                    parameterTypes = parameterTypes.toList(),
+                    parameterTypes = buildList {
+                        addAll(joinParameterTypes)
+                        addAll(rootParameterTypes)
+                        addAll(existsParameterTypes)
+                    },
                     dialect = database.dialect::class.qualifiedName ?: database.dialect::class.simpleName.orEmpty()
                 )
             )
@@ -262,8 +294,14 @@ class KtormRelationalQueryCompiler(
                 reason = "Root-granularity count requires exactly one root key column"
             )
         }
-        val parameterTypes = mutableListOf<String>()
-        val builtResult = buildSources(plan, parameterTypes::add)
+        val joinParameterTypes = mutableListOf<String>()
+        val rootParameterTypes = mutableListOf<String>()
+        val existsParameterTypes = mutableListOf<String>()
+        val builtResult = buildSources(
+            plan = plan,
+            joinParameterTypeSink = joinParameterTypes::add,
+            existsParameterTypeSink = existsParameterTypes::add
+        )
         if (builtResult.failed) {
             @Suppress("UNCHECKED_CAST")
             val failed = builtResult as Failed<BuildResult, ErrorCode, Error<ErrorCode>>
@@ -286,7 +324,7 @@ class KtormRelationalQueryCompiler(
             val translated = translatePredicate(
                 expression = it,
                 bound = built.allSources,
-                parameterTypeSink = parameterTypes::add,
+                parameterTypeSink = rootParameterTypes::add,
                 fallbackCategory = QueryExecutionErrorCategory.SqlGeneration,
                 field = "predicate"
             )
@@ -331,7 +369,8 @@ class KtormRelationalQueryCompiler(
 
     private fun buildSources(
         plan: RelationalQueryPlan,
-        parameterTypeSink: (String) -> Unit
+        joinParameterTypeSink: (String) -> Unit,
+        existsParameterTypeSink: (String) -> Unit
     ): Ret<BuildResult> {
         val rootDefinition = sources[plan.root.name] ?: return failure(
             category = QueryExecutionErrorCategory.UnknownSource,
@@ -386,7 +425,11 @@ class KtormRelationalQueryCompiler(
             val condition = translatePredicate(
                 expression = join.condition,
                 bound = conditionBound,
-                parameterTypeSink = parameterTypeSink,
+                parameterTypeSink = if (join.type == JoinType.Exists) {
+                    existsParameterTypeSink
+                } else {
+                    joinParameterTypeSink
+                },
                 fallbackCategory = QueryExecutionErrorCategory.InvalidJoin,
                 field = "joins[$index].condition"
             )
@@ -477,31 +520,42 @@ class KtormRelationalQueryCompiler(
     ): Ret<BoundSource> {
         val table = source.alias?.let { definition.table.aliased(it) } ?: definition.table
         val columns = mutableListOf<ColumnDeclaring<*>>()
-        definition.defaultColumns.forEachIndexed { index, path ->
-            when (val result = definition.resolveColumnDetailed.resolveDetailed(path)) {
-                is PersistenceFieldResolution.Resolved -> {
-                    val column = remapColumn(table, result.value) ?: return failure(
-                        category = QueryExecutionErrorCategory.SqlGeneration,
-                        field = "$field[$index]",
-                        reason = "Registered default column is not present in the bound table: $path"
-                    )
-                    columns += column
-                }
-                is PersistenceFieldResolution.Missing -> return failure(
-                    category = QueryExecutionErrorCategory.UnknownColumn,
-                    field = "$field[$index]",
-                    reason = "Registered default column is missing from the field resolver: ${result.path}"
-                )
-                is PersistenceFieldResolution.Ambiguous -> return failure(
-                    category = QueryExecutionErrorCategory.UnknownColumn,
-                    field = "$field[$index]",
-                    reason = "Ambiguous registered default column: ${result.candidates.joinToString(", ")}"
-                )
-                is PersistenceFieldResolution.InvalidConfiguration -> return failure(
+        if (definition.defaultColumnExpressions.isNotEmpty()) {
+            definition.defaultColumnExpressions.forEachIndexed { index, original ->
+                val column = remapColumn(table, original) ?: return failure(
                     category = QueryExecutionErrorCategory.SqlGeneration,
                     field = "$field[$index]",
-                    reason = result.reason
+                    reason = "Registered default column is not present in the bound table"
                 )
+                columns += column
+            }
+        } else {
+            definition.defaultColumns.forEachIndexed { index, path ->
+                when (val result = definition.resolveColumnDetailed.resolveDetailed(path)) {
+                    is PersistenceFieldResolution.Resolved -> {
+                        val column = remapColumn(table, result.value) ?: return failure(
+                            category = QueryExecutionErrorCategory.SqlGeneration,
+                            field = "$field[$index]",
+                            reason = "Registered default column is not present in the bound table: $path"
+                        )
+                        columns += column
+                    }
+                    is PersistenceFieldResolution.Missing -> return failure(
+                        category = QueryExecutionErrorCategory.UnknownColumn,
+                        field = "$field[$index]",
+                        reason = "Registered default column is missing from the field resolver: ${result.path}"
+                    )
+                    is PersistenceFieldResolution.Ambiguous -> return failure(
+                        category = QueryExecutionErrorCategory.UnknownColumn,
+                        field = "$field[$index]",
+                        reason = "Ambiguous registered default column: ${result.candidates.joinToString(", ")}"
+                    )
+                    is PersistenceFieldResolution.InvalidConfiguration -> return failure(
+                        category = QueryExecutionErrorCategory.SqlGeneration,
+                        field = "$field[$index]",
+                        reason = result.reason
+                    )
+                }
             }
         }
         return Ok(BoundSource(definition, source, table, columns))
@@ -569,16 +623,13 @@ class KtormRelationalQueryCompiler(
     ): PersistenceFieldResolution<ColumnDeclaring<*>> {
         val normalizedPath = path.trim()
         val segments = normalizedPath.split(".", limit = 2)
-        val sourceName = if (segments.size == 2) segments[0] else null
-        val fieldPath = if (segments.size == 2) segments[1] else normalizedPath
-        val candidates = if (sourceName != null) {
-            bound.values.filter { it.source.name == sourceName || it.source.alias == sourceName }
+        val qualifiedCandidates = if (segments.size == 2) {
+            bound.values.filter { it.source.name == segments[0] || it.source.alias == segments[0] }
         } else {
-            bound.values
+            emptyList()
         }
-        if (sourceName != null && candidates.isEmpty()) {
-            return PersistenceFieldResolution.Missing(normalizedPath)
-        }
+        val fieldPath = if (qualifiedCandidates.isEmpty()) normalizedPath else segments[1]
+        val candidates = if (qualifiedCandidates.isEmpty()) bound.values else qualifiedCandidates
         val sourceResolutions = candidates.map { source ->
             source to resolveSourceColumnDetailed(source, fieldPath)
         }
@@ -683,7 +734,7 @@ class KtormRelationalQueryCompiler(
                 field = "orderBy[$index]",
                 reason = "Order-by column was not resolved"
             )
-            if (spec.nulls != NullsOrder.Unspecified) {
+            if (spec.nulls != NullsOrder.Unspecified && !supportsNullsOrder(spec)) {
                 result += when (spec.nulls) {
                     NullsOrder.First -> column.isNull().desc()
                     NullsOrder.Last -> column.isNull().asc()
@@ -711,6 +762,7 @@ class KtormRelationalQueryCompiler(
         }
         val translated = KtormBooleanTranslator(
             resolveColumn = resolver(bound),
+            patternMatchPolicy = patternMatchPolicy,
             unsupportedPredicatePolicy = unsupportedPredicatePolicy,
             parameterTypeSink = { parameterTypeSink(it.typeName) },
             resolveColumnDetailed = { path -> resolveDetailed(path, bound) },
@@ -728,6 +780,14 @@ class KtormRelationalQueryCompiler(
             return failure(category, field, reason)
         }
         return Ok(translated.value)
+    }
+
+    private fun supportsNullsOrder(spec: OrderSpec): Boolean {
+        return when (nullsOrderSupport) {
+            NullsOrderSupport.Auto, NullsOrderSupport.Always -> true
+            NullsOrderSupport.Never -> false
+            NullsOrderSupport.OnlyAsc -> spec.direction == SortDirection.Ascending
+        }
     }
 
     private fun validatePredicateReferences(

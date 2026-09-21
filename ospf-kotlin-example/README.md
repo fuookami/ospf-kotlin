@@ -62,8 +62,6 @@ See [`core_demo/README.md`](src/main/fuookami/ospf/kotlin/example/core_demo/READ
 | --- | --- |
 | `build-only-function-tests` | Compile and run build-only linear/quadratic function structure tests |
 | `core-demo-only` | Compile and run core demo tests |
-| `business-source-compat` | Check business source compatibility |
-| `framework-starter-compat` | Check framework starter compatibility |
 | `solver-integration-tests` | Run solver-backed examples; requires local solver libraries |
 
 ## Local Validation

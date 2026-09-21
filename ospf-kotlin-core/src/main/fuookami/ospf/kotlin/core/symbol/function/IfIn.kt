@@ -12,6 +12,8 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.model.intermediate.IndicatorStructure
+import fuookami.ospf.kotlin.core.model.intermediate.ConjoinedIndicator
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
 import fuookami.ospf.kotlin.core.variable.*
@@ -102,6 +104,75 @@ class IfInFunction<V>(
 
     /** 结果多项式兼容入口 / Compatibility accessor for the result polynomial. */
     val result: LinearPolynomial<V> get() = resultPolynomial
+
+    override fun deferredStructure(): IndicatorStructure<V>? {
+        return try {
+            val bounds = when (val validation = validateRegistration()) {
+                is Ok -> validation.value
+                is Failed, is Fatal -> return null
+            }
+            val lowerCondition = when (val normalized = normalizeDiscreteCondition(
+                poly = bounds.lowerPolynomial,
+                relation = Comparison.GE,
+                bounds = bounds.lowerDifference,
+                delta = delta,
+                strictBoundary = strictBoundary
+            )) {
+                is Ok -> normalized.value
+                is Failed, is Fatal -> return null
+            }
+            val upperCondition = when (val normalized = normalizeDiscreteCondition(
+                poly = bounds.upperPolynomial,
+                relation = Comparison.GE,
+                bounds = bounds.upperDifference,
+                delta = delta,
+                strictBoundary = strictBoundary
+            )) {
+                is Ok -> normalized.value
+                is Failed, is Fatal -> return null
+            }
+            if (lowerCondition.fixedValue != null || upperCondition.fixedValue != null) return null
+            indicatorStructure(lowerCondition, upperCondition)
+        } catch (_: RuntimeException) {
+            null
+        }
+    }
+
+    private fun indicatorStructure(
+        lowerCondition: DiscreteConditionLinearization<V>,
+        upperCondition: DiscreteConditionLinearization<V>
+    ): IndicatorStructure<V> {
+        fun conditionStructure(
+            condition: DiscreteConditionLinearization<V>,
+            variable: AbstractVariableItem<*, *>,
+            prefix: String
+        ): IndicatorStructure<V> {
+            val lowerMagnitude = condition.bounds.lower.abs()
+            val upperMagnitude = condition.bounds.upper.abs()
+            return IndicatorStructure(
+                input = LinearPolynomial(condition.polynomial.monomials.toList(), condition.polynomial.constant),
+                resultVariable = variable,
+                bigM = if (lowerMagnitude.compareTo(upperMagnitude) >= 0) lowerMagnitude else upperMagnitude,
+                tolerance = strictBoundary,
+                converter = converter,
+                name = prefix,
+                conditionBounds = condition.bounds
+            )
+        }
+        return conditionStructure(
+            condition = lowerCondition,
+            variable = geVar,
+            prefix = "${name}_ge"
+        ).copy(conjunction = ConjoinedIndicator(
+            condition = conditionStructure(
+                condition = upperCondition,
+                variable = leVar,
+                prefix = "${name}_le"
+            ),
+            resultVariable = resultVar,
+            name = name
+        ))
+    }
 
     private fun isUsableBound(value: V): Boolean {
         return isUsableConditionBound(value, converter)
@@ -243,6 +314,13 @@ class IfInFunction<V>(
             is Fatal -> return Fatal(result.errors)
         }
 
+        if (lowerCondition.fixedValue == null && upperCondition.fixedValue == null) {
+            return when (val generated = indicatorStructure(lowerCondition, upperCondition).generateConstraints()) {
+                is Ok -> addConstraints(model, generated.value) ?: ok
+                is Failed -> Failed(generated.error)
+                is Fatal -> Fatal(generated.errors)
+            }
+        }
         val zero = converter.zero
         val one = converter.one
         val allConstraints = mutableListOf<LinearInequality<V>>()

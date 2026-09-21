@@ -6,31 +6,198 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
-import fuookami.ospf.kotlin.core.solver.*
-import fuookami.ospf.kotlin.core.solver.config.GurobiSolverConfig
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.iis.IISConfig
-import fuookami.ospf.kotlin.core.solver.iis.InfeasibilityAnalyzer
-import fuookami.ospf.kotlin.core.solver.nativeElementName
-import fuookami.ospf.kotlin.core.solver.output.*
-import fuookami.ospf.kotlin.core.solver.report.*
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
+import gurobi.*
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
 import fuookami.ospf.kotlin.utils.functional.*
-import gurobi.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.solver.*
+import fuookami.ospf.kotlin.core.solver.iis.IISConfig
+import fuookami.ospf.kotlin.core.solver.iis.InfeasibilityAnalyzer
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.config.GurobiSolverConfig
+import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.report.*
+import fuookami.ospf.kotlin.core.solver.nativeElementName
+import fuookami.ospf.kotlin.core.variable.VariableItemKey
 
-/** Gurobi 线性求解器 / Gurobi linear solver */
+/**
+ * Gurobi 线性求解器 / Gurobi linear solver
+ *
+ * @property config 求解器配置 / Solver configuration
+ */
 class GurobiLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: GurobiLinearSolverCallBack? = null
 ) : LinearSolver {
+    internal var nativePiecewiseWriter: (GRBModel, Map<VariableItemKey, GRBVar>, List<UnivariateLinearPiecewiseStructure<*>>) -> Try =
+        ::addGurobiNativePiecewise
+    internal var nativeAbsWriter: (GRBModel, Map<VariableItemKey, GRBVar>, List<AbsStructure<*>>) -> Try =
+        ::addGurobiNativeAbs
+    internal var nativeMaxWriter: (GRBModel, Map<VariableItemKey, GRBVar>, List<MaxStructure<*>>) -> Try =
+        ::addGurobiNativeMax
+    internal var nativeSemiWriter: (GRBModel, Map<VariableItemKey, GRBVar>, List<SemiStructure<*>>) -> Try =
+        ::addGurobiNativeSemi
+    internal var nativeIndicatorWriter: (GRBModel, Map<VariableItemKey, GRBVar>, List<IndicatorStructure<*>>) -> Try =
+        ::addGurobiNativeIndicator
+    internal var nativeMaskingWriter: (GRBModel, Map<VariableItemKey, GRBVar>, List<MaskingStructure<*>>) -> Try =
+        ::addGurobiNativeMasking
+    internal var nativeBinaryLogicWriter: (GRBModel, Map<VariableItemKey, GRBVar>, List<BinaryLogicStructure<*>>) -> Try =
+        ::addGurobiNativeBinaryLogic
+
+    /**
+     * 编号前选择原生 PWL，写入失败时重新构造 fallback 模型。 / Select native PWL before indexing and rebuild fallback on write failure.
+     *
+     * @param model 机制模型 / Mechanism model
+     * @param converter 结果转换器 / Result converter
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解报告或错误 / Solve report or error
+     */
+    override suspend fun <V> solve(
+        model: MechanismModel<V>,
+        converter: IntoValue<V>,
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<SolveReport<V>> where V : RealNumber<V>, V : NumberField<V> {
+        if (config.functionExpansionPolicy == FunctionExpansionPolicy.EAGER ||
+            model !is LinearMechanismModel<V> || model.functionExpansionPolicy == FunctionExpansionPolicy.EAGER
+        ) {
+            return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+        }
+        val converted = when (val result = convertMechanismModelToFlt64(model)) {
+            is Ok -> result.value as? LinearMechanismModel<Flt64>
+                ?: return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        try {
+            val candidatesPwl = selectGurobiNativePiecewise(converted)
+            val candidatesAbs = selectGurobiNativeAbs(converted)
+            val candidatesMax = selectGurobiNativeMax(converted)
+            val candidatesIndicator = selectGurobiNativeIndicator(converted)
+            val candidatesMasking = selectGurobiNativeMasking(converted)
+            val candidatesBinaryLogic = converted.deferredFunctionStructures.filterIsInstance<BinaryLogicStructure<*>>().filter {
+                it.operation != BinaryLogicOperation.Xor && it.usage.location != FunctionUsageLocation.Unused &&
+                    it.usage.location != FunctionUsageLocation.External && gurobiFunctionSolverCapabilities().supports(FunctionNativeCapability.BinaryLogic)
+            }
+            val candidatesSemi = converted.deferredFunctionStructures.filterIsInstance<SemiStructure<*>>().filter {
+                it.usage.location != FunctionUsageLocation.External &&
+                    it.converter.fromValue(it.lowerBound).toDouble() > 0.0 &&
+                    it.converter.fromValue(it.upperBound).toDouble().isFinite()
+            }
+            if (candidatesPwl.isEmpty() && candidatesAbs.isEmpty() && candidatesMax.isEmpty() && candidatesSemi.isEmpty() && candidatesIndicator.isEmpty() && candidatesMasking.isEmpty() && candidatesBinaryLogic.isEmpty()) {
+                return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+            }
+            val nativeModel = when (val result = LinearTriadModel.invokeResult(
+                model = converted,
+                dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+                forceDumpBounds = config.dumpIntermediateModelForceBounds,
+                concurrent = config.dumpIntermediateModelConcurrent,
+                nativeFunctionKeys = (candidatesPwl.map { it.resultVariable.key } +
+                    candidatesAbs.map { it.resultVariable.key } +
+                    candidatesMax.map { it.resultVariable.key } +
+                    candidatesSemi.map { it.resultVariable.key } + candidatesIndicator.map { it.resultVariable.key } +
+                    candidatesMasking.map { it.resultVariable.key } + candidatesBinaryLogic.map { it.resultVariable.key }).toSet()
+            )) {
+                is Ok -> result.value
+                is Failed, is Fatal -> return super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+            }
+            val attempt = nativeModel.use {
+                val nativeKeys = planGurobiFunctionLowering(it).filter { plan -> plan.decision.useNative }
+                    .mapNotNull { plan ->
+                        when (val structure = plan.structure) {
+                            is UnivariateLinearPiecewiseStructure<*> -> structure.resultVariable.key
+                            is AbsStructure<*> -> structure.resultVariable.key
+                            is MaxStructure<*> -> structure.resultVariable.key
+                            is SemiStructure<*> -> structure.resultVariable.key
+                            is IndicatorStructure<*> -> structure.resultVariable.key
+                            is MaskingStructure<*> -> structure.resultVariable.key
+                            is BinaryLogicStructure<*> -> structure.resultVariable.key
+                            else -> null
+                        }
+                    }
+                    .toSet()
+                val absKeys = it.deferredFunctionStructures.filterIsInstance<AbsStructure<*>>()
+                    .map { structure -> structure.resultVariable.key }
+                    .toSet()
+                val maxKeys = it.deferredFunctionStructures.filterIsInstance<MaxStructure<*>>()
+                    .map { structure -> structure.resultVariable.key }
+                    .toSet()
+                val semiKeys = it.deferredFunctionStructures.filterIsInstance<SemiStructure<*>>()
+                    .map { structure -> structure.resultVariable.key }
+                    .toSet()
+                val binaryLogicKeys = nativeKeys
+                if (candidatesPwl.any { structure -> structure.resultVariable.key !in nativeKeys } ||
+                    candidatesAbs.any { structure -> structure.resultVariable.key !in absKeys } ||
+                    candidatesMax.any { structure -> structure.resultVariable.key !in maxKeys } ||
+                    candidatesSemi.any { structure -> structure.resultVariable.key !in semiKeys } ||
+                    candidatesIndicator.any { structure -> structure.resultVariable.key !in nativeKeys } ||
+                    candidatesMasking.any { structure -> structure.resultVariable.key !in nativeKeys }
+                    || candidatesBinaryLogic.any { structure -> structure.resultVariable.key !in binaryLogicKeys }
+                ) {
+                    return@use null
+                }
+                GurobiLinearSolverImpl(
+                    config = config,
+                    callBack = callBack,
+                    statusCallBack = solvingStatusCallBack,
+                    nativeStructures = candidatesPwl,
+                    nativePiecewiseWriter = nativePiecewiseWriter,
+                    nativeAbsStructures = candidatesAbs,
+                    nativeAbsWriter = nativeAbsWriter,
+                    nativeMaxStructures = candidatesMax,
+                    nativeMaxWriter = nativeMaxWriter,
+                    nativeSemiStructures = candidatesSemi,
+                    nativeSemiWriter = nativeSemiWriter,
+                    nativeIndicatorStructures = candidatesIndicator,
+                    nativeIndicatorWriter = nativeIndicatorWriter,
+                    nativeMaskingStructures = candidatesMasking,
+                    nativeMaskingWriter = nativeMaskingWriter,
+                    nativeBinaryLogicStructures = candidatesBinaryLogic,
+                    nativeBinaryLogicWriter = nativeBinaryLogicWriter
+                ).use { implementation ->
+                    val result = implementation(it)
+                    if (implementation.nativeFunctionFailed) {
+                        null
+                    } else {
+                        when (result) {
+                            is Ok -> restoreGurobiPiecewiseSolution(
+                                report = result.value.withLinearBackendMetadata(it, config, descriptor),
+                                nativeModel = it,
+                                originalTokens = converted.tokens.tokensInSolver,
+                                structures = candidatesPwl,
+                                absStructures = candidatesAbs,
+                                maxStructures = candidatesMax,
+                                semiStructures = candidatesSemi,
+                                indicatorStructures = candidatesIndicator,
+                                maskingStructures = candidatesMasking,
+                                binaryLogicStructures = candidatesBinaryLogic
+                            )
+                            is Failed -> Failed(result.error)
+                            is Fatal -> Fatal(result.errors)
+                        }
+                    }
+                }
+            }
+            return when (attempt) {
+                null -> super<LinearSolver>.solve(model, converter, solvingStatusCallBack)
+                is Ok -> Ok(attempt.value.convertTo(converter))
+                is Failed -> Failed(attempt.error)
+                is Fatal -> Fatal(attempt.errors)
+            }
+        } finally {
+            converted.close()
+        }
+    }
+
     override val name = "gurobi"
     override val descriptor = SolverDescriptor(
         solverId = "gurobi",
@@ -49,6 +216,12 @@ class GurobiLinearSolver(
         )
     )
 
+    /**
+     * 创建线性模型不可行性分析器 / Create infeasibility analyzers for linear models
+     *
+     * @param config 不可行性分析配置 / Infeasibility analysis configuration
+     * @return 不可行性分析器列表 / Infeasibility analyzers
+     */
     override fun diagnosticAnalyzers(
         config: IISConfig
     ): List<InfeasibilityAnalyzer<LinearTriadModelView>> {
@@ -64,7 +237,7 @@ class GurobiLinearSolver(
      * @param model 线性模型视图 / linear model view
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果 / solving result
-    */
+     */
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -72,6 +245,14 @@ class GurobiLinearSolver(
         return invoke(model, solvingStatusCallBack, null)
     }
 
+    /**
+     * 求解线性模型并支持取消 / Solve a linear model with cancellation support
+     *
+     * @param model 线性模型视图 / Linear model view
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @param cancellationToken 取消令牌 / Cancellation token
+     * @return 求解结果 / Solving result
+     */
     override suspend fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?,
@@ -103,7 +284,7 @@ class GurobiLinearSolver(
      * @param solutionAmount 期望解的数量 / desired number of solutions
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果及多个解 / solving result with multiple solutions
-    */
+     */
     override suspend fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -112,12 +293,26 @@ class GurobiLinearSolver(
         return invoke(model, solutionAmount, solvingStatusCallBack, null)
     }
 
+    /**
+     * 求解线性模型并获取多个解，支持取消 / Solve a linear model for multiple solutions with cancellation support
+     *
+     * @param model 线性模型视图 / Linear model view
+     * @param solutionAmount 期望解的数量 / Desired number of solutions
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @param cancellationToken 取消令牌 / Cancellation token
+     * @return 求解结果及多个解 / Solving result with multiple solutions
+     */
     override suspend fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?,
         cancellationToken: CancellationToken?
     ): Ret<Pair<SolveReport<Flt64>, List<List<Flt64>>>> {
+        when (val validation = model.identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         return if (solutionAmount leq UInt64.one) {
             this(model, solvingStatusCallBack, cancellationToken).map { it to emptyList() }
         } else {
@@ -162,8 +357,43 @@ private class GurobiLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: GurobiLinearSolverCallBack? = null,
     private val statusCallBack: SolvingStatusCallBack? = null,
-    private val cancellationToken: CancellationToken? = null
+    private val cancellationToken: CancellationToken? = null,
+    private val nativeStructures: List<UnivariateLinearPiecewiseStructure<*>> = emptyList(),
+    private val nativePiecewiseWriter: (GRBModel, Map<VariableItemKey, GRBVar>, List<UnivariateLinearPiecewiseStructure<*>>) -> Try =
+        ::addGurobiNativePiecewise,
+    private val nativeAbsStructures: List<AbsStructure<*>> = emptyList(),
+    private val nativeAbsWriter: (GRBModel, Map<VariableItemKey, GRBVar>, List<AbsStructure<*>>) -> Try =
+        ::addGurobiNativeAbs,
+    private val nativeMaxStructures: List<MaxStructure<*>> = emptyList(),
+    private val nativeMaxWriter: (GRBModel, Map<VariableItemKey, GRBVar>, List<MaxStructure<*>>) -> Try =
+        ::addGurobiNativeMax,
+    private val nativeSemiStructures: List<SemiStructure<*>> = emptyList(),
+    private val nativeSemiWriter: (GRBModel, Map<VariableItemKey, GRBVar>, List<SemiStructure<*>>) -> Try =
+        ::addGurobiNativeSemi,
+    private val nativeIndicatorStructures: List<IndicatorStructure<*>> = emptyList(),
+    private val nativeIndicatorWriter: (GRBModel, Map<VariableItemKey, GRBVar>, List<IndicatorStructure<*>>) -> Try =
+        ::addGurobiNativeIndicator,
+    private val nativeMaskingStructures: List<MaskingStructure<*>> = emptyList(),
+    private val nativeMaskingWriter: (GRBModel, Map<VariableItemKey, GRBVar>, List<MaskingStructure<*>>) -> Try =
+        ::addGurobiNativeMasking,
+    private val nativeBinaryLogicStructures: List<BinaryLogicStructure<*>> = emptyList(),
+    private val nativeBinaryLogicWriter: (GRBModel, Map<VariableItemKey, GRBVar>, List<BinaryLogicStructure<*>>) -> Try =
+        ::addGurobiNativeBinaryLogic
 ) : GurobiSolver() {
+    var nativePiecewiseFailed: Boolean = false
+        private set
+    var nativeAbsFailed: Boolean = false
+        private set
+    var nativeMaxFailed: Boolean = false
+        private set
+    var nativeSemiFailed: Boolean = false
+        private set
+    val nativeFunctionFailed: Boolean
+        get() = nativeWriterFailed || nativePiecewiseFailed || nativeAbsFailed || nativeMaxFailed || nativeSemiFailed || nativeIndicatorFailed || nativeMaskingFailed || nativeBinaryLogicFailed
+    private var nativeWriterFailed = false
+    private var nativeMaskingFailed = false
+    private var nativeBinaryLogicFailed = false
+    private var nativeIndicatorFailed = false
     private lateinit var grbVars: List<GRBVar>
     private lateinit var grbConstraints: List<GRBConstr>
     private lateinit var output: SolveReport<Flt64>
@@ -179,7 +409,7 @@ private class GurobiLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 求解结果 / solving result
-    */
+     */
     suspend operator fun invoke(model: LinearTriadModelView): Ret<SolveReport<Flt64>> {
         if (cancellationToken?.isCancellationRequested == true) {
             return Ok(cancelledSolveReport(cancellationToken.record?.reason))
@@ -233,7 +463,7 @@ private class GurobiLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun dump(model: LinearTriadModelView): Try {
         return try {
             warnIgnoredConstraintPriority("gurobi", model.nonNullConstraintPriorityAmount())
@@ -260,6 +490,60 @@ private class GurobiLinearSolverImpl(
                 )
             }
             grbVars = vars
+
+            if (nativeStructures.isNotEmpty() || nativeAbsStructures.isNotEmpty() || nativeMaxStructures.isNotEmpty() || nativeSemiStructures.isNotEmpty() || nativeIndicatorStructures.isNotEmpty() || nativeMaskingStructures.isNotEmpty() || nativeBinaryLogicStructures.isNotEmpty()) {
+                val variablesByKey = model.variables.mapIndexedNotNull { index, variable ->
+                    variable.origin?.key?.let { it to grbVars[index] }
+                }.toMap()
+                val registry = NativeFunctionWriterRegistry(
+                    listOf(
+                        NativeFunctionWriter<GRBModel, GRBVar> { model, variables, batch ->
+                            nativePiecewiseWriter(model, variables, batch.filterIsInstance<UnivariateLinearPiecewiseStructure<*>>())
+                        },
+                        NativeFunctionWriter<GRBModel, GRBVar> { model, variables, batch ->
+                            nativeAbsWriter(model, variables, batch.filterIsInstance<AbsStructure<*>>())
+                        },
+                        NativeFunctionWriter<GRBModel, GRBVar> { model, variables, batch ->
+                            nativeMaxWriter(model, variables, batch.filterIsInstance<MaxStructure<*>>())
+                        },
+                        NativeFunctionWriter<GRBModel, GRBVar> { model, variables, batch ->
+                            nativeSemiWriter(model, variables, batch.filterIsInstance<SemiStructure<*>>())
+                        },
+                        NativeFunctionWriter<GRBModel, GRBVar> { model, variables, batch ->
+                            nativeIndicatorWriter(model, variables, batch.filterIsInstance<IndicatorStructure<*>>())
+                        },
+                        NativeFunctionWriter<GRBModel, GRBVar> { model, variables, batch ->
+                            nativeMaskingWriter(model, variables, batch.filterIsInstance<MaskingStructure<*>>())
+                        },
+                        NativeFunctionWriter<GRBModel, GRBVar> { model, variables, batch ->
+                            nativeBinaryLogicWriter(model, variables, batch.filterIsInstance<BinaryLogicStructure<*>>())
+                        }
+                    )
+                )
+                when (val result = registry.write(
+                    model = grbModel,
+                    variables = variablesByKey,
+                    batches = listOf(
+                        nativeStructures.map { it as Any },
+                        nativeAbsStructures.map { it as Any },
+                        nativeMaxStructures.map { it as Any },
+                        nativeSemiStructures.map { it as Any },
+                        nativeIndicatorStructures.map { it as Any },
+                        nativeMaskingStructures.map { it as Any },
+                        nativeBinaryLogicStructures.map { it as Any }
+                    )
+                )) {
+                    is Ok -> Unit
+                    is Failed -> {
+                        nativeWriterFailed = true
+                        return Failed(result.error)
+                    }
+                    is Fatal -> {
+                        nativeWriterFailed = true
+                        return Fatal(result.errors)
+                    }
+                }
+            }
 
             for ((col, initialResult) in variableDumpingData.initialResults) {
                 grbVars[col].set(GRB.DoubleAttr.Start, initialResult)
@@ -381,7 +665,7 @@ private class GurobiLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 操作结果 / operation result
-    */
+     */
     private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
             when (val cancellation = registerCancellation(cancellationToken)) {
@@ -502,7 +786,7 @@ private class GurobiLinearSolverImpl(
      * 分析求解结果 / Analyze solving result
      *
      * @return 以Try包装的分析结果 / the analysis result as Try
-    */
+     */
     private suspend fun analyzeSolution(): Try {
         return try {
             if (status.succeeded) {

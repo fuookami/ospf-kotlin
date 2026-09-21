@@ -2,31 +2,31 @@
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.*
-import fuookami.ospf.kotlin.core.token.AbstractMutableTokenList
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.TokenListSnapshot
-import fuookami.ospf.kotlin.core.variable.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.TokenListSnapshot
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractMutableTokenList
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.variable.*
 
 /**
  * Big-M 线性化工具 / Big-M linearization utilities
  *
  * 提供 Big-M 常量定义及非零指示约束、简单指示约束等线性化辅助函数。 / Provides Big-M constant definitions and linearization helper functions
  * for nonzero indicator constraints and simple indicator constraints.
-*/
+ */
 
 /** 默认 Big-M 线性化常量。 / Default Big-M constant for linearization. */
 const val BIG_M_DEFAULT: Double = 1_000_000.0
@@ -45,7 +45,7 @@ val STRICT_BOUNDARY: Double = NONZERO_TOLERANCE * 16 + Math.pow(2.0, -52.0) * 16
  *
  * @property lower 下界 / lower bound
  * @property upper 上界 / upper bound
-*/
+ */
 data class LinearPolynomialBounds<V>(
     val lower: V,
     val upper: V
@@ -123,7 +123,7 @@ private fun <V> intoBigMValueOrNull(
  *
  * @param values 非空的可迭代值集合 / non-empty iterable of values
  * @return 最大值 / the maximum value
-*/
+ */
 private fun maxOf(values: Iterable<Flt64>): Flt64? {
     var result: Flt64? = null
     for (value in values) {
@@ -142,7 +142,7 @@ private fun maxOf(values: Iterable<Flt64>): Flt64? {
  *
  * @param values 非空的可迭代值集合 / non-empty iterable of values
  * @return 最小值 / the minimum value
-*/
+ */
 private fun minOf(values: Iterable<Flt64>): Flt64? {
     var result: Flt64? = null
     for (value in values) {
@@ -161,7 +161,7 @@ private fun minOf(values: Iterable<Flt64>): Flt64? {
  *
  * @param symbol 待查询的符号 / the symbol to query
  * @return 符号的有限上下界对，若符号无有限范围则返回 null / pair of finite lower and upper bounds, or null if the symbol has no finite range
-*/
+ */
 private fun symbolFiniteBounds(symbol: Symbol): Pair<Flt64, Flt64>? {
     return try {
         val range = when (symbol) {
@@ -184,7 +184,7 @@ private fun symbolFiniteBounds(symbol: Symbol): Pair<Flt64, Flt64>? {
 /**
  * 在给定 Symbol -> V 值映射下计算线性多项式的值。 / Evaluate a linear polynomial given a map of Symbol -> V values.
  * 如果多项式中的任何符号不在映射中，则返回 null。 / Returns null if any symbol in the polynomial is missing from the map.
-*/
+ */
 fun <V> LinearPolynomial<V>.evaluateWith(values: Map<Symbol, V>): V? where V : RealNumber<V>, V : NumberField<V> {
     var result = constant
     for (m in monomials) {
@@ -201,7 +201,7 @@ fun <V> LinearPolynomial<V>.evaluateWith(values: Map<Symbol, V>): V? where V : R
  *
  * @param converter 值类型转换器 / value type converter
  * @return 线性多项式上下界，或 null / linear polynomial bounds, or null
-*/
+ */
 fun <V> LinearPolynomial<V>.finiteBounds(
     converter: IntoValue<V>
 ): LinearPolynomialBounds<V>? where V : RealNumber<V>, V : NumberField<V> {
@@ -248,7 +248,7 @@ fun <V> LinearPolynomial<V>.finiteBounds(
  *
  * @param converter 值类型转换器 / value type converter
  * @return 二次多项式上下界，或 null / quadratic polynomial bounds, or null
-*/
+ */
 fun <V> QuadraticPolynomial<V>.finiteBounds(
     converter: IntoValue<V>
 ): LinearPolynomialBounds<V>? where V : RealNumber<V>, V : NumberField<V> {
@@ -338,13 +338,42 @@ fun <V> QuadraticPolynomial<V>.finiteBounds(
 
 /**
  * 将一个候选 Big-M 调整为至少 [BIG_M_MIN]。 / Clamp a candidate Big-M to at least [BIG_M_MIN].
-*/
+ */
 fun <V> ensurePositiveBigM(
     value: V,
     converter: IntoValue<V>
 ): V where V : RealNumber<V>, V : NumberField<V> {
     val minimum = converter.intoValue(Flt64(BIG_M_MIN))
     return if (value.compareTo(minimum) >= 0) value else minimum
+}
+
+/**
+ * 判断显式 Big-M 是否可安全用于求解器约束。 / Check whether an explicit Big-M is safe for solver constraints.
+ *
+ * 显式值不能被静默截断为最小值；NaN、无穷、范围哨兵和非正值都必须在写约束前拒绝。
+ * Explicit values must not be silently clamped: NaN, infinities, range sentinels, and
+ * non-positive values are rejected before any constraint is written.
+ *
+ * @param value 待校验的显式 Big-M / explicit Big-M to validate
+ * @param converter 值类型转换器 / value type converter
+ * @return 值可安全用于求解器约束时为 true / true when the value is safe for solver constraints
+ */
+fun <V> isUsableExplicitBigM(
+    value: V,
+    converter: IntoValue<V>
+): Boolean where V : RealNumber<V>, V : NumberField<V> {
+    return try {
+        if (!value.isFinite() || value.compareTo(converter.zero) <= 0) {
+            return false
+        }
+        val solverValue = converter.fromValue(value)
+        solverValue.isFinite() &&
+            solverValue != Flt64.nan &&
+            solverValue.compareTo(Flt64.minimum) > 0 &&
+            solverValue.compareTo(Flt64.maximum) < 0
+    } catch (_: RuntimeException) {
+        false
+    }
 }
 
 /** 从已验证边界安全解析 Big-M 候选。 / Resolve a Big-M candidate safely from validated bounds. */
@@ -491,7 +520,7 @@ private inline fun <V> checkedLegacyIndicatorConstraints(
 
 /**
  * 线性多项式默认 Big-M：优先使用有限范围的最大绝对值。 / Default Big-M for a linear polynomial: finite-range absolute maximum first.
-*/
+ */
 fun <V> LinearPolynomial<V>.defaultBigM(
     converter: IntoValue<V>,
     fallback: V = converter.intoValue(Flt64(BIG_M_DEFAULT))
@@ -501,7 +530,7 @@ fun <V> LinearPolynomial<V>.defaultBigM(
 
 /**
  * 二次多项式默认 Big-M：优先使用有限范围的最大绝对值。 / Default Big-M for a quadratic polynomial: finite-range absolute maximum first.
-*/
+ */
 fun <V> QuadraticPolynomial<V>.defaultBigM(
     converter: IntoValue<V>,
     fallback: V = converter.intoValue(Flt64(BIG_M_DEFAULT))
@@ -511,7 +540,7 @@ fun <V> QuadraticPolynomial<V>.defaultBigM(
 
 /**
  * 多个线性多项式默认 Big-M：取各自有限范围最大绝对值的最大值。 / Default Big-M for linear polynomials: max absolute bound across all inputs.
-*/
+ */
 fun <V> Iterable<LinearPolynomial<V>>.defaultBigM(
     converter: IntoValue<V>,
     fallback: V = converter.intoValue(Flt64(BIG_M_DEFAULT))
@@ -846,13 +875,22 @@ internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<
 /**
  * 为多项式构建 4 个非零指示约束。 / Build the 4 nonzero-indicator constraints for a polynomial.
  *
- * 当 `indicator = 1` 时：多项式被约束为接近零（在容差范围内）。 / When `indicator = 1`: polynomial is constrained to be near zero (within tolerance).
- * 当 `indicator = 0` 时：多项式可以非零（通过 Big-M 放松）。 / When `indicator = 0`: polynomial can be nonzero (relaxed by Big-M).
+ * 当 `indicator = 0` 时：多项式被约束为接近零（在容差范围内）。 / When `indicator = 0`: polynomial is constrained to be near zero (within tolerance).
+ * 当 `indicator = 1` 时：多项式必须越过严格边界，可为正或负。 / When `indicator = 1`: polynomial must cross the strict boundary in either direction.
  * `sideVar` 用于区分正负偏差以进行等式检查。 / The `sideVar` distinguishes positive vs negative deviation for equality checks.
  *
  * 这避免了 V -> Flt64 -> V 的往返转换，并在泛型路径中保持中间符号约束为 V 类型。 / This avoids the V -> Flt64 -> V conversion round-trip and keeps
  * intermediate-symbol constraints parameterized as V inside generic paths.
-*/
+ *
+ * @param poly 待线性化的多项式 / polynomial to linearize
+ * @param indVar 非零指示变量 / nonzero indicator variable
+ * @param sideVar 正负分支变量 / positive-or-negative branch variable
+ * @param bigM Big-M 常量 / Big-M constant
+ * @param tolerance 零值带容差 / zero-band tolerance
+ * @param strictBoundary 非零严格边界 / strict nonzero boundary
+ * @param namePrefix 约束名称前缀 / constraint name prefix
+ * @return 生成的四条线性约束 / the four generated linear constraints
+ */
 fun <V> nonzeroIndicatorConstraints(
     poly: LinearPolynomial<V>,
     indVar: AbstractVariableItem<*, *>,
@@ -932,7 +970,7 @@ internal fun <V> safeNonzeroIndicatorConstraints(
  * When `indicator = 1`: poly is within tolerance.
  * 当 `indicator = 0` 时：poly 至少偏离 [strictBoundary]。
  * When `indicator = 0`: poly deviates by at least [strictBoundary].
-*/
+ */
 fun <V> zeroIndicatorConstraints(
     poly: LinearPolynomial<V>,
     indicator: AbstractVariableItem<*, *>,
@@ -1010,7 +1048,7 @@ internal fun <V> safeZeroIndicatorConstraints(
  * When `indicator = 1`: poly >= tolerance.
  * 当 `indicator = 0` 时：poly <= 0。
  * When `indicator = 0`: poly <= 0.
-*/
+ */
 fun <V> positiveIndicatorConstraints(
     poly: LinearPolynomial<V>,
     indicator: AbstractVariableItem<*, *>,
@@ -1068,7 +1106,7 @@ internal fun <V> safePositiveIndicatorConstraints(
  * When `indicator = 1`: poly >= 0.
  * 当 `indicator = 0` 时：poly <= -tolerance。
  * When `indicator = 0`: poly <= -tolerance.
-*/
+ */
 fun <V> nonnegativeIndicatorConstraints(
     poly: LinearPolynomial<V>,
     indicator: AbstractVariableItem<*, *>,
@@ -1126,7 +1164,7 @@ internal fun <V> safeNonnegativeIndicatorConstraints(
  * For LE: when indicator=1, poly <= rhs is enforced.
  * 对于 GE：当 indicator=1 时，强制 poly >= rhs。
  * For GE: when indicator=1, poly >= rhs is enforced.
-*/
+ */
 fun <V> simpleIndicatorConstraints(
     ineq: LinearInequality<V>,
     indicator: AbstractVariableItem<*, *>,

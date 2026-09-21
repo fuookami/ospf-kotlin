@@ -483,34 +483,46 @@ interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, Quadrati
     val identityValidation: Try
         get() = ok
 
-    /** 就地线性松弛（修改当前模型） / In-place linear relaxation (mutates current model)
+    /**
+     * 就地线性松弛（修改当前模型） / In-place linear relaxation (mutates current model)
+     *
      * @return 线性松弛后的模型视图 / The linearly relaxed model view
-    */
+     */
     fun linearRelax(): QuadraticTetradModelView
 
-    /** 返回线性松弛后的副本 / Return a linearly relaxed copy
+    /**
+     * 返回线性松弛后的副本 / Return a linearly relaxed copy
+     *
      * @return 线性松弛后的模型视图副本 / The linearly relaxed model view copy
-    */
+     */
     fun linearRelaxed(): QuadraticTetradModelView
 
-    /** 构造对偶模型 / Construct the dual model
+    /**
+     * 构造对偶模型 / Construct the dual model
+     *
      * @return 对偶二次四元模型 / The dual quadratic tetrad model
-    */
+     */
     suspend fun dual(): QuadraticTetradModel
 
-    /** 构造 Farkas 对偶模型 / Construct the Farkas dual model
+    /**
+     * 构造 Farkas 对偶模型 / Construct the Farkas dual model
+     *
      * @return Farkas 对偶二次四元模型 / The Farkas dual quadratic tetrad model
-    */
+     */
     suspend fun farkasDual(): QuadraticTetradModel
 
-    /** 构造可行性模型 / Construct the feasibility model
+    /**
+     * 构造可行性模型 / Construct the feasibility model
+     *
      * @return 可行性二次四元模型视图 / The feasibility quadratic tetrad model view
-    */
+     */
     fun feasibility(): QuadraticTetradModelView
 
-    /** 构造弹性模型 / Construct the elastic model
+    /**
+     * 构造弹性模型 / Construct the elastic model
+     *
      * @return 弹性二次四元模型视图 / The elastic quadratic tetrad model view
-    */
+     */
     fun elastic(): QuadraticTetradModelView
 
     /**
@@ -1814,8 +1826,28 @@ data class QuadraticTetradModel(
         }
     }
 
+    /**
+     * 释放本模型自身持有的资源。
+     *
+     * **不得**在此关闭 [dualOrigin]：`dual()` / `elastic()` 会把来源模型记为 `dualOrigin`，而来源
+     * 模型由调用方拥有，其生命周期长于派生模型。关闭派生模型去清空来源模型会产生难以察觉的
+     * use-after-free——来源对象仍然存活、访问不再报错，却已经没有任何约束。详见
+     * [LinearTriadModel.close] 中记录的实际触发路径。
+     *
+     * 所有权方向是"创建者负责释放"：调用方关闭来源模型，派生模型只释放自己。
+     *
+     * Releases only the resources this model owns.
+     *
+     * It must **not** close [dualOrigin]: `dual()` / `elastic()` record the source model as
+     * `dualOrigin`, and the source is owned by the caller and outlives the derived model. Closing a
+     * derived model only to empty its source produces a nearly invisible use-after-free — the source
+     * stays alive and keeps answering but has no constraints left. See [LinearTriadModel.close] for
+     * the concrete path that hit this.
+     *
+     * Ownership runs creator-to-created: the caller closes the source and a derived model releases
+     * only itself.
+     */
     override fun close() {
-        dualOrigin?.close()
         super.close()
     }
 

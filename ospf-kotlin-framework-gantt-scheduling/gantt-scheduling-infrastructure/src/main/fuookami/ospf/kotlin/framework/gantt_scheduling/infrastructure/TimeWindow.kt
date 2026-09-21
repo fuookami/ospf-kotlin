@@ -5,6 +5,9 @@
 */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
+import java.math.BigDecimal
+import java.math.MathContext
+import java.math.RoundingMode
 import kotlin.math.*
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -25,6 +28,95 @@ import fuookami.ospf.kotlin.utils.truncatedTo
 /** 时间窗口数值物理量 / Time-window value quantity */
 typealias TimeWindowValueQuantity<V> = Quantity<V>
 
+private val nanosecondsPerNanosecond = BigDecimal.ONE
+private val nanosecondsPerMicrosecond = BigDecimal.valueOf(1_000L)
+private val nanosecondsPerMillisecond = BigDecimal.valueOf(1_000_000L)
+private val nanosecondsPerSecond = BigDecimal.valueOf(1_000_000_000L)
+private val nanosecondsPerMinute = BigDecimal.valueOf(60_000_000_000L)
+private val nanosecondsPerHour = BigDecimal.valueOf(3_600_000_000_000L)
+private val nanosecondsPerDay = BigDecimal.valueOf(86_400_000_000_000L)
+private val maximumDurationNanoseconds = BigDecimal.valueOf(
+    Long.MAX_VALUE / 2 / 1_000_000L * 1_000_000L - 1L
+)
+private val maximumDurationMilliseconds = BigDecimal.valueOf(Long.MAX_VALUE / 2)
+
+private fun nanosecondsPer(unit: DurationUnit): BigDecimal {
+    return when (unit) {
+        DurationUnit.NANOSECONDS -> nanosecondsPerNanosecond
+        DurationUnit.MICROSECONDS -> nanosecondsPerMicrosecond
+        DurationUnit.MILLISECONDS -> nanosecondsPerMillisecond
+        DurationUnit.SECONDS -> nanosecondsPerSecond
+        DurationUnit.MINUTES -> nanosecondsPerMinute
+        DurationUnit.HOURS -> nanosecondsPerHour
+        DurationUnit.DAYS -> nanosecondsPerDay
+    }
+}
+
+/**
+ * 将 Duration 精确转换为时间窗口数值的十进制表示（精度边界为纳秒）。 / Convert a Duration to the decimal
+ * time-window value without a binary floating-point intermediate (the precision boundary is one nanosecond).
+ */
+private fun Duration.toTimeWindowDecimal(unit: DurationUnit): BigDecimal {
+    val nanoseconds = toComponents { seconds, remainderNanoseconds ->
+        BigDecimal.valueOf(seconds)
+            .multiply(nanosecondsPerSecond)
+            .add(BigDecimal.valueOf(remainderNanoseconds.toLong()))
+    }
+    return nanoseconds.divide(nanosecondsPer(unit), MathContext.DECIMAL128)
+}
+
+private fun BigDecimal.roundToDurationInteger(): BigDecimal {
+    return setScale(0, RoundingMode.HALF_UP)
+}
+
+/**
+ * 将时间窗口十进制值转换为 Duration，并在 Kotlin Duration 的纳秒边界处舍入。 /
+ * Convert a time-window decimal to Duration, rounding at Kotlin Duration's nanosecond boundary.
+ */
+private fun BigDecimal.toTimeWindowDuration(unit: DurationUnit): Duration {
+    val nanoseconds = multiply(nanosecondsPer(unit)).roundToDurationInteger()
+    if (nanoseconds >= maximumDurationNanoseconds.negate() && nanoseconds <= maximumDurationNanoseconds) {
+        return nanoseconds.toLong().toDuration(DurationUnit.NANOSECONDS)
+    }
+
+    val milliseconds = nanoseconds
+        .divide(nanosecondsPerMillisecond, MathContext.DECIMAL128)
+        .roundToDurationInteger()
+    return when {
+        milliseconds >= maximumDurationMilliseconds -> Duration.INFINITE
+        milliseconds <= maximumDurationMilliseconds.negate() -> -Duration.INFINITE
+        else -> milliseconds.toLong().toDuration(DurationUnit.MILLISECONDS)
+    }
+}
+
+/**
+ * FltX 与 Kotlin 时间类型之间的精确转换器。 / Exact converters between FltX and Kotlin time types.
+ */
+object TimeWindowValueConverters {
+    /**
+     * 将 Duration 转为 FltX，保留 Duration 可表达的纳秒精度。 / Convert Duration to FltX while preserving
+     * the nanosecond precision representable by Duration.
+     *
+     * @param duration 持续时间 / Duration
+     * @param durationUnit 时间窗口单位 / Time-window unit
+     * @return FltX 时间值 / FltX time value
+     */
+    fun durationToFltX(duration: Duration, durationUnit: DurationUnit): FltX {
+        return FltX(duration.toTimeWindowDecimal(durationUnit).toPlainString())
+    }
+
+    /**
+     * 将 FltX 转为 Duration，舍入到最近纳秒。 / Convert FltX to Duration, rounding to the nearest nanosecond.
+     *
+     * @param value FltX 时间值 / FltX time value
+     * @param durationUnit 时间窗口单位 / Time-window unit
+     * @return Kotlin Duration / Kotlin Duration
+     */
+    fun fltXToDuration(value: FltX, durationUnit: DurationUnit): Duration {
+        return value.toDecimal().toTimeWindowDuration(durationUnit)
+    }
+}
+
 /**
  * 泛型时间窗口，提供时间离散化和舍入功能 / Generic time window providing time discretization and rounding capabilities
  *
@@ -35,7 +127,9 @@ typealias TimeWindowValueQuantity<V> = Quantity<V>
  * @property interval 时间间隔 / The time interval
  * @property fromDouble 从 Double 转换为 V / Convert from Double to V
  * @property toDouble 从 V 转换为 Double / Convert from V to Double
-*/
+ * @property fromDuration 从 Duration 转换为 V 的可选精确转换器 / Optional exact converter from Duration to V
+ * @property toDuration 从 V 转换为 Duration 的可选精确转换器 / Optional exact converter from V to Duration
+ */
 data class TimeWindow<V : RealNumber<V>>(
     val window: TimeRange,
     val continues: Boolean = true,
@@ -43,7 +137,9 @@ data class TimeWindow<V : RealNumber<V>>(
     val dateOffset: Duration = Duration.ZERO,
     val interval: Duration = 1.toDuration(durationUnit),
     val fromDouble: (Double) -> V,
-    val toDouble: (V) -> Double
+    val toDouble: (V) -> Double,
+    val fromDuration: ((Duration, DurationUnit) -> V)? = null,
+    val toDuration: ((V, DurationUnit) -> Duration)? = null
 ) {
     companion object {
         /**
@@ -249,7 +345,8 @@ data class TimeWindow<V : RealNumber<V>>(
     }
 
     /** 将持续时间转换为 V 数值 / Convert duration to V numeric value */
-    val Duration.value: V get() = fromDouble(this.toDouble(durationUnit))
+    val Duration.value: V get() = fromDuration?.invoke(this, durationUnit)
+        ?: fromDouble(this.toDouble(durationUnit))
     val Duration.round: Duration get() = round(this.toDouble(durationUnit)).toDuration(durationUnit)
     val Duration.floor: Duration get() = floor(this.toDouble(durationUnit)).toDuration(durationUnit)
     val Duration.ceil: Duration get() = ceil(this.toDouble(durationUnit)).toDuration(durationUnit)
@@ -297,7 +394,7 @@ data class TimeWindow<V : RealNumber<V>>(
     fun ceil(duration: Duration) = duration.ceil
 
     /** 将时间点转换为相对于窗口起始的 V 数值 / Convert an instant to a V value relative to window start */
-    val Instant.value: V get() = fromDouble((this - window.start).toDouble(durationUnit))
+    val Instant.value: V get() = (this - window.start).value
     val Instant.round: Instant get() = window.start + (this - window.start).round
     val Instant.floor: Instant get() = window.start + (this - window.start).floor
     val Instant.ceil: Instant get() = window.start + (this - window.start).ceil
@@ -345,7 +442,8 @@ data class TimeWindow<V : RealNumber<V>>(
     fun ceil(instant: Instant) = instant.ceil
 
     /** 将 V 数值转换为持续时间 / Convert V numeric value to duration */
-    val V.duration: Duration get() = toDouble(this).toDuration(durationUnit)
+    val V.duration: Duration get() = toDuration?.invoke(this, durationUnit)
+        ?: toDouble(this).toDuration(durationUnit)
     val Int64.duration: Duration get() = timeWindowValue().toDuration(durationUnit)
     val UInt64.duration: Duration get() = timeWindowValue().toDuration(durationUnit)
 
@@ -371,7 +469,7 @@ data class TimeWindow<V : RealNumber<V>>(
     fun durationOf(duration: UInt64) = duration.duration
 
     /** 将 V 数值转换为时间点 / Convert V numeric value to an instant */
-    val V.instant: Instant get() = window.start + toDouble(this).toDuration(durationUnit)
+    val V.instant: Instant get() = window.start + this.duration
     val Int64.instant: Instant get() = window.start + timeWindowValue().toDuration(durationUnit)
     val UInt64.instant: Instant get() = window.start + timeWindowValue().toDuration(durationUnit)
 
@@ -469,7 +567,9 @@ data class TimeWindow<V : RealNumber<V>>(
                 durationUnit = upperUnit,
                 interval = upperIntervalOrNull ?: interval,
                 fromDouble = fromDouble,
-                toDouble = toDouble
+                toDouble = toDouble,
+                fromDuration = fromDuration,
+                toDuration = toDuration
             )
         }
     }
@@ -492,7 +592,9 @@ data class TimeWindow<V : RealNumber<V>>(
             durationUnit = upperUnit,
             interval = upperIntervalOrNull!!,
             fromDouble = fromDouble,
-            toDouble = toDouble
+            toDouble = toDouble,
+            fromDuration = fromDuration,
+            toDuration = toDuration
         ))
     }
 
@@ -537,7 +639,9 @@ data class TimeWindow<V : RealNumber<V>>(
             durationUnit = upperUnit,
             interval = upperInterval,
             fromDouble = fromDouble,
-            toDouble = toDouble
+            toDouble = toDouble,
+            fromDuration = fromDuration,
+            toDuration = toDuration
         )
     }
 
@@ -825,7 +929,9 @@ data class TimeWindow<V : RealNumber<V>>(
             continues = continues,
             durationUnit = durationUnit,
             fromDouble = fromDouble,
-            toDouble = toDouble
+            toDouble = toDouble,
+            fromDuration = fromDuration,
+            toDuration = toDuration
         )
     }
 }

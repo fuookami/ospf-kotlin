@@ -1,6 +1,6 @@
 /**
  * 变量类型体系，定义二值、三值、整数、连续等变量类型及其分类接口。 / Variable type system defining binary, ternary, integer, continuous variable types and their classification interfaces.
-*/
+ */
 package fuookami.ospf.kotlin.core.variable
 
 import fuookami.ospf.kotlin.math.*
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
  * @property isContinuousType 是否为连续类型 / Whether continuous type
  * @property isUnsignedContinuousType 是否为无符号连续类型 / Whether unsigned continuous type
  * @property isNotBinaryIntegerType 是否为非二值整数类型 / Whether non-binary integer type
-*/
+ */
 sealed interface VariableTypeKind {
 
     /** 是否为二值类型 / Whether binary type */
@@ -48,7 +48,7 @@ sealed interface VariableTypeKind {
 /**
  * 变量类型完整接口 / Variable type interface
  *
- * 扩展 VariableTypeKind 并附加名称、常量和值域边界。 / Extends VariableTypeKind with name, constants, and value range bounds.
+ * 扩展 [VariableTypeKind] 并附加名称、常量和值域边界。 / Extends [VariableTypeKind] with name, constants, and value range bounds.
  *
  * @param T 数值类型 / The number type
  * @property name 类型全名 / Full type name
@@ -56,7 +56,7 @@ sealed interface VariableTypeKind {
  * @property constants 数值类型常量 / Numeric type constants
  * @property minimum 最小值 / Minimum value
  * @property maximum 最大值 / Maximum value
-*/
+ */
 sealed interface VariableTypeInterface<T> : VariableTypeKind where T : RealNumber<T>, T : NumberField<T> {
 
     /** 类型全名 / Full type name */
@@ -93,13 +93,13 @@ sealed interface UIntegerVariableType<T : UIntegerNumber<T>> : VariableTypeInter
 }
 
 /** 有符号连续变量类型接口。 / Signed continuous variable type interface. */
-sealed interface ContinuesVariableType<T : FloatingNumber<T>> : VariableTypeInterface<T> {
+sealed interface ContinuousVariableType<T : FloatingNumber<T>> : VariableTypeInterface<T> {
     override val minimum get() = -constants.decimalPrecision.reciprocal()
     override val maximum get() = constants.decimalPrecision.reciprocal()
 }
 
 /** 无符号连续变量类型接口。 / Unsigned continuous variable type interface. */
-sealed interface UContinuesVariableType<T : FloatingNumber<T>> : VariableTypeInterface<T> {
+sealed interface UContinuousVariableType<T : FloatingNumber<T>> : VariableTypeInterface<T> {
     override val minimum get() = constants.zero
     override val maximum get() = constants.decimalPrecision.reciprocal()
 
@@ -110,7 +110,7 @@ sealed interface UContinuesVariableType<T : FloatingNumber<T>> : VariableTypeInt
  * 变量类型的密封基类。 / Sealed base class for variable types.
  *
  * @property constants 数值类型常量 / Numeric type constants
-*/
+ */
 sealed class VariableType<T>(
     override val constants: RealNumberConstants<T>
 ) : VariableTypeInterface<T> where T : RealNumber<T>, T : NumberField<T>
@@ -124,7 +124,11 @@ data object Binary : VariableType<UInt8>(UInt8), UIntegerVariableType<UInt8> {
     override val isBinaryType get() = true
     override val isUnsignedType get() = true
 
-    /** @return "Binary" */
+    /**
+     * 转换为字符串。 / Convert to a string.
+     *
+     * @return "Binary" / The string "Binary"
+     */
     override fun toString(): String = "Binary"
 }
 
@@ -134,7 +138,11 @@ data object Ternary : VariableType<UInt8>(UInt8), UIntegerVariableType<UInt8> {
     override val shortName = "ter"
     override val maximum by constants::two
 
-    /** @return "Ternary" */
+    /**
+     * 转换为字符串。 / Convert to a string.
+     *
+     * @return "Ternary" / The string "Ternary"
+     */
     override fun toString(): String = "Ternary"
 }
 
@@ -145,17 +153,25 @@ data object BalancedTernary : VariableType<Int8>(Int8), IntegerVariableType<Int8
     override val minimum get() = -constants.one
     override val maximum by constants::one
 
-    /** @return "BalancedTernary" */
+    /**
+     * 转换为字符串。 / Convert to a string.
+     *
+     * @return "BalancedTernary" / The string "BalancedTernary"
+     */
     override fun toString(): String = "BalancedTernary"
 }
 
-/** 百分比变量类型（[0, 1]）。 / Percentage variable type ([0, 1]). */
-data object Percentage : VariableType<Flt64>(Flt64), UContinuesVariableType<Flt64> {
+/** 百分比变量类型（`[0, 1]`）。 / Percentage variable type (`[0, 1]`). */
+data object Percentage : VariableType<Flt64>(Flt64), UContinuousVariableType<Flt64> {
     override val name = "Percentage"
     override val shortName = "pct"
     override val maximum by constants::one
 
-    /** @return "Percentage" */
+    /**
+     * 转换为字符串。 / Convert to a string.
+     *
+     * @return "Percentage" / The string "Percentage"
+     */
     override fun toString(): String = "Percentage"
 }
 
@@ -164,7 +180,11 @@ data object Integer : VariableType<Int64>(Int64), IntegerVariableType<Int64> {
     override val name = "Integer"
     override val shortName = "int"
 
-    /** @return "Integer" */
+    /**
+     * 转换为字符串。 / Convert to a string.
+     *
+     * @return "Integer" / The string "Integer"
+     */
     override fun toString(): String = "Integer"
 }
 
@@ -173,24 +193,36 @@ data object UInteger : VariableType<UInt64>(UInt64), UIntegerVariableType<UInt64
     override val name = "UInteger"
     override val shortName = "uint"
 
-    /** @return "UInteger" */
+    /**
+     * 转换为字符串。 / Convert to a string.
+     *
+     * @return "UInteger" / The string "UInteger"
+     */
     override fun toString(): String = "UInteger"
 }
 
 /** 有符号连续变量类型。 / Signed continuous variable type. */
-data object Continuous : VariableType<Flt64>(Flt64), ContinuesVariableType<Flt64> {
+data object Continuous : VariableType<Flt64>(Flt64), ContinuousVariableType<Flt64> {
     override val name = "Continuous"
     override val shortName = "real"
 
-    /** @return "Continues" */
-    override fun toString(): String = "Continues"
+    /**
+     * 转换为字符串。 / Convert to a string.
+     *
+     * @return "Continuous" / The string "Continuous"
+     */
+    override fun toString(): String = "Continuous"
 }
 
 /** 无符号连续变量类型。 / Unsigned continuous variable type. */
-data object UContinuous : VariableType<Flt64>(Flt64), UContinuesVariableType<Flt64> {
+data object UContinuous : VariableType<Flt64>(Flt64), UContinuousVariableType<Flt64> {
     override val name = "UContinuous"
     override val shortName = "ureal"
 
-    /** @return "UContinues" */
-    override fun toString(): String = "UContinues"
+    /**
+     * 转换为字符串。 / Convert to a string.
+     *
+     * @return "UContinuous" / The string "UContinuous"
+     */
+    override fun toString(): String = "UContinuous"
 }

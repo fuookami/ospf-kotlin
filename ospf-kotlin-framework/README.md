@@ -34,6 +34,23 @@ Explicit non-goals:
 | `network` | HTTP response utilities with retry and authorization |
 | `log` | Log context management (push/save interfaces, builder) and log record types |
 
+## Public API
+
+| API | Responsibility | Stability |
+| --- | --- | --- |
+| `ColumnGenerationSolver` | Column-generation solver abstraction. | stable |
+| `LinearBendersDecompositionSolver` / `QuadraticBendersDecompositionSolver` | Benders decomposition solver interfaces. | stable |
+| `LogicBasedBendersEngine` | Logic-Based Benders for CP with proof gates. | stable |
+| `ParallelCombinatorialColumnGenerationSolver` / `SerialCombinatorial...` | Solver combinators. | stable |
+| `Pipeline<M>` / `PipelineList<M>` | Constraint/objective pipeline execution. | stable |
+| `CGPipeline` / `HAPipeline` | Column-generation and heuristic analysis pipelines. | stable |
+| `ShadowPriceKey` / `ShadowPriceMap` | Shadow-price hierarchy for column generation. | stable |
+| `ExpressionRepository<E>` / `SortBy` / `UpdateAssignments` | Persistence expression contracts. | stable |
+| `Response` / `ResponseRetry` | HTTP response utilities with retry. | stable |
+| `LogContext` / `LogRecord` | Log context and record management. | stable |
+| `RunningHeartBeat` / `SubProgressHeartBeat` / `FinnishHeartBeat` | Heartbeat data structures. | stable |
+| `RemoteSolverClient` | Remote solver client with checkpoint support. | stable |
+
 ## Solver Abstractions
 
 ### ColumnGenerationSolver
@@ -117,6 +134,8 @@ The `solver.remote` sub-package provides time-sliced remote solving with checkpo
 - **port** — `ObjectStoragePort` (put/get/delete/exists) and `SolverExecutionPort` (start/resume/await/export/fetch/stop)
 - **client** — `RemoteSolverClient` implements round-by-round solving with checkpoint; `RemoteSolverHttpClient` for HTTP transport
 - **adapter** — `LocalFileObjectStoragePort` for local filesystem storage; `OspfRemoteModelSerializer` for OSPF serialization format
+
+`SolvePayload.scheduling` carries optional V1.2 scheduling requirements such as priority, deadline, budget, quality target, preemption, and resume mode. Slice and final results preserve the effective `SchedulingDecision`, outcome, checkpoint/incumbent references, fingerprints, provenance, and artifact identity. The HTTP client requires explicit `SERVER_TASK_LATEST_CHECKPOINT` mode for the task-level latest-checkpoint resume endpoint; its default strict mode rejects checkpoint-specific resume because the endpoint has no checkpoint selector.
 
 ## Model Abstractions
 

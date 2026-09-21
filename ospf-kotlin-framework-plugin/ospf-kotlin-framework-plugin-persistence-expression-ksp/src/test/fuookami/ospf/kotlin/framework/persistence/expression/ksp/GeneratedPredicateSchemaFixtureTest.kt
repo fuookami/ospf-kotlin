@@ -95,7 +95,7 @@ class GeneratedPredicateSchemaFixtureTest {
                 withCompilation = true
             }
             inheritClassPath = true
-            jvmTarget = "17"
+            jvmTarget = "1.8"
             messageOutputStream = output
         }.compile()
 
@@ -130,7 +130,7 @@ class GeneratedPredicateSchemaFixtureTest {
                 )
             )
             inheritClassPath = true
-            jvmTarget = "17"
+            jvmTarget = "1.8"
         }.compile()
 
         assertEquals(KotlinCompilation.ExitCode.OK, usageResult.exitCode, usageResult.messages)

@@ -4,6 +4,23 @@
 
 A high-performance multi-dimensional array library for Kotlin, supporting various storage orders, views, block-based sparse arrays, and tabular data structures.
 
+
+## Scope
+
+This module covers:
+
+1. Generic multi-dimensional array storage.
+2. Shape and index conversion (compile-time and dynamic).
+3. Zero-copy views, slicing, and dimension mapping.
+4. Block/sparse arrays.
+5. `DataFrame` tabular helpers.
+6. List and Map multi-dimensional access extensions.
+
+Explicit non-goals:
+
+1. Tensor algebra engines or optimization model assembly.
+2. Domain-specific data protocols.
+3. Physical-unit semantics; those belong in `ospf-kotlin-quantities`.
 ### Features
 
 - **Multi-dimensional Arrays**: Type-safe 1D to N-dimensional arrays with compile-time shape checking
@@ -254,6 +271,17 @@ for ((i, vec, value) in array.enumerateWithOrder(AccessOrder.ColumnMajor)) {
 }
 ```
 
+
+## Public API
+
+| API | Responsibility | Stability |
+| --- | --- | --- |
+| `MultiArray<T, S>` / `MutableMultiArray<T, S>` | Immutable and mutable multi-dimensional arrays. | stable |
+| `Shape1`–`Shape4` / `DynShape` | Compile-time and dynamic shapes. | stable |
+| `MultiArrayView` / `MappedMultiArrayView` | Zero-copy slice and dimension-mapping views. | stable |
+| `BlockMultiArray<T, S>` | Block/sparse multi-dimensional array. | stable |
+| `DataFrame` | Tabular data with named columns. | stable |
+| `DummyIndex` / `MapIndex` | Slice and dimension-mapping index types. | stable |
 ### API Reference
 
 #### Factory Methods

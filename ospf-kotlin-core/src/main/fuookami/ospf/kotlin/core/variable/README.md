@@ -34,8 +34,8 @@ Defines a complete variable type hierarchy using sealed classes for type safety:
 Types are classified by interfaces:
 - `IntegerVariableType<T>` — Signed integer variables
 - `UIntegerVariableType<T>` — Unsigned integer variables
-- `ContinuesVariableType<T>` — Signed continuous variables
-- `UContinuesVariableType<T>` — Unsigned continuous variables
+- `ContinuousVariableType<T>` — Signed continuous variables
+- `UContinuousVariableType<T>` — Unsigned continuous variables
 
 Each type provides `minimum`, `maximum` bounds and `RealNumberConstants<T>` definitions.
 

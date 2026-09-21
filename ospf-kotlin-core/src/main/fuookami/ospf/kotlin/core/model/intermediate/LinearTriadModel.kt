@@ -1,6 +1,6 @@
 /**
  * 线性三元模型 / Linear triad model
-*/
+ */
 package fuookami.ospf.kotlin.core.model.intermediate
 
 import java.io.OutputStreamWriter
@@ -8,38 +8,39 @@ import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.math.ordinary.*
-import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.Token
+import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
 import fuookami.ospf.kotlin.core.solver.report.ConstraintId
 import fuookami.ospf.kotlin.core.solver.report.ModelElementKind
-import fuookami.ospf.kotlin.core.solver.report.ModelElementIdentityRegistry
-import fuookami.ospf.kotlin.core.solver.report.ModelElementOrigin
 import fuookami.ospf.kotlin.core.solver.report.ModelElementScope
-import fuookami.ospf.kotlin.core.solver.report.ObjectiveId
-import fuookami.ospf.kotlin.core.solver.report.VariableId
+import fuookami.ospf.kotlin.core.solver.report.ModelElementOrigin
 import fuookami.ospf.kotlin.core.solver.report.derivedModelElementIdentity
+import fuookami.ospf.kotlin.core.solver.report.ModelElementIdentityRegistry
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.token.Token
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.BalancedTernary
 import fuookami.ospf.kotlin.core.variable.Binary
-import fuookami.ospf.kotlin.core.variable.Continuous
 import fuookami.ospf.kotlin.core.variable.Integer
-import fuookami.ospf.kotlin.core.variable.Percentage
 import fuookami.ospf.kotlin.core.variable.Ternary
-import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.core.variable.UInteger
+import fuookami.ospf.kotlin.core.variable.Continuous
+import fuookami.ospf.kotlin.core.variable.Percentage
+import fuookami.ospf.kotlin.core.variable.UContinuous
+import fuookami.ospf.kotlin.core.variable.BalancedTernary
+import fuookami.ospf.kotlin.core.variable.VariableItemKey
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * 将任意数值类型转换为 Flt64（求解器边界用） / Convert any numeric value to Flt64 (for solver boundary use)
  *
  * @return 转换后的 Flt64 值 / The converted Flt64 value
-*/
+ */
 private fun Any?.toSolverFlt64(): Flt64 {
     return when (this) {
         is Flt64 -> this
@@ -52,7 +53,7 @@ private fun Any?.toSolverFlt64(): Flt64 {
  * 判断此线性约束是否为单变量边界约束（系数为1的单项约束） / Check whether this linear constraint is a single-variable bound constraint (single term with coefficient 1)
  *
  * @return 是否为边界约束 / Whether this is a bound constraint
-*/
+ */
 private fun LinearConstraintImpl<Flt64>.isBound(): Boolean {
     val lhs = (this as LinearConstraintImpl<*>).lhs
     return lhs.size == 1
@@ -64,7 +65,7 @@ private fun LinearConstraintImpl<Flt64>.isBound(): Boolean {
  * 将求解器边界单元格令牌视为 Flt64 令牌 / Treat a solver-boundary cell token as an Flt64 token
  *
  * @return 转型后的 Flt64 令牌 / The cast Flt64 token
-*/
+ */
 @Suppress("UNCHECKED_CAST")
 private fun LinearCell<*>.tokenAsFlt64(): Token<Flt64> {
     return token as Token<Flt64>
@@ -79,7 +80,7 @@ private fun LinearCell<*>.tokenAsFlt64(): Token<Flt64> {
  * @property rowIndex 行索引 / Row index
  * @property colIndex 列索引 / Column index
  * @param coefficient 系数 / Coefficient
-*/
+ */
 class LinearConstraintCell(
     override val rowIndex: Int,
     val colIndex: Int,
@@ -128,7 +129,7 @@ class LinearConstraintCell(
  * @param identityOrigins 每行稳定身份来源 / Stable identity origin for each row
  * @param identityProvenance 每行完整身份来源集合 / Complete identity provenance for each row
  * @param identityMetadataValidationOverride 复制或过滤时保留的身份元数据校验结果 / Identity metadata validation result preserved across copies or filters
-*/
+ */
 class LinearConstraintBatch(
     val sparseLhs: SparseMatrix<Flt64>,
     signs: List<ConstraintRelation>,
@@ -166,7 +167,7 @@ class LinearConstraintBatch(
      * 这是主要的约束表示形式。 / Sparse representation of the LHS matrix.
      * Each row is a SparseVector<Flt64> where entry.index = colIndex, entry.value = coefficient.
      * This is the primary constraint representation.
-    */
+     */
     override val lhs: List<List<LinearConstraintCell>> by lazy {
         sparseLhs.rows.mapIndexed { rowIndex, row ->
             row.entries.map { entry ->
@@ -193,7 +194,7 @@ class LinearConstraintBatch(
      *
      * @param condition 过滤条件，参数为行索引 / Filter condition, parameter is row index
      * @return 过滤后的约束批次 / Filtered constraint batch
-    */
+     */
     fun filter(condition: (Int) -> Boolean): LinearConstraintBatch {
         val filteredSparseLhs = SparseMatrix<Flt64>()
         for ((i, row) in sparseLhs.rows.withIndex()) {
@@ -262,7 +263,7 @@ class LinearConstraintBatch(
  *
  * @property colIndex 列索引 / Column index
  * @param coefficient 系数 / Coefficient
-*/
+ */
 class LinearObjectiveCell(
     val colIndex: Int,
     coefficient: Flt64
@@ -284,12 +285,12 @@ class LinearObjectiveCell(
 
 /**
  * 线性目标函数类型别名 / Type alias for linear objective function
-*/
+ */
 typealias LinearObjective = Objective<LinearObjectiveCell>
 
 /**
  * 基础线性三元模型视图类型别名 / Type alias for basic linear triad model view
-*/
+ */
 typealias BasicLinearTriadModelView = BasicModelView<LinearConstraintCell>
 
 /**
@@ -323,7 +324,7 @@ typealias BasicLinearTriadModelView = BasicModelView<LinearConstraintCell>
  * @property variables 求解器索引的变量列表 / Solver-indexed variable list
  * @property constraints 线性约束批次 / Linear constraint batch
  * @property name 模型名称（用于日志和调试）/ Model name (for logging and debugging)
-*/
+ */
 class BasicLinearTriadModel(
     override val variables: List<Variable>,
     override val constraints: LinearConstraintBatch,
@@ -346,28 +347,33 @@ class BasicLinearTriadModel(
          * @param bounds          每个符号的预计算边界约束 / pre-computed bound constraints per token
          * @param fixedVariables  固定为常量值的变量（将被代换消除）/ variables fixed to constant values (substituted out)
          * @param identityRegistry 可选的稳定身份注册表 / optional stable identity registry
-         * @return 包含提取的变量和约束的 [BasicLinearTriadModel] / a [BasicLinearTriadModel] containing the extracted variables and constraints
-        */
+         * @return 包含变量与约束的模型或函数物化错误 / Extracted model or function materialization error
+         */
         fun from(
             model: LinearMechanismModel<Flt64>,
             tokenIndexMap: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<LinearConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             identityRegistry: ModelElementIdentityRegistry? = model.identityRegistry
-        ): BasicLinearTriadModel {
+        ): Ret<BasicLinearTriadModel> {
+            val prepared = when (val result = materializeMechanismFunctionFallbacks(model)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             val variables = dumpLinearTriadVariables(
                 tokenIndexes = tokenIndexMap,
                 bounds = bounds,
                 identityRegistry = identityRegistry
             )
             val constraints = dumpLinearTriadConstraints(
-                model = model,
+                model = prepared,
                 tokenIndexes = tokenIndexMap,
                 bounds = bounds,
                 fixedVariables = fixedVariables,
                 identityRegistry = identityRegistry
             )
-            return BasicLinearTriadModel(variables, constraints, model.name)
+            return Ok(BasicLinearTriadModel(variables, constraints, model.name))
         }
     }
     override fun copy() = BasicLinearTriadModel(
@@ -383,7 +389,7 @@ class BasicLinearTriadModel(
      *
      * 将整数变量类型松弛为连续类型（Binary->Percentage, Integer->Continuous 等）。
      * Relaxes integer variable types to continuous types (Binary->Percentage, Integer->Continuous, etc.).
-    */
+     */
     fun linearRelax() {
         variables.forEach {
             when (it.type) {
@@ -408,7 +414,7 @@ class BasicLinearTriadModel(
      * 返回线性松弛后的副本 / Return a linearly relaxed copy
      *
      * @return 线性松弛后的模型副本 / Linearly relaxed model copy
-    */
+     */
     fun linearRelaxed(): BasicLinearTriadModel {
         return BasicLinearTriadModel(
             variables = variables.map {
@@ -530,10 +536,19 @@ class BasicLinearTriadModel(
  *
  * @property constraints 线性约束批次 / Linear constraint batch
  * @property dual 是否为对偶模型 / Whether this is a dual model
-*/
+ * @property functionExpansionPolicy 函数符号展开策略 / Function symbol expansion policy
+ * @property deferredFunctionStructures 延迟函数结构快照 / Deferred function structure snapshots
+ * @property deferredFunctionConstraintRegions 延迟函数约束区域 / Deferred function constraint regions
+ */
 interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjectiveCell> {
     override val constraints: LinearConstraintBatch
     val dual: Boolean
+    val functionExpansionPolicy: FunctionExpansionPolicy
+        get() = FunctionExpansionPolicy.EAGER
+    val deferredFunctionStructures: List<DeferredFunctionStructure>
+        get() = emptyList()
+    val deferredFunctionConstraintRegions: List<DeferredFunctionConstraintRegion>
+        get() = emptyList()
 
     /**
      * Identity validation captured while building the intermediate model.
@@ -546,28 +561,28 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
      * 就地线性松弛（修改当前模型） / In-place linear relaxation (modifies the current model)
      *
      * @return 松弛后的自身引用 / Self reference after relaxation
-    */
+     */
     fun linearRelax(): LinearTriadModelView
 
     /**
      * 返回线性松弛后的副本 / Return a linearly relaxed copy
      *
      * @return 线性松弛后的模型视图副本 / Linearly relaxed model view copy
-    */
+     */
     fun linearRelaxed(): LinearTriadModelView
 
     /**
      * 构建 Farkas 对偶模型 / Build Farkas dual model
      *
      * @return Farkas 对偶线性三元模型视图 / Farkas dual linear triad model view
-    */
+     */
     suspend fun farkasDual(): LinearTriadModelView
 
     /**
      * 构建可行性模型（最小化人工变量） / Build feasibility model (minimize artificial variables)
      *
      * @return 可行性线性三元模型视图 / Feasibility linear triad model view
-    */
+     */
     fun feasibility(): LinearTriadModelView
 
     /**
@@ -576,7 +591,7 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
      * @param minmaxSlack  是否启用最小-最大松弛 / Whether to enable min-max slack
      * @param minSlackAmount  最小松弛量限制 / Minimum slack amount limit
      * @return 弹性线性三元模型视图 / Elastic linear triad model view
-    */
+     */
     fun elastic(
         minmaxSlack: Boolean = false,
         minSlackAmount: Pair<UInt64, Flt64>? = null
@@ -587,7 +602,7 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
      *
      * @param solution 求解器返回的对偶解向量 / Dual solution vector returned by the solver
      * @return 完整对偶值到原始约束的映射 / Mapping from complete dual values to original constraints
-    */
+     */
     fun tidyDualSolution(solution: List<Flt64>): kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64> {
         return if (dual) {
             variables.associateNotNull {
@@ -617,12 +632,18 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
  * @property impl 基础模型实现 / Basic model implementation
  * @property tokensInSolver 求解器中的符号列表 / Token list in solver
  * @property objective 目标函数 / Objective function
+ * @property functionExpansionPolicy 函数符号展开策略 / Function symbol expansion policy
+ * @property deferredFunctionStructures 延迟函数结构快照 / Deferred function structure snapshots
+ * @property deferredFunctionConstraintRegions 延迟函数约束区域 / Deferred function constraint regions
  * @property dualOrigin 对偶模型来源 / Dual model origin
-*/
+ */
 data class LinearTriadModel(
     private val impl: BasicLinearTriadModel,
     val tokensInSolver: List<Token<Flt64>>,
     override val objective: LinearObjective,
+    override val functionExpansionPolicy: FunctionExpansionPolicy = FunctionExpansionPolicy.EAGER,
+    override val deferredFunctionStructures: List<DeferredFunctionStructure> = emptyList(),
+    override val deferredFunctionConstraintRegions: List<DeferredFunctionConstraintRegion> = emptyList(),
     internal val dualOrigin: LinearTriadModelView? = null,
     override val identityValidation: Try = validateDerivedIdentitySet(
         variables = impl.variables,
@@ -634,6 +655,59 @@ data class LinearTriadModel(
         private val logger = logger()
 
         /**
+         * 先物化函数结构，再创建已校验的中间模型。 / Materialize functions before creating a validated intermediate model.
+         *
+         * @param model 源机制模型 / Source mechanism model
+         * @param fixedVariables 固定变量 / Fixed variables
+         * @param dumpConstraintsToBounds 是否提取边界 / Whether to extract bounds
+         * @param forceDumpBounds 是否强制提取边界 / Whether to force bound extraction
+         * @param concurrent 是否并行转储 / Whether to dump concurrently
+         * @param identityRegistry 身份注册表 / Identity registry
+         * @param nativeFunctionKeys 由调用方负责原生建模的结果变量键 / Result keys whose native relations the caller must build
+         * @return 完整模型或物化、校验错误 / Complete model or materialization and validation errors
+         */
+        suspend fun invokeResult(
+            model: LinearMechanismModel<Flt64>,
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
+            dumpConstraintsToBounds: Boolean? = null,
+            forceDumpBounds: Boolean? = null,
+            concurrent: Boolean? = null,
+            identityRegistry: ModelElementIdentityRegistry? = model.identityRegistry,
+            nativeFunctionKeys: Set<VariableItemKey> = emptySet()
+        ): Ret<LinearTriadModel> {
+            when (val validation = nativeFunctionSelectorKeys(model, nativeFunctionKeys, fixedVariables)) {
+                is Ok -> {}
+                is Failed -> return Failed(validation.error)
+                is Fatal -> return Fatal(validation.errors)
+            }
+            val prepared = when (val result = materializeMechanismFunctionFallbacks(model, nativeFunctionKeys)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            val dumped = invoke(
+                model = prepared,
+                fixedVariables = fixedVariables,
+                dumpConstraintsToBounds = dumpConstraintsToBounds,
+                forceDumpBounds = forceDumpBounds,
+                concurrent = concurrent,
+                identityRegistry = identityRegistry,
+                nativeFunctionKeys = nativeFunctionKeys
+            )
+            return when (val validation = dumped.identityValidation) {
+                is Ok -> Ok(dumped)
+                is Failed -> {
+                    dumped.close()
+                    Failed(validation.error)
+                }
+                is Fatal -> {
+                    dumped.close()
+                    Fatal(validation.errors)
+                }
+            }
+        }
+
+        /**
          * V->Flt64 转换边界：泛型 V 在线性中间模型构造时解析为具体的 Flt64 类型。 /
          * V->Flt64 conversion boundary: generic V resolves to concrete Flt64 for linear intermediate model construction.
          *
@@ -643,6 +717,7 @@ data class LinearTriadModel(
          * @param forceDumpBounds 是否强制转储可识别边界 / Whether to force recognizable bounds
          * @param concurrent 是否并行转储 / Whether to dump concurrently
          * @param identityRegistry 可选的稳定身份注册表 / Optional stable identity registry
+         * @param nativeFunctionKeys 由调用方负责原生建模的结果变量键 / Result keys whose native relations the caller must build
          * @return 线性三元模型 / Linear triad model
          */
         suspend operator fun invoke(
@@ -651,14 +726,38 @@ data class LinearTriadModel(
             dumpConstraintsToBounds: Boolean? = null,
             forceDumpBounds: Boolean? = null,
             concurrent: Boolean? = null,
-            identityRegistry: ModelElementIdentityRegistry? = model.identityRegistry
+            identityRegistry: ModelElementIdentityRegistry? = model.identityRegistry,
+            nativeFunctionKeys: Set<VariableItemKey> = emptySet()
         ): LinearTriadModel {
+            val excludedSelectorKeys = when (val validation = nativeFunctionSelectorKeys(model, nativeFunctionKeys, fixedVariables)) {
+                is Ok -> validation.value
+                is Failed -> return failedFunctionMaterialization(model, Failed(validation.error))
+                is Fatal -> return failedFunctionMaterialization(model, Fatal(validation.errors))
+            }
+            when (val prepared = materializeMechanismFunctionFallbacks(model, nativeFunctionKeys)) {
+                is Ok -> {
+                    if (prepared.value !== model) {
+                        return invoke(
+                            model = prepared.value,
+                            fixedVariables = fixedVariables,
+                            dumpConstraintsToBounds = dumpConstraintsToBounds,
+                            forceDumpBounds = forceDumpBounds,
+                            concurrent = concurrent,
+                            identityRegistry = identityRegistry,
+                            nativeFunctionKeys = nativeFunctionKeys
+                        )
+                    }
+                }
+                is Failed -> return failedFunctionMaterialization(model, Failed(prepared.error))
+                is Fatal -> return failedFunctionMaterialization(model, Fatal(prepared.errors))
+            }
             logger.trace("Creating LinearTriadModel for $model")
-            val tokensInSolver = if (fixedVariables.isNullOrEmpty()) {
+            val availableTokens = if (fixedVariables.isNullOrEmpty()) {
                 model.tokens.tokensInSolver
             } else {
                 model.tokens.tokensInSolverWithout(fixedVariables.keys)
             }
+            val tokensInSolver = availableTokens.filter { it.key !in excludedSelectorKeys }
             val tokenIndexMap = tokensInSolver.withIndex().associate { (index, token) -> token to index }
             val bounds = model.linearConstraints
                 .flatMap { constraint ->
@@ -726,7 +825,10 @@ data class LinearTriadModel(
                             name = model.name
                         ),
                         tokensInSolver = tokensInSolver,
-                        objective = objectivePromise.await()
+                        objective = objectivePromise.await(),
+                        functionExpansionPolicy = model.functionExpansionPolicy,
+                        deferredFunctionStructures = model.deferredFunctionStructures,
+                        deferredFunctionConstraintRegions = model.deferredFunctionConstraintRegions
                     )
                 }
             } else {
@@ -752,23 +854,151 @@ data class LinearTriadModel(
                         tokenIndexes = tokenIndexMap,
                         fixedVariables = fixedVariables,
                         identityRegistry = identityRegistry
-                    )
+                    ),
+                    functionExpansionPolicy = model.functionExpansionPolicy,
+                    deferredFunctionStructures = model.deferredFunctionStructures,
+                    deferredFunctionConstraintRegions = model.deferredFunctionConstraintRegions
                 )
             }
 
+            val solverIndexesByKey = if (triadModel.deferredFunctionStructures.isEmpty()) {
+                emptyMap()
+            } else {
+                triadModel.tokensInSolver.withIndex().associate { it.value.key to it.index }
+            }
+            val survivingConstraintCounts = if (model.deferredFunctionConstraintRegions.isEmpty()) {
+                IntArray(0)
+            } else {
+                val survivingConstraints = triadModel.constraints.origins.toHashSet()
+                IntArray(model.linearConstraints.size + 1).also { counts ->
+                    for ((index, constraint) in model.linearConstraints.withIndex()) {
+                        counts[index + 1] = counts[index] + if (constraint in survivingConstraints) 1 else 0
+                    }
+                }
+            }
+            val usageAwareStructures = triadModel.deferredFunctionStructures.map { structure ->
+                val resultVariable = structure.resultVariableOrNull()
+                val currentUsage = when (structure) {
+                    is UnivariateLinearPiecewiseStructure<*> -> structure.usage
+                    is AbsStructure<*> -> structure.usage
+                    is MaxStructure<*> -> structure.usage
+                    is IndicatorStructure<*> -> structure.usage
+                    is MaskingStructure<*> -> structure.usage
+                    else -> null
+                }
+                if (resultVariable == null || currentUsage == null) {
+                    structure
+                } else {
+                    val publicResults = when (structure) {
+                        is IndicatorStructure<*> -> structure.retainedResultVariables
+                        is MaskingStructure<*> -> structure.retainedResultVariables
+                        else -> listOf(resultVariable)
+                    }
+                    val publicResultKeys = publicResults.map { it.key }.toSet()
+                    val resultIndexes = publicResultKeys.mapNotNull { solverIndexesByKey[it] }.toSet()
+                    val inObjective = triadModel.objective.objective.any {
+                        it.colIndex in resultIndexes && it.coefficient != Flt64.zero
+                    }
+                    val ownRegion = model.deferredFunctionConstraintRegions.firstOrNull {
+                        it.structure.resultVariableOrNull()?.key == resultVariable.key
+                    }
+                    val inConstraint = model.linearConstraints.withIndex().any { (index, constraint) ->
+                        (ownRegion == null || index !in ownRegion.firstConstraintIndex until ownRegion.lastConstraintIndex) &&
+                            constraint.lhs.any {
+                                it.token.key in publicResultKeys && it.coefficient.toSolverFlt64() != Flt64.zero
+                            }
+                    }
+                    val nestedAsInput = currentUsage.nestedAsInput ||
+                        model.deferredFunctionStructures.any { consumer ->
+                            consumer.resultVariableOrNull()?.key != resultVariable.key &&
+                                consumer.inputPolynomialsOrEmpty().any { input ->
+                                    input.monomials.any {
+                                        (it.symbol as? AbstractVariableItem<*, *>)?.key in publicResultKeys &&
+                                            it.coefficient.toSolverFlt64() != Flt64.zero
+                                    }
+                                }
+                        }
+                    val inputs = structure.inputPolynomialsOrEmpty()
+                    val inputShape = if (inputs.size == 1 && inputs.single().monomials.singleOrNull()?.let {
+                        it.symbol is AbstractVariableItem<*, *> && it.coefficient.toSolverFlt64() == Flt64.one
+                    } == true && inputs.single().constant.toSolverFlt64() == Flt64.zero) {
+                        FunctionInputShape.SingleVariable
+                    } else {
+                        FunctionInputShape.LinearExpression
+                    }
+                    val usage = currentUsage.copy(
+                        inObjective = inObjective,
+                        inConstraint = inConstraint,
+                        nestedAsInput = nestedAsInput,
+                        externallyReferenced = currentUsage.externallyReferenced ||
+                            fixedVariables?.keys?.any { it.key in publicResultKeys } == true ||
+                            publicResults.any { model.tokens.find(it)?.result != null },
+                        inputShape = inputShape
+                    )
+                    when (structure) {
+                        is UnivariateLinearPiecewiseStructure<*> -> structure.copy(usage = usage)
+                        is AbsStructure<*> -> structure.copy(usage = usage)
+                        is MaxStructure<*> -> structure.copy(usage = usage)
+                        is IndicatorStructure<*> -> structure.copy(usage = usage)
+                        is MaskingStructure<*> -> structure.copy(usage = usage)
+                        is SemiStructure<*> -> structure.copy(usage = usage)
+                        is BinaryLogicStructure<*> -> structure.copy(usage = usage)
+                        else -> structure
+                    }
+                }
+            }
+            val usageAwareTriadModel = triadModel.copy(
+                deferredFunctionStructures = usageAwareStructures,
+                deferredFunctionConstraintRegions = model.deferredFunctionConstraintRegions.map { region ->
+                    region.copy(
+                        structure = region.structure.resultVariableOrNull()?.key?.let { resultKey ->
+                            usageAwareStructures.firstOrNull {
+                                it.resultVariableOrNull()?.key == resultKey
+                            }
+                        } ?: region.structure,
+                        firstConstraintIndex = survivingConstraintCounts[region.firstConstraintIndex],
+                        constraintCount = survivingConstraintCounts[region.lastConstraintIndex] -
+                            survivingConstraintCounts[region.firstConstraintIndex]
+                    )
+                }
+            )
+
             val identityValidation = combineIdentityValidation(
                 materializedValidation = validateDerivedIdentitySet(
-                    variables = triadModel.variables,
-                    constraints = triadModel.constraints,
-                    objective = triadModel.objective,
+                    variables = usageAwareTriadModel.variables,
+                    constraints = usageAwareTriadModel.constraints,
+                    objective = usageAwareTriadModel.objective,
                     allowGeneratedArtifactPrefix = true
                 ),
                 registryValidation = identityRegistry?.validate()
             )
-            val validatedTriadModel = triadModel.copy(identityValidation = identityValidation)
+            val validatedTriadModel = usageAwareTriadModel.copy(identityValidation = identityValidation)
             logger.trace("LinearTriadModel created for $model")
             MemoryCleanupPolicy.cleanupAfterModelBuilt()
             return validatedTriadModel
+        }
+
+        private fun failedFunctionMaterialization(
+            model: LinearMechanismModel<Flt64>,
+            failure: Try
+        ): LinearTriadModel {
+            return LinearTriadModel(
+                impl = BasicLinearTriadModel(
+                    variables = emptyList(),
+                    constraints = LinearConstraintBatch(
+                        sparseLhs = SparseMatrix<Flt64>(),
+                        signs = emptyList(),
+                        rhs = emptyList(),
+                        names = emptyList(),
+                        sources = emptyList()
+                    ),
+                    name = model.name
+                ),
+                tokensInSolver = emptyList(),
+                objective = LinearObjective(category = model.objectFunction.category, objective = emptyList()),
+                functionExpansionPolicy = model.functionExpansionPolicy,
+                identityValidation = failure
+            )
         }
     }
 
@@ -781,6 +1011,9 @@ data class LinearTriadModel(
         impl = impl.copy(),
         tokensInSolver = tokensInSolver,
         objective = objective.copy(),
+        functionExpansionPolicy = functionExpansionPolicy,
+        deferredFunctionStructures = deferredFunctionStructures,
+        deferredFunctionConstraintRegions = deferredFunctionConstraintRegions,
         identityValidation = identityValidation
     )
 
@@ -812,8 +1045,11 @@ data class LinearTriadModel(
      * 构建对偶模型 / Build dual model
      *
      * @return 对偶线性三元模型 / Dual linear triad model
-    */
+     */
     suspend fun dual(): LinearTriadModel {
+        if (identityValidation !is Ok) {
+            return copy()
+        }
         val dualVariables = this.constraints.indices.map {
             var lowerBound = Flt64.negativeInfinity
             var upperBound = Flt64.infinity
@@ -1178,6 +1414,9 @@ data class LinearTriadModel(
         ).withDerivedIdentityValidation()
     }
     override suspend fun farkasDual(): LinearTriadModel {
+        if (identityValidation !is Ok) {
+            return copy()
+        }
         var colIndex = this.constraints.size
         val farkasVariables = ArrayList<Variable>()
         val posFarkasVariables = ArrayList<Variable>()
@@ -1633,6 +1872,9 @@ data class LinearTriadModel(
         ).withDerivedIdentityValidation()
     }
     override fun feasibility(): LinearTriadModel {
+        if (identityValidation !is Ok) {
+            return copy()
+        }
         var colIndex = this.variables.size
         val slackVariables = ArrayList<Variable>()
         val artifactVariables = ArrayList<Variable>()
@@ -1849,10 +2091,18 @@ data class LinearTriadModel(
         minmaxSlack: Boolean,
         minSlackAmount: Pair<UInt64, Flt64>?
     ): LinearTriadModel {
+        if (identityValidation !is Ok) {
+            return copy()
+        }
         return buildElasticModel(minmaxSlack, minSlackAmount)
     }
 
     override fun exportLP(writer: OutputStreamWriter): Try {
+        when (val validation = identityValidation) {
+            is Ok -> {}
+            is Failed -> return Failed(validation.error)
+            is Fatal -> return Fatal(validation.errors)
+        }
         writer.write("${objective.category}\n")
         var i = 0
         for (cell in objective.objective) {
@@ -1894,8 +2144,33 @@ data class LinearTriadModel(
         }
     }
 
+    /**
+     * 释放本模型自身持有的资源。
+     *
+     * **不得**在此关闭 [dualOrigin]：`dual()` / `elastic()` 会把来源模型记为 `dualOrigin`，而来源
+     * 模型由调用方拥有，其生命周期长于派生模型。曾经这里调用 `dualOrigin?.close()`，导致
+     * "关闭派生模型"会静默清空来源模型的行（`_rhs`、`_names`、`_origins`、`_ids`、`_signs`），
+     * 产生难以察觉的 use-after-free：来源对象仍然存活、访问不再报错，却已经没有任何约束。
+     * 具体踩到的路径是"对偶模型求解完毕 → 关闭对偶模型 → 继续读取原始 triad 的行对偶"，
+     * 结果是 `triad.constraints.size == 0`，强对偶校验随即失败并让 SCIP 对偶整体降级。
+     *
+     * 所有权方向是"创建者负责释放"：调用方关闭来源模型，派生模型只释放自己。
+     *
+     * Releases only the resources this model owns.
+     *
+     * It must **not** close [dualOrigin]: `dual()` / `elastic()` record the source model as
+     * `dualOrigin`, and the source is owned by the caller and outlives the derived model. This used
+     * to call `dualOrigin?.close()`, so closing a derived model silently emptied the source model's
+     * rows (`_rhs`, `_names`, `_origins`, `_ids`, `_signs`) — a nearly invisible use-after-free: the
+     * source object stayed alive and kept answering, but had no constraints left. The concrete path
+     * that hit it was "solve the dual model -> close it -> keep reading the original triad's row
+     * duals", which left `triad.constraints.size == 0`, made the strong-duality check fail, and
+     * degraded the whole SCIP dual result.
+     *
+     * Ownership runs creator-to-created: the caller closes the source and a derived model releases
+     * only itself.
+     */
     override fun close() {
-        dualOrigin?.close()
         super.close()
     }
 

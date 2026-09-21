@@ -19,6 +19,30 @@ interface NetworkSchedulingSolverValueAdapter<V : RealNumber<V>> {
     fun fromSolverValue(value: Flt64): Ret<V>
 
     /**
+     * 将物理量归一化到目标单位并保留领域数值类型。 / Normalize a quantity to the target unit while preserving the domain numeric type.
+     *
+     * 该入口用于 ESPPRC 等领域计算；只有进入 solver 边界时才应调用 [normalize]。
+     * This entry point is for domain calculations such as ESPPRC; call [normalize] only at the solver boundary.
+     *
+     * @param quantity 原始物理量 / Source quantity
+     * @param targetUnit 目标单位 / Target unit
+     * @return 保留 V 的归一化数值或转换失败 / Normalized V value or conversion failure
+     */
+    fun normalizeValue(quantity: Quantity<V>, targetUnit: PhysicalUnit): Ret<V> {
+        if (!quantity.unit.sameDimension(targetUnit)) {
+            return networkSchedulingFailure(
+                "物理量转换失败：${quantity.unit.symbol} 与 ${targetUnit.symbol} 量纲不兼容 / " +
+                        "Quantity conversion failed: ${quantity.unit.symbol} and ${targetUnit.symbol} have incompatible dimensions"
+            )
+        }
+        val converted = quantity.convertTo(targetUnit)
+            ?: return networkSchedulingFailure(
+                "物理量转换失败：无法转换到 ${targetUnit.symbol} / Quantity conversion failed: cannot convert to ${targetUnit.symbol}"
+            )
+        return ok(converted.value)
+    }
+
+    /**
      * 将物理量归一化到目标单位并转换为 solver 值。 / Normalize a quantity to a target unit and convert it to a solver value.
      *
      * @param quantity 原始物理量 / Source quantity
@@ -26,17 +50,11 @@ interface NetworkSchedulingSolverValueAdapter<V : RealNumber<V>> {
      * @return 归一化 solver 值或转换失败 / Normalized solver value or conversion failure
      */
     fun normalize(quantity: Quantity<V>, targetUnit: PhysicalUnit): Ret<Flt64> {
-        if (!quantity.unit.sameDimension(targetUnit)) {
-            return networkSchedulingFailure(
-                "物理量转换失败：${quantity.unit.symbol} 与 ${targetUnit.symbol} 量纲不兼容 / " +
-                        "Quantity conversion failed: ${quantity.unit.symbol} and ${targetUnit.symbol} have incompatible dimensions"
-            )
+        return when (val converted = normalizeValue(quantity, targetUnit)) {
+            is Ok -> toSolverValue(converted.value)
+            is Failed -> Failed(converted.error)
+            is Fatal -> Fatal(converted.errors)
         }
-        val converted = Quantity(quantity.value.toFlt64(), quantity.unit).convertTo(targetUnit)
-            ?: return networkSchedulingFailure(
-                "物理量转换失败：无法转换到 ${targetUnit.symbol} / Quantity conversion failed: cannot convert to ${targetUnit.symbol}"
-            )
-        return finite(converted.value)
     }
 
     /** 校验 solver 值有限。 / Validate that a solver value is finite. */

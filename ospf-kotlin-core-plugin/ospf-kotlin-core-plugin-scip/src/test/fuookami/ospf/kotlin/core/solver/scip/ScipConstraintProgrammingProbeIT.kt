@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.core.solver.scip
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -174,10 +175,10 @@ class ScipConstraintProgrammingProbeIT {
         val jscipHome = System.getenv("JSCIP_HOME")
         return buildList {
             if (!explicitLibrary.isNullOrBlank()) {
-                add(Path.of(explicitLibrary))
+                add(Paths.get(explicitLibrary))
             }
             if (!jscipHome.isNullOrBlank()) {
-                add(Path.of(jscipHome, libraryName))
+                add(Paths.get(jscipHome, libraryName))
             }
         }
     }

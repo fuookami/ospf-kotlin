@@ -10,13 +10,17 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.ktorm.database.Database
+import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
 import org.ktorm.support.sqlite.SQLiteDialect
+import fuookami.ospf.kotlin.framework.persistence.expression.NullsOrderSupport
 import fuookami.ospf.kotlin.framework.persistence.expression.resolveColumnWithDiagnostics
+import fuookami.ospf.kotlin.framework.persistence.expression.translator.DefaultPatternMatchPolicy
 import fuookami.ospf.kotlin.framework.persistence.expression.translator.KtormScalarBinding
 import fuookami.ospf.kotlin.framework.persistence.expression.translator.KtormTargetConstantBinder
+import fuookami.ospf.kotlin.framework.persistence.expression.translator.PatternMatchPolicy
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.utils.functional.Failed
 
@@ -148,6 +152,185 @@ class KtormRelationalQueryCompilerTest {
         assertTrue(compiled.audit.sqlTemplate.contains("join", ignoreCase = true))
         assertTrue(compiled.audit.parameterTypes.isNotEmpty())
         assertEquals(listOf(1), compiled.query.iterator().asSequence().map { it.getInt(1) }.toList())
+    }
+
+    @Test
+    @DisplayName("offset-only pagination is compiled and executable / 仅偏移分页应被编译并可执行")
+    fun offsetOnlyPaginationIsCompiledAndExecutable() {
+        val compiler = compilerWithBindings()
+        val plan = RelationalQueryPlan(
+            root = QuerySource("orders", "o"),
+            projections = listOf(ProjectionSpec(ColumnRef("o", "id"))),
+            orderBy = listOf(OrderSpec(ColumnRef("o", "id"))),
+            page = PageSpec(limit = null, offset = 1)
+        )
+
+        val result = compiler.compile(plan)
+
+        assertTrue(result.ok)
+        val compiled = result.value!!
+        val sql = compiled.audit.sqlTemplate.lowercase()
+        assertEquals(plan.hash(), compiled.plan.hash())
+        assertEquals(1, compiled.query.expression.offset)
+        assertEquals(null, compiled.query.expression.limit)
+        assertTrue(sql.contains("limit"))
+        assertEquals(listOf(2, 3), compiled.query.iterator().asSequence().map { it.getInt(1) }.toList())
+    }
+
+    @Test
+    @DisplayName("MySQL rejects offset-only pagination / MySQL 应拒绝仅偏移分页")
+    fun mysqlRejectsOffsetOnlyPagination() {
+        val compiler = KtormRelationalQueryCompiler(
+            database = database(),
+            sources = sources(),
+            dialect = RelationalQueryDialect.MySQL
+        )
+        val result = compiler.compile(
+            RelationalQueryPlan(
+                root = QuerySource("orders"),
+                page = PageSpec(limit = null, offset = 1)
+            )
+        )
+
+        assertTrue(result.failed)
+        val failure = (result as Failed<*, *, *>).error.value as RelationalQueryFailure
+        assertEquals(QueryExecutionErrorCategory.UnsupportedDialect, failure.category)
+    }
+
+    @Test
+    @DisplayName("audit parameters follow SQL clause order / 审计参数应按 SQL 子句顺序排列")
+    fun auditParametersFollowSqlClauseOrder() {
+        val sourceMap = sources().toMutableMap()
+        val items = sourceMap.getValue("items")
+        sourceMap["itemsExists"] = KtormQuerySource(
+            source = QuerySource("itemsExists"),
+            table = items.table,
+            resolveColumnDetailed = items.resolveColumnDetailed,
+            defaultColumns = items.defaultColumns
+        )
+        val compiler = KtormRelationalQueryCompiler(
+            database = database(),
+            sources = sourceMap,
+            targetConstantBinder = targetConstantBinder()
+        )
+        val plan = RelationalQueryPlan(
+            root = QuerySource("orders", "o"),
+            joins = listOf(
+                JoinSpec(
+                    type = JoinType.Inner,
+                    source = QuerySource("items", "i"),
+                    condition = AndExpression(
+                        listOf(
+                            joinCondition(),
+                            equals("i.material", ScalarConstant(MaterialCode("M-001")))
+                        )
+                    ),
+                    cardinality = JoinCardinality.OneToMany
+                ),
+                JoinSpec(
+                    type = JoinType.Exists,
+                    source = QuerySource("itemsExists", "e"),
+                    condition = AndExpression(
+                        listOf(
+                            Comparison(
+                                operator = ComparisonOperator.Eq,
+                                left = reference("o.id"),
+                                right = reference("e.orderId")
+                            ),
+                            equals("e.material", ScalarConstant(MaterialCode("M-001")))
+                        )
+                    ),
+                    cardinality = JoinCardinality.OneToMany
+                )
+            ),
+            predicate = equals("o.id", ScalarConstant(1)),
+            projections = listOf(ProjectionSpec(ColumnRef("o", "id")))
+        )
+
+        val compiled = compiler.compile(plan)
+        val failure = compiled as? Failed<*, *, *>
+        assertTrue(
+            compiled.ok,
+            failure?.error?.message ?: "EXISTS plan should compile / EXISTS 查询计划应可编译"
+        )
+        val parameterTypes = compiled.value!!.audit.parameterTypes
+
+        assertEquals(3, parameterTypes.size)
+        assertEquals(parameterTypes[0], parameterTypes[2])
+        assertFalse(parameterTypes[0] == parameterTypes[1])
+    }
+
+    @Test
+    @DisplayName("source mappings are snapshotted / 数据源映射应在构造时冻结")
+    fun sourceMappingsAreSnapshotted() {
+        val sourceMap = sources().toMutableMap()
+        val compiler = KtormRelationalQueryCompiler(database(), sourceMap)
+        sourceMap.clear()
+
+        val result = compiler.compile(RelationalQueryPlan(root = QuerySource("orders")))
+
+        assertTrue(result.ok)
+    }
+
+    @Test
+    @DisplayName("predicate policies are forwarded / 谓词策略应透传到关系编译器")
+    fun predicatePoliciesAreForwarded() {
+        val patterns = mutableListOf<String>()
+        val policy = object : PatternMatchPolicy {
+            override fun translateLike(
+                column: ColumnDeclaring<*>,
+                pattern: String,
+                caseSensitive: Boolean
+            ): ColumnDeclaring<Boolean> {
+                patterns += pattern
+                return DefaultPatternMatchPolicy.translateLike(column, pattern, caseSensitive)
+            }
+        }
+        val compiler = KtormRelationalQueryCompiler(
+            database = database(),
+            sources = sources(),
+            patternMatchPolicy = policy
+        )
+        val plan = RelationalQueryPlan(
+            root = QuerySource("orders", "o"),
+            predicate = PatternMatch(
+                value = ScalarReference<String>(PropertyPath.parse("o.status")),
+                pattern = ScalarConstant("conf"),
+                mode = PatternMatchMode.Prefix
+            )
+        )
+
+        val result = compiler.compile(plan)
+
+        assertTrue(result.ok)
+        assertEquals(listOf("conf%"), patterns)
+    }
+
+    @Test
+    @DisplayName("null ordering support is forwarded / NULL 排序支持策略应透传")
+    fun nullOrderingSupportIsForwarded() {
+        val plan = RelationalQueryPlan(
+            root = QuerySource("orders", "o"),
+            orderBy = listOf(
+                OrderSpec(
+                    column = ColumnRef("o", "status"),
+                    nulls = NullsOrder.Last
+                )
+            )
+        )
+        val unsupported = KtormRelationalQueryCompiler(
+            database = database(),
+            sources = sources(),
+            nullsOrderSupport = NullsOrderSupport.Never
+        ).compile(plan).value!!
+        val supported = KtormRelationalQueryCompiler(
+            database = database(),
+            sources = sources(),
+            nullsOrderSupport = NullsOrderSupport.Always
+        ).compile(plan).value!!
+
+        assertTrue(unsupported.audit.sqlTemplate.contains("is null", ignoreCase = true))
+        assertFalse(supported.audit.sqlTemplate.contains("is null", ignoreCase = true))
     }
 
     @Test

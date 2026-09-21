@@ -33,6 +33,13 @@
 | `persistence.expression` | 谓词下推注解、仓储 API、排序 DSL、更新赋值 DSL、标量函数 DSL |
 | `network` | 带重试和鉴权的 HTTP 响应工具 |
 | `log` | 日志上下文管理（推送/保存接口、建造者）和日志记录类型 |
+## 公开 API
+
+| API | 职责 | 稳定性 |
+| --- | --- | --- |
+| `ColumnGenerationSolver` | 列生成求解器抽象。 | stable |
+| `Pipeline<M>` | 约束/目标流水线执行。 | stable |
+| `LogicBasedBendersEngine` | 基于逻辑的 Benders CP。 | stable |
 
 ## 求解器抽象
 
@@ -117,6 +124,8 @@ val options = FrameworkSolveOptions.Builder()
 - **port** — `ObjectStoragePort`（put/get/delete/exists）和 `SolverExecutionPort`（start/resume/await/export/fetch/stop）
 - **client** — `RemoteSolverClient` 实现逐轮求解与检查点；`RemoteSolverHttpClient` 用于 HTTP 传输
 - **adapter** — `LocalFileObjectStoragePort` 用于本地文件系统存储；`OspfRemoteModelSerializer` 用于 OSPF 序列化格式
+
+`SolvePayload.scheduling` 携带可选的 V1.2 调度要求，包括优先级、截止时间、预算、质量目标、抢占模式和恢复模式。切片及最终结果会保留有效的 `SchedulingDecision`、结果 outcome、checkpoint/incumbent 引用、指纹、provenance 和 artifact 身份。HTTP 客户端只有在显式指定 `SERVER_TASK_LATEST_CHECKPOINT` 模式时才调用服务端“恢复最新检查点”端点；默认严格模式会拒绝按指定 checkpoint 恢复，因为该端点没有 checkpoint 选择器。
 
 ## 管线建模
 

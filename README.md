@@ -2,7 +2,7 @@
 
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.fuookami.ospf.kotlin/ospf-kotlin)](https://mvnrepository.com/artifact/io.github.fuookami.ospf.kotlin/ospf-kotlin)
-[![Kotlin](https://img.shields.io/badge/Kotlin-1.9.24-yellow.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.4.20-yellow.svg?logo=kotlin)](http://kotlinlang.org)
 
 ## Introduction
 
@@ -14,6 +14,17 @@ documentation: https://fuookami.github.io/ospf/
 
 :us: English | :cn: [简体中文](README_ch.md)
 
+## Architecture Overview
+
+The workspace follows a layered shape:
+
+1. `utils`, `multiarray`, `math`, and `quantities` provide reusable foundations.
+2. `core` owns optimization modeling primitives and solver-facing model conversion.
+3. `framework` adds solver orchestration, pipeline abstractions, shadow prices, persistence contracts, and remote solving.
+4. Domain framework modules assemble reusable business-domain modeling contexts around `MetaModel`.
+5. `example` demonstrates current public flows and compatibility paths.
+
+Framework domain modules should keep optimization semantics in context / aggregation / model component / pipeline layers. Application services coordinate solver selection, lifecycle, trace/KPI/render assembly, and recovery boundaries.
 ## Module Documentation
 
 Top-level Maven modules now follow the same bilingual README convention: English documentation in `README.md`, Simplified Chinese documentation in `README_ch.md`, and language links in both files.
@@ -47,7 +58,7 @@ For new module documentation, use [docs/README_TEMPLATE.md](docs/README_TEMPLATE
 
 Requirements:
 
-* JDK: 17+ or 8+
+* JDK: 25+ or 8+
 * maven: 3+
 
 ospf-kotlin has been released to the maven central repository. Therefore, if you are using maven, you only need to add a dependency in the pom.xml file:
@@ -191,7 +202,11 @@ Parent and aggregator POMs keep stable coordinates; only publishable library mod
 
 When Maven itself runs on JDK 8, use only JVM options supported by JDK 8. Segmented CodeHeap options such as `NonProfiledCodeHeapSize` require a newer JVM; the repository-level `.mvn/jvm.config` therefore keeps only the cross-version `ReservedCodeCacheSize` option.
 
+## Constraint Programming Boundary
 
+`ospf-kotlin-core` exposes an integer-domain constraint-programming model with immutable snapshots, stable IDs, source verification, and a unified solver report. The generic MIP lowerer uses checked arithmetic internally and only crosses the existing floating-point solver boundary when every integer coefficient, bound, and generated Big-M is exactly representable.
+
+The SCIP CP entry point is a strict finite MIP-backed facade. It is not a native SCIP/CIP CP backend. The declared CP capability scope is complete: generic MIP lowering returns verified exact lowering for the supported finite subset and structured unsupported errors for `Cumulative`, `Circuit`, `Automaton`, and `Reservoir`; raw cumulative FFI is a conditional research probe, and true incremental CP sessions remain unsupported. Snapshot-rebuild sessions are correct but must not be described as native incremental resume. The fake CP solver is for contract tests and small exhaustive oracles, not production search.
 ## Changelog
 
 See [1.1.0 release notes](changelog/1.1.0.md) for the full change record.
@@ -267,8 +282,8 @@ mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*M
 
 Baseline environment used in P21-1:
 
-1. JDK: GraalVM JDK 17.0.12
-2. Maven: Apache Maven 3.9.12
+1. JDK: 25+
+2. Maven: Apache Maven 3.9.16
 3. OS: Windows (PowerShell)
 4. JVM opts recommendation (for frequent CodeHeap warnings):
    - PowerShell (current session):
@@ -283,4 +298,3 @@ Baseline environment used in P21-1:
 The ospf-kotlin is licensed under the terms of the Apache License 2.0.
 
 See [LICENSE](LICENSE) for more information.
-

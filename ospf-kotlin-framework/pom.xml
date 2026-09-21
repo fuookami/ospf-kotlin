@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin-parent</artifactId>
-        <version>1.1.0</version>
+        <version>1.1.1</version>
         <relativePath>../ospf-kotlin-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -29,7 +29,7 @@
             <artifactId>ospf-kotlin-math${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!-- http4k -->
+        <!-- http4k 依赖 / http4k dependencies -->
         <dependency>
             <groupId>org.http4k</groupId>
             <artifactId>http4k-bom</artifactId>

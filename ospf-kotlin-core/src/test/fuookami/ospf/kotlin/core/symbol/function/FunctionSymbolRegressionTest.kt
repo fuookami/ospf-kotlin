@@ -3,20 +3,21 @@ package fuookami.ospf.kotlin.core.symbol.function
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.test.flt64TestConverter
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.variable.*
 
 /**
- * MathFunctionSymbol 行为回归测试。
- * Regression tests for MathFunctionSymbol behavior.
+ * [MathFunctionSymbol] 行为回归测试。
+ * Regression tests for symbol behavior.
  */
 class FunctionSymbolRegressionTest {
 
@@ -78,7 +79,7 @@ class FunctionSymbolRegressionTest {
             name = "slack_test"
         )
 
-        assertEquals(2, slack.helperVariables.size, "SlackFunction should have 2 helper variables (pos + neg)")
+        assertEquals(3, slack.helperVariables.size, "SlackFunction should have 3 helper variables (pos + neg + branch)")
     }
 
     @Test
@@ -97,7 +98,7 @@ class FunctionSymbolRegressionTest {
             name = "aux_slack"
         )
 
-        val tokens = fuookami.ospf.kotlin.core.token.AutoTokenTable<Flt64>(Linear, false)
+        val tokens = AutoTokenTable<Flt64>(Linear, false)
         tokens.add(listOf(x))
         val result = slack.registerAuxiliaryTokens(tokens)
         assertTrue(result is Ok, "registerAuxiliaryTokens should succeed")
@@ -120,7 +121,7 @@ class FunctionSymbolRegressionTest {
         )
         val adapter = LinearFunctionSymbolAdapter(slack, flt64TestConverter)
 
-        val tokens = fuookami.ospf.kotlin.core.token.AutoTokenTable<Flt64>(Linear, false)
+        val tokens = AutoTokenTable<Flt64>(Linear, false)
         tokens.add(listOf(x))
         val result = adapter.registerAuxiliaryTokens(tokens)
         assertTrue(result is Ok, "adapter.registerAuxiliaryTokens should succeed")
@@ -306,15 +307,15 @@ class FunctionSymbolRegressionTest {
 
     @Test
     fun `MathFunctionSymbol two-phase register lifecycle works`() {
-        val tokens = fuookami.ospf.kotlin.core.token.AutoTokenTable<Flt64>(Linear, false)
+        val tokens = AutoTokenTable<Flt64>(Linear, false)
 
         val testFunc = object : MathFunctionSymbol<Flt64> {
             override var name: String = "independent_test"
             override var displayName: String? = null
             override val helperVariables: List<AbstractVariableItem<*, *>> = emptyList()
             override fun evaluate(values: Map<Symbol, Flt64>): Flt64? = null
-            override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try = ok
-            override fun registerConstraints(model: fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel<Flt64>): Try = ok
+            override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<Flt64>): Try = ok
+            override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try = ok
         }
 
         val result = testFunc.registerAuxiliaryTokens(tokens)

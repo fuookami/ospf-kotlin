@@ -1,31 +1,27 @@
 package fuookami.ospf.kotlin.example.quadratic_function
 
 import kotlinx.coroutines.runBlocking
-
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-
 import fuookami.ospf.kotlin.utils.functional.Ok
-
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.function.SemiFunction
 import fuookami.ospf.kotlin.core.symbol.function.ProductFunction
 import fuookami.ospf.kotlin.core.symbol.function.QuadraticLinearFunction
-import fuookami.ospf.kotlin.core.symbol.function.SemiFunction
 import fuookami.ospf.kotlin.core.variable.RealVar
 
 /** Verifies the constraint-shape structure of quadratic function types without invoking a solver. */
@@ -40,7 +36,7 @@ class QuadraticFunctionBuildOnlyStructureTest {
         )
         assertEquals(Flt64.one, semi.lb, "SemiFunction lb should be 1")
         assertEquals(Flt64(4.0), semi.ub, "SemiFunction ub should be 4")
-        assertTrue(semi.helperVariables.isEmpty(), "SemiFunction should have no helper variables")
+        assertEquals(2, semi.helperVariables.size, "SemiFunction should expose result and activation helpers")
         assertNull(semi.evaluate(emptyMap()), "SemiFunction evaluate with empty map should return null")
     }
 
@@ -81,10 +77,11 @@ class QuadraticFunctionBuildOnlyStructureTest {
             assertTrue(product.registerConstraints(mechanismModel) is Ok)
             val appended = mechanismModel.constraints.subList(before, mechanismModel.constraints.size)
 
-            assertEquals(1, appended.size, "ProductFunction should append 1 equality constraint")
-            assertEquals(ConstraintRelation.Equal, appended.first().sign)
-            assertTrue(appended.first().name.contains("p12_product"))
-            assertTrue(appended.first().lhs.isNotEmpty(), "constraint lhs should have cells")
+            assertEquals(
+                0,
+                appended.size,
+                "ProductFunction is expression-level and should not append an auxiliary constraint"
+            )
         } finally {
             model.close()
         }

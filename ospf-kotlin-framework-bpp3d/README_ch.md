@@ -1,4 +1,4 @@
-# OSPF Kotlin Framework BPP3D（中文）
+﻿# OSPF Kotlin Framework BPP3D（中文）
 
 :us: [English](README.md) | :cn: 简体中文
 
@@ -25,6 +25,21 @@
 3. `Axis3.X` / `Axis3.Z` 横向圆柱固定半径/离散半径可通过 axis-aware circle-packing grid 和保守的单支撑/单条或重复窄支撑线 hanging/同类重复多支撑/异构多支撑 supported-stack 生成候选，并进入 column generation。
 4. 在最终坐标已确定的已知坐标装箱/渲染路径中，通过真实几何 guard 支持 `Axis3.X` / `Axis3.Z` 横向圆柱。
 5. 横向圆柱在贴地或下方长方体支撑区间覆盖完整轴向及底部支撑线时，可通过保守的 3D stacking/hanging 支撑检查。
+
+
+## 公开 API
+
+| API | 职责 | 稳定性 |
+| --- | --- | --- |
+| `ColumnGenerationApplicationAlgorithmFactory` | 列生成算法组装工厂。 | stable |
+| `ColumnGenerationStandardExecutors` | 标准 RMP 和最终求解器执行器接线。 | stable |
+| `ColumnGenerationRmpModelExtension` | RMP 模型扩展（含影子价格）。 | stable |
+| `ColumnGenerationFinalModelExtension` | 最终 MILP 模型扩展。 | stable |
+| `ColumnGenerationAlgorithm` | 列生成算法（含生命周期钩子）。 | stable |
+| `PackingGeometryGuard` | 形状感知几何验证。 | stable |
+| `PackingRendererAdapter` | 渲染器 DTO 输出适配器。 | stable |
+| `BlockMultiArray` / `MultiArray` | 装箱支持的稀疏和密集数组。 | stable |
+
 
 ## 列生成扩展点
 

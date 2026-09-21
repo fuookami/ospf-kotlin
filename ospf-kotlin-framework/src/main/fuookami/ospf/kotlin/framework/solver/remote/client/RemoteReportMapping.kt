@@ -37,6 +37,7 @@ internal fun RemoteTerminationReason.toCoreReason(): TerminationReason {
         RemoteTerminationReason.INTERRUPTED -> TerminationReason.Interrupted
         RemoteTerminationReason.NUMERICAL_FAILURE -> TerminationReason.NumericalFailure
         RemoteTerminationReason.BACKEND_FAILURE -> TerminationReason.BackendFailure
+        RemoteTerminationReason.UNKNOWN -> TerminationReason.BackendFailure
     }
 }
 
@@ -45,6 +46,7 @@ internal fun RemoteSolutionPresence.toCorePresence(): SolutionPresence {
         RemoteSolutionPresence.NONE -> SolutionPresence.None
         RemoteSolutionPresence.INCUMBENT -> SolutionPresence.Incumbent
         RemoteSolutionPresence.OPTIMAL -> SolutionPresence.Optimal
+        RemoteSolutionPresence.UNKNOWN -> SolutionPresence.None
     }
 }
 
@@ -53,6 +55,7 @@ internal fun RemoteProofStatus.toCoreProof(): ProofStatus {
         RemoteProofStatus.NONE -> ProofStatus.None
         RemoteProofStatus.CLAIMED -> ProofStatus.Claimed
         RemoteProofStatus.VERIFIED -> ProofStatus.Verified
+        RemoteProofStatus.UNKNOWN -> ProofStatus.None
     }
 }
 

@@ -21,10 +21,13 @@ import org.ktorm.schema.Table
 import org.ktorm.schema.varchar
 import org.ktorm.support.sqlite.SQLiteDialect
 import fuookami.ospf.kotlin.framework.persistence.expression.translator.KtormColumnResolver
+import fuookami.ospf.kotlin.framework.persistence.query.KtormCompiledQuery
+import fuookami.ospf.kotlin.framework.persistence.query.RelationalQueryPlan
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.symbol.expression.dsl.and
 import fuookami.ospf.kotlin.math.symbol.expression.dsl.predicate
 import fuookami.ospf.kotlin.math.symbol.expression.dsl.PredicateSchema
+import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
  * Ktorm 仓储集成测试
@@ -83,6 +86,9 @@ class KtormRepositoryIntegrationTest {
         nullsOrderSupport = NullsOrderSupport.Never,
         unsupportedPredicatePolicy = unsupportedPredicatePolicy
     ) {
+        val compiledPlans = mutableListOf<RelationalQueryPlan>()
+        val compiledQueries = mutableListOf<KtormCompiledQuery>()
+
         override fun mapToEntity(row: QueryRowSet): User {
             return User(
                 id = row[Users.id] ?: 0,
@@ -90,6 +96,13 @@ class KtormRepositoryIntegrationTest {
                 age = row[Users.age],
                 status = row[Users.status]
             )
+        }
+
+        override fun compileQuery(plan: RelationalQueryPlan): Ret<KtormCompiledQuery> {
+            compiledPlans += plan
+            val compiled = super.compileQuery(plan)
+            compiled.value?.let(compiledQueries::add)
+            return compiled
         }
     }
 
@@ -175,6 +188,85 @@ class KtormRepositoryIntegrationTest {
                 ScalarConstant("pending")
             )
         ))
+    }
+
+    /**
+     * 验证仓储读取统一委托关系查询计划 / Verify repository reads delegate through relational query plans
+     */
+    @Test
+    @DisplayName("repository reads delegate through relational query compiler / 仓储读取委托关系查询编译器")
+    fun repositoryReadsDelegateThroughRelationalQueryCompiler() {
+        val repository = UserRepository(createDatabase(), resolver)
+        val activeWhere = Comparison(
+            ComparisonOperator.Eq,
+            ScalarReference(PropertyPath.parse("status")),
+            ScalarConstant("active")
+        )
+
+        repository.find(activeWhere, SortBy.desc("age"), limit = 1, offset = 0)
+        repository.count(activeWhere)
+
+        assertEquals(2, repository.compiledPlans.size)
+        assertEquals(activeWhere, repository.compiledPlans[0].predicate)
+        assertEquals(1, repository.compiledPlans[0].orderBy.size)
+        assertEquals(1, repository.compiledPlans[0].page?.limit)
+        assertEquals(activeWhere, repository.compiledPlans[1].predicate)
+    }
+
+    @Test
+    @DisplayName("offset-only pagination preserves all remaining rows / 仅 offset 分页应保留剩余记录")
+    fun offsetOnlyPaginationPreservesRemainingRows() {
+        val repository = UserRepository(createDatabase(), resolver)
+        val activeWhere = Comparison(
+            ComparisonOperator.Eq,
+            ScalarReference(PropertyPath.parse("status")),
+            ScalarConstant("active")
+        )
+
+        val page = repository.find(
+            where = activeWhere,
+            sortBy = SortBy.asc("id"),
+            limit = null,
+            offset = 1
+        )
+
+        assertEquals(listOf(2), page.map { it.id })
+        val plan = repository.compiledPlans.single()
+        assertEquals(null, plan.page?.limit)
+        assertEquals(1, plan.page?.offset)
+        assertTrue(plan.canonical().contains("page=unbounded:1"))
+        val compiled = repository.compiledQueries.single()
+        val sql = compiled.audit.sqlTemplate.lowercase()
+        assertEquals(plan.hash(), compiled.plan.hash())
+        assertEquals(1, compiled.query.expression.offset)
+        assertEquals(null, compiled.query.expression.limit)
+        assertTrue(sql.contains("limit"))
+    }
+
+    @Test
+    @DisplayName("logical paths require resolver registration / 逻辑路径必须经过 resolver 注册")
+    fun logicalPathsRequireResolverRegistration() {
+        val paths = mutableListOf<String>()
+        val guardedResolver = KtormColumnResolver { path ->
+            paths += path
+            if (path == "profile.status") Users.status else null
+        }
+        val repository = UserRepository(createDatabase(), guardedResolver)
+        val qualifiedStatusPath = "profile.status"
+        val qualifiedWhere = Comparison(
+            ComparisonOperator.Eq,
+            ScalarReference(PropertyPath.parse(qualifiedStatusPath)),
+            ScalarConstant("active")
+        )
+        val physicalWhere = Comparison(
+            ComparisonOperator.Eq,
+            ScalarReference(PropertyPath.parse("status")),
+            ScalarConstant("active")
+        )
+
+        assertEquals(2, repository.find(qualifiedWhere).size)
+        assertTrue(paths.contains("profile.status"))
+        assertEquals(emptyList<User>(), repository.find(physicalWhere))
     }
 
     /**

@@ -34,8 +34,8 @@ variable/
 类型通过以下接口分类：
 - `IntegerVariableType<T>` — 有符号整数变量
 - `UIntegerVariableType<T>` — 无符号整数变量
-- `ContinuesVariableType<T>` — 有符号连续变量
-- `UContinuesVariableType<T>` — 无符号连续变量
+- `ContinuousVariableType<T>` — 有符号连续变量
+- `UContinuousVariableType<T>` — 无符号连续变量
 
 每种类型提供 `minimum`、`maximum` 边界以及 `RealNumberConstants<T>` 常量定义。
 

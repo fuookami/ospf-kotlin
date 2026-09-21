@@ -76,9 +76,15 @@ class KtormRelationalQueryDialectTest {
             page = PageSpec(limit = 10, offset = 5)
         )
 
-        val result = KtormRelationalQueryCompiler(database, sources).compile(plan)
+        val compiler = KtormRelationalQueryCompiler(
+            database = database,
+            sources = sources,
+            dialect = RelationalQueryDialect.MySQL
+        )
+        val result = compiler.compile(plan)
 
         assertTrue(result.ok)
+        assertTrue(compiler.dialect == RelationalQueryDialect.MySQL)
         val sql = result.value!!.audit.sqlTemplate.lowercase()
         assertTrue(sql.contains("join"))
         assertTrue(sql.contains("limit"))

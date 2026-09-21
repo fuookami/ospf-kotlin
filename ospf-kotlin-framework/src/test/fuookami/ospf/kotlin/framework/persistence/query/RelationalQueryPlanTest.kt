@@ -67,6 +67,21 @@ class RelationalQueryPlanTest {
     }
 
     @Test
+    @DisplayName("should encode offset-only pagination / 应编码仅偏移分页")
+    fun shouldEncodeOffsetOnlyPagination() {
+        val offsetOnly = RelationalQueryPlan(
+            root = QuerySource("orders"),
+            page = PageSpec(limit = null, offset = 7)
+        )
+        val withoutPaging = RelationalQueryPlan(root = QuerySource("orders"))
+
+        assertTrue(offsetOnly.validate().ok)
+        assertTrue(offsetOnly.canonical().contains("page=unbounded:7"))
+        assertNotEquals(withoutPaging.canonical(), offsetOnly.canonical())
+        assertNotEquals(withoutPaging.hash(), offsetOnly.hash())
+    }
+
+    @Test
     @DisplayName("should reject uncorrelated or invalid exists joins / 应拒绝无关联或非法基数的 Exists Join")
     fun shouldRejectUncorrelatedOrInvalidExistsJoins() {
         val uncorrelated = RelationalQueryPlan(
@@ -196,6 +211,7 @@ class RelationalQueryPlanTest {
         assertTrue(plan.joins.isEmpty())
         assertTrue(plan.projections.isEmpty())
         assertEquals(plan.canonicalHash(), plan.copy().canonicalHash())
+        assertEquals(plan.canonicalHash(), plan.hash())
         assertEquals(64, plan.canonicalHash().length)
 
         val operands = mutableListOf<BooleanExpression>(

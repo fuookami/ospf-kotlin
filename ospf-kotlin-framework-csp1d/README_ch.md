@@ -27,8 +27,17 @@
 - `CuttingPlanSlice`、`CuttingPlan`
 - 需求贡献、render DTO，以及当前已经接入的 yield、waste、length assignment 增强上下文
 
-特定下游业务的缺陷、分段、位置约束、`unitBatch`、物料级 costar 属性、业务 DTO 协议和公式语言暂不在 framework 中建模；只有当它们先成为通用领域实体后，才进入本包。
+明确非目标：
 
+
+## 公开 API
+
+| API | 职责 | 稳定性 |
+| --- | --- | --- |
+| Csp1dProblem<V> | 问题定义和构建器 DSL。 | stable |
+| Csp1dMilp<V> | 纯 MILP 应用入口。 | stable |
+| Csp1dColumnGeneration<V> | 列生成应用入口。 | stable |
+| Csp1dRecovery | 解决方案恢复机制。 | stable |
 ## 基本使用
 
 可以直接构造 `Csp1dProblem<V>`，也可以使用 builder DSL：
