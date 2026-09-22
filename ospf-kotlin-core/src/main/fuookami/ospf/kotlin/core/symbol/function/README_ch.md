@@ -85,8 +85,8 @@ model.minimize(absolute.polynomial)
 | 文件 | 符号 | 说明 |
 |------|------|------|
 | `If.kt` | `If` | 条件表达式 `if (cond) then a else b` |
-| `IfIn.kt` | `IfIn` | 值在集合内的条件判断 |
-| `IfThen.kt` | `IfThen` | 蕴含关系 `if A then B` |
+| `IfIn.kt` | `IfIn` | 区间条件：当 a <= x <= b 时 y = 1，否则 y = 0 |
+| `IfThen.kt` | `IfThen` | 条件赋值：条件成立时 result = thenPoly，否则为 0 |
 | `And.kt` | `And` | 逻辑与 |
 | `Imply.kt` | `Imply` | 逻辑蕴含 |
 | `OneOf.kt` | `OneOf` | 恰好一个为真（XOR 推广） |

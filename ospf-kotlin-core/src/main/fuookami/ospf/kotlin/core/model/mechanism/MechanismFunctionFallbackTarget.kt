@@ -57,6 +57,15 @@ class MechanismFunctionFallbackTarget(
     ): Ret<List<DeferredFunctionConstraintRegion>> {
         val boundStructures = model.deferredFunctionConstraintRegions.map { it.structure }.toMutableList()
         for (structure in structures) {
+            // 引用同一性去重：无结果变量的结构（或同实例重复提交）也必须拒绝重复物化。
+            // Reference-identity dedup: structures without a result variable (or a resubmitted
+            // instance) must also be rejected from double materialization.
+            if (boundStructures.any { it === structure }) {
+                return Failed(
+                    ErrorCode.IllegalArgument,
+                    "函数 fallback 已绑定或在批次中重复。 / Function fallback is already bound or duplicated in the batch."
+                )
+            }
             val resultKey = structure.resultVariableOrNull()?.key
             if (resultKey != null && boundStructures.any {
                     it.resultVariableOrNull()?.key == resultKey

@@ -90,7 +90,11 @@ fun gurobiFunctionSolverCapabilities(
             }) {
             add(FunctionNativeCapability.GeneralMinMax)
         }
-        if (runCatching { GRB::class.java.getField("SEMICONT") }.isSuccess) {
+        // SEMICONT 是 GRB 常量而非模型方法：必须确认 modelClass 确为 GRBModel 才计入常量层能力，
+        // 否则任意同形类会被误报（见 Gurobi11FunctionLoweringPlannerTest 的 WrongSignature 用例）。
+        if (modelClass == GRBModel::class.java &&
+            runCatching { GRB::class.java.getField("SEMICONT") }.isSuccess
+        ) {
             add(FunctionNativeCapability.SemiContinuous)
             if (listOf("addGenConstrAnd", "addGenConstrOr").all { method ->
                     has(

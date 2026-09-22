@@ -420,8 +420,8 @@ private fun restoreValues(
     for (structure in semiStructures) {
         val result = nativeValues[structure.resultVariable.key]
             ?: return failure("半连续结果 token 缺失 / Semi-continuous result token is missing")
-        val lower = structure.converter.fromValue(structure.lowerBound).toDouble()
-        semiHelpers[structure.indicatorVariable.key] = if (result.toDouble() >= lower) Flt64.one else Flt64.zero
+        val lower = structure.converter.fromValue(structure.lowerBound).toSolverDouble()
+        semiHelpers[structure.indicatorVariable.key] = if (result.toSolverDouble() >= lower) Flt64.one else Flt64.zero
     }
     val restored = ArrayList<Flt64>(originalTokens.size)
     for (token in originalTokens) {
@@ -728,8 +728,8 @@ private fun nativeFingerprint(
             ?: return failure("半连续结果列缺失 / Semi-continuous result column is missing")
         val indicatorColumn = columns[structure.indicatorVariable.key]
             ?: return failure("半连续指示列缺失 / Semi-continuous indicator column is missing")
-        val lower = structure.converter.fromValue(structure.lowerBound).toDouble()
-        val upper = structure.converter.fromValue(structure.upperBound).toDouble()
+        val lower = structure.converter.fromValue(structure.lowerBound).toSolverDouble()
+        val upper = structure.converter.fromValue(structure.upperBound).toSolverDouble()
         if (!lower.isFinite() || !upper.isFinite() || lower <= 0.0 || lower > upper) {
             return failure("半连续边界无效 / Invalid semi-continuous bounds")
         }
@@ -1019,11 +1019,11 @@ public fun restoreNativePiecewiseSolution(
     val indicatorResiduals = ArrayList<ConstraintEvaluation<Flt64>>()
     for (structure in normalizedIndicator) {
         val resultIndex = columns[structure.resultKey] ?: return failure("Indicator result column missing")
-        val flag = solution.values.getOrNull(resultIndex)?.toDouble() ?: return failure("Indicator result value missing")
+        val flag = solution.values.getOrNull(resultIndex)?.toSolverDouble() ?: return failure("Indicator result value missing")
         var input = structure.constant
         for ((key, coefficient) in structure.terms) {
             val column = columns[key] ?: return failure("Indicator input column missing")
-            input += coefficient * (solution.values.getOrNull(column)?.toDouble() ?: return failure("Indicator input value missing"))
+            input += coefficient * (solution.values.getOrNull(column)?.toSolverDouble() ?: return failure("Indicator input value missing"))
         }
         if (!input.isFinite() || !flag.isFinite()) return failure("Non-finite indicator solution")
         val roundedFlag = if (flag >= 0.5) 1.0 else 0.0
@@ -1031,8 +1031,8 @@ public fun restoreNativePiecewiseSolution(
         structure.difference?.let { combined ->
             val secondColumn = columns[combined.condition.resultKey] ?: return failure("Difference condition column missing")
             val outputColumn = columns[combined.resultKey] ?: return failure("Difference result column missing")
-            val second = solution.values.getOrNull(secondColumn)?.toDouble() ?: return failure("Difference condition value missing")
-            val output = solution.values.getOrNull(outputColumn)?.toDouble() ?: return failure("Difference result value missing")
+            val second = solution.values.getOrNull(secondColumn)?.toSolverDouble() ?: return failure("Difference condition value missing")
+            val output = solution.values.getOrNull(outputColumn)?.toSolverDouble() ?: return failure("Difference result value missing")
             if (!second.isFinite() || !output.isFinite()) return failure("Non-finite difference solution")
             val roundedSecond = if (second >= 0.5) 1.0 else 0.0
             val expected = roundedFlag - roundedSecond
@@ -1051,8 +1051,8 @@ public fun restoreNativePiecewiseSolution(
         structure.conjunction?.let { combined ->
             val secondColumn = columns[combined.condition.resultKey] ?: return failure("Conjoined condition column missing")
             val outputColumn = columns[combined.resultKey] ?: return failure("Conjunction result column missing")
-            val second = solution.values.getOrNull(secondColumn)?.toDouble() ?: return failure("Conjoined condition value missing")
-            val output = solution.values.getOrNull(outputColumn)?.toDouble() ?: return failure("Conjunction result value missing")
+            val second = solution.values.getOrNull(secondColumn)?.toSolverDouble() ?: return failure("Conjoined condition value missing")
+            val output = solution.values.getOrNull(outputColumn)?.toSolverDouble() ?: return failure("Conjunction result value missing")
             if (!second.isFinite() || !output.isFinite()) return failure("Non-finite conjunction solution")
             val expected = if (roundedFlag == 1.0 && second >= 0.5) 1.0 else 0.0
             val difference = abs(output - expected)
@@ -1071,7 +1071,7 @@ public fun restoreNativePiecewiseSolution(
         var sideIntegrality = 0.0
         val measuredInput = if (band == null) input else {
             val sideColumn = columns[band.sideKey] ?: return failure("Zero-band side column missing")
-            val side = solution.values.getOrNull(sideColumn)?.toDouble() ?: return failure("Zero-band side value missing")
+            val side = solution.values.getOrNull(sideColumn)?.toSolverDouble() ?: return failure("Zero-band side value missing")
             if (!side.isFinite()) return failure("Non-finite zero-band side value")
             val roundedSide = if (side >= 0.5) 1.0 else 0.0
             sideIntegrality = abs(side - roundedSide)
@@ -1092,7 +1092,7 @@ public fun restoreNativePiecewiseSolution(
         )
         for (key in structure.equivalentResultKeys) {
             val column = columns[key] ?: return failure("Indicator equivalent result column missing")
-            val equivalent = solution.values.getOrNull(column)?.toDouble()
+            val equivalent = solution.values.getOrNull(column)?.toSolverDouble()
                 ?: return failure("Indicator equivalent result value missing")
             if (!equivalent.isFinite()) return failure("Non-finite indicator equivalent result")
             val difference = abs(equivalent - flag)
@@ -1111,11 +1111,11 @@ public fun restoreNativePiecewiseSolution(
         }
         structure.impliedCondition?.let { value ->
             val consequentColumn = columns[value.resultKey] ?: return failure("Implied indicator column missing")
-            val consequentFlag = solution.values.getOrNull(consequentColumn)?.toDouble() ?: return failure("Implied indicator value missing")
+            val consequentFlag = solution.values.getOrNull(consequentColumn)?.toSolverDouble() ?: return failure("Implied indicator value missing")
             var consequentInput = value.constant
             for ((key, coefficient) in value.terms) {
                 val column = columns[key] ?: return failure("Implied input column missing")
-                consequentInput += coefficient * (solution.values.getOrNull(column)?.toDouble() ?: return failure("Implied input value missing"))
+                consequentInput += coefficient * (solution.values.getOrNull(column)?.toSolverDouble() ?: return failure("Implied input value missing"))
             }
             if (!consequentFlag.isFinite() || !consequentInput.isFinite()) return failure("Non-finite implied solution")
             val linkViolation = maxOf(0.0, flag - consequentFlag,
@@ -1146,11 +1146,11 @@ public fun restoreNativePiecewiseSolution(
         }
         structure.conditionalValue?.let { value ->
             val outputColumn = columns[value.resultKey] ?: return failure("Conditional value result column missing")
-            val output = solution.values.getOrNull(outputColumn)?.toDouble() ?: return failure("Conditional value result missing")
+            val output = solution.values.getOrNull(outputColumn)?.toSolverDouble() ?: return failure("Conditional value result missing")
             var trueValue = value.constant
             for ((key, coefficient) in value.terms) {
                 val column = columns[key] ?: return failure("Conditional value input column missing")
-                trueValue += coefficient * (solution.values.getOrNull(column)?.toDouble() ?: return failure("Conditional value input missing"))
+                trueValue += coefficient * (solution.values.getOrNull(column)?.toSolverDouble() ?: return failure("Conditional value input missing"))
             }
             if (!output.isFinite() || !trueValue.isFinite()) return failure("Non-finite conditional value solution")
             val expected = if (roundedFlag == 1.0) trueValue else 0.0
@@ -1170,12 +1170,12 @@ public fun restoreNativePiecewiseSolution(
     for (structure in normalizedMasking) {
         val maskColumn = columns[structure.maskKey] ?: return failure("Mask column missing")
         val outputColumn = columns[structure.value.resultKey] ?: return failure("Masking result column missing")
-        val mask = solution.values.getOrNull(maskColumn)?.toDouble() ?: return failure("Mask value missing")
-        val output = solution.values.getOrNull(outputColumn)?.toDouble() ?: return failure("Masking result missing")
+        val mask = solution.values.getOrNull(maskColumn)?.toSolverDouble() ?: return failure("Mask value missing")
+        val output = solution.values.getOrNull(outputColumn)?.toSolverDouble() ?: return failure("Masking result missing")
         var input = structure.value.constant
         for ((key, coefficient) in structure.value.terms) {
             val column = columns[key] ?: return failure("Masking input column missing")
-            input += coefficient * (solution.values.getOrNull(column)?.toDouble() ?: return failure("Masking input value missing"))
+            input += coefficient * (solution.values.getOrNull(column)?.toSolverDouble() ?: return failure("Masking input value missing"))
         }
         if (!mask.isFinite() || !output.isFinite() || !input.isFinite()) return failure("Non-finite masking solution")
         val roundedMask = if (mask >= 0.5) 1.0 else 0.0
@@ -1183,7 +1183,7 @@ public fun restoreNativePiecewiseSolution(
             var definedMask = definition.constant
             for ((key, coefficient) in definition.terms) {
                 val column = columns[key] ?: return failure("Mask definition column missing")
-                definedMask += coefficient * (solution.values.getOrNull(column)?.toDouble() ?: return failure("Mask definition input missing"))
+                definedMask += coefficient * (solution.values.getOrNull(column)?.toSolverDouble() ?: return failure("Mask definition input missing"))
             }
             if (!definedMask.isFinite()) return failure("Non-finite mask definition value")
             val definitionViolation = abs(mask - definedMask)

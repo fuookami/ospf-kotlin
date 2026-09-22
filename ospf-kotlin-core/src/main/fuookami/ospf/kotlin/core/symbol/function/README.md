@@ -92,8 +92,8 @@ model.minimize(absolute.polynomial)
 | File | Symbol | Description |
 |------|--------|-------------|
 | `If.kt` | `If` | Conditional expression `if (cond) then a else b` |
-| `IfIn.kt` | `IfIn` | Value-in-set condition |
-| `IfThen.kt` | `IfThen` | Implication `if A then B` |
+| `IfIn.kt` | `IfIn` | Interval condition: y = 1 iff a <= x <= b, otherwise y = 0 |
+| `IfThen.kt` | `IfThen` | Conditional value: result = thenPoly when the condition holds, otherwise 0 |
 | `And.kt` | `And` | Logical AND |
 | `Imply.kt` | `Imply` | Logical implication |
 | `OneOf.kt` | `OneOf` | Exactly one true (generalized XOR) |
