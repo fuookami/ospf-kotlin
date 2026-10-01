@@ -7,8 +7,13 @@
 */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
+import java.util.concurrent.CancellationException
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 import fuookami.ospf.kotlin.framework.persistence.expression.*
+import fuookami.ospf.kotlin.framework.persistence.mybatis.MybatisDialect
+import fuookami.ospf.kotlin.framework.persistence.mybatis.MybatisSqlClause
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * MyBatis 排序翻译器
@@ -20,10 +25,12 @@ import fuookami.ospf.kotlin.framework.persistence.expression.*
  * @param T 实体类型 / Entity type
  * @property resolveColumnName 列名解析函数 / Column name resolver function
  * @property nullsOrderSupport 空值排序支持检测 / Nulls order support detection
+ * @property dialect SQL 方言 / SQL dialect
 */
 class MybatisOrderByTranslator<T : Any>(
     private val resolveColumnName: MybatisColumnNameResolver,
-    private val nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto
+    private val nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto,
+    private val dialect: MybatisDialect = MybatisDialect.Portable
 ) {
 
     /**
@@ -34,31 +41,42 @@ class MybatisOrderByTranslator<T : Any>(
      * @param sortBy 排序条件 / Sort conditions
      * @return 应用排序后的 QueryWrapper / QueryWrapper with sort applied
     */
-    fun apply(wrapper: QueryWrapper<T>, sortBy: SortBy): QueryWrapper<T> {
-        if (sortBy.isEmpty()) return wrapper
-
-        var result = wrapper
-        for (item in sortBy.items) {
-            result = applyItem(result, item)
+    fun apply(wrapper: QueryWrapper<T>, sortBy: SortBy): Ret<QueryWrapper<T>> {
+        return translate(sortBy).map { clause ->
+            if (clause.sql.isBlank()) wrapper else wrapper.last("ORDER BY ${clause.sql}")
         }
-        return result
     }
 
     /**
-     * 应用单个排序项到 Wrapper / Apply a single sort item to wrapper
+     * 翻译排序项为 SQL 子句 / Translate sort items to an SQL clause
      *
-     * @param wrapper MyBatis-Plus 查询 Wrapper / MyBatis-Plus query wrapper
-     * @param item 排序项 / Sort item
-     * @return 应用排序后的 QueryWrapper / QueryWrapper with sort item applied
-    */
-    private fun applyItem(wrapper: QueryWrapper<T>, item: SortItem): QueryWrapper<T> {
-        val column = resolveColumnName(item.path) ?: return wrapper
-
-        // 基础排序
-        // Basic sorting
-        return when (item.direction) {
-            SortDirection.Asc -> wrapper.orderByAsc(column)
-            SortDirection.Desc -> wrapper.orderByDesc(column)
+     * @param sortBy 排序条件 / Sort conditions
+     * @return 排序子句或结构化错误 / Order clause or structured failure
+     */
+    fun translate(sortBy: SortBy): Ret<MybatisSqlClause> {
+        return try {
+            val clauses = mutableListOf<String>()
+            for (item in sortBy.items) {
+                val column = resolveColumnName(item.path) ?: return Failed(
+                    ErrorCode.IllegalArgument,
+                    "排序字段无法解析：${item.path} / Cannot resolve sort field: ${item.path}"
+                )
+                when (val translated = dialect.orderBy(
+                    column = column,
+                    direction = item.direction,
+                    nulls = item.nulls,
+                    support = nullsOrderSupport
+                )) {
+                    is Ok -> clauses += translated.value.sql
+                    is Failed -> return Failed(translated.error)
+                    is Fatal -> return Fatal(translated.errors)
+                }
+            }
+            Ok(MybatisSqlClause(clauses.joinToString(", ")))
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("MyBatis order translation", error)
         }
     }
 }

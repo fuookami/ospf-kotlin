@@ -4,9 +4,10 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
+import java.util.concurrent.CancellationException
 import org.bson.Document
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -48,13 +49,14 @@ class MongoScalarTranslatorTest {
     @Test
     @DisplayName("unsupported scalar should follow policy / 不支持标量应遵循策略")
     fun unsupportedScalarShouldFollowPolicy() {
-        val alwaysFalseTranslator = MongoScalarTranslator(resolver)
-        val failFastTranslator = MongoScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
+        val alwaysFalseTranslator = MongoScalarTranslator(resolver, UnsupportedPredicatePolicy.AlwaysFalse)
+        val failFastTranslator = MongoScalarTranslator(resolver)
         val unresolved = alwaysFalseTranslator.translate(ScalarReference<Int>(PropertyPath.parse("unknown")))
         val failed = failFastTranslator.translate(ScalarCustom<Int>("x"))
 
-        assertTrue(unresolved.ok)
-        assertNull(unresolved.value)
+        assertTrue(unresolved.failed)
+        val detail = (((unresolved as Failed<*, *, *>).error as ExErr<*, *>).value as UnsupportedPredicateDetail)
+        assertEquals(UnsupportedPredicatePolicy.AlwaysFalse, detail.policy)
         assertTrue(failed.failed)
     }
 
@@ -110,14 +112,66 @@ class MongoScalarTranslatorTest {
     @Test
     @DisplayName("unknown function should follow policy / 未知函数应遵循策略")
     fun unknownFunctionShouldFollowPolicy() {
-        val alwaysFalseTranslator = MongoScalarTranslator(resolver)
+        val alwaysFalseTranslator = MongoScalarTranslator(resolver, UnsupportedPredicatePolicy.AlwaysFalse)
         val failFastTranslator = MongoScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
         val unknown = ScalarFunction("unknown", listOf(ScalarConstant(1)))
         val unsupported = alwaysFalseTranslator.translate(unknown)
         val failed = failFastTranslator.translate(unknown)
 
-        assertTrue(unsupported.ok)
-        assertNull(unsupported.value)
+        assertTrue(unsupported.failed)
         assertTrue(failed.failed)
+    }
+
+    @Test
+    @DisplayName("recursive unsupported scalar should preserve its failure / 递归不支持标量应保留失败")
+    fun recursiveUnsupportedScalarShouldPreserveFailure() {
+        val translator = MongoScalarTranslator(resolver)
+        val expression = ScalarBinary(
+            BinaryOperator.Multiply,
+            ScalarCustom<Int>("x"),
+            ScalarConstant(2)
+        )
+
+        assertTrue(translator.translate(expression).failed)
+    }
+
+    @Test
+    @DisplayName("resolver exceptions should fail and cancellation should pass through / 解析器异常应失败且取消异常继续抛出")
+    fun resolverExceptionsShouldFailAndCancellationShouldPassThrough() {
+        val expression = ScalarReference<Int>(PropertyPath.parse("price"))
+        val failingTranslator = MongoScalarTranslator(MongoFieldNameResolver { throw IllegalStateException("resolver") })
+        val cancellingTranslator = MongoScalarTranslator(
+            MongoFieldNameResolver { throw CancellationException("cancelled") }
+        )
+
+        assertTrue(failingTranslator.translate(expression).failed)
+        assertThrows(CancellationException::class.java) {
+            cancellingTranslator.translate(expression)
+        }
+    }
+
+    @Test
+    @DisplayName("later resolver errors should outrank always-false markers / 后续解析器错误应优先于恒假标记")
+    fun laterResolverErrorsShouldOutrankAlwaysFalseMarkers() {
+        val translator = MongoScalarTranslator(
+            MongoFieldNameResolver { path: String ->
+                if (path == "broken") throw IllegalStateException("resolver")
+                path
+            },
+            UnsupportedPredicatePolicy.AlwaysFalse
+        )
+        val brokenReference = ScalarReference<Int>(PropertyPath.parse("broken"))
+        val binary = ScalarBinary(
+            BinaryOperator.Add,
+            ScalarCustom<Int>("unsupported"),
+            brokenReference
+        )
+        val function = ScalarFunction(
+            ScalarFunctionNames.Coalesce,
+            listOf(ScalarCustom<Int>("unsupported"), brokenReference)
+        )
+
+        assertTrue(translator.translate(binary).failed)
+        assertTrue(translator.translate(function).failed)
     }
 }

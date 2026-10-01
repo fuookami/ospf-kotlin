@@ -24,5 +24,5 @@ Oracle 使用 `OFFSET offset ROWS FETCH NEXT limit ROWS ONLY`。`RelationalQuery
 `RelationalQueryExecutionStatsRecorder` 是线程安全的内存审计记录器。`recordSuccess` 和 `recordFailure` 保存计划哈希、规范化表示、
 耗时、行数和失败状态；`snapshot()` 返回当前记录且不暴露内部队列。
 
-旧的 `ExpressionRepository` 接口保持不变，因为其同步的列表、计数和更新方法不是 `Ret` 返回模式。适配器可以在基础设施边界
-将既有 `BooleanExpression` DSL 构造成 `RelationalQueryPlan`，再转换编译器返回的 `Ret` 结果。
+`ExpressionRepository` 操作是同步的，并返回 `Ret`（`Ret<List<E>>`、`Ret<Long>`、`Ret<Int>` 或 `Ret<Boolean>`）。适配器可以在基础设施边界
+将既有 `BooleanExpression` DSL 构造成 `RelationalQueryPlan`，并通过仓储接口返回编译器的 `Ret` 结果，使调用方保留后端失败信息。

@@ -75,7 +75,7 @@ typealias KtormTargetConstantBinder = (Any, SqlType<*>) -> KtormScalarBinding?
 */
 class KtormScalarTranslator(
     private val resolveColumn: KtormColumnResolver,
-    private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse,
+    private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.FailFast,
     private val constantBinder: (Any) -> KtormScalarBinding? = ::defaultSqlConstantBinding,
     private val parameterTypeSink: ((SqlType<*>) -> Unit)? = null,
     private val resolveColumnDetailed: ((String) -> PersistenceFieldResolution<ColumnDeclaring<*>>)? = null,
@@ -89,6 +89,16 @@ class KtormScalarTranslator(
      * @return Ktorm 标量表达式，不支持时返回 null / Ktorm scalar expression, or null if unsupported
     */
     fun translate(expr: ScalarExpression<*>): Ret<KtormScalarExpression<*>?> {
+        return try {
+            translateInternal(expr)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("Ktorm scalar translation", error)
+        }
+    }
+
+    private fun translateInternal(expr: ScalarExpression<*>): Ret<KtormScalarExpression<*>?> {
         return when (expr) {
             is ScalarReference<*> -> {
                 val column = resolveColumn(expr.path.value)
@@ -176,7 +186,7 @@ class KtormScalarTranslator(
      * @return Ktorm 一元表达式 / Ktorm unary expression
     */
     private fun translateUnary(expr: ScalarUnary<*>): Ret<KtormScalarExpression<*>?> {
-        val translatedOperand = translate(expr.operand)
+        val translatedOperand = translateInternal(expr.operand)
         if (translatedOperand.failed) return propagateFailure(translatedOperand)
         val operand = translatedOperand.value ?: return Ok(null)
         val type = when (expr.operator) {
@@ -196,12 +206,34 @@ class KtormScalarTranslator(
      * @return Ktorm 二元表达式 / Ktorm binary expression
     */
     private fun translateBinary(expr: ScalarBinary<*>): Ret<KtormScalarExpression<*>?> {
-        val translatedLeft = translate(expr.left)
-        if (translatedLeft.failed) return propagateFailure(translatedLeft)
-        val left = translatedLeft.value ?: return Ok(null)
-        val translatedRight = translate(expr.right)
-        if (translatedRight.failed) return propagateFailure(translatedRight)
-        val right = translatedRight.value ?: return Ok(null)
+        val translatedLeft = translateInternal(expr.left)
+        var unsupportedFailure: Ret<KtormScalarExpression<*>?>? = null
+        var left = translatedLeft.value
+        if (translatedLeft.failed) {
+            val failure = propagateFailure(translatedLeft)
+            if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translatedLeft.isAlwaysFalseUnsupported()) {
+                unsupportedFailure = failure
+                left = null
+            } else {
+                return failure
+            }
+        }
+
+        val translatedRight = translateInternal(expr.right)
+        var right = translatedRight.value
+        if (translatedRight.failed) {
+            val failure = propagateFailure(translatedRight)
+            if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translatedRight.isAlwaysFalseUnsupported()) {
+                unsupportedFailure = unsupportedFailure ?: failure
+                right = null
+            } else {
+                return failure
+            }
+        }
+
+        unsupportedFailure?.let { return it }
+        val leftValue = left ?: return Ok(null)
+        val rightValue = right ?: return Ok(null)
         val type = when (expr.operator) {
             BinaryOperator.Add -> BinaryExpressionType.PLUS
             BinaryOperator.Subtract -> BinaryExpressionType.MINUS
@@ -211,8 +243,8 @@ class KtormScalarTranslator(
             BinaryOperator.Power -> return unsupported("POWER scalar expression is not supported")
         }
         @Suppress("UNCHECKED_CAST")
-        val sqlType = left.sqlType as SqlType<Any>
-        return Ok(BinaryExpression(type, left, right, sqlType))
+        val sqlType = leftValue.sqlType as SqlType<Any>
+        return Ok(BinaryExpression(type, leftValue, rightValue, sqlType))
     }
 
     /**
@@ -223,11 +255,25 @@ class KtormScalarTranslator(
     */
     private fun translateFunction(expr: ScalarFunction<*>): Ret<KtormScalarExpression<*>?> {
         val arguments = mutableListOf<KtormScalarExpression<*>>()
+        var unsupportedFailure: Ret<KtormScalarExpression<*>?>? = null
         expr.arguments.forEach { argument ->
-            val translated = translate(argument)
-            if (translated.failed) return propagateFailure(translated)
-            arguments += translated.value ?: return Ok(null)
+            val translated = translateInternal(argument)
+            if (translated.failed) {
+                val failure = propagateFailure(translated)
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translated.isAlwaysFalseUnsupported()) {
+                    unsupportedFailure = unsupportedFailure ?: failure
+                    return@forEach
+                }
+                return failure
+            }
+            val value = translated.value
+            if (value == null) {
+                unsupportedFailure?.let { return it }
+                return Ok(null)
+            }
+            arguments += value
         }
+        unsupportedFailure?.let { return it }
         return when (expr.name.lowercase()) {
             ScalarFunctionNames.Abs -> {
                 if (arguments.size != 1) {
@@ -305,7 +351,13 @@ class KtormScalarTranslator(
                 )
                 Failed(detail.toError())
             }
-            UnsupportedPredicatePolicy.AlwaysFalse -> Ok(null)
+            UnsupportedPredicatePolicy.AlwaysFalse -> Failed(
+                UnsupportedPredicateDetail.alwaysFalse(
+                    expressionType = "ScalarExpression",
+                    reason = reason,
+                    backendName = "Ktorm"
+                ).toError()
+            )
             UnsupportedPredicatePolicy.ClientFilter -> {
                 val detail = UnsupportedPredicateDetail.clientFilter(
                     expressionType = "ScalarExpression",
@@ -331,8 +383,9 @@ class KtormScalarTranslator(
     private fun propagateFailure(
         result: Ret<KtormScalarExpression<*>?>
     ): Ret<KtormScalarExpression<*>?> {
-        @Suppress("UNCHECKED_CAST")
-        val failed = result as Failed<KtormScalarExpression<*>?, ErrorCode, Error<ErrorCode>>
-        return Failed(failed.error)
+        return result.propagateFailure() ?: Failed(
+            ErrorCode.ApplicationError,
+            "Ktorm 标量失败传播状态无效 / Invalid Ktorm scalar failure propagation state"
+        )
     }
 }

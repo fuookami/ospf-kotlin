@@ -16,6 +16,8 @@ import fuookami.ospf.kotlin.math.symbol.expression.AndExpression
 import fuookami.ospf.kotlin.math.symbol.expression.BooleanCustom
 import fuookami.ospf.kotlin.math.symbol.expression.Comparison
 import fuookami.ospf.kotlin.math.symbol.expression.ComparisonOperator
+import fuookami.ospf.kotlin.math.symbol.expression.PatternMatch
+import fuookami.ospf.kotlin.math.symbol.expression.PatternMatchMode
 import fuookami.ospf.kotlin.math.symbol.expression.PropertyPath
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarReference
@@ -68,15 +70,18 @@ class RelationalQueryCompilerTest {
         val postgres = SqlRelationalQueryCompiler(RelationalQueryDialect.PostgreSQL).compile(plan)
         val sqlite = SqlRelationalQueryCompiler(RelationalQueryDialect.SQLite).compile(plan)
         val oracle = SqlRelationalQueryCompiler(RelationalQueryDialect.Oracle).compile(plan)
+        val h2 = SqlRelationalQueryCompiler(RelationalQueryDialect.H2).compile(plan)
 
         assertTrue(mysql.ok)
         assertTrue(postgres.ok)
         assertTrue(sqlite.ok)
         assertTrue(oracle.ok)
+        assertTrue(h2.ok)
         assertEquals(listOf("OPEN", 100), mysql.value?.parameters)
         assertEquals(listOf("OPEN", 100), postgres.value?.parameters)
         assertEquals(listOf("OPEN", 100), sqlite.value?.parameters)
         assertEquals(listOf("OPEN", 100), oracle.value?.parameters)
+        assertEquals(listOf("OPEN", 100), h2.value?.parameters)
         assertTrue(mysql.value?.sql?.contains("SELECT `o`.`id`, `o`.`status` AS `state`") == true)
         assertTrue(mysql.value?.sql?.endsWith("LIMIT 20, 10") == true)
         assertTrue(postgres.value?.sql?.contains("SELECT \"o\".\"id\", \"o\".\"status\" AS \"state\"") == true)
@@ -85,6 +90,8 @@ class RelationalQueryCompilerTest {
         assertTrue(sqlite.value?.sql?.endsWith("LIMIT 10 OFFSET 20") == true)
         assertTrue(oracle.value?.sql?.contains("SELECT \"o\".\"id\", \"o\".\"status\" AS \"state\"") == true)
         assertTrue(oracle.value?.sql?.endsWith("OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY") == true)
+        assertTrue(h2.value?.sql?.endsWith("OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY") == true)
+        assertTrue(h2.value?.sql?.contains("\"o\".\"id\"") == true)
         assertFalse(mysql.value?.sql?.contains("OPEN") == true)
     }
 
@@ -99,6 +106,7 @@ class RelationalQueryCompilerTest {
         val postgres = SqlRelationalQueryCompiler(RelationalQueryDialect.PostgreSQL).compile(plan)
         val sqlite = SqlRelationalQueryCompiler(RelationalQueryDialect.SQLite).compile(plan)
         val oracle = SqlRelationalQueryCompiler(RelationalQueryDialect.Oracle).compile(plan)
+        val h2 = SqlRelationalQueryCompiler(RelationalQueryDialect.H2).compile(plan)
         val mysql = SqlRelationalQueryCompiler(RelationalQueryDialect.MySQL).compile(plan)
 
         assertTrue(postgres.ok)
@@ -110,10 +118,40 @@ class RelationalQueryCompilerTest {
         assertTrue(oracle.ok)
         assertTrue(oracle.value?.sql?.endsWith("OFFSET 20 ROWS") == true)
         assertFalse(oracle.value?.sql?.contains("FETCH NEXT") == true)
+        assertTrue(h2.ok)
+        assertTrue(h2.value?.sql?.endsWith("OFFSET 20 ROWS") == true)
+        assertFalse(h2.value?.sql?.contains("FETCH NEXT") == true)
         assertTrue(mysql.failed)
         val mysqlFailure = (mysql as Failed<*, *, *>).error.value
             as RelationalQueryCompilationError
         assertEquals(RelationalQueryCompilationErrorCategory.UnsupportedDialect, mysqlFailure.category)
+    }
+
+    @Test
+    fun h2UsesStandardNullOrderingAndRegexFunction() {
+        val plan = RelationalQueryPlan(
+            root = QuerySource("orders", "o"),
+            predicate = PatternMatch(
+                value = ScalarReference<String>(PropertyPath.parse("o.name")),
+                pattern = ScalarConstant("Ada.*"),
+                mode = PatternMatchMode.Regex
+            ),
+            projections = listOf(ProjectionSpec(ColumnRef("o", "id"))),
+            orderBy = listOf(
+                OrderSpec(
+                    column = ColumnRef("o", "name"),
+                    direction = SortDirection.Descending,
+                    nulls = NullsOrder.Last
+                )
+            )
+        )
+
+        val result = SqlRelationalQueryCompiler(RelationalQueryDialect.H2).compile(plan)
+
+        assertTrue(result.ok)
+        assertEquals(listOf("Ada.*"), result.value?.parameters)
+        assertTrue(result.value?.sql?.contains("REGEXP_LIKE(\"o\".\"name\", ?)") == true)
+        assertTrue(result.value?.sql?.contains("\"o\".\"name\" DESC NULLS LAST") == true)
     }
 
     @Test

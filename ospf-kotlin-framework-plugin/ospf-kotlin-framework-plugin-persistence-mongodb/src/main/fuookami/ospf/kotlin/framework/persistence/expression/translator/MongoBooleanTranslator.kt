@@ -6,6 +6,7 @@
 */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
+import java.util.concurrent.CancellationException
 import com.mongodb.client.model.Filters
 import org.bson.Document
 import org.bson.conversions.Bson
@@ -31,7 +32,7 @@ typealias MongoFieldNameResolver = PersistenceFieldResolver<String>
 */
 class MongoBooleanTranslator(
     private val resolveFieldName: MongoFieldNameResolver,
-    private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
+    private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.FailFast
 ) {
 
     /**
@@ -43,9 +44,19 @@ class MongoBooleanTranslator(
      * 翻译布尔表达式为 Bson / Translate boolean expression to Bson
      *
      * @param expr 布尔表达式 / Boolean expression
-     * @return Bson 查询条件，不支持时返回 null / Bson query condition, or null if unsupported
+     * @return Bson 查询条件；翻译失败时返回失败结果 / Bson query condition, or a failed result when translation is unsupported
     */
     fun translate(expr: BooleanExpression): Ret<Bson?> {
+        return try {
+            translateInternal(expr).withAlwaysFalseUnsupported { alwaysFalse() }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("MongoDB boolean translation", error)
+        }
+    }
+
+    private fun translateInternal(expr: BooleanExpression): Ret<Bson?> {
         return when (expr) {
             is BooleanConstant -> translateConstant(expr)
             is Comparison<*> -> translateComparison(expr)
@@ -121,10 +132,30 @@ class MongoBooleanTranslator(
             })
         }
 
-        val left = scalarTranslator.translate(expr.left).value
-            ?: return unsupported("Unsupported left scalar expression: ${expr.left.typeName}", expr)
-        val right = scalarTranslator.translate(expr.right).value
-            ?: return unsupported("Unsupported right scalar expression: ${expr.right.typeName}", expr)
+        var unsupportedFailure: Ret<Bson?>? = null
+        val translatedLeft = scalarTranslator.translate(expr.left)
+        val leftFailure = translatedLeft.propagateFailure<Bson?>()
+        if (leftFailure != null) {
+            if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translatedLeft.isAlwaysFalseUnsupported()) {
+                unsupportedFailure = leftFailure
+            } else {
+                return leftFailure
+            }
+        }
+
+        val translatedRight = scalarTranslator.translate(expr.right)
+        val rightFailure = translatedRight.propagateFailure<Bson?>()
+        if (rightFailure != null) {
+            if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translatedRight.isAlwaysFalseUnsupported()) {
+                unsupportedFailure = unsupportedFailure ?: rightFailure
+            } else {
+                return rightFailure
+            }
+        }
+
+        unsupportedFailure?.let { return it }
+        val left = translatedLeft.value
+        val right = translatedRight.value
         return Ok(Document("\$expr", Document(exprOperator(expr.operator), listOf(left, right))))
     }
 
@@ -213,7 +244,32 @@ class MongoBooleanTranslator(
      * @return Bson 查询条件 / Bson query condition
     */
     private fun translateAnd(expr: AndExpression): Ret<Bson?> {
-        val conditions = expr.operands.map { translate(it).value ?: alwaysFalse() }
+        if (expr.operands.isEmpty()) return Ok(Filters.empty())
+
+        val conditions = mutableListOf<Bson>()
+        var firstUnsupported: Ret<Bson?>? = null
+        for (operand in expr.operands) {
+            val translated = translateInternal(operand)
+            val failure = translated.propagateFailure<Bson?>()
+            if (failure != null) {
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translated.isAlwaysFalseUnsupported()) {
+                    firstUnsupported = firstUnsupported ?: failure
+                    continue
+                }
+                return failure
+            }
+            val condition = translated.value
+            if (condition == null) {
+                val failure = unsupported("Unsupported AND operand", operand)
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && failure.isAlwaysFalseUnsupported()) {
+                    firstUnsupported = firstUnsupported ?: failure
+                    continue
+                }
+                return failure
+            }
+            conditions += condition
+        }
+        firstUnsupported?.let { return it }
         return Ok(Filters.and(conditions))
     }
 
@@ -224,7 +280,32 @@ class MongoBooleanTranslator(
      * @return Bson 查询条件 / Bson query condition
     */
     private fun translateOr(expr: OrExpression): Ret<Bson?> {
-        val conditions = expr.operands.map { translate(it).value ?: alwaysFalse() }
+        if (expr.operands.isEmpty()) return Ok(alwaysFalse())
+
+        val conditions = mutableListOf<Bson>()
+        var firstUnsupported: Ret<Bson?>? = null
+        for (operand in expr.operands) {
+            val translated = translateInternal(operand)
+            val failure = translated.propagateFailure<Bson?>()
+            if (failure != null) {
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translated.isAlwaysFalseUnsupported()) {
+                    firstUnsupported = firstUnsupported ?: failure
+                    continue
+                }
+                return failure
+            }
+            val condition = translated.value
+            if (condition == null) {
+                val failure = unsupported("Unsupported OR operand", operand)
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && failure.isAlwaysFalseUnsupported()) {
+                    firstUnsupported = firstUnsupported ?: failure
+                    continue
+                }
+                return failure
+            }
+            conditions += condition
+        }
+        firstUnsupported?.let { return it }
         return Ok(Filters.or(conditions))
     }
 
@@ -235,7 +316,23 @@ class MongoBooleanTranslator(
      * @return Bson 查询条件 / Bson query condition
     */
     private fun translateNot(expr: NotExpression): Ret<Bson?> {
-        val condition = translate(expr.operand).value ?: return unsupported("Unsupported NOT operand", expr)
+        return when (val operand = expr.operand) {
+            is BooleanConstant -> translateConstant(BooleanConstant(when (operand.value) {
+                Trivalent.True -> Trivalent.False
+                Trivalent.False -> Trivalent.True
+                Trivalent.Unknown -> Trivalent.Unknown
+            }))
+            is NotExpression -> translateInternal(operand.operand)
+            is AndExpression -> translateInternal(OrExpression(operand.operands.map { NotExpression(it) }))
+            is OrExpression -> translateInternal(AndExpression(operand.operands.map { NotExpression(it) }))
+            else -> translateNotAtomic(operand, expr)
+        }
+    }
+
+    private fun translateNotAtomic(operand: BooleanExpression, expression: NotExpression): Ret<Bson?> {
+        val translated = translateInternal(operand)
+        translated.propagateFailure<Bson?>()?.let { return it }
+        val condition = translated.value ?: return unsupported("Unsupported NOT operand", expression)
         return Ok(Filters.not(condition))
     }
 
@@ -263,7 +360,7 @@ class MongoBooleanTranslator(
      * @param expression 不支持的表达式 / Unsupported expression
      * @return 处理结果 / Handling result
     */
-    private fun unsupported(reason: String, expression: BooleanExpression): Ret<Bson> {
+    private fun unsupported(reason: String, expression: BooleanExpression): Ret<Bson?> {
         return when (unsupportedPredicatePolicy) {
             UnsupportedPredicatePolicy.FailFast -> {
                 val detail = UnsupportedPredicateDetail.failFast(
@@ -273,7 +370,13 @@ class MongoBooleanTranslator(
                 )
                 Failed(detail.toError())
             }
-            UnsupportedPredicatePolicy.AlwaysFalse -> Ok(alwaysFalse())
+            UnsupportedPredicatePolicy.AlwaysFalse -> Failed(
+                UnsupportedPredicateDetail.alwaysFalse(
+                    expressionType = expression.typeName,
+                    reason = reason,
+                    backendName = "MongoDB"
+                ).toError()
+            )
             UnsupportedPredicatePolicy.ClientFilter -> {
                 val detail = UnsupportedPredicateDetail.clientFilter(
                     expressionType = expression.typeName,

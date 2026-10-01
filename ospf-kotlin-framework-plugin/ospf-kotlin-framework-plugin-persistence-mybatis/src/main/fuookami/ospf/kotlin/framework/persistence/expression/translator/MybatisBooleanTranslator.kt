@@ -6,7 +6,9 @@
 */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
+import java.util.concurrent.CancellationException
 import fuookami.ospf.kotlin.framework.persistence.expression.*
+import fuookami.ospf.kotlin.framework.persistence.mybatis.MybatisDialect
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.utils.error.*
@@ -29,12 +31,14 @@ typealias MybatisColumnNameResolver = PersistenceFieldResolver<String>
  * @param T 实体类型 / Entity type
  * @property resolveColumnName 列名解析函数 / Column name resolver function
  * @property unsupportedPredicatePolicy 不支持谓词时的策略 / Policy for unsupported predicates
+ * @param dialect SQL 方言 / SQL dialect
 */
 class MybatisBooleanTranslator<T : Any>(
     private val resolveColumnName: MybatisColumnNameResolver,
-    private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
+    private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.FailFast,
+    dialect: MybatisDialect = MybatisDialect.Portable
 ) {
-    private val scalarTranslator = MybatisScalarTranslator(resolveColumnName, unsupportedPredicatePolicy)
+    private val scalarTranslator = MybatisScalarTranslator(resolveColumnName, unsupportedPredicatePolicy, dialect)
 
     /**
      * 翻译布尔表达式到 QueryWrapper
@@ -45,7 +49,7 @@ class MybatisBooleanTranslator<T : Any>(
      * @return 应用条件后的 QueryWrapper / QueryWrapper with condition applied
     */
     fun translate(wrapper: QueryWrapper<T>, expr: BooleanExpression): Ret<QueryWrapper<T>> {
-        return translateInternal(wrapper, expr)
+        return translateRoot(wrapper, expr) { QueryWrapper<T>() }
     }
 
     /**
@@ -57,7 +61,21 @@ class MybatisBooleanTranslator<T : Any>(
      * @return 应用条件后的 UpdateWrapper / UpdateWrapper with condition applied
     */
     fun translate(wrapper: UpdateWrapper<T>, expr: BooleanExpression): Ret<UpdateWrapper<T>> {
-        return translateInternal(wrapper, expr)
+        return translateRoot(wrapper, expr) { UpdateWrapper<T>() }
+    }
+
+    private fun <W : AbstractWrapper<T, String, W>> translateRoot(
+        wrapper: W,
+        expr: BooleanExpression,
+        probeWrapper: () -> W
+    ): Ret<W> {
+        return try {
+            translateInternal(wrapper, expr, probeWrapper).withAlwaysFalseUnsupported { alwaysFalse(wrapper) }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("MyBatis boolean translation", error)
+        }
     }
 
     /**
@@ -67,16 +85,20 @@ class MybatisBooleanTranslator<T : Any>(
      * @param expr 布尔表达式 / Boolean expression
      * @return 应用条件后的 Wrapper / Wrapper with condition applied
     */
-    private fun <W : AbstractWrapper<T, String, W>> translateInternal(wrapper: W, expr: BooleanExpression): Ret<W> {
+    private fun <W : AbstractWrapper<T, String, W>> translateInternal(
+        wrapper: W,
+        expr: BooleanExpression,
+        probeWrapper: () -> W
+    ): Ret<W> {
         return when (expr) {
             is BooleanConstant -> translateConstant(wrapper, expr)
             is Comparison<*> -> translateComparison(wrapper, expr)
             is InExpression<*> -> translateIn(wrapper, expr)
             is PatternMatch<*> -> translatePatternMatch(wrapper, expr)
             is NullCheck -> translateNullCheck(wrapper, expr)
-            is AndExpression -> translateAnd(wrapper, expr)
-            is OrExpression -> translateOr(wrapper, expr)
-            is NotExpression -> translateNot(wrapper, expr)
+            is AndExpression -> translateAnd(wrapper, expr, probeWrapper)
+            is OrExpression -> translateOr(wrapper, expr, probeWrapper)
+            is NotExpression -> translateNot(wrapper, expr, probeWrapper)
             is BooleanCustom -> unsupported(wrapper, "BooleanCustom is not supported", expr)
         }
     }
@@ -90,13 +112,15 @@ class MybatisBooleanTranslator<T : Any>(
     */
     private fun <W : AbstractWrapper<T, String, W>> translateConstant(wrapper: W, expr: BooleanConstant): Ret<W> {
         return Ok(when (expr.value) {
-            Trivalent.True -> wrapper
-            Trivalent.False, Trivalent.Unknown -> wrapper.apply("1 = 0")
+            Trivalent.True -> wrapper.apply("1 = 1")
+            Trivalent.False -> wrapper.apply("1 = 0")
+            Trivalent.Unknown -> wrapper.apply("1 = NULL")
         })
     }
 
-    /** 构建 AlwaysFalse 条件 / Build AlwaysFalse condition */
+    /** 构建根级 AlwaysFalse 条件 / Build a root-level AlwaysFalse condition */
     private fun <W : AbstractWrapper<T, String, W>> alwaysFalse(wrapper: W): W {
+        wrapper.clear()
         return wrapper.apply("1 = 0")
     }
 
@@ -115,7 +139,13 @@ class MybatisBooleanTranslator<T : Any>(
                 )
                 Failed(detail.toError())
             }
-            UnsupportedPredicatePolicy.AlwaysFalse -> Ok(alwaysFalse(wrapper))
+            UnsupportedPredicatePolicy.AlwaysFalse -> Failed(
+                UnsupportedPredicateDetail.alwaysFalse(
+                    expressionType = expression.typeName,
+                    reason = reason,
+                    backendName = "MyBatis"
+                ).toError()
+            )
             UnsupportedPredicatePolicy.ClientFilter -> {
                 val detail = UnsupportedPredicateDetail.clientFilter(
                     expressionType = expression.typeName,
@@ -178,12 +208,36 @@ class MybatisBooleanTranslator<T : Any>(
             })
         }
 
-        val left = scalarTranslator.translate(expr.left).value
+        var unsupportedFailure: Ret<W>? = null
+        val translatedLeft = scalarTranslator.translate(expr.left)
+        var left = translatedLeft.value
+        translatedLeft.propagateFailure<W>()?.let { failure ->
+            if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translatedLeft.isAlwaysFalseUnsupported()) {
+                unsupportedFailure = failure
+                left = null
+            } else {
+                return failure
+            }
+        }
+
+        val translatedRight = scalarTranslator.translate(expr.right)
+        var right = translatedRight.value
+        translatedRight.propagateFailure<W>()?.let { failure ->
+            if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translatedRight.isAlwaysFalseUnsupported()) {
+                unsupportedFailure = unsupportedFailure ?: failure
+                right = null
+            } else {
+                return failure
+            }
+        }
+
+        unsupportedFailure?.let { return it }
+        val leftValue = left
             ?: return unsupported(wrapper, "Unsupported left scalar expression: ${expr.left.typeName}", expr)
-        val right = scalarTranslator.translate(expr.right).value?.shifted(left.params.size)
+        val rightValue = right?.shifted(leftValue.params.size)
             ?: return unsupported(wrapper, "Unsupported right scalar expression: ${expr.right.typeName}", expr)
-        val sql = "${left.sql} ${comparisonSql(expr.operator)} ${right.sql}"
-        val params = left.params + right.params
+        val sql = "${leftValue.sql} ${comparisonSql(expr.operator)} ${rightValue.sql}"
+        val params = leftValue.params + rightValue.params
         return Ok(wrapper.apply(sql, *params.toTypedArray()))
     }
 
@@ -273,12 +327,40 @@ class MybatisBooleanTranslator<T : Any>(
      * @param expr AND 表达式 / AND expression
      * @return 应用 AND 条件后的 Wrapper / Wrapper with AND condition applied
     */
-    private fun <W : AbstractWrapper<T, String, W>> translateAnd(wrapper: W, expr: AndExpression): Ret<W> {
+    private fun <W : AbstractWrapper<T, String, W>> translateAnd(
+        wrapper: W,
+        expr: AndExpression,
+        probeWrapper: () -> W
+    ): Ret<W> {
         var result = wrapper
+        var firstUnsupported: Ret<W>? = null
+        var probing = false
         for (operand in expr.operands) {
-            result = translateInternal(result, operand).value ?: return Ok(result)
+            val target = if (probing) probeWrapper() else result
+            val translated = translateInternal(target, operand, probeWrapper)
+            val translatedFailure = translated.propagateFailure<W>()
+            if (translatedFailure != null) {
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translated.isAlwaysFalseUnsupported()) {
+                    firstUnsupported = firstUnsupported ?: translatedFailure
+                    probing = true
+                    continue
+                }
+                return translatedFailure
+            }
+
+            val translatedValue = translated.value
+            if (translatedValue == null) {
+                val failure = unsupported(target, "Unsupported AND operand", operand)
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && failure.isAlwaysFalseUnsupported()) {
+                    firstUnsupported = firstUnsupported ?: failure
+                    probing = true
+                    continue
+                }
+                return failure
+            }
+            if (!probing) result = translatedValue
         }
-        return Ok(result)
+        return firstUnsupported ?: Ok(result)
     }
 
     /**
@@ -288,20 +370,70 @@ class MybatisBooleanTranslator<T : Any>(
      * @param expr OR 表达式 / OR expression
      * @return 应用 OR 条件后的 Wrapper / Wrapper with OR condition applied
     */
-    private fun <W : AbstractWrapper<T, String, W>> translateOr(wrapper: W, expr: OrExpression): Ret<W> {
+    private fun <W : AbstractWrapper<T, String, W>> translateOr(
+        wrapper: W,
+        expr: OrExpression,
+        probeWrapper: () -> W
+    ): Ret<W> {
         if (expr.operands.isEmpty()) return Ok(wrapper)
 
-        return Ok(wrapper.and { innerWrapper ->
+        var failure: Ret<W>? = null
+        var firstUnsupported: Ret<W>? = null
+        val translatedWrapper = wrapper.and { innerWrapper ->
             var result = innerWrapper
+            var probing = false
             for ((index, operand) in expr.operands.withIndex()) {
-                result = if (index == 0) {
-                    translateInternal(result, operand).value ?: result
-                } else {
-                    result.or().let { translateInternal(it, operand).value ?: it }
+                if (probing) {
+                    val translated = translateInternal(probeWrapper(), operand, probeWrapper)
+                    val translatedFailure = translated.propagateFailure<W>()
+                    if (translatedFailure != null) {
+                        if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translated.isAlwaysFalseUnsupported()) {
+                            firstUnsupported = firstUnsupported ?: translatedFailure
+                            continue
+                        }
+                        failure = translatedFailure
+                        return@and
+                    }
+                    if (translated.value == null) {
+                        val unsupported = unsupported(probeWrapper(), "Unsupported OR operand", operand)
+                        if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && unsupported.isAlwaysFalseUnsupported()) {
+                            firstUnsupported = firstUnsupported ?: unsupported
+                            continue
+                        }
+                        failure = unsupported
+                        return@and
+                    }
+                    continue
                 }
+
+                val target = if (index == 0) result else result.or()
+                val translated = translateInternal(target, operand, probeWrapper)
+                val translatedFailure = translated.propagateFailure<W>()
+                if (translatedFailure != null) {
+                    if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translated.isAlwaysFalseUnsupported()) {
+                        firstUnsupported = firstUnsupported ?: translatedFailure
+                        probing = true
+                        continue
+                    }
+                    failure = translatedFailure
+                    return@and
+                }
+                val translatedValue = translated.value
+                if (translatedValue == null) {
+                    val unsupported = unsupported(target, "Unsupported OR operand", operand)
+                    if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && unsupported.isAlwaysFalseUnsupported()) {
+                        firstUnsupported = firstUnsupported ?: unsupported
+                        probing = true
+                        continue
+                    }
+                    failure = unsupported
+                    return@and
+                }
+                result = translatedValue
             }
             result
-        })
+        }
+        return failure ?: firstUnsupported ?: Ok(translatedWrapper)
     }
 
     /**
@@ -312,10 +444,26 @@ class MybatisBooleanTranslator<T : Any>(
      * @param expr NOT 表达式 / NOT expression
      * @return 应用 NOT 条件后的 Wrapper / Wrapper with NOT condition applied
     */
-    private fun <W : AbstractWrapper<T, String, W>> translateNot(wrapper: W, expr: NotExpression): Ret<W> {
-        return Ok(wrapper.not { innerWrapper ->
-            translateInternal(innerWrapper, expr.operand).value ?: innerWrapper
-        })
+    private fun <W : AbstractWrapper<T, String, W>> translateNot(
+        wrapper: W,
+        expr: NotExpression,
+        probeWrapper: () -> W
+    ): Ret<W> {
+        var failure: Ret<W>? = null
+        val translatedWrapper = wrapper.not { innerWrapper ->
+            val translated = translateInternal(innerWrapper, expr.operand, probeWrapper)
+            val translatedFailure = translated.propagateFailure<W>()
+            if (translatedFailure != null) {
+                failure = translatedFailure
+                innerWrapper
+            } else {
+                translated.value ?: run {
+                    failure = unsupported(innerWrapper, "Unsupported NOT operand", expr.operand)
+                    innerWrapper
+                }
+            }
+        }
+        return failure ?: Ok(translatedWrapper)
     }
 
     private fun comparisonSql(operator: ComparisonOperator): String {

@@ -6,10 +6,13 @@
 */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
+import java.util.concurrent.CancellationException
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import org.bson.Document
 import org.bson.conversions.Bson
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.expression.BooleanExpression
 import fuookami.ospf.kotlin.framework.persistence.expression.translator.*
 
@@ -29,7 +32,7 @@ abstract class MongoRepository<E : Any>(
     protected val database: MongoDatabase,
     protected val collectionName: String,
     protected val resolveFieldName: MongoFieldNameResolver,
-    protected val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
+    protected val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.FailFast
 ) : ExpressionRepository<E> {
 
     /**
@@ -60,7 +63,7 @@ abstract class MongoRepository<E : Any>(
      * @param where 查询条件 / Query condition
      * @return 实体列表 / Entity list
     */
-    override fun find(where: BooleanExpression): List<E> {
+    override fun find(where: BooleanExpression): Ret<List<E>> {
         return find(where, null, null, null)
     }
 
@@ -78,28 +81,38 @@ abstract class MongoRepository<E : Any>(
         sortBy: SortBy?,
         limit: Int?,
         offset: Int?
-    ): List<E> {
-        val filter = booleanTranslator.translate(where).value ?: return emptyList()
-
-        var findIterable = collection.find(filter)
-
-        // 应用排序
-        // Apply order by
-        val sort = orderByTranslator.translate(sortBy)
-        if (sort != null) {
-            findIterable = findIterable.sort(sort)
+    ): Ret<List<E>> {
+        if (limit != null && limit < 0) {
+            return paginationFailure("limit", limit)
         }
-
-        // 应用分页
-        // Apply pagination
-        if (offset != null) {
-            findIterable = findIterable.skip(offset)
+        if (offset != null && offset < 0) {
+            return paginationFailure("offset", offset)
         }
-        if (limit != null) {
-            findIterable = findIterable.limit(limit)
-        }
+        if (limit == 0) return Ok(emptyList())
 
-        return findIterable.mapNotNull { mapToEntity(it) }.toList()
+        return mongoBoundary("find") {
+            val translatedFilter = booleanTranslator.translate(where)
+            translatedFilter.propagateFailure<List<E>>()?.let { return@mongoBoundary it }
+            val filter = translatedFilter.value
+                ?: return@mongoBoundary missingFilterFailure()
+
+            val translatedSort = orderByTranslator.translate(sortBy)
+            translatedSort.propagateFailure<List<E>>()?.let { return@mongoBoundary it }
+            val sort = translatedSort.value
+
+            var findIterable = collection.find(filter)
+            if (sort != null) {
+                findIterable = findIterable.sort(sort)
+            }
+            if (offset != null) {
+                findIterable = findIterable.skip(offset)
+            }
+            if (limit != null) {
+                findIterable = findIterable.limit(limit)
+            }
+
+            Ok(findIterable.mapNotNull { mapToEntity(it) }.toList())
+        }
     }
 
     /**
@@ -108,9 +121,14 @@ abstract class MongoRepository<E : Any>(
      * @param where 查询条件 / Query condition
      * @return 实体数量 / Entity count
     */
-    override fun count(where: BooleanExpression): Long {
-        val filter = booleanTranslator.translate(where).value ?: return 0L
-        return collection.countDocuments(filter)
+    override fun count(where: BooleanExpression): Ret<Long> {
+        return mongoBoundary("count") {
+            val translatedFilter = booleanTranslator.translate(where)
+            translatedFilter.propagateFailure<Long>()?.let { return@mongoBoundary it }
+            val filter = translatedFilter.value
+                ?: return@mongoBoundary missingFilterFailure()
+            Ok(collection.countDocuments(filter))
+        }
     }
 
     /**
@@ -120,14 +138,27 @@ abstract class MongoRepository<E : Any>(
      * @param assignments 更新赋值列表 / Update assignment list
      * @return 受影响的行数 / Number of affected rows
     */
-    override fun update(where: BooleanExpression, assignments: UpdateAssignments): Int {
-        if (assignments.isEmpty()) return 0
+    override fun update(where: BooleanExpression, assignments: UpdateAssignments): Ret<Int> {
+        if (assignments.isEmpty()) return Ok(0)
 
-        val filter = booleanTranslator.translate(where).value ?: return 0
-        val update = updateTranslator.translate(assignments) ?: return 0
+        return mongoBoundary("update") {
+            val translatedFilter = booleanTranslator.translate(where)
+            val translatedUpdate = updateTranslator.translate(assignments)
 
-        val result = collection.updateMany(filter, update)
-        return result.modifiedCount.toInt()
+            translatedFilter.propagateFailure<Int>()?.let { return@mongoBoundary it }
+            translatedUpdate.propagateFailure<Int>()?.let { return@mongoBoundary it }
+
+            val filter = translatedFilter.value
+                ?: return@mongoBoundary missingFilterFailure()
+            val update = translatedUpdate.value
+                ?: return@mongoBoundary Failed(
+                    ErrorCode.ApplicationFailed,
+                    "MongoDB 更新翻译未生成更新文档 / MongoDB update translation produced no update document"
+                )
+
+            val result = collection.updateMany(filter, update)
+            Ok(result.modifiedCount.toInt())
+        }
     }
 
     /**
@@ -136,11 +167,16 @@ abstract class MongoRepository<E : Any>(
      * @param where 删除条件 / Delete condition
      * @return 受影响的行数 / Number of affected rows
     */
-    override fun delete(where: BooleanExpression): Int {
-        val filter = booleanTranslator.translate(where).value ?: return 0
+    override fun delete(where: BooleanExpression): Ret<Int> {
+        return mongoBoundary("delete") {
+            val translatedFilter = booleanTranslator.translate(where)
+            translatedFilter.propagateFailure<Int>()?.let { return@mongoBoundary it }
+            val filter = translatedFilter.value
+                ?: return@mongoBoundary missingFilterFailure()
 
-        val result = collection.deleteMany(filter)
-        return result.deletedCount.toInt()
+            val result = collection.deleteMany(filter)
+            Ok(result.deletedCount.toInt())
+        }
     }
 
     /**
@@ -153,6 +189,30 @@ abstract class MongoRepository<E : Any>(
      * @return 映射后的实体实例，映射失败时返回 null / Mapped entity instance, or null if mapping fails
     */
     protected abstract fun mapToEntity(document: Document): E?
+
+    private fun paginationFailure(parameter: String, value: Int): Ret<List<E>> {
+        return Failed(
+            ErrorCode.IllegalArgument,
+            "分页参数 $parameter 不能为负数：$value / Pagination parameter $parameter cannot be negative: $value"
+        )
+    }
+
+    private fun <T> missingFilterFailure(): Ret<T> {
+        return Failed(
+            ErrorCode.ApplicationFailed,
+            "MongoDB 条件翻译未生成过滤器 / MongoDB predicate translation produced no filter"
+        )
+    }
+
+    private inline fun <T> mongoBoundary(operation: String, block: () -> Ret<T>): Ret<T> {
+        return try {
+            block()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("MongoDB $operation", error)
+        }
+    }
 
     companion object {
         /**

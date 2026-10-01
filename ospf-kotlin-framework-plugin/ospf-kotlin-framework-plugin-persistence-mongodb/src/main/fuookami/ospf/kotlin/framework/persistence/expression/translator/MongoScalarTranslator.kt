@@ -6,6 +6,7 @@
 */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
+import java.util.concurrent.CancellationException
 import org.bson.Document
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -20,16 +21,26 @@ import fuookami.ospf.kotlin.framework.persistence.expression.*
 */
 class MongoScalarTranslator(
     private val resolveFieldName: MongoFieldNameResolver,
-    private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
+    private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.FailFast
 ) {
 
     /**
      * 翻译标量表达式为 MongoDB 可用的值 / Translate scalar expression to MongoDB-compatible value
      *
      * @param expr 标量表达式 / Scalar expression
-     * @return MongoDB 可用的值，不支持时返回 null / MongoDB-compatible value, or null if unsupported
+     * @return MongoDB 可用的值；不支持的表达式返回失败结果 / MongoDB-compatible value, or a failed result when unsupported
     */
     fun translate(expr: ScalarExpression<*>): Ret<Any?> {
+        return try {
+            translateInternal(expr)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("MongoDB scalar translation", error)
+        }
+    }
+
+    private fun translateInternal(expr: ScalarExpression<*>): Ret<Any?> {
         return when (expr) {
             is ScalarReference<*> -> {
                 val field = resolveFieldName(expr.path.value)
@@ -51,7 +62,9 @@ class MongoScalarTranslator(
      * @return MongoDB 可用的值 / MongoDB-compatible value
     */
     private fun translateUnary(expr: ScalarUnary<*>): Ret<Any?> {
-        val operand = translate(expr.operand).value ?: return Ok(null)
+        val translatedOperand = translateInternal(expr.operand)
+        translatedOperand.propagateFailure<Any?>()?.let { return it }
+        val operand = translatedOperand.value
         return when (expr.operator) {
             UnaryOperator.Negate -> Ok(Document("\$multiply", listOf(-1, operand)))
             UnaryOperator.Positive -> Ok(operand)
@@ -66,8 +79,28 @@ class MongoScalarTranslator(
      * @return MongoDB 可用的值 / MongoDB-compatible value
     */
     private fun translateBinary(expr: ScalarBinary<*>): Ret<Any?> {
-        val left = translate(expr.left).value ?: return Ok(null)
-        val right = translate(expr.right).value ?: return Ok(null)
+        val translatedLeft = translateInternal(expr.left)
+        var unsupportedFailure: Ret<Any?>? = null
+        val leftFailure = translatedLeft.propagateFailure<Any?>()
+        if (leftFailure != null) {
+            if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translatedLeft.isAlwaysFalseUnsupported()) {
+                unsupportedFailure = leftFailure
+            } else {
+                return leftFailure
+            }
+        }
+        val left = translatedLeft.value
+        val translatedRight = translateInternal(expr.right)
+        val rightFailure = translatedRight.propagateFailure<Any?>()
+        if (rightFailure != null) {
+            if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translatedRight.isAlwaysFalseUnsupported()) {
+                unsupportedFailure = unsupportedFailure ?: rightFailure
+            } else {
+                return rightFailure
+            }
+        }
+        val right = translatedRight.value
+        unsupportedFailure?.let { return it }
         val operator = when (expr.operator) {
             BinaryOperator.Add -> "\$add"
             BinaryOperator.Subtract -> "\$subtract"
@@ -86,7 +119,21 @@ class MongoScalarTranslator(
      * @return MongoDB 可用的值 / MongoDB-compatible value
     */
     private fun translateFunction(expr: ScalarFunction<*>): Ret<Any?> {
-        val arguments = expr.arguments.map { translate(it).value ?: return Ok(null) }
+        val arguments = mutableListOf<Any?>()
+        var firstUnsupported: Ret<Any?>? = null
+        for (argument in expr.arguments) {
+            val translated = translateInternal(argument)
+            val failure = translated.propagateFailure<Any?>()
+            if (failure != null) {
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translated.isAlwaysFalseUnsupported()) {
+                    firstUnsupported = firstUnsupported ?: failure
+                    continue
+                }
+                return failure
+            }
+            arguments += translated.value
+        }
+        firstUnsupported?.let { return it }
         return when (expr.name.lowercase()) {
             ScalarFunctionNames.Abs -> translateUnaryFunction(expr.name, "\$abs", arguments)
             ScalarFunctionNames.Lower -> translateUnaryFunction(expr.name, "\$toLower", arguments)
@@ -142,7 +189,13 @@ class MongoScalarTranslator(
                 )
                 Failed(detail.toError())
             }
-            UnsupportedPredicatePolicy.AlwaysFalse -> Ok(null)
+            UnsupportedPredicatePolicy.AlwaysFalse -> Failed(
+                UnsupportedPredicateDetail.alwaysFalse(
+                    expressionType = "ScalarExpression",
+                    reason = reason,
+                    backendName = "MongoDB"
+                ).toError()
+            )
             UnsupportedPredicatePolicy.ClientFilter -> {
                 val detail = UnsupportedPredicateDetail.clientFilter(
                     expressionType = "ScalarExpression",

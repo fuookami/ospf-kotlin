@@ -35,7 +35,10 @@ enum class RelationalQueryDialect {
     SQLite,
 
     /** Oracle 方言 / Oracle dialect */
-    Oracle
+    Oracle,
+
+    /** H2 方言 / H2 dialect */
+    H2
 }
 
 /**
@@ -464,6 +467,7 @@ class SqlRelationalQueryCompiler(
                 RelationalQueryDialect.PostgreSQL -> Ok(" OFFSET ${page.offset}")
                 RelationalQueryDialect.SQLite -> Ok(" LIMIT -1 OFFSET ${page.offset}")
                 RelationalQueryDialect.Oracle -> Ok(" OFFSET ${page.offset} ROWS")
+                RelationalQueryDialect.H2 -> Ok(" OFFSET ${page.offset} ROWS")
             }
         }
         return Ok(
@@ -472,6 +476,7 @@ class SqlRelationalQueryCompiler(
                 RelationalQueryDialect.PostgreSQL -> " LIMIT $limit OFFSET ${page.offset}"
                 RelationalQueryDialect.SQLite -> " LIMIT $limit OFFSET ${page.offset}"
                 RelationalQueryDialect.Oracle -> " OFFSET ${page.offset} ROWS FETCH NEXT $limit ROWS ONLY"
+                RelationalQueryDialect.H2 -> " OFFSET ${page.offset} ROWS FETCH NEXT $limit ROWS ONLY"
             }
         )
     }
@@ -662,6 +667,7 @@ class SqlRelationalQueryCompiler(
                 )
                 RelationalQueryDialect.MySQL -> Ok("${value.value} ${if (expression.negated) "NOT " else ""}REGEXP ${pattern.value}")
                 RelationalQueryDialect.PostgreSQL -> Ok("${value.value} ${if (expression.negated) "!~" else "~"} ${pattern.value}")
+                RelationalQueryDialect.H2 -> Ok("${if (expression.negated) "NOT " else ""}REGEXP_LIKE(${value.value}, ${pattern.value})")
                 RelationalQueryDialect.SQLite -> failure(
                     category = RelationalQueryCompilationErrorCategory.UnsupportedExpression,
                     field = field,
@@ -842,7 +848,8 @@ class SqlRelationalQueryCompiler(
             }
             RelationalQueryDialect.MySQL,
             RelationalQueryDialect.PostgreSQL,
-            RelationalQueryDialect.SQLite -> when (value) {
+            RelationalQueryDialect.SQLite,
+            RelationalQueryDialect.H2 -> when (value) {
                 Trivalent.True -> "TRUE"
                 Trivalent.False -> "FALSE"
                 Trivalent.Unknown -> "NULL"

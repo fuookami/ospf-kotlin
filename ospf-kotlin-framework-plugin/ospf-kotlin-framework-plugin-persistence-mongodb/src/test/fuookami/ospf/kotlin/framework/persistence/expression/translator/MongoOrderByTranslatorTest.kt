@@ -22,8 +22,8 @@ class MongoOrderByTranslatorTest {
         val translator = MongoOrderByTranslator(resolver)
         val sort = SortBy.desc("age").thenAsc("name")
 
-        val bson = translator.translate(sort)
-        val json = bson!!.toBsonDocument(BsonDocument::class.java, codec).toJson()
+        val bson = translator.translate(sort).valueOrFail().orFail()
+        val json = bson.toBsonDocument(BsonDocument::class.java, codec).toJson()
 
         assertTrue(json.contains("\"age\""))
         assertTrue(json.contains("-1"))

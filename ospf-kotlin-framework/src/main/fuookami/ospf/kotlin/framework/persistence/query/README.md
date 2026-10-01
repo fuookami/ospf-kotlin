@@ -27,6 +27,6 @@ used as physical names for simple adapters.
 retain the plan hash, canonical representation, duration, row count, and failure state; `snapshot()` returns the
 current records without exposing the queue.
 
-The legacy `ExpressionRepository` API remains unchanged because its synchronous list/count/update methods are not
-`Ret`-based. An adapter may construct a `RelationalQueryPlan` from its existing `BooleanExpression` DSL and translate
-the compiler's `Ret` result at that infrastructure boundary.
+`ExpressionRepository` operations are synchronous and return `Ret` values (`Ret<List<E>>`, `Ret<Long>`, `Ret<Int>`, or
+`Ret<Boolean>`). An adapter may construct a `RelationalQueryPlan` from its existing `BooleanExpression` DSL and return
+the compiler's `Ret` result through the repository boundary, preserving backend failures for callers.

@@ -59,6 +59,12 @@ repository.update(where, assignments)
 repository.delete(where)
 ```
 
+## 仓储结果
+
+仓储操作返回 `Ret<T>`：`find` 返回 `Ret<List<E>>`，`count` 返回 `Ret<Long>`，`exists` 返回 `Ret<Boolean>`，`update`/`delete` 返回 `Ret<Int>`。
+请显式处理 `Ok`、`Failed` 和 `Fatal`；转换成功值时也可以使用 `map`，失败会保留在结果中。不支持谓词的默认策略为 `FailFast`。
+`AlwaysFalse` 需要显式启用，谓词包含不支持节点时整次操作返回空结果或零。`ClientFilter` 会返回结构化失败。
+
 ## 强类型列绑定
 
 `KtormColumnBinder` 提供基于 Ktorm 表的强类型列绑定能力，把属性路径映射到 Ktorm `ColumnDeclaring<*>`。配合 KSP 生成的 `HasColumnMapping`，可以避免手写字符串映射：

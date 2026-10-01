@@ -59,6 +59,14 @@ repository.update(where, assignments)
 repository.delete(where)
 ```
 
+## Repository Results
+
+Repository operations return `Ret<T>`: `find` returns `Ret<List<E>>`, `count` returns `Ret<Long>`, `exists` returns
+`Ret<Boolean>`, and `update`/`delete` return `Ret<Int>`. Handle `Ok`, `Failed`, and `Fatal` explicitly, or use `map`
+when transforming a successful value; failures remain in the result. The default unsupported-predicate policy is
+`FailFast`. `AlwaysFalse` is opt-in and makes an operation return an empty result or zero when its predicate contains
+an unsupported node. `ClientFilter` returns a structured failure.
+
 ## Strong-Typed Column Binding
 
 `KtormColumnBinder` bridges a KSP-generated schema (`HasColumnMapping`) to a Ktorm table, producing a `KtormColumnResolver` that maps property paths to Ktorm `ColumnDeclaring` columns. It avoids hand-written `when (path)` resolvers.

@@ -7,7 +7,9 @@
 */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
+import java.util.concurrent.CancellationException
 import fuookami.ospf.kotlin.framework.persistence.expression.translator.*
+import fuookami.ospf.kotlin.framework.persistence.mybatis.MybatisDialect
 import fuookami.ospf.kotlin.math.symbol.expression.BooleanExpression
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -27,17 +29,27 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper
  * @property resolveColumnName 列名解析函数 / Column name resolver function
  * @property nullsOrderSupport 空值排序支持 / Nulls order support
  * @property unsupportedPredicatePolicy 不支持谓词策略 / Unsupported predicate policy
+ * @property dialect SQL 方言 / SQL dialect
 */
 abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
     protected val mapper: M,
     protected val resolveColumnName: MybatisColumnNameResolver,
     protected val nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto,
-    protected val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
+    protected val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.FailFast,
+    protected val dialect: MybatisDialect = MybatisDialect.Portable
 ) : ExpressionRepository<E> {
 
-    private val booleanTranslator = MybatisBooleanTranslator<E>(resolveColumnName, unsupportedPredicatePolicy)
-    private val orderByTranslator = MybatisOrderByTranslator<E>(resolveColumnName, nullsOrderSupport)
-    private val updateTranslator = MybatisUpdateTranslator<E>(resolveColumnName)
+    private val booleanTranslator = MybatisBooleanTranslator<E>(
+        resolveColumnName = resolveColumnName,
+        unsupportedPredicatePolicy = unsupportedPredicatePolicy,
+        dialect = dialect
+    )
+    private val orderByTranslator = MybatisOrderByTranslator<E>(
+        resolveColumnName = resolveColumnName,
+        nullsOrderSupport = nullsOrderSupport,
+        dialect = dialect
+    )
+    private val updateTranslator = MybatisUpdateTranslator<E>(resolveColumnName, dialect)
 
     /**
      * 根据条件查询实体列表 / Find entity list by condition
@@ -45,7 +57,7 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
      * @param where 查询条件 / Query condition
      * @return 实体列表 / Entity list
     */
-    override fun find(where: BooleanExpression): List<E> {
+    override fun find(where: BooleanExpression): Ret<List<E>> {
         return find(where, null, null, null)
     }
 
@@ -63,30 +75,48 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
         sortBy: SortBy?,
         limit: Int?,
         offset: Int?
-    ): List<E> {
-        val translateResult = booleanTranslator.translate(QueryWrapper<E>(), where)
-        if (translateResult is Failed) return emptyList()
-        var wrapper = translateResult.value!!
-
-        // 应用排序
-        // Apply order by
-        if (sortBy != null && sortBy.isNotEmpty()) {
-            wrapper = orderByTranslator.apply(wrapper, sortBy)
+    ): Ret<List<E>> {
+        if (limit != null && limit < 0 || offset != null && offset < 0) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "分页参数不能为负数 / Pagination values cannot be negative"
+            )
         }
+        return try {
+            val translated = booleanTranslator.translate(QueryWrapper<E>(), where)
+            translated.propagateFailure<List<E>>()?.let { return it }
+            var wrapper = translated.value
+                ?: return Failed(ErrorCode.ApplicationError, "MyBatis 查询条件翻译未返回结果 / MyBatis predicate translation returned no value")
 
-        // 应用分页
-        // Apply pagination
-        val limitOffsetClause = when {
-            limit != null && offset != null -> "LIMIT $limit OFFSET $offset"
-            limit != null -> "LIMIT $limit"
-            offset != null -> "OFFSET $offset"
-            else -> null
-        }
-        if (limitOffsetClause != null) {
-            wrapper = wrapper.last(limitOffsetClause)
-        }
+            if (limit == 0) return Ok(emptyList())
 
-        return mapper.selectList(wrapper)
+            val suffixes = mutableListOf<String>()
+            if (sortBy != null && sortBy.isNotEmpty()) {
+                when (val sorted = orderByTranslator.translate(sortBy)) {
+                    is Ok -> sorted.value.sql.takeIf { it.isNotBlank() }?.let { suffixes += "ORDER BY $it" }
+                    is Failed -> return Failed(sorted.error)
+                    is Fatal -> return Fatal(sorted.errors)
+                }
+            }
+
+            val pagination = when (val result = dialect.pagination(limit, offset)) {
+                is Ok -> result.value.sql
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            if (pagination.isNotBlank()) {
+                suffixes += pagination
+            }
+            if (suffixes.isNotEmpty()) {
+                wrapper = wrapper.last(suffixes.joinToString(" "))
+            }
+
+            Ok(mapper.selectList(wrapper))
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("MyBatis find", error)
+        }
     }
 
     /**
@@ -95,10 +125,18 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
      * @param where 查询条件 / Query condition
      * @return 实体数量 / Entity count
     */
-    override fun count(where: BooleanExpression): Long {
-        val translateResult = booleanTranslator.translate(QueryWrapper<E>(), where)
-        if (translateResult is Failed) return 0L
-        return mapper.selectCount(translateResult.value!!)
+    override fun count(where: BooleanExpression): Ret<Long> {
+        return try {
+            val translated = booleanTranslator.translate(QueryWrapper<E>(), where)
+            translated.propagateFailure<Long>()?.let { return it }
+            val wrapper = translated.value
+                ?: return Failed(ErrorCode.ApplicationError, "MyBatis 计数条件翻译未返回结果 / MyBatis count predicate translation returned no value")
+            Ok(mapper.selectCount(wrapper))
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("MyBatis count", error)
+        }
     }
 
     /**
@@ -108,16 +146,24 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
      * @param assignments 更新赋值列表 / Update assignment list
      * @return 受影响的行数 / Number of affected rows
     */
-    override fun update(where: BooleanExpression, assignments: UpdateAssignments): Int {
-        if (assignments.isEmpty()) return 0
+    override fun update(where: BooleanExpression, assignments: UpdateAssignments): Ret<Int> {
+        if (assignments.isEmpty()) return Ok(0)
 
-        var updateWrapper = UpdateWrapper<E>()
-        val updateResult = booleanTranslator.translate(updateWrapper, where)
-        if (updateResult is Failed) return 0
-        updateWrapper = updateResult.value!!
-        updateWrapper = updateTranslator.apply(updateWrapper, assignments)
-
-        return mapper.update(null, updateWrapper)
+        return try {
+            val whereResult = booleanTranslator.translate(UpdateWrapper<E>(), where)
+            whereResult.propagateFailure<Int>()?.let { return it }
+            val updateWrapper = whereResult.value
+                ?: return Failed(ErrorCode.ApplicationError, "MyBatis 更新条件翻译未返回结果 / MyBatis update predicate translation returned no value")
+            val updateResult = updateTranslator.translate(updateWrapper, assignments)
+            updateResult.propagateFailure<Int>()?.let { return it }
+            val translatedWrapper = updateResult.value
+                ?: return Failed(ErrorCode.ApplicationError, "MyBatis 更新赋值翻译未返回结果 / MyBatis update assignment translation returned no value")
+            Ok(mapper.update(null, translatedWrapper))
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("MyBatis update", error)
+        }
     }
 
     /**
@@ -126,10 +172,18 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
      * @param where 删除条件 / Delete condition
      * @return 受影响的行数 / Number of affected rows
     */
-    override fun delete(where: BooleanExpression): Int {
-        val translateResult = booleanTranslator.translate(QueryWrapper<E>(), where)
-        if (translateResult is Failed) return 0
-        return mapper.delete(translateResult.value!!)
+    override fun delete(where: BooleanExpression): Ret<Int> {
+        return try {
+            val translated = booleanTranslator.translate(QueryWrapper<E>(), where)
+            translated.propagateFailure<Int>()?.let { return it }
+            val wrapper = translated.value
+                ?: return Failed(ErrorCode.ApplicationError, "MyBatis 删除条件翻译未返回结果 / MyBatis delete predicate translation returned no value")
+            Ok(mapper.delete(wrapper))
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("MyBatis delete", error)
+        }
     }
 
     companion object {

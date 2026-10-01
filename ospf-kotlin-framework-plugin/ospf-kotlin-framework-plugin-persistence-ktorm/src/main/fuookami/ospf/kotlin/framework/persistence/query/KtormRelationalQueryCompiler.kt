@@ -98,7 +98,7 @@ data class QueryExecutionResult<T>(
  * @property unsupportedPredicatePolicy 不支持谓词策略 / Unsupported predicate policy
  * @property targetConstantBinder 目标 SQL 类型感知的常量绑定器 / Target-SQL-type-aware constant binder
  * @property patternMatchPolicy 模式匹配策略 / Pattern match policy
- * @property nullsOrderSupport 空值排序支持 / NULL ordering support
+ * @param nullsOrderSupport Compatibility hint retained for callers; explicit null placement is emulated because Ktorm's order AST cannot encode it.
  * @property dialect framework 查询方言声明 / Framework query dialect declaration
  */
 class KtormRelationalQueryCompiler(
@@ -107,7 +107,8 @@ class KtormRelationalQueryCompiler(
     private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.FailFast,
     private val targetConstantBinder: KtormTargetConstantBinder? = null,
     private val patternMatchPolicy: PatternMatchPolicy = DefaultPatternMatchPolicy,
-    private val nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto,
+    @Suppress("UNUSED_PARAMETER")
+    nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto,
     override val dialect: RelationalQueryDialect = RelationalQueryDialect.SQLite
 ) : RelationalQueryCompiler<KtormCompiledQuery> {
 
@@ -734,7 +735,9 @@ class KtormRelationalQueryCompiler(
                 field = "orderBy[$index]",
                 reason = "Order-by column was not resolved"
             )
-            if (spec.nulls != NullsOrder.Unspecified && !supportsNullsOrder(spec)) {
+            // Ktorm order expressions retain direction but cannot encode an explicit NULL placement.
+            // Add a rank expression before the value expression so every support hint preserves the requested order.
+            if (spec.nulls != NullsOrder.Unspecified) {
                 result += when (spec.nulls) {
                     NullsOrder.First -> column.isNull().desc()
                     NullsOrder.Last -> column.isNull().asc()
@@ -780,14 +783,6 @@ class KtormRelationalQueryCompiler(
             return failure(category, field, reason)
         }
         return Ok(translated.value)
-    }
-
-    private fun supportsNullsOrder(spec: OrderSpec): Boolean {
-        return when (nullsOrderSupport) {
-            NullsOrderSupport.Auto, NullsOrderSupport.Always -> true
-            NullsOrderSupport.Never -> false
-            NullsOrderSupport.OnlyAsc -> spec.direction == SortDirection.Ascending
-        }
     }
 
     private fun validatePredicateReferences(

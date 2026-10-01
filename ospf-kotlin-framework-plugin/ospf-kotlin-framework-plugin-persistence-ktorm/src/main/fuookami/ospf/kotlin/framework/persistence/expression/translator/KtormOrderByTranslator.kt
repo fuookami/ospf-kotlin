@@ -6,6 +6,7 @@
 */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
+import java.util.concurrent.CancellationException
 import org.ktorm.dsl.*
 import org.ktorm.expression.OrderByExpression
 import fuookami.ospf.kotlin.framework.persistence.expression.*
@@ -18,11 +19,12 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 将 SortBy 模型翻译为 Ktorm 排序表达式。 / Translates SortBy model to Ktorm order expressions.
  *
  * @property resolveColumn 列解析函数 / Column resolver function
- * @property nullsOrderSupport 空值排序支持检测 / Nulls order support detection
+ * @param nullsOrderSupport Compatibility hint retained for callers; explicit null placement uses rank expressions because Ktorm's order AST cannot encode it.
 */
 class KtormOrderByTranslator(
     private val resolveColumn: KtormColumnResolver,
-    private val nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto
+    @Suppress("UNUSED_PARAMETER")
+    nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto
 ) {
 
     /**
@@ -35,17 +37,22 @@ class KtormOrderByTranslator(
     fun apply(query: Query, sortBy: SortBy): Ret<Query> {
         if (sortBy.isEmpty()) return Ok(query)
 
-        val orders = mutableListOf<OrderByExpression>()
-        for (item in sortBy.items) {
-            val result = buildOrders(item)
-            when (result) {
-                is Ok -> orders.addAll(result.value)
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
+        return try {
+            val orders = mutableListOf<OrderByExpression>()
+            for (item in sortBy.items) {
+                val result = buildOrders(item)
+                result.propagateFailure<Query>()?.let { return it }
+                orders.addAll(result.value ?: return Failed(
+                    ErrorCode.ApplicationError,
+                    "Ktorm 排序翻译未返回结果 / Ktorm sort translation returned no value"
+                ))
             }
+            if (orders.isEmpty()) Ok(query) else Ok(query.orderBy(*orders.toTypedArray()))
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("Ktorm order translation", error)
         }
-        if (orders.isEmpty()) return Ok(query)
-        return Ok(query.orderBy(*orders.toTypedArray()))
     }
 
     /**
@@ -62,11 +69,11 @@ class KtormOrderByTranslator(
 
         val orders = mutableListOf<OrderByExpression>()
 
-        // 当数据库不支持 NULLS FIRST/LAST 时，使用布尔排序降级：
+        // Ktorm's order expression cannot carry explicit NULL placement, so explicit requests use the portable rank expression.
+        // 当 Ktorm 排序表达式无法携带显式空值位置时，显式请求都使用可移植的优先级表达式：
         // false < true，因此 nulls last 使用 isNull asc；nulls first 使用 isNull desc。
-        // When NULLS FIRST/LAST is not supported, fallback to boolean ordering:
         // false < true, so nulls last uses isNull asc; nulls first uses isNull desc.
-        if (item.nulls != null && !nullsOrderSupport.isSupported(item)) {
+        if (item.nulls != null) {
             val nullOrderExpr = when (item.nulls) {
                 NullsOrder.NullsFirst -> column.isNull().desc()
                 NullsOrder.NullsLast -> column.isNull().asc()

@@ -2,34 +2,39 @@
 
 :us: English | :cn: [简体中文](README_ch.md)
 
-SQLite datasource initialization plugin providing Ktorm `Database` management.
+SQLite persistence plugin with a shared DBCP datasource for Spring JdbcClient, Ktorm, and MyBatis-Plus.
 
 ## Public API
 
 | Symbol | Kind | Description |
 | --- | --- | --- |
 | `SqliteClientKey` | data class | Client lookup key (name) |
-| `SqliteConfigBuilder` | data class | Fluent builder for `SqliteConfig` |
-| `SqliteConfig` | data class | SQLite connection configuration (url, name, pool settings) |
-| `Sqlite` | object | Client manager; indexes datasource instances by key, returns Ktorm `Database` |
+| `SqliteConfigBuilder` / `SqliteConfig` | configuration | File path, client name, connection properties, and pool settings |
+| `Sqlite.initJdbcClient` | factory | Returns `Ret<JdbcClientBackend>` |
+| `Sqlite.initKtorm` | factory | Returns `Ret<KtormBackend>` with the SQLite query dialect |
+| `Sqlite.initMybatis` | factory | Returns `Ret<MybatisBackend>` configured for SQLite |
+| `Sqlite.get*` | lookup | Gets a backend by config, key, or name |
+| `Sqlite.close` | lifecycle | Closes and removes the shared datasource; returns `Try` |
 
 ## Quick Start
 
-```kotlin
-val database = Sqlite.init {
-    url = "data/mydb.sqlite"
-    name = "my-app"
-}!!
+`url` is a database file path, not a JDBC URL. The three adapter factories return `Ret`; handle `Ok`, `Failed`, and `Fatal` before using the backend.
 
-// Use with KtormRepository
-class OrderRepository(
-    database: Database,
-    table: Table<*>
-) : KtormRepository<Order>(database, table, ...) {
-    ...
+```kotlin
+val backend = Sqlite.initJdbcClient {
+    url = "data/orders.sqlite"
+    name = "orders"
+}
+
+if (backend.ok) {
+    val client = backend.value!!.client
 }
 ```
 
+`Sqlite.initKtorm { ... }` returns a `KtormBackend` containing both `Database` and the SQLite expression dialect. `Sqlite.initMybatis { ... }` returns a MyBatis-Plus backend whose sessions own their transactions, while the plugin retains ownership of the pool.
+
+The legacy `Sqlite.init` and `Sqlite(config)` / `Sqlite(key)` / `Sqlite(name)` Ktorm entry points continue to return nullable `Database` values. New factories use structured errors instead of the legacy nullable result.
+
 ## Connection Pool
 
-Uses Apache Commons DBCP2 with configurable `maxTotal`, `maxIdle`, and `maxOpenPreparedStatements`. Additional connection properties can be set via `SqliteConfigBuilder.properties`.
+All adapter backends for the same client name reuse one Apache Commons DBCP2 datasource. Configure `maxTotal`, `maxIdle`, `maxOpenPreparedStatements`, and JDBC connection properties through `SqliteConfigBuilder`. Call `Sqlite.close(SqliteClientKey("orders"))` when the plugin-managed pool is no longer needed; repeated closes succeed. Closing it also affects existing Ktorm, JdbcClient, and MyBatis backends for that key.

@@ -10,6 +10,11 @@
 | --- | --- | --- |
 | `MybatisColumnNameResolver` | typealias | `PersistenceFieldResolver<String>` |
 | `MybatisRepository<E, M>` | abstract class | 基于 MyBatis-Plus 实现 `ExpressionRepository<E>` 的仓储基类 |
+| `MybatisDialect` | interface | 数据库分页、标识符引用、NULL 排序和标量函数规则 |
+| `MybatisBackendFactory` | object | 围绕外部管理的 `DataSource` 创建线程安全的 MyBatis-Plus `SqlSessionFactory` |
+| `MybatisBackend` | class | 使用配置的 SQL 方言打开 mapper 会话 |
+| `MybatisSession<E, M>` | class | 提供会话作用域 mapper，以及显式的 `commit`、`rollback`、`close` 结果 |
+| `MybatisDialectFailure` / `MybatisSqlClause` | data class | 结构化方言错误和生成的 SQL 子句 |
 | `MybatisBooleanTranslator<T>` | class | `BooleanExpression` → `QueryWrapper`/`UpdateWrapper` 条件 |
 | `MybatisScalarSql` | data class | 参数化 SQL 片段，含 `sql`、`params`、`isColumnOnly` |
 | `MybatisScalarTranslator` | class | `ScalarExpression<*>` → 参数化 SQL 片段 |
@@ -47,6 +52,34 @@ repository.update(where, assignments)
 // 删除
 repository.delete(where)
 ```
+
+## 仓储结果
+
+仓储操作返回 `Ret<T>`：`find` 返回 `Ret<List<E>>`，`count` 返回 `Ret<Long>`，`exists` 返回 `Ret<Boolean>`，`update`/`delete` 返回 `Ret<Int>`。
+请显式处理 `Ok`、`Failed` 和 `Fatal`；转换成功值时也可以使用 `map`，失败会保留在结果中。不支持谓词的默认策略为 `FailFast`。
+`AlwaysFalse` 需要显式启用，谓词包含不支持节点时整次操作返回空结果或零。`ClientFilter` 会返回结构化失败。
+
+## 数据库方言与会话
+
+保留旧的 `MybatisRepository(mapper, resolver, ...)` 构造方式，供外部 mapper 使用。数据库已知时，请把方言作为最后一个参数传入。`MybatisDialect.SQLite`、`.MySQL`、`.PostgreSQL` 和 `.H2` 分别提供匹配的分页及 NULL 排序规则。默认的 `Portable` 方言供旧调用方使用；在指定具体方言前，只有 OFFSET 的分页和 `LENGTH` 会返回结构化失败。
+
+resolver 的值是数据库中的物理列名，应保留其实际大小写。H2 默认模式下，未引用 DDL 标识符会存为大写，因此显式 H2 resolver 应将 `displayName` 映射为 `DISPLAY_NAME`。若 H2 列是用引号创建且区分大小写，请映射其精确名称，例如 `display_name`。
+
+数据库插件可使用自身连接池中的 `DataSource` 创建共享 backend。backend 不拥有连接池，连接池由数据库插件关闭。session 只管理自身的 `SqlSession`，mapper 操作应在 session 生命周期内完成：
+
+```kotlin
+val backend = MybatisBackendFactory.create(dataSource, MybatisDialect.PostgreSQL)
+val session = backend.valueOrFail().openSession<User, UserMapper>(UserMapper::class.java).valueOrFail()
+val mapper = session.mapper().valueOrFail()
+val repository = UserRepository(mapper, MybatisDialect.PostgreSQL)
+repository.update(where, assignments).valueOrFail()
+session.commit().valueOrFail()
+session.close().valueOrFail()
+```
+
+session 默认 `autoCommit = false`，请显式调用 `commit()` 或 `rollback()` 并处理返回的 `Try`。关闭后调用 `mapper()`、`commit()` 或 `rollback()` 会返回结构化失败。
+
+内置方言在 MySQL、PostgreSQL 和 H2 中使用 `CHAR_LENGTH`，在 SQLite 中使用 `LENGTH`。Portable 方言不会猜测这两类函数的语义差异。未知函数、参数数量错误、非法标识符或不支持的分页会在执行 mapper 前返回结构化失败。
 
 ## 强类型列绑定
 

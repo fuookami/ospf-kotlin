@@ -6,6 +6,7 @@
 */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
+import java.util.concurrent.CancellationException
 import org.ktorm.dsl.*
 import org.ktorm.expression.ArgumentExpression
 import org.ktorm.expression.BinaryExpression
@@ -45,7 +46,7 @@ typealias KtormColumnResolver = PersistenceFieldResolver<ColumnDeclaring<*>>
 class KtormBooleanTranslator(
     private val resolveColumn: KtormColumnResolver,
     private val patternMatchPolicy: PatternMatchPolicy = DefaultPatternMatchPolicy,
-    private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse,
+    private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.FailFast,
     private val parameterTypeSink: ((SqlType<*>) -> Unit)? = null,
     private val resolveColumnDetailed: ((String) -> PersistenceFieldResolution<ColumnDeclaring<*>>)? = null,
     private val targetConstantBinder: KtormTargetConstantBinder? = null
@@ -65,6 +66,16 @@ class KtormBooleanTranslator(
      * @return Ktorm 条件表达式，不支持时返回 null / Ktorm condition expression, or null if unsupported
     */
     fun translate(expr: BooleanExpression): Ret<ColumnDeclaring<Boolean>?> {
+        return try {
+            translateInternal(expr).withAlwaysFalseUnsupported { alwaysFalse() }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("Ktorm boolean translation", error)
+        }
+    }
+
+    private fun translateInternal(expr: BooleanExpression): Ret<ColumnDeclaring<Boolean>?> {
         return when (expr) {
             is BooleanConstant -> translateConstant(expr)
             is Comparison<*> -> translateComparison(expr)
@@ -87,7 +98,8 @@ class KtormBooleanTranslator(
     private fun translateConstant(expr: BooleanConstant): Ret<ColumnDeclaring<Boolean>?> {
         return Ok(when (expr.value) {
             Trivalent.True -> alwaysTrue()
-            Trivalent.False, Trivalent.Unknown -> alwaysFalse()
+            Trivalent.False -> alwaysFalse()
+            Trivalent.Unknown -> alwaysUnknown()
         })
     }
 
@@ -101,35 +113,90 @@ class KtormBooleanTranslator(
         val leftConstant = expr.left as? ScalarConstant<*>
         val rightConstant = expr.right as? ScalarConstant<*>
         if (leftConstant != null && rightConstant != null) {
+            var firstUnsupported: Ret<ColumnDeclaring<Boolean>?>? = null
             val leftResult = scalarTranslator.translateConstant(leftConstant.value)
-            if (leftResult.failed) return propagateScalarFailure(leftResult)
-            val left = leftResult.value
-                ?: return unsupported("Unsupported left scalar constant: ${leftConstant.typeName}", expr)
+            var left = leftResult.value
+            if (leftResult.failed) {
+                val failure = propagateScalarFailure(leftResult)
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && leftResult.isAlwaysFalseUnsupported()) {
+                    firstUnsupported = failure
+                    left = null
+                } else {
+                    return failure
+                }
+            }
+
             val rightResult = scalarTranslator.translateConstant(rightConstant.value)
-            if (rightResult.failed) return propagateScalarFailure(rightResult)
-            val right = rightResult.value
-                ?: return unsupported("Unsupported right scalar constant: ${rightConstant.typeName}", expr)
-            if (!compatibleSqlTypes(left.sqlType, right.sqlType)) {
+            var right = rightResult.value
+            if (rightResult.failed) {
+                val failure = propagateScalarFailure(rightResult)
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && rightResult.isAlwaysFalseUnsupported()) {
+                    firstUnsupported = firstUnsupported ?: failure
+                    right = null
+                } else {
+                    return failure
+                }
+            }
+
+            firstUnsupported?.let { return it }
+            val leftValue = left ?: return unsupported("Unsupported left scalar constant: ${leftConstant.typeName}", expr)
+            val rightValue = right ?: return unsupported("Unsupported right scalar constant: ${rightConstant.typeName}", expr)
+            if (!compatibleSqlTypes(leftValue.sqlType, rightValue.sqlType)) {
                 return unsupported("Constant comparison operands have incompatible SQL types", expr)
             }
-            return Ok(buildComparison(left, right, expr.operator))
+            return Ok(buildComparison(leftValue, rightValue, expr.operator))
         }
+
+        var firstUnsupported: Ret<ColumnDeclaring<Boolean>?>? = null
         val translatedLeft = if (leftConstant == null) {
             val translated = scalarTranslator.translate(expr.left)
-            if (translated.failed) return propagateScalarFailure(translated)
-            translated.value
-                ?: return unsupported("Unsupported left scalar expression: ${expr.left.typeName}", expr)
+            if (translated.failed) {
+                val failure = propagateScalarFailure(translated)
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translated.isAlwaysFalseUnsupported()) {
+                    firstUnsupported = failure
+                    null
+                } else {
+                    return failure
+                }
+            } else {
+                translated.value ?: run {
+                    val failure = unsupported("Unsupported left scalar expression: ${expr.left.typeName}", expr)
+                    if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && failure.isAlwaysFalseUnsupported()) {
+                        firstUnsupported = failure
+                        null
+                    } else {
+                        return failure
+                    }
+                }
+            }
         } else {
             null
         }
         val translatedRight = if (rightConstant == null) {
             val translated = scalarTranslator.translate(expr.right)
-            if (translated.failed) return propagateScalarFailure(translated)
-            translated.value
-                ?: return unsupported("Unsupported right scalar expression: ${expr.right.typeName}", expr)
+            if (translated.failed) {
+                val failure = propagateScalarFailure(translated)
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translated.isAlwaysFalseUnsupported()) {
+                    firstUnsupported = firstUnsupported ?: failure
+                    null
+                } else {
+                    return failure
+                }
+            } else {
+                translated.value ?: run {
+                    val failure = unsupported("Unsupported right scalar expression: ${expr.right.typeName}", expr)
+                    if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && failure.isAlwaysFalseUnsupported()) {
+                        firstUnsupported = firstUnsupported ?: failure
+                        null
+                    } else {
+                        return failure
+                    }
+                }
+            }
         } else {
             null
         }
+        firstUnsupported?.let { return it }
         val left = if (leftConstant != null) {
             val targetType = translatedRight?.sqlType
                 ?: return unsupported("A constant comparison operand requires a translated right operand", expr)
@@ -239,12 +306,29 @@ class KtormBooleanTranslator(
     */
     private fun translateAnd(expr: AndExpression): Ret<ColumnDeclaring<Boolean>?> {
         val conditions = mutableListOf<ColumnDeclaring<Boolean>>()
-        expr.operands.forEach { operand ->
-            val translated = translate(operand)
-            if (translated.failed) return propagateBooleanFailure(translated)
-            conditions += translated.value ?: return unsupported("Unsupported AND operand", expr)
+        var firstUnsupported: Ret<ColumnDeclaring<Boolean>?>? = null
+        for (operand in expr.operands) {
+            val translated = translateInternal(operand)
+            if (translated.failed) {
+                val failure = propagateBooleanFailure(translated)
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translated.isAlwaysFalseUnsupported()) {
+                    firstUnsupported = firstUnsupported ?: failure
+                    continue
+                }
+                return failure
+            }
+            val condition = translated.value
+            if (condition == null) {
+                val failure = unsupported("Unsupported AND operand", expr)
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && failure.isAlwaysFalseUnsupported()) {
+                    firstUnsupported = firstUnsupported ?: failure
+                    continue
+                }
+                return failure
+            }
+            conditions += condition
         }
-        return Ok(conditions.reduceOrNull { acc, condition -> acc.and(condition) } ?: alwaysTrue())
+        return firstUnsupported ?: Ok(conditions.reduceOrNull { acc, condition -> acc.and(condition) } ?: alwaysTrue())
     }
 
     /**
@@ -255,12 +339,29 @@ class KtormBooleanTranslator(
     */
     private fun translateOr(expr: OrExpression): Ret<ColumnDeclaring<Boolean>?> {
         val conditions = mutableListOf<ColumnDeclaring<Boolean>>()
-        expr.operands.forEach { operand ->
-            val translated = translate(operand)
-            if (translated.failed) return propagateBooleanFailure(translated)
-            conditions += translated.value ?: return unsupported("Unsupported OR operand", expr)
+        var firstUnsupported: Ret<ColumnDeclaring<Boolean>?>? = null
+        for (operand in expr.operands) {
+            val translated = translateInternal(operand)
+            if (translated.failed) {
+                val failure = propagateBooleanFailure(translated)
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translated.isAlwaysFalseUnsupported()) {
+                    firstUnsupported = firstUnsupported ?: failure
+                    continue
+                }
+                return failure
+            }
+            val condition = translated.value
+            if (condition == null) {
+                val failure = unsupported("Unsupported OR operand", expr)
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && failure.isAlwaysFalseUnsupported()) {
+                    firstUnsupported = firstUnsupported ?: failure
+                    continue
+                }
+                return failure
+            }
+            conditions += condition
         }
-        return Ok(conditions.reduceOrNull { acc, condition -> acc.or(condition) } ?: alwaysFalse())
+        return firstUnsupported ?: Ok(conditions.reduceOrNull { acc, condition -> acc.or(condition) } ?: alwaysFalse())
     }
 
     /**
@@ -271,7 +372,7 @@ class KtormBooleanTranslator(
      * @return Ktorm NOT 条件 / Ktorm NOT condition
     */
     private fun translateNot(expr: NotExpression): Ret<ColumnDeclaring<Boolean>?> {
-        val translated = translate(expr.operand)
+        val translated = translateInternal(expr.operand)
         if (translated.failed) return propagateBooleanFailure(translated)
         val condition = translated.value ?: return unsupported("Unsupported NOT operand", expr)
         return Ok(condition.not())
@@ -322,7 +423,13 @@ class KtormBooleanTranslator(
                 )
                 Failed(detail.toError())
             }
-            UnsupportedPredicatePolicy.AlwaysFalse -> Ok(alwaysFalse())
+            UnsupportedPredicatePolicy.AlwaysFalse -> Failed(
+                UnsupportedPredicateDetail.alwaysFalse(
+                    expressionType = expression.typeName,
+                    reason = reason,
+                    backendName = "Ktorm"
+                ).toError()
+            )
             UnsupportedPredicatePolicy.ClientFilter -> {
                 val detail = UnsupportedPredicateDetail.clientFilter(
                     expressionType = expression.typeName,
@@ -352,17 +459,19 @@ class KtormBooleanTranslator(
     private fun propagateScalarFailure(
         result: Ret<ScalarExpression<*>?>
     ): Ret<ColumnDeclaring<Boolean>?> {
-        @Suppress("UNCHECKED_CAST")
-        val failed = result as Failed<ScalarExpression<*>?, ErrorCode, Error<ErrorCode>>
-        return Failed(failed.error)
+        return result.propagateFailure() ?: Failed(
+            ErrorCode.ApplicationError,
+            "Ktorm 标量失败传播状态无效 / Invalid Ktorm scalar failure propagation state"
+        )
     }
 
     private fun propagateBooleanFailure(
         result: Ret<ColumnDeclaring<Boolean>?>
     ): Ret<ColumnDeclaring<Boolean>?> {
-        @Suppress("UNCHECKED_CAST")
-        val failed = result as Failed<ColumnDeclaring<Boolean>?, ErrorCode, Error<ErrorCode>>
-        return Failed(failed.error)
+        return result.propagateFailure() ?: Failed(
+            ErrorCode.ApplicationError,
+            "Ktorm 布尔失败传播状态无效 / Invalid Ktorm boolean failure propagation state"
+        )
     }
 
 /**
@@ -389,6 +498,15 @@ class KtormBooleanTranslator(
             type = BinaryExpressionType.EQUAL,
             left = ArgumentExpression(1, IntSqlType),
             right = ArgumentExpression(1, IntSqlType),
+            sqlType = BooleanSqlType
+        )
+    }
+
+    private fun alwaysUnknown(): ColumnDeclaring<Boolean> {
+        return BinaryExpression(
+            type = BinaryExpressionType.EQUAL,
+            left = ArgumentExpression(1, IntSqlType),
+            right = ArgumentExpression<Int>(value = null, sqlType = IntSqlType),
             sqlType = BooleanSqlType
         )
     }

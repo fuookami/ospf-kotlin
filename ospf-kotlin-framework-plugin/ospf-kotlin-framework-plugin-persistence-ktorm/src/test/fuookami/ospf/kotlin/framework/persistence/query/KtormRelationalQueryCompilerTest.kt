@@ -14,6 +14,8 @@ import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
+import org.ktorm.expression.OrderType
+import org.ktorm.expression.SelectExpression
 import org.ktorm.support.sqlite.SQLiteDialect
 import fuookami.ospf.kotlin.framework.persistence.expression.NullsOrderSupport
 import fuookami.ospf.kotlin.framework.persistence.expression.resolveColumnWithDiagnostics
@@ -307,8 +309,8 @@ class KtormRelationalQueryCompilerTest {
     }
 
     @Test
-    @DisplayName("null ordering support is forwarded / NULL 排序支持策略应透传")
-    fun nullOrderingSupportIsForwarded() {
+    @DisplayName("explicit null ordering is preserved for every support hint / 所有支持提示下均保留显式 NULL 顺序")
+    fun explicitNullOrderingIsPreservedForEverySupportHint() {
         val plan = RelationalQueryPlan(
             root = QuerySource("orders", "o"),
             orderBy = listOf(
@@ -318,19 +320,55 @@ class KtormRelationalQueryCompilerTest {
                 )
             )
         )
-        val unsupported = KtormRelationalQueryCompiler(
-            database = database(),
-            sources = sources(),
-            nullsOrderSupport = NullsOrderSupport.Never
-        ).compile(plan).value!!
-        val supported = KtormRelationalQueryCompiler(
-            database = database(),
-            sources = sources(),
-            nullsOrderSupport = NullsOrderSupport.Always
-        ).compile(plan).value!!
+        for (support in NullsOrderSupport.values()) {
+            val compiled = KtormRelationalQueryCompiler(
+                database = database(),
+                sources = sources(),
+                nullsOrderSupport = support
+            ).compile(plan).value!!
 
-        assertTrue(unsupported.audit.sqlTemplate.contains("is null", ignoreCase = true))
-        assertFalse(supported.audit.sqlTemplate.contains("is null", ignoreCase = true))
+            assertTrue(compiled.audit.sqlTemplate.contains("is null", ignoreCase = true))
+        }
+    }
+
+    @Test
+    @DisplayName("auto null ordering ranks each explicit placement before its value / Auto 空值排序应先排空值优先级再排列值")
+    fun autoNullOrderingRanksEachExplicitPlacementBeforeItsValue() {
+        val plan = RelationalQueryPlan(
+            root = QuerySource("orders", "o"),
+            orderBy = listOf(
+                OrderSpec(
+                    column = ColumnRef("o", "status"),
+                    direction = SortDirection.Ascending,
+                    nulls = NullsOrder.Last
+                ),
+                OrderSpec(
+                    column = ColumnRef("o", "id"),
+                    direction = SortDirection.Descending,
+                    nulls = NullsOrder.First
+                )
+            )
+        )
+
+        val result = KtormRelationalQueryCompiler(
+            database = database(),
+            sources = sources(),
+            dialect = RelationalQueryDialect.MySQL
+        ).compile(plan).value!!
+        val orderBy = (result.query.expression as SelectExpression).orderBy
+        val sql = result.audit.sqlTemplate.lowercase()
+        val firstRank = sql.indexOf("is null")
+        val firstValue = sql.indexOf("status", firstRank + "is null".length)
+        val secondRank = sql.indexOf("is null", firstRank + 1)
+        val secondValue = sql.indexOf("id", secondRank + "is null".length)
+
+        assertEquals(4, orderBy.size)
+        assertEquals(
+            listOf(OrderType.ASCENDING, OrderType.ASCENDING, OrderType.DESCENDING, OrderType.DESCENDING),
+            orderBy.map { it.orderType }
+        )
+        assertEquals(2, Regex("is null").findAll(sql).count())
+        assertTrue(firstRank >= 0 && firstValue > firstRank && secondRank > firstValue && secondValue > secondRank, sql)
     }
 
     @Test

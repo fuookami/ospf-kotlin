@@ -20,9 +20,12 @@ import org.ktorm.schema.int
 import org.ktorm.schema.Table
 import org.ktorm.schema.varchar
 import org.ktorm.support.sqlite.SQLiteDialect
+import fuookami.ospf.kotlin.framework.persistence.KtormBackend
 import fuookami.ospf.kotlin.framework.persistence.expression.translator.KtormColumnResolver
 import fuookami.ospf.kotlin.framework.persistence.query.KtormCompiledQuery
+import fuookami.ospf.kotlin.framework.persistence.query.RelationalQueryDialect
 import fuookami.ospf.kotlin.framework.persistence.query.RelationalQueryPlan
+import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.symbol.expression.dsl.and
 import fuookami.ospf.kotlin.math.symbol.expression.dsl.predicate
@@ -78,7 +81,9 @@ class KtormRepositoryIntegrationTest {
     private class UserRepository(
         database: Database,
         resolveColumn: KtormColumnResolver,
-        unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
+        unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.FailFast,
+        private val throwOnMapping: Boolean = false,
+        private val throwOnCompile: Boolean = false
     ) : KtormRepository<User>(
         database = database,
         table = Users,
@@ -90,6 +95,7 @@ class KtormRepositoryIntegrationTest {
         val compiledQueries = mutableListOf<KtormCompiledQuery>()
 
         override fun mapToEntity(row: QueryRowSet): User {
+            if (throwOnMapping) throw IllegalStateException("entity mapping failed")
             return User(
                 id = row[Users.id] ?: 0,
                 name = row[Users.name],
@@ -100,6 +106,7 @@ class KtormRepositoryIntegrationTest {
 
         override fun compileQuery(plan: RelationalQueryPlan): Ret<KtormCompiledQuery> {
             compiledPlans += plan
+            if (throwOnCompile) throw IllegalStateException("query compilation failed")
             val compiled = super.compileQuery(plan)
             compiled.value?.let(compiledQueries::add)
             return compiled
@@ -129,6 +136,10 @@ class KtormRepositoryIntegrationTest {
         return database
     }
 
+    private fun <T> Ret<T>.valueOrFail(): T {
+        return value ?: error("expected success result")
+    }
+
     /**
      * 验证仓储支持 where 条件、排序、分页、更新和删除操作
      * Verify repository supports where condition, sorting, paging, update and delete operations
@@ -150,12 +161,12 @@ class KtormRepositoryIntegrationTest {
             sortBy = SortBy.desc("age"),
             limit = 1,
             offset = 0
-        )
+        ).valueOrFail()
         assertEquals(1, page.size)
         assertEquals(2, page[0].id)
 
-        assertEquals(2L, repository.count(activeWhere))
-        assertTrue(repository.exists(activeWhere))
+        assertEquals(2L, repository.count(activeWhere).valueOrFail())
+        assertTrue(repository.exists(activeWhere).valueOrFail())
 
         val updated = repository.update(
             where = Comparison(
@@ -164,7 +175,7 @@ class KtormRepositoryIntegrationTest {
                 ScalarConstant(1)
             ),
             assignments = UpdateAssignments.set("status", "inactive")
-        )
+        ).valueOrFail()
         assertEquals(1, updated)
         val row = database.from(Users)
             .select(Users.status)
@@ -179,7 +190,7 @@ class KtormRepositoryIntegrationTest {
                 ScalarReference(PropertyPath.parse("status")),
                 ScalarConstant("pending")
             )
-        )
+        ).valueOrFail()
         assertEquals(1, deleted)
         assertFalse(repository.exists(
             Comparison(
@@ -187,7 +198,7 @@ class KtormRepositoryIntegrationTest {
                 ScalarReference(PropertyPath.parse("status")),
                 ScalarConstant("pending")
             )
-        ))
+        ).valueOrFail())
     }
 
     /**
@@ -203,8 +214,8 @@ class KtormRepositoryIntegrationTest {
             ScalarConstant("active")
         )
 
-        repository.find(activeWhere, SortBy.desc("age"), limit = 1, offset = 0)
-        repository.count(activeWhere)
+        repository.find(activeWhere, SortBy.desc("age"), limit = 1, offset = 0).valueOrFail()
+        repository.count(activeWhere).valueOrFail()
 
         assertEquals(2, repository.compiledPlans.size)
         assertEquals(activeWhere, repository.compiledPlans[0].predicate)
@@ -228,7 +239,7 @@ class KtormRepositoryIntegrationTest {
             sortBy = SortBy.asc("id"),
             limit = null,
             offset = 1
-        )
+        ).valueOrFail()
 
         assertEquals(listOf(2), page.map { it.id })
         val plan = repository.compiledPlans.single()
@@ -264,9 +275,9 @@ class KtormRepositoryIntegrationTest {
             ScalarConstant("active")
         )
 
-        assertEquals(2, repository.find(qualifiedWhere).size)
+        assertEquals(2, repository.find(qualifiedWhere).valueOrFail().size)
         assertTrue(paths.contains("profile.status"))
-        assertEquals(emptyList<User>(), repository.find(physicalWhere))
+        assertTrue(repository.find(physicalWhere).failed)
     }
 
     /**
@@ -302,9 +313,9 @@ class KtormRepositoryIntegrationTest {
             ScalarConstant(15)
         )
 
-        assertEquals(3, repository.find(columnColumn).size)
-        assertEquals(2, repository.find(arithmetic).size)
-        assertEquals(2, repository.find(function).size)
+        assertEquals(3, repository.find(columnColumn).valueOrFail().size)
+        assertEquals(2, repository.find(arithmetic).valueOrFail().size)
+        assertEquals(2, repository.find(function).valueOrFail().size)
     }
 
     /**
@@ -326,10 +337,87 @@ class KtormRepositoryIntegrationTest {
             UnsupportedPredicatePolicy.ClientFilter
         )
 
-        // FailFast / ClientFilter 遇到不支持的谓词时返回空结果，而非退化为全表扫描。
-        // FailFast / ClientFilter return empty results for unsupported predicates instead of degrading to a full scan.
-        assertEquals(emptyList<User>(), failFastRepository.find(BooleanCustom("x")))
-        assertEquals(emptyList<User>(), clientFilterRepository.find(BooleanCustom("x")))
+        assertTrue(failFastRepository.find(BooleanCustom("x")).failed)
+        assertTrue(clientFilterRepository.find(BooleanCustom("x")).failed)
+    }
+
+    @Test
+    @DisplayName("pagination should reject negative values and short-circuit zero limit / 分页应拒绝负数并短路零 limit")
+    fun paginationShouldRejectNegativeValuesAndShortCircuitZeroLimit() {
+        val repository = UserRepository(createDatabase(), resolver)
+        val activeWhere = Comparison(
+            ComparisonOperator.Eq,
+            ScalarReference(PropertyPath.parse("status")),
+            ScalarConstant("active")
+        )
+
+        assertTrue(repository.find(activeWhere, sortBy = null, limit = -1, offset = 0).failed)
+        assertTrue(repository.find(activeWhere, sortBy = null, limit = 1, offset = -1).failed)
+        assertEquals(emptyList<User>(), repository.find(activeWhere, sortBy = null, limit = 0, offset = 0).valueOrFail())
+        assertTrue(repository.compiledPlans.isEmpty())
+    }
+
+    @Test
+    @DisplayName("backend constructor uses its declared dialect / backend 构造器使用其声明的方言")
+    fun backendConstructorUsesDeclaredDialect() {
+        val repository = object : KtormRepository<User>(
+            backend = KtormBackend(createDatabase(), RelationalQueryDialect.MySQL),
+            table = Users,
+            resolveColumn = resolver
+        ) {
+            override fun mapToEntity(row: QueryRowSet): User = error("query should fail before mapping")
+        }
+
+        val result = repository.find(
+            where = BooleanConstant(Trivalent.True),
+            sortBy = null,
+            limit = null,
+            offset = 1
+        )
+
+        assertTrue(result.failed)
+    }
+
+    @Test
+    @DisplayName("compile resolver and mapping failures should become failed results / 编译、resolver 和映射异常应返回失败")
+    fun compileResolverAndMappingFailuresShouldBecomeFailedResults() {
+        val activeWhere = Comparison(
+            ComparisonOperator.Eq,
+            ScalarReference(PropertyPath.parse("status")),
+            ScalarConstant("active")
+        )
+        val compileFailureRepository = UserRepository(createDatabase(), resolver, throwOnCompile = true)
+        val mappingFailureRepository = UserRepository(createDatabase(), resolver, throwOnMapping = true)
+        val resolverFailureRepository = UserRepository(
+            createDatabase(),
+            KtormColumnResolver { throw IllegalStateException("resolver failed") }
+        )
+
+        assertTrue(compileFailureRepository.find(activeWhere).failed)
+        assertTrue(compileFailureRepository.exists(activeWhere).failed)
+        assertTrue(mappingFailureRepository.find(activeWhere).failed)
+        assertTrue(resolverFailureRepository.find(activeWhere).failed)
+    }
+
+    @Test
+    @DisplayName("NOT UNKNOWN must not match rows in writes / NOT UNKNOWN 的写操作不得匹配记录")
+    fun notUnknownMustNotMatchRowsInWrites() {
+        val repository = UserRepository(createDatabase(), resolver)
+        val predicates = listOf(
+            NotExpression(BooleanConstant(Trivalent.Unknown)),
+            NotExpression(AndExpression(listOf(
+                BooleanConstant(Trivalent.True),
+                BooleanConstant(Trivalent.Unknown)
+            )))
+        )
+
+        for (predicate in predicates) {
+            assertTrue(repository.find(predicate).valueOrFail().isEmpty())
+            assertEquals(0L, repository.count(predicate).valueOrFail())
+            assertFalse(repository.exists(predicate).valueOrFail())
+            assertEquals(0, repository.update(predicate, UpdateAssignments.set("status", "inactive")).valueOrFail())
+            assertEquals(0, repository.delete(predicate).valueOrFail())
+        }
     }
 
     /**
@@ -365,20 +453,20 @@ class KtormRepositoryIntegrationTest {
 
         // 使用强类型 predicate DSL 构造谓词
         val activeWhere = UserSchema.predicate { status eq "active" }
-        val activeUsers = repository.find(activeWhere)
+        val activeUsers = repository.find(activeWhere).valueOrFail()
         assertEquals(2, activeUsers.size)
         assertTrue(activeUsers.all { it.status == "active" })
 
         // 使用复合谓词
         val compoundWhere = UserSchema.predicate { (status eq "active") and (name eq "a") }
-        val compoundUsers = repository.find(compoundWhere)
+        val compoundUsers = repository.find(compoundWhere).valueOrFail()
         assertEquals(1, compoundUsers.size)
         assertEquals("a", compoundUsers[0].name)
 
         // 使用显式映射的 ktormResolver
         val explicitResolver = ktormResolver(Users, UserSchema.columnMapping)
         val explicitRepository = UserRepository(database, explicitResolver)
-        val explicitUsers = explicitRepository.find(UserSchema.predicate { status eq "active" })
+        val explicitUsers = explicitRepository.find(UserSchema.predicate { status eq "active" }).valueOrFail()
         assertEquals(2, explicitUsers.size)
     }
  /** Snake 用户表 / Snake users table */
@@ -477,13 +565,13 @@ class KtormRepositoryIntegrationTest {
 
         // 强类型谓词使用属性名（schema 字段），resolver 映射到 snake_case 列名
         val activeWhere = SnakeUserSchema.predicate { status eq "active" }
-        val activeUsers = repository.find(activeWhere)
+        val activeUsers = repository.find(activeWhere).valueOrFail()
         assertEquals(2, activeUsers.size)
         assertTrue(activeUsers.all { it.status == "active" })
 
         // 复合谓词
         val compoundWhere = SnakeUserSchema.predicate { (status eq "active") and (name eq "a") }
-        val compoundUsers = repository.find(compoundWhere)
+        val compoundUsers = repository.find(compoundWhere).valueOrFail()
         assertEquals(1, compoundUsers.size)
         assertEquals("a", compoundUsers[0].name)
 
@@ -493,7 +581,7 @@ class KtormRepositoryIntegrationTest {
             sortBy = SortBy.desc("age"),
             limit = 1,
             offset = 0
-        )
+        ).valueOrFail()
         assertEquals(1, page.size)
         assertEquals(2, page[0].id)
     }

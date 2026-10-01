@@ -193,16 +193,19 @@ class MybatisBooleanTranslatorTest {
     @Nested
     @DisplayName("Translator Behavior Tests / 翻译行为测试")
     inner class TranslatorBehaviorTests {
-        private val translator = MybatisBooleanTranslator<TestEntity>(resolver)
+        private val translator = MybatisBooleanTranslator<TestEntity>(
+            resolver,
+            UnsupportedPredicatePolicy.AlwaysFalse
+        )
 
         @Test
-        @DisplayName("false and unknown should become impossible condition / false 与 unknown 应转不可能条件")
-        fun falseAndUnknownShouldBecomeImpossibleCondition() {
+        @DisplayName("false and unknown should preserve SQL three-valued semantics / false 与 unknown 应保留 SQL 三值语义")
+        fun falseAndUnknownShouldPreserveSqlThreeValuedSemantics() {
             val falseWrapper = translator.translate(QueryWrapper(), BooleanConstant(Trivalent.False)).value!!
             val unknownWrapper = translator.translate(QueryWrapper(), BooleanConstant(Trivalent.Unknown)).value!!
 
             assertTrue(falseWrapper.customSqlSegment.contains("1 = 0"))
-            assertTrue(unknownWrapper.customSqlSegment.contains("1 = 0"))
+            assertTrue(unknownWrapper.customSqlSegment.contains("1 = NULL"))
         }
 
         @Test
@@ -322,6 +325,90 @@ class MybatisBooleanTranslatorTest {
 
             val result = failFastTranslator.translate(QueryWrapper(), BooleanCustom("x"))
             assertTrue(result.failed)
+        }
+
+        @Test
+        @DisplayName("default policy should be FailFast / 默认策略应为 FailFast")
+        fun defaultPolicyShouldBeFailFast() {
+            val result = MybatisBooleanTranslator<TestEntity>(resolver)
+                .translate(QueryWrapper(), BooleanCustom("x"))
+
+            assertTrue(result.failed)
+        }
+
+        @Test
+        @DisplayName("AlwaysFalse should resolve only at the expression root / AlwaysFalse 只应在表达式根节点处理")
+        fun alwaysFalseShouldResolveAtRoot() {
+            val alwaysFalseTranslator = MybatisBooleanTranslator<TestEntity>(
+                resolver,
+                UnsupportedPredicatePolicy.AlwaysFalse
+            )
+            val supported = Comparison(
+                ComparisonOperator.Eq,
+                ScalarReference(PropertyPath.parse("status")),
+                ScalarConstant("active")
+            )
+            val predicates = listOf(
+                AndExpression(listOf(supported, BooleanCustom("x"))),
+                OrExpression(listOf(supported, BooleanCustom("x"))),
+                NotExpression(BooleanCustom("x")),
+                NotExpression(AndExpression(listOf(supported, BooleanCustom("x"))))
+            )
+
+            for (predicate in predicates) {
+                val result = alwaysFalseTranslator.translate(QueryWrapper(), predicate)
+                assertTrue(result.ok)
+                assertTrue(result.value!!.customSqlSegment.contains("1 = 0"))
+            }
+        }
+
+        @Test
+        @DisplayName("resolver exceptions should become failed results / resolver 异常应返回失败")
+        fun resolverExceptionsShouldBecomeFailedResults() {
+            val translator = MybatisBooleanTranslator<TestEntity>(
+                MybatisColumnNameResolver { throw IllegalStateException("resolver failed") }
+            )
+            val predicate = Comparison(
+                ComparisonOperator.Eq,
+                ScalarReference(PropertyPath.parse("status")),
+                ScalarConstant("active")
+            )
+
+            assertTrue(translator.translate(QueryWrapper(), predicate).failed)
+        }
+
+        @Test
+        @DisplayName("AlwaysFalse should propagate later resolver failures / AlwaysFalse 应传播后续 resolver 异常")
+        fun alwaysFalseShouldPropagateLaterResolverFailures() {
+            val throwingResolver = MybatisColumnNameResolver { path ->
+                if (path == "broken") throw IllegalStateException("resolver failed")
+                path
+            }
+            val translator = MybatisBooleanTranslator<TestEntity>(
+                throwingResolver,
+                UnsupportedPredicatePolicy.AlwaysFalse
+            )
+            val unsupported = BooleanCustom("unsupported")
+            val broken = Comparison(
+                ComparisonOperator.Eq,
+                ScalarReference<Int>(PropertyPath.parse("broken")),
+                ScalarConstant(1)
+            )
+            val predicates = listOf(
+                AndExpression(listOf(unsupported, broken)),
+                OrExpression(listOf(unsupported, broken)),
+                Comparison(
+                    ComparisonOperator.Eq,
+                    ScalarFunction("unknown", listOf(ScalarConstant(1))),
+                    ScalarReference<Int>(PropertyPath.parse("broken"))
+                )
+            )
+
+            for (predicate in predicates) {
+                val result = translator.translate(QueryWrapper(), predicate)
+                assertTrue(result is Failed)
+                assertTrue((result as Failed<*, *, *>).error.message.contains("resolver failed"))
+            }
         }
 
         @Test

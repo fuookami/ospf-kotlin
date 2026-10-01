@@ -39,11 +39,17 @@ OSPF Kotlin 框架的 MongoDB 持久化插件，提供文档仓储（表达式�
 | 符号 | 类型 | 说明 |
 | --- | --- | --- |
 | `MongoFieldNameResolver` | typealias | `PersistenceFieldResolver<String>` |
-| `MongoRepository<E>` | abstract class | 基于 MongoDB 实现 `ExpressionRepository<E>` 的仓储基类 |
-| `MongoBooleanTranslator` | class | `BooleanExpression` → `Bson` 过滤器 |
-| `MongoScalarTranslator` | class | `ScalarExpression<*>` → `$expr` 值 |
-| `MongoOrderByTranslator` | class | `SortBy` → `Bson` 排序 |
-| `MongoUpdateTranslator` | class | `UpdateAssignments` → `Bson` 更新 |
+| `MongoRepository<E>` | abstract class | 实现 `Ret` 结果型 `ExpressionRepository<E>` 契约的 MongoDB 仓储基类 |
+| `MongoBooleanTranslator` | class | `BooleanExpression` → `Ret<Bson?>` 过滤器 |
+| `MongoScalarTranslator` | class | `ScalarExpression<*>` → `Ret<Any?>` `$expr` 值 |
+| `MongoOrderByTranslator` | class | `SortBy` → `Ret<Bson?>` 排序 |
+| `MongoUpdateTranslator` | class | `UpdateAssignments` → `Ret<Bson?>` 更新 |
+
+## 仓储结果
+
+表达式仓储的 `find`、`count`、`exists`、`update` 和 `delete` 均返回 `Ret`。不支持谓词时默认采用 `FailFast`，翻译失败会返回给调用方；`ClientFilter` 也会返回结构化失败，因为 MongoDB 仓储不会在内存中执行谓词过滤。使用 `AlwaysFalse` 时，仅当根谓词不支持时才会生成匹配不到文档的过滤器。三值常量 `Unknown` 始终不匹配文档，即使位于嵌套 `NOT` 中也是如此；MongoDB 翻译会将 `NOT` 下推到 `AND` 和 `OR`，同时保留 `Unknown`。
+
+负数 `limit` 或 `offset` 会返回失败结果；`limit = 0` 会返回 `Ok(emptyList())`，且不查询 MongoDB。只有条件和每一项赋值都翻译成功后才会发送更新。MongoDB 操作、游标遍历和实体映射中的普通异常会转成失败结果；取消异常会继续抛出。
 
 ## 快速开始
 

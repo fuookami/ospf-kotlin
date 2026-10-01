@@ -4,10 +4,12 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
+import java.util.concurrent.CancellationException
 import com.mongodb.MongoClientSettings
 import org.bson.BsonDocument
 import org.bson.conversions.Bson
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -53,7 +55,10 @@ class MongoBooleanTranslatorTest {
     fun falseUnknownCustomShouldTranslateToAlwaysFalseFilter() {
         val falseJson = json(translator.translate(BooleanConstant(Trivalent.False)))
         val unknownJson = json(translator.translate(BooleanConstant(Trivalent.Unknown)))
-        val customJson = json(translator.translate(BooleanCustom("x")))
+        val customJson = json(
+            MongoBooleanTranslator(resolver, UnsupportedPredicatePolicy.AlwaysFalse)
+                .translate(BooleanCustom("x"))
+        )
 
         assertTrue(falseJson.contains("\"_id\""))
         assertTrue(unknownJson.contains("\"\$exists\""))
@@ -108,7 +113,8 @@ class MongoBooleanTranslatorTest {
             ScalarConstant(1)
         )
 
-        val actual = json(translator.translate(expr))
+        val alwaysFalseTranslator = MongoBooleanTranslator(resolver, UnsupportedPredicatePolicy.AlwaysFalse)
+        val actual = json(alwaysFalseTranslator.translate(expr))
         assertTrue(actual.contains("\"_id\""))
         assertTrue(actual.contains("\"\$exists\""))
     }
@@ -128,7 +134,9 @@ class MongoBooleanTranslatorTest {
         )
 
         val poJson = json(translator.translate(poExpr))
-        val domainJson = json(translator.translate(domainExpr))
+        val domainJson = json(
+            MongoBooleanTranslator(resolver, UnsupportedPredicatePolicy.AlwaysFalse).translate(domainExpr)
+        )
 
         assertTrue(poJson.contains("\"width_value\""))
         assertTrue(poJson.contains("\"\$gt\""))
@@ -228,5 +236,116 @@ class MongoBooleanTranslatorTest {
         assertTrue(detail.expressionType.contains("Custom"))
         assertEquals(UnsupportedPredicatePolicy.FailFast, detail.policy)
         assertEquals("MongoDB", detail.backendName)
+    }
+
+    @Test
+    @DisplayName("default policy should fail fast and preserve nested failure / 默认策略应失败并保留递归错误")
+    fun defaultPolicyShouldFailFastAndPreserveNestedFailure() {
+        val result = translator.translate(NotExpression(BooleanCustom("x")))
+
+        assertTrue(result.failed)
+        assertTrue(result is Failed)
+        val error = (result as Failed<*, *, *>).error as ExErr<*, *>
+        val detail = error.value as UnsupportedPredicateDetail
+        assertEquals(UnsupportedPredicatePolicy.FailFast, detail.policy)
+        assertTrue(detail.expressionType.contains("Custom"))
+    }
+
+    @Test
+    @DisplayName("always-false should fail closed through NOT / AlwaysFalse 应在 NOT 树中保持恒假")
+    fun alwaysFalseShouldFailClosedThroughNot() {
+        val alwaysFalseTranslator = MongoBooleanTranslator(resolver, UnsupportedPredicatePolicy.AlwaysFalse)
+        val result = alwaysFalseTranslator.translate(
+            NotExpression(AndExpression(listOf(BooleanConstant(Trivalent.True), BooleanCustom("x"))))
+        )
+
+        assertTrue(json(result).contains("\"_id\""))
+    }
+
+    @Test
+    @DisplayName("NOT should preserve three-valued constants through nested logic / NOT 应在嵌套逻辑中保留三值常量语义")
+    fun notShouldPreserveThreeValuedConstantsThroughNestedLogic() {
+        val notTrue = json(translator.translate(NotExpression(BooleanConstant(Trivalent.True))))
+        val notFalse = json(translator.translate(NotExpression(BooleanConstant(Trivalent.False))))
+        val notUnknown = json(translator.translate(NotExpression(BooleanConstant(Trivalent.Unknown))))
+        val notAndUnknown = json(translator.translate(
+            NotExpression(AndExpression(listOf(
+                BooleanConstant(Trivalent.True),
+                BooleanConstant(Trivalent.Unknown)
+            )))
+        ))
+        val notOrUnknown = json(translator.translate(
+            NotExpression(OrExpression(listOf(
+                BooleanConstant(Trivalent.False),
+                BooleanConstant(Trivalent.Unknown)
+            )))
+        ))
+
+        assertTrue(notTrue.contains("\"_id\""))
+        assertEquals("{}", notFalse)
+        assertTrue(notUnknown.contains("\"_id\""))
+        assertTrue(notAndUnknown.contains("\"_id\""))
+        assertTrue(notOrUnknown.contains("\"_id\""))
+    }
+
+    @Test
+    @DisplayName("later resolver errors should outrank always-false markers / 后续解析器错误应优先于恒假标记")
+    fun laterResolverErrorsShouldOutrankAlwaysFalseMarkers() {
+        val translator = MongoBooleanTranslator(
+            MongoFieldNameResolver { path: String ->
+                if (path == "broken") throw IllegalStateException("resolver")
+                path
+            },
+            UnsupportedPredicatePolicy.AlwaysFalse
+        )
+        val failingOperand = Comparison(
+            ComparisonOperator.Eq,
+            ScalarReference(PropertyPath.parse("broken")),
+            ScalarConstant(1)
+        )
+        val scalarComparison = Comparison(
+            ComparisonOperator.Eq,
+            ScalarCustom<Int>("unsupported"),
+            ScalarReference<Int>(PropertyPath.parse("broken"))
+        )
+        val expressions: List<BooleanExpression> = listOf(
+            AndExpression(listOf(BooleanCustom("unsupported"), failingOperand)),
+            OrExpression(listOf(BooleanCustom("unsupported"), failingOperand)),
+            scalarComparison
+        )
+
+        for (expression in expressions) {
+            assertTrue(translator.translate(expression).failed)
+        }
+    }
+
+    @Test
+    @DisplayName("client filter should return a structured failure / ClientFilter 应返回结构化失败")
+    fun clientFilterShouldReturnStructuredFailure() {
+        val clientFilterTranslator = MongoBooleanTranslator(resolver, UnsupportedPredicatePolicy.ClientFilter)
+        val result = clientFilterTranslator.translate(BooleanCustom("x"))
+
+        assertTrue(result.failed)
+        val error = ((result as Failed<*, *, *>).error as ExErr<*, *>).value as UnsupportedPredicateDetail
+        assertEquals(UnsupportedPredicatePolicy.ClientFilter, error.policy)
+    }
+
+    @Test
+    @DisplayName("resolver exceptions should fail and cancellation should pass through / 解析器异常应失败且取消异常继续抛出")
+    fun resolverExceptionsShouldFailAndCancellationShouldPassThrough() {
+        val expr = Comparison(
+            ComparisonOperator.Eq,
+            ScalarReference(PropertyPath.parse("age")),
+            ScalarConstant(18)
+        )
+        val failingTranslator = MongoBooleanTranslator(MongoFieldNameResolver { throw IllegalStateException("resolver") })
+        val cancellingTranslator = MongoBooleanTranslator(
+            MongoFieldNameResolver { throw CancellationException("cancelled") }
+        )
+
+        assertTrue(failingTranslator.translate(expr).failed)
+        assertThrows(CancellationException::class.java) {
+            cancellingTranslator.translate(expr)
+        }
     }
 }

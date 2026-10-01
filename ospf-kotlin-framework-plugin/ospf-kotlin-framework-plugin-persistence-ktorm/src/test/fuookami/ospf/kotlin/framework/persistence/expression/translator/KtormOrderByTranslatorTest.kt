@@ -65,16 +65,38 @@ class KtormOrderByTranslatorTest {
     }
 
     @Test
-    @DisplayName("should not add nulls fallback when supported / 支持时不应注入 nulls 降级排序")
-    fun shouldNotAddNullsFallbackWhenSupported() {
-        val translator = KtormOrderByTranslator(resolver, NullsOrderSupport.Always)
-        val sortBy = SortBy.desc("name", NullsOrder.NullsFirst)
+    @DisplayName("auto should preserve explicit null placement / Auto 应保留显式空值顺序")
+    fun autoShouldPreserveExplicitNullPlacement() {
+        val translator = KtormOrderByTranslator(resolver)
+        val sortBy = SortBy.asc("name", NullsOrder.NullsLast)
 
         val query = translator.apply(newQuery(), sortBy).value!!
-        val selectExpr = query.expression as SelectExpression
+        val orders = (query.expression as SelectExpression).orderBy
 
-        assertEquals(1, selectExpr.orderBy.size)
-        assertEquals(OrderType.DESCENDING, selectExpr.orderBy[0].orderType)
+        assertEquals(2, orders.size)
+        assertEquals(UnaryExpressionType.IS_NULL, (orders[0].expression as UnaryExpression<*>).type)
+        assertEquals(OrderType.ASCENDING, orders[0].orderType)
+        assertEquals(OrderType.ASCENDING, orders[1].orderType)
+    }
+
+    @Test
+    @DisplayName("support hints must not drop explicit null placement / 支持提示不能忽略显式空值顺序")
+    fun supportHintsMustNotDropExplicitNullPlacement() {
+        val cases = listOf(
+            Triple(NullsOrderSupport.Always, SortBy.desc("name", NullsOrder.NullsFirst), OrderType.DESCENDING),
+            Triple(NullsOrderSupport.OnlyAsc, SortBy.asc("name", NullsOrder.NullsLast), OrderType.ASCENDING)
+        )
+
+        for ((support, sortBy, direction) in cases) {
+            val translator = KtormOrderByTranslator(resolver, support)
+            val query = translator.apply(newQuery(), sortBy).value!!
+            val orders = (query.expression as SelectExpression).orderBy
+
+            assertEquals(2, orders.size)
+            assertEquals(UnaryExpressionType.IS_NULL, (orders[0].expression as UnaryExpression<*>).type)
+            assertEquals(direction, orders[0].orderType)
+            assertEquals(direction, orders[1].orderType)
+        }
     }
 
     @Test

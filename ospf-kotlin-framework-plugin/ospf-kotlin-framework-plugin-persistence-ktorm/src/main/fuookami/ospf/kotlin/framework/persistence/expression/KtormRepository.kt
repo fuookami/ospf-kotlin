@@ -6,10 +6,12 @@
 */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
+import java.util.concurrent.CancellationException
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.Table
+import fuookami.ospf.kotlin.framework.persistence.KtormBackend
 import fuookami.ospf.kotlin.framework.persistence.expression.translator.*
 import fuookami.ospf.kotlin.framework.persistence.query.ColumnRef
 import fuookami.ospf.kotlin.framework.persistence.query.KtormCompiledQuery
@@ -23,7 +25,8 @@ import fuookami.ospf.kotlin.framework.persistence.query.RelationalQueryDialect
 import fuookami.ospf.kotlin.framework.persistence.query.RelationalQueryPlan
 import fuookami.ospf.kotlin.framework.persistence.query.SortDirection as RelationalSortDirection
 import fuookami.ospf.kotlin.math.symbol.expression.BooleanExpression
-import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 列名解析器 / Column Name Resolver
@@ -53,10 +56,33 @@ abstract class KtormRepository<E : Any>(
     protected val resolveColumn: KtormColumnResolver,
     protected val patternMatchPolicy: PatternMatchPolicy = DefaultPatternMatchPolicy,
     protected val nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto,
-    protected val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse,
+    protected val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.FailFast,
     protected val targetConstantBinder: KtormTargetConstantBinder? = null,
     protected val relationalQueryDialect: RelationalQueryDialect = RelationalQueryDialect.SQLite
 ) : ExpressionRepository<E> {
+
+    /**
+     * Creates a repository from a database backend supplied by a persistence plugin.
+     * 使用持久化插件提供的数据库后端创建仓储。
+     */
+    constructor(
+        backend: KtormBackend,
+        table: Table<*>,
+        resolveColumn: KtormColumnResolver,
+        patternMatchPolicy: PatternMatchPolicy = DefaultPatternMatchPolicy,
+        nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto,
+        unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.FailFast,
+        targetConstantBinder: KtormTargetConstantBinder? = null
+    ) : this(
+        database = backend.database,
+        table = table,
+        resolveColumn = resolveColumn,
+        patternMatchPolicy = patternMatchPolicy,
+        nullsOrderSupport = nullsOrderSupport,
+        unsupportedPredicatePolicy = unsupportedPredicatePolicy,
+        targetConstantBinder = targetConstantBinder,
+        relationalQueryDialect = backend.dialect
+    )
 
     private val relationalQuerySource = QuerySource(
         table::class.simpleName ?: "root"
@@ -101,7 +127,7 @@ abstract class KtormRepository<E : Any>(
      * @param where 查询条件 / Query condition
      * @return 实体列表 / Entity list
     */
-    override fun find(where: BooleanExpression): List<E> {
+    override fun find(where: BooleanExpression): Ret<List<E>> {
         return find(where, null, null, null)
     }
 
@@ -119,17 +145,33 @@ abstract class KtormRepository<E : Any>(
         sortBy: SortBy?,
         limit: Int?,
         offset: Int?
-    ): List<E> {
-        if (limit != null && limit <= 0 || offset != null && offset < 0) return emptyList()
-        val compiled = compileQuery(
-            queryPlan(
-                where = where,
-                sortBy = sortBy,
-                limit = limit,
-                offset = offset
+    ): Ret<List<E>> {
+        if (limit != null && limit < 0 || offset != null && offset < 0) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "分页参数不能为负数 / Pagination values cannot be negative"
             )
-        ).value ?: return emptyList()
-        return compiled.query.mapNotNull { mapToEntity(it) }
+        }
+        if (limit == 0) return Ok(emptyList())
+
+        return try {
+            val compiledResult = compileQuery(
+                queryPlan(
+                    where = where,
+                    sortBy = sortBy,
+                    limit = limit,
+                    offset = offset
+                )
+            )
+            compiledResult.propagateFailure<List<E>>()?.let { return it }
+            val compiled = compiledResult.value
+                ?: return Failed(ErrorCode.ApplicationError, "Ktorm 查询编译未返回结果 / Ktorm query compilation returned no value")
+            Ok(compiled.query.mapNotNull { mapToEntity(it) })
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("Ktorm find", error)
+        }
     }
 
     /**
@@ -138,9 +180,18 @@ abstract class KtormRepository<E : Any>(
      * @param where 查询条件 / Query condition
      * @return 实体数量 / Entity count
     */
-    override fun count(where: BooleanExpression): Long {
-        val compiled = compileQuery(queryPlan(where = where)).value ?: return 0L
-        return compiled.query.totalRecordsInAllPages.toLong()
+    override fun count(where: BooleanExpression): Ret<Long> {
+        return try {
+            val compiledResult = compileQuery(queryPlan(where = where))
+            compiledResult.propagateFailure<Long>()?.let { return it }
+            val compiled = compiledResult.value
+                ?: return Failed(ErrorCode.ApplicationError, "Ktorm 计数查询编译未返回结果 / Ktorm count query compilation returned no value")
+            Ok(compiled.query.totalRecordsInAllPages.toLong())
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("Ktorm count", error)
+        }
     }
 
     /**
@@ -150,12 +201,20 @@ abstract class KtormRepository<E : Any>(
      * @param assignments 更新赋值列表 / Update assignment list
      * @return 受影响的行数 / Number of affected rows
     */
-    override fun update(where: BooleanExpression, assignments: UpdateAssignments): Int {
-        if (assignments.isEmpty()) return 0
+    override fun update(where: BooleanExpression, assignments: UpdateAssignments): Ret<Int> {
+        if (assignments.isEmpty()) return Ok(0)
 
-        val condition = booleanTranslator.translate(where).value ?: return 0
-
-        return updateTranslator.executeUpdate(database, condition, assignments)
+        return try {
+            val translatedCondition = booleanTranslator.translate(where)
+            translatedCondition.propagateFailure<Int>()?.let { return it }
+            val condition = translatedCondition.value
+                ?: return Failed(ErrorCode.ApplicationError, "Ktorm 更新条件翻译未返回结果 / Ktorm update predicate translation returned no value")
+            updateTranslator.executeUpdate(database, condition, assignments)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("Ktorm update", error)
+        }
     }
 
     /**
@@ -164,10 +223,18 @@ abstract class KtormRepository<E : Any>(
      * @param where 删除条件 / Delete condition
      * @return 受影响的行数 / Number of affected rows
     */
-    override fun delete(where: BooleanExpression): Int {
-        val condition = booleanTranslator.translate(where).value ?: return 0
-
-        return database.delete(table) { condition }
+    override fun delete(where: BooleanExpression): Ret<Int> {
+        return try {
+            val translatedCondition = booleanTranslator.translate(where)
+            translatedCondition.propagateFailure<Int>()?.let { return it }
+            val condition = translatedCondition.value
+                ?: return Failed(ErrorCode.ApplicationError, "Ktorm 删除条件翻译未返回结果 / Ktorm delete predicate translation returned no value")
+            Ok(database.delete(table) { condition })
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("Ktorm delete", error)
+        }
     }
 
     /**

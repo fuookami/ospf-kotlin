@@ -7,8 +7,11 @@
 */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
+import java.util.concurrent.CancellationException
 import com.mongodb.client.model.Updates
 import org.bson.conversions.Bson
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.framework.persistence.expression.*
 
@@ -29,15 +32,31 @@ class MongoUpdateTranslator(
      * 翻译更新为 Bson / Translate update to Bson
      *
      * @param assignments 更新赋值列表 / Update assignment list
-     * @return Bson 更新表达式，为空时返回 null / Bson update expression, or null if empty
+     * @return Bson 更新表达式，为空时返回 null；任何赋值无法翻译时返回失败 / Bson update expression, null if empty, or failure when an assignment cannot be translated
     */
-    fun translate(assignments: UpdateAssignments): Bson? {
-        if (assignments.isEmpty()) return null
+    fun translate(assignments: UpdateAssignments): Ret<Bson?> {
+        return try {
+            translateInternal(assignments)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("MongoDB update translation", error)
+        }
+    }
 
-        val updates = assignments.items.mapNotNull { translateItem(it) }
-        if (updates.isEmpty()) return null
+    private fun translateInternal(assignments: UpdateAssignments): Ret<Bson?> {
+        if (assignments.isEmpty()) return Ok(null)
 
-        return Updates.combine(updates)
+        val updates = mutableListOf<Bson>()
+        for (item in assignments.items) {
+            val translated = translateItem(item)
+            translated.propagateFailure<Bson?>()?.let { return it }
+            val update = translated.value
+                ?: return assignmentFailure(item.path, "assignment did not produce an update")
+            updates += update
+        }
+
+        return Ok(Updates.combine(updates))
     }
 
     /**
@@ -46,7 +65,7 @@ class MongoUpdateTranslator(
      * @param item 更新赋值项 / Update assignment item
      * @return Bson 更新表达式 / Bson update expression
     */
-    private fun translateItem(item: UpdateAssignment): Bson? {
+    private fun translateItem(item: UpdateAssignment): Ret<Bson?> {
         return when (item) {
             is SetValue -> translateSetValue(item)
             is SetNull -> translateSetNull(item)
@@ -60,9 +79,10 @@ class MongoUpdateTranslator(
      * @param item 设置值赋值项 / Set-value assignment item
      * @return Bson 更新表达式 / Bson update expression
     */
-    private fun translateSetValue(item: SetValue): Bson? {
-        val field = resolveFieldName(item.path) ?: return null
-        return Updates.set(field, item.value)
+    private fun translateSetValue(item: SetValue): Ret<Bson?> {
+        val field = resolveFieldName(item.path)
+            ?: return assignmentFailure(item.path, "field was not resolved")
+        return Ok(Updates.set(field, item.value))
     }
 
     /**
@@ -71,9 +91,10 @@ class MongoUpdateTranslator(
      * @param item 设置空值赋值项 / Set-null assignment item
      * @return Bson 更新表达式 / Bson update expression
     */
-    private fun translateSetNull(item: SetNull): Bson? {
-        val field = resolveFieldName(item.path) ?: return null
-        return Updates.set(field, null)
+    private fun translateSetNull(item: SetNull): Ret<Bson?> {
+        val field = resolveFieldName(item.path)
+            ?: return assignmentFailure(item.path, "field was not resolved")
+        return Ok(Updates.set(field, null))
     }
 
     /**
@@ -82,18 +103,18 @@ class MongoUpdateTranslator(
      * @param item 表达式赋值项 / Set-from-expression assignment item
      * @return Bson 更新表达式 / Bson update expression
     */
-    private fun translateSetFromExpression(item: SetFromExpression): Bson? {
-        val field = resolveFieldName(item.path) ?: return null
+    private fun translateSetFromExpression(item: SetFromExpression): Ret<Bson?> {
+        val field = resolveFieldName(item.path)
+            ?: return assignmentFailure(item.path, "field was not resolved")
+        val expression = item.expression as? ScalarConstant<*>
+            ?: return assignmentFailure(item.path, "expression is not supported")
+        return Ok(Updates.set(field, expression.value))
+    }
 
-        // 目前只支持 ScalarConstant
-        // Currently only supports ScalarConstant
-        val exprValue = (item.expression as? ScalarConstant<*>)?.value
-        return if (exprValue != null) {
-            Updates.set(field, exprValue)
-        } else {
-            // 对于复杂表达式，可能需要使用 $expr
-            // For complex expressions, may need to use $expr
-            null
-        }
+    private fun assignmentFailure(path: String, reason: String): Ret<Bson?> {
+        return Failed(
+            ErrorCode.IllegalArgument,
+            "更新赋值翻译失败：字段 $path：$reason / Update assignment translation failed: field $path: $reason"
+        )
     }
 }

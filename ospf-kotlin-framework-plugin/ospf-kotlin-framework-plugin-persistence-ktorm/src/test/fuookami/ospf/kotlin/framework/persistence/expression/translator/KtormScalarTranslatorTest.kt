@@ -7,7 +7,6 @@ package fuookami.ospf.kotlin.framework.persistence.expression.translator
 import kotlinx.coroutines.CancellationException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -209,13 +208,16 @@ class KtormScalarTranslatorTest {
     @Test
     @DisplayName("unsupported scalar should follow policy / 不支持标量应遵循策略")
     fun unsupportedScalarShouldFollowPolicy() {
-        val alwaysFalseTranslator = KtormScalarTranslator(resolver)
+        val alwaysFalseTranslator = KtormScalarTranslator(resolver, UnsupportedPredicatePolicy.AlwaysFalse)
         val failFastTranslator = KtormScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
         val unresolved = alwaysFalseTranslator.translate(ScalarReference<Int>(PropertyPath.parse("unknown")))
         val failed = failFastTranslator.translate(ScalarCustom<Int>("x"))
 
-        assertTrue(unresolved.ok)
-        assertNull(unresolved.value)
+        assertTrue(unresolved.failed)
+        assertEquals(
+            UnsupportedPredicatePolicy.AlwaysFalse,
+            ((unresolved as Failed<*, *, *>).error.value as UnsupportedPredicateDetail).policy
+        )
         assertTrue(failed.failed)
     }
 
@@ -265,15 +267,40 @@ class KtormScalarTranslatorTest {
     @Test
     @DisplayName("unknown function should follow policy / 未知函数应遵循策略")
     fun unknownFunctionShouldFollowPolicy() {
-        val alwaysFalseTranslator = KtormScalarTranslator(resolver)
+        val alwaysFalseTranslator = KtormScalarTranslator(resolver, UnsupportedPredicatePolicy.AlwaysFalse)
         val failFastTranslator = KtormScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
         val unknown = ScalarFunction("unknown", listOf(ScalarConstant(1)))
         val unsupported = alwaysFalseTranslator.translate(unknown)
         val failed = failFastTranslator.translate(unknown)
 
-        assertTrue(unsupported.ok)
-        assertNull(unsupported.value)
+        assertTrue(unsupported.failed)
+        assertEquals(
+            UnsupportedPredicatePolicy.AlwaysFalse,
+            ((unsupported as Failed<*, *, *>).error.value as UnsupportedPredicateDetail).policy
+        )
         assertTrue(failed.failed)
+    }
+
+    @Test
+    @DisplayName("AlwaysFalse should propagate later scalar failures / AlwaysFalse 应传播后续标量失败")
+    fun alwaysFalseShouldPropagateLaterScalarFailures() {
+        val throwingResolver = KtormColumnResolver { path ->
+            if (path == "broken") throw IllegalStateException("resolver failed")
+            resolver(path)
+        }
+        val translator = KtormScalarTranslator(throwingResolver, UnsupportedPredicatePolicy.AlwaysFalse)
+        val unsupported = ScalarFunction("unknown", listOf(ScalarConstant(1)))
+        val broken = ScalarReference<Int>(PropertyPath.parse("broken"))
+        val expressions = listOf(
+            ScalarBinary(BinaryOperator.Add, unsupported, broken),
+            ScalarFunction(ScalarFunctionNames.Coalesce, listOf(unsupported, broken))
+        )
+
+        for (expression in expressions) {
+            val result = translator.translate(expression)
+            assertTrue(result is Failed)
+            assertTrue((result as Failed<*, *, *>).error.message.contains("resolver failed"))
+        }
     }
 
     private fun assertTrueArgument(expr: org.ktorm.expression.ScalarExpression<*>?) {

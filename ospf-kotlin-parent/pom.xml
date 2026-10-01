@@ -29,6 +29,7 @@
         <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
         <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
         <maven-dokka-plugin.version>2.2.0</maven-dokka-plugin.version>
+        <ospf.test.reportsDirectory>${java.io.tmpdir}/ospf-kotlin-test-reports</ospf.test.reportsDirectory>
     </properties>
 
     <dependencyManagement>
@@ -237,6 +238,7 @@
                 <inherited>true</inherited>
                 <configuration>
                     <argLine>-Xms128m -Xmx768m -XX:+UseG1GC -Dfile.encoding=UTF-8 -XX:-UseJVMCICompiler</argLine>
+                    <reportsDirectory>${ospf.test.reportsDirectory}/${project.artifactId}/surefire</reportsDirectory>
                 </configuration>
             </plugin>
             <plugin>
@@ -244,6 +246,9 @@
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>${maven-failsafe-plugin.version}</version>
                 <inherited>true</inherited>
+                <configuration>
+                    <reportsDirectory>${ospf.test.reportsDirectory}/${project.artifactId}/failsafe</reportsDirectory>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

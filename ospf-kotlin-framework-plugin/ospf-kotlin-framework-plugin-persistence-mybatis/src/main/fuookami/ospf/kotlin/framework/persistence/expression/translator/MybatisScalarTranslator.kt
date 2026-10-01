@@ -6,7 +6,9 @@
 */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
+import java.util.concurrent.CancellationException
 import fuookami.ospf.kotlin.framework.persistence.expression.*
+import fuookami.ospf.kotlin.framework.persistence.mybatis.MybatisDialect
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -46,19 +48,31 @@ data class MybatisScalarSql(
  *
  * @property resolveColumnName 列名解析函数 / Column name resolver function
  * @property unsupportedPredicatePolicy 不支持谓词时的策略 / Policy for unsupported predicates
+ * @property dialect SQL 方言 / SQL dialect
 */
 class MybatisScalarTranslator(
     private val resolveColumnName: MybatisColumnNameResolver,
-    private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
+    private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.FailFast,
+    private val dialect: MybatisDialect = MybatisDialect.Portable
 ) {
 
     /**
      * 翻译标量表达式为参数化 SQL 片段 / Translate scalar expression to parameterized SQL fragment
      *
      * @param expr 标量表达式 / Scalar expression
-     * @return 参数化 SQL 片段，不支持时返回 null / Parameterized SQL fragment, or null if unsupported
+     * @return 参数化 SQL 片段或结构化失败 / Parameterized SQL fragment or structured failure
     */
     fun translate(expr: ScalarExpression<*>): Ret<MybatisScalarSql?> {
+        return try {
+            translateInternal(expr)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            persistenceFailure("MyBatis scalar translation", error)
+        }
+    }
+
+    private fun translateInternal(expr: ScalarExpression<*>): Ret<MybatisScalarSql?> {
         return when (expr) {
             is ScalarReference<*> -> {
                 val column = resolveColumnName(expr.path.value)
@@ -80,7 +94,9 @@ class MybatisScalarTranslator(
      * @return 参数化 SQL 片段 / Parameterized SQL fragment
     */
     private fun translateUnary(expr: ScalarUnary<*>): Ret<MybatisScalarSql?> {
-        val operand = translate(expr.operand).value ?: return Ok(null)
+        val translated = translateInternal(expr.operand)
+        translated.propagateFailure<MybatisScalarSql?>()?.let { return it }
+        val operand = translated.value ?: return unsupported("Unsupported unary operand: ${expr.operand.typeName}")
         return when (expr.operator) {
             UnaryOperator.Negate -> Ok(operand.copy(sql = "(-${operand.sql})", isColumnOnly = false))
             UnaryOperator.Positive -> Ok(operand.copy(sql = "(+${operand.sql})", isColumnOnly = false))
@@ -95,8 +111,33 @@ class MybatisScalarTranslator(
      * @return 参数化 SQL 片段 / Parameterized SQL fragment
     */
     private fun translateBinary(expr: ScalarBinary<*>): Ret<MybatisScalarSql?> {
-        val left = translate(expr.left).value ?: return Ok(null)
-        val right = translate(expr.right).value?.shifted(left.params.size) ?: return Ok(null)
+        val translatedLeft = translateInternal(expr.left)
+        var unsupportedFailure: Ret<MybatisScalarSql?>? = null
+        var left = translatedLeft.value
+        translatedLeft.propagateFailure<MybatisScalarSql?>()?.let { failure ->
+            if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translatedLeft.isAlwaysFalseUnsupported()) {
+                unsupportedFailure = failure
+                left = null
+            } else {
+                return failure
+            }
+        }
+
+        val translatedRight = translateInternal(expr.right)
+        var right = translatedRight.value
+        translatedRight.propagateFailure<MybatisScalarSql?>()?.let { failure ->
+            if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && translatedRight.isAlwaysFalseUnsupported()) {
+                unsupportedFailure = unsupportedFailure ?: failure
+                right = null
+            } else {
+                return failure
+            }
+        }
+
+        unsupportedFailure?.let { return it }
+        val leftValue = left ?: return unsupported("Unsupported left operand: ${expr.left.typeName}")
+        val rightValue = right?.shifted(leftValue.params.size)
+            ?: return unsupported("Unsupported right operand: ${expr.right.typeName}")
         val operator = when (expr.operator) {
             BinaryOperator.Add -> "+"
             BinaryOperator.Subtract -> "-"
@@ -106,8 +147,8 @@ class MybatisScalarTranslator(
             BinaryOperator.Power -> return unsupported("POWER scalar expression is not supported")
         }
         return Ok(MybatisScalarSql(
-            sql = "(${left.sql} $operator ${right.sql})",
-            params = left.params + right.params,
+            sql = "(${leftValue.sql} $operator ${rightValue.sql})",
+            params = leftValue.params + rightValue.params,
             isColumnOnly = false
         ))
     }
@@ -121,28 +162,34 @@ class MybatisScalarTranslator(
     private fun translateFunction(expr: ScalarFunction<*>): Ret<MybatisScalarSql?> {
         val arguments = mutableListOf<MybatisScalarSql>()
         var paramOffset = 0
+        var unsupportedFailure: Ret<MybatisScalarSql?>? = null
         for (argument in expr.arguments) {
-            val translated = translate(argument).value?.shifted(paramOffset) ?: return Ok(null)
+            val result = translateInternal(argument)
+            val failure = result.propagateFailure<MybatisScalarSql?>()
+            if (failure != null) {
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && result.isAlwaysFalseUnsupported()) {
+                    unsupportedFailure = unsupportedFailure ?: failure
+                    continue
+                }
+                return failure
+            }
+            val translated = result.value?.shifted(paramOffset)
+            if (translated == null) {
+                val failure = unsupported("Unsupported argument: ${argument.typeName}")
+                if (unsupportedPredicatePolicy == UnsupportedPredicatePolicy.AlwaysFalse && failure.isAlwaysFalseUnsupported()) {
+                    unsupportedFailure = unsupportedFailure ?: failure
+                    continue
+                }
+                return failure
+            }
             paramOffset += translated.params.size
             arguments.add(translated)
         }
 
-        return when (expr.name.lowercase()) {
-            ScalarFunctionNames.Abs -> translateSqlFunction(expr.name, "ABS", arguments, expected = 1)
-            ScalarFunctionNames.Lower -> translateSqlFunction(expr.name, "LOWER", arguments, expected = 1)
-            ScalarFunctionNames.Upper -> translateSqlFunction(expr.name, "UPPER", arguments, expected = 1)
-            ScalarFunctionNames.Trim -> translateSqlFunction(expr.name, "TRIM", arguments, expected = 1)
-            ScalarFunctionNames.Length -> translateSqlFunction(expr.name, "LENGTH", arguments, expected = 1)
-            ScalarFunctionNames.Coalesce -> {
-                if (arguments.isEmpty()) return unsupported("Function coalesce expects at least one argument")
-                Ok(MybatisScalarSql(
-                    sql = "COALESCE(${arguments.joinToString(", ") { it.sql }})",
-                    params = arguments.flatMap { it.params },
-                    isColumnOnly = false
-                ))
-            }
-            else -> unsupported("Unsupported scalar function: ${expr.name}")
-        }
+        unsupportedFailure?.let { return it }
+
+        return dialect.scalarFunction(expr.name, arguments)?.let { Ok(it) }
+            ?: unsupported("Unsupported scalar function or arity for ${dialect.name}: ${expr.name}")
     }
 
     /**
@@ -186,7 +233,13 @@ class MybatisScalarTranslator(
                 )
                 Failed(detail.toError())
             }
-            UnsupportedPredicatePolicy.AlwaysFalse -> Ok(null)
+            UnsupportedPredicatePolicy.AlwaysFalse -> Failed(
+                UnsupportedPredicateDetail.alwaysFalse(
+                    expressionType = "ScalarExpression",
+                    reason = reason,
+                    backendName = "MyBatis"
+                ).toError()
+            )
             UnsupportedPredicatePolicy.ClientFilter -> {
                 val detail = UnsupportedPredicateDetail.clientFilter(
                     expressionType = "ScalarExpression",

@@ -10,6 +10,11 @@ MyBatis-Plus-based relational persistence plugin for the OSPF Kotlin framework.
 | --- | --- | --- |
 | `MybatisColumnNameResolver` | typealias | `PersistenceFieldResolver<String>` |
 | `MybatisRepository<E, M>` | abstract class | Base repository implementing `ExpressionRepository<E>` on MyBatis-Plus |
+| `MybatisDialect` | interface | Database-specific pagination, identifier quoting, NULL ordering, and scalar functions |
+| `MybatisBackendFactory` | object | Builds a thread-safe MyBatis-Plus `SqlSessionFactory` around an externally managed `DataSource` |
+| `MybatisBackend` | class | Opens mapper sessions using the configured SQL dialect |
+| `MybatisSession<E, M>` | class | Session-scoped mapper access with explicit `commit`, `rollback`, and `close` results |
+| `MybatisDialectFailure` / `MybatisSqlClause` | data classes | Structured dialect errors and generated SQL clauses |
 | `MybatisBooleanTranslator<T>` | class | `BooleanExpression` → `QueryWrapper`/`UpdateWrapper` conditions |
 | `MybatisScalarSql` | data class | Parameterized SQL fragment with `sql`, `params`, `isColumnOnly` |
 | `MybatisScalarTranslator` | class | `ScalarExpression<*>` → parameterized SQL fragment |
@@ -47,6 +52,47 @@ repository.update(where, assignments)
 // Delete
 repository.delete(where)
 ```
+
+## Repository Results
+
+Repository operations return `Ret<T>`: `find` returns `Ret<List<E>>`, `count` returns `Ret<Long>`, `exists` returns
+`Ret<Boolean>`, and `update`/`delete` return `Ret<Int>`. Handle `Ok`, `Failed`, and `Fatal` explicitly, or use `map`
+when transforming a successful value; failures remain in the result. The default unsupported-predicate policy is
+`FailFast`. `AlwaysFalse` is opt-in and makes an operation return an empty result or zero when its predicate contains
+an unsupported node. `ClientFilter` returns a structured failure.
+
+## Database Dialects and Sessions
+
+The legacy `MybatisRepository(mapper, resolver, ...)` constructor remains available for externally managed mappers.
+Pass a dialect as its final argument when the database is known. `MybatisDialect.SQLite`, `.MySQL`, `.PostgreSQL`,
+and `.H2` provide the matching pagination and NULL ordering rules. The `Portable` default keeps common queries
+working for legacy callers; offset-only pagination and `LENGTH` return a structured failure until a concrete dialect
+is supplied.
+
+Resolver values name physical database columns and must preserve their actual spelling. In H2's default mode,
+unquoted DDL identifiers are stored uppercase, so an explicitly configured H2 resolver should map `displayName` to
+`DISPLAY_NAME`. For a case-sensitive H2 column created with quotes, map its exact spelling, such as `display_name`.
+
+Database plugins can create a shared backend from their pooled `DataSource`. The backend does not own that pool;
+close it through the database plugin. A session owns only its `SqlSession`, so mapper operations stay inside the
+session lifetime:
+
+```kotlin
+val backend = MybatisBackendFactory.create(dataSource, MybatisDialect.PostgreSQL)
+val session = backend.valueOrFail().openSession<User, UserMapper>(UserMapper::class.java).valueOrFail()
+val mapper = session.mapper().valueOrFail()
+val repository = UserRepository(mapper, MybatisDialect.PostgreSQL)
+repository.update(where, assignments).valueOrFail()
+session.commit().valueOrFail()
+session.close().valueOrFail()
+```
+
+Sessions default to `autoCommit = false`; call `commit()` or `rollback()` explicitly and handle the returned `Try`.
+Calls to `mapper()`, `commit()`, or `rollback()` after close return a structured failure.
+
+The built-in dialects use `CHAR_LENGTH` for MySQL, PostgreSQL, and H2, and `LENGTH` for SQLite. The portable dialect
+does not guess this semantic difference. Unknown functions, wrong arity, invalid identifiers, and unsupported
+pagination return structured failures before mapper execution.
 
 ## Strong-Typed Column Binding
 

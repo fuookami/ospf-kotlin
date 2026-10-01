@@ -24,12 +24,20 @@ class MybatisOrderByTranslatorTest {
         val translator = MybatisOrderByTranslator<TestEntity>(resolver, NullsOrderSupport.Never)
         val sortBy = SortBy.asc("id").thenDesc("name", NullsOrder.NullsLast)
 
-        val wrapper = translator.apply(QueryWrapper(), sortBy)
+        val wrapper = translator.apply(QueryWrapper(), sortBy).value!!
         val sql = wrapper.sqlSegment.uppercase()
 
         assertTrue(sql.contains("ORDER BY"))
         assertTrue(sql.contains("ID"))
         assertTrue(sql.contains("NAME"))
+    }
+
+    @Test
+    @DisplayName("unresolved sort paths should fail / 未解析排序字段应失败")
+    fun unresolvedSortPathsShouldFail() {
+        val translator = MybatisOrderByTranslator<TestEntity>(MybatisColumnNameResolver { null })
+
+        assertTrue(translator.apply(QueryWrapper(), SortBy.asc("missing")).failed)
     }
 }
 

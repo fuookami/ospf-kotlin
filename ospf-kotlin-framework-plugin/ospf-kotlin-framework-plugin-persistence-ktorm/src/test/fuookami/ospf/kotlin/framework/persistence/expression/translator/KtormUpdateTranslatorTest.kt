@@ -6,6 +6,7 @@ package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import java.nio.file.Files
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -18,7 +19,11 @@ import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
 import org.ktorm.support.sqlite.SQLiteDialect
+import fuookami.ospf.kotlin.math.symbol.expression.BinaryOperator
+import fuookami.ospf.kotlin.math.symbol.expression.PropertyPath
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarBinary
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarReference
 import fuookami.ospf.kotlin.framework.persistence.expression.UpdateAssignments
 
 @DisplayName("KtormUpdateTranslator Tests / Ktorm 更新翻译器测试")
@@ -70,7 +75,7 @@ class KtormUpdateTranslatorTest {
             database = database,
             whereCondition = Users.id eq 1,
             assignments = assignments
-        )
+        ).value!!
 
         val row = database.from(Users)
             .select(Users.name, Users.age, Users.status)
@@ -85,8 +90,8 @@ class KtormUpdateTranslatorTest {
     }
 
     @Test
-    @DisplayName("unknown assignment path should be ignored / 未知赋值路径应被忽略")
-    fun unknownAssignmentPathShouldBeIgnored() {
+    @DisplayName("unknown assignment path should fail before execution / 未知赋值路径应在执行前失败")
+    fun unknownAssignmentPathShouldFailBeforeExecution() {
         val database = createDatabase()
         val translator = KtormUpdateTranslator(resolver, Users)
         val assignments = UpdateAssignments
@@ -105,7 +110,36 @@ class KtormUpdateTranslatorTest {
             .iterator()
             .next()
 
-        assertEquals(1, updated)
-        assertEquals("updated", row[Users.name])
+        assertTrue(updated.failed)
+        assertEquals("a", row[Users.name])
+    }
+
+    @Test
+    @DisplayName("should apply arithmetic expression assignment / 应执行算术表达式赋值")
+    fun shouldApplyArithmeticExpressionAssignment() {
+        val database = createDatabase()
+        val translator = KtormUpdateTranslator(resolver, Users)
+
+        val updated = translator.executeUpdate(
+            database = database,
+            whereCondition = Users.id eq 1,
+            assignments = UpdateAssignments.setExpr(
+                "age",
+                ScalarBinary(
+                    BinaryOperator.Add,
+                    ScalarReference<Int>(PropertyPath.parse("age")),
+                    ScalarConstant(5)
+                )
+            )
+        )
+
+        val row = database.from(Users)
+            .select(Users.age)
+            .where { Users.id eq 1 }
+            .iterator()
+            .next()
+
+        assertEquals(1, updated.value)
+        assertEquals(15, row[Users.age])
     }
 }

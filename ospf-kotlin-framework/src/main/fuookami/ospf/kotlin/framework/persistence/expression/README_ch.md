@@ -28,6 +28,7 @@
 - `ospf-kotlin-framework-plugin/ospf-kotlin-framework-plugin-persistence-ktorm`
 - `ospf-kotlin-framework-plugin/ospf-kotlin-framework-plugin-persistence-mybatis`
 - `ospf-kotlin-framework-plugin/ospf-kotlin-framework-plugin-persistence-mongodb`
+- `ospf-kotlin-framework-plugin/ospf-kotlin-framework-plugin-persistence-jdbcclient`，数据库方言位于 MySQL、PostgreSQL 和 H2 插件
 
 ## 推荐写法
 
@@ -243,14 +244,18 @@ val assignments = UpdateAssignments
 统一仓储接口定义在 `ExpressionRepository`：
 
 ```kotlin
-val users = repository.find(where, sortBy = sortBy, limit = 10, offset = 0)
-val total = repository.count(where)
-val exists = repository.exists(where)
-val updated = repository.update(where, assignments)
-val deleted = repository.delete(where)
+import fuookami.ospf.kotlin.utils.functional.Ret
+
+val users: Ret<List<User>> = repository.find(where, sortBy = sortBy, limit = 10, offset = 0)
+val total: Ret<Long> = repository.count(where)
+val exists: Ret<Boolean> = repository.exists(where)
+val updated: Ret<Int> = repository.update(where, assignments)
+val deleted: Ret<Int> = repository.delete(where)
 ```
 
-默认策略是 `UnsupportedPredicatePolicy.AlwaysFalse`：无法下推的谓词返回空结果或恒假条件，不会退化为未过滤查询。`FailFast` 与 `ClientFilter` 会在 translator 层返回失败；当前 repository 方法是非 Result API 边界，因此会返回空结果或 `0`，确保不支持谓词不会变成全表扫描。
+所有仓储操作都返回 `Ret<T>`；其 `Ok`、`Failed` 和 `Fatal` 状态会将后端及翻译错误保留给调用方。`map` 可以转换成功值，同时保留失败结果。
+
+默认策略是 `UnsupportedPredicatePolicy.FailFast`。调用方可以显式选择 `AlwaysFalse`；谓词任意部分不受支持时，整次操作返回空结果或零，不会扩大查询范围。由于这些适配器不会读取整张表再在内存中过滤，`ClientFilter` 会返回结构化失败。
 
 ## 字段过滤提取
 

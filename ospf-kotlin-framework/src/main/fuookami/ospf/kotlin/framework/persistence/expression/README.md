@@ -28,6 +28,7 @@ Backend plugins live in:
 - `ospf-kotlin-framework-plugin/ospf-kotlin-framework-plugin-persistence-ktorm`
 - `ospf-kotlin-framework-plugin/ospf-kotlin-framework-plugin-persistence-mybatis`
 - `ospf-kotlin-framework-plugin/ospf-kotlin-framework-plugin-persistence-mongodb`
+- `ospf-kotlin-framework-plugin/ospf-kotlin-framework-plugin-persistence-jdbcclient`, with database dialects in the MySQL, PostgreSQL, and H2 plugins
 
 ## Recommended Usage
 
@@ -243,14 +244,18 @@ Whether `setExpr` / `thenSetExpr` can be pushed down is decided by the concrete 
 The shared repository contract is `ExpressionRepository`:
 
 ```kotlin
-val users = repository.find(where, sortBy = sortBy, limit = 10, offset = 0)
-val total = repository.count(where)
-val exists = repository.exists(where)
-val updated = repository.update(where, assignments)
-val deleted = repository.delete(where)
+import fuookami.ospf.kotlin.utils.functional.Ret
+
+val users: Ret<List<User>> = repository.find(where, sortBy = sortBy, limit = 10, offset = 0)
+val total: Ret<Long> = repository.count(where)
+val exists: Ret<Boolean> = repository.exists(where)
+val updated: Ret<Int> = repository.update(where, assignments)
+val deleted: Ret<Int> = repository.delete(where)
 ```
 
-The default policy is `UnsupportedPredicatePolicy.AlwaysFalse`: predicates that cannot be pushed down return empty results or false conditions instead of degrading to unfiltered queries. `FailFast` and `ClientFilter` report failures at the translator layer; current repository methods return empty results or `0` at the non-Result API boundary so unsupported predicates never become full scans.
+All repository operations return `Ret<T>`, whose `Ok`, `Failed`, and `Fatal` states keep backend and translation errors visible to callers. `map` can transform a successful value while preserving failures.
+
+The default policy is `UnsupportedPredicatePolicy.FailFast`. Callers may explicitly select `AlwaysFalse`; if any part of the predicate is unsupported, the operation returns an empty result or zero without broadening the query. `ClientFilter` returns a structured failure because these adapters do not execute predicates by reading and filtering a whole table.
 
 ## Field Filter Extraction
 

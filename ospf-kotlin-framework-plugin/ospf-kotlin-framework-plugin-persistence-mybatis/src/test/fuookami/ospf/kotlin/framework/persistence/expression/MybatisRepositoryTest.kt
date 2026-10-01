@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.framework.persistence.expression.translator.MybatisColumnNameResolver
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.Trivalent
+import fuookami.ospf.kotlin.utils.functional.*
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
 import com.baomidou.mybatisplus.core.mapper.BaseMapper
@@ -36,7 +37,7 @@ class MybatisRepositoryTest {
     private class TestRepository(
         mapper: BaseMapper<TestEntity>,
         resolver: MybatisColumnNameResolver = MybatisColumnNameResolver { it },
-        unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
+        unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.FailFast
     ) : MybatisRepository<TestEntity, BaseMapper<TestEntity>>(
         mapper,
         resolver,
@@ -55,7 +56,7 @@ class MybatisRepositoryTest {
         )
         val assignments = UpdateAssignments.set("name", "neo")
 
-        val updated = repository.update(where, assignments)
+        val updated = repository.update(where, assignments).valueOrFail()
 
         assertEquals(1, updated)
         assertEquals(1, recorder.updateCallCount)
@@ -76,7 +77,7 @@ class MybatisRepositoryTest {
             ScalarConstant("active")
         )
 
-        repository.find(where, null, 10, 20)
+        repository.find(where, null, 10, 20).valueOrFail()
 
         val queryWrapper = recorder.lastQueryWrapper
         assertNotNull(queryWrapper)
@@ -90,7 +91,7 @@ class MybatisRepositoryTest {
         val repository = TestRepository(createMapperProxy(recorder))
         val assignments = UpdateAssignments.set("name", "neo")
 
-        repository.update(BooleanConstant(Trivalent.False), assignments)
+        repository.update(BooleanConstant(Trivalent.False), assignments).valueOrFail()
 
         val updateWrapper = recorder.lastUpdateWrapper
         assertNotNull(updateWrapper)
@@ -108,9 +109,9 @@ class MybatisRepositoryTest {
             ScalarConstant("active")
         )
 
-        val count = repository.count(where)
-        val deleted = repository.delete(where)
-        val exists = repository.exists(where)
+        val count = repository.count(where).valueOrFail()
+        val deleted = repository.delete(where).valueOrFail()
+        val exists = repository.exists(where).valueOrFail()
 
         assertEquals(2L, count)
         assertEquals(1, deleted)
@@ -134,7 +135,7 @@ class MybatisRepositoryTest {
             ScalarConstant(100)
         )
 
-        repository.update(where, UpdateAssignments.set("name", "neo"))
+        repository.update(where, UpdateAssignments.set("name", "neo")).valueOrFail()
 
         val updateWrapper = recorder.lastUpdateWrapper
         assertNotNull(updateWrapper)
@@ -154,11 +155,104 @@ class MybatisRepositoryTest {
             unsupportedPredicatePolicy = UnsupportedPredicatePolicy.ClientFilter
         )
 
-        // FailFast / ClientFilter 不支持的谓词不退化为全表扫描，返回空结果
-        // FailFast / ClientFilter return empty results for unsupported predicates instead of degrading to a full scan
-        assertEquals(emptyList<TestEntity>(), failFastRepository.find(BooleanCustom("x")))
-        assertEquals(0L, failFastRepository.count(BooleanCustom("x")))
-        assertEquals(emptyList<TestEntity>(), clientFilterRepository.find(BooleanCustom("x")))
+        assertTrue(failFastRepository.find(BooleanCustom("x")).failed)
+        assertTrue(failFastRepository.count(BooleanCustom("x")).failed)
+        assertTrue(clientFilterRepository.find(BooleanCustom("x")).failed)
+    }
+
+    @Test
+    @DisplayName("AlwaysFalse should cover unsupported nodes under boolean operators / AlwaysFalse 应覆盖布尔组合中的不支持节点")
+    fun alwaysFalseShouldCoverNestedUnsupportedNodes() {
+        val recorder = MapperCallRecorder<TestEntity>()
+        val repository = TestRepository(
+            createMapperProxy(recorder),
+            unsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
+        )
+        val supported = Comparison(
+            ComparisonOperator.Eq,
+            ScalarReference(PropertyPath.parse("status")),
+            ScalarConstant("active")
+        )
+        val nestedPredicates = listOf(
+            AndExpression(listOf(supported, BooleanCustom("x"))),
+            OrExpression(listOf(supported, BooleanCustom("x"))),
+            NotExpression(BooleanCustom("x")),
+            NotExpression(AndExpression(listOf(supported, BooleanCustom("x"))))
+        )
+
+        for (predicate in nestedPredicates) {
+            assertTrue(repository.find(predicate).valueOrFail().isEmpty())
+        }
+        assertTrue(recorder.lastQueryWrapper!!.customSqlSegment.contains("1 = 0"))
+    }
+
+    @Test
+    @DisplayName("failed update translation should not call mapper / 更新翻译失败时不调用 mapper")
+    fun failedUpdateTranslationShouldNotCallMapper() {
+        val recorder = MapperCallRecorder<TestEntity>()
+        val repository = TestRepository(createMapperProxy(recorder))
+        val predicate = AndExpression(listOf(
+            Comparison(
+                ComparisonOperator.Eq,
+                ScalarReference(PropertyPath.parse("status")),
+                ScalarConstant("active")
+            ),
+            BooleanCustom("x")
+        ))
+
+        assertTrue(repository.update(predicate, UpdateAssignments.set("name", "neo")).failed)
+        assertEquals(0, recorder.updateCallCount)
+
+        val resolver = MybatisColumnNameResolver { path ->
+            if (path == "unknown") null else path
+        }
+        val invalidAssignmentRepository = TestRepository(createMapperProxy(recorder), resolver)
+        assertTrue(invalidAssignmentRepository.update(
+            BooleanConstant(Trivalent.True),
+            UpdateAssignments.set("unknown", "neo")
+        ).failed)
+        assertEquals(0, recorder.updateCallCount)
+    }
+
+    @Test
+    @DisplayName("NOT UNKNOWN must not broaden update or delete / NOT UNKNOWN 不得扩大更新或删除范围")
+    fun notUnknownMustNotBroadenUpdateOrDelete() {
+        val recorder = MapperCallRecorder<TestEntity>()
+        val repository = TestRepository(createMapperProxy(recorder))
+        val predicates = listOf(
+            NotExpression(BooleanConstant(Trivalent.Unknown)),
+            NotExpression(AndExpression(listOf(
+                BooleanConstant(Trivalent.True),
+                BooleanConstant(Trivalent.Unknown)
+            )))
+        )
+
+        for (predicate in predicates) {
+            repository.update(predicate, UpdateAssignments.set("name", "neo")).valueOrFail()
+            val updateWhere = recorder.lastUpdateWrapper!!.customSqlSegment
+            assertTrue(updateWhere.contains("NOT"))
+            assertTrue(updateWhere.contains("1 = NULL"))
+
+            repository.delete(predicate).valueOrFail()
+            val deleteWhere = recorder.lastDeleteWrapper!!.customSqlSegment
+            assertTrue(deleteWhere.contains("NOT"))
+            assertTrue(deleteWhere.contains("1 = NULL"))
+        }
+    }
+
+    @Test
+    @DisplayName("mapper exceptions should become failed results / mapper 异常应返回失败结果")
+    fun mapperExceptionsShouldBecomeFailedResults() {
+        val mapper = Proxy.newProxyInstance(
+            BaseMapper::class.java.classLoader,
+            arrayOf(BaseMapper::class.java)
+        ) { _, method, _ ->
+            if (method.name == "selectList") throw IllegalStateException("database unavailable")
+            defaultValue(method.returnType)
+        } as BaseMapper<TestEntity>
+        val repository = TestRepository(mapper)
+
+        assertTrue(repository.find(BooleanConstant(Trivalent.True)).failed)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -206,6 +300,14 @@ class MybatisRepositoryTest {
             java.lang.Double.TYPE -> 0.0
             java.lang.Character.TYPE -> '\u0000'
             else -> null
+        }
+    }
+
+    private fun <T> Ret<T>.valueOrFail(): T {
+        return when (this) {
+            is Ok -> value
+            is Failed -> throw AssertionError(error.message)
+            is Fatal -> throw AssertionError(errors.joinToString { it.message })
         }
     }
 }

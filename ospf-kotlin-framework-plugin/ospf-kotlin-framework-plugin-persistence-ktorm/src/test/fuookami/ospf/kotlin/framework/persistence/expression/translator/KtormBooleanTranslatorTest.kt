@@ -66,6 +66,7 @@ class KtormBooleanTranslatorTest {
 
     private val translator = KtormBooleanTranslator(
         resolveColumn = resolver,
+        unsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse,
         targetConstantBinder = { value, target ->
             when {
                 value is UserId && target == Users.id.sqlType -> {
@@ -289,15 +290,20 @@ class KtormBooleanTranslatorTest {
         }
 
         @Test
-        @DisplayName("boolean false and custom should become always false / false 与 custom 应转恒假")
-        fun booleanFalseAndCustomShouldBecomeAlwaysFalse() {
+        @DisplayName("boolean false and unknown preserve SQL three-valued semantics / false 与 unknown 保留 SQL 三值语义")
+        fun booleanConstantsPreserveSqlThreeValuedSemantics() {
             val falseExpr = BooleanConstant(Trivalent.False)
+            val unknownExpr = BooleanConstant(Trivalent.Unknown)
             val customExpr = BooleanCustom("x")
 
             val falseResult = translator.translate(falseExpr).valueOrFail().orFail() as BinaryExpression<Boolean>
+            val unknownResult = translator.translate(unknownExpr).valueOrFail().orFail() as BinaryExpression<Boolean>
             val customResult = translator.translate(customExpr).valueOrFail().orFail() as BinaryExpression<Boolean>
 
             assertEquals(BinaryExpressionType.EQUAL, falseResult.type)
+            assertEquals(0, (falseResult.right as org.ktorm.expression.ArgumentExpression<*>).value)
+            assertEquals(BinaryExpressionType.EQUAL, unknownResult.type)
+            assertEquals(null, (unknownResult.right as org.ktorm.expression.ArgumentExpression<*>).value)
             assertEquals(BinaryExpressionType.EQUAL, customResult.type)
         }
 
@@ -311,6 +317,64 @@ class KtormBooleanTranslatorTest {
 
             val result = failFastTranslator.translate(BooleanCustom("x"))
             assertTrue(result.failed)
+        }
+
+        @Test
+        @DisplayName("default policy should be FailFast / 默认策略应为 FailFast")
+        fun defaultPolicyShouldBeFailFast() {
+            val result = KtormBooleanTranslator(resolver).translate(BooleanCustom("x"))
+
+            assertTrue(result.failed)
+        }
+
+        @Test
+        @DisplayName("AlwaysFalse under NOT should remain false / NOT 下的 AlwaysFalse 仍应为假")
+        fun alwaysFalseUnderNotShouldRemainFalse() {
+            val alwaysFalseTranslator = KtormBooleanTranslator(
+                resolver,
+                unsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
+            )
+
+            val result = alwaysFalseTranslator.translate(NotExpression(BooleanCustom("x")))
+                .valueOrFail().orFail() as BinaryExpression<Boolean>
+
+            assertEquals(BinaryExpressionType.EQUAL, result.type)
+            assertEquals(1, (result.left as org.ktorm.expression.ArgumentExpression<*>).value)
+            assertEquals(0, (result.right as org.ktorm.expression.ArgumentExpression<*>).value)
+        }
+
+        @Test
+        @DisplayName("AlwaysFalse should propagate later resolver failures / AlwaysFalse 应传播后续 resolver 异常")
+        fun alwaysFalseShouldPropagateLaterResolverFailures() {
+            val throwingResolver = KtormColumnResolver { path ->
+                if (path == "broken") throw IllegalStateException("resolver failed")
+                resolver(path)
+            }
+            val alwaysFalseTranslator = KtormBooleanTranslator(
+                throwingResolver,
+                unsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
+            )
+            val unsupported = BooleanCustom("unsupported")
+            val broken = Comparison(
+                ComparisonOperator.Eq,
+                ScalarReference<Int>(PropertyPath.parse("broken")),
+                ScalarConstant(1)
+            )
+            val predicates = listOf(
+                AndExpression(listOf(unsupported, broken)),
+                OrExpression(listOf(unsupported, broken)),
+                Comparison(
+                    ComparisonOperator.Eq,
+                    ScalarFunction("unknown", listOf(ScalarConstant(1))),
+                    ScalarReference<Int>(PropertyPath.parse("broken"))
+                )
+            )
+
+            for (predicate in predicates) {
+                val result = alwaysFalseTranslator.translate(predicate)
+                assertTrue(result is Failed)
+                assertTrue((result as Failed<*, *, *>).error.message.contains("resolver failed"))
+            }
         }
 
         @Test

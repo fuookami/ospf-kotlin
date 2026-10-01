@@ -39,11 +39,17 @@ MongoDB persistence plugin for the OSPF Kotlin framework, providing document rep
 | Symbol | Kind | Description |
 | --- | --- | --- |
 | `MongoFieldNameResolver` | typealias | `PersistenceFieldResolver<String>` |
-| `MongoRepository<E>` | abstract class | Base repository implementing `ExpressionRepository<E>` on MongoDB |
-| `MongoBooleanTranslator` | class | `BooleanExpression` → `Bson` filter |
-| `MongoScalarTranslator` | class | `ScalarExpression<*>` → `$expr` value |
-| `MongoOrderByTranslator` | class | `SortBy` → `Bson` sort |
-| `MongoUpdateTranslator` | class | `UpdateAssignments` → `Bson` update |
+| `MongoRepository<E>` | abstract class | Base repository implementing the `Ret`-based `ExpressionRepository<E>` contract |
+| `MongoBooleanTranslator` | class | `BooleanExpression` → `Ret<Bson?>` filter |
+| `MongoScalarTranslator` | class | `ScalarExpression<*>` → `Ret<Any?>` `$expr` value |
+| `MongoOrderByTranslator` | class | `SortBy` → `Ret<Bson?>` sort |
+| `MongoUpdateTranslator` | class | `UpdateAssignments` → `Ret<Bson?>` update |
+
+## Repository Results
+
+All expression repository operations return `Ret`: `find`, `count`, `exists`, `update`, and `delete`. The default unsupported-predicate policy is `FailFast`; translation failures are returned to the caller, and `ClientFilter` also returns a structured failure because MongoDB repositories do not evaluate predicates in memory. With `AlwaysFalse`, an unsupported predicate at the root becomes a filter that matches no documents. The three-valued `Unknown` constant also matches no documents, including under nested `NOT`; Mongo translation pushes `NOT` through `AND` and `OR` while preserving `Unknown`.
+
+Negative `limit` or `offset` values return a failed result, while `limit = 0` returns `Ok(emptyList())` without querying MongoDB. An update is sent only after its filter and every assignment have translated successfully. MongoDB operation, cursor iteration, and entity-mapping exceptions become failed results; cancellation exceptions are rethrown.
 
 ## Quick Start
 

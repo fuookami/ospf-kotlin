@@ -7,6 +7,7 @@
 package fuookami.ospf.kotlin.framework.persistence.expression
 
 import fuookami.ospf.kotlin.math.symbol.expression.BooleanExpression
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 表达式仓储接口 / Expression Repository Interface
@@ -24,7 +25,7 @@ interface ExpressionRepository<E : Any> {
      * @param where 查询条件表达式 / Query condition expression
      * @return 匹配的实体列表 / List of matching entities
     */
-    fun find(where: BooleanExpression): List<E>
+    fun find(where: BooleanExpression): Ret<List<E>>
 
     /**
      * 查询实体（带排序和分页） / Find entities with sort and pagination
@@ -40,7 +41,7 @@ interface ExpressionRepository<E : Any> {
         sortBy: SortBy?,
         limit: Int?,
         offset: Int?
-    ): List<E>
+    ): Ret<List<E>>
 
     /**
      * 计数 / Count
@@ -48,7 +49,7 @@ interface ExpressionRepository<E : Any> {
      * @param where 查询条件表达式 / Query condition expression
      * @return 匹配实体数量 / Count of matching entities
     */
-    fun count(where: BooleanExpression): Long
+    fun count(where: BooleanExpression): Ret<Long>
 
     /**
      * 更新 / Update
@@ -57,7 +58,7 @@ interface ExpressionRepository<E : Any> {
      * @param assignments 更新赋值集合 / Update assignments
      * @return 受影响的行数 / Number of affected rows
     */
-    fun update(where: BooleanExpression, assignments: UpdateAssignments): Int
+    fun update(where: BooleanExpression, assignments: UpdateAssignments): Ret<Int>
 
     /**
      * 删除 / Delete
@@ -65,7 +66,7 @@ interface ExpressionRepository<E : Any> {
      * @param where 删除条件表达式 / Delete condition expression
      * @return 受影响的行数 / Number of affected rows
     */
-    fun delete(where: BooleanExpression): Int
+    fun delete(where: BooleanExpression): Ret<Int>
 
     /**
      * 检查是否存在 / Check if exists
@@ -73,5 +74,5 @@ interface ExpressionRepository<E : Any> {
      * @param where 查询条件表达式 / Query condition expression
      * @return 是否存在匹配实体 / Whether matching entities exist
     */
-    fun exists(where: BooleanExpression): Boolean = count(where) > 0
+    fun exists(where: BooleanExpression): Ret<Boolean> = count(where).map { it > 0 }
 }
