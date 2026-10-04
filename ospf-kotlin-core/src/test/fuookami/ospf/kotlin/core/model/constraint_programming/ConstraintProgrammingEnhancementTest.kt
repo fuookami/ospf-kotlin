@@ -315,11 +315,11 @@ class ConstraintProgrammingEnhancementTest {
             start = ConstraintProgrammingExpression.Constant(Int64.zero),
             size = ConstraintProgrammingExpression.Constant(Int64.one),
             end = ConstraintProgrammingExpression.Constant(Int64.one)
-        )
+        ).value!!
         val intervalTwo = intervalOne.copy(id = IntervalId("interval:two"))
         assertSameCanonicalText(
-            snapshot(NoOverlap(listOf(intervalOne, intervalTwo)), listOf(intervalTwo, intervalOne)),
-            snapshot(NoOverlap(listOf(intervalTwo, intervalOne)), listOf(intervalOne, intervalTwo))
+            snapshot(NoOverlap(listOf(intervalOne, intervalTwo)).value!!, listOf(intervalTwo, intervalOne)),
+            snapshot(NoOverlap(listOf(intervalTwo, intervalOne)).value!!, listOf(intervalOne, intervalTwo))
         )
         val firstCumulative = Cumulative(
             intervals = listOf(intervalOne, intervalTwo),
@@ -328,7 +328,7 @@ class ConstraintProgrammingEnhancementTest {
                 ConstraintProgrammingExpression.Constant(Int64(2))
             ),
             capacity = ConstraintProgrammingExpression.Constant(Int64(3))
-        )
+        ).value!!
         val secondCumulative = firstCumulative.copy(
             intervals = firstCumulative.intervals.reversed(),
             demands = firstCumulative.demands.reversed()

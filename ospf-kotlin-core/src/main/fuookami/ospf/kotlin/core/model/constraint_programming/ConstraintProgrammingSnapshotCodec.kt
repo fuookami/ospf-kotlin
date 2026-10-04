@@ -777,19 +777,17 @@ private fun IntervalPayload.toInterval(
     if (end.failed) return propagate(end)
     val presence = presence?.let { decodeLiteral(it, variables) }
     if (presence != null && presence.failed) return propagate(presence)
-    return ok(
-        IntervalVariable(
-            id = IntervalId(id),
-            start = start.value!!,
-            size = size.value!!,
-            end = end.value!!,
-            presence = presence?.value,
-            scope = canonicalConstraintProgrammingIdentityScope(scope) ?: scope,
+    return IntervalVariable(
+        id = IntervalId(id),
+        start = start.value!!,
+        size = size.value!!,
+        end = end.value!!,
+        presence = presence?.value,
+        scope = canonicalConstraintProgrammingIdentityScope(scope) ?: scope,
+        origin = origin,
+        identityProvenance = canonicalConstraintProgrammingIdentityProvenance(
             origin = origin,
-            identityProvenance = canonicalConstraintProgrammingIdentityProvenance(
-                origin = origin,
-                provenance = identityProvenance.toModelOrigins()
-            )
+            provenance = identityProvenance.toModelOrigins()
         )
     )
 }
@@ -974,13 +972,17 @@ private fun decodeConstraint(
             val intervals = payload.intervals.mapResult { it.toInterval(variables) }
             if (intervals.failed) return propagate(intervals)
             if (payload.kind == "no-overlap") {
-                ok(NoOverlap(intervals.value!!))
+                val noOverlap = NoOverlap(intervals.value!!)
+                if (noOverlap.failed) return propagate(noOverlap)
+                ok(noOverlap.value!!)
             } else {
                 val demands = payload.demands.mapResult { decodeExpression(it, variables) }
                 val capacity = expression(payload.capacity)
                 if (demands.failed) return propagate(demands)
                 if (capacity.failed) return propagate(capacity)
-                ok(Cumulative(intervals.value!!, demands.value!!, capacity.value!!))
+                val cumulative = Cumulative(intervals.value!!, demands.value!!, capacity.value!!)
+                if (cumulative.failed) return propagate(cumulative)
+                ok(cumulative.value!!)
             }
         }
         else -> Failed(ErrorCode.IllegalArgument, "未知 CP constraint 类型：${payload.kind} / Unknown CP constraint kind: ${payload.kind}")

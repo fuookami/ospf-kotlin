@@ -845,7 +845,7 @@ class ScipConstraintProgrammingSolverIT {
             ).value!!
         }
         intervals.forEach(model::registerInterval)
-        model.addConstraint(NoOverlap.create(intervals).value!!, id = "fixed-no-overlap")
+        model.addConstraint(NoOverlap(intervals).value!!, id = "fixed-no-overlap")
         return model
     }
 
@@ -867,7 +867,7 @@ class ScipConstraintProgrammingSolverIT {
             ).value!!
         }
         intervals.forEach(model::registerInterval)
-        model.addConstraint(NoOverlap.create(intervals).value!!, id = "optional-no-overlap")
+        model.addConstraint(NoOverlap(intervals).value!!, id = "optional-no-overlap")
         return model
     }
 
@@ -882,7 +882,7 @@ class ScipConstraintProgrammingSolverIT {
             model.registerVariable(starts[index], IntegerDomain.singleton(start))
             model.registerVariable(sizes[index], IntegerDomain.singleton(size))
             model.registerVariable(ends[index], IntegerDomain.singleton(start + size))
-            IntervalVariable.create(
+            IntervalVariable(
                 id = fuookami.ospf.kotlin.core.model.constraint_programming.IntervalId("variable-$index"),
                 start = ConstraintProgrammingExpression.Variable(starts[index]),
                 size = ConstraintProgrammingExpression.Variable(sizes[index]),
@@ -890,7 +890,7 @@ class ScipConstraintProgrammingSolverIT {
             ).value!!
         }
         intervals.forEach(model::registerInterval)
-        model.addConstraint(NoOverlap.create(intervals).value!!, id = "variable-no-overlap")
+        model.addConstraint(NoOverlap(intervals).value!!, id = "variable-no-overlap")
         return model
     }
 }

@@ -35,7 +35,7 @@ class TariffFunctionTest {
     @Test
     fun incrementalTariffRejectsNegativeMarginalRates() {
         val quantity = RealVar("negative_rate_quantity")
-        val result = IncrementalTariff.create(
+        val result = IncrementalTariff(
             x = variable(quantity),
             breakpoints = listOf(Flt64.zero, Flt64.one),
             marginalRates = listOf(Flt64(-1.0)),
@@ -51,7 +51,7 @@ class TariffFunctionTest {
         val breakpoints = mutableListOf(Flt64.zero, Flt64(10.0), Flt64(20.0))
         val rates = mutableListOf(Flt64(2.0), Flt64(3.0))
         val function = assertIs<Ok<UnivariateLinearPiecewiseFunction<Flt64>, *, *>>(
-            IncrementalTariff.create(
+            IncrementalTariff(
                 x = variable(quantity),
                 breakpoints = breakpoints,
                 marginalRates = rates,
@@ -73,7 +73,7 @@ class TariffFunctionTest {
         val breakpoints = mutableListOf(Flt64.zero, Flt64(10.0), Flt64(20.0))
         val rates = mutableListOf(Flt64(10.0), Flt64(8.0))
         val function = assertIs<Ok<AllUnitsDiscountFunction<Flt64>, *, *>>(
-            AllUnitsDiscountFunction.create(
+            AllUnitsDiscountFunction(
                 x = variable(quantity),
                 breakpoints = breakpoints,
                 rates = rates,
@@ -109,7 +109,7 @@ class TariffFunctionTest {
         activity.range.geq(Flt64.zero)
         activity.range.leq(Flt64(100.0))
         val function = assertIs<Ok<FixedChargeFunction<Flt64>, *, *>>(
-            FixedChargeFunction.create(
+            FixedChargeFunction(
                 activation = activation,
                 fixedCost = Flt64(25.0),
                 converter = flt64TestConverter,
@@ -141,7 +141,7 @@ class TariffFunctionTest {
         val x = LinearPolynomial(monomials, Flt64.zero)
         val breakpoints = mutableListOf(Flt64.zero, Flt64.one)
         val function = assertIs<Ok<ExpFunction<Flt64>, *, *>>(
-            ExpFunction.create(x, breakpoints, flt64TestConverter, name = "exp_snapshot_test")
+            ExpFunction(x, breakpoints, flt64TestConverter, name = "exp_snapshot_test")
         ).value
 
         breakpoints.clear()
@@ -169,14 +169,14 @@ class TariffFunctionTest {
         val x = variable(input)
 
         assertIs<Failed<*, *, *>>(
-            LogFunction.create(
+            LogFunction(
                 x = x,
                 breakpoints = listOf(Flt64.zero, Flt64.one),
                 converter = flt64TestConverter
             )
         )
         assertIs<Failed<*, *, *>>(
-            ReciprocalFunction.create(
+            ReciprocalFunction(
                 x = x,
                 breakpoints = listOf(Flt64(-1.0), Flt64.one),
                 converter = flt64TestConverter

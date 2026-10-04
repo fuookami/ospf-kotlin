@@ -72,7 +72,7 @@ class CumulativeLoweringPolicyTest {
             model.registerInterval(zeroDemand)
 
             model.addConstraint(
-                Cumulative.create(
+                Cumulative(
                     intervals = listOf(zeroDuration, zeroDemand),
                     demands = listOf(
                         ConstraintProgrammingExpression.Constant(Int64.one),
@@ -117,7 +117,7 @@ class CumulativeLoweringPolicyTest {
                 endValue = 1
             )
             model.addConstraint(
-                Cumulative.create(
+                Cumulative(
                     intervals = listOf(first, second),
                     demands = listOf(
                         ConstraintProgrammingExpression.Constant(Int64.one),
@@ -161,7 +161,7 @@ class CumulativeLoweringPolicyTest {
                 endValue = 2
             )
             model.addConstraint(
-                Cumulative.create(
+                Cumulative(
                     intervals = listOf(first, second),
                     demands = listOf(
                         ConstraintProgrammingExpression.Constant(Int64.one),
@@ -225,7 +225,7 @@ class CumulativeLoweringPolicyTest {
             ).value!!
             model.registerInterval(optional)
             model.addConstraint(
-                Cumulative.create(
+                Cumulative(
                     intervals = listOf(blocker, optional),
                     demands = listOf(
                         ConstraintProgrammingExpression.Constant(Int64.one),
@@ -342,7 +342,7 @@ class CumulativeLoweringPolicyTest {
                 )
             ).value!!
             model.registerInterval(interval)
-            val cumulative = Cumulative.create(
+            val cumulative = Cumulative(
                 intervals = listOf(interval),
                 demands = listOf(ConstraintProgrammingExpression.Constant(Int64.one)),
                 capacity = ConstraintProgrammingExpression.Constant(Int64.one)
@@ -418,7 +418,7 @@ class CumulativeLoweringPolicyTest {
             endValue = 2
         )
         model.addConstraint(
-            Cumulative.create(
+            Cumulative(
                 intervals = listOf(interval),
                 demands = listOf(ConstraintProgrammingExpression.Constant(Int64.one)),
                 capacity = ConstraintProgrammingExpression.Constant(Int64.one)

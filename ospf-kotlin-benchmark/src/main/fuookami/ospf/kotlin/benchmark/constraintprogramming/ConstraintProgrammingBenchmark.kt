@@ -107,7 +107,7 @@ open class ConstraintProgrammingBenchmark {
             schedulingModel.registerInterval(interval)
             interval
         }
-        schedulingModel.addConstraint(NoOverlap.create(intervals).value!!, id = "schedule-no-overlap")
+        schedulingModel.addConstraint(NoOverlap(intervals).value!!, id = "schedule-no-overlap")
 
         optionalSchedulingModel = ConstraintProgrammingModel("benchmark-optional-scheduling", ObjectCategory.Minimum)
         val optionalIntervals = List(3) { index ->
@@ -125,7 +125,7 @@ open class ConstraintProgrammingBenchmark {
                 presence = fuookami.ospf.kotlin.core.model.constraint_programming.BooleanLiteral(presence)
             ).value!!.also(optionalSchedulingModel::registerInterval)
         }
-        optionalSchedulingModel.addConstraint(NoOverlap.create(optionalIntervals).value!!, id = "optional-no-overlap")
+        optionalSchedulingModel.addConstraint(NoOverlap(optionalIntervals).value!!, id = "optional-no-overlap")
 
         variableDurationSchedulingModel = ConstraintProgrammingModel("benchmark-variable-duration", ObjectCategory.Minimum)
         val variableDurationIntervals = List(3) { index ->
@@ -135,7 +135,7 @@ open class ConstraintProgrammingBenchmark {
             variableDurationSchedulingModel.registerVariable(start, IntegerDomain.interval(0, 6).value!!)
             variableDurationSchedulingModel.registerVariable(size, IntegerDomain.interval(1, 3).value!!)
             variableDurationSchedulingModel.registerVariable(end, IntegerDomain.interval(1, 9).value!!)
-            IntervalVariable.create(
+            IntervalVariable(
                 id = IntervalId("variable-job-$index"),
                 start = ConstraintProgrammingExpression.Variable(start),
                 size = ConstraintProgrammingExpression.Variable(size),
@@ -143,7 +143,7 @@ open class ConstraintProgrammingBenchmark {
             ).value!!.also(variableDurationSchedulingModel::registerInterval)
         }
         variableDurationSchedulingModel.addConstraint(
-            NoOverlap.create(variableDurationIntervals).value!!,
+            NoOverlap(variableDurationIntervals).value!!,
             id = "variable-no-overlap"
         )
         solver = FakeConstraintProgrammingSolver()

@@ -49,7 +49,7 @@ data class IntervalValue(
  * @property origin 稳定身份来源 / Stable identity origin
  * @property identityProvenance 完整身份来源集合 / Complete identity provenance
  */
-data class IntervalVariable(
+data class IntervalVariable private constructor(
     val id: IntervalId,
     val start: ConstraintProgrammingExpression,
     val size: ConstraintProgrammingExpression,
@@ -148,7 +148,7 @@ data class IntervalVariable(
          * @param identityProvenance 完整身份来源集合 / Complete identity provenance
          * @return interval 或结构化错误 / Interval or a structured error
          */
-        fun create(
+        operator fun invoke(
             id: IntervalId,
             start: ConstraintProgrammingExpression,
             size: ConstraintProgrammingExpression,
@@ -188,7 +188,7 @@ data class IntervalVariable(
          * @param identityProvenance 完整身份来源集合 / Complete identity provenance
          * @return interval 或结构化错误 / Interval or a structured error
          */
-        fun create(
+        operator fun invoke(
             id: String,
             start: ConstraintProgrammingExpression,
             size: ConstraintProgrammingExpression,
@@ -198,7 +198,7 @@ data class IntervalVariable(
             origin: String? = null,
             identityProvenance: List<ModelElementOrigin> = emptyList()
         ): Ret<IntervalVariable> {
-            return create(IntervalId(id), start, size, end, presence, scope, origin, identityProvenance)
+            return invoke(IntervalId(id), start, size, end, presence, scope, origin, identityProvenance)
         }
 
         /**
@@ -230,7 +230,7 @@ data class IntervalVariable(
                     "interval duration 不得为负：$size / Interval size must not be negative: $size"
                 )
             }
-            return create(
+            return invoke(
                 id,
                 start,
                 ConstraintProgrammingExpression.Constant(size),
@@ -249,7 +249,7 @@ data class IntervalVariable(
  *
  * @property intervals 参与排程的 interval / Scheduled intervals
  */
-data class NoOverlap(
+data class NoOverlap private constructor(
     val intervals: List<IntervalVariable>
 ) : ConstraintProgrammingConstraint {
     override val variables: Set<VariableId>
@@ -285,7 +285,7 @@ data class NoOverlap(
          * @param intervals 参与排程的 interval / Scheduled intervals
          * @return NoOverlap 约束或结构化错误 / NoOverlap constraint or a structured error
          */
-        fun create(intervals: Iterable<IntervalVariable>): Ret<NoOverlap> {
+        operator fun invoke(intervals: Iterable<IntervalVariable>): Ret<NoOverlap> {
             val list = intervals.toList()
             if (list.isEmpty()) {
                 return Failed(
@@ -305,7 +305,7 @@ data class NoOverlap(
  * @property demands 对应资源需求 / Corresponding resource demands
  * @property capacity 容量表达式 / Capacity expression
  */
-data class Cumulative(
+data class Cumulative private constructor(
     val intervals: List<IntervalVariable>,
     val demands: List<ConstraintProgrammingExpression>,
     val capacity: ConstraintProgrammingExpression
@@ -383,7 +383,7 @@ data class Cumulative(
          * @param capacity 容量表达式 / Capacity expression
          * @return Cumulative 约束或结构化错误 / Cumulative constraint or a structured error
          */
-        fun create(
+        operator fun invoke(
             intervals: Iterable<IntervalVariable>,
             demands: Iterable<ConstraintProgrammingExpression>,
             capacity: ConstraintProgrammingExpression

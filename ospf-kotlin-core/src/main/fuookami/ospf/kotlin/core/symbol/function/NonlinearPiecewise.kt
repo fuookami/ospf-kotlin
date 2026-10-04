@@ -275,7 +275,7 @@ class ExpFunction<V> private constructor(
 
     companion object {
         /** 使用等距断点创建指数近似。 / Create an exponential approximation with uniformly spaced breakpoints. */
-        fun <V> create(
+        operator fun <V> invoke(
             x: LinearPolynomial<V>,
             lower: Flt64,
             upper: Flt64,
@@ -289,7 +289,7 @@ class ExpFunction<V> private constructor(
                 upper = upper,
                 segments = segments,
                 create = { points ->
-                    create(
+                    invoke(
                         x = x,
                         breakpoints = points,
                         converter = converter,
@@ -301,7 +301,7 @@ class ExpFunction<V> private constructor(
         }
 
         /** 使用显式断点创建指数近似；首末断点定义有限定义域。 / Create an exponential approximation from explicit breakpoints; the first and last points define its finite domain. */
-        fun <V> create(
+        operator fun <V> invoke(
             x: LinearPolynomial<V>,
             breakpoints: List<Flt64>,
             converter: IntoValue<V>,
@@ -355,7 +355,7 @@ class LogFunction<V> private constructor(
 
     companion object {
         /** 使用等距断点创建自然对数近似。 / Create a natural-log approximation with uniformly spaced breakpoints. */
-        fun <V> create(
+        operator fun <V> invoke(
             x: LinearPolynomial<V>,
             lower: Flt64,
             upper: Flt64,
@@ -369,7 +369,7 @@ class LogFunction<V> private constructor(
                 upper = upper,
                 segments = segments,
                 create = { points ->
-                    create(
+                    invoke(
                         x = x,
                         breakpoints = points,
                         converter = converter,
@@ -381,7 +381,7 @@ class LogFunction<V> private constructor(
         }
 
         /** 使用显式断点创建自然对数近似；首末断点定义有限定义域。 / Create a natural-log approximation from explicit breakpoints; the first and last points define its finite domain. */
-        fun <V> create(
+        operator fun <V> invoke(
             x: LinearPolynomial<V>,
             breakpoints: List<Flt64>,
             converter: IntoValue<V>,
@@ -437,7 +437,7 @@ class ReciprocalFunction<V> private constructor(
 
     companion object {
         /** 使用等距断点创建倒数近似。 / Create a reciprocal approximation with uniformly spaced breakpoints. */
-        fun <V> create(
+        operator fun <V> invoke(
             x: LinearPolynomial<V>,
             lower: Flt64,
             upper: Flt64,
@@ -451,7 +451,7 @@ class ReciprocalFunction<V> private constructor(
                 upper = upper,
                 segments = segments,
                 create = { points ->
-                    create(
+                    invoke(
                         x = x,
                         breakpoints = points,
                         converter = converter,
@@ -463,7 +463,7 @@ class ReciprocalFunction<V> private constructor(
         }
 
         /** 使用显式断点创建倒数近似；首末断点定义有限定义域。 / Create a reciprocal approximation from explicit breakpoints; the first and last points define its finite domain. */
-        fun <V> create(
+        operator fun <V> invoke(
             x: LinearPolynomial<V>,
             breakpoints: List<Flt64>,
             converter: IntoValue<V>,
@@ -526,7 +526,7 @@ class PowerFunction<V> private constructor(
 
     companion object {
         /** 使用等距断点创建幂函数近似。 / Create a power approximation with uniformly spaced breakpoints. */
-        fun <V> create(
+        operator fun <V> invoke(
             x: LinearPolynomial<V>,
             exponent: Flt64,
             lower: Flt64,
@@ -541,7 +541,7 @@ class PowerFunction<V> private constructor(
                 upper = upper,
                 segments = segments,
                 create = { points ->
-                    create(
+                    invoke(
                         x = x,
                         exponent = exponent,
                         breakpoints = points,
@@ -554,7 +554,7 @@ class PowerFunction<V> private constructor(
         }
 
         /** 使用显式断点创建幂函数近似；首末断点定义有限定义域。 / Create a power approximation from explicit breakpoints; the first and last points define its finite domain. */
-        fun <V> create(
+        operator fun <V> invoke(
             x: LinearPolynomial<V>,
             exponent: Flt64,
             breakpoints: List<Flt64>,
@@ -631,7 +631,7 @@ class LogisticApproximationFunction<V> private constructor(
 
     companion object {
         /** 使用等距断点创建平滑 logistic 近似。 / Create a smooth logistic approximation with uniformly spaced breakpoints. */
-        fun <V> create(
+        operator fun <V> invoke(
             x: LinearPolynomial<V>,
             lower: Flt64,
             upper: Flt64,
@@ -647,7 +647,7 @@ class LogisticApproximationFunction<V> private constructor(
                 upper = upper,
                 segments = segments,
                 create = { points ->
-                    create(
+                    invoke(
                         x = x,
                         breakpoints = points,
                         steepness = steepness,
@@ -661,7 +661,7 @@ class LogisticApproximationFunction<V> private constructor(
         }
 
         /** 使用显式断点创建平滑 logistic 近似。 / Create a smooth logistic approximation from explicit breakpoints. */
-        fun <V> create(
+        operator fun <V> invoke(
             x: LinearPolynomial<V>,
             breakpoints: List<Flt64>,
             steepness: Flt64 = Flt64.one,

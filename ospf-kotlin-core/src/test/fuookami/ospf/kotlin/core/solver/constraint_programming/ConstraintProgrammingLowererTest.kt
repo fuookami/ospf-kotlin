@@ -185,7 +185,7 @@ class ConstraintProgrammingLowererTest {
             val second = IntervalVariable.fixed(IntervalId("second"), secondStartExpression, Int64(2), secondEndExpression).value!!
             model.registerInterval(first)
             model.registerInterval(second)
-            model.addConstraint(NoOverlap.create(listOf(first, second)).value!!)
+            model.addConstraint(NoOverlap(listOf(first, second)).value!!)
 
             val lowered = assertIs<Ok<ConstraintProgrammingLoweredLinearModel, *, *>>(
                 ConstraintProgrammingToLinearModelLowerer().lower(model)
@@ -245,7 +245,7 @@ class ConstraintProgrammingLowererTest {
             val startExpression = register(variableDurationModel, start, IntegerDomain.interval(0, 10).value!!)
             val sizeExpression = register(variableDurationModel, size, IntegerDomain.interval(1, 4).value!!)
             val endExpression = register(variableDurationModel, end, IntegerDomain.interval(0, 14).value!!)
-            val interval = IntervalVariable.create(
+            val interval = IntervalVariable(
                 IntervalId("variable-duration"),
                 startExpression,
                 sizeExpression,
@@ -274,7 +274,7 @@ class ConstraintProgrammingLowererTest {
             ).value!!
             cumulativeModel.registerInterval(interval)
             cumulativeModel.addConstraint(
-                Cumulative.create(
+                Cumulative(
                     listOf(interval),
                     listOf(ConstraintProgrammingExpression.Constant(Int64.one)),
                     ConstraintProgrammingExpression.Constant(Int64.one)

@@ -43,7 +43,7 @@ object IncrementalTariff {
      * @return 连续分段线性总费用函数或结构化错误 / Continuous piecewise-linear total-cost function or a structured error
      */
     @JvmStatic
-    fun <V> create(
+    operator fun <V> invoke(
         x: LinearPolynomial<V>,
         breakpoints: List<V>,
         marginalRates: List<V>,
@@ -238,7 +238,7 @@ class AllUnitsDiscountFunction<V> private constructor(
          * @param displayName 可选显示名称 / Optional display name
          * @return 全量折扣函数或结构化错误 / All-units discount function or a structured error
          */
-        fun <V> create(
+        operator fun <V> invoke(
             x: LinearPolynomial<V>,
             breakpoints: List<V>,
             rates: List<V>,
@@ -433,7 +433,7 @@ class FixedChargeFunction<V> private constructor(
          * @param displayName 可选显示名称 / Optional display name
          * @return 固定费用函数或结构化错误 / Fixed-charge function or a structured error
          */
-        fun <V> create(
+        operator fun <V> invoke(
             activation: AbstractVariableItem<*, *>,
             fixedCost: V,
             converter: IntoValue<V>,

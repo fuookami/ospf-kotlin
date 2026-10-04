@@ -129,7 +129,7 @@ class FakeConstraintProgrammingSolverTest {
             constant = Int64.zero
         )
         model.registerInterval(
-            IntervalVariable.create(
+            IntervalVariable(
                 id = IntervalId("overflowing"),
                 start = overflowing,
                 size = ConstraintProgrammingExpression.Constant(Int64.zero),

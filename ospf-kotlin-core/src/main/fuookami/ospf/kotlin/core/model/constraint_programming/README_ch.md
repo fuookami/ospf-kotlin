@@ -200,9 +200,9 @@ CP 解映射中的 Boolean 赋值使用 `0` 和 `1`；任何其它值都会产�
 使用以下入口：
 
 - `IntervalVariable.fixed(...)`：构造经过校验的固定 duration interval。
-- `IntervalVariable.create(...)`：构造 duration 为表达式的 interval。
-- `NoOverlap.create(...)`：禁止 interval 两两重叠。
-- `Cumulative.create(...)`：约束非负 demand 不超过非负 capacity。
+- `IntervalVariable(...)`：构造 duration 为表达式的 interval。
+- `NoOverlap(...)`：禁止 interval 两两重叠。
+- `Cumulative(...)`：约束非负 demand 不超过非负 capacity。
 
 通过 `model.registerInterval(interval)` 注册每个 interval。interval 表达式和 presence literal
 引用的所有标量变量也必须注册到模型中。
@@ -285,7 +285,7 @@ lowering 还要求安全的有限边界，并可能拒绝超过配置规模门�
 - `IntegerDomain.interval`、`IntegerDomain.values` 和 `IntegerDomain.sparse`。
 - `ConstraintProgrammingExpression.variable`、`term`、`linear` 和 `sum`。
 - `ConstraintProgrammingConstraint` companion factory。
-- `IntervalVariable.create`/`fixed`、`NoOverlap.create` 和 `Cumulative.create`。
+- `IntervalVariable(...)`/`fixed`、`NoOverlap(...)` 和 `Cumulative(...)`。
 - 在传输或重复编译前调用 `ConstraintProgrammingModel.validate` 和 `snapshot`。
 
 公开 data class constructor 仍可用于表示 AST，但可能绕过 factory 校验。应原样传播 `Failed`/

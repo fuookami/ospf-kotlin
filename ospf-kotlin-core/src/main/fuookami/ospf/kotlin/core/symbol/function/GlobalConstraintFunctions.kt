@@ -39,7 +39,7 @@ object GlobalConstraintFunctions {
      */
     @JvmStatic
     fun noOverlap(intervals: Iterable<IntervalVariable>): Ret<NoOverlap> {
-        return NoOverlap.create(intervals)
+        return NoOverlap(intervals)
     }
 
     /**
@@ -60,7 +60,7 @@ object GlobalConstraintFunctions {
         demands: Iterable<ConstraintProgrammingExpression>,
         capacity: ConstraintProgrammingExpression
     ): Ret<Cumulative> {
-        return Cumulative.create(
+        return Cumulative(
             intervals = intervals,
             demands = demands,
             capacity = capacity

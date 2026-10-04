@@ -453,7 +453,7 @@ class RemoteConstraintProgrammingClientTest {
                 start = ConstraintProgrammingExpression.Variable(start),
                 size = ConstraintProgrammingExpression.Constant(Int64(5)),
                 end = ConstraintProgrammingExpression.Variable(end)
-            )
+            ).value!!
         )
         val snapshot = model.snapshot().value!!
         val resultRef = ObjectRef.of(path = "results/cp-interval")
@@ -602,7 +602,7 @@ class RemoteConstraintProgrammingClientTest {
                 start = ConstraintProgrammingExpression.Variable(start),
                 size = ConstraintProgrammingExpression.Constant(Int64(5)),
                 end = ConstraintProgrammingExpression.Variable(end)
-            )
+            ).value!!
         )
         val snapshot = model.snapshot().value!!
         val storage = RecordingObjectStoragePort()

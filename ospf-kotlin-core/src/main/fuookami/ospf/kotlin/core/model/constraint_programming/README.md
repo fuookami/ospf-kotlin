@@ -207,9 +207,9 @@ canonical value `(start=0, size=0, end=0, present=false)` and scheduling constra
 Use:
 
 - `IntervalVariable.fixed(...)` for validated fixed duration.
-- `IntervalVariable.create(...)` for expression-based duration.
-- `NoOverlap.create(...)` to prevent pairwise overlap.
-- `Cumulative.create(...)` for non-negative demands under a non-negative capacity.
+- `IntervalVariable(...)` for expression-based duration.
+- `NoOverlap(...)` to prevent pairwise overlap.
+- `Cumulative(...)` for non-negative demands under a non-negative capacity.
 
 Register each interval with `model.registerInterval(interval)`. All scalar variables referenced by
 its expressions and presence literal must also be registered in the model.
@@ -300,7 +300,7 @@ exceptions. Prefer these validated entry points:
 - `IntegerDomain.interval`, `IntegerDomain.values`, and `IntegerDomain.sparse`.
 - `ConstraintProgrammingExpression.variable`, `term`, `linear`, and `sum`.
 - `ConstraintProgrammingConstraint` companion factories.
-- `IntervalVariable.create`/`fixed`, `NoOverlap.create`, and `Cumulative.create`.
+- `IntervalVariable(...)`/`fixed`, `NoOverlap(...)`, and `Cumulative(...)`.
 - `ConstraintProgrammingModel.validate` and `snapshot` before transport or repeated compilation.
 
 Public data-class constructors remain available for AST representation, but they can bypass factory

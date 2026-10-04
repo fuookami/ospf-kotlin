@@ -232,7 +232,7 @@ class TargetConflictAnalyzerTest {
                 model.registerInterval(first)
                 model.registerInterval(second)
                 val global = if (cumulative) {
-                    Cumulative.create(
+                    Cumulative(
                         intervals = listOf(first, second),
                         demands = listOf(
                             ConstraintProgrammingExpression.Constant(Int64.one),
@@ -241,7 +241,7 @@ class TargetConflictAnalyzerTest {
                         capacity = ConstraintProgrammingExpression.Constant(Int64.one)
                     ).value!!
                 } else {
-                    NoOverlap.create(listOf(first, second)).value!!
+                    NoOverlap(listOf(first, second)).value!!
                 }
                 val globalId = if (cumulative) "cumulative" else "no-overlap"
                 model.addConstraint(global, id = ConstraintId(globalId))
@@ -299,7 +299,7 @@ class TargetConflictAnalyzerTest {
             model.registerInterval(first)
             model.registerInterval(second)
             model.addConstraint(
-                Cumulative.create(
+                Cumulative(
                     intervals = listOf(first, second),
                     demands = listOf(
                         ConstraintProgrammingExpression.Constant(Int64.one),

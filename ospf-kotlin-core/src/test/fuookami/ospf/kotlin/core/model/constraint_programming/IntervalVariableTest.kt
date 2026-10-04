@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 class IntervalVariableTest {
     @Test
     fun intervalShouldValidateEndAndOptionalPresence() {
-        val valid = IntervalVariable.create(
+        val valid = IntervalVariable(
             id = "fixed",
             start = ConstraintProgrammingExpression.Constant(Int64.zero),
             size = ConstraintProgrammingExpression.Constant(Int64(3)),
@@ -17,7 +17,7 @@ class IntervalVariableTest {
         ).value!!
         assertEquals(true, valid.evaluate(emptyMap()).value!!.present)
 
-        val invalid = IntervalVariable.create(
+        val invalid = IntervalVariable(
             id = "invalid",
             start = ConstraintProgrammingExpression.Constant(Int64.zero),
             size = ConstraintProgrammingExpression.Constant(Int64(3)),
@@ -25,7 +25,7 @@ class IntervalVariableTest {
         ).value!!
         assertIs<Failed<*, *, *>>(invalid.evaluate(emptyMap()))
 
-        val optional = IntervalVariable.create(
+        val optional = IntervalVariable(
             id = "optional",
             start = ConstraintProgrammingExpression.Constant(Int64(0)),
             size = ConstraintProgrammingExpression.Constant(Int64(100)),
@@ -40,18 +40,18 @@ class IntervalVariableTest {
         val first = interval("first", 0, 3, 3)
         val second = interval("second", 3, 2, 5)
         val overlap = interval("overlap", 2, 2, 4)
-        val noOverlap = NoOverlap.create(listOf(first, second)).value!!
+        val noOverlap = NoOverlap(listOf(first, second)).value!!
         assertEquals(true, noOverlap.isSatisfied(emptyMap()).value)
-        assertEquals(false, NoOverlap.create(listOf(first, overlap)).value!!.isSatisfied(emptyMap()).value)
+        assertEquals(false, NoOverlap(listOf(first, overlap)).value!!.isSatisfied(emptyMap()).value)
 
-        val optional = IntervalVariable.create(
+        val optional = IntervalVariable(
             id = "disabled",
             start = ConstraintProgrammingExpression.Constant(Int64(1)),
             size = ConstraintProgrammingExpression.Constant(Int64(100)),
             end = ConstraintProgrammingExpression.Constant(Int64(101)),
             presence = BooleanLiteral.False
         ).value!!
-        assertEquals(true, NoOverlap.create(listOf(first, optional)).value!!.isSatisfied(emptyMap()).value)
+        assertEquals(true, NoOverlap(listOf(first, optional)).value!!.isSatisfied(emptyMap()).value)
     }
 
     @Test
@@ -63,23 +63,23 @@ class IntervalVariableTest {
             ConstraintProgrammingExpression.Constant(Int64(3))
         )
         val capacity = ConstraintProgrammingExpression.Constant(Int64(4))
-        val cumulative = Cumulative.create(listOf(first, second), demands, capacity).value!!
+        val cumulative = Cumulative(listOf(first, second), demands, capacity).value!!
         assertEquals(false, cumulative.isSatisfied(emptyMap()).value)
         assertEquals(
             true,
-            Cumulative.create(
+            Cumulative(
                 listOf(first, second),
                 demands,
                 ConstraintProgrammingExpression.Constant(Int64(5))
             ).value!!.isSatisfied(emptyMap()).value
         )
         assertIs<Failed<*, *, *>>(
-            Cumulative.create(listOf(first), demands, capacity)
+            Cumulative(listOf(first), demands, capacity)
         )
     }
 
     private fun interval(id: String, start: Long, size: Long, end: Long): IntervalVariable {
-        return IntervalVariable.create(
+        return IntervalVariable(
             id = id,
             start = ConstraintProgrammingExpression.Constant(Int64(start)),
             size = ConstraintProgrammingExpression.Constant(Int64(size)),
