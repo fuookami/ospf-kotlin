@@ -15,6 +15,10 @@ import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.utils.functional.*
 
+private fun <V> normalizedConstraintRhs(constant: V, converter: IntoValue<V>): V
+    where V : RealNumber<V>, V : NumberField<V> =
+    if (constant.abs().compareTo(converter.zero) == 0) converter.zero else -constant
+
 /**
  * 符号化线性不等式 / Symbolic linear inequality
  *
@@ -201,7 +205,7 @@ class LinearConstraintImpl<V>(
             val flattenData = relation.flattenData
             val flt64Monomials = flattenData.monomials.map { LinearMonomial(converter.fromValue(it.coefficient), it.symbol) }
             val lhs = createLinearCells(flt64Monomials, tokens, converter)
-            val rhs: V = -flattenData.constant
+            val rhs = normalizedConstraintRhs(flattenData.constant, converter)
             return Ok(LinearConstraintImpl(
                 lhs = lhs,
                 sign = constraintRelation,
@@ -255,7 +259,7 @@ class QuadraticConstraintImpl<V>(
             val flattenData = relation.flattenData
             val flt64Monomials = flattenData.monomials.map { QuadraticMonomial(converter.fromValue(it.coefficient), it.symbol1, it.symbol2) }
             val lhs = createQuadraticCells(flt64Monomials, tokens, converter)
-            val rhs: V = -flattenData.constant
+            val rhs = normalizedConstraintRhs(flattenData.constant, converter)
             return Ok(QuadraticConstraintImpl(
                 lhs = lhs,
                 sign = constraintRelation,

@@ -81,7 +81,11 @@ class MipBackedConstraintProgrammingSolver(
                 } else {
                     ConstraintProgrammingSupportLevel.Unsupported
                 },
-                ConstraintProgrammingFeature.Cumulative to ConstraintProgrammingSupportLevel.Unsupported,
+                ConstraintProgrammingFeature.Cumulative to if (lowerer.policy.allowCumulative) {
+                    ConstraintProgrammingSupportLevel.ExactLowering
+                } else {
+                    ConstraintProgrammingSupportLevel.Unsupported
+                },
                 ConstraintProgrammingFeature.ConflictCore to ConstraintProgrammingSupportLevel.Unsupported,
                 ConstraintProgrammingFeature.IncrementalSolve to ConstraintProgrammingSupportLevel.ExactLowering
             )

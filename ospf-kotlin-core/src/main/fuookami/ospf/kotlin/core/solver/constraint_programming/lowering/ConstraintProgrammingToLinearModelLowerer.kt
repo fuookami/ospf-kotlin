@@ -88,7 +88,7 @@ data class ConstraintProgrammingLoweredArtifact(
  * @property policy 精确降阶策略 / Exact lowering policy
  */
 class ConstraintProgrammingToLinearModelLowerer(
-    private val policy: ConstraintProgrammingLoweringPolicy = ConstraintProgrammingLoweringPolicy.Strict
+    val policy: ConstraintProgrammingLoweringPolicy = ConstraintProgrammingLoweringPolicy.Strict
 ) {
     /**
      * 从可变 CP 模型生成线性模型。 / Lower a mutable CP model.
@@ -543,7 +543,7 @@ class ConstraintProgrammingToLinearModelLowerer(
                 is ConstraintProgrammingConstraint.ForbiddenAssignments -> compileForbiddenAssignments(constraint, name)
                 is NoOverlap -> compileNoOverlap(constraint, name)
                 is Cumulative -> if (policy.allowCumulative) {
-                    unsupported("time-indexed cumulative 降阶尚未启用 / Time-indexed cumulative lowering is not enabled")
+                    compileCumulative(constraint, name)
                 } else {
                     unsupported("MIP-backed CP 首版不支持 cumulative / Cumulative is unsupported by the first MIP-backed CP compiler")
                 }
@@ -968,6 +968,214 @@ class ConstraintProgrammingToLinearModelLowerer(
                 }
             }
             return ok
+        }
+
+        private fun compileCumulative(cumulative: Cumulative, name: String): Try {
+            if (cumulative.intervals.isEmpty() || cumulative.intervals.size != cumulative.demands.size) {
+                return Failed(
+                    ErrorCode.IllegalArgument,
+                    "Cumulative interval 与 demand 数量必须一致且非空 / Cumulative interval and demand counts must match and be non-empty"
+                )
+            }
+            val demandValues = ArrayList<BigInteger>(cumulative.demands.size)
+            for (demand in cumulative.demands) {
+                val value = constantValue(demand)
+                    ?: return unsupported("Cumulative MIP lowering 仅支持常量 demand / Cumulative MIP lowering supports constant demands only")
+                val integer = BigInteger.valueOf(value.toLong())
+                if (integer.signum() < 0) {
+                    return Failed(ErrorCode.IllegalArgument, "Cumulative demand 不得为负 / Cumulative demand must not be negative")
+                }
+                demandValues += integer
+            }
+            val capacityValue = constantValue(cumulative.capacity)
+                ?: return unsupported("Cumulative MIP lowering 仅支持常量 capacity / Cumulative MIP lowering supports constant capacity only")
+            val capacity = BigInteger.valueOf(capacityValue.toLong())
+            if (capacity.signum() < 0) {
+                return Failed(ErrorCode.IllegalArgument, "Cumulative capacity 不得为负 / Cumulative capacity must not be negative")
+            }
+
+            val activeIntervals = ArrayList<Pair<LoweredInterval, BigInteger>>(cumulative.intervals.size)
+            for (index in cumulative.intervals.indices) {
+                val interval = cumulative.intervals[index]
+                val lowered = intervals[interval.id]
+                    ?: return Failed(ErrorCode.IllegalArgument, "Cumulative 引用了未注册 interval / Cumulative references an unknown interval")
+                val demand = demandValues[index]
+                if (demand.signum() == 0) continue
+                val durationBounds = formBounds(lowered.size)
+                    ?: return unsupported("Cumulative 需要有限整数 duration 值域 / Cumulative requires finite integer duration bounds")
+                if (durationBounds.first == ZERO_BI && durationBounds.second == ZERO_BI) continue
+                activeIntervals += lowered to demand
+            }
+            if (activeIntervals.isEmpty()) return ok
+
+            var horizonLower: BigInteger? = null
+            var horizonUpper: BigInteger? = null
+            val intervalBounds = ArrayList<Pair<Pair<BigInteger, BigInteger>, Pair<BigInteger, BigInteger>>>(activeIntervals.size)
+            for ((lowered, _) in activeIntervals) {
+                val startBounds = formBounds(form(lowered.start))
+                    ?: return unsupported("Cumulative 需要有限整数 start 值域 / Cumulative requires finite integer start bounds")
+                val endBounds = formBounds(form(lowered.end))
+                    ?: return unsupported("Cumulative 需要有限整数 end 值域 / Cumulative requires finite integer end bounds")
+                intervalBounds += startBounds to endBounds
+                horizonLower = horizonLower?.min(startBounds.first) ?: startBounds.first
+                horizonUpper = horizonUpper?.max(endBounds.second) ?: endBounds.second
+            }
+
+            val lower = horizonLower ?: return ok
+            val upper = horizonUpper ?: return ok
+            val timeSlots = (upper - lower).max(ZERO_BI)
+            if (timeSlots > BigInteger.valueOf(policy.maxCumulativeTimeSlots.toLong())) {
+                return unsupported("Cumulative 整数时隙数超出策略上限 / Cumulative time-slot count exceeds the configured limit")
+            }
+            val work = timeSlots * BigInteger.valueOf(activeIntervals.size.toLong())
+            if (work > BigInteger.valueOf(policy.maxCumulativeWork.toLong())) {
+                return unsupported("Cumulative interval-slot 工作规模超出策略上限 / Cumulative interval-slot work exceeds the configured limit")
+            }
+            if (timeSlots.signum() == 0) {
+                return ok
+            }
+
+            var time = lower
+            while (time < upper) {
+                var load = form(constant = ZERO_BI)
+                for (index in activeIntervals.indices) {
+                    val (interval, demand) = activeIntervals[index]
+                    val (startBounds, endBounds) = intervalBounds[index]
+                    val startBefore = exactLessOrEqualPredicate(
+                        value = form(interval.start),
+                        bounds = startBounds,
+                        threshold = time,
+                        name = "$name-start-${index}-$time"
+                    )
+                    if (startBefore.failed) return propagate(startBefore)
+                    val endBefore = exactLessOrEqualPredicate(
+                        value = form(interval.end),
+                        bounds = endBounds,
+                        threshold = time,
+                        name = "$name-end-${index}-$time"
+                    )
+                    if (endBefore.failed) return propagate(endBefore)
+                    val conditions = mutableListOf(startBefore.value!!, booleanNot(endBefore.value!!))
+                    interval.presence?.let { conditions += it }
+                    val active = exactConjunction(conditions, "$name-active-${index}-$time")
+                    if (active.failed) return propagate(active)
+                    load = plus(
+                        load,
+                        combine(
+                            left = active.value!!,
+                            right = form(constant = ZERO_BI),
+                            leftScale = demand,
+                            rightScale = ZERO_BI
+                        )
+                    )
+                }
+                val slotConstraint = addConstraint(
+                    form = load,
+                    comparison = Comparison.LE,
+                    rhs = capacity,
+                    name = "$name-slot-$time"
+                )
+                if (slotConstraint.failed) return slotConstraint
+                time += ONE_BI
+            }
+            return ok
+        }
+
+        private fun exactLessOrEqualPredicate(
+            value: LinearForm,
+            bounds: Pair<BigInteger, BigInteger>,
+            threshold: BigInteger,
+            name: String
+        ): Ret<LinearForm> {
+            if (bounds.second <= threshold) return ok(form(constant = ONE_BI))
+            if (bounds.first > threshold) return ok(form(constant = ZERO_BI))
+
+            val indicator = auxiliaryBinary(name)
+            if (indicator.failed) return propagate(indicator)
+            val indicatorForm = form(indicator.value!!)
+            val upper = addConstraint(
+                form = combine(
+                    left = value,
+                    right = indicatorForm,
+                    leftScale = ONE_BI,
+                    rightScale = bounds.second - threshold
+                ),
+                comparison = Comparison.LE,
+                rhs = bounds.second,
+                name = "$name-upper"
+            )
+            if (upper.failed) return propagate(upper)
+            val lower = addConstraint(
+                form = combine(
+                    left = value,
+                    right = indicatorForm,
+                    leftScale = ONE_BI,
+                    rightScale = threshold + ONE_BI - bounds.first
+                ),
+                comparison = Comparison.GE,
+                rhs = threshold + ONE_BI,
+                name = "$name-lower"
+            )
+            if (lower.failed) return propagate(lower)
+            return ok(indicatorForm)
+        }
+
+        private fun exactConjunction(conditions: List<LinearForm>, name: String): Ret<LinearForm> {
+            val nonConstant = ArrayList<LinearForm>(conditions.size)
+            for (condition in conditions) {
+                if (condition.terms.isEmpty()) {
+                    if (condition.constant == ZERO_BI) return ok(form(constant = ZERO_BI))
+                    if (condition.constant == ONE_BI) continue
+                    return unsupported("Cumulative 布尔指示条件不是 0/1 / Cumulative boolean condition is not 0/1")
+                }
+                nonConstant += condition
+            }
+            if (nonConstant.isEmpty()) return ok(form(constant = ONE_BI))
+            if (nonConstant.size == 1) return ok(nonConstant.single())
+
+            val indicator = auxiliaryBinary(name)
+            if (indicator.failed) return propagate(indicator)
+            val result = form(indicator.value!!)
+            for ((index, condition) in nonConstant.withIndex()) {
+                val upper = addConstraint(
+                    form = combine(
+                        left = result,
+                        right = condition,
+                        leftScale = ONE_BI,
+                        rightScale = -ONE_BI
+                    ),
+                    comparison = Comparison.LE,
+                    rhs = ZERO_BI,
+                    name = "$name-upper-$index"
+                )
+                if (upper.failed) return propagate(upper)
+            }
+            var lower = result
+            for (condition in nonConstant) {
+                lower = combine(
+                    left = lower,
+                    right = condition,
+                    leftScale = ONE_BI,
+                    rightScale = -ONE_BI
+                )
+            }
+            val lowerConstraint = addConstraint(
+                form = lower,
+                comparison = Comparison.GE,
+                rhs = -BigInteger.valueOf((nonConstant.size - 1).toLong()),
+                name = "$name-lower"
+            )
+            if (lowerConstraint.failed) return propagate(lowerConstraint)
+            return ok(result)
+        }
+
+        private fun booleanNot(condition: LinearForm): LinearForm {
+            return combine(
+                left = form(constant = ONE_BI),
+                right = condition,
+                leftScale = ONE_BI,
+                rightScale = -ONE_BI
+            )
         }
 
         private fun compileObjectives(): Try {

@@ -17,20 +17,29 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * @property auxiliaryVariableLimit 辅助变量上限 / Auxiliary variable limit
  * @property allowForbiddenAssignments 是否允许禁止表 / Whether forbidden tables are allowed
  * @property allowCumulative 是否允许 Cumulative / Whether Cumulative is allowed
+ * @property maxCumulativeTimeSlots Cumulative 最大整数时隙数 / Maximum integer time slots for Cumulative
+ * @property maxCumulativeWork Cumulative 最大 interval-slot 工作规模 / Maximum interval-slot work for Cumulative
  */
 data class ConstraintProgrammingLoweringPolicy(
     val sparseDomainLimit: Int = 128,
     val decompositionLimit: Int = 256,
     val auxiliaryVariableLimit: Int = 4096,
     val allowForbiddenAssignments: Boolean = true,
-    val allowCumulative: Boolean = false
+    val allowCumulative: Boolean = false,
+    val maxCumulativeTimeSlots: Int = 4096,
+    val maxCumulativeWork: Int = 65_536
 ) {
     /** 校验策略参数。 / Validate policy parameters.
      *
      * @return Validation result. / 校验结果。
      */
     fun validate(): Try {
-        if (sparseDomainLimit <= 0 || decompositionLimit <= 0 || auxiliaryVariableLimit <= 0) {
+        if (sparseDomainLimit <= 0 ||
+            decompositionLimit <= 0 ||
+            auxiliaryVariableLimit <= 0 ||
+            maxCumulativeTimeSlots <= 0 ||
+            maxCumulativeWork <= 0
+        ) {
             return Failed(
                 ErrorCode.IllegalArgument,
                 "CP 降阶规模上限必须为正 / CP lowering limits must be positive"
