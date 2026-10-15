@@ -507,6 +507,8 @@ operator fun PhysicalUnit.div(scale: Scale): PhysicalUnit {
 /**
  * 两个单位相乘 / Multiply two units
  *
+ * 取值域由单位自身合成，保留单位对量纲默认域的覆写。 / Compose domains from the units themselves, preserving overrides of quantity defaults.
+ *
  * @param other 另一个单位 / Another unit
  * @return 相乘后的新单位 / New unit resulting from multiplication
 */
@@ -515,12 +517,15 @@ operator fun PhysicalUnit.times(other: PhysicalUnit): PhysicalUnit {
     other.requireLinearForUnitOperation("multiply")
     return AnonymousPhysicalUnit(
         quantity = this.quantity * other.quantity,
-        conversionRule = UnitConversionRule.Linear(this.scale * other.scale)
+        conversionRule = UnitConversionRule.Linear(this.scale * other.scale),
+        domain = this.domain * other.domain
     )
 }
 
 /**
  * 两个单位相除 / Divide two units
+ *
+ * 取值域遵循单位层的除法合成规则。 / Compose domains using the unit-level division rule.
  *
  * @param other 另一个单位 / Another unit
  * @return 相除后的新单位 / New unit resulting from division
@@ -530,25 +535,31 @@ operator fun PhysicalUnit.div(other: PhysicalUnit): PhysicalUnit {
     other.requireLinearForUnitOperation("divide")
     return AnonymousPhysicalUnit(
         quantity = this.quantity / other.quantity,
-        conversionRule = UnitConversionRule.Linear(this.scale / other.scale)
+        conversionRule = UnitConversionRule.Linear(this.scale / other.scale),
+        domain = this.domain / other.domain
     )
 }
 
 /**
  * 单位的幂运算 / Power operation on unit
  *
+ * 分别推导量纲、换算比例和单位取值域，避免无单位的连续域影响正整数幂。 / Derive quantity, scale and unit domain independently so the continuous domain of NoneUnit does not affect positive powers.
+ *
  * @param index 幂指数 / Power index
  * @return 单位的幂次结果 / Result of unit power operation
 */
 fun PhysicalUnit.pow(index: Int): PhysicalUnit {
     requireLinearForUnitOperation("raise")
-    return if (index > 0) {
-        pow(index - 1) * this
-    } else if (index < 0) {
-        pow(index + 1) / this
-    } else {
-        NoneUnit
+    if (index == 0) {
+        return NoneUnit
     }
+    return AnonymousPhysicalUnit(
+        quantity = this.quantity.pow(index),
+        conversionRule = UnitConversionRule.Linear(
+            Scale(this.scale.scales.map { (base, exponent) -> base to (exponent * FltX(index.toLong())) })
+        ),
+        domain = this.domain.pow(index)
+    )
 }
 
 /**
