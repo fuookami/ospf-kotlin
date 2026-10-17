@@ -111,3 +111,122 @@ git grep -n "Flt64\\|FltX\\|Double\\|Point<Dim2, Quantity" -- ospf-kotlin-framew
 3. 契约测试：
    - 新增 `RectangularPackingContractTest`。
    - 覆盖未来 `Projection2/Placement2/Box2` 映射契约、单位转换和 `FltX` 路径。
+
+## 8. 框架搭建与 Gurobi 接入（2026-10-17）
+
+本轮把 bpp2d 从「单 jar 最小需求内核」升级为与 bpp3d 同构的 8 模块框架，并接入真实 Gurobi 打通列生成全链路。
+
+### 8.1 模块拆分
+
+| 模块 | 职责 |
+|------|------|
+| `bpp2d-infrastructure` | 量纲几何、装载形状（矩形/圆形）、板材形状、放置、渲染 DTO、领域错误 |
+| `bpp2d-domain-item-context` | 物品/板材/层/排样程序/需求统计/求解器值适配器 + `*Need` 兼容桥接 |
+| `bpp2d-domain-bla-context` | 二维底部向上左对齐排样（矩形件） |
+| `bpp2d-domain-block-loading-context` | 二维空间、简单/复杂块生成、DFS 与多行空间切分 |
+| `bpp2d-domain-layer-generation-context` | 候选层生成（块/切分/BLA/图样/圆形网格/混合） |
+| `bpp2d-domain-layer-assignment-context` | 列生成模型（赋值/负载/容量/需求约束/目标），唯一接触 `FltX` |
+| `bpp2d-domain-packing-context` | 终态几何校验、装箱器、物料汇总、渲染适配器 |
+| `bpp2d-application` | 列生成编排、标准执行器、应用服务、KPI 分析器 |
+
+父 pom 由 `jar` 改为 `pom`，子模块统一使用 `src/main` / `src/test`（与 bpp3d 一致）。
+
+### 8.2 与既有 `*Need` 模型的关系
+
+既有 `RectangularPackingDemand.kt` 与 `NeedGeometryMapping.kt` 保留在原包 `...bpp2d.domain`（下游零破坏），
+并新增 `LegacyBridge.kt` 提供到新模型的双向转换：
+
+| 既有 API | 新模型 |
+|----------|--------|
+| `RectangleItem2<V>` | `ActualItem<V>`（经 `toActualItem()`） |
+| `Sheet2<V>` | `SheetType<V>`（经 `toSheetType()`） |
+| `PlannedRectangle2<V>` | `LayerPlacement2<V>`（经 `toLayerPlacement()`） |
+| `Box2Need<V>` | `Box2Geometry<V>`（经 `toBox2Geometry()`） |
+| `PackingScene2<V>` | `Layer<V>`（经 `toLayer()` / `toLegacyScene()` 双向） |
+
+### 8.3 面积量纲结论
+
+`ospf-kotlin-quantities` 中 `Area = Length * Length`，`SquareMeter = DerivedPhysicalUnit(Meter * Meter)`，
+因此 `width * height` 自动得到 `Area`，与 `Length²` 完全等价，**不引入任何面积包装类型**。
+
+同时新增 `productUnit` / `quotientUnit`：`PhysicalUnit.*` 会把导出量纲的基础幂次再乘一次（`L × L` 得到 `L³`），
+因此 bpp2d 在 `QuantityCore.kt` 中按基础量纲幂次自行合成单位，`Meter × Meter` 与 `SquareMeter` 使用的单位一致。
+
+### 8.4 圆形件策略与限制
+
+1. 圆形件只走两种规则网格：`circle-rect-grid`（按直径铺格）与 `circle-hex-grid`（行距 `26/30·d`，奇偶行错半格）。
+   行距取 `26/30 ≈ 0.8667`，略大于 `√3/2 ≈ 0.8660`，偏大是保守的（行间更远，不可能重叠），同时仍比直角网格更密。
+2. 选择 `26/30` 而非 `√3/2`，是因为泛型数值类型没有 `toDouble()` / `sqrt()`；用整数比可以保持纯泛型实现。
+3. 混合形状层（矩形行 + 圆网格）生成后**逐对**用底层几何复核，凡重叠即丢弃，不做近似。
+4. 圆形件不参与 BLA、块装载、空间切分与图样生成（这些路径依赖「整行/推挤」语义），并在结果中显式标记跳过。
+5. 面积口径：圆形件实际面积 `πr²`，外接面积 `4r²`；KPI 与渲染都使用实际面积。
+
+### 8.5 重叠语义变更
+
+重叠统一为**内部重叠**：相切不算重叠。底层 `QuantityBox2.overlapped` 把相切判为重叠，若沿用该语义，
+任何规则网格都无法成立，因此 `Box2Geometry.overlapped` 对矩形×矩形、圆×圆、圆×矩形统一采用严格不等式。
+
+### 8.6 列生成模型
+
+1. **RMP**：每列一个整数变量，`load_i = Σ_j coeff_ij · x_j`，目标为层面积最小化。
+2. **最终 MILP**：二维中一个候选层就是一块板材的完整排布，因此变量是**每列的份数** `y_j ∈ ℤ⁺`，
+   而不是「板材 × 层」矩阵；板材数量 = Σ y_j。使用矩阵时求解器会重复选择同一列导致超量放置。
+3. **份数上界**：`maxCopiesPerColumn` 取「覆盖该列中任一物品需求所需份数」的最小值，从模型层阻断超量。
+4. **需求约束**：需求必须被**覆盖**（`load ≥ demand`），可选业务上界（`load ≤ upperBound`）。
+   若只注册上界，最小化目标会退化为「一块板材都不用」——这是本轮发现的建模缺陷，已修正。
+5. **尾板裁剪**：列生成保证覆盖需求，最后一板通常超出需求量，`ColumnGenerationApplicationService.trimToDemand`
+   按需求裁剪后再装箱，并在 KPI 中反映实际件数。
+6. **种子列**：首次 LP 必须可行，因此先用候选生成器产出一批种子列，否则空变量模型的 RMP 直接不可行，
+   Gurobi 也不会给出对偶解。
+
+### 8.7 Gurobi 接入
+
+1. `bpp2d-application/src/gurobi-test` 源集 + `gurobi-cg-test` profile（`build-helper-maven-plugin` 挂源集、
+   surefire 注入 `bpp2d.gurobi.cg.test.enabled=true`），与 bpp3d 同构。
+2. `core-plugin-gurobi` 的 `gurobi` 依赖是 `provided`，profile 中显式声明 `gurobi:gurobi:1.0.0`（test 作用域）。
+3. 原生库通过 `-DargLine=-Djava.library.path=$env:GUROBI_HOME\bin` 注入（不硬编码绝对路径）。
+4. 默认 `mvn test` 通过 surefire `excludes` 排除该测试；运行时需 `-Dtest=GurobiColumnGeneration2DTest` 覆盖排除。
+
+已验证的真实求解结果：
+
+| 用例 | 结果 |
+|------|------|
+| 纯矩形件（4×3 ×6、2×2 ×8） | LP + 最终 MILP 求解成功，需求全部覆盖，几何合法 |
+| 纯圆形件（r=1 ×12、r=0.5 ×16） | 同上，仅出现圆形件 |
+| 混合形状（6×4 ×4 + r=1 ×10） | 同上，两种形状都出现 |
+| 单个圆形件 KPI | 实际面积 = π，外接面积 = 4 |
+
+### 8.8 门禁与校验
+
+```powershell
+# 框架全量测试（不含 Gurobi）
+mvn -s D:\environment\apache-maven-3.9.12\conf\settings.xml -f ospf-kotlin-framework-bpp2d/pom.xml test
+
+# Gurobi 集成测试
+mvn -s D:\environment\apache-maven-3.9.12\conf\settings.xml `
+    -pl ospf-kotlin-framework-bpp2d/bpp2d-application -am test `
+    -Pgurobi-cg-test -Dtest=GurobiColumnGeneration2DTest `
+    -Dsurefire.failIfNoSpecifiedTests=false "-DargLine=-Djava.library.path=$env:GUROBI_HOME\bin"
+```
+
+泛型门禁（生产代码）：
+
+```powershell
+git grep -n "Flt64" -- ospf-kotlin-framework-bpp2d/bpp2d-infrastructure `
+    ospf-kotlin-framework-bpp2d/bpp2d-domain-item-context `
+    ospf-kotlin-framework-bpp2d/bpp2d-domain-bla-context `
+    ospf-kotlin-framework-bpp2d/bpp2d-domain-block-loading-context `
+    ospf-kotlin-framework-bpp2d/bpp2d-domain-layer-generation-context
+```
+
+`Flt64` 仅允许出现在 `bpp2d-domain-layer-assignment-context`、`bpp2d-application` 与测试中。
+`RectangularPackingDemand.kt` 的 `.value!!` / `require` 属于既有兼容实现，为保持下游行为不变而保留在
+`@Deprecated` 桥接层，新代码一律使用 `Ret` / `Try`。
+
+### 8.9 遗留事项
+
+1. 尾板裁剪目前按「先放先得」顺序裁剪，未做按剩余需求选择最优尾板列的优化。
+2. 未接入 kerf（刀缝）、余料复用与异形件排样。
+3. 未实现基于检验数的列筛选（`filterByReducedCostWithResult` 为空，等价于接受全部候选），
+   当前依赖迭代上限控制规模。
+4. 未接入 bpp3d 那套 group/layer CSV 数据集协议，Gurobi 测试使用内存构造的小样例。

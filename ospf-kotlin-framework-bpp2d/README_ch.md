@@ -1,55 +1,94 @@
-# ospf-kotlin-framework-bpp2d
+# ospf-kotlin-framework-bpp2d（中文）
 
 :us: [English](README.md) | :cn: 简体中文
 
-## 简介
+## 子模块
 
-`ospf-kotlin-framework-bpp2d` 是早期阶段的二维矩形装箱框架模块。当前它包含一个最小的、物理量感知的矩形装箱需求与几何映射领域内核。
-
-## 作用范围
-
-本模块聚焦可复用的 BPP2D 概念：
-
-1. 矩形物品、板材、放置和装箱场景。
-2. 带物理量的投影、放置和盒体需求。
-3. 映射到共享 quantity geometry 模型，且不依赖 BPP3D 包。
-
-下游请求 DTO、租户参数、项目专属策略、求解器选择和服务编排，应先留在模块外，直到它们沉淀为可复用领域概念。
-
-## Public API
-
-当前生产入口包括：
-
-| API | 职责 |
+| 模块 | 描述 |
 | --- | --- |
-| `RectangleItem2<V>` | 矩形物品尺寸和是否允许旋转 |
-| `Sheet2<V>` | 板材尺寸 |
-| `Projection2Need<V>` | 宽高投影和面积 |
-| `Placement2Need<V>` | 位置与投影 |
-| `Box2Need<V>` | 边界、重叠、相交和包含检查 |
-| `PlannedRectangle2<V>` | 带可选旋转的物品放置 |
-| `PackingScene2<V>` | 板材内检查、面积、利用率和重叠分析 |
-| `toGeometryProjection2()` / `toGeometryPlacement2()` / `toGeometryBox2()` | 到 quantity geometry 的稳定适配器 |
+| [bpp2d-infrastructure](bpp2d-infrastructure/README_ch.md) | 量纲几何、装载形状（矩形/圆形）、板材形状、放置、渲染 DTO 与领域错误，供所有子模块共享。 |
+| [bpp2d-domain-item-context](bpp2d-domain-item-context/README_ch.md) | 物品、板材、层、排样程序、需求统计、求解器值适配器，以及既有 `*Need` 兼容桥接。 |
+| [bpp2d-domain-bla-context](bpp2d-domain-bla-context/README_ch.md) | 矩形件在板材平面上的底部向上左对齐（BLA）排样。 |
+| [bpp2d-domain-block-loading-context](bpp2d-domain-block-loading-context/README_ch.md) | 二维空间模型、简单/复杂块生成器，以及 DFS / 多行空间切分搜索。 |
+| [bpp2d-domain-layer-generation-context](bpp2d-domain-layer-generation-context/README_ch.md) | 候选层生成：块装载、空间切分、BLA、图样、圆形网格（直角/六角）与混合形状策略。 |
+| [bpp2d-domain-layer-assignment-context](bpp2d-domain-layer-assignment-context/README_ch.md) | 列生成模型：赋值、负载、容量、带影子价格的需求约束与目标函数。 |
+| [bpp2d-domain-packing-context](bpp2d-domain-packing-context/README_ch.md) | 终态装箱：几何校验、装箱器、物料汇总与渲染适配器。 |
+| [bpp2d-application](bpp2d-application/README_ch.md) | 列生成编排、标准执行器、应用服务与 KPI 分析器。 |
 
-## 建模扩展点
+## 模块范围
 
-本模块尚未暴露求解模型或 application solver。后续加入优化建模时，模型注册应放在 domain context、aggregation、model component 和 pipeline 中，而不是硬编码在 application service。
+`ospf-kotlin-framework-bpp2d` 是 OSPF Kotlin 的二维矩形与圆形装箱框架。当前能力：
 
-## 泛型数值边界
+1. 矩形件，支持可选的 90° 旋转。
+2. 圆形件，通过直角网格与六角网格候选排布。
+3. 混合形状排布（矩形行 + 圆形网格），并逐对通过底层几何校验。
+4. 完整列生成闭环：候选层 → RMP(LP) 求对偶 → 加列 → 最终 MILP → 装箱 → KPI。
+5. LP / MILP 接入真实 Gurobi 求解器。
 
-当前领域模型基于 `V : FloatingNumber<V>` 泛型化。未来 solver adapter 可以把值转换为 `Flt64`，但可复用领域层应保持泛型。
+## 形状支持矩阵
 
-## 物理量边界
+| 路径 | 矩形件 | 圆形件 |
+| --- | --- | --- |
+| 层生成：块装载（局部/全局） | 支持 | 跳过（圆形件无整行块语义） |
+| 层生成：DFS / 多行空间切分 | 支持 | 跳过 |
+| 层生成：BLA（底部向上左对齐） | 支持 | 跳过并显式标记 |
+| 层生成：图样 | 支持 | 跳过 |
+| 层生成：圆形网格 | 不适用 | 支持（直角网格与六角网格） |
+| 层生成：混合形状 | 支持 | 支持（矩形行 + 圆形网格，逐对校验） |
+| 几何校验 / 装箱 / 渲染 | 支持 | 支持 |
+| 面积口径 | `w × h` | `πr²`（实际面积）/ `4r²`（外接面积） |
 
-宽度、高度、坐标和面积都通过 `Quantity<V>` 表达。利用率等无量纲值暴露为 `V`。
+## 重叠语义
 
-## 相关说明
+重叠统一为**内部重叠**：相切不算重叠。矩形贴边、圆与圆相切、圆与矩形边界相切都视为不重叠。这是网格排样的
+前提——若把相切判为重叠，任何规则网格都无法成立。
 
-- [daily.md](daily.md) 记录实现和泛型化计划。
-- [ospf-kotlin-math geometry README](../ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/geometry/README_ch.md) 说明共享几何层。
+## 公开 API
 
-## 本地验证
+| API | 职责 | 稳定性 |
+| --- | --- | --- |
+| `PackingShape2<V>` / `RectanglePackingShape2` / `CirclePackingShape2` | 形状抽象，提供实际面积与外接面积。 | stable |
+| `Sheet2Shape<V>` / `LayerPlacement2<V>` / `Box2Geometry<V>` | 板材几何、放置与内部重叠判定。 | stable |
+| `LayerGenerationContext<V>` | 带形状分派的组合式候选生成器。 | stable |
+| `LayerAssignmentContext` | 列生成模型的五阶段生命周期。 | stable |
+| `ColumnGenerationAlgorithm` | 列生成编排器，带失败阶段。 | stable |
+| `ColumnGenerationStandardExecutors` | 标准 RMP / 最终 MILP / 请求构建器装配。 | stable |
+| `ColumnGenerationApplicationService` | 端到端入口，输出装箱结果与 KPI。 | stable |
+| `PackingGeometryGuard` / `Packer` / `PackingRendererAdapter` | 终态几何校验、装箱与渲染 DTO 输出。 | stable |
+
+## 列生成扩展点
+
+1. `ColumnGenerationAlgorithm` 接受 `rmpSolver`、`finalMilpSolver`、`layerRequestBuilder`、
+   `initialColumnsWithResult`、`filterByReducedCostWithResult` 与 `failureAnalyzer`，下游无需复制循环即可替换装配。
+2. `LayerGenerationContext` 接受显式生成器列表；新策略只需实现 `Bpp2dLayerGenerator`。
+3. `LayerAssignmentContext` 暴露 `registerRmp` / `addColumns` / `removeColumns` / `registerFinal` /
+   `registerAreaMinimization` / `registerSheetAmountMinimization`。
+4. `ColumnGenerationApplicationService` 接受算法工厂，可整体替换装配。
+
+## 泛型数值与物理量边界
+
+1. infrastructure、item、BLA、block-loading、layer-generation、packing 的领域模型泛型于
+   `V : FloatingNumber<V>`。
+2. 长度、坐标、面积使用 `Quantity<V>`；无量纲值（利用率、比值、评分）使用裸 `V`。
+3. `FltX` 只出现在 `bpp2d-domain-layer-assignment-context`（求解器边界）与应用层接线。
+4. 泛型代码不得调用 `toDouble()`：计数与缩放通过量值运算表达。
+
+## Gurobi 接入
+
+Gurobi 集成测试位于 `bpp2d-application/src/gurobi-test`，仅在 `gurobi-cg-test` profile 下运行：
 
 ```powershell
-mvn -B -ntp -pl ospf-kotlin-framework-bpp2d -am test
+$lib = "$env:GUROBI_HOME\bin"
+mvn -s D:\environment\apache-maven-3.9.12\conf\settings.xml `
+    -pl ospf-kotlin-framework-bpp2d/bpp2d-application -am test `
+    -Pgurobi-cg-test -Dtest=GurobiColumnGeneration2DTest `
+    -Dsurefire.failIfNoSpecifiedTests=false "-DargLine=-Djava.library.path=$lib"
+```
+
+未安装 Gurobi 时该 profile 不激活，默认构建不受影响。
+
+## 本地校验
+
+```powershell
+mvn -s D:\environment\apache-maven-3.9.12\conf\settings.xml -f ospf-kotlin-framework-bpp2d/pom.xml test
 ```

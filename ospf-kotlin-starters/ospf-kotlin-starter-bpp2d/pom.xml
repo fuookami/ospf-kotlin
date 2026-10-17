@@ -18,5 +18,44 @@
             <artifactId>ospf-kotlin-starter</artifactId>
             <version>${project.version}</version>
         </dependency>
-    </dependencies>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp2d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp2d-infrastructure</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp2d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp2d-domain-item-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp2d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp2d-domain-bla-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp2d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp2d-domain-block-loading-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp2d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp2d-domain-layer-generation-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp2d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp2d-domain-layer-assignment-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp2d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp2d-domain-packing-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp2d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp2d-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>    </dependencies>
 </project>

@@ -13,22 +13,22 @@
     <name>ospf-kotlin-framework-bpp2d</name>
     <groupId>io.github.fuookami.ospf.kotlin.framework.bpp2d</groupId>
     <artifactId>ospf-kotlin-framework-bpp2d</artifactId>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
+    <modules>
+        <module>bpp2d-infrastructure</module>
+        <module>bpp2d-domain-item-context</module>
+        <module>bpp2d-domain-bla-context</module>
+        <module>bpp2d-domain-block-loading-context</module>
+        <module>bpp2d-domain-layer-generation-context</module>
+        <module>bpp2d-domain-layer-assignment-context</module>
+        <module>bpp2d-domain-packing-context</module>
+        <module>bpp2d-application</module>
+    </modules>
 
     <dependencies>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
             <artifactId>ospf-kotlin-utils</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-framework</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -41,5 +41,29 @@
             <artifactId>ospf-kotlin-quantities</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-framework</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <ospf.kotlin.math.enableCompanionReflectionFallback>true</ospf.kotlin.math.enableCompanionReflectionFallback>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
