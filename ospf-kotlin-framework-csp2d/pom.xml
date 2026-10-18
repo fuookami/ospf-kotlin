@@ -14,11 +14,31 @@
     <groupId>io.github.fuookami.ospf.kotlin.framework.csp2d</groupId>
     <artifactId>ospf-kotlin-framework-csp2d</artifactId>
     <packaging>pom</packaging>
+    <modules>
+        <module>csp2d-infrastructure</module>
+        <module>csp2d-domain-material-context</module>
+        <module>csp2d-domain-pattern-generation-context</module>
+        <module>csp2d-domain-produce-context</module>
+        <module>csp2d-domain-yield-context</module>
+        <module>csp2d-domain-wasting-minimization-context</module>
+        <module>csp2d-domain-sheet-assignment-context</module>
+        <module>csp2d-application</module>
+    </modules>
 
     <dependencies>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
             <artifactId>ospf-kotlin-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-math</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-quantities</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -32,4 +52,18 @@
             <version>${project.version}</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <ospf.kotlin.math.enableCompanionReflectionFallback>true</ospf.kotlin.math.enableCompanionReflectionFallback>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

@@ -344,6 +344,23 @@ fun <V : FloatingNumber<V>> quantityOf(sample: Quantity<V>, scaler: V): Quantity
 }
 
 /**
+ * 按无量纲系数缩放量值。 / Scale a quantity by a dimensionless factor.
+ *
+ * 与 `quantityOf` 的区别：`quantityOf(sample, scaler)` 是「按 sample 的单位构造一个量值 scaler」，
+ * 本函数是「把 sample 的数值乘以 factor，单位不变」。
+ * / Difference from `quantityOf`: `quantityOf(sample, scaler)` builds a quantity of magnitude `scaler` in the sample's
+ * unit, whereas this function multiplies the sample's numeric value by `factor` and keeps its unit.
+ *
+ * @param V 数值类型 / numeric type
+ * @param value 量值 / quantity
+ * @param factor 无量纲系数 / dimensionless factor
+ * @return 缩放后的量值 / scaled quantity
+*/
+fun <V : FloatingNumber<V>> quantityScaledBy(value: Quantity<V>, factor: V): Quantity<V> {
+    return Quantity(value.value * factor, value.unit)
+}
+
+/**
  * 判断量值是否大于零。 / Check whether a quantity is greater than zero.
  *
  * @param V 数值类型 / numeric type
