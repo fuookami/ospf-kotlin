@@ -11,6 +11,7 @@
 package fuookami.ospf.kotlin.framework.bpp2d.domain.packing.service
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
 
 /**

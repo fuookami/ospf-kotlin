@@ -61,7 +61,7 @@
 | API | 职责 | 稳定性 |
 | --- | --- | --- |
 | `PackingShape2<V>` / `RectanglePackingShape2` / `CirclePackingShape2` | 形状抽象，提供实际面积与外接面积。 | stable |
-| `Sheet2Shape<V>` / `LayerPlacement2<V>` / `Box2Geometry<V>` | 板材几何、放置与内部重叠判定。 | stable |
+| `Sheet2Shape<V>` / `Placement2<V>` / `Box2Geometry<V>` | 板材几何、放置与内部重叠判定。 | stable |
 | `LayerGenerationContext<V>` | 带形状分派的组合式候选生成器。 | stable |
 | `LayerAssignmentContext` | 列生成模型的五阶段生命周期。 | stable |
 | `ColumnGenerationAlgorithm` | 列生成编排器，带失败阶段。 | stable |
@@ -105,3 +105,18 @@ mvn -s D:\environment\apache-maven-3.9.12\conf\settings.xml `
 ```powershell
 mvn -s D:\environment\apache-maven-3.9.12\conf\settings.xml -f ospf-kotlin-framework-bpp2d/pom.xml test
 ```
+
+## 共享几何模块
+
+本框架的二维几何位于共享模块
+[ospf-kotlin-framework-geometry2d](../ospf-kotlin-framework-geometry2d/README_ch.md)，使装箱（bpp2d）与套裁（csp2d）复用同一套实现：
+
+1. 量值算术（`QuantityCore`）：非空泛型运算符、安全比较、计数与缩放。
+2. 点与向量：`QuantityPoint2` / `QuantityVector2`。
+3. 形状：`PackingShape2` 及 `RectanglePackingShape2` / `CirclePackingShape2`，以及 `Shape2Candidate`。
+4. 放置与几何：`Placement2`、`Box2Geometry`、`Sheet2Geometry`、`Sheet2Shape`。
+5. 刀缝：`inflatedBy`、`pitchOf`、`zeroSpacingOf`。
+6. 内部重叠语义：相切不算重叠。
+
+`bpp2d-infrastructure` 只保留 bpp2d 专属的错误类型（`Bpp2dValidationError` 等）与渲染 DTO。
+放置类型已统一命名为 `Placement2`，bpp2d 的代码与文档直接使用该名称。

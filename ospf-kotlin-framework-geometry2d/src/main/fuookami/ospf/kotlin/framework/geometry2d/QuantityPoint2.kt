@@ -5,7 +5,7 @@
  * 因此在基础设施层补充。 / The quantity geometry layer only ships rectangles, circles and boxes; 2D packing
  * placement needs points and vectors, so they are provided here.
 */
-package fuookami.ospf.kotlin.framework.bpp2d.infrastructure
+package fuookami.ospf.kotlin.framework.geometry2d
 
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber

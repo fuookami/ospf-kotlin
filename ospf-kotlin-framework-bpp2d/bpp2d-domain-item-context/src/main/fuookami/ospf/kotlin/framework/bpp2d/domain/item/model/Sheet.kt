@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
 
 /**

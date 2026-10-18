@@ -5,7 +5,7 @@
  * / A sheet is the 2D packing container mirroring BPP3D `Container3Shape`; it only needs width, height
  * and the usable area.
 */
-package fuookami.ospf.kotlin.framework.bpp2d.infrastructure
+package fuookami.ospf.kotlin.framework.geometry2d
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.error.ErrorCode

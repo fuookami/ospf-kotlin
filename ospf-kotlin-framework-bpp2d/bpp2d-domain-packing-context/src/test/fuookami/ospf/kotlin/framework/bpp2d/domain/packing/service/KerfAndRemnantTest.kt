@@ -9,13 +9,14 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.Layer
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.Sheet
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetLayer
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetType
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetTypeId
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
-import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.Sheet2Shape
+import fuookami.ospf.kotlin.framework.geometry2d.Sheet2Shape
 
 class KerfContractTest {
     private fun shape(width: Double, height: Double): PackingShape2<FltX> {
@@ -67,12 +68,12 @@ class KerfContractTest {
         val type = sheetType(10.0, 10.0)
         val item = shape(2.0, 2.0)
         // 两件相距 0.1 m，kerf 0.5 m。 / Two pieces 0.1 m apart with a 0.5 m kerf.
-        val lhs = LayerPlacement2(
+        val lhs = Placement2(
             shape = item,
             position = QuantityPoint2(x = FltX(0.0) * Meter, y = FltX(0.0) * Meter),
             itemId = "A"
         )
-        val rhs = LayerPlacement2(
+        val rhs = Placement2(
             shape = item,
             position = QuantityPoint2(x = FltX(2.1) * Meter, y = FltX(0.0) * Meter),
             itemId = "B"
@@ -94,12 +95,12 @@ class KerfContractTest {
         val guard = PackingGeometryGuard
         val type = sheetType(10.0, 10.0)
         val item = shape(2.0, 2.0)
-        val lhs = LayerPlacement2(
+        val lhs = Placement2(
             shape = item,
             position = QuantityPoint2(x = FltX(0.0) * Meter, y = FltX(0.0) * Meter),
             itemId = "A"
         )
-        val rhs = LayerPlacement2(
+        val rhs = Placement2(
             shape = item,
             position = QuantityPoint2(x = FltX(2.5) * Meter, y = FltX(0.0) * Meter),
             itemId = "B"
@@ -127,7 +128,7 @@ class FreeSpaceAnalyzerContractTest {
 
     private fun sheetOf(
         type: SheetType<FltX>,
-        placements: List<LayerPlacement2<FltX>>
+        placements: List<Placement2<FltX>>
     ): Sheet<FltX> {
         val layer = Layer(
             iteration = 0L,
@@ -163,7 +164,7 @@ class FreeSpaceAnalyzerContractTest {
             width = FltX(4.0) * Meter,
             height = FltX(2.0) * Meter
         ).valueOrFail()
-        val placement = LayerPlacement2(
+        val placement = Placement2(
             shape = shape,
             position = QuantityPoint2(x = FltX(0.0) * Meter, y = FltX(0.0) * Meter),
             itemId = "A"
@@ -192,7 +193,7 @@ class FreeSpaceAnalyzerContractTest {
             height = FltX(1.0) * Meter
         ).valueOrFail()
         val placements = listOf(
-            LayerPlacement2(
+            Placement2(
                 shape = shape,
                 position = QuantityPoint2(x = FltX(4.0) * Meter, y = FltX(2.0) * Meter),
                 itemId = "A"

@@ -64,7 +64,7 @@ would invalidate every regular grid.
 | API | Responsibility | Stability |
 | --- | --- | --- |
 | `PackingShape2<V>` / `RectanglePackingShape2` / `CirclePackingShape2` | Shape abstraction with actual and bounding area. | stable |
-| `Sheet2Shape<V>` / `LayerPlacement2<V>` / `Box2Geometry<V>` | Sheet geometry, placement and interior-overlap tests. | stable |
+| `Sheet2Shape<V>` / `Placement2<V>` / `Box2Geometry<V>` | Sheet geometry, placement and interior-overlap tests. | stable |
 | `LayerGenerationContext<V>` | Composite candidate generator with shape dispatch. | stable |
 | `LayerAssignmentContext` | Five-stage column-generation model lifecycle. | stable |
 | `ColumnGenerationAlgorithm` | Column-generation orchestrator with failure stages. | stable |
@@ -111,3 +111,19 @@ Without a Gurobi installation, the profile is simply not activated and the defau
 ```powershell
 mvn -s D:\environment\apache-maven-3.9.12\conf\settings.xml -f ospf-kotlin-framework-bpp2d/pom.xml test
 ```
+
+## Shared Geometry Module
+
+The 2D geometry of this framework lives in the shared
+[ospf-kotlin-framework-geometry2d](../ospf-kotlin-framework-geometry2d/README.md) module, so that packing (bpp2d) and
+cutting stock (csp2d) reuse one implementation:
+
+1. Quantity arithmetic (`QuantityCore`): non-null generic operators, safe ordering, counting and scaling.
+2. Points and vectors: `QuantityPoint2` / `QuantityVector2`.
+3. Shapes: `PackingShape2` with `RectanglePackingShape2` / `CirclePackingShape2`, plus `Shape2Candidate`.
+4. Placement and geometry: `Placement2`, `Box2Geometry`, `Sheet2Geometry`, `Sheet2Shape`.
+5. Kerf: `inflatedBy`, `pitchOf`, `zeroSpacingOf`.
+6. Interior-overlap semantics: touching is not overlap.
+
+`bpp2d-infrastructure` keeps only bpp2d-specific errors (`Bpp2dValidationError` and friends) and renderer DTOs.
+The placement type was unified as `Placement2`; bpp2d code and docs use that name directly.

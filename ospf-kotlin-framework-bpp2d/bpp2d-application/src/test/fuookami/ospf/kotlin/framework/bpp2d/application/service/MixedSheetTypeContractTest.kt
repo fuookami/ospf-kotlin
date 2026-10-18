@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ItemId
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.Layer
@@ -53,7 +54,7 @@ class MixedSheetTypeContractTest {
             height = FltX(1.0) * Meter
         ).valueOrFail()
         val units = (0 until count).map { index ->
-            LayerPlacement2(
+            Placement2(
                 shape = shape,
                 position = QuantityPoint2(
                     x = FltX(2.0 * index) * Meter,

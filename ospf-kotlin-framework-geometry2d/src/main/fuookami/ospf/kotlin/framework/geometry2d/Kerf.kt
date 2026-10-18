@@ -9,7 +9,7 @@
  * with the other piece's real shape reports intersection exactly when the real gap is smaller than the kerf.
  * Placement coordinates therefore stay physical and no extra offset has to be stored.
 */
-package fuookami.ospf.kotlin.framework.bpp2d.infrastructure
+package fuookami.ospf.kotlin.framework.geometry2d
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -48,7 +48,7 @@ fun <V : FloatingNumber<V>> PackingShape2<V>.inflatedBy(spacing: Quantity<V>): P
  * @param spacing 间距 / spacing
  * @return 膨胀后的放置 / inflated placement
 */
-fun <V : FloatingNumber<V>> LayerPlacement2<V>.inflatedBy(spacing: Quantity<V>): LayerPlacement2<V> {
+fun <V : FloatingNumber<V>> Placement2<V>.inflatedBy(spacing: Quantity<V>): Placement2<V> {
     return copy(shape = shape.inflatedBy(spacing))
 }
 

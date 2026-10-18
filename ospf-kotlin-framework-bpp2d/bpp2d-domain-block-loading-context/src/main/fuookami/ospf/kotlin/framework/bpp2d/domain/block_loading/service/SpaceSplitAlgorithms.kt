@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.model.Space2
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.isCircleItem
@@ -28,7 +29,7 @@ import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
  * @property source 算法来源标记 / algorithm source marker
 */
 data class SpaceSplit2Result<V : FloatingNumber<V>>(
-    val placements: List<LayerPlacement2<V>>,
+    val placements: List<Placement2<V>>,
     val placedAmounts: Map<String, Int>,
     val restAmounts: Map<String, Int>,
     val source: String
@@ -80,7 +81,7 @@ class DepthFirstSearchAlgorithm2D {
         maxDepth: Int = 8,
         kerf: Quantity<V>? = null
     ): Ret<SpaceSplit2Result<V>> {
-        val placements = ArrayList<LayerPlacement2<V>>()
+        val placements = ArrayList<Placement2<V>>()
         val rest = LinkedHashMap<String, Int>()
         for ((item, amount) in items) {
             rest[item.id.value] = amount
@@ -119,7 +120,7 @@ class DepthFirstSearchAlgorithm2D {
         space: Space2<V>,
         items: List<Pair<ActualItem<V>, Int>>,
         rest: MutableMap<String, Int>,
-        placements: MutableList<LayerPlacement2<V>>,
+        placements: MutableList<Placement2<V>>,
         depth: Int,
         maxDepth: Int,
         kerf: Quantity<V>?
@@ -158,7 +159,7 @@ class DepthFirstSearchAlgorithm2D {
                 val x = space.x + scaledQuantity(pitch.x, col)
                 val y = space.y + scaledQuantity(pitch.y, row)
                 placements.add(
-                    LayerPlacement2(
+                    Placement2(
                         shape = shape,
                         position = QuantityPoint2(x = x, y = y),
                         rotated = candidate.rotated,
@@ -207,7 +208,7 @@ class MultiRowHeuristicAlgorithm2D {
         val item: ActualItem<V>,
         val candidate: Shape2Candidate<V>,
         val cols: Int,
-        val pitch: fuookami.ospf.kotlin.framework.bpp2d.infrastructure.QuantityVector2<V>
+        val pitch: fuookami.ospf.kotlin.framework.geometry2d.QuantityVector2<V>
     )
 
     /**
@@ -225,7 +226,7 @@ class MultiRowHeuristicAlgorithm2D {
         maxRows: Int = 32,
         kerf: Quantity<V>? = null
     ): Ret<SpaceSplit2Result<V>> {
-        val placements = ArrayList<LayerPlacement2<V>>()
+        val placements = ArrayList<Placement2<V>>()
         val rest = LinkedHashMap<String, Int>()
         for ((item, amount) in items) {
             rest[item.id.value] = amount
@@ -263,7 +264,7 @@ class MultiRowHeuristicAlgorithm2D {
                 }
                 val x = space.x + scaledQuantity(pick.pitch.x, col)
                 placements.add(
-                    LayerPlacement2(
+                    Placement2(
                         shape = shape,
                         position = QuantityPoint2(x = x, y = cursorY),
                         rotated = pick.candidate.rotated,

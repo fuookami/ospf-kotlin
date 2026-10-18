@@ -8,13 +8,14 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ItemId
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetType
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetTypeId
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_generation.service.CircleGridGenerator
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
-import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.Sheet2Shape
+import fuookami.ospf.kotlin.framework.geometry2d.Sheet2Shape
 
 class KerfLayerGenerationContractTest {
     private fun rectangleItem(id: String, width: Double, height: Double): ActualItem<FltX> {

@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.unit.SquareMeter
+import fuookami.ospf.kotlin.framework.geometry2d.*
 
 class RectangularPackingDemandTest {
     @Test

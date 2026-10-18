@@ -8,7 +8,7 @@
  * enclosing square with the circle centre at its centre, so circle-circle, circle-rectangle and
  * rectangle-rectangle overlap tests all delegate to `QuantityBox2.overlapped`.
 */
-package fuookami.ospf.kotlin.framework.bpp2d.infrastructure
+package fuookami.ospf.kotlin.framework.geometry2d
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.error.ErrorCode

@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.model.Block2
 import fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.model.Space2
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.AbstractItem
@@ -42,7 +43,7 @@ class ComplexBlockGenerator {
         if (space.isDegenerate() || items.isEmpty()) {
             return ok(emptyList())
         }
-        val placements = ArrayList<LayerPlacement2<V>>()
+        val placements = ArrayList<Placement2<V>>()
         val sources = LinkedHashSet<String>()
         var cursorY = space.y
         var usedWidth = quantityZeroOf(space.width)
@@ -73,7 +74,7 @@ class ComplexBlockGenerator {
             for (col in 0 until cols) {
                 val x = space.x + scaledQuantity(pitch.x, col)
                 placements.add(
-                    LayerPlacement2(
+                    Placement2(
                         shape = shape,
                         position = QuantityPoint2(x = x, y = cursorY),
                         rotated = candidate.rotated,

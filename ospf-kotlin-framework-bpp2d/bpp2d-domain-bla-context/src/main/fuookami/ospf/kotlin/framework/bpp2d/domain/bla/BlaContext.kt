@@ -8,10 +8,11 @@ package fuookami.ospf.kotlin.framework.bpp2d.domain.bla
 
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.bla.service.Bla2dLayoutResult
 import fuookami.ospf.kotlin.framework.bpp2d.domain.bla.service.BottomUpLeftJustifiedAlgorithm
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ActualItem
-import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.Sheet2Shape
+import fuookami.ospf.kotlin.framework.geometry2d.Sheet2Shape
 
 /**
  * BLA 领域上下文。 / BLA domain context.

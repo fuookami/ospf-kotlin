@@ -20,6 +20,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.sum
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.Layer
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.model.safeLinearPolynomial
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.model.ImpreciseAssignment

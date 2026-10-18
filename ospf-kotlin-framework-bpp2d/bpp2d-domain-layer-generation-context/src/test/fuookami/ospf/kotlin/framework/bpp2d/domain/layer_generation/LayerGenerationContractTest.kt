@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_generation.service.*
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
@@ -201,7 +202,7 @@ class LayerGeneratorContractTest {
             sheet = sheet,
             shape = Sheet2Shape(width = FltX(2.0) * Meter, height = FltX(1.0) * Meter),
             units = listOf(
-                LayerPlacement2(
+                Placement2(
                     shape = shape,
                     position = QuantityPoint2(x = FltX(0.0) * Meter, y = FltX(0.0) * Meter),
                     itemId = "r"

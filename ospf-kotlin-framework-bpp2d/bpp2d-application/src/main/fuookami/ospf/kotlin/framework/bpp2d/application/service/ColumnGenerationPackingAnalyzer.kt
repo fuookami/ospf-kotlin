@@ -10,8 +10,9 @@
 package fuookami.ospf.kotlin.framework.bpp2d.application.service
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.packing.PackingResult
-import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.PackingShape2Type
+import fuookami.ospf.kotlin.framework.geometry2d.PackingShape2Type
 
 /**
  * 装箱快照。 / Packing snapshot.

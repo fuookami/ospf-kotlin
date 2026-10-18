@@ -19,6 +19,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
 
 /**
@@ -206,7 +207,7 @@ data class QuantityLayer<V : FloatingNumber<V>>(
             is fuookami.ospf.kotlin.utils.functional.Fatal ->
                 return Fatal(converted.errors)
         }
-        val placements = ArrayList<LayerPlacement2<FltX>>(units.size)
+        val placements = ArrayList<Placement2<FltX>>(units.size)
         for (unit in units) {
             when (val converted = unit.toModel()) {
                 is Ok -> placements.add(converted.value)
@@ -252,7 +253,7 @@ data class QuantityLayerPlacement<V : FloatingNumber<V>>(
      *
      * @return 放置或失败 / placement, or failure
     */
-    fun toModel(): Ret<LayerPlacement2<FltX>> {
+    fun toModel(): Ret<Placement2<FltX>> {
         val shape2 = when (val converted = shape.toShape()) {
             is Ok -> converted.value
             is fuookami.ospf.kotlin.utils.functional.Failed ->
@@ -273,7 +274,7 @@ data class QuantityLayerPlacement<V : FloatingNumber<V>>(
         }
         val fltX = if (rotated) fltXShape.rotated() else fltXShape
         return ok(
-            LayerPlacement2(
+            Placement2(
                 shape = fltX,
                 position = QuantityPoint2(
                     x = x.toFltXQuantity(),

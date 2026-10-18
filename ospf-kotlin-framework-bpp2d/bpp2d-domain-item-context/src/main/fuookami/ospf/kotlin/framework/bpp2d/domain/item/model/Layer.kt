@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
 
 /**
@@ -32,7 +33,7 @@ class Layer<V : FloatingNumber<V>>(
     val from: KClass<*>,
     val sheet: SheetType<V>?,
     val shape: Sheet2Shape<V>,
-    val units: List<LayerPlacement2<V>>
+    val units: List<Placement2<V>>
 ) : Copyable<Layer<V>>, Comparable<Layer<V>>, ManualIndexed() {
 
     /** 层内件数 / amount of items in the layer */

@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.service.*
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
@@ -133,15 +134,15 @@ class PlacementFactoryContractTest {
             width = FltX(2.0) * Meter,
             height = FltX(2.0) * Meter
         ).valueOrFail()
-        val lhs = LayerPlacement2(
+        val lhs = Placement2(
             shape = shape,
             position = QuantityPoint2(x = FltX(0.0) * Meter, y = FltX(0.0) * Meter)
         )
-        val overlapping = LayerPlacement2(
+        val overlapping = Placement2(
             shape = shape,
             position = QuantityPoint2(x = FltX(1.0) * Meter, y = FltX(1.0) * Meter)
         )
-        val apart = LayerPlacement2(
+        val apart = Placement2(
             shape = shape,
             position = QuantityPoint2(x = FltX(5.0) * Meter, y = FltX(5.0) * Meter)
         )
@@ -207,15 +208,15 @@ class ItemServiceContractTest {
             width = FltX(1.0) * Meter,
             height = FltX(1.0) * Meter
         ).valueOrFail()
-        val topLeft = LayerPlacement2(
+        val topLeft = Placement2(
             shape = shape,
             position = QuantityPoint2(x = FltX(0.0) * Meter, y = FltX(5.0) * Meter)
         )
-        val bottomRight = LayerPlacement2(
+        val bottomRight = Placement2(
             shape = shape,
             position = QuantityPoint2(x = FltX(5.0) * Meter, y = FltX(0.0) * Meter)
         )
-        val bottomLeft = LayerPlacement2(
+        val bottomLeft = Placement2(
             shape = shape,
             position = QuantityPoint2(x = FltX(0.0) * Meter, y = FltX(0.0) * Meter)
         )
@@ -258,12 +259,12 @@ class SheetAndLayerContractTest {
             height = FltX(1.0) * Meter
         ).valueOrFail()
         val units = listOf(
-            LayerPlacement2(
+            Placement2(
                 shape = shape,
                 position = QuantityPoint2(x = FltX(0.0) * Meter, y = FltX(0.0) * Meter),
                 itemId = "i1"
             ),
-            LayerPlacement2(
+            Placement2(
                 shape = shape,
                 position = QuantityPoint2(x = FltX(2.0) * Meter, y = FltX(0.0) * Meter),
                 itemId = "i1"

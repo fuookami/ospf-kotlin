@@ -20,6 +20,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModelConfiguration
 import fuookami.ospf.kotlin.core.model.mechanism.toMeta
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ItemId
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.Layer
@@ -415,7 +416,7 @@ class ColumnGenerationStandardExecutors(
                     layers = listOf(
                         SheetLayer(
                             type = type,
-                            shape = fuookami.ospf.kotlin.framework.bpp2d.infrastructure.Sheet2Shape(
+                            shape = fuookami.ospf.kotlin.framework.geometry2d.Sheet2Shape(
                                 width = type.width,
                                 height = type.height
                             ),

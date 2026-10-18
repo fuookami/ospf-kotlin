@@ -6,7 +6,7 @@
  * / Mirrors BPP3D `QuantityPlacement2`: a packing shape positioned on a sheet.
  * All geometry checks return [Ret] with no non-null assertions.
 */
-package fuookami.ospf.kotlin.framework.bpp2d.infrastructure
+package fuookami.ospf.kotlin.framework.geometry2d
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -25,12 +25,12 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * @property rotated 是否旋转 90 度 / whether rotated by 90 degrees
  * @property itemId 物品标识（纯文本），层内件数统计依赖此字段 / plain item identifier used for layer amount statistics
 */
-data class LayerPlacement2<V : FloatingNumber<V>>(
+data class Placement2<V : FloatingNumber<V>>(
     val shape: PackingShape2<V>,
     val position: QuantityPoint2<V>,
     val rotated: Boolean = false,
     val itemId: String? = null
-) : Copyable<LayerPlacement2<V>> {
+) : Copyable<Placement2<V>> {
 
     /** x 坐标 / x coordinate */
     val x: Quantity<V> get() = position.x
@@ -84,7 +84,7 @@ data class LayerPlacement2<V : FloatingNumber<V>>(
      * @param rhs 另一放置 / other placement
      * @return 是否重叠或失败 / whether they overlap, or failure
     */
-    fun overlapped(rhs: LayerPlacement2<V>): Ret<Boolean> {
+    fun overlapped(rhs: Placement2<V>): Ret<Boolean> {
         return box().overlapped(rhs.box())
     }
 
@@ -104,12 +104,12 @@ data class LayerPlacement2<V : FloatingNumber<V>>(
      * @param offset 偏移向量 / offset vector
      * @return 平移后的放置 / translated placement
     */
-    fun translate(offset: QuantityVector2<V>): LayerPlacement2<V> {
+    fun translate(offset: QuantityVector2<V>): Placement2<V> {
         return copy(position = position + offset)
     }
 
-    override fun copy(): LayerPlacement2<V> {
-        return LayerPlacement2(
+    override fun copy(): Placement2<V> {
+        return Placement2(
             shape = shape,
             position = QuantityPoint2(x = position.x, y = position.y),
             rotated = rotated,

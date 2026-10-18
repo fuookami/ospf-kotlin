@@ -11,6 +11,7 @@ package fuookami.ospf.kotlin.framework.bpp2d.domain.item.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
 

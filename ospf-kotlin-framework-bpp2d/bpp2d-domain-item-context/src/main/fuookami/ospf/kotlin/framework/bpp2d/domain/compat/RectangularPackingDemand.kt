@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.framework.geometry2d.*
 
 /** 二维矩形物料项 / 2D rectangle item
  * @param V 数值类型 / numeric type

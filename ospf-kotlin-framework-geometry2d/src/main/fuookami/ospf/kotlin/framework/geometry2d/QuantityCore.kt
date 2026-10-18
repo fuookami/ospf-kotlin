@@ -9,7 +9,7 @@
  * 2D packing domain code needs non-null generic operators with correct base-power composition, so this file
  * provides them centrally while surfacing dimension mismatches as [Ret] failures.
 */
-package fuookami.ospf.kotlin.framework.bpp2d.infrastructure
+package fuookami.ospf.kotlin.framework.geometry2d
 
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed

@@ -10,6 +10,7 @@ package fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
 
 /**
@@ -118,7 +119,7 @@ data class Space2<V : FloatingNumber<V>>(
 */
 data class Block2<V : FloatingNumber<V>>(
     val space: Space2<V>,
-    val placements: List<LayerPlacement2<V>>,
+    val placements: List<Placement2<V>>,
     val source: String
 ) {
 

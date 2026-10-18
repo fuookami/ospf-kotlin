@@ -10,8 +10,8 @@ package fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.model
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.div
-import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.times
+import fuookami.ospf.kotlin.framework.geometry2d.div
+import fuookami.ospf.kotlin.framework.geometry2d.times
 
 /**
  * 把无符号整数转换为 `FltX`。 / Convert an unsigned integer to `FltX`.

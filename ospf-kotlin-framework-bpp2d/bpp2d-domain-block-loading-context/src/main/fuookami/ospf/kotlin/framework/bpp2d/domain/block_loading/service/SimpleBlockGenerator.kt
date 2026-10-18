@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.model.Block2
 import fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.model.Space2
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.AbstractItem
@@ -70,13 +71,13 @@ class SimpleBlockGenerator {
             }
             val blockWidth = scaledQuantity(pitch.x, cols)
             val blockHeight = scaledQuantity(pitch.y, rows)
-            val placements = ArrayList<LayerPlacement2<V>>(cols * rows)
+            val placements = ArrayList<Placement2<V>>(cols * rows)
             for (row in 0 until rows) {
                 val y = space.y + scaledQuantity(pitch.y, row)
                 for (col in 0 until cols) {
                     val x = space.x + scaledQuantity(pitch.x, col)
                     placements.add(
-                        LayerPlacement2(
+                        Placement2(
                             shape = shape,
                             position = QuantityPoint2(x = x, y = y),
                             rotated = candidate.rotated,

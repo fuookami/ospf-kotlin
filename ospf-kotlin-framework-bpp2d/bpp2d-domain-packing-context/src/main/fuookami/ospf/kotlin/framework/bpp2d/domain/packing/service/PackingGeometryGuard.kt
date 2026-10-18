@@ -2,9 +2,9 @@
  * 装箱几何守卫。 / Packing geometry guard.
  *
  * 对一批二维放置做三项校验：是否全部位于板材内、是否两两不重叠、旋转是否合法。重叠判定直接复用
- * `LayerPlacement2.overlapped`，因此矩形×矩形、圆×圆、圆×矩形的语义统一为「内部重叠」——**相切不算重叠**。
+ * `Placement2.overlapped`，因此矩形×矩形、圆×圆、圆×矩形的语义统一为「内部重叠」——**相切不算重叠**。
  * / Validates a batch of 2D placements on three points: all inside the sheet, pairwise disjoint, and legal
- * rotation. Overlap delegates to `LayerPlacement2.overlapped`, so rectangle-rectangle, circle-circle and
+ * rotation. Overlap delegates to `Placement2.overlapped`, so rectangle-rectangle, circle-circle and
  * circle-rectangle all share the "interior overlap" semantics where **tangency is not an overlap**.
 */
 package fuookami.ospf.kotlin.framework.bpp2d.domain.packing.service
@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.AbstractItem
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ItemId
@@ -49,7 +50,7 @@ fun interface PackingRotationRule {
      * @param placement 待检查的放置 / placement to check
      * @return 是否合法 / whether legal
     */
-    fun allow(placement: LayerPlacement2<FltX>): Boolean
+    fun allow(placement: Placement2<FltX>): Boolean
 
     companion object {
 
@@ -103,7 +104,7 @@ object PackingGeometryGuard {
     */
     fun requireSheetGeometry(
         sheet: Sheet2Geometry<FltX>,
-        placements: List<LayerPlacement2<FltX>>,
+        placements: List<Placement2<FltX>>,
         sheetName: String = "sheet",
         source: String = "PackingGeometryGuard.requireSheetGeometry",
         kerf: Quantity<FltX>? = null
@@ -201,7 +202,7 @@ object PackingGeometryGuard {
     */
     fun validate(
         sheet: Sheet2Geometry<FltX>,
-        placements: List<LayerPlacement2<FltX>>,
+        placements: List<Placement2<FltX>>,
         sheetName: String = "sheet",
         source: String = "PackingGeometryGuard.validate",
         rotationRule: PackingRotationRule = PackingRotationRule.AllowAll,

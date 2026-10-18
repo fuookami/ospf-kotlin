@@ -21,6 +21,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.Layer
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetType
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetTypeId

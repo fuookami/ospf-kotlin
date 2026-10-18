@@ -140,7 +140,7 @@ git grep -n "Flt64\\|FltX\\|Double\\|Point<Dim2, Quantity" -- ospf-kotlin-framew
 |----------|--------|
 | `RectangleItem2<V>` | `ActualItem<V>`（经 `toActualItem()`） |
 | `Sheet2<V>` | `SheetType<V>`（经 `toSheetType()`） |
-| `PlannedRectangle2<V>` | `LayerPlacement2<V>`（经 `toLayerPlacement()`） |
+| `PlannedRectangle2<V>` | `Placement2<V>`（经 `toLayerPlacement()`） |
 | `Box2Need<V>` | `Box2Geometry<V>`（经 `toBox2Geometry()`） |
 | `PackingScene2<V>` | `Layer<V>`（经 `toLayer()` / `toLegacyScene()` 双向） |
 
@@ -306,3 +306,52 @@ schema 门禁：重复列、未知列、必填列缺失、非法枚举、非正�
 验证（真实 Gurobi）：
 - 小板 10×6 与大板 20×12 同时供给、需求 3 件 4×3：只用小板（板材面积消耗 60 < 240）。
 - 给小板配置高类型成本后改用大板，证明类型成本项确实参与目标。
+
+## 9. 二维几何抽取为共享模块（2026-10-18）
+
+为支持后续的 csp2d（二维套裁）复用同一套几何，把 bpp2d-infrastructure 中的二维几何抽取为独立框架模块
+`ospf-kotlin-framework-geometry2d`。
+
+### 9.1 抽取边界
+
+迁入共享模块（`fuookami.ospf.kotlin.framework.geometry2d`）：
+
+| 文件 | 内容 |
+|------|------|
+| `QuantityCore.kt` | 非空泛型量值算术、安全比较、计数与缩放 |
+| `QuantityPoint2.kt` | `QuantityPoint2` / `QuantityVector2` |
+| `PackingShape2.kt` | `PackingShape2`（sealed）、矩形/圆形形状、`Shape2Candidate` |
+| `Box2Geometry.kt` | 放置几何与内部重叠分派 |
+| `Placement2.kt` | 放置（原 `LayerPlacement2`，改名以去掉 bpp 专属的「层」语义） |
+| `Sheet2Shape.kt` | 板材几何 |
+| `Geometry2Extensions.kt` | 面积、边界、容纳判定扩展 |
+| `Kerf.kt` | 刀缝膨胀与节距 |
+
+保留在 bpp2d-infrastructure：`Bpp2dErrors.kt`（bpp2d 专属错误）、`dto/RendererDTO.kt`（bpp2d 渲染 DTO）。
+`QuantityCoreContractTest.kt`（含 Box2Geometry / PackingShape2 契约）随代码迁入共享模块。
+
+### 9.2 命名统一
+
+放置类型在共享模块中命名为 `Placement2`。曾尝试用 `typealias LayerPlacement2<V> = Placement2<V>` 保留旧名，
+但 Kotlin 的 typealias **不支持 `where` 约束子句**，而 `Placement2<V : FloatingNumber<V>>` 有上界，
+简单别名会因类型参数不满足上界而编译失败。bpp2d 尚未发布，因此直接统一为 `Placement2`，代码与文档一并改名。
+
+### 9.3 过程中的一个陷阱
+
+迁移后首次增量构建出现「`PackingShape2` 等类型 overload resolution ambiguity」等大量怪异错误，
+原因是 bpp2d-infrastructure 的 `target/classes` 中残留了**旧包的同名 class**，与共享模块的新类同时出现在
+classpath 上。执行 `mvn clean` 后即消失。此类迁移务必清理构建产物。
+
+### 9.4 验证
+
+| 验证 | 结果 |
+|------|------|
+| geometry2d 模块测试 | 16 个通过（由 bpp2d-infrastructure 迁入） |
+| bpp2d 测试 | 117 个通过（133 − 16，迁移部分不再重复计数） |
+| bpp2d Gurobi 集成 | 10 个通过 |
+| 全仓 `mvn test` | 92 个模块 SUCCESS、4289 个测试、0 失败 0 错误 |
+
+### 9.5 后续
+
+bpp3d 的 `bpp3d-infrastructure/QuantityGeometryCore.kt` 也定义了同名的 `QuantityPoint2`（另一份重复）。
+本次未动 bpp3d，避免牵动其 430 个测试与 57 个 Gurobi 用例；可在后续单独一轮把 bpp3d 切到共享模块。

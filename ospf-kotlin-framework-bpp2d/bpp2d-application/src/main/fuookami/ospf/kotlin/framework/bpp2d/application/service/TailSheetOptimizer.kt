@@ -13,7 +13,7 @@
 package fuookami.ospf.kotlin.framework.bpp2d.application.service
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.LayerPlacement2
+import fuookami.ospf.kotlin.framework.geometry2d.Placement2
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.Layer
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.Sheet
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetLayer
@@ -166,7 +166,7 @@ class TailSheetOptimizer(
         for ((itemId, amount) in remaining) {
             budget[itemId] = amount.toInt()
         }
-        val units = ArrayList<LayerPlacement2<FltX>>(layer.units.size)
+        val units = ArrayList<Placement2<FltX>>(layer.units.size)
         for (unit in layer.units) {
             val itemId = unit.itemId ?: continue
             val left = budget[itemId] ?: 0

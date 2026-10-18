@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp2d.infrastructure
+package fuookami.ospf.kotlin.framework.geometry2d
 
 import kotlin.test.fail
 import fuookami.ospf.kotlin.utils.functional.*

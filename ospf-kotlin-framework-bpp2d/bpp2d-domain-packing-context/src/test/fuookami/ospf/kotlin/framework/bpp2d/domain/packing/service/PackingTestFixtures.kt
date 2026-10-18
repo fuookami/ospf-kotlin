@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.packing.*
@@ -47,8 +48,8 @@ internal fun rectanglePlacementOf(
     height: Double,
     rotated: Boolean = false,
     itemId: String? = null
-): LayerPlacement2<FltX> {
-    return LayerPlacement2(
+): Placement2<FltX> {
+    return Placement2(
         shape = rectangleShape2(width = meters(width), height = meters(height)).valueOrFail(),
         position = QuantityPoint2(x = meters(x), y = meters(y)),
         rotated = rotated,
@@ -72,8 +73,8 @@ internal fun circlePlacementOf(
     radius: Double,
     rotated: Boolean = false,
     itemId: String? = null
-): LayerPlacement2<FltX> {
-    return LayerPlacement2(
+): Placement2<FltX> {
+    return Placement2(
         shape = circleShape2(radius = meters(radius)).valueOrFail(),
         position = QuantityPoint2(x = meters(x), y = meters(y)),
         rotated = rotated,
@@ -143,7 +144,7 @@ internal fun sheetTypeOf(
 */
 internal fun layerOf(
     type: SheetType<FltX>,
-    units: List<LayerPlacement2<FltX>>,
+    units: List<Placement2<FltX>>,
     width: Double? = null,
     height: Double? = null
 ): Layer<FltX> {
@@ -168,7 +169,7 @@ internal fun layerOf(
 */
 internal fun sheetOf(
     type: SheetType<FltX>,
-    units: List<LayerPlacement2<FltX>>,
+    units: List<Placement2<FltX>>,
     batch: String? = null
 ): Sheet<FltX> {
     val batchNo = batch?.let { BatchNo(it) }

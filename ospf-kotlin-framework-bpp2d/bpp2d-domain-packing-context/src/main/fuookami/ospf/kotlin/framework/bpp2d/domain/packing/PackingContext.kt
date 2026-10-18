@@ -8,6 +8,7 @@
 package fuookami.ospf.kotlin.framework.bpp2d.domain.packing
 
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.*
 
 /**

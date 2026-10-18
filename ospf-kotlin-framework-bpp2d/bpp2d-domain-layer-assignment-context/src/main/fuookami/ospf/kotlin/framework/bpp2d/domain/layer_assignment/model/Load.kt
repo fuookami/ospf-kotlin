@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ItemId
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.Layer
-import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.quantityZeroOf
+import fuookami.ospf.kotlin.framework.geometry2d.quantityZeroOf
 
 /**
  * 层分配需求种类。 / Layer assignment demand kind.

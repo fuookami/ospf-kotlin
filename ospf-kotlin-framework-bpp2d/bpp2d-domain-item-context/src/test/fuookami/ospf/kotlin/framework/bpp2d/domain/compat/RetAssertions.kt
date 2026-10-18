@@ -28,4 +28,3 @@ fun <T> Ret<T>.valueOrFail(message: String = "result should succeed"): T {
 fun <T> T?.orFail(message: String = "value should not be null"): T {
     return this ?: fail(message)
 }
-

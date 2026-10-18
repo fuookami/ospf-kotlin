@@ -18,6 +18,11 @@
             <artifactId>ospf-kotlin-quantities</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.geometry2d</groupId>
+            <artifactId>ospf-kotlin-framework-geometry2d</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

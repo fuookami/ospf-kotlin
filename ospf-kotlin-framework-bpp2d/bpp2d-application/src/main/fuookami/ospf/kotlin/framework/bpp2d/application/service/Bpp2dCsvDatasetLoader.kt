@@ -26,13 +26,14 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ItemId
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetType
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetTypeId
-import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.circleShape2
-import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.rectangleShape2
-import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.div
+import fuookami.ospf.kotlin.framework.geometry2d.circleShape2
+import fuookami.ospf.kotlin.framework.geometry2d.rectangleShape2
+import fuookami.ospf.kotlin.framework.geometry2d.div
 
 /**
  * CSV 数据集形态。 / CSV dataset shape.

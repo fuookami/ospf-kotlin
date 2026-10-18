@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.Layer
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.Sheet
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetLayer
@@ -24,8 +25,8 @@ import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.model.Bpp2dD
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.model.isImprovingColumn
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.model.layerReducedCost
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
-import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.LayerPlacement2
-import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.Sheet2Shape
+import fuookami.ospf.kotlin.framework.geometry2d.Placement2
+import fuookami.ospf.kotlin.framework.geometry2d.Sheet2Shape
 
 class TailSheetOptimizerTest {
     private fun layer(itemId: String, count: Int, width: Double = 1.0): Layer<FltX> {
@@ -34,7 +35,7 @@ class TailSheetOptimizerTest {
             height = FltX(1.0) * Meter
         ).valueOrFail()
         val units = (0 until count).map { index ->
-            LayerPlacement2(
+            Placement2(
                 shape = shape,
                 position = QuantityPoint2(
                     x = FltX(width * index) * Meter,
@@ -265,7 +266,7 @@ class ReducedCostContractTest {
             height = FltX(1.0) * Meter
         ).valueOrFail()
         val units = (0 until count).map { index ->
-            LayerPlacement2(
+            Placement2(
                 shape = shape,
                 position = QuantityPoint2(
                     x = FltX(areaPerPiece * index) * Meter,

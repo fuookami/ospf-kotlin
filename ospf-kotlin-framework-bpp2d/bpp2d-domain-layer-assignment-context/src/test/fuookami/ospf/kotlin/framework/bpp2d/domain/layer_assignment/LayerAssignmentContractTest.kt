@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModelConfiguration
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.model.*
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
@@ -50,7 +51,7 @@ class LayerAssignmentContractTest {
             height = FltX(1.0) * Meter
         ).valueOrFail()
         val units = (0 until count).map { index ->
-            LayerPlacement2(
+            Placement2(
                 shape = shape,
                 position = QuantityPoint2(
                     x = FltX(2.0 * index) * Meter,

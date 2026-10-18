@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.Layer
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetType
@@ -85,7 +86,7 @@ fun <V : FloatingNumber<V>> Sheet2<V>.toSheetType(
 */
 fun <V : FloatingNumber<V>> PlannedRectangle2<V>.toLayerPlacement(
     allowRotate: Boolean = false
-): Ret<LayerPlacement2<V>> {
+): Ret<Placement2<V>> {
     val item = when (val result = item.toActualItem()) {
         is Ok -> result.value
         is Failed -> return Failed(result.error)
@@ -93,7 +94,7 @@ fun <V : FloatingNumber<V>> PlannedRectangle2<V>.toLayerPlacement(
     }
     val shape = if (rotated && allowRotate) item.shape.rotated() else item.shape
     return ok(
-        LayerPlacement2(
+        Placement2(
             shape = shape,
             position = point2Of(x = x, y = y),
             rotated = rotated && allowRotate,
@@ -141,7 +142,7 @@ fun <V : FloatingNumber<V>> PackingScene2<V>.toLayer(): Ret<Layer<V>> {
         is Failed -> return Failed(result.error)
         is Fatal -> return Fatal(result.errors)
     }
-    val converted = ArrayList<LayerPlacement2<V>>(placements.size)
+    val converted = ArrayList<Placement2<V>>(placements.size)
     for (placement in placements) {
         when (val result = placement.toLayerPlacement(allowRotate = placement.item.allowRotate)) {
             is Ok -> converted.add(result.value)

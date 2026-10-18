@@ -14,6 +14,7 @@ package fuookami.ospf.kotlin.framework.bpp2d.domain.bla.service
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
 
@@ -88,7 +89,7 @@ class BottomUpLeftJustifiedAlgorithm<V : FloatingNumber<V>>(
      * success (possibly empty); circle items are skipped
     */
     fun invoke(items: List<Pair<ActualItem<V>, Int>>): Ret<Bla2dLayoutResult<V>> {
-        val placements = ArrayList<LayerPlacement2<V>>()
+        val placements = ArrayList<Placement2<V>>()
         val skippedCircleItems = ArrayList<ItemId>()
         val skippedUnfittedItems = ArrayList<ItemId>()
 
@@ -125,13 +126,13 @@ class BottomUpLeftJustifiedAlgorithm<V : FloatingNumber<V>>(
     */
     private fun placeItem(
         item: ActualItem<V>,
-        placed: List<LayerPlacement2<V>>
-    ): LayerPlacement2<V>? {
+        placed: List<Placement2<V>>
+    ): Placement2<V>? {
         for (candidate in item.candidateShapes()) {
             val shape = candidate.shape
             val feasible = feasiblePoints(placed)
             for (point in feasible) {
-                val placement = LayerPlacement2(
+                val placement = Placement2(
                     shape = shape,
                     position = point,
                     rotated = candidate.rotated,
@@ -154,7 +155,7 @@ class BottomUpLeftJustifiedAlgorithm<V : FloatingNumber<V>>(
      * @param placed 已放置列表 / already placed placements
      * @return 排序后的候选点 / sorted candidate positions
     */
-    private fun feasiblePoints(placed: List<LayerPlacement2<V>>): List<QuantityPoint2<V>> {
+    private fun feasiblePoints(placed: List<Placement2<V>>): List<QuantityPoint2<V>> {
         val points = LinkedHashSet<QuantityPoint2<V>>()
         for (placement in placed) {
             val maxX = (placement.maxX() as? Ok)?.value ?: continue
@@ -196,10 +197,10 @@ class BottomUpLeftJustifiedAlgorithm<V : FloatingNumber<V>>(
      * @return 额外候选点 / extra candidate positions
     */
     private fun displacedPoints(
-        placement: LayerPlacement2<V>,
+        placement: Placement2<V>,
         maxX: Quantity<V>,
         maxY: Quantity<V>,
-        placed: List<LayerPlacement2<V>>
+        placed: List<Placement2<V>>
     ): List<QuantityPoint2<V>> {
         val points = ArrayList<QuantityPoint2<V>>()
         if (config.withDisplacementX) {
@@ -218,7 +219,7 @@ class BottomUpLeftJustifiedAlgorithm<V : FloatingNumber<V>>(
      * @param placed 已放置列表 / already placed placements
      * @return 滑动后的 x 坐标 / x coordinate after sliding
     */
-    private fun pointOnX(placement: LayerPlacement2<V>, placed: List<LayerPlacement2<V>>): Quantity<V> {
+    private fun pointOnX(placement: Placement2<V>, placed: List<Placement2<V>>): Quantity<V> {
         val placementMaxY = (placement.maxY() as? Ok)?.value ?: placement.y
         var best = quantityZeroOf(placement.x)
         for (other in placed) {
@@ -245,7 +246,7 @@ class BottomUpLeftJustifiedAlgorithm<V : FloatingNumber<V>>(
      * @param placed 已放置列表 / already placed placements
      * @return 滑动后的 y 坐标 / y coordinate after sliding
     */
-    private fun pointOnY(placement: LayerPlacement2<V>, placed: List<LayerPlacement2<V>>): Quantity<V> {
+    private fun pointOnY(placement: Placement2<V>, placed: List<Placement2<V>>): Quantity<V> {
         var best = quantityZeroOf(placement.y)
         val placementMaxX = (placement.maxX() as? Ok)?.value ?: placement.x
         for (other in placed) {
@@ -273,7 +274,7 @@ class BottomUpLeftJustifiedAlgorithm<V : FloatingNumber<V>>(
      * @param placed 已放置列表 / already placed placements
      * @return 是否可行 / whether feasible
     */
-    private fun isFeasible(placement: LayerPlacement2<V>, placed: List<LayerPlacement2<V>>): Boolean {
+    private fun isFeasible(placement: Placement2<V>, placed: List<Placement2<V>>): Boolean {
         val inside = when (val result = placement.insideSheet(sheet)) {
             is Ok -> result.value
             is Failed -> return false
@@ -329,7 +330,7 @@ class BottomUpLeftJustifiedAlgorithm<V : FloatingNumber<V>>(
  * @property skippedUnfittedItems 无法放置的物品编号 / identifiers of items that could not be placed
 */
 data class Bla2dLayoutResult<V : FloatingNumber<V>>(
-    val placements: List<LayerPlacement2<V>>,
+    val placements: List<Placement2<V>>,
     val skippedCircleItems: List<ItemId> = emptyList(),
     val skippedUnfittedItems: List<ItemId> = emptyList()
 ) {

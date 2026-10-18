@@ -13,6 +13,7 @@ import kotlin.reflect.KClass
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.partialOrd
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.bla.service.BottomUpLeftJustifiedAlgorithm
 import fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.BlockLoadingContext
 import fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.model.Space2
@@ -50,7 +51,7 @@ private fun <V : FloatingNumber<V>> layerOf(
     iteration: Int,
     from: KClass<*>,
     sheet: SheetType<V>,
-    placements: List<LayerPlacement2<V>>
+    placements: List<Placement2<V>>
 ): Layer<V> {
     var width = quantityZeroOf(sheet.width)
     var height = quantityZeroOf(sheet.height)
@@ -269,13 +270,13 @@ class PatternLayerGenerator<V : FloatingNumber<V>> : Bpp2dLayerGenerator<V> {
                 if (rows <= 0) {
                     continue
                 }
-                val placements = ArrayList<LayerPlacement2<V>>(cols * rows)
+                val placements = ArrayList<Placement2<V>>(cols * rows)
                 for (row in 0 until rows) {
                     val y = scaledQuantity(pitch.y, row)
                     for (col in 0 until cols) {
                         val x = scaledQuantity(pitch.x, col)
                         placements.add(
-                            LayerPlacement2(
+                            Placement2(
                                 shape = shape,
                                 position = QuantityPoint2(x = x, y = y),
                                 rotated = candidate.rotated,
@@ -386,13 +387,13 @@ class MixedShapeLayerGenerator<V : FloatingNumber<V>>(
                     continue
                 }
                 val rowWidth = scaledQuantity(shape.boundingWidth, cols)
-                val placements = ArrayList<LayerPlacement2<V>>()
+                val placements = ArrayList<Placement2<V>>()
                 // 先在底部铺一行矩形件，再用圆形网格填充其上方区域。
                 // First lay one row of rectangles, then fill the area above them with a circle grid.
                 for (col in 0 until cols) {
                     val x = scaledQuantity(shape.boundingWidth, col)
                     placements.add(
-                        LayerPlacement2(
+                        Placement2(
                             shape = shape,
                             position = QuantityPoint2(x = x, y = quantityZeroOf(sheet.height)),
                             rotated = candidate.rotated,
@@ -412,7 +413,7 @@ class MixedShapeLayerGenerator<V : FloatingNumber<V>>(
                 )
                 for ((circle, _) in circles) {
                     for (layout in generator.invoke(circle, upperSheet, request.kerf)) {
-                        val combined = ArrayList<LayerPlacement2<V>>(placements.size + layout.placements.size)
+                        val combined = ArrayList<Placement2<V>>(placements.size + layout.placements.size)
                         combined.addAll(placements)
                         for (placement in layout.placements) {
                             val shifted = placement.translate(
@@ -462,8 +463,8 @@ class MixedShapeLayerGenerator<V : FloatingNumber<V>>(
      * @return 合法放置列表，存在重叠时返回 null / validated placement list, or null when overlapping
     */
     private fun <V : FloatingNumber<V>> validateNoOverlap(
-        placements: List<LayerPlacement2<V>>
-    ): List<LayerPlacement2<V>>? {
+        placements: List<Placement2<V>>
+    ): List<Placement2<V>>? {
         for (i in placements.indices) {
             for (j in i + 1 until placements.size) {
                 val overlapped = when (val result = placements[i].overlapped(placements[j])) {

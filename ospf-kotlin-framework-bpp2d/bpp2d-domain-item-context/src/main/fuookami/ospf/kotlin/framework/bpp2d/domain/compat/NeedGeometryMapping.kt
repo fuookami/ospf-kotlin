@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.math.geometry.QuantityBox2
 import fuookami.ospf.kotlin.math.geometry.QuantityPlacement2
 import fuookami.ospf.kotlin.math.geometry.QuantityProjection2
 import fuookami.ospf.kotlin.math.geometry.QuantityRectangle2
+import fuookami.ospf.kotlin.framework.geometry2d.*
 
 /**
  * bpp2d 业务模型到 quantity-geometry 的稳定适配层；不依赖 BPP3D 包。

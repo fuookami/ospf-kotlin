@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.AbstractItem
-import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.isCircle
+import fuookami.ospf.kotlin.framework.geometry2d.isCircle
 
 /**
  * 校验物品是否允许进入旋转候选生成。 / Validate that an item may enter rotated candidate generation.

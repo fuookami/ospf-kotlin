@@ -7,7 +7,7 @@
  * `area` is the actual occupied area (`πr²` for circles, `w·h` for rectangles) while `boundingArea`
  * is the enclosing rectangle area.
 */
-package fuookami.ospf.kotlin.framework.bpp2d.infrastructure
+package fuookami.ospf.kotlin.framework.geometry2d
 
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed

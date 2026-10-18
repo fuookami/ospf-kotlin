@@ -6,7 +6,7 @@
  * / The quantity geometry layer already ships rectangles, circles, boxes and their pairwise overlap tests.
  * This file only adds packing-oriented derived values (corners, area, containment) without redefining them.
 */
-package fuookami.ospf.kotlin.framework.bpp2d.infrastructure
+package fuookami.ospf.kotlin.framework.geometry2d
 
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.ok

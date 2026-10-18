@@ -14,6 +14,7 @@ package fuookami.ospf.kotlin.framework.bpp2d.domain.layer_generation.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.isCircleItem
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetType
@@ -39,7 +40,7 @@ enum class CircleGridMode {
  * @property itemId 物品编号 / item identifier
 */
 data class CircleGridLayout<V : FloatingNumber<V>>(
-    val placements: List<LayerPlacement2<V>>,
+    val placements: List<Placement2<V>>,
     val mode: CircleGridMode,
     val itemId: String
 )
@@ -112,13 +113,13 @@ class CircleGridGenerator {
         if (cols <= 0 || rows <= 0) {
             return null
         }
-        val placements = ArrayList<LayerPlacement2<V>>(cols * rows)
+        val placements = ArrayList<Placement2<V>>(cols * rows)
         for (row in 0 until rows) {
             val y = scaledQuantity(pitch, row)
             for (col in 0 until cols) {
                 val x = scaledQuantity(pitch, col)
                 placements.add(
-                    LayerPlacement2(
+                    Placement2(
                         shape = circle,
                         position = QuantityPoint2(x = x, y = y),
                         rotated = false,
@@ -164,7 +165,7 @@ class CircleGridGenerator {
         }
         val halfPitch = pitch / pitch.value.constants.two
 
-        val placements = ArrayList<LayerPlacement2<V>>()
+        val placements = ArrayList<Placement2<V>>()
         var row = 0
         while (row < MAX_HEX_ROWS) {
             val y = scaledQuantity(rowPitch, row)
@@ -178,7 +179,7 @@ class CircleGridGenerator {
                 for (col in 0 until cols) {
                     val x = rowOffset + scaledQuantity(pitch, col)
                     placements.add(
-                        LayerPlacement2(
+                        Placement2(
                             shape = circle,
                             position = QuantityPoint2(x = x, y = y),
                             rotated = false,

@@ -11,6 +11,7 @@ package fuookami.ospf.kotlin.framework.bpp2d.domain.packing
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.geometry2d.*
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.packing.service.Remnant2
@@ -24,7 +25,7 @@ import fuookami.ospf.kotlin.framework.bpp2d.domain.packing.service.Remnant2
  * @property itemId 物品编号文本 / plain item identifier text
 */
 data class PackedItem(
-    val placement: LayerPlacement2<FltX>,
+    val placement: Placement2<FltX>,
     val loadingOrder: UInt64,
     val itemId: String? = null
 )
