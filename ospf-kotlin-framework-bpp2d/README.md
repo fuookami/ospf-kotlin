@@ -57,6 +57,7 @@ would invalidate every regular grid.
 | Kerf | `Bpp2dLayerGenerationRequest.kerf` plus `inflatedBy` / `pitchOf` in infrastructure; `PackingGeometryGuard` validates bidirectionally |
 | Remnant reporting | `FreeSpaceAnalyzer` produces `Remnant2` rectangles, exposed via `PackingResult.remnants` and KPI `remnantCount` / `remnantArea` |
 | CSV datasets | `Bpp2dCsvDatasetLoader` with `grouped-layer` and `material-width-amount` schemas |
+| Mixed sheet types | `Bpp2dLayerGenerationRequest.sheets` generates candidates per type; `SheetAreaMinimization` (primary, ≡ minimum waste) + `SheetAmountMinimization` + `SheetTypeCostMinimization` (weighted secondary terms) |
 
 ## Public API
 

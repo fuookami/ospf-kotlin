@@ -1,4 +1,4 @@
-﻿# OSPF Kotlin Framework BPP3D（中文）
+# OSPF Kotlin Framework BPP3D（中文）
 
 :us: [English](README.md) | :cn: 简体中文
 
@@ -51,6 +51,29 @@
 4. `ColumnGenerationAlgorithm` 提供可失败的 `initialColumnsWithResult`、`filterByReducedCostWithResult`，通过 `ColumnGenerationState` 传递扩展影子价格，并用 `ColumnGenerationFailureAnalyzer` 报告失败生命周期阶段。
 5. 只有真实配置并调用了最终求解器回调时，`finalSolved` 才为 `true`。
 
+## 多箱型与加权目标
+
+`BinType.isMain` 与 `finalBins` 中的多个具体箱子本来就允许存在多种箱型，但候选生成只用了第一种箱型，且所有箱子
+共用一个成本系数。现在框架端到端支持多箱型（即 40GP / 40HQ / 20GP 场景）：
+
+1. **按箱型生成候选**：`Bpp3dLayerGenerationRequest.bins` 携带全部候选箱型，组合式 `LayerGenerationContext`
+   对每种箱型分别生成，列通过 `BinLayer.bin` 携带箱型。未指定箱型时保持单次直通，使不依赖箱型的生成器继续可用。
+2. **箱型参与身份判定**：`BinLayer.equals` / `hashCode` 纳入 `bin.typeCode`，同一排布放在两种箱型上是两个不同的列，
+   而不是被去重成一个。
+3. **主目标 `BinVolumeMinimization`**：`min weight · Σ_i volume_i · v_i`。需求体积固定，因此
+   `总体积浪费 = Σ 箱型体积 − 需求体积`，最小化箱型体积消耗**就是**最小化体积浪费。若改为对
+   `箱型体积 − 已装层体积` 求和，铺满的整箱会记为 0 余料，反而让「一个铺满的大箱」优于「多个小箱」，
+   与装载后的真实结果相反。
+4. **次目标 `BinTypeCostMinimization`**：`min weight · Σ_i typeCost(type_i) · v_i`，用于表达
+   「同体积消耗下优先 40GP 而非 40HQ」这类偏好；未配置箱型按 0 处理。这正是与单一
+   `finalBinAmountCoefficient` 的区别——后者无法按箱型计价。
+5. **用于报告的余料指标**：`binWasteVolume` 与 `binWasteRatio` 在装载后统计余料，用于报表与 KPI，不作为优化目标。
+
+权重位于 `ColumnGenerationStandardExecutorConfig`（`finalBinVolumeWeight`、`finalBinTypeCostWeight`、
+`finalBinTypeCosts`）；多个 `minimize` 目标按权重线性相加，因为 core 会把同类别子目标的系数逐项相加。
+
+默认值与 bpp2d 对齐：`finalBinVolumeWeight` 为 1，即体积消耗为主目标；`finalBinAmountCoefficient` 降为 `1e-6`，
+仅用于在体积消耗相同的解之间打破平局。`finalBinTypeCostWeight` 在调用方配置 `finalBinTypeCosts` 之前保持 0。
 ## 圆柱几何语义
 
 当前 MVP 的语义约束：

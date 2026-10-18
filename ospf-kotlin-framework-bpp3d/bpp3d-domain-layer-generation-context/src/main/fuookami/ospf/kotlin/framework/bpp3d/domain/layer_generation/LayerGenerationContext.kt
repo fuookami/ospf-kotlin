@@ -27,7 +27,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPacking
  * 层生成请求。
  *
  * @property iteration The current iteration number.
- * @property bin The target bin type, or null if unspecified.
+ * @property bin The primary bin type, or null if unspecified.
+ * @property bins All bin types taking part in candidate generation; empty means only `bin`.
  * @property items The list of items to pack.
  * @property existingLayers Pre-existing layers to consider.
  * @property demandEntries Demand entries for the generation.
@@ -39,6 +40,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPacking
 data class Bpp3dLayerGenerationRequest<V>(
     val iteration: Int,
     val bin: BinType<FltX>? = null,
+    val bins: List<BinType<FltX>> = emptyList(),
     val items: List<Item>,
     val existingLayers: List<BinLayer> = emptyList(),
     val demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
@@ -87,6 +89,7 @@ data class Bpp3dLayerGenerationResult<V>(
 fun <V> bpp3dLayerGenerationRequest(
     iteration: Int,
     bin: BinType<FltX>? = null,
+    bins: List<BinType<FltX>> = emptyList(),
     items: List<Item>,
     existingLayers: List<BinLayer> = emptyList(),
     demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
@@ -98,6 +101,7 @@ fun <V> bpp3dLayerGenerationRequest(
     return Bpp3dLayerGenerationRequest(
         iteration = iteration,
         bin = bin,
+        bins = bins,
         items = items,
         existingLayers = existingLayers,
         demandEntries = demandEntries,
@@ -111,6 +115,7 @@ fun <V> bpp3dLayerGenerationRequest(
 fun <T : FloatingNumber<T>, V> bpp3dLayerGenerationRequestFromQuantity(
     iteration: Int,
     bin: BinType<FltX>? = null,
+    bins: List<BinType<FltX>> = emptyList(),
     items: List<QuantityItem<T>>,
     existingLayers: List<QuantityBinLayer<T>> = emptyList(),
     demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
@@ -2086,11 +2091,27 @@ class LayerGenerationContext<V>(
         } else {
             generators
         }
+        // 多箱型：对每种箱型分别生成候选列，列通过 `BinLayer.bin` 携带箱型。
+        // Multiple bin types: candidates are generated per bin type, and each column carries `BinLayer.bin`.
+        // 未指定任何箱型时保持单次直通，使不依赖箱型的生成器（如历史层生成器）仍可工作。
+        // When no bin type is specified the request is passed through once, so generators that do not depend on a bin
+        // type (such as the historical layer generator) keep working.
+        val requestBins = request.bins.ifEmpty { listOfNotNull(request.bin) }
+        val binRequests = if (requestBins.isEmpty()) {
+            listOf(request)
+        } else {
+            requestBins.map { request.copy(bin = it) }
+        }
         val all = ArrayList<Bpp3dLayerGenerationResult<V>>()
-        for (generator in selectedGenerators) {
-            all += generator.generate(request)
+        for (binRequest in binRequests) {
             if (all.size >= request.maxCandidates) {
                 break
+            }
+            for (generator in selectedGenerators) {
+                all += generator.generate(binRequest)
+                if (all.size >= request.maxCandidates) {
+                    break
+                }
             }
         }
         return all

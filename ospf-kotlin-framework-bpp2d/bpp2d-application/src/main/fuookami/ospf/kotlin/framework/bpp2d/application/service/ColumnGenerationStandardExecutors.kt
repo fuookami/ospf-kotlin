@@ -26,6 +26,7 @@ import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.Layer
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.Sheet
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetLayer
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetType
+import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetTypeId
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.LayerAssignmentContext
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.model.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_generation.Bpp2dLayerGenerationRequest
@@ -46,6 +47,12 @@ import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
  * @property enableFinalCapacityConstraint 是否启用板材容量约束 / whether the sheet capacity constraint is enabled
  * @property integralityTolerance 整性容差 / integrality tolerance
  * @property reducedCostTolerance 检验数容差 / reduced-cost tolerance
+ * @property sheetAreaWeight 板材面积消耗权重（主目标，等价于余料最少）/ sheet area consumption weight (primary,
+ * equivalent to minimum waste)
+ * @property sheetAmountWeight 板材数量目标权重 / sheet amount weight
+ * @property sheetTypeCostWeight 板材类型成本目标权重 / sheet type cost weight
+ * @property sheetTypeCosts 板材类型到成本的映射 / sheet type to cost mapping
+ * @property sheetTypeAmountCoefficients 板材类型到数量系数的映射 / sheet type to amount coefficient mapping
 */
 data class ColumnGenerationStandardExecutorConfig(
     val rmpSolveNamePrefix: String = "bpp2d-rmp",
@@ -56,7 +63,15 @@ data class ColumnGenerationStandardExecutorConfig(
     val finalSheetAmountCoefficient: FltX = FltX.one,
     val enableFinalCapacityConstraint: Boolean = true,
     val integralityTolerance: FltX = FltX(1e-6),
-    val reducedCostTolerance: FltX = FltX(1e-6)
+    val reducedCostTolerance: FltX = FltX(1e-6),
+    val sheetAreaWeight: FltX = FltX.one,
+    // 余料为主目标；板数权重保持极小，仅用于在「余料相同」的解之间打破平局，避免多选零余料的整板。
+    // Waste is primary; the sheet-count weight stays tiny and only breaks ties between equal-waste solutions, so
+    // the model does not add perfectly filled sheets for free.
+    val sheetAmountWeight: FltX = FltX(1e-6),
+    val sheetTypeCostWeight: FltX = FltX.zero,
+    val sheetTypeCosts: Map<SheetTypeId, FltX> = emptyMap(),
+    val sheetTypeAmountCoefficients: Map<SheetTypeId, FltX> = emptyMap()
 )
 
 /**
@@ -207,12 +222,39 @@ class ColumnGenerationStandardExecutors(
                 is Fatal -> return@ColumnGenerationFinalSolver Fatal(result.errors)
             }
 
+            // 目标分层（加权和）：余料为主，板数与板材类型成本为次。
+            // Layered objective (weighted sum): waste primary, sheet count and per-type cost secondary.
+            when (
+                val result = context.registerSheetAreaMinimization(
+                    assignment = artifacts.assignment,
+                    layers = state.columns,
+                    model = model,
+                    weight = config.sheetAreaWeight
+                )
+            ) {
+                is Ok -> {}
+                is Failed -> return@ColumnGenerationFinalSolver Failed(result.error)
+                is Fatal -> return@ColumnGenerationFinalSolver Fatal(result.errors)
+            }
             when (
                 val result = context.registerSheetAmountMinimization(
                     assignment = artifacts.assignment,
                     layers = state.columns,
                     model = model,
-                    coefficient = config.finalSheetAmountCoefficient
+                    coefficient = config.sheetAmountWeight * config.finalSheetAmountCoefficient
+                )
+            ) {
+                is Ok -> {}
+                is Failed -> return@ColumnGenerationFinalSolver Failed(result.error)
+                is Fatal -> return@ColumnGenerationFinalSolver Fatal(result.errors)
+            }
+            when (
+                val result = context.registerSheetTypeCostMinimization(
+                    assignment = artifacts.assignment,
+                    layers = state.columns,
+                    model = model,
+                    typeCost = config.sheetTypeCosts,
+                    weight = config.sheetTypeCostWeight
                 )
             ) {
                 is Ok -> {}
@@ -345,6 +387,7 @@ class ColumnGenerationStandardExecutors(
             Bpp2dLayerGenerationRequest(
                 iteration = state.iteration,
                 sheet = candidateSheet,
+                sheets = sheetTypes,
                 items = generationItems,
                 existingLayers = state.columns,
                 shadowPrices = state.shadowPrices,

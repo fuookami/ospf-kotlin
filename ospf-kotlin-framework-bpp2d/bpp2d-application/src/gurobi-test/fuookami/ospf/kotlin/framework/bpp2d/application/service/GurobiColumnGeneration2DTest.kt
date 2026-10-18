@@ -286,6 +286,96 @@ class GurobiColumnGeneration2DTest {
         }
     }
 
+    /**
+     * 构造小板材类型。 / Build a small sheet type.
+     *
+     * @return 小板材类型 / small sheet type
+    */
+    private fun smallSheetType(): SheetType<FltX> {
+        return SheetType(
+            width = FltX(10.0) * Meter,
+            height = FltX(6.0) * Meter,
+            maxLoad = FltX(10000.0) * Kilogram,
+            typeCode = SheetTypeId("SMALL")
+        )
+    }
+
+    /**
+     * 构造大板材类型。 / Build a large sheet type.
+     *
+     * @return 大板材类型 / large sheet type
+    */
+    private fun bigSheetType(): SheetType<FltX> {
+        return SheetType(
+            width = FltX(20.0) * Meter,
+            height = FltX(12.0) * Meter,
+            maxLoad = FltX(10000.0) * Kilogram,
+            typeCode = SheetTypeId("BIG"),
+            isMain = true
+        )
+    }
+
+    @Test
+    fun gurobiPrefersLessWasteAcrossSheetTypes() {
+        // 需求 3 件 4×3（占用 36 m²）。小板 10×6=60 m² 一板即可覆盖（裁剪后余料 60−36=24 m²）；
+        // 大板 20×12=240 m² 一板也能覆盖，但裁剪后余料 240−36=204 m²。
+        // 余料最少等价于板材面积消耗最小，因此应选小板。
+        // Demand is three 4×3 pieces (36 m²). A small 10×6 sheet (60 m²) covers it with 24 m² of post-trim waste; a
+        // big 20×12 sheet (240 m²) covers it with 204 m² of waste. Minimum waste is equivalent to minimum sheet area
+        // consumption, so the small sheet must win.
+        val items = listOf(rectangleItem("W", 4.0, 3.0, allowRotate = false) to UInt64(3))
+        val service = ColumnGenerationApplicationService(solver = GurobiDelegatingColumnGenerationSolver())
+        val response = runBlocking {
+            service.solve(
+                ColumnGenerationApplicationRequest(
+                    items = items.toMap(),
+                    itemCatalog = items.associate { it.first.id to it.first },
+                    sheetTypes = listOf(smallSheetType(), bigSheetType()),
+                    iterationLimit = 10,
+                    maxColumnsPerIteration = 10
+                )
+            )
+        }.valueOrFail()
+
+        val bins = response.packing!!.aggregation.bins
+        assertTrue(bins.isNotEmpty(), "应产出板材")
+        assertTrue(
+            bins.all { it.type.typeCode.value == "SMALL" },
+            "余料最小时应只用小板，实际用了 ${bins.map { it.type.typeCode.value }}"
+        )
+        assertTrue(response.kpi!!.remnantArea > FltX.zero, "应有余料")
+    }
+
+    @Test
+    fun gurobiSheetTypeCostCanOverrideWastePreference() {
+        // 给小板加很高的类型成本，迫使模型改用大板，即使余料更多。
+        // A high type cost on the small sheet forces the big sheet even though it wastes more.
+        val items = listOf(rectangleItem("W", 4.0, 3.0, allowRotate = false) to UInt64(3))
+        val service = ColumnGenerationApplicationService(solver = GurobiDelegatingColumnGenerationSolver())
+        val response = runBlocking {
+            service.solve(
+                ColumnGenerationApplicationRequest(
+                    items = items.toMap(),
+                    itemCatalog = items.associate { it.first.id to it.first },
+                    sheetTypes = listOf(smallSheetType(), bigSheetType()),
+                    iterationLimit = 10,
+                    maxColumnsPerIteration = 10,
+                    executorConfig = ColumnGenerationStandardExecutorConfig(
+                        sheetTypeCosts = mapOf(SheetTypeId("SMALL") to FltX(100000.0)),
+                        sheetTypeCostWeight = FltX.one
+                    )
+                )
+            )
+        }.valueOrFail()
+
+        val bins = response.packing!!.aggregation.bins
+        assertTrue(bins.isNotEmpty(), "应产出板材")
+        assertTrue(
+            bins.all { it.type.typeCode.value == "BIG" },
+            "类型成本应压过余料偏好，实际用了 ${bins.map { it.type.typeCode.value }}"
+        )
+    }
+
     @Test
     fun gurobiSolvesRectanglePacking() {
         val items = listOf(

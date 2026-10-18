@@ -3909,4 +3909,168 @@ class GurobiColumnGenerationTest {
         assertEquals(groupCount.toString(), snapshot.schema.kpi["bin_count"])
         assertEquals(materialCount.toString(), snapshot.schema.kpi["material_count"])
     }
+    /**
+     * 构造指定尺寸的箱型。 / Build a bin type with the given size.
+     *
+     * @param code 箱型编码 / bin type code
+     * @param sizeInMeter 长宽高尺寸 / size applied to every axis
+     * @param isMain 是否主板型 / whether it is the main bin type
+     * @return 箱型 / bin type
+    */
+    private fun sizedBinType(code: String, sizeInMeter: FltX, isMain: Boolean = false): BinType<FltX> {
+        return BinType(
+            width = sizeInMeter * Meter,
+            height = sizeInMeter * Meter,
+            depth = sizeInMeter * Meter,
+            capacity = FltX(100000.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = binTypeIdOf(code),
+            isMain = isMain
+        )
+    }
+
+    @Test
+    fun binVolumeWeightPrefersSmallerBinTypeWhenItSuffices() = runBlocking {
+        // 需求 1 件 1×1×1。小箱 2×2×2（8 m³）与大箱 4×4×4（64 m³）都能装下。
+        // 默认配置即以箱型体积消耗为主目标（箱数系数仅 1e-6 用于打破平局），故应选小箱；
+        // 这里**不显式传权重**，以此锁定「默认值就是体积主目标」这一契约。
+        // One 1×1×1 item is demanded. Both a small 2×2×2 bin (8 m³) and a big 4×4×4 bin (64 m³) fit it. The default
+        // configuration already targets bin volume consumption (the bin amount coefficient is only 1e-6 as a
+        // tie-breaker), so the small bin must win. No weight is passed explicitly here, which pins the contract that
+        // the default objective is volume-primary.
+        val material = Material(
+            no = MaterialNo("M-MIXBIN"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-MIXBIN",
+            weight = FltX(0.5) * Kilogram
+        )
+        val actualItem = item("item-mixbin", material)
+        val smallType = sizedBinType("SMALL", FltX(2.0))
+        val bigType = sizedBinType("BIG", FltX(4.0), isMain = true)
+        val smallSeed = layerBin(listOf(actualItem), binType = smallType).units.first().unit
+        val bigSeed = layerBin(listOf(actualItem), binType = bigType).units.first().unit
+        val demandValue = FltX.one
+        val demandEntries = listOf(
+            Bpp3dDemandEntry(
+                mode = Bpp3dDemandMode.ItemAmount,
+                key = Bpp3dDemandKey.Item(actualItem),
+                demand = demandValue,
+                demandRange = ValueRange(
+                    demandValue,
+                    demandValue,
+                    Interval.Closed,
+                    Interval.Closed,
+                    FltX
+                ).value!!
+            )
+        )
+
+        val solver = GurobiDelegatingColumnGenerationSolver(
+            config = SolverConfig(time = 10.seconds)
+        )
+        val service = ColumnGenerationApplicationService(solver)
+        val response = service.solve(
+            request = ColumnGenerationApplicationRequest(
+                itemDemands = listOf(Pair(actualItem, UInt64.one)),
+                demandEntries = demandEntries,
+                initialColumns = listOf(bigSeed, smallSeed),
+                finalBins = listOf(
+                    layerBinOf(shape = bigType, units = emptyList()),
+                    layerBinOf(shape = smallType, units = emptyList())
+                ),
+                generators = listOf(
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
+                            return emptyList()
+                        }
+                    }
+                ),
+                // 使用默认执行器配置。 / Use the default executor configuration.
+                executorConfig = ColumnGenerationStandardExecutorConfig()
+            ),
+            packingAnalyzer = ColumnGenerationPackingAnalyzer()
+        ).orFail("Gurobi mixed bin type solve should succeed")
+
+        assertTrue(response.result.finalSolved)
+        val usedTypes = response.packingSnapshot!!.bins.map { it.type.typeCode.toString() }
+        assertTrue(usedTypes.isNotEmpty(), "应选出箱型 / a bin type must be selected")
+        assertEquals(listOf("SMALL"), usedTypes.distinct())
+
+        // 目标值必须是「箱型体积」量级（小箱 8 m³）而不是「箱数」量级（1），
+        // 否则说明默认目标仍是箱数而非体积消耗。
+        // The objective must be on the scale of the bin volume (8 m³ for the small bin) rather than the bin count (1);
+        // otherwise the default objective would still be bin-count driven instead of volume driven.
+        val objective = response.result.finalObjective?.toDouble() ?: 0.0
+        assertEquals(8.0, objective, 1e-3)
+        assertTrue(objective > 2.0, "目标值应体现体积消耗而非箱数 / the objective must reflect volume, not the bin count")
+    }
+
+    @Test
+    fun binTypeCostCanOverrideVolumePreference() = runBlocking {
+        // 同样的供给，但给小箱加很高的箱型成本，迫使模型改用体积更大的大箱。
+        // Same supply, but a very high cost on the small bin forces the larger bin despite its bigger volume.
+        val material = Material(
+            no = MaterialNo("M-MIXBIN-COST"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-MIXBIN-COST",
+            weight = FltX(0.5) * Kilogram
+        )
+        val actualItem = item("item-mixbin-cost", material)
+        val smallType = sizedBinType("SMALL", FltX(2.0))
+        val bigType = sizedBinType("BIG", FltX(4.0), isMain = true)
+        val smallSeed = layerBin(listOf(actualItem), binType = smallType).units.first().unit
+        val bigSeed = layerBin(listOf(actualItem), binType = bigType).units.first().unit
+        val demandValue = FltX.one
+        val demandEntries = listOf(
+            Bpp3dDemandEntry(
+                mode = Bpp3dDemandMode.ItemAmount,
+                key = Bpp3dDemandKey.Item(actualItem),
+                demand = demandValue,
+                demandRange = ValueRange(
+                    demandValue,
+                    demandValue,
+                    Interval.Closed,
+                    Interval.Closed,
+                    FltX
+                ).value!!
+            )
+        )
+
+        val solver = GurobiDelegatingColumnGenerationSolver(
+            config = SolverConfig(time = 10.seconds)
+        )
+        val service = ColumnGenerationApplicationService(solver)
+        val response = service.solve(
+            request = ColumnGenerationApplicationRequest(
+                itemDemands = listOf(Pair(actualItem, UInt64.one)),
+                demandEntries = demandEntries,
+                initialColumns = listOf(smallSeed, bigSeed),
+                finalBins = listOf(
+                    layerBinOf(shape = smallType, units = emptyList()),
+                    layerBinOf(shape = bigType, units = emptyList())
+                ),
+                generators = listOf(
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
+                            return emptyList()
+                        }
+                    }
+                ),
+                // 体积权重取默认值（1），仅显式给出箱型成本。 / Keep the default volume weight and only set the type cost.
+                executorConfig = ColumnGenerationStandardExecutorConfig(
+                    finalBinTypeCostWeight = FltX.one,
+                    finalBinTypeCosts = mapOf(binTypeIdOf("SMALL") to FltX(100000.0))
+                )
+            ),
+            packingAnalyzer = ColumnGenerationPackingAnalyzer()
+        ).orFail("Gurobi mixed bin type solve should succeed")
+
+        assertTrue(response.result.finalSolved)
+        val usedTypes = response.packingSnapshot!!.bins.map { it.type.typeCode.toString() }
+        assertTrue(usedTypes.isNotEmpty(), "应选出箱型 / a bin type must be selected")
+        assertEquals(listOf("BIG"), usedTypes.distinct())
+    }
 }

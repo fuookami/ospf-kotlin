@@ -54,6 +54,7 @@
 | 刀缝 | `Bpp2dLayerGenerationRequest.kerf` 加 infrastructure 的 `inflatedBy` / `pitchOf`；`PackingGeometryGuard` 双向校验 |
 | 余料报告 | `FreeSpaceAnalyzer` 产出 `Remnant2`，经 `PackingResult.remnants` 与 KPI `remnantCount` / `remnantArea` 暴露 |
 | CSV 数据集 | `Bpp2dCsvDatasetLoader`，支持 `grouped-layer` 与 `material-width-amount` 两种 schema |
+| 多板材类型 | `Bpp2dLayerGenerationRequest.sheets` 按类型生成候选；`SheetAreaMinimization`（主目标，等价余料最少）+ `SheetAmountMinimization` + `SheetTypeCostMinimization`（加权次目标） |
 
 ## 公开 API
 

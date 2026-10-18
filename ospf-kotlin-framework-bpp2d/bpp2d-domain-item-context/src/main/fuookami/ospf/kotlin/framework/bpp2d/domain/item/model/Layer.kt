@@ -100,13 +100,21 @@ class Layer<V : FloatingNumber<V>>(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Layer<*>) return false
+        // 板材类型必须参与比较：同一排布放在不同板材上是不同的列，否则多板材类型会被错误去重。
+        // The sheet type must participate: the same layout on different sheets is a different column, otherwise
+        // multiple sheet types would be deduplicated incorrectly.
+        if (sheet?.typeCode != other.sheet?.typeCode) return false
         if (units.size != other.units.size) return false
         if (!quantityEqual(shape.width, other.shape.width)) return false
         if (!quantityEqual(shape.height, other.shape.height)) return false
         return units == other.units
     }
 
-    override fun hashCode(): Int = units.hashCode()
+    override fun hashCode(): Int {
+        var result = units.hashCode()
+        result = 31 * result + (sheet?.typeCode?.hashCode() ?: 0)
+        return result
+    }
 
     override fun toString(): String = "Layer(${units.size}, ${shape.width.value}×${shape.height.value})"
 }

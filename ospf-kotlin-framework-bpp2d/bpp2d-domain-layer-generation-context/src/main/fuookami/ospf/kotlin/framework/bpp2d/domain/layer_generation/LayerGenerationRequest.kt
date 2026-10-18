@@ -47,7 +47,9 @@ data class LayerGenerationDemandEntry(
  *
  * @param V 数值类型 / numeric type
  * @property iteration 当前迭代 / current iteration
- * @property sheet 目标板材类型 / target sheet type
+ * @property sheet 主板材类型 / primary sheet type
+ * @property sheets 参与候选生成的全部板材类型；为空时退化为仅 `sheet` / all sheet types taking part in
+ * candidate generation; empty means only `sheet`
  * @property items 参与排样的物品与件数 / items and amounts taking part in the layout
  * @property existingLayers 已有层，供历史生成器回放 / existing layers replayed by the historical generator
  * @property demandEntries 需求项 / demand entries
@@ -60,6 +62,7 @@ data class LayerGenerationDemandEntry(
 data class Bpp2dLayerGenerationRequest<V : FloatingNumber<V>>(
     val iteration: Int,
     val sheet: SheetType<V>? = null,
+    val sheets: List<SheetType<V>> = emptyList(),
     val items: List<Pair<ActualItem<V>, Int>> = emptyList(),
     val existingLayers: List<Layer<V>> = emptyList(),
     val demandEntries: List<LayerGenerationDemandEntry> = emptyList(),

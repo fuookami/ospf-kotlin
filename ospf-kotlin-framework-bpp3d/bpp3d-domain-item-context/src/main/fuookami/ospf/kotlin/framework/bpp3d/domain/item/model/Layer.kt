@@ -117,12 +117,20 @@ class BinLayer(
         units = units.map { it.copy() }
     )
 
-    override fun hashCode() = units.hashCode()
+    override fun hashCode(): Int {
+        var result = units.hashCode()
+        result = 31 * result + (bin?.typeCode?.hashCode() ?: 0)
+        return result
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is BinLayer) return false
 
+        // 箱型必须参与比较：同一排布放在不同箱型上是不同的列，否则多箱型会被错误去重。
+        // The bin type must participate: the same layout on different bin types is a different column, otherwise
+        // multiple bin types would be deduplicated incorrectly.
+        if (bin?.typeCode != other.bin?.typeCode) return false
         if (shape != other.shape) return false
         if (units.size != other.units.size) return false
         if (!(items.toTypedArray() contentEquals other.items.toTypedArray())) return false

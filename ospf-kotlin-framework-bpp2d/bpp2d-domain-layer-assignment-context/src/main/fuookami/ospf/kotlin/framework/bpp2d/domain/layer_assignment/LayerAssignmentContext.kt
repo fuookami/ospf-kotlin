@@ -16,11 +16,14 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ItemId
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.Layer
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.Sheet
+import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetTypeId
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.model.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.service.limits.AreaMinimization
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.service.limits.DemandConstraint
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.service.limits.SheetAmountMinimization
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.service.limits.SheetCapacityConstraint
+import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.service.limits.SheetTypeCostMinimization
+import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.service.limits.SheetAreaMinimization
 
 /**
  * 层分配上下文。 / Layer assignment context.
@@ -204,6 +207,54 @@ class LayerAssignmentContext(
                 capacity = capacity
             )
         )
+    }
+
+    /**
+     * 注册板材面积消耗最小化目标（主目标，等价于余料最少）。 / Register the sheet area consumption minimisation
+     * objective (primary, equivalent to minimum waste).
+     *
+     * @param assignment 精确赋值 / precise assignment
+     * @param layers 候选列 / candidate columns
+     * @param model 线性元模型 / linear meta model
+     * @param weight 目标权重 / objective weight
+     * @return 操作结果 / operation result
+    */
+    fun registerSheetAreaMinimization(
+        assignment: PreciseAssignment,
+        layers: List<Layer<FltX>>,
+        model: LinearMetaModel<FltX>,
+        weight: FltX = FltX.one
+    ): Try {
+        return SheetAreaMinimization(
+            layers = layers,
+            assignment = assignment,
+            weight = weight
+        ).invoke(model)
+    }
+
+    /**
+     * 注册板材类型成本目标（次目标）。 / Register the per-sheet-type cost objective (secondary).
+     *
+     * @param assignment 精确赋值 / precise assignment
+     * @param layers 候选列 / candidate columns
+     * @param model 线性元模型 / linear meta model
+     * @param typeCost 板材类型到成本的映射 / sheet type to cost mapping
+     * @param weight 目标权重 / objective weight
+     * @return 操作结果 / operation result
+    */
+    fun registerSheetTypeCostMinimization(
+        assignment: PreciseAssignment,
+        layers: List<Layer<FltX>>,
+        model: LinearMetaModel<FltX>,
+        typeCost: Map<SheetTypeId, FltX>,
+        weight: FltX = FltX.one
+    ): Try {
+        return SheetTypeCostMinimization(
+            layers = layers,
+            assignment = assignment,
+            typeCost = typeCost,
+            weight = weight
+        ).invoke(model)
     }
 
     /**

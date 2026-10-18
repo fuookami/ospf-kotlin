@@ -274,3 +274,35 @@ schema 门禁：重复列、未知列、必填列缺失、非法枚举、非正�
    与现有「矩形 / 圆」抽象不是一个量级，作为独立能力另行设计。
 2. 跨工单余料库存与余料优先消耗。
 3. 多板材类型混合目标的额外权衡项（当前以板材数量为主目标）。
+### 8.15 多板材类型与主板材/尾板材（2026-10-18 补齐）
+
+对应「40GP / 40HQ / 20GP 混合」场景。整体目标仍是**余料最少**，板数与类型成本作为可配的次级权重。
+
+**bpp3d 的对照结论**：bpp3d 有位置性的尾箱（`TailBinAssignmentConstraint` 把列表最后一个 bin 标为尾箱，
+配合 `TailBinLoadingRateMinimization`），但**没有**多箱型差异化计价——`ColumnGenerationStandardExecutorConfig`
+只有一个 `finalBinAmountCoefficient`，且候选 bin 必须由调用方逐个构造传入，框架不按类型展开。
+另外 core 的多目标机制把同类别（`Minimum`）子目标的系数**逐项相加**，所以 bpp3d 的「板数 + 体积」实际是无权重相加。
+
+**本框架的实现**：
+
+1. **按类型生成候选列**：`Bpp2dLayerGenerationRequest.sheets: List<SheetType<V>>`，
+   `LayerGenerationContext` 对每种板材分别生成，列通过 `Layer.sheet` 携带类型。
+   `Layer.equals` / `hashCode` 已纳入板材类型，避免「同排布不同板材」被错误去重。
+2. **主目标 `SheetAreaMinimization`**：`min sheetAreaWeight · Σ_j sheetArea_j · y_j`。
+   之所以等价于余料最少：需求占用面积固定，`总余料 = Σ 板材面积 − 需求占用面积 = Σ 板材面积 − 常数`。
+   **不能**直接对 `sheetArea_j − layerArea_j` 求和——列是整板排布，铺满的整板余料记为 0，
+   会让「一块铺满的大板」优于「多块小板」，与裁剪后的真实余料相反（这是本轮验证时发现并修正的建模错误）。
+   真实余料由 `layerWasteArea` / `layerWasteRatio` 在裁剪后统计，用于报告与 KPI。
+3. **次目标 `SheetAmountMinimization`**：系数 = `sheetAmountWeight · finalSheetAmountCoefficient`，
+   默认 `sheetAmountWeight = 1e-6`，只用于在余料相同的解之间打破平局，避免多选零余料整板。
+4. **次目标 `SheetTypeCostMinimization`**：`min sheetTypeCostWeight · Σ_j typeCost(type_j) · y_j`，
+   用于表达「同余料时优先 40GP 而非 40HQ」这类偏好；未配置类型按 0 处理。
+5. **无限供给**：`maxCopiesPerColumn` 已按列封顶，因此不需要给无穷上界；当某类型不限量且为主板材时，
+   「主板材铺满 + 尾板收尾」由 MILP 与 `TailSheetOptimizer` 共同自然产生，尾板余料已计入目标。
+
+配置入口：`ColumnGenerationStandardExecutorConfig` 的 `sheetAreaWeight` / `sheetAmountWeight` /
+`sheetTypeCostWeight` / `sheetTypeCosts` / `sheetTypeAmountCoefficients`。
+
+验证（真实 Gurobi）：
+- 小板 10×6 与大板 20×12 同时供给、需求 3 件 4×3：只用小板（板材面积消耗 60 < 240）。
+- 给小板配置高类型成本后改用大板，证明类型成本项确实参与目标。

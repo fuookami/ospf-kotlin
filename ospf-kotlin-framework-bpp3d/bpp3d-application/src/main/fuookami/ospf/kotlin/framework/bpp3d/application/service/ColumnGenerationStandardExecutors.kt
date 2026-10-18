@@ -29,6 +29,10 @@ import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
  * @property finalToLogModel 最终求解是否输出模型日志 / whether to log final model
  * @property rmpVolumeCoefficient RMP 体积系数 / RMP volume coefficient
  * @property finalBinAmountCoefficient 最终箱子数量系数 / final bin amount coefficient
+ * @property finalBinVolumeWeight 最终箱型体积消耗权重（等价于体积浪费最少）/ final bin volume consumption weight
+ * (equivalent to minimum volume waste)
+ * @property finalBinTypeCostWeight 最终箱型成本权重 / final bin type cost weight
+ * @property finalBinTypeCosts 箱型到成本的映射 / bin type to cost mapping
  * @property enableFinalBinDepthConstraint 是否启用最终箱子深度约束 / whether to enable final bin depth constraint
  * @property enableFinalBinCapacityConstraint 是否启用最终箱子容量约束 / whether to enable final bin capacity constraint
  * @property enableShadowPriceAwareRequestScore 是否启用影子价格感知请求评分 / whether to enable shadow price aware request score
@@ -41,7 +45,15 @@ data class ColumnGenerationStandardExecutorConfig(
     val rmpToLogModel: Boolean = false,
     val finalToLogModel: Boolean = false,
     val rmpVolumeCoefficient: FltX = FltX.one,
-    val finalBinAmountCoefficient: FltX = FltX.one,
+    // 主目标为箱型体积消耗（等价于体积浪费最少），箱数系数保持极小，仅用于在「体积消耗相同」的解之间打破平局，
+    // 避免多选零余料的整箱。
+    // The primary objective is bin volume consumption (equivalent to minimum volume waste); the bin amount
+    // coefficient stays tiny and only breaks ties between equal-volume solutions, so the model does not add
+    // perfectly filled bins for free.
+    val finalBinAmountCoefficient: FltX = FltX(1e-6),
+    val finalBinVolumeWeight: FltX = FltX.one,
+    val finalBinTypeCostWeight: FltX = FltX.zero,
+    val finalBinTypeCosts: Map<BinTypeId, FltX> = emptyMap(),
     val enableFinalBinDepthConstraint: Boolean = true,
     val enableFinalBinCapacityConstraint: Boolean = true,
     val enableShadowPriceAwareRequestScore: Boolean = true,
@@ -426,10 +438,35 @@ class ColumnGenerationStandardExecutors(
                 }
             }
 
+            // 目标分层（加权和）：箱型体积消耗（等价于体积浪费最少）与箱型成本为可选加权项。
+            // Layered objective (weighted sum): bin volume consumption (equivalent to minimum volume waste) and the
+            // per-bin-type cost are optional weighted terms. Both default to zero weight, so existing behaviour is
+            // unchanged unless a caller opts in.
+            when (val result = BinVolumeMinimization(
+                bins = bins,
+                assignment = assignment,
+                weight = config.finalBinVolumeWeight
+            ).invoke(model)) {
+                is Ok -> {}
+                is Failed -> return@ColumnGenerationFinalSolver Failed(result.error)
+                is Fatal -> return@ColumnGenerationFinalSolver Fatal(result.errors)
+            }
+
             when (val result = BinAmountMinimization(
                 bins = bins,
                 assignment = assignment,
                 coefficient = { config.finalBinAmountCoefficient }
+            ).invoke(model)) {
+                is Ok -> {}
+                is Failed -> return@ColumnGenerationFinalSolver Failed(result.error)
+                is Fatal -> return@ColumnGenerationFinalSolver Fatal(result.errors)
+            }
+
+            when (val result = BinTypeCostMinimization(
+                bins = bins,
+                assignment = assignment,
+                typeCost = config.finalBinTypeCosts,
+                weight = config.finalBinTypeCostWeight
             ).invoke(model)) {
                 is Ok -> {}
                 is Failed -> return@ColumnGenerationFinalSolver Failed(result.error)
@@ -495,10 +532,15 @@ class ColumnGenerationStandardExecutors(
             LayerGenerationDemandEntry(it.mode, it.key, it.quantityUnit)
         }
         val candidateBin = layerGenerationCandidateBin()
+        // 多箱型：把全部候选箱型交给层生成，使每种箱型都能产出候选列；列通过 `BinLayer.bin` 携带箱型。
+        // Multiple bin types: hand every candidate bin type to layer generation so each type produces candidates;
+        // each column carries its type through `BinLayer.bin`.
+        val candidateBins = layerGenerationCandidateBins()
         return ColumnGenerationLayerRequestBuilder { state, items, cgConfig ->
             bpp3dLayerGenerationRequest(
                 iteration = state.iteration,
                 bin = candidateBin,
+                bins = candidateBins,
                 items = items,
                 existingLayers = state.columns,
                 demandEntries = requestDemandEntries,
@@ -518,6 +560,25 @@ class ColumnGenerationStandardExecutors(
 	    */
     private fun layerGenerationCandidateBin(): BinType<FltX>? {
         return finalBins.firstOrNull()?.type
+    }
+    /**
+     * 全部候选箱型。 / Every candidate bin type.
+     *
+     * 主板型排在最前，其余按传入顺序去重；层生成会为每种箱型分别产出候选列。
+     * / The main bin type comes first and the rest keep their input order, deduplicated; layer generation produces
+     * candidates per bin type.
+     *
+     * @return 候选箱型列表 / candidate bin type list
+    */
+    private fun layerGenerationCandidateBins(): List<BinType<FltX>> {
+        val ordered = ArrayList<BinType<FltX>>()
+        finalBins.map { it.type }.firstOrNull { it.isMain }?.let { ordered.add(it) }
+        for (bin in finalBins) {
+            if (ordered.none { it.typeCode == bin.type.typeCode }) {
+                ordered.add(bin.type)
+            }
+        }
+        return ordered
     }
 
     /**

@@ -514,6 +514,18 @@ class LayerGenerationContext<V : FloatingNumber<V>>(
         if (generators.isEmpty()) {
             return emptyList()
         }
+        // 多板材类型：对每种板材分别生成候选列，列自带 `Layer.sheet`，目标函数按类型加权。
+        // Multiple sheet types: candidates are generated per sheet type, each column carries `Layer.sheet`, and
+        // the objective weights by type.
+        // 未指定任何板材类型时保持单次直通（历史层等不依赖板材的生成器仍可工作）。
+        // When no sheet type is specified the request is passed through once, so generators that do not depend on a
+        // sheet (such as the historical layer generator) keep working.
+        val sheets = request.sheets.ifEmpty { listOfNotNull(request.sheet) }
+        val sheetRequests = if (sheets.isEmpty()) {
+            listOf(request)
+        } else {
+            sheets.map { request.copy(sheet = it) }
+        }
         val selected = if (request.hasCircleItems() && !request.hasRectangleItems()) {
             // 纯圆形件请求只走圆网格与历史生成器。
             // Pure circle requests only use the circle grid and the historical generator.
@@ -535,10 +547,15 @@ class LayerGenerationContext<V : FloatingNumber<V>>(
         }
 
         val all = ArrayList<Bpp2dLayerGenerationResult<V>>()
-        for (generator in selected) {
-            all += generator.generate(request)
+        for (sheetRequest in sheetRequests) {
             if (all.size >= request.maxCandidates) {
                 break
+            }
+            for (generator in selected) {
+                all += generator.generate(sheetRequest)
+                if (all.size >= request.maxCandidates) {
+                    break
+                }
             }
         }
         return rankByScore(

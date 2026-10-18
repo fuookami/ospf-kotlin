@@ -50,6 +50,36 @@ The application layer supports downstream dynamic constraints without copying th
 4. `ColumnGenerationAlgorithm` provides fallible `initialColumnsWithResult` and `filterByReducedCostWithResult` hooks, propagates additional shadow prices through `ColumnGenerationState`, and reports failed lifecycle stages through `ColumnGenerationFailureAnalyzer`.
 5. `finalSolved` is true only when an actual final solver callback was configured and invoked.
 
+## Mixed Bin Types and Weighted Objectives
+
+`BinType.isMain` and multiple concrete bins in `finalBins` already allowed several bin types, but candidate generation
+used only the first bin type and every bin shared one cost coefficient. The framework now supports mixed bin types
+end to end (the 40GP / 40HQ / 20GP scenario):
+
+1. **Per-type candidate generation**: `Bpp3dLayerGenerationRequest.bins` carries every candidate bin type; the
+   composite `LayerGenerationContext` generates candidates per type and each column carries its type through
+   `BinLayer.bin`. When no type is given the request is passed through once, so generators that do not depend on a bin
+   type keep working.
+2. **Bin type participates in identity**: `BinLayer.equals` / `hashCode` include `bin.typeCode`, so the same layout on
+   two bin types is two distinct columns instead of a deduplicated one.
+3. **Primary objective `BinVolumeMinimization`**: `min weight · Σ_i volume_i · v_i`. Because the demanded volume is
+   fixed, `total waste = Σ bin volume − demanded volume`, so minimising consumed bin volume **is** minimising waste.
+   Summing `bin volume − loaded layer volume` instead would report zero waste for a fully packed bin and make "one
+   full large bin" beat "several small bins" — the opposite of the post-loading reality.
+4. **Secondary objective `BinTypeCostMinimization`**: `min weight · Σ_i typeCost(type_i) · v_i`, expressing
+   preferences such as "prefer 40GP over 40HQ at equal volume consumption"; unconfigured types count as zero. This is
+   the difference from the single `finalBinAmountCoefficient`, which cannot price by type.
+5. **Waste metrics for reporting**: `binWasteVolume` and `binWasteRatio` compute post-loading waste for statistics and
+   KPI; they are not the optimisation objective.
+
+Weights live in `ColumnGenerationStandardExecutorConfig` (`finalBinVolumeWeight`, `finalBinTypeCostWeight`,
+`finalBinTypeCosts`) and multiple `minimize` objectives are combined as a weighted sum, because the core sums the
+coefficients of sub-objectives with the same category.
+
+Defaults are aligned with bpp2d: `finalBinVolumeWeight` is one, so the volume-consuming objective is primary, while
+`finalBinAmountCoefficient` drops to `1e-6` and only breaks ties between equal-volume solutions. `finalBinTypeCostWeight`
+stays zero until a caller configures `finalBinTypeCosts`.
+
 ## Cylinder Geometry Semantics
 
 For the current MVP:
