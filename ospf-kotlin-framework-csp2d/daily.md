@@ -153,3 +153,64 @@ csp2d 改为 bpp2d 的分层纪律：领域层全泛型，`FltX`/`Flt64` 只出�
 C2-1 物料与图案模型（双模式 Material2、Pattern2、CuttingPlan2、Costar2、Machine2）→ C2-2 图案生成
 （任意排样 → 断头台 2 级 → 3 级，可配置切换）→ C2-3 produce/yield/waste/sheet-assignment →
 C2-4 application（MILP + 列生成 + 恢复）→ C2-5 双模式 × 三工艺 + 真实 Gurobi → C2-6 模块 README 与 starter 接线。
+
+## 7. 实施记录补完（2026-10-18）
+
+第 6 节之后又推进了四个阶段，本文档在此收尾记录。
+
+### 7.1 C2-4 应用层
+
+- `Csp2dProblem`：物料 + 产品 + 需求 + 工艺 + 刀缝 + 配置 + 良率配置 + 板长分配配置；
+  `primaryObjective()` 按物料形态自动选择（卷材→消耗段高、定尺→板材张数），配置可覆盖
+- 两条路径共用装配与恢复：`Csp2dMilp`（一次生成全部候选）与 `Csp2dColumnGeneration`
+  （逐轮解松弛主问题 → 按剩余需求再生成 → 追加新列 → 最终整数主问题）
+- **范围界定（重要）**：C2-4 的列追加由**剩余需求**驱动，不是检验数驱动。框架的 `LPResultOf`
+  确实暴露 `dualSolution: Map<Constraint<Flt64, Linear>, Flt64>`，但把对偶映射回具体需求约束需要
+  shadow price map 机制（bpp2d 用 `CGPipeline` + `AbstractShadowPriceMap`），本框架尚未实现，
+  也未声称已实现。
+
+被纠正的三个 API 事实：`solveLPAs`/`solveMILPAs` 是 suspend；`LPResultOf` 取值用 `solution` getter
+（MILP 的 `SolveReport` 才有 `values`）；`FltX.value` 是 internal，测试比较数值要用 `toDouble()`。
+
+### 7.2 C2-5 Gurobi 集成
+
+与 bpp2d 同构：`src/gurobi-test` 源集 + `gurobi-cg-test` profile + `GurobiDelegatingCsp2dSolver`。
+7 个用例覆盖 **双模式 × 三工艺** 加列生成路径：
+
+| 模式 | 任意排样 | 断头台 2 级 | 断头台 3 级 |
+|------|----------|-------------|-------------|
+| 定尺板材 | ✓ | ✓ | ✓ |
+| 卷材 | ✓ | ✓ | ✓ |
+
+断言口径是「解可制造」而非仅「求解成功」：解非空、覆盖全部需求、张数为正、每个图案通过
+`Pattern2.validate`、断头台方案必须带切分树且 `maxStage ≤ 工艺上限`、任意排样不带切分树、
+卷材解给出消耗段高。
+
+### 7.3 C2-6 文档与接线
+
+- 8 个子模块各补中英 README
+- starter-csp2d 接入全部 8 个模块，README 中英更新
+- 根 README 与本文档更新
+
+### 7.4 最终验收
+
+见第 8 节。
+
+## 8. 验收结果
+
+| 验证 | 结果 |
+|------|------|
+| csp2d 单元/契约测试 | 76 个通过（infrastructure 17、material 20、pattern 13、produce 6、yield 3、waste 3、sheet-assignment 6、application 8） |
+| csp2d Gurobi 集成 | 7 个用例通过（双模式 × 三工艺 + 列生成路径） |
+| geometry2d | 16 个测试通过 |
+| bpp2d | 117 个测试通过 + Gurobi 10 个 |
+| 全仓 mvn test | 100 个模块 SUCCESS、4365 个测试、0 失败 0 错误、19 跳过 |
+
+### 8.1 明确未实现（非目标）
+
+1. **检验数驱动的定价**：当前列追加由剩余需求驱动。对偶已可从 `LPResultOf.dualSolution` 取到，
+   但需要 shadow price map 机制才能映射到需求约束，属后续工作。
+2. **余料库存**：只做余料可用性汇总（按最小可用余料阈值判定），不做跨工单库存与优先消耗。
+3. **异形件与圆件**：直线刀切不出非矩形轮廓，二者均排除。
+4. **k 级断头台的级数上限细化**：当前 `GuillotineTwoStage`/`GuillotineThreeStage` 通过
+   方向联动的级数规则约束，未区分「同向多刀是否允许跨级重用」这类更细的工艺约定。

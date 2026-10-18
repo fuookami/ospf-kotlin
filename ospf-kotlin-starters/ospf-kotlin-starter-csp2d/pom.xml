@@ -18,5 +18,44 @@
             <artifactId>ospf-kotlin-starter</artifactId>
             <version>${project.version}</version>
         </dependency>
-    </dependencies>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp2d</groupId>
+            <artifactId>ospf-kotlin-framework-csp2d-infrastructure</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp2d</groupId>
+            <artifactId>ospf-kotlin-framework-csp2d-domain-material-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp2d</groupId>
+            <artifactId>ospf-kotlin-framework-csp2d-domain-pattern-generation-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp2d</groupId>
+            <artifactId>ospf-kotlin-framework-csp2d-domain-produce-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp2d</groupId>
+            <artifactId>ospf-kotlin-framework-csp2d-domain-yield-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp2d</groupId>
+            <artifactId>ospf-kotlin-framework-csp2d-domain-wasting-minimization-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp2d</groupId>
+            <artifactId>ospf-kotlin-framework-csp2d-domain-sheet-assignment-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp2d</groupId>
+            <artifactId>ospf-kotlin-framework-csp2d-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>    </dependencies>
 </project>
