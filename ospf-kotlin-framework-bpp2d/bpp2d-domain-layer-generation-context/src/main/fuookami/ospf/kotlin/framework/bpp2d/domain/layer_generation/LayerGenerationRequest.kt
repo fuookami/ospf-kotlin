@@ -11,6 +11,7 @@ package fuookami.ospf.kotlin.framework.bpp2d.domain.layer_generation
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
@@ -52,6 +53,7 @@ data class LayerGenerationDemandEntry(
  * @property demandEntries 需求项 / demand entries
  * @property shadowPrices 影子价格 / shadow prices
  * @property scoreByShadowPrice 影子价格评分函数 / shadow-price scoring function
+ * @property kerf 刀缝间距，null 表示无刀缝 / kerf spacing, null meaning no kerf
  * @property timeLimit 时间限制 / time limit
  * @property maxCandidates 最大候选数 / maximum candidate count
 */
@@ -63,6 +65,7 @@ data class Bpp2dLayerGenerationRequest<V : FloatingNumber<V>>(
     val demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
     val shadowPrices: Map<DemandModeKey, V> = emptyMap(),
     val scoreByShadowPrice: ((Layer<V>, Bpp2dLayerGenerationRequest<V>) -> V)? = null,
+    val kerf: Quantity<V>? = null,
     val timeLimit: Duration = ZERO,
     val maxCandidates: Int = 256
 )
@@ -117,4 +120,20 @@ fun <V : FloatingNumber<V>> Bpp2dLayerGenerationRequest<V>.hasCircleItems(): Boo
 */
 fun <V : FloatingNumber<V>> Bpp2dLayerGenerationRequest<V>.hasRectangleItems(): Boolean {
     return items.any { (item, _) -> !item.isCircleItem() }
+}
+
+/**
+ * 读取请求的刀缝间距。 / Read the kerf spacing of the request.
+ *
+ * 未设置刀缝时返回与样本同单位的零间距；调用方总是持有一个形状，因此不会出现无法构造零值的情况。
+ * / When the kerf is unset, a zero spacing in the sample's unit is returned. Callers always hold a shape, so a zero
+ * value can always be built.
+ *
+ * @param V 数值类型 / numeric type
+ * @param sample 样本量值，用于提供单位 / sample quantity providing the unit
+ * @return 刀缝间距 / kerf spacing
+*/
+fun <V : FloatingNumber<V>> Bpp2dLayerGenerationRequest<V>.kerfSpacing(sample: Quantity<V>): Quantity<V> {
+    val explicit = kerf
+    return if (explicit != null && quantityIsPositive(explicit)) explicit else quantityZeroOf(sample)
 }

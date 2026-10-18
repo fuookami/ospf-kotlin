@@ -1,0 +1,5 @@
+group_index,layer_index,item_id,width,height_meter,shape_type,allow_rotate,amount,sheet_width_meter,sheet_height_meter
+0,0,RECT_L,4.0,3.0,rectangle,true,6,20.0,12.0
+0,0,RECT_S,2.0,2.0,rectangle,true,8,20.0,12.0
+0,1,CIRCLE_M,2.0,,circle,true,12,20.0,12.0
+0,1,CIRCLE_S,1.0,,circle,true,16,20.0,12.0

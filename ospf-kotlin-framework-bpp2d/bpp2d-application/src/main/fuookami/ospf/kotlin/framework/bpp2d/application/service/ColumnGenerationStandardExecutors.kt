@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
@@ -28,6 +29,7 @@ import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetType
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.LayerAssignmentContext
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_assignment.model.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_generation.Bpp2dLayerGenerationRequest
+import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_generation.Bpp2dLayerGenerationResult
 import fuookami.ospf.kotlin.framework.bpp2d.domain.layer_generation.DemandModeKey
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
@@ -43,6 +45,7 @@ import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
  * @property finalSheetAmountCoefficient 最终板材数量系数 / final sheet amount coefficient
  * @property enableFinalCapacityConstraint 是否启用板材容量约束 / whether the sheet capacity constraint is enabled
  * @property integralityTolerance 整性容差 / integrality tolerance
+ * @property reducedCostTolerance 检验数容差 / reduced-cost tolerance
 */
 data class ColumnGenerationStandardExecutorConfig(
     val rmpSolveNamePrefix: String = "bpp2d-rmp",
@@ -52,7 +55,8 @@ data class ColumnGenerationStandardExecutorConfig(
     val rmpAreaCoefficient: FltX = FltX.one,
     val finalSheetAmountCoefficient: FltX = FltX.one,
     val enableFinalCapacityConstraint: Boolean = true,
-    val integralityTolerance: FltX = FltX(1e-6)
+    val integralityTolerance: FltX = FltX(1e-6),
+    val reducedCostTolerance: FltX = FltX(1e-6)
 )
 
 /**
@@ -64,6 +68,7 @@ data class ColumnGenerationStandardExecutorConfig(
  * @property demandEntries 需求项列表 / demand entry list
  * @property sheetTypes 板材类型列表 / sheet type list
  * @property finalSheets 预置的最终板材 / pre-provided final sheets
+ * @property kerf 刀缝间距 / kerf spacing
  * @property config 执行器配置 / executor config
 */
 class ColumnGenerationStandardExecutors(
@@ -73,6 +78,7 @@ class ColumnGenerationStandardExecutors(
     private val demandEntries: List<Bpp2dAssignmentDemandEntry>,
     private val sheetTypes: List<SheetType<FltX>>,
     private val finalSheets: List<Sheet<FltX>> = emptyList(),
+    private val kerf: Quantity<FltX>? = null,
     private val config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig()
 ) {
 
@@ -266,6 +272,66 @@ class ColumnGenerationStandardExecutors(
     }
 
     /**
+     * 创建检验数过滤器：只保留能改进 RMP 目标的候选列。 / Create the reduced-cost filter that keeps only
+     * candidates able to improve the RMP objective.
+     *
+     * 这是列生成的定价步骤。若不过滤（接受全部候选），迭代不会收敛，只能靠迭代上限截断。
+     * / This is the pricing step of column generation. Without filtering (accepting every candidate) the loop does
+     * not converge and is only truncated by the iteration limit.
+     *
+     * @param areaCoefficient 面积目标系数，需与 RMP 目标一致 / area objective coefficient matching the RMP objective
+     * @param tolerance 检验数容差 / reduced-cost tolerance
+     * @return 列过滤器 / column filter
+    */
+    fun reducedCostFilter(
+        areaCoefficient: FltX = config.rmpAreaCoefficient,
+        tolerance: FltX = config.reducedCostTolerance
+    ): suspend (ColumnGenerationState, List<Bpp2dLayerGenerationResult<FltX>>) -> Ret<List<Bpp2dLayerGenerationResult<FltX>>> {
+        return { state, candidates ->
+            val prices = shadowPriceKeysOf(state.shadowPrices)
+            val improving = candidates
+                .map { candidate ->
+                    candidate.copy(
+                        reducedCost = layerReducedCost(
+                            layer = candidate.layer,
+                            demandEntries = demandEntries,
+                            shadowPrices = prices,
+                            areaCoefficient = areaCoefficient
+                        )
+                    )
+                }
+                .filter { candidate ->
+                    (candidate.reducedCost ?: FltX.zero) < tolerance * FltX(-1)
+                }
+                .sortedWith(compareBy { candidate -> candidate.reducedCost ?: FltX.zero })
+            ok(improving)
+        }
+    }
+
+    /**
+     * 把列生成状态中的影子价格映射还原为带需求种类的键。 / Restore typed demand shadow price keys from the column
+     * generation state map.
+     *
+     * @param shadowPrices 状态中的影子价格 / shadow prices from the state
+     * @return 类型化影子价格映射 / typed shadow price map
+    */
+    private fun shadowPriceKeysOf(
+        shadowPrices: Map<DemandModeKey, FltX>
+    ): Map<Bpp2dDemandShadowPriceKey, FltX> {
+        val result = LinkedHashMap<Bpp2dDemandShadowPriceKey, FltX>()
+        for (entry in demandEntries) {
+            val price = shadowPrices[
+                DemandModeKey(
+                    mode = entry.mode.name,
+                    key = entry.itemId.value
+                )
+            ] ?: continue
+            result[Bpp2dDemandShadowPriceKey(entry.mode, entry.itemId)] = price
+        }
+        return result
+    }
+
+    /**
      * 创建层请求构建器。 / Create the layer request builder.
      *
      * @return 层请求构建器 / layer request builder
@@ -282,6 +348,7 @@ class ColumnGenerationStandardExecutors(
                 items = generationItems,
                 existingLayers = state.columns,
                 shadowPrices = state.shadowPrices,
+                kerf = kerf,
                 maxCandidates = cgConfig.maxColumnsPerIteration
             )
         }

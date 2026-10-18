@@ -11,6 +11,7 @@ package fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.service
 
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.model.Space2
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ActualItem
@@ -76,7 +77,8 @@ class DepthFirstSearchAlgorithm2D {
     fun <V : FloatingNumber<V>> invoke(
         space: Space2<V>,
         items: List<Pair<ActualItem<V>, Int>>,
-        maxDepth: Int = 8
+        maxDepth: Int = 8,
+        kerf: Quantity<V>? = null
     ): Ret<SpaceSplit2Result<V>> {
         val placements = ArrayList<LayerPlacement2<V>>()
         val rest = LinkedHashMap<String, Int>()
@@ -89,7 +91,8 @@ class DepthFirstSearchAlgorithm2D {
             rest = rest,
             placements = placements,
             depth = 0,
-            maxDepth = maxDepth
+            maxDepth = maxDepth,
+            kerf = kerf
         )
         return ok(
             SpaceSplit2Result(
@@ -118,7 +121,8 @@ class DepthFirstSearchAlgorithm2D {
         rest: MutableMap<String, Int>,
         placements: MutableList<LayerPlacement2<V>>,
         depth: Int,
-        maxDepth: Int
+        maxDepth: Int,
+        kerf: Quantity<V>?
     ) {
         if (depth >= maxDepth || space.isDegenerate()) {
             return
@@ -134,8 +138,11 @@ class DepthFirstSearchAlgorithm2D {
             .maxByQuantityOrNull { it.shape.boundingWidth }
             ?: return
         val shape = candidate.shape
-        val cols = countFitting(space.width, shape.boundingWidth)
-        val rows = countFitting(space.height, shape.boundingHeight)
+        // 刀缝通过节距体现。 / The kerf is expressed through the pitch.
+        val spacing = if (kerf != null && quantityIsPositive(kerf)) kerf else quantityZeroOf(shape.boundingWidth)
+        val pitch = pitchOf(shape, spacing)
+        val cols = countFitting(space.width, pitch.x)
+        val rows = countFitting(space.height, pitch.y)
         if (cols <= 0 || rows <= 0) {
             return
         }
@@ -148,8 +155,8 @@ class DepthFirstSearchAlgorithm2D {
                 if (remaining <= 0) {
                     break@loop
                 }
-                val x = space.x + scaledQuantity(shape.boundingWidth, col)
-                val y = space.y + scaledQuantity(shape.boundingHeight, row)
+                val x = space.x + scaledQuantity(pitch.x, col)
+                val y = space.y + scaledQuantity(pitch.y, row)
                 placements.add(
                     LayerPlacement2(
                         shape = shape,
@@ -165,8 +172,8 @@ class DepthFirstSearchAlgorithm2D {
         }
         rest[item.id.value] = remaining
 
-        val usedWidth = scaledQuantity(shape.boundingWidth, placedCols)
-        val usedHeight = scaledQuantity(shape.boundingHeight, placedRows)
+        val usedWidth = scaledQuantity(pitch.x, placedCols)
+        val usedHeight = scaledQuantity(pitch.y, placedRows)
         val (_, rightSpace) = space.splitX(usedWidth)
         val topSpace = Space2(
             x = space.x,
@@ -174,8 +181,8 @@ class DepthFirstSearchAlgorithm2D {
             width = usedWidth,
             height = space.height - usedHeight
         )
-        descend(rightSpace, items, rest, placements, depth + 1, maxDepth)
-        descend(topSpace, items, rest, placements, depth + 1, maxDepth)
+        descend(rightSpace, items, rest, placements, depth + 1, maxDepth, kerf)
+        descend(topSpace, items, rest, placements, depth + 1, maxDepth, kerf)
     }
 }
 
@@ -199,7 +206,8 @@ class MultiRowHeuristicAlgorithm2D {
     private data class RowPick<V : FloatingNumber<V>>(
         val item: ActualItem<V>,
         val candidate: Shape2Candidate<V>,
-        val cols: Int
+        val cols: Int,
+        val pitch: fuookami.ospf.kotlin.framework.bpp2d.infrastructure.QuantityVector2<V>
     )
 
     /**
@@ -214,7 +222,8 @@ class MultiRowHeuristicAlgorithm2D {
     fun <V : FloatingNumber<V>> invoke(
         space: Space2<V>,
         items: List<Pair<ActualItem<V>, Int>>,
-        maxRows: Int = 32
+        maxRows: Int = 32,
+        kerf: Quantity<V>? = null
     ): Ret<SpaceSplit2Result<V>> {
         val placements = ArrayList<LayerPlacement2<V>>()
         val rest = LinkedHashMap<String, Int>()
@@ -237,8 +246,10 @@ class MultiRowHeuristicAlgorithm2D {
                         .filter { quantityLessOrEqual(it.shape.boundingHeight, remainingHeight) }
                         .maxByQuantityOrNull { it.shape.boundingWidth }
                         ?: return@mapNotNull null
-                    val cols = countFitting(space.width, candidate.shape.boundingWidth)
-                    if (cols <= 0) null else RowPick(item, candidate, cols)
+                    val spacing = if (kerf != null && quantityIsPositive(kerf)) kerf else quantityZeroOf(candidate.shape.boundingWidth)
+                    val pitch = pitchOf(candidate.shape, spacing)
+                    val cols = countFitting(space.width, pitch.x)
+                    if (cols <= 0) null else RowPick(item, candidate, cols, pitch)
                 }
                 .maxByOrNull { it.cols }
                 ?: break
@@ -250,7 +261,7 @@ class MultiRowHeuristicAlgorithm2D {
                 if (remaining <= 0) {
                     break
                 }
-                val x = space.x + scaledQuantity(shape.boundingWidth, col)
+                val x = space.x + scaledQuantity(pick.pitch.x, col)
                 placements.add(
                     LayerPlacement2(
                         shape = shape,
@@ -266,7 +277,7 @@ class MultiRowHeuristicAlgorithm2D {
             if (placed == 0) {
                 break
             }
-            cursorY += shape.boundingHeight
+            cursorY += pick.pitch.y
             rows += 1
         }
 

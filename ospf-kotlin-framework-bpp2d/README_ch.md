@@ -22,8 +22,10 @@
 1. 矩形件，支持可选的 90° 旋转。
 2. 圆形件，通过直角网格与六角网格候选排布。
 3. 混合形状排布（矩形行 + 圆形网格），并逐对通过底层几何校验。
-4. 完整列生成闭环：候选层 → RMP(LP) 求对偶 → 加列 → 最终 MILP → 装箱 → KPI。
-5. LP / MILP 接入真实 Gurobi 求解器。
+4. 完整列生成闭环：候选层 → RMP(LP) 求对偶 → **检验数定价** → 加列 → 最终 MILP → 尾板优化 → 装箱 → KPI。
+5. LP / MILP 接入真实 Gurobi 求解器，并支持 CSV 数据集加载。
+6. **刀缝（kerf）**：通过节距体现，并由几何校验双向把关。
+7. **余料报告**：按切片输出每块板材的自由矩形。
 
 ## 形状支持矩阵
 
@@ -42,6 +44,16 @@
 
 重叠统一为**内部重叠**：相切不算重叠。矩形贴边、圆与圆相切、圆与矩形边界相切都视为不重叠。这是网格排样的
 前提——若把相切判为重叠，任何规则网格都无法成立。
+
+## 刀缝、余料与数据集
+
+| 能力 | 入口 |
+| --- | --- |
+| 检验数定价 | `bpp2d-domain-layer-assignment-context` 中的 `layerReducedCost` / `isImprovingColumn`，由 `ColumnGenerationStandardExecutors.reducedCostFilter()` 接线 |
+| 尾板优化 | `TailSheetOptimizer` 按剩余需求重选尾板列 |
+| 刀缝 | `Bpp2dLayerGenerationRequest.kerf` 加 infrastructure 的 `inflatedBy` / `pitchOf`；`PackingGeometryGuard` 双向校验 |
+| 余料报告 | `FreeSpaceAnalyzer` 产出 `Remnant2`，经 `PackingResult.remnants` 与 KPI `remnantCount` / `remnantArea` 暴露 |
+| CSV 数据集 | `Bpp2dCsvDatasetLoader`，支持 `grouped-layer` 与 `material-width-amount` 两种 schema |
 
 ## 公开 API
 

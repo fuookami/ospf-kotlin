@@ -66,7 +66,8 @@ class CircleGridGenerator {
     */
     fun <V : FloatingNumber<V>> invoke(
         item: ActualItem<V>,
-        sheet: SheetType<V>
+        sheet: SheetType<V>,
+        kerf: Quantity<V>? = null
     ): List<CircleGridLayout<V>> {
         if (!item.isCircleItem()) {
             return emptyList()
@@ -76,9 +77,12 @@ class CircleGridGenerator {
         if (!quantityIsPositive(diameter)) {
             return emptyList()
         }
+        // 圆形件的刀缝同样通过节距体现：节距 = 直径 + kerf。
+        // For circles the kerf is also expressed through the pitch: pitch = diameter + kerf.
+        val spacing = if (kerf != null && quantityIsPositive(kerf)) kerf else quantityZeroOf(diameter)
         val layouts = ArrayList<CircleGridLayout<V>>()
-        squareGrid(item, circle, diameter, sheet)?.let { layouts.add(it) }
-        hexGrid(item, circle, diameter, sheet)?.let { layouts.add(it) }
+        squareGrid(item, circle, diameter, spacing, sheet)?.let { layouts.add(it) }
+        hexGrid(item, circle, diameter, spacing, sheet)?.let { layouts.add(it) }
         return layouts.sortedByDescending { layout -> layout.placements.size }
     }
 
@@ -96,18 +100,23 @@ class CircleGridGenerator {
         item: ActualItem<V>,
         circle: CirclePackingShape2<V>,
         diameter: Quantity<V>,
+        spacing: Quantity<V>,
         sheet: SheetType<V>
     ): CircleGridLayout<V>? {
-        val cols = countFitting(sheet.width, diameter)
-        val rows = countFitting(sheet.height, diameter)
+        val pitch = diameter + spacing
+        if (!quantityIsPositive(pitch)) {
+            return null
+        }
+        val cols = countFitting(sheet.width, pitch)
+        val rows = countFitting(sheet.height, pitch)
         if (cols <= 0 || rows <= 0) {
             return null
         }
         val placements = ArrayList<LayerPlacement2<V>>(cols * rows)
         for (row in 0 until rows) {
-            val y = scaledQuantity(diameter, row)
+            val y = scaledQuantity(pitch, row)
             for (col in 0 until cols) {
-                val x = scaledQuantity(diameter, col)
+                val x = scaledQuantity(pitch, col)
                 placements.add(
                     LayerPlacement2(
                         shape = circle,
@@ -139,27 +148,35 @@ class CircleGridGenerator {
         item: ActualItem<V>,
         circle: CirclePackingShape2<V>,
         diameter: Quantity<V>,
+        spacing: Quantity<V>,
         sheet: SheetType<V>
     ): CircleGridLayout<V>? {
-        val rowPitch = hexRowPitch(diameter)
+        val pitch = diameter + spacing
+        if (!quantityIsPositive(pitch)) {
+            return null
+        }
+        // 六角网格的行距与列距都按「直径 + kerf」推导，保证任意相邻件的真实间隙不小于 kerf。
+        // Both the row and column pitch of the hexagonal grid derive from diameter plus kerf, so every pair of
+        // neighbours keeps a real gap of at least the kerf.
+        val rowPitch = hexRowPitch(pitch)
         if (!quantityIsPositive(rowPitch)) {
             return null
         }
-        val halfDiameter = diameter / diameter.value.constants.two
+        val halfPitch = pitch / pitch.value.constants.two
 
         val placements = ArrayList<LayerPlacement2<V>>()
         var row = 0
         while (row < MAX_HEX_ROWS) {
             val y = scaledQuantity(rowPitch, row)
-            if (quantityGreater(y + diameter, sheet.height)) {
+            if (quantityGreater(y + pitch, sheet.height)) {
                 break
             }
-            val rowOffset = if (row % 2 == 0) quantityZeroOf(diameter) else halfDiameter
+            val rowOffset = if (row % 2 == 0) quantityZeroOf(pitch) else halfPitch
             val availableWidth = sheet.width - rowOffset
-            val cols = countFitting(availableWidth, diameter)
+            val cols = countFitting(availableWidth, pitch)
             if (cols > 0) {
                 for (col in 0 until cols) {
-                    val x = rowOffset + scaledQuantity(diameter, col)
+                    val x = rowOffset + scaledQuantity(pitch, col)
                     placements.add(
                         LayerPlacement2(
                             shape = circle,

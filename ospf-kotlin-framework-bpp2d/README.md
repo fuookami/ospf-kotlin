@@ -23,8 +23,11 @@ currently covers:
 1. Rectangle items with optional 90-degree rotation.
 2. Circular items, packed by square-grid and hexagonal-grid candidates.
 3. Mixed shape layouts (rectangle row plus circle grid) validated pairwise against the underlying geometry.
-4. A full column-generation loop: candidate layers → RMP (LP) with duals → column addition → final MILP → packing → KPI.
-5. Real Gurobi integration for the LP / MILP solves.
+4. A full column-generation loop: candidate layers → RMP (LP) with duals → **reduced-cost pricing** → column
+   addition → final MILP → tail-sheet optimisation → packing → KPI.
+5. Real Gurobi integration for the LP / MILP solves, including CSV dataset loading.
+6. **Kerf (saw-blade spacing)** enforced through grid pitch and bidirectional guard validation.
+7. **Remnant reporting**: guillotine free-space rectangles per sheet.
 
 ## Shape Support Matrix
 
@@ -44,6 +47,16 @@ currently covers:
 Overlap is uniformly **interior overlap**: touching is not overlap. Rectangle edge contact, tangent circles and a
 circle tangent to a rectangle edge are all disjoint. This is required by grid packing — treating tangency as overlap
 would invalidate every regular grid.
+
+## Kerf, Remnants and Datasets
+
+| Capability | Entry point |
+| --- | --- |
+| Reduced-cost pricing | `layerReducedCost` / `isImprovingColumn` in `bpp2d-domain-layer-assignment-context`; wired by `ColumnGenerationStandardExecutors.reducedCostFilter()` |
+| Tail-sheet optimisation | `TailSheetOptimizer` re-selects the tail column against the residual demand |
+| Kerf | `Bpp2dLayerGenerationRequest.kerf` plus `inflatedBy` / `pitchOf` in infrastructure; `PackingGeometryGuard` validates bidirectionally |
+| Remnant reporting | `FreeSpaceAnalyzer` produces `Remnant2` rectangles, exposed via `PackingResult.remnants` and KPI `remnantCount` / `remnantArea` |
+| CSV datasets | `Bpp2dCsvDatasetLoader` with `grouped-layer` and `material-width-amount` schemas |
 
 ## Public API
 

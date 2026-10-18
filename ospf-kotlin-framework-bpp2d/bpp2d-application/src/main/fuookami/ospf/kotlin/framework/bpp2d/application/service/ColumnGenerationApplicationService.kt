@@ -42,6 +42,7 @@ fun Quantity<*>.bpp2dToFltXQuantity(): Quantity<FltX> {
  * @property iterationLimit 最大迭代次数 / maximum iteration count
  * @property maxColumnsPerIteration 每次迭代最大候选列数 / maximum candidate columns per iteration
  * @property finalMilpEnabled 是否启用最终 MILP / whether the final MILP is enabled
+ * @property kerf 刀缝间距 / kerf spacing
  * @property executorConfig 执行器配置 / executor config
 */
 data class ColumnGenerationApplicationRequest(
@@ -51,6 +52,7 @@ data class ColumnGenerationApplicationRequest(
     val iterationLimit: Int = 32,
     val maxColumnsPerIteration: Int = 16,
     val finalMilpEnabled: Boolean = true,
+    val kerf: Quantity<FltX>? = null,
     val executorConfig: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig()
 ) {
 
@@ -192,6 +194,7 @@ class ColumnGenerationApplicationService(
             itemCatalogue = request.itemCatalog,
             demandEntries = demandEntries,
             sheetTypes = request.sheetTypes,
+            kerf = request.kerf,
             config = request.executorConfig
         )
         val generator = LayerGenerationContext<FltX>()
@@ -201,6 +204,7 @@ class ColumnGenerationApplicationService(
                 rmpSolver = executors.rmpSolver(),
                 finalMilpSolver = executors.finalSolver(),
                 layerRequestBuilder = executors.requestBuilder(),
+                filterByReducedCostWithResult = executors.reducedCostFilter(),
                 // 首次 LP 必须可行：先用候选生成器产出一批种子列，否则空变量模型的 RMP 会直接不可行，
                 // Gurobi 也不会给出对偶解。
                 // The first LP must be feasible: seed columns are produced by the candidate generator first.
@@ -233,9 +237,11 @@ class ColumnGenerationApplicationService(
         // 列生成保证「覆盖需求」；最后一板通常会超出需求量，按需求裁剪后再装箱。
         // Column generation guarantees demand coverage; the last sheet usually exceeds the demand, so it is trimmed
         // to the demand before packing.
-        val trimmedSheets = trimToDemand(sheets = result.sheets, items = request.items)
+        val demands = request.items.entries.associate { it.key.id.value to it.value.toULong() }
+        val trimmedSheets = TailSheetOptimizer(candidates = result.columns)
+            .optimize(sheets = result.sheets, demands = demands)
         val packedResult = result.copy(sheets = trimmedSheets)
-        val packingResult = when (val packed = Packer().invoke(trimmedSheets)) {
+        val packingResult = when (val packed = Packer().invoke(trimmedSheets, kerf = request.kerf)) {
             is Ok -> packed.value
             is Failed -> return Failed(packed.error)
             is Fatal -> return Fatal(packed.errors)
@@ -248,81 +254,6 @@ class ColumnGenerationApplicationService(
                 kpi = ColumnGenerationPackingAnalyzer().analyze(packedResult, packingResult)
             )
         )
-    }
-
-    /**
-     * 按需求裁剪板材中的放置：超出需求的部分被丢弃。 / Trim placements in the sheets to the demands: anything
-     * beyond the demand is dropped.
-     *
-     * 二维排样中一个候选层是一整块板材的排布，最后一个板材按常理只需产出剩余需求的件数。
-     * / In 2D a candidate layer is a whole-sheet layout, and the last sheet normally only produces the remaining
-     * demand.
-     *
-     * @param sheets 候选板材 / candidate sheets
-     * @param items 物品与需求件数 / items and demanded amounts
-     * @return 裁剪后的板材 / trimmed sheets
-    */
-    private fun trimToDemand(
-        sheets: List<Sheet<FltX>>,
-        items: Map<ActualItem<FltX>, UInt64>
-    ): List<Sheet<FltX>> {
-        val demands = items.entries.associate { it.key.id.value to it.value.toULong() }
-        val produced = LinkedHashMap<String, ULong>()
-
-        val trimmed = ArrayList<Sheet<FltX>>(sheets.size)
-        for (sheet in sheets) {
-            val layers = ArrayList<SheetLayer<FltX>>(sheet.layers.size)
-            for (sheetLayer in sheet.layers) {
-                val keptLayers = ArrayList<Layer<FltX>>(sheetLayer.layers.size)
-                for (layer in sheetLayer.layers) {
-                    val units = ArrayList<LayerPlacement2<FltX>>(layer.units.size)
-                    for (unit in layer.units) {
-                        val itemId = unit.itemId ?: continue
-                        val demand = demands[itemId] ?: 0uL
-                        val used = produced[itemId] ?: 0uL
-                        if (used >= demand) {
-                            continue
-                        }
-                        produced[itemId] = used + 1uL
-                        units.add(unit)
-                    }
-                    if (units.isEmpty()) {
-                        continue
-                    }
-                    keptLayers.add(
-                        Layer(
-                            iteration = layer.iteration,
-                            from = layer.from,
-                            sheet = layer.sheet,
-                            shape = layer.shape,
-                            units = units
-                        )
-                    )
-                }
-                if (keptLayers.isEmpty()) {
-                    continue
-                }
-                layers.add(
-                    SheetLayer(
-                        type = sheetLayer.type,
-                        shape = sheetLayer.shape,
-                        layers = keptLayers,
-                        batchNo = sheetLayer.batchNo
-                    )
-                )
-            }
-            if (layers.isEmpty()) {
-                continue
-            }
-            trimmed.add(
-                Sheet(
-                    type = sheet.type,
-                    layers = layers,
-                    batchNo = sheet.batchNo
-                )
-            )
-        }
-        return trimmed
     }
 
     /**

@@ -37,7 +37,9 @@ data class ColumnGenerationPackingSnapshot(
     val areaUtilization: FltX,
     val loadingRate: FltX,
     val rectangleCount: Int,
-    val circleCount: Int
+    val circleCount: Int,
+    val remnantCount: Int = 0,
+    val remnantArea: FltX = FltX.zero
 ) {
 
     /**
@@ -56,7 +58,9 @@ data class ColumnGenerationPackingSnapshot(
             "area_utilization" to areaUtilization.toString(),
             "loading_rate" to loadingRate.toString(),
             "rectangle_count" to rectangleCount.toString(),
-            "circle_count" to circleCount.toString()
+            "circle_count" to circleCount.toString(),
+            "remnant_count" to remnantCount.toString(),
+            "remnant_area" to remnantArea.toString()
         )
     }
 }
@@ -100,6 +104,11 @@ class ColumnGenerationPackingAnalyzer {
             }
         }
 
+        var remnantArea = FltX.zero
+        for (remnant in packing.remnants) {
+            remnantArea += remnant.area.value
+        }
+
         val areaUtilization = if (sheetArea > FltX.zero) actualArea / sheetArea else FltX.zero
         val averageLoadingRate = if (bins.isEmpty()) FltX.zero else loadingRate / intToFltX(bins.size)
         val remainingArea = if (sheetArea > actualArea) sheetArea - actualArea else FltX.zero
@@ -114,7 +123,9 @@ class ColumnGenerationPackingAnalyzer {
             areaUtilization = areaUtilization,
             loadingRate = averageLoadingRate,
             rectangleCount = rectangleCount,
-            circleCount = circleCount
+            circleCount = circleCount,
+            remnantCount = packing.remnants.size,
+            remnantArea = remnantArea
         )
     }
 

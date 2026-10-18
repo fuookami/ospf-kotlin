@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.model.Block2
 import fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.model.Space2
@@ -49,7 +50,8 @@ class SimpleBlockGenerator {
     fun <V : FloatingNumber<V>> invoke(
         item: AbstractItem<V>,
         space: Space2<V>,
-        config: SimpleBlockConfig = SimpleBlockConfig()
+        config: SimpleBlockConfig = SimpleBlockConfig(),
+        kerf: Quantity<V>? = null
     ): Ret<List<Block2<V>>> {
         if (space.isDegenerate() || item.isCircleItem()) {
             return ok(emptyList())
@@ -57,18 +59,22 @@ class SimpleBlockGenerator {
         val blocks = ArrayList<Block2<V>>()
         for (candidate in item.shape.candidateShapes(config.withRotation)) {
             val shape = candidate.shape
-            val cols = countFitting(space.width, shape.boundingWidth)
-            val rows = countFitting(space.height, shape.boundingHeight)
+            // 刀缝通过节距体现：相邻件按「包围尺寸 + kerf」推进。
+            // The kerf is expressed through the pitch: neighbours advance by bounding size plus kerf.
+            val spacing = if (kerf != null && quantityIsPositive(kerf)) kerf else quantityZeroOf(shape.boundingWidth)
+            val pitch = pitchOf(shape, spacing)
+            val cols = countFitting(space.width, pitch.x)
+            val rows = countFitting(space.height, pitch.y)
             if (cols <= 0 || rows <= 0) {
                 continue
             }
-            val blockWidth = scaledQuantity(shape.boundingWidth, cols)
-            val blockHeight = scaledQuantity(shape.boundingHeight, rows)
+            val blockWidth = scaledQuantity(pitch.x, cols)
+            val blockHeight = scaledQuantity(pitch.y, rows)
             val placements = ArrayList<LayerPlacement2<V>>(cols * rows)
             for (row in 0 until rows) {
-                val y = space.y + scaledQuantity(shape.boundingHeight, row)
+                val y = space.y + scaledQuantity(pitch.y, row)
                 for (col in 0 until cols) {
-                    val x = space.x + scaledQuantity(shape.boundingWidth, col)
+                    val x = space.x + scaledQuantity(pitch.x, col)
                     placements.add(
                         LayerPlacement2(
                             shape = shape,
@@ -96,7 +102,7 @@ class SimpleBlockGenerator {
             }
             val (_, remainingRight) = space.splitX(blockWidth)
             if (!remainingRight.isDegenerate()) {
-                when (val remainder = invoke(item, remainingRight, config)) {
+                when (val remainder = invoke(item, remainingRight, config, kerf)) {
                     is Ok -> blocks.addAll(remainder.value)
                     is Failed -> return Failed(remainder.error)
                     is Fatal -> return Fatal(remainder.errors)

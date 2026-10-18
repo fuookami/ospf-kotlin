@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.AbstractItem
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ItemId
@@ -96,13 +97,16 @@ object PackingGeometryGuard {
      * @param placements 放置列表 / placement list
      * @param sheetName 板材实例名称，用于错误信息 / sheet instance name used in error messages
      * @param source 调用来源 / call source
+     * @param kerf 刀缝间距，非空时要求相邻件间隙不小于该值 / kerf spacing; when present, neighbours must keep at
+     * least this gap
      * @return 校验结果 / validation result
     */
     fun requireSheetGeometry(
         sheet: Sheet2Geometry<FltX>,
         placements: List<LayerPlacement2<FltX>>,
         sheetName: String = "sheet",
-        source: String = "PackingGeometryGuard.requireSheetGeometry"
+        source: String = "PackingGeometryGuard.requireSheetGeometry",
+        kerf: Quantity<FltX>? = null
     ): Try {
         val mixedDiagnostic = mixedShapeDiagnostic(
             placements.groupingBy { it.shape.shapeType }.eachCount()
@@ -129,10 +133,33 @@ object PackingGeometryGuard {
         }
         for (lhsIndex in placements.indices) {
             for (rhsIndex in (lhsIndex + 1) until placements.size) {
-                val overlapped = when (val result = placements[lhsIndex].overlapped(placements[rhsIndex])) {
-                    is Ok -> result.value
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
+                // 刀缝：把左侧件按 kerf 膨胀后再与右侧件比较，真实间隙小于 kerf 时判为重叠。
+                // Kerf: inflate the left placement by the kerf before comparing, so a real gap below the kerf
+                // counts as an overlap.
+                // 膨胀必须双向检查：只有把任一侧膨胀后相交，才说明真实间隙小于 kerf。
+                // Inflating must be checked in both directions: only an intersection after inflating either side
+                // proves that the real gap is below the kerf.
+                val overlapped = if (kerf != null && quantityIsPositive(kerf)) {
+                    when (val forward = placements[lhsIndex].inflatedBy(kerf).overlapped(placements[rhsIndex])) {
+                        is Ok -> if (forward.value) {
+                            true
+                        } else {
+                            when (val backward = placements[lhsIndex].overlapped(placements[rhsIndex].inflatedBy(kerf))) {
+                                is Ok -> backward.value
+                                is Failed -> return Failed(backward.error)
+                                is Fatal -> return Fatal(backward.errors)
+                            }
+                        }
+
+                        is Failed -> return Failed(forward.error)
+                        is Fatal -> return Fatal(forward.errors)
+                    }
+                } else {
+                    when (val result = placements[lhsIndex].overlapped(placements[rhsIndex])) {
+                        is Ok -> result.value
+                        is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
+                    }
                 }
                 if (overlapped) {
                     return Failed(
@@ -169,6 +196,7 @@ object PackingGeometryGuard {
      * @param sheetName 板材实例名称，用于错误信息 / sheet instance name used in error messages
      * @param source 调用来源 / call source
      * @param rotationRule 旋转合法性规则 / rotation legality rule
+     * @param kerf 刀缝间距 / kerf spacing
      * @return 校验结果 / validation result
     */
     fun validate(
@@ -176,13 +204,15 @@ object PackingGeometryGuard {
         placements: List<LayerPlacement2<FltX>>,
         sheetName: String = "sheet",
         source: String = "PackingGeometryGuard.validate",
-        rotationRule: PackingRotationRule = PackingRotationRule.AllowAll
+        rotationRule: PackingRotationRule = PackingRotationRule.AllowAll,
+        kerf: Quantity<FltX>? = null
     ): Try {
         val geometry = requireSheetGeometry(
             sheet = sheet,
             placements = placements,
             sheetName = sheetName,
-            source = source
+            source = source,
+            kerf = kerf
         )
         when (geometry) {
             is Ok -> {}

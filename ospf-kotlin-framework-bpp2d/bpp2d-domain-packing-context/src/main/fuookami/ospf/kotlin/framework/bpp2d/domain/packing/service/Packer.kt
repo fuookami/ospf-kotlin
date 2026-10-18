@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.*
@@ -44,11 +45,13 @@ class Packer(
      *
      * @param sheets 最终板材列表 / final sheet list
      * @param context 装箱上下文 / packing context
+     * @param kerf 刀缝间距 / kerf spacing
      * @return 装箱结果或失败 / packing result, or failure
     */
     operator fun invoke(
         sheets: List<Sheet<FltX>>,
-        context: PackingContext = PackingContext()
+        context: PackingContext = PackingContext(),
+        kerf: Quantity<FltX>? = null
     ): Ret<PackingResult> {
         val rotationRule = PackingRotationRule.byItemCatalog(itemCatalog)
         val packedSheets = ArrayList<PackedSheet>(sheets.size)
@@ -63,7 +66,8 @@ class Packer(
                 placements = placements,
                 sheetName = name,
                 source = "Packer.invoke",
-                rotationRule = rotationRule
+                rotationRule = rotationRule,
+                kerf = kerf
             )
             when (validation) {
                 is Ok -> {}
@@ -89,6 +93,7 @@ class Packer(
             PackingResult(
                 aggregation = PackingAggregation(bins = packedSheets),
                 materialSummary = summarizeMaterials(packedSheets),
+                remnants = FreeSpaceAnalyzer().analyze(sheets),
                 info = context.info
             )
         )

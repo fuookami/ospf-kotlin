@@ -59,7 +59,8 @@ fun <V : FloatingNumber<V>> comparePlacementPosition(
 */
 class BottomUpLeftJustifiedAlgorithm<V : FloatingNumber<V>>(
     private val sheet: Sheet2Shape<V>,
-    private val config: Config<V> = Config()
+    private val config: Config<V> = Config(),
+    private val kerf: Quantity<V>? = null
 ) {
 
     /**
@@ -282,10 +283,34 @@ class BottomUpLeftJustifiedAlgorithm<V : FloatingNumber<V>>(
             return false
         }
         for (other in placed) {
-            val overlapped = when (val result = placement.overlapped(other)) {
-                is Ok -> result.value
-                is Failed -> return false
-                is Fatal -> return false
+            // 刀缝双向检查：任一侧膨胀后相交，说明真实间隙小于 kerf。
+            // Kerf is checked in both directions: an intersection after inflating either side means that the real
+            // gap is below the kerf.
+            val overlapped = if (kerf != null && quantityIsPositive(kerf)) {
+                val forward = when (
+                    val result = placement.copy(shape = placement.shape.inflatedBy(kerf)).overlapped(other)
+                ) {
+                    is Ok -> result.value
+                    is Failed -> return false
+                    is Fatal -> return false
+                }
+                if (forward) {
+                    true
+                } else {
+                    when (
+                        val result = placement.overlapped(other.copy(shape = other.shape.inflatedBy(kerf)))
+                    ) {
+                        is Ok -> result.value
+                        is Failed -> return false
+                        is Fatal -> return false
+                    }
+                }
+            } else {
+                when (val result = placement.overlapped(other)) {
+                    is Ok -> result.value
+                    is Failed -> return false
+                    is Fatal -> return false
+                }
             }
             if (overlapped) {
                 return false

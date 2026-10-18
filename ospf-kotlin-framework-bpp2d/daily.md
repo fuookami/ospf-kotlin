@@ -223,10 +223,54 @@ git grep -n "Flt64" -- ospf-kotlin-framework-bpp2d/bpp2d-infrastructure `
 `RectangularPackingDemand.kt` 的 `.value!!` / `require` 属于既有兼容实现，为保持下游行为不变而保留在
 `@Deprecated` 桥接层，新代码一律使用 `Ret` / `Try`。
 
-### 8.9 遗留事项
+### 8.9 检验数定价与列筛选（2026-10-18 补齐）
 
-1. 尾板裁剪目前按「先放先得」顺序裁剪，未做按剩余需求选择最优尾板列的优化。
-2. 未接入 kerf（刀缝）、余料复用与异形件排样。
-3. 未实现基于检验数的列筛选（`filterByReducedCostWithResult` 为空，等价于接受全部候选），
-   当前依赖迭代上限控制规模。
-4. 未接入 bpp3d 那套 group/layer CSV 数据集协议，Gurobi 测试使用内存构造的小样例。
+此前 `filterByReducedCostWithResult` 为空，等价于接受全部候选，迭代只能靠上限截断。现已实现真正的定价：
+
+1. `ReducedCost.kt` 提供 `layerReducedCost` / `isImprovingColumn` / `reducedCostComparator`。
+   模型为 `min Σ_j area_j·y_j  s.t.  Σ_j a_ij·y_j ≥ d_i`，对偶 `π_i ≥ 0`，故
+   `rc_j = area_j·c_area − Σ_i π_i·a_ij`，只有 `rc_j < −tolerance` 的列才入模。
+2. `ColumnGenerationStandardExecutors.reducedCostFilter()` 把 RMP 对偶还原为类型化键并完成筛选；
+   `ColumnGenerationApplicationService` 已接线。
+3. 效果：LP 目标单调不增、无改进列时自然终止，不再依赖迭代上限。
+
+### 8.10 尾板优化（2026-10-18 补齐）
+
+`TailSheetOptimizer` 取代原「先放先得」裁剪：对剩余需求枚举全部候选列，按「覆盖件数最多 → 超出件数最少 →
+优先原列」重选尾板用列，再按剩余需求裁剪放置。测试覆盖了「换列后废弃件数从 6 降到 3」的场景。
+
+### 8.11 刀缝 kerf（2026-10-18 补齐）
+
+1. `infrastructure/Kerf.kt`：`inflatedBy` 按间距膨胀形状（矩形宽高各加 spacing；圆直径加 spacing）、
+   `pitchOf` 给出「包围尺寸 + spacing」节距、`zeroSpacingOf` 提供零间距。
+2. `Bpp2dLayerGenerationRequest.kerf` + `kerfSpacing(sample)`（不抛异常的零值回退），
+   以下路径全部按节距排布：图样、圆形直角/六角网格、简单块、复杂块、DFS、多行、BLA。
+3. `PackingGeometryGuard` 与 BLA 的可行性判定改为**双向膨胀**：只有把任一侧膨胀后仍相交，才算真实间隙小于 kerf。
+   单向膨胀只能发现一侧的间隙不足，会让 BLA 产生「贴边但不算重叠」的非法结果。
+4. `ColumnGenerationApplicationRequest.kerf` → 层生成请求与 `Packer` 的 guard 校验，端到端生效。
+
+### 8.12 余料报告（2026-10-18 补齐）
+
+`FreeSpaceAnalyzer` 按水平切片扣减已用区域，输出互不重叠的自由矩形 `Remnant2(sheetName, rectangle, area)`，
+按面积降序。`PackingResult.remnants` 承载结果，KPI 新增 `remnantCount` / `remnantArea`。
+**范围说明**：这是余料**报告**，不含跨工单余料库存与优先级复用（属仓储语义）。
+
+### 8.13 CSV 数据集协议（2026-10-18 补齐）
+
+`Bpp2dCsvDatasetLoader` 支持两种形态：
+
+1. `grouped-layer`：`group_index` / `layer_index` / `item_id` / `amount`；
+2. `material-width-amount`：`material` / `width` / `amount`。
+
+两种形态都支持二维专属列 `height_meter`、`radius_meter`、`shape_type`（`rectangle` / `circle`）、
+`allow_rotate`，以及可选的板材列 `sheet_width_meter` / `sheet_height_meter`。
+圆形件可用 `radius_meter` 直接给半径，也可用 `width` 作为直径推导半径。
+schema 门禁：重复列、未知列、必填列缺失、非法枚举、非正数、行内列数不匹配、同一物品几何不一致，
+全部以 `Ret` 拒绝而不抛异常。样例数据集位于 `bpp2d-application/src/test/resources/gurobi/`。
+
+### 8.14 仍未实现（明确非目标）
+
+1. 异形件（不规则多边形）排样：bpp3d 亦未提供；需要 NFP/no-fit polygon、连续旋转角度与几何布尔运算，
+   与现有「矩形 / 圆」抽象不是一个量级，作为独立能力另行设计。
+2. 跨工单余料库存与余料优先消耗。
+3. 多板材类型混合目标的额外权衡项（当前以板材数量为主目标）。

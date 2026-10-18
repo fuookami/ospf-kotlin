@@ -100,7 +100,7 @@ class BlLocalLayerGenerator<V : FloatingNumber<V>>(
 ) : Bpp2dLayerGenerator<V> {
     override fun generate(request: Bpp2dLayerGenerationRequest<V>): List<Bpp2dLayerGenerationResult<V>> {
         val sheet = request.sheet ?: return emptyList()
-        val blocks = when (val result = context.localBlocks(request.items, initialSpaceOf(sheet))) {
+        val blocks = when (val result = context.localBlocks(request.items, initialSpaceOf(sheet), kerf = request.kerf)) {
             is fuookami.ospf.kotlin.utils.functional.Ok -> result.value
             else -> return emptyList()
         }
@@ -129,7 +129,7 @@ class BlGlobalLayerGenerator<V : FloatingNumber<V>>(
 ) : Bpp2dLayerGenerator<V> {
     override fun generate(request: Bpp2dLayerGenerationRequest<V>): List<Bpp2dLayerGenerationResult<V>> {
         val sheet = request.sheet ?: return emptyList()
-        val blocks = when (val result = context.globalBlocks(request.items, initialSpaceOf(sheet))) {
+        val blocks = when (val result = context.globalBlocks(request.items, initialSpaceOf(sheet), kerf = request.kerf)) {
             is fuookami.ospf.kotlin.utils.functional.Ok -> result.value
             else -> return emptyList()
         }
@@ -161,7 +161,7 @@ class SpaceSplitLayerGenerator<V : FloatingNumber<V>>(
         val space = initialSpaceOf(sheet)
         val results = ArrayList<Bpp2dLayerGenerationResult<V>>()
 
-        when (val dfs = context.depthFirst(space, request.items)) {
+        when (val dfs = context.depthFirst(space, request.items, kerf = request.kerf)) {
             is fuookami.ospf.kotlin.utils.functional.Ok -> {
                 if (dfs.value.placements.isNotEmpty()) {
                     results.add(
@@ -180,7 +180,7 @@ class SpaceSplitLayerGenerator<V : FloatingNumber<V>>(
 
             else -> {}
         }
-        when (val multiRow = context.multiRow(space, request.items)) {
+        when (val multiRow = context.multiRow(space, request.items, kerf = request.kerf)) {
             is fuookami.ospf.kotlin.utils.functional.Ok -> {
                 if (multiRow.value.placements.isNotEmpty()) {
                     results.add(
@@ -217,7 +217,8 @@ class BlaLayerGenerator<V : FloatingNumber<V>>(
         val shape = Sheet2Shape(width = sheet.width, height = sheet.height)
         val layout = BottomUpLeftJustifiedAlgorithm(
             sheet = shape,
-            config = config
+            config = config,
+            kerf = request.kerf
         ).invoke(request.items)
         val result = when (layout) {
             is fuookami.ospf.kotlin.utils.functional.Ok -> layout.value
@@ -255,20 +256,24 @@ class PatternLayerGenerator<V : FloatingNumber<V>> : Bpp2dLayerGenerator<V> {
             }
             for (candidate in item.shape.candidateShapes(item.allowRotate)) {
                 val shape = candidate.shape
-                val cols = countFitting(sheet.width, shape.boundingWidth)
+                // 刀缝通过节距体现：相邻件按「包围尺寸 + kerf」推进，真实间隙恰为 kerf。
+                // The kerf is expressed through the pitch: neighbours advance by bounding size plus kerf, so the
+                // real gap is exactly the kerf.
+                val pitch = pitchOf(shape, request.kerfSpacing(shape.boundingWidth))
+                val cols = countFitting(sheet.width, pitch.x)
                 if (cols <= 0) {
                     continue
                 }
-                val rowWidth = scaledQuantity(shape.boundingWidth, cols)
-                val rows = countFitting(sheet.height, shape.boundingHeight)
+                val rowWidth = scaledQuantity(pitch.x, cols)
+                val rows = countFitting(sheet.height, pitch.y)
                 if (rows <= 0) {
                     continue
                 }
                 val placements = ArrayList<LayerPlacement2<V>>(cols * rows)
                 for (row in 0 until rows) {
-                    val y = scaledQuantity(shape.boundingHeight, row)
+                    val y = scaledQuantity(pitch.y, row)
                     for (col in 0 until cols) {
-                        val x = scaledQuantity(shape.boundingWidth, col)
+                        val x = scaledQuantity(pitch.x, col)
                         placements.add(
                             LayerPlacement2(
                                 shape = shape,
@@ -327,7 +332,7 @@ class CircleGridLayerGenerator<V : FloatingNumber<V>>(
             if (!item.isCircleItem()) {
                 continue
             }
-            for (layout in generator.invoke(item, sheet)) {
+            for (layout in generator.invoke(item, sheet, request.kerf)) {
                 if (layout.placements.isEmpty()) {
                     continue
                 }
@@ -406,7 +411,7 @@ class MixedShapeLayerGenerator<V : FloatingNumber<V>>(
                     typeCode = sheet.typeCode
                 )
                 for ((circle, _) in circles) {
-                    for (layout in generator.invoke(circle, upperSheet)) {
+                    for (layout in generator.invoke(circle, upperSheet, request.kerf)) {
                         val combined = ArrayList<LayerPlacement2<V>>(placements.size + layout.placements.size)
                         combined.addAll(placements)
                         for (placement in layout.placements) {

@@ -11,6 +11,7 @@ package fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.service
 
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.model.Block2
 import fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.model.Space2
@@ -35,7 +36,8 @@ class ComplexBlockGenerator {
     fun <V : FloatingNumber<V>> invoke(
         items: List<AbstractItem<V>>,
         space: Space2<V>,
-        withRotation: Boolean = true
+        withRotation: Boolean = true,
+        kerf: Quantity<V>? = null
     ): Ret<List<Block2<V>>> {
         if (space.isDegenerate() || items.isEmpty()) {
             return ok(emptyList())
@@ -60,13 +62,16 @@ class ComplexBlockGenerator {
                 ?: continue
 
             val shape = candidate.shape
-            val cols = countFitting(space.width, shape.boundingWidth)
+            // 刀缝通过节距体现。 / The kerf is expressed through the pitch.
+            val spacing = if (kerf != null && quantityIsPositive(kerf)) kerf else quantityZeroOf(shape.boundingWidth)
+            val pitch = pitchOf(shape, spacing)
+            val cols = countFitting(space.width, pitch.x)
             if (cols <= 0) {
                 continue
             }
-            val rowWidth = scaledQuantity(shape.boundingWidth, cols)
+            val rowWidth = scaledQuantity(pitch.x, cols)
             for (col in 0 until cols) {
-                val x = space.x + scaledQuantity(shape.boundingWidth, col)
+                val x = space.x + scaledQuantity(pitch.x, col)
                 placements.add(
                     LayerPlacement2(
                         shape = shape,
@@ -78,7 +83,7 @@ class ComplexBlockGenerator {
             }
             usedWidth = quantityMaxOf(usedWidth, rowWidth)
             sources.add(if (candidate.rotated) "complex-block-rotated" else "complex-block")
-            cursorY += shape.boundingHeight
+            cursorY += pitch.y
         }
 
         if (placements.isEmpty()) {

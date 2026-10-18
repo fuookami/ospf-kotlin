@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.model.Block2
 import fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.model.Space2
 import fuookami.ospf.kotlin.framework.bpp2d.domain.block_loading.service.*
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
 
@@ -44,11 +45,12 @@ class BlockLoadingContext<V : FloatingNumber<V>>(
     fun localBlocks(
         items: List<Pair<ActualItem<V>, Int>>,
         space: Space2<V>,
-        config: SimpleBlockConfig = SimpleBlockConfig()
+        config: SimpleBlockConfig = SimpleBlockConfig(),
+        kerf: Quantity<V>? = null
     ): Ret<List<Block2<V>>> {
         val blocks = ArrayList<Block2<V>>()
         for ((item, _) in items) {
-            when (val result = simpleBlockGenerator.invoke(item, space, config)) {
+            when (val result = simpleBlockGenerator.invoke(item, space, config, kerf)) {
                 is fuookami.ospf.kotlin.utils.functional.Ok -> blocks.addAll(result.value)
                 is fuookami.ospf.kotlin.utils.functional.Failed ->
                     return fuookami.ospf.kotlin.utils.functional.Failed(result.error)
@@ -72,12 +74,14 @@ class BlockLoadingContext<V : FloatingNumber<V>>(
     fun globalBlocks(
         items: List<Pair<ActualItem<V>, Int>>,
         space: Space2<V>,
-        withRotation: Boolean = true
+        withRotation: Boolean = true,
+        kerf: Quantity<V>? = null
     ): Ret<List<Block2<V>>> {
         return complexBlockGenerator.invoke(
             items = items.map { it.first },
             space = space,
-            withRotation = withRotation
+            withRotation = withRotation,
+            kerf = kerf
         )
     }
 
@@ -92,12 +96,14 @@ class BlockLoadingContext<V : FloatingNumber<V>>(
     fun depthFirst(
         space: Space2<V>,
         items: List<Pair<ActualItem<V>, Int>>,
-        maxDepth: Int = 8
+        maxDepth: Int = 8,
+        kerf: Quantity<V>? = null
     ): Ret<SpaceSplit2Result<V>> {
         return depthFirstSearch.invoke(
             space = space,
             items = items,
-            maxDepth = maxDepth
+            maxDepth = maxDepth,
+            kerf = kerf
         )
     }
 
@@ -112,12 +118,14 @@ class BlockLoadingContext<V : FloatingNumber<V>>(
     fun multiRow(
         space: Space2<V>,
         items: List<Pair<ActualItem<V>, Int>>,
-        maxRows: Int = 32
+        maxRows: Int = 32,
+        kerf: Quantity<V>? = null
     ): Ret<SpaceSplit2Result<V>> {
         return multiRowSearch.invoke(
             space = space,
             items = items,
-            maxRows = maxRows
+            maxRows = maxRows,
+            kerf = kerf
         )
     }
 }

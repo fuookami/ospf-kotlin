@@ -28,6 +28,7 @@ import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.ItemId
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetType
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.SheetTypeId
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.circleShape2
+import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.inflatedBy
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.rectangleShape2
 
 /**
@@ -189,6 +190,100 @@ class GurobiColumnGeneration2DTest {
             kpi.areaUtilization > FltX.zero && kpi.areaUtilization <= FltX.one,
             "面积利用率应落在 (0, 1] / area utilisation must be within (0, 1], got ${kpi.areaUtilization}"
         )
+    }
+
+    /**
+     * 从 CSV 数据集加载并求解。 / Load a dataset from CSV and solve it.
+     *
+     * @param resource CSV 资源名 / CSV resource name
+     * @return 应用响应或失败 / application response, or failure
+    */
+    private fun solveFromCsv(resource: String): Ret<ColumnGenerationApplicationResponse> {
+        val text = javaClass.classLoader.getResource(resource)
+            ?.readText()
+            ?: return Failed(
+                fuookami.ospf.kotlin.utils.error.ErrorCode.IllegalArgument,
+                "CSV 资源不存在：$resource / CSV resource not found: $resource"
+            )
+        val dataset = when (val loaded = Bpp2dCsvDatasetLoader().load(text)) {
+            is Ok -> loaded.value
+            is Failed -> return Failed(loaded.error)
+            is Fatal -> return Fatal(loaded.errors)
+        }
+        val service = ColumnGenerationApplicationService(solver = GurobiDelegatingColumnGenerationSolver())
+        return runBlocking {
+            service.solve(
+                ColumnGenerationApplicationRequest(
+                    items = dataset.items.toMap(),
+                    itemCatalog = dataset.items.associate { it.first.id to it.first },
+                    sheetTypes = dataset.sheetTypes,
+                    iterationLimit = 12,
+                    maxColumnsPerIteration = 12
+                )
+            )
+        }
+    }
+
+    @Test
+    fun gurobiSolvesGroupedLayerCsvDataset() {
+        val response = solveFromCsv("gurobi/grouped-layer-2d.csv").valueOrFail()
+        assertTrue(response.result.finalSolved, "最终 MILP 应被求解 / the final MILP must be solved")
+        assertTrue(response.packing!!.aggregation.bins.isNotEmpty(), "CSV 数据集应产出板材")
+        assertTrue(response.kpi!!.itemCount > 0, "CSV 数据集应产出物品")
+    }
+
+    @Test
+    fun gurobiSolvesMaterialWidthAmountCsvDataset() {
+        val response = solveFromCsv("gurobi/material-width-amount-2d.csv").valueOrFail()
+        assertTrue(response.result.finalSolved, "最终 MILP 应被求解 / the final MILP must be solved")
+        assertTrue(response.kpi!!.rectangleCount > 0, "应出现矩形件 / rectangle items are expected")
+        assertTrue(response.kpi!!.circleCount > 0, "应出现圆形件 / circle items are expected")
+    }
+
+    @Test
+    fun gurobiProducesRemnantReport() {
+        val items = listOf(rectangleItem("REM", 4.0, 3.0) to UInt64(2))
+        val service = ColumnGenerationApplicationService(solver = GurobiDelegatingColumnGenerationSolver())
+        val response = runBlocking { service.solve(request(items)) }.valueOrFail()
+
+        val kpi = response.kpi!!
+        assertTrue(kpi.remnantCount > 0, "应产生余料矩形 / remnant rectangles are expected")
+        assertTrue(kpi.remnantArea > FltX.zero, "余料面积应为正 / remnant area must be positive")
+        assertTrue(
+            kpi.remnantArea + kpi.actualArea <= kpi.sheetArea + FltX(1e-6),
+            "余料与占用面积之和不应超过板材面积 / remnant plus actual area must not exceed the sheet area"
+        )
+    }
+
+    @Test
+    fun gurobiRespectsKerfSpacing() {
+        val items = listOf(rectangleItem("K", 2.0, 1.0) to UInt64(8))
+        val requestWithKerf = ColumnGenerationApplicationRequest(
+            items = items.toMap(),
+            itemCatalog = items.associate { it.first.id to it.first },
+            sheetTypes = listOf(sheetType(20.0, 12.0)),
+            iterationLimit = 8,
+            maxColumnsPerIteration = 8,
+            kerf = FltX(0.5) * Meter
+        )
+        val service = ColumnGenerationApplicationService(solver = GurobiDelegatingColumnGenerationSolver())
+        val response = runBlocking { service.solve(requestWithKerf) }.valueOrFail()
+
+        assertTrue(response.packing!!.aggregation.bins.isNotEmpty(), "带刀缝时应产出板材")
+        val kerf = FltX(0.5) * Meter
+        for (bin in response.packing!!.aggregation.bins) {
+            for (i in bin.items.indices) {
+                for (j in i + 1 until bin.items.size) {
+                    val lhs = bin.items[i].placement
+                    val rhs = bin.items[j].placement
+                    val forward = lhs.copy(shape = lhs.shape.inflatedBy(kerf))
+                        .overlapped(rhs).valueOrFail()
+                    val backward = lhs.overlapped(rhs.copy(shape = rhs.shape.inflatedBy(kerf)))
+                        .valueOrFail()
+                    assertTrue(!forward && !backward, "刀缝不足 / insufficient kerf in ${bin.name}")
+                }
+            }
+        }
     }
 
     @Test

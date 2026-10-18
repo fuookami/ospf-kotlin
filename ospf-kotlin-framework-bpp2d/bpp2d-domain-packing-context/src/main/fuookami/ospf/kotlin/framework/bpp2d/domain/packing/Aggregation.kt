@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp2d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp2d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp2d.domain.packing.service.Remnant2
 
 /**
  * 已装箱物品：放置信息与装载顺序。 / Packed item: the placement plus its loading order.
@@ -92,10 +93,12 @@ data class MaterialSummary(
  *
  * @property aggregation 所有板材的装箱聚合 / packing aggregation over all sheets
  * @property materialSummary 物料使用汇总 / material usage summary
+ * @property remnants 每块板材的余料矩形 / remnant rectangles per sheet
  * @property info 附加键值信息 / additional key-value information
 */
 data class PackingResult(
     val aggregation: PackingAggregation,
     val materialSummary: List<MaterialSummary> = emptyList(),
+    val remnants: List<Remnant2> = emptyList(),
     val info: Map<String, String> = emptyMap()
 )
