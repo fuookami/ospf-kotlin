@@ -58,7 +58,11 @@ class SimpleBlockGenerator {
             return ok(emptyList())
         }
         val blocks = ArrayList<Block2<V>>()
-        for (candidate in item.shape.candidateShapes(config.withRotation)) {
+        // 旋转候选同时受配置与物品自身许可约束：只检查 config 会让未允许旋转的物品产出旋转块，
+        // 与 requireRotationAllowed 的守卫语义自相矛盾。
+        // Rotated candidates require both the config and the item's own allowance: checking only the config
+        // would let an item that disallows rotation yield rotated blocks, contradicting requireRotationAllowed.
+        for (candidate in item.shape.candidateShapes(config.withRotation && item.allowRotate)) {
             val shape = candidate.shape
             // 刀缝通过节距体现：相邻件按「包围尺寸 + kerf」推进。
             // The kerf is expressed through the pitch: neighbours advance by bounding size plus kerf.

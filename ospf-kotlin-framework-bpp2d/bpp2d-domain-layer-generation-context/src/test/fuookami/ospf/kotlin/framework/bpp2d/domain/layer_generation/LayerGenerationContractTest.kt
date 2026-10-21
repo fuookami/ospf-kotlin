@@ -65,15 +65,58 @@ class CircleGridGeneratorContractTest {
             for (placement in layout.placements) {
                 assertTrue(placement.insideSheet(target).valueOrFail())
             }
+            // 圆网格必须按**圆心距**判定重叠：外接正方形对六角网格过严，斜向相邻的两圆
+            // 其外接方块必然相交，但圆本身并不重叠。
+            // Circle grids must be validated by **centre distance**: the enclosing square is too strict for a
+            // hex grid because diagonally adjacent circles have intersecting bounding squares while the circles
+            // themselves do not overlap.
+            // 用平方距离比较，避免对泛型数值开方：圆心距² 必须不小于直径²。
+            // Compare squared distances to avoid taking a root on a generic value: the squared centre distance
+            // must be at least the squared diameter.
+            val diameter = layout.placements.first().width.value
+            val diameterSquared = diameter * diameter
             for (i in layout.placements.indices) {
                 for (j in i + 1 until layout.placements.size) {
+                    val dx = layout.placements[i].x.value - layout.placements[j].x.value
+                    val dy = layout.placements[i].y.value - layout.placements[j].y.value
+                    val distanceSquared = dx * dx + dy * dy
                     assertTrue(
-                        !layout.placements[i].overlapped(layout.placements[j]).valueOrFail(),
-                        "网格 ${layout.mode} 中第 $i 与第 $j 个圆重叠"
+                        distanceSquared >= diameterSquared,
+                        "网格 ${layout.mode} 中第 $i 与第 $j 个圆重叠：圆心距² $distanceSquared < 直径² $diameterSquared"
                     )
                 }
             }
         }
+    }
+
+    @Test
+    fun hexRowPitchScalesWithDiameter() {
+        // 行距必须是 26/30·d 而非常量 0.8667：用两种直径验证行距随之翻倍。
+        // The row pitch must be 26/30·d rather than the constant 0.8667: two diameters must double it.
+        val generator = CircleGridGenerator()
+        val small = generator.invoke(circleItem("small", 0.5), sheet(10.0, 10.0))
+            .first { it.mode == CircleGridMode.HexGrid }
+        val large = generator.invoke(circleItem("large", 1.0), sheet(20.0, 20.0))
+            .first { it.mode == CircleGridMode.HexGrid }
+
+        val smallRowPitch = rowPitchOf(small)
+        val largeRowPitch = rowPitchOf(large)
+        assertTrue(
+            kotlin.math.abs(largeRowPitch - smallRowPitch * 2.0) < 1e-6,
+            "行距必须随直径缩放：small=$smallRowPitch, large=$largeRowPitch"
+        )
+        // 且行距略大于 √3/2·d（保守，保证斜向相邻不重叠）。
+        // It must also slightly exceed √3/2·d (conservative, so diagonal neighbours never overlap).
+        assertTrue(
+            smallRowPitch > 0.866025 * 1.0 - 1e-9,
+            "行距应不小于 √3/2·d：$smallRowPitch"
+        )
+    }
+
+    /** 由六角布局反推行距。 / Derive the row pitch from a hex layout. */
+    private fun rowPitchOf(layout: CircleGridLayout<FltX>): Double {
+        val ys = layout.placements.map { it.y.value.toDouble() }.distinct().sorted()
+        return if (ys.size >= 2) (ys[1] - ys[0]) else 0.0
     }
 
     @Test

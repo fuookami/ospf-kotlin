@@ -203,17 +203,48 @@ class CircleGridGenerator {
     /**
      * 计算六角网格行距 `26/30·d`。 / Compute the hexagonal row pitch `26/30·d`.
      *
+     * 必须用**标量比** `26/30` 去缩放直径量，而不是「26d / 30d」：后者得到一个无量纲的 0.8667，
+     * 只在 `d = 1` 时碰巧正确。修正前在 10×8 板材、直径 2 的圆形件上，相邻圆心距仅 1.32（小于直径 2），
+     * 会实际产出重叠的圆。
+     * / The diameter must be scaled by the **scalar ratio** `26/30`, not written as "26d / 30d": the latter
+     * yields the dimensionless 0.8667 and is only accidentally correct when `d = 1`. Before the fix, on a
+     * 10×8 sheet with diameter 2, adjacent centres were only 1.32 apart (below the diameter 2), which actually
+     * produced overlapping circles.
+     *
      * @param V 数值类型 / numeric type
      * @param diameter 直径 / diameter
      * @return 行距 / row pitch
     */
     private fun <V : FloatingNumber<V>> hexRowPitch(diameter: Quantity<V>): Quantity<V> {
-        val numerator = scaledQuantity(diameter, HEX_PITCH_NUMERATOR)
-        val denominator = scaledQuantity(diameter, HEX_PITCH_DENOMINATOR)
-        if (!quantityIsPositive(denominator)) {
+        if (!quantityIsPositive(diameter)) {
             return quantityZeroOf(diameter)
         }
-        return numerator / denominator.value
+        // 用标量比 26/30 缩放直径量：结果仍是长度量，等于 0.8667·d。
+        // Scale the diameter by the scalar ratio 26/30: the result is still a length and equals 0.8667·d.
+        val numerator = integerScalarOf(diameter.value, HEX_PITCH_NUMERATOR)
+        val denominator = integerScalarOf(diameter.value, HEX_PITCH_DENOMINATOR)
+        if (!quantityIsPositive(Quantity(denominator, diameter.unit))) {
+            return quantityZeroOf(diameter)
+        }
+        // `Quantity * 标量` 保留单位；标量比 26/30 因此把直径量缩放为 0.8667·d。
+        // `Quantity * scalar` keeps the unit, so the scalar ratio 26/30 scales the diameter to 0.8667·d.
+        return (diameter * (numerator / denominator)) ?: quantityZeroOf(diameter)
+    }
+
+    /**
+     * 由样本数值构造整数标量。 / Build an integer scalar from the sample value.
+     *
+     * @param V 数值类型 / numeric type
+     * @param sample 样本数值 / sample value
+     * @param times 倍数 / multiplier
+     * @return 标量 / scalar
+    */
+    private fun <V : FloatingNumber<V>> integerScalarOf(sample: V, times: Int): V {
+        var acc = sample.constants.zero
+        for (index in 0 until times) {
+            acc += sample.constants.one
+        }
+        return acc
     }
 
     companion object {

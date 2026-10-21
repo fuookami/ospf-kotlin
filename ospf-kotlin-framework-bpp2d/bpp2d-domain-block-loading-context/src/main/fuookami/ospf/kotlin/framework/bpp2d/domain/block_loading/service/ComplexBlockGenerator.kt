@@ -56,7 +56,9 @@ class ComplexBlockGenerator {
             if (!quantityIsPositive(remainingHeight)) {
                 break
             }
-            val candidate = item.shape.candidateShapes(withRotation)
+            // 与 SimpleBlockGenerator 一致：配置与物品许可必须同时成立。
+            // Consistent with SimpleBlockGenerator: the config and the item's allowance must both hold.
+            val candidate = item.shape.candidateShapes(withRotation && item.allowRotate)
                 .filter { space.enabled(it.shape) }
                 .filter { quantityLessOrEqual(it.shape.boundingHeight, remainingHeight) }
                 .maxByQuantityOrNull { it.shape.boundingWidth }

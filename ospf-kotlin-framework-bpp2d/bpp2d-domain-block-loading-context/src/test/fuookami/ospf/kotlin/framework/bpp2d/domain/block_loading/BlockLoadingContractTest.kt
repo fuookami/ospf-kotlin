@@ -92,6 +92,28 @@ class BlockGeneratorContractTest {
     }
 
     @Test
+    fun rotatedCandidatesRequireBothConfigAndItemAllowance() {
+        // 配置允许旋转，但物品自身不允许：不得产出旋转块。
+        // The config allows rotation but the item does not: no rotated block may be produced.
+        val generator = SimpleBlockGenerator()
+        val fixed = rectangleItem("fixed", 3.0, 1.0, allowRotate = false)
+        val blocks = generator.invoke(fixed, space(6.0, 3.0)).valueOrFail()
+        assertTrue(
+            blocks.none { it.source.contains("rotated") },
+            "未允许旋转的物品不得产出旋转块：${blocks.map { it.source }}"
+        )
+
+        // 配置与物品都允许：应产出旋转块。
+        // Both the config and the item allow it: a rotated block must appear.
+        val rotatable = rectangleItem("rot", 3.0, 1.0, allowRotate = true)
+        val rotatedBlocks = generator.invoke(rotatable, space(6.0, 3.0)).valueOrFail()
+        assertTrue(
+            rotatedBlocks.any { it.source.contains("rotated") },
+            "允许旋转时应产出旋转块：${rotatedBlocks.map { it.source }}"
+        )
+    }
+
+    @Test
     fun simpleBlockFillsWholeRows() {
         val generator = SimpleBlockGenerator()
         val item = rectangleItem("a", 2.0, 1.0)

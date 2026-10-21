@@ -114,9 +114,11 @@ open class ShelfPatternGenerator2<V : FloatingNumber<V>>(
             rows.add(row)
             usedHeight = row.y + row.height
             cursorY = row.y + row.height + kerf
-            if (rows.size >= request.maxCandidates) {
-                break
-            }
+            // `maxCandidates` 限制的是**产出图案数**而不是行数：行仍须铺满料域，
+            // 否则「最大候选数」这个名字与行为不符，列生成也拿不到足够的候选。
+            // `maxCandidates` bounds the number of **emitted patterns**, not the rows: rows must still fill the
+            // region, otherwise the name and the behaviour disagree and column generation gets too few
+            // candidates.
         }
         if (rows.isEmpty()) {
             return ok(emptyList())
@@ -137,30 +139,47 @@ open class ShelfPatternGenerator2<V : FloatingNumber<V>>(
             return ok(emptyList())
         }
 
-        val cutTree = if (request.process.requiresCutTree) {
-            when (val tree = buildCutTree(region = region, rows = rows, kerf = kerf)) {
-                is Ok -> tree.value
-                is Failed -> return Failed(tree.error)
-                is Fatal -> return Fatal(tree.errors)
+        // 每个前缀行数产出一个候选图案，便于主问题按覆盖量取舍。
+        // 候选过多时保留覆盖最大的若干个：前缀越长覆盖越多，因此保留末尾。
+        // Emit one candidate per prefix row count so the master can trade coverage against waste. When there are
+        // too many candidates keep the largest ones: longer prefixes cover more, so the tail is kept.
+        val limit = request.maxCandidates.coerceAtLeast(1)
+        val firstPrefix = (rows.size - limit).coerceAtLeast(0)
+        val results = ArrayList<PatternGenerationResult2<V>>()
+        for (prefix in (firstPrefix + 1)..rows.size) {
+            val selected = rows.subList(0, prefix)
+            val prefixHeight = selected.last().y + selected.last().height
+            val prefixRegion = if (material.height != null) {
+                region
+            } else {
+                region2Of(x = zero, y = zero, width = material.width, height = prefixHeight)
             }
-        } else {
-            null
+            val prefixPlacements = selected.flatMap { it.pieces }
+            val prefixTree = if (request.process.requiresCutTree) {
+                when (val tree = buildCutTree(region = prefixRegion, rows = selected, kerf = kerf)) {
+                    is Ok -> tree.value
+                    is Failed -> return Failed(tree.error)
+                    is Fatal -> return Fatal(tree.errors)
+                }
+            } else {
+                null
+            }
+            val prefixPattern = Pattern2(
+                id = patternId2Of("$source-${request.iteration}-$prefix"),
+                material = material,
+                region = prefixRegion,
+                placements = prefixPlacements,
+                cutTree = prefixTree,
+                process = request.process
+            )
+            when (val checked = prefixPattern.validate(kerf)) {
+                is Ok -> {}
+                is Failed -> return Failed(checked.error)
+                is Fatal -> return Fatal(checked.errors)
+            }
+            results.add(PatternGenerationResult2(pattern = prefixPattern, source = source))
         }
-
-        val pattern = Pattern2(
-            id = patternId2Of("$source-${request.iteration}-${rows.size}"),
-            material = material,
-            region = region,
-            placements = placements,
-            cutTree = cutTree,
-            process = request.process
-        )
-        when (val checked = pattern.validate(kerf)) {
-            is Ok -> {}
-            is Failed -> return Failed(checked.error)
-            is Fatal -> return Fatal(checked.errors)
-        }
-        return ok(listOf(PatternGenerationResult2(pattern = pattern, source = source)))
+        return ok(results)
     }
 
     /**
@@ -188,7 +207,12 @@ open class ShelfPatternGenerator2<V : FloatingNumber<V>>(
     ): Row<V>? {
         val seed = ordered.firstOrNull { left(it, remaining) > 0 } ?: return null
         val rowHeight = seed.height
-        if (quantityGreater(y + rowHeight, regionHeight)) {
+        // 判定必须按「行距 = 行高 + 刀缝」而非裸行高：一行占用它自己的刀缝，
+        // 只用行高比较会把最后一行挤出料域（料域只装得下 6 件时却产出 9 件）。
+        // The check must use the row pitch (row height plus kerf) rather than the bare height: a row occupies its
+        // own kerf, and comparing the height alone pushes the last row out of the region (producing 9 pieces in a
+        // region that only holds 6).
+        if (quantityGreater(y + rowHeight + kerf, regionHeight)) {
             return null
         }
 

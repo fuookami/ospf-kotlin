@@ -115,6 +115,33 @@ class PatternGenerationContractTest {
     }
 
     @Test
+    fun rowPitchIncludesKerfSoTheLastRowNeverOverflows() {
+        // 板材 10×8、件 2×2、刀缝 1：行距 3，只装得下 2 行（6 件）。
+        // 若按裸行高判定会挤进第 3 行（9 件），超出板高。
+        // Sheet 10×8, pieces 2×2, kerf 1: the row pitch is 3, so only two rows (6 pieces) fit. Checking the bare
+        // height instead would force a third row (9 pieces) past the sheet height.
+        val results = ShelfPatternGenerator2<Flt64>(sameHeightRows = true)
+            .generate(
+                request(
+                    material = sheet(width = 10.0, height = 8.0),
+                    products = listOf(product("P1", 2.0, 2.0) to UInt64(20uL)),
+                    kerf = 1.0
+                )
+            )
+            .valueOrFail()
+
+        val pattern = results.last().pattern
+        assertEquals(6, pattern.placements.size, "行距含刀缝后只应放 6 件")
+        val sheetShape = Sheet2Shape(width = meter(10.0), height = meter(8.0))
+        for (placement in pattern.placements) {
+            assertTrue(
+                placement.insideSheet(sheetShape).valueOrFail(),
+                "放置不得越出板材：y=${placement.y.value}"
+            )
+        }
+    }
+
+    @Test
     fun mixedHeightShelfIsNotATwoStageGuillotine() {
         // 混高行需要第三刀才能把件与上方余料分开，因此两级断头台必须拒绝这种布局。
         // A mixed-height row needs a third cut to separate the piece from the waste above it, so a two-stage guillotine
@@ -217,12 +244,40 @@ class PatternGenerationContractTest {
                 )
             )
             .valueOrFail()
-        val pattern = results.first().pattern
+        // 生成器按前缀行数产出多个候选，覆盖最全的是最后一个。
+        // The generator emits one candidate per prefix row count, and the last one covers the most.
+        val pattern = results.last().pattern
         assertEquals(3, pattern.placements.size)
         assertEquals(60.0, pattern.region.height.value.toDouble(), 1e-9)
         assertEquals(100.0, pattern.region.width.value.toDouble(), 1e-9)
         // 卷材段高即为消耗长度，不需要额外料域。 / The coil segment height is the consumed length, so no extra region.
         assertTrue(pattern.validate(meter(0.0)) is Ok)
+    }
+
+    @Test
+    fun maxCandidatesBoundsEmittedPatternsNotRows() {
+        // `maxCandidates` 限制的是产出图案数：板材 10×8、件 2×2 共 20 件应铺满 4 行，
+        // 上限 2 时只输出末尾（覆盖最大）的 2 个前缀，而不是把行数截成 2。
+        // `maxCandidates` bounds the number of emitted patterns: a 10×8 sheet with twenty 2×2 pieces fills four
+        // rows, and a limit of 2 emits only the two largest trailing prefixes instead of truncating the rows to
+        // two.
+        val results = ShelfPatternGenerator2<Flt64>(sameHeightRows = true)
+            .generate(
+                request(
+                    material = sheet(width = 10.0, height = 8.0),
+                    products = listOf(product("P1", 2.0, 2.0) to UInt64(20uL))
+                ).copy(maxCandidates = 2)
+            )
+            .valueOrFail()
+
+        assertEquals(2, results.size)
+        // 前缀件数应为 15 与 20（每行 5 件）。
+        // The prefixes hold 15 and 20 pieces (five per row).
+        assertEquals(15, results[0].pattern.placements.size)
+        assertEquals(20, results[1].pattern.placements.size)
+        // 覆盖最全的候选必须铺满 4 行。
+        // The widest candidate must fill all four rows.
+        assertEquals(8.0, results[1].pattern.region.height.value.toDouble(), 1e-9)
     }
 
     @Test
