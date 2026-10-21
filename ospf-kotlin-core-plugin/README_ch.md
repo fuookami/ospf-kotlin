@@ -58,22 +58,47 @@ Optional interval 和 variable duration 在 MIP-backed 路径上是精确支持�
 
 ### 元启发式算法
 
-| 模块 | 算法 | 状态 | 说明 |
-|------|------|------|------|
-| `ospf-kotlin-core-plugin-heuristic` | GA | :white_check_mark: | 遗传算法——选择、交叉、变异、迁移 |
-| | PSO | :white_check_mark: | 粒子群优化——惯性权重、加速 |
-| | GWO | :white_check_mark: | 灰狼优化器——alpha/beta/delta 领导层次 |
-| | SCA | :white_check_mark: | 正弦余弦算法——正弦余弦位置更新 |
-| | SAA | :white_check_mark: | 模拟退火算法——温度调度 |
-| | MVO | :white_check_mark: | 多元宇宙优化器——白洞/虫洞穿越 |
-| | EVO | :construction: | 能量谷优化器 |
-| | GCO | :construction: | 生发中心优化器 |
-| | HCA | :construction: | 爬山算法 |
-| | HS | :construction: | 和声搜索算法 |
-| | NS | :construction: | 邻域搜索算法 |
-| | SOA | :construction: | 海鸥优化算法 |
-| | WarSO | :construction: | 战争策略优化算法 |
-| | WCA | :construction: | 水循环算法 |
+下面每个算法都是「一条生命周期骨架 + 无状态算子」的**组合**，均通过 `ComposedSolvers`
+（以及 `MultiObjectiveSolvers` / `MemeticSolvers`）提供。
+
+| 模块 | 算法 | 求解器名 | 说明 |
+|------|------|----------|------|
+| `ospf-kotlin-core-plugin-heuristic` | GA | `genetic` | 遗传算法——交叉、变异、精英保留 |
+| | 岛模型 GA | `island-ga` | 多子种群 + 迁移 |
+| | PSO | `pso` | 粒子群优化——惯性权重、学习因子 |
+| | APSO | `apso` | 自适应 PSO——权重随迭代变化 |
+| | CLPSO | `clpso` | 综合学习 PSO——分维度学习 |
+| | GWO | `gwo` | 灰狼优化器——alpha/beta/delta 层次 |
+| | SCA | `sca` | 正弦余弦算法 |
+| | MVO | `mvo` | 多元宇宙优化器——白洞/虫洞穿越 |
+| | DE | `de` | 差分进化 |
+| | HS | `hs` | 和声搜索 |
+| | WCA | `wca` | 水循环算法 |
+| | SOA | `soa` | 海鸥优化算法 |
+| | NS | `ns` | 邻域搜索 |
+| | WarSO | `warso` | 战争策略优化 |
+| | EVO | `evo` | 能量谷优化器 |
+| | GCO | `gco` | 生发中心优化器 |
+| | WOA | `woa` | 鲸鱼优化算法 |
+| | HHO | `hho` | 哈里斯鹰优化 |
+| | AOA | `aoa` | 算术优化算法 |
+| | TLBO | `tlbo` | 教与学优化 |
+| | SSA | `ssa` | 樽海鞘群算法 |
+| | GSA | `gsa` | 引力搜索算法 |
+| | FA | `fa` | 萤火虫算法 |
+| | CS | `cs` | 布谷鸟搜索 |
+| | BA | `ba` | 蝙蝠算法 |
+| | MFO | `mfo` | 飞蛾扑火优化 |
+| | GOA | `goa` | 蚱蜢优化算法 |
+| | SHADE | `shade` | 成功历史自适应差分进化 |
+| | L-SHADE | `l-shade` | 带线性种群缩减的 SHADE |
+| | CMA-ES | `cma-es` | 协方差矩阵自适应演化策略 |
+| | SA | `simulated-annealing` | 模拟退火——Metropolis 判据 |
+| | HC | `hill-climbing` | 爬山算法 |
+| | RW | `random-walk` | 随机游走 |
+| | Q 学习 | `q-learning` | Q 学习驱动的算子选择 |
+
+多目标求解器（NSGA-II、NSGA-III）位于 `MultiObjectiveSolvers`；记忆型变体位于 `MemeticSolvers`。
 
 ## 通用插件架构
 
@@ -120,27 +145,30 @@ Optional interval 和 variable duration 在 MIP-backed 路径上是精确支持�
 
 ## 启发式算法架构
 
-启发式模块实现了**策略驱动**设计：
+启发式模块通过**生命周期骨架 + 无状态算子**组合出算法：
 
 ```
 ┌────────────────────────────────────────────┐
-│  {Algorithm}Algorithm                      │  主算法运行器
-│    ├─ policy: Abstract{Algorithm}Policy    │  策略接口
-│    ├─ invoke(model, runningCallBack)       │  执行算法
-│    └─ 迭代跟踪、优良解维护                   │
+│  ComposedSolvers / {算法}门面               │  组装层
+│    └─ 算法 = 骨架 + 算子                    │  无算法专属循环
 ├────────────────────────────────────────────┤
-│  {Algorithm}Policy                         │  具体策略
-│    ├─ HeuristicPolicy (base)               │  迭代/时间限制
-│    └─ AbstractHeuristicPolicy              │  coerceIn、update、finished
+│  AbstractRunner（runner/）                  │  生命周期骨架
+│    ├─ initialize / advance / membersOf     │  三个钩子
+│    └─ 迭代、档案、终止判据、回调             │  由骨架持有
 ├────────────────────────────────────────────┤
-│  Population / Particle / Wolf / Chromosome │  个体表示
-│    └─ Individual<ObjValue, V>              │  公共接口
+│  operator/（17 族）                         │  步进算子
+│    └─ update · survivor · topology · …     │  无状态、可共享
+├────────────────────────────────────────────┤
+│  Individual<ObjValue, V>                   │  公共接口
 └────────────────────────────────────────────┘
 ```
 
+新增算法要么挑选已有算子（`ComposedSolvers`），要么在循环形态确实不同时继承 `AbstractRunner`
+——复制既有循环不是推荐做法。
+
 所有启发式算法支持：
 - **泛型值类型** — 适用于任何 `RealNumber<V>` + `NumberField<V>`
-- **单目标和多目标** — 通过类型别名（`GA` / `MulObjGA`）
+- **单目标和多目标** — 单目标求解器共享一个档案，多目标使用基于 Pareto 的骨架
 - **迭代和时间限制** — 可配置的停止准则
 - **运行回调** — 每次迭代观察进度
 - **内存压力处理** — 迭代间自动清理

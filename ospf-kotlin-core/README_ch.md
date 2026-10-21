@@ -12,7 +12,7 @@ ospf-kotlin-core 是 OSPF（Open Solver Platform Framework）Kotlin 项目的**�
 1. 变量和令牌系统。
 2. 符号表达式和函数符号系统。
 3. `MetaModel`、机制模型、中间标准形式模型和回调模型层。
-4. 求解器 trait、选项、输出、值转换、启发式接口、IIS 诊断和求解器后端插件。
+4. 求解器 trait、选项、输出、值转换、IIS 诊断和求解器后端插件。
 5. 约束规划模型、快照、会话和 MIP 支持的降阶。
 
 明确非目标：
@@ -46,7 +46,7 @@ ospf-kotlin-core 是 OSPF（Open Solver Platform Framework）Kotlin 项目的**�
 | `token` | Token 管理——变量-求解器映射、双视图结果、多级缓存 | [README](src/main/fuookami/ospf/kotlin/core/token/README_ch.md) |
 | `symbol` | 中间符号系统——表达式、符号组合和函数符号 | [README](src/main/fuookami/ospf/kotlin/core/symbol/README_ch.md) |
 | `model` | 优化模型生命周期——MetaModel → MechanismModel → Triad/TetradModel → Solver | [README](src/main/fuookami/ospf/kotlin/core/model/README_ch.md) |
-| `solver` | 求解器抽象——线性/二次求解器、启发式、IIS 诊断、输出 | [README](src/main/fuookami/ospf/kotlin/core/solver/README_ch.md) |
+| `solver` | 求解器抽象——线性/二次求解器、IIS 诊断、输出 | [README](src/main/fuookami/ospf/kotlin/core/solver/README_ch.md) |
 | `error` | 核心错误码定义 | — |
 
 ## 约束规划
@@ -128,7 +128,6 @@ CP 模型元素具有显式身份作用域。跨模型重建需要使用调用�
 | 子包 | 说明 |
 |------|------|
 | `config` | 求解器特定配置（COPT、Gurobi、SCIP） |
-| `heuristic` | 元启发式框架（PSO、选择、交叉、变异） |
 | `iis` | 不可约不可行子系统诊断 |
 | `output` | 求解器输出数据结构（可行/不可行） |
 | `value` | 值类型转换（IntoValue 接口） |

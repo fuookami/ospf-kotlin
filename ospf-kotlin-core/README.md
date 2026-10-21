@@ -13,7 +13,7 @@ This module covers:
 1. Variable and token systems.
 2. Symbolic expression and function-symbol systems.
 3. `MetaModel`, mechanism model, intermediate standard-form models, and callback model layers.
-4. Solver traits, options, outputs, value conversion, heuristic interfaces, IIS diagnostics, and solver backend plugins.
+4. Solver traits, options, outputs, value conversion, IIS diagnostics, and solver backend plugins.
 5. Constraint-programming models, snapshots, sessions, and MIP-backed lowering.
 
 Explicit non-goals:
@@ -47,7 +47,7 @@ Explicit non-goals:
 | `token` | Token management — variable-solver mapping, dual-view results, multi-level caching | [README](src/main/fuookami/ospf/kotlin/core/token/README.md) |
 | `symbol` | Intermediate symbol system — expressions, combinations, and function symbols | [README](src/main/fuookami/ospf/kotlin/core/symbol/README.md) |
 | `model` | Optimization model lifecycle — MetaModel → MechanismModel → Triad/TetradModel → Solver | [README](src/main/fuookami/ospf/kotlin/core/model/README.md) |
-| `solver` | Solver abstraction — linear/quadratic solvers, heuristics, IIS diagnostics, output | [README](src/main/fuookami/ospf/kotlin/core/solver/README.md) |
+| `solver` | Solver abstraction — linear/quadratic solvers, IIS diagnostics, output | [README](src/main/fuookami/ospf/kotlin/core/solver/README.md) |
 | `error` | Core error code definitions | — |
 
 ## Public API
@@ -144,7 +144,6 @@ The `TokenTable` maintains multi-level caches (linear flatten, quadratic flatten
 | Sub-package | Description |
 |-------------|-------------|
 | `config` | Solver-specific configuration (COPT, Gurobi, SCIP) |
-| `heuristic` | Metaheuristic framework (PSO, selection, crossover, mutation) |
 | `iis` | Irreducible Infeasible Subsystem diagnostics |
 | `output` | Solver output data structures (feasible/infeasible) |
 | `value` | Value type conversion (IntoValue interface) |

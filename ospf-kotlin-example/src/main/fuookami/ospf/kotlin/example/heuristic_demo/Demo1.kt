@@ -1,5 +1,7 @@
 package fuookami.ospf.kotlin.example.heuristic_demo
 
+import kotlin.random.Random
+import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.seconds
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
@@ -8,7 +10,8 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.callback.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.solver.heuristic.pso.*
+import fuookami.ospf.kotlin.core.solver.heuristic.*
+import fuookami.ospf.kotlin.core.solver.heuristic.operator.stopping.TimeLimit
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
@@ -27,8 +30,13 @@ class Demo1 {
         val x = RealVar("x")
         model.add(x)
         model.addObject(ObjectCategory.Minimum, { solution: List<Flt64> -> (solution[0] - Flt64.one).pow(2) })
-        val solver = PSO(policy = PSOPolicy(timeLimit = 10.seconds))
-        val result = solver(model)
+        val solver = particleSwarm<Flt64, Flt64>(
+            size = 30,
+            stopping = TimeLimit(10.seconds),
+            converter = IntoValue.Identity,
+            entropy = Generator { Random.nextFlt64() }
+        )
+        runBlocking { solver(model) }
         return ok
     }
 }

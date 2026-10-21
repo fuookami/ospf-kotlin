@@ -58,22 +58,48 @@ Optional intervals and variable durations are exact on the MIP-backed path. SCIP
 
 ### Metaheuristic Algorithms
 
-| Module | Algorithm | Status | Description |
-|--------|-----------|--------|-------------|
-| `ospf-kotlin-core-plugin-heuristic` | GA | :white_check_mark: | Genetic Algorithm — selection, crossover, mutation, migration |
-| | PSO | :white_check_mark: | Particle Swarm Optimization — inertia weight, acceleration |
-| | GWO | :white_check_mark: | Grey Wolf Optimizer — alpha/beta/delta leadership hierarchy |
-| | SCA | :white_check_mark: | Sine Cosine Algorithm — sine-cosine position update |
-| | SAA | :white_check_mark: | Simulated Annealing Algorithm — temperature scheduling |
-| | MVO | :white_check_mark: | Multi-Verse Optimizer — white/wormhole traversal |
-| | EVO | :construction: | Energy Valley Optimizer |
-| | GCO | :construction: | Germinal Center Optimization |
-| | HCA | :construction: | Hill Climbing Algorithm |
-| | HS | :construction: | Harmony Search |
-| | NS | :construction: | Neighborhood Search |
-| | SOA | :construction: | Seagull Optimization Algorithm |
-| | WarSO | :construction: | War Strategy Optimization Algorithm |
-| | WCA | :construction: | Water Cycle Algorithm |
+Every algorithm below is a **composition** of one lifecycle skeleton and stateless operators, and is
+reachable through `ComposedSolvers` (or `MultiObjectiveSolvers` / `MemeticSolvers`).
+
+| Module | Algorithm | Solver name | Description |
+|--------|-----------|-------------|-------------|
+| `ospf-kotlin-core-plugin-heuristic` | GA | `genetic` | Genetic Algorithm — crossover, mutation, elitist survivor |
+| | Island GA | `island-ga` | Island model — N sub-populations with migration |
+| | PSO | `pso` | Particle Swarm Optimization — inertia weight, learning factors |
+| | APSO | `apso` | Adaptive PSO — weights varying with iteration |
+| | CLPSO | `clpso` | Comprehensive Learning PSO — per-dimension learning |
+| | GWO | `gwo` | Grey Wolf Optimizer — alpha/beta/delta hierarchy |
+| | SCA | `sca` | Sine Cosine Algorithm |
+| | MVO | `mvo` | Multi-Verse Optimizer — white/wormhole traversal |
+| | DE | `de` | Differential Evolution |
+| | HS | `hs` | Harmony Search |
+| | WCA | `wca` | Water Cycle Algorithm |
+| | SOA | `soa` | Seagull Optimization Algorithm |
+| | NS | `ns` | Neighborhood Search |
+| | WarSO | `warso` | War Strategy Optimization |
+| | EVO | `evo` | Energy Valley Optimizer |
+| | GCO | `gco` | Germinal Center Optimization |
+| | WOA | `woa` | Whale Optimization Algorithm |
+| | HHO | `hho` | Harris Hawks Optimization |
+| | AOA | `aoa` | Arithmetic Optimization Algorithm |
+| | TLBO | `tlbo` | Teaching–Learning-Based Optimization |
+| | SSA | `ssa` | Salp Swarm Algorithm |
+| | GSA | `gsa` | Gravitational Search Algorithm |
+| | FA | `fa` | Firefly Algorithm |
+| | CS | `cs` | Cuckoo Search |
+| | BA | `ba` | Bat Algorithm |
+| | MFO | `mfo` | Moth–Flame Optimization |
+| | GOA | `goa` | Grasshopper Optimization Algorithm |
+| | SHADE | `shade` | Success-History based Adaptive DE |
+| | L-SHADE | `l-shade` | SHADE with linear population size reduction |
+| | CMA-ES | `cma-es` | Covariance Matrix Adaptation Evolution Strategy |
+| | SA | `simulated-annealing` | Simulated Annealing — Metropolis criterion |
+| | HC | `hill-climbing` | Hill Climbing |
+| | RW | `random-walk` | Random Walk |
+| | Q-learning | `q-learning` | Q-learning driven operator selection |
+
+Multi-objective solvers (NSGA-II, NSGA-III) live in `MultiObjectiveSolvers`; memetic variants in
+`MemeticSolvers`.
 
 ## Common Plugin Architecture
 
@@ -120,27 +146,30 @@ Each solver provides a callback manager (`{Solver}SolverCallBack`) that supports
 
 ## Heuristic Algorithm Architecture
 
-The heuristic module implements a **policy-driven** design:
+The heuristic module composes algorithms from a **lifecycle skeleton plus stateless operators**:
 
 ```
 ┌────────────────────────────────────────────┐
-│  {Algorithm}Algorithm                      │  Main algorithm runner
-│    ├─ policy: Abstract{Algorithm}Policy    │  Strategy interface
-│    ├─ invoke(model, runningCallBack)       │  Execute algorithm
-│    └─ Iteration tracking, good solutions   │
+│  ComposedSolvers / {Algorithm} facade      │  Composition layer
+│    └─ algorithm = skeleton + operators     │  No algorithm-specific loop
 ├────────────────────────────────────────────┤
-│  {Algorithm}Policy                         │  Concrete policy
-│    ├─ HeuristicPolicy (base)               │  Iteration/time limits
-│    └─ AbstractHeuristicPolicy              │  coerceIn, update, finished
+│  AbstractRunner (runner/)                  │  Lifecycle skeleton
+│    ├─ initialize / advance / membersOf     │  Three hooks
+│    └─ iteration, archive, stopping, callback│  Owned by the skeleton
 ├────────────────────────────────────────────┤
-│  Population / Particle / Wolf / Chromosome │  Individual representations
-│    └─ Individual<ObjValue, V>              │  Common interface
+│  operator/ (17 families)                   │  Step operators
+│    └─ update · survivor · topology · …     │  Stateless, shareable
+├────────────────────────────────────────────┤
+│  Individual<ObjValue, V>                   │  Common interface
 └────────────────────────────────────────────┘
 ```
 
+A new algorithm either picks existing operators (`ComposedSolvers`) or, when its loop genuinely
+differs, extends `AbstractRunner` — copying an existing loop is not the intended path.
+
 All heuristic algorithms support:
 - **Generic value types** — works with any `RealNumber<V>` + `NumberField<V>`
-- **Single- and multi-objective** — via type aliases (`GA` / `MulObjGA`)
+- **Single- and multi-objective** — single-objective solvers share one archive, multi-objective ones use Pareto-based runners
 - **Iteration and time limits** — configurable stopping criteria
 - **Running callbacks** — observe progress at each iteration
 - **Memory pressure handling** — automatic cleanup between iterations

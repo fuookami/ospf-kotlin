@@ -21,7 +21,7 @@ This module covers:
 1. Algebraic structures, laws, value ranges, and number types.
 2. Mathematical operators, ordinary math utilities, and comparison/tolerance.
 3. Geometric entities and Delaunay triangulation.
-4. Chaotic systems, fractal generation, and combinatorics.
+4. Chaotic systems, fractal generation, combinatorics, and probability distributions.
 5. Symbolic computation, polynomials, inequalities, expressions, parsing, and serialization.
 6. Trivalent logic and scale/SI prefixes.
 
@@ -40,6 +40,7 @@ Explicit non-goals:
 | `algebra.value_range` | Typed value ranges | `ValueRange`, `TypedValueRange`, `Bound`, `Interval` |
 | `chaotic_operator` | Chaotic system attractors | `Lorenz`, `Chen`, `Rossler`, `LogisticMap`, 30+ implementations |
 | `combinatorics` | Combinatorial algorithms | `permutations`, `combinations`, `cross` |
+| `distribution` | Probability distribution sampling | `Uniform`, `Gaussian`, `Cauchy`, `Exponential`, `Gamma`, `Beta`, `StudentT`, `Levy`, `Truncated`, `DirectionSampler` |
 | `fractal_operator` | Fractal generation | `MandelbrotSet` |
 | `functional` | Collection extensions | `usize`, `uIndices` |
 | `geometry` | Dimension-generic geometric primitives | `Point`, `Vector`, `Edge`, `Triangle`, `Circle`, `Rectangle`, `Quadrilateral`, `Box2`/`Box3`, `Cuboid3`, `Cylinder3`, `Placement2`/`Placement3` |
@@ -47,6 +48,7 @@ Explicit non-goals:
 | `operator` | Mathematical operators | `Plus`, `Minus`, `Times`, `Div`, `Pow`, `Trigonometry` |
 | `ordinary` | Common math operations | `gcd`, `lcm`, `Prime`, `Factorization` |
 | `parallel` | Parallel computation | `parallelFold`, `chunked` |
+| `sequence` | Multi-channel sequence projection | `ChannelProjection`, `Scalar`, `Component`, `Magnitude`, `Phase` |
 | `symbol` | Symbolic expression system | `Symbol`, `LinearPolynomial`, `CanonicalPolynomial`, `Inequality` |
 | `symbol.expression` | Runtime expression AST | `ScalarExpression`, `BooleanExpression`, `PropertyPath` |
 | `symbol.parse` | Direct polynomial/inequality parser | `parseLinear`, `parseQuadratic`, `parseCanonical`, `ParseResult` |

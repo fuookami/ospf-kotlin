@@ -4,7 +4,7 @@
 
 ## 概述
 
-`solver` 包是 OSPF 框架的**求解器抽象层**，定义了线性求解器和二次求解器的核心接口、求解输出结构、值类型转换、求解配置、启发式求解算法以及 IIS（Irreducible Infeasible Subsystem）诊断能力。它是连接上层模型与底层求解器插件（Gurobi、CPLEX、SCIP 等）的统一抽象。
+`solver` 包是 OSPF 框架的**求解器抽象层**，定义了线性求解器和二次求解器的核心接口、求解输出结构、值类型转换、求解配置以及 IIS（Irreducible Infeasible Subsystem）诊断能力。它是连接上层模型与底层求解器插件（Gurobi、CPLEX、SCIP 等）的统一抽象。
 
 ## 包结构
 
@@ -27,16 +27,6 @@ solver/
 │   ├── CoptSolverConfig.kt       # COPT 配置
 │   ├── GurobiSolverConfig.kt     # Gurobi 配置
 │   └── SCIPSolverConfig.kt       # SCIP 配置
-├── heuristic/                    # 启发式求解器
-│   ├── ParticleSwarmHeuristicSolver.kt  # 粒子群优化
-│   ├── Population.kt             # 种群管理
-│   ├── Selection.kt / SelectionMode.kt  # 选择策略
-│   ├── Cross.kt / CrossMode.kt   # 交叉策略
-│   ├── Mutation.kt / MutationMode.kt    # 变异策略
-│   ├── Migration.kt              # 迁移策略
-│   ├── Normalization.kt          # 归一化
-│   ├── Iteration.kt              # 迭代控制
-│   └── Policy.kt                 # 策略定义
 ├── iis/                          # 不可行子系统诊断
 │   ├── IISComputingStatus.kt     # IIS 计算状态
 │   ├── IISConfig.kt              # IIS 配置
@@ -121,18 +111,6 @@ QuadraticInfeasibleSolverOutput — 二次不可行输出（含 IIS）
 - `CoptSolverConfig` — COPT 求解器专用配置
 - `GurobiSolverConfig` — Gurobi 求解器专用配置
 - `SCIPSolverConfig` — SCIP 求解器专用配置
-
-### 启发式求解器 (`heuristic/`)
-
-内置的元启发式求解框架，包含：
-
-- **粒子群优化** (`ParticleSwarmHeuristicSolver`) — PSO 算法实现
-- **种群管理** (`Population`) — 个体集合的管理
-- **选择策略** (`Selection`, `SelectionMode`) — 轮盘赌、锦标赛等
-- **交叉策略** (`Cross`, `CrossMode`) — 基因交叉操作
-- **变异策略** (`Mutation`, `MutationMode`) — 基因变异操作
-- **迁移策略** (`Migration`) — 种群间个体迁移
-- **迭代控制** (`Iteration`) — 迭代次数和收敛条件
 
 ### IIS 诊断 (`iis/`)
 

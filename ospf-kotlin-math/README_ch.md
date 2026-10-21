@@ -21,7 +21,7 @@ OSPF Kotlin 的综合数学代数、符号与几何系统。提供基础数学�
 1. 代数结构、定律、值范围和数值类型。
 2. 数学运算符、普通数学工具和比较/容差。
 3. 几何实体和 Delaunay 三角剖分。
-4. 混沌系统、分形生成和组合数学。
+4. 混沌系统、分形生成、组合数学和概率分布。
 5. 符号计算、多项式、不等式、表达式、解析和序列化。
 6. 三值逻辑和比例/SI 前缀。
 
@@ -40,6 +40,7 @@ OSPF Kotlin 的综合数学代数、符号与几何系统。提供基础数学�
 | `algebra.value_range` | 类型化值范围 | `ValueRange`、`TypedValueRange`、`Bound`、`Interval` |
 | `chaotic_operator` | 混沌系统吸引子 | `Lorenz`、`Chen`、`Rossler`、`LogisticMap`，30+ 实现 |
 | `combinatorics` | 组合算法 | `permutations`、`combinations`、`cross` |
+| `distribution` | 概率分布采样 | `Uniform`、`Gaussian`、`Cauchy`、`Exponential`、`Gamma`、`Beta`、`StudentT`、`Levy`、`Truncated`、`DirectionSampler` |
 | `fractal_operator` | 分形生成 | `MandelbrotSet` |
 | `functional` | 集合扩展 | `usize`、`uIndices` |
 | `geometry` | 维度无关几何原语 | `Point`、`Vector`、`Edge`、`Triangle`、`Circle`、`Rectangle`、`Quadrilateral`、`Box2`/`Box3`、`Cuboid3`、`Cylinder3`、`Placement2`/`Placement3` |
@@ -47,6 +48,7 @@ OSPF Kotlin 的综合数学代数、符号与几何系统。提供基础数学�
 | `operator` | 数学运算符 | `Plus`、`Minus`、`Times`、`Div`、`Pow`、`Trigonometry` |
 | `ordinary` | 常用数学运算 | `gcd`、`lcm`、`Prime`、`Factorization` |
 | `parallel` | 并行计算 | `parallelFold`、`chunked` |
+| `sequence` | 多分量序列投影 | `ChannelProjection`、`Scalar`、`Component`、`Magnitude`、`Phase` |
 | `symbol` | 符号表达式系统 | `Symbol`、`LinearPolynomial`、`CanonicalPolynomial`、`Inequality` |
 | `symbol.expression` | 运行时表达式 AST | `ScalarExpression`、`BooleanExpression`、`PropertyPath` |
 | `symbol.parse` | 直接多项式/不等式解析器 | `parseLinear`、`parseQuadratic`、`parseCanonical`、`ParseResult` |

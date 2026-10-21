@@ -153,8 +153,13 @@ class CallBackModel<V> internal constructor(
             category: ObjectCategory,
             converter: IntoValue<V>
         ): PartialComparator<V> where V : RealNumber<V>, V : NumberField<V> = when (category) {
-            ObjectCategory.Maximum -> PartialComparator { lhs, rhs -> converter.fromValue(lhs) geq converter.fromValue(rhs) }
-            ObjectCategory.Minimum -> PartialComparator { lhs, rhs -> converter.fromValue(lhs) leq converter.fromValue(rhs) }
+            // 必须使用严格比较：非严格的 `>=` / `<=` 会让相等目标值同时判为更优，
+            // 违反比较器契约并导致排序不稳定、「是否改进」误判。
+            // Must use strict comparisons: the non-strict `>=` / `<=` would judge equal objective values as
+            // better in both directions, violating the comparator contract and causing unstable sorting and
+            // false "improved" detection.
+            ObjectCategory.Maximum -> PartialComparator { lhs, rhs -> converter.fromValue(lhs) gr converter.fromValue(rhs) }
+            ObjectCategory.Minimum -> PartialComparator { lhs, rhs -> converter.fromValue(lhs) ls converter.fromValue(rhs) }
         }
 
         /**

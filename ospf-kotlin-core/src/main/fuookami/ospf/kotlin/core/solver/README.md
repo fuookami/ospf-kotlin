@@ -4,7 +4,7 @@
 
 ## Overview
 
-The `solver` package is the **solver abstraction layer** of the OSPF framework, defining core interfaces for linear and quadratic solvers, solve output structures, value type conversion, solver configuration, heuristic solving algorithms, and IIS (Irreducible Infeasible Subsystem) diagnostics. It serves as the unified abstraction connecting upper-layer models with low-level solver plugins (Gurobi, CPLEX, SCIP, etc.).
+The `solver` package is the **solver abstraction layer** of the OSPF framework, defining core interfaces for linear and quadratic solvers, solve output structures, value type conversion, solver configuration, and IIS (Irreducible Infeasible Subsystem) diagnostics. It serves as the unified abstraction connecting upper-layer models with low-level solver plugins (Gurobi, CPLEX, SCIP, etc.).
 
 ## Package Structure
 
@@ -27,16 +27,6 @@ solver/
 │   ├── CoptSolverConfig.kt       # COPT config
 │   ├── GurobiSolverConfig.kt     # Gurobi config
 │   └── SCIPSolverConfig.kt       # SCIP config
-├── heuristic/                    # Heuristic solvers
-│   ├── ParticleSwarmHeuristicSolver.kt  # PSO solver
-│   ├── Population.kt             # Population management
-│   ├── Selection.kt / SelectionMode.kt  # Selection strategies
-│   ├── Cross.kt / CrossMode.kt   # Crossover strategies
-│   ├── Mutation.kt / MutationMode.kt    # Mutation strategies
-│   ├── Migration.kt              # Migration strategy
-│   ├── Normalization.kt          # Normalization
-│   ├── Iteration.kt              # Iteration control
-│   └── Policy.kt                 # Policy definition
 ├── iis/                          # Infeasible subsystem diagnostics
 │   ├── IISComputingStatus.kt     # IIS computing status
 │   ├── IISConfig.kt              # IIS configuration
@@ -123,18 +113,6 @@ The `IntoValue<V>` interface is the core conversion mechanism at the solver boun
 - `CoptSolverConfig` — COPT solver-specific configuration
 - `GurobiSolverConfig` — Gurobi solver-specific configuration
 - `SCIPSolverConfig` — SCIP solver-specific configuration
-
-### Heuristic Solvers (`heuristic/`)
-
-Built-in metaheuristic solving framework, including:
-
-- **Particle Swarm Optimization** (`ParticleSwarmHeuristicSolver`) — PSO algorithm implementation
-- **Population management** (`Population`) — Individual collection management
-- **Selection strategies** (`Selection`, `SelectionMode`) — Roulette, tournament, etc.
-- **Crossover strategies** (`Cross`, `CrossMode`) — Genetic crossover operations
-- **Mutation strategies** (`Mutation`, `MutationMode`) — Genetic mutation operations
-- **Migration strategy** (`Migration`) — Inter-population individual migration
-- **Iteration control** (`Iteration`) — Iteration count and convergence conditions
 
 ### IIS Diagnostics (`iis/`)
 

@@ -10,6 +10,11 @@ Fractal generation algorithms for OSPF Kotlin.
 |-------|------|-------------|
 | `MandelbrotSet<V>` | `MandelbrotSet.kt` | Mandelbrot set iteration function z -> z^2 + c, generic over `FloatingNumber<V>` |
 | `MandelbrotSetGenerator` | `MandelbrotSet.kt` | Mandelbrot set sequence generator, implements `Generator<Point<Dim2, Flt64>>` |
+| `JuliaSet<V>` | `JuliaSet.kt` | Julia set iteration function for a fixed complex c |
+| `MultiJuliaSet` | `JuliaSet.kt` | Generalised Julia set using z^n + c |
+| `escapeTime(...)` | `EscapeTime.kt` | Escape-time counting for z -> z^2 + c, returns `Ret<UInt64>` |
+| `boxCountingDimension(...)` | `FractalDimension.kt` | Box-counting dimension of a 2D point set, returns `Ret<Flt64>` |
+| `correlationDimension(...)` | `FractalDimension.kt` | Grassberger–Procaccia correlation dimension of a solution set, returns `Ret<Flt64>` |
 
 ## Usage
 

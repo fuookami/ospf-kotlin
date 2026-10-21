@@ -10,6 +10,11 @@ OSPF Kotlin 的分形生成算法。
 |----|------|------|
 | `MandelbrotSet<V>` | `MandelbrotSet.kt` | Mandelbrot 集迭代函数 z -> z^2 + c，泛型参数为 `FloatingNumber<V>` |
 | `MandelbrotSetGenerator` | `MandelbrotSet.kt` | Mandelbrot 集序列生成器，实现 `Generator<Point<Dim2, Flt64>>` |
+| `JuliaSet<V>` | `JuliaSet.kt` | 固定复数 c 的 Julia 集迭代函数 |
+| `MultiJuliaSet` | `JuliaSet.kt` | 使用 z^n + c 的推广 Julia 集 |
+| `escapeTime(...)` | `EscapeTime.kt` | z -> z^2 + c 的逃逸时间计数，返回 `Ret<UInt64>` |
+| `boxCountingDimension(...)` | `FractalDimension.kt` | 二维点集的盒计数维数，返回 `Ret<Flt64>` |
+| `correlationDimension(...)` | `FractalDimension.kt` | 解集的 Grassberger–Procaccia 相关维数，返回 `Ret<Flt64>` |
 
 ## 使用示例
 
