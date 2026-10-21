@@ -295,6 +295,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                     )
                 )
             }
+        var feasibilityPhase = false
         val lpMaster = if (iterationLimitIndexBound > 0) {
             when (val result = buildLpMaster(
                 problem = problem,
@@ -359,6 +360,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         }
 
         if (lpMaster != null) {
+            var activeMaster: LpMaster<V> = lpMaster
             for (iteration in 0 until iterationLimitIndexBound) {
                 progressContext?.throwIfCancelled()
                 val iterationNumber = Int64(iteration.toLong())
@@ -375,11 +377,50 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                     index = iteration + 1,
                     total = iterationLimitIndexBound
                 )
-                val lpResult = solveLpMaster(
-                    master = lpMaster,
+                var lpOutcome = solveLpMaster(
+                    master = activeMaster,
                     iteration = iterationNumber,
                     progressContext = progressContext?.phase(iterationStart, iterationEnd)
                 )
+                if (!hasValidLpResult && !feasibilityPhase &&
+                    lpOutcome is Failed && lpOutcome.error.code == ErrorCode.ORModelInfeasible
+                ) {
+                    val phaseOne = buildLpMaster(
+                        problem = problem,
+                        cuttingPlans = currentPlans,
+                        extensions = resolvedConfig.allExtensions,
+                        domainValueSample = lpDomainValueSample,
+                        feasibilityPhase = true
+                    )
+                    if (phaseOne is Ok) {
+                        activeMaster = phaseOne.value
+                        feasibilityPhase = true
+                        lpOutcome = solveLpMaster(activeMaster, iterationNumber, progressContext)
+                    }
+                }
+                if (feasibilityPhase && lpOutcome is Ok &&
+                    lpOutcome.value.lpOutput.obj <= Flt64(1e-7)
+                ) {
+                    // 可行后丢弃人工短缺，重新建立原始硬约束主问题。 / Discard artificial deficits and restore the original master.
+                    val restored = buildLpMaster(
+                        problem = problem,
+                        cuttingPlans = currentPlans,
+                        extensions = resolvedConfig.allExtensions,
+                        domainValueSample = lpDomainValueSample
+                    )
+                    if (restored is Ok) {
+                        activeMaster = restored.value
+                        feasibilityPhase = false
+                        lpOutcome = solveLpMaster(activeMaster, iterationNumber, progressContext)
+                    } else {
+                        lpOutcome = when (restored) {
+                            is Failed -> Failed(restored.error)
+                            is Fatal -> Fatal(restored.errors)
+                            is Ok -> lpOutcome
+                        }
+                    }
+                }
+                val lpResult = (lpOutcome as? Ok)?.value
                 if (lpResult == null) {
                     pricedPlanCounts.add(UInt64.zero)
                     iterationRecords.add(
@@ -396,7 +437,11 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                     } else {
                         Csp1dTerminationReason.LpSolveFailed
                     }
-                    lpFailureMessage = "LP solve returned null at iteration $iteration"
+                    lpFailureMessage = when (val failed = lpOutcome) {
+                        is Failed -> failed.error.message
+                        is Fatal -> failed.errors.joinToString { it.message }
+                        is Ok -> "LP result unavailable at iteration $iteration"
+                    }
                     // Apply flow policy selectTermination
                     if (flowPolicies.isNotEmpty()) {
                         val flowCtx = buildFlowContext(
@@ -416,7 +461,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                     break
                 }
 
-                hasValidLpResult = true
+                if (!feasibilityPhase) hasValidLpResult = true
 
                 val lpObjective = lpResult.lpOutput.result.solution?.objective
                     ?: Flt64.zero
@@ -442,13 +487,15 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                 val pricingCandidateFilters = resolvedConfig.extensionSet.generationStrategies.map { strategy ->
                     { candidate: CuttingPlan<V>, existing: List<CuttingPlan<V>> -> strategy.acceptCandidate(candidate, existing) }
                 }
-                val pricingCostModifiers = resolvedConfig.extensionSet.pricingPolicies.map { policy ->
+                val pricingCostModifiers = if (feasibilityPhase) {
+                    listOf<(CuttingPlan<V>, V) -> V> { _, _ -> lpDomainValueSample.constants.zero }
+                } else resolvedConfig.extensionSet.pricingPolicies.map { policy ->
                     { candidate: CuttingPlan<V>, baseCost: V -> policy.modifyCost(candidate, baseCost) }
                 }
-                val pricingBenefitModifiers = resolvedConfig.extensionSet.pricingPolicies.map { policy ->
+                val pricingBenefitModifiers = if (feasibilityPhase) emptyList() else resolvedConfig.extensionSet.pricingPolicies.map { policy ->
                     { candidate: CuttingPlan<V>, baseBenefit: V -> policy.modifyBenefit(candidate, baseBenefit) }
                 }
-                val isImprovingJudges = resolvedConfig.extensionSet.pricingPolicies.map { policy ->
+                val isImprovingJudges = if (feasibilityPhase) emptyList() else resolvedConfig.extensionSet.pricingPolicies.map { policy ->
                     { candidate: CuttingPlan<V>, benefit: V, cost: V -> policy.isImproving(candidate, benefit, cost) }
                 }
                 val pricingInput = Csp1dPricingInput(
@@ -491,7 +538,9 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                             planCountAfter = Int64(planCountBefore.toLong())
                         )
                     )
-                    terminationReason = Csp1dTerminationReason.PricingConverged
+                    terminationReason = if (feasibilityPhase) Csp1dTerminationReason.LpInfeasible
+                        else Csp1dTerminationReason.PricingConverged
+                    if (feasibilityPhase) lpFailureMessage = "Initial master feasibility could not be restored"
                     // Apply flow policy selectTermination
                     if (flowPolicies.isNotEmpty()) {
                         val flowCtx = buildFlowContext(
@@ -550,10 +599,10 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                     break
                 }
 
-                val addColumnsResult = lpMaster.context.addColumns(
+                val addColumnsResult = activeMaster.context.addColumns(
                     iteration = UInt64((iteration + 1).toULong()),
                     newPlans = addedPlans,
-                    model = lpMaster.model
+                    model = activeMaster.model
                 )
                 val modelAddedPlans = when (addColumnsResult) {
                     is Ok -> addColumnsResult.value
@@ -965,13 +1014,15 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
  * @param cuttingPlans 切割方案列表 / Cutting plan list
  * @param extensions 建模扩展列表 / Modeling extension list
  * @param domainValueSample 领域值样本 / Domain value sample
+ * @param feasibilityPhase 是否只最小化人工短缺 / whether to minimize artificial deficits only
  * @return LP 主问题 / LP master
 */
     private fun buildLpMaster(
         problem: Csp1dProblem<V>,
         cuttingPlans: List<CuttingPlan<V>>,
         extensions: List<Csp1dModelingExtension<V>>,
-        domainValueSample: V
+        domainValueSample: V,
+        feasibilityPhase: Boolean = false
     ): Ret<LpMaster<V>> {
         val model = LinearMetaModel(
             name = "csp1d_produce_lp",
@@ -986,6 +1037,19 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         val context = Csp1dProduceContextBuilder(input)
             .mode(Csp1dModelingMode.LP)
             .apply {
+                if (feasibilityPhase) {
+                    feasibilityPhase()
+                    yieldConfig(YieldModelingConfig(
+                        underProductionPenalty = problem.demands.associate { demand ->
+                            ProductDemandShadowPriceKey(demand.product.id, (demand.quantity.unit.symbol ?: demand.quantity.unit.toString())) to
+                                domainValueSample.constants.one
+                        },
+                        overProductionPenalty = problem.demands.associate { demand ->
+                            ProductDemandShadowPriceKey(demand.product.id, (demand.quantity.unit.symbol ?: demand.quantity.unit.toString())) to
+                                domainValueSample.constants.zero
+                        }
+                    ))
+                }
                 for (ext in extensions) {
                     extension(ext)
                 }
@@ -1015,7 +1079,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         master: LpMaster<V>,
         iteration: Int64,
         progressContext: SolverProgressContext?
-    ): Csp1dMilpSolver.LpResult<V>? {
+    ): Ret<Csp1dMilpSolver.LpResult<V>> {
         val lpResult = when (val result = solver.solveLP(
             metaModel = master.model,
             options = FrameworkSolveOptions(
@@ -1024,25 +1088,25 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
             )
         )) {
             is Ok -> result.value
-            is Failed -> return null
-            is Fatal -> return null
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
         val lifecycle = try {
             Csp1dShadowPriceLifecycle<V>(master.domainValueSample, master.context.cgPipelines)
         } catch (_: Exception) {
-            return null
+            return Failed(Csp1dLifecycleError("LP shadow price lifecycle could not be constructed"))
         }
         val shadowPrices = when (val result = lifecycle.extractFromDualSolution(master.model, lpResult.dualSolution)) {
             is Ok -> result.value
-            is Failed -> return null
-            is Fatal -> return null
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
-        return Csp1dMilpSolver.LpResult(
+        return Ok(Csp1dMilpSolver.LpResult(
             shadowPrices = shadowPrices,
             model = master.model,
             lpOutput = lpResult,
             frameworkShadowPriceMap = lifecycle.frameworkShadowPriceMap
-        )
+        ))
     }
 
     /**

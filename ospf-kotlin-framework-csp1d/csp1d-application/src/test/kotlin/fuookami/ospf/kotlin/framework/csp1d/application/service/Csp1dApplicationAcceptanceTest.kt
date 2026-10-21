@@ -2123,11 +2123,11 @@ class Csp1dApplicationAcceptanceTest {
         val result = columnGeneration.solveWithTrace(problem)
 
         assertEquals(Csp1dTerminationReason.LpInfeasible, result.trace.terminationReason)
-        assertTrue(result.trace.lpFailureMessage?.contains("LP solve returned null") == true)
+        assertEquals("forced LP failure", result.trace.lpFailureMessage)
         // LP 失败但最终 MILP 使用初始方案仍然成功，所以 solutionStatus 为 Feasible
         assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
         // LP failure message 应合并到 solution.failureMessage
-        assertTrue(result.solution.failureMessage?.contains("LP solve returned null") == true)
+        assertEquals("forced LP failure", result.solution.failureMessage)
     }
 
     /**

@@ -258,3 +258,11 @@ Demo3 compile gate:
 ```powershell
 mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-infrastructure,.\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application,.\ospf-kotlin-starters\ospf-kotlin-starter-csp1d,.\ospf-kotlin-example "-Dexample.source.directory=src/main/fuookami/ospf/kotlin/example/framework_demo/demo3" -DskipTests compile
 ```
+
+## Initial restricted-master feasibility
+
+When the initial LP is infeasible because its columns do not cover every demand, column generation retries with a separate feasibility master. Its objective minimizes artificial demand deficits only; real plan columns have zero objective cost in this phase. It reuses the original domain filters and modeling extensions, and does not expand `maxInitialPlans` or change final demand requirements. Once the deficit objective reaches solver tolerance, the framework discards this master and rebuilds the original LP with the accumulated columns. Final MILP always uses the original business configuration. If pricing finds no restoring columns or reaches the iteration limit, artificial deficits are never reported as production or as an optimal pricing certificate. This is a restricted-pool failure, not proof that no feasible column exists outside the generator's search.
+
+Gurobi LP pricing requires an optimal solve report and captured dual values. Infeasible or other nonoptimal terminal reports return an explicit error; absent duals are never replaced with zeros.
+
+Existing canonical columns are rejected inside the generation collector before counting the candidate budget. Repeated pricing with a one-column budget can therefore discover a different column without enlarging the initial pool.

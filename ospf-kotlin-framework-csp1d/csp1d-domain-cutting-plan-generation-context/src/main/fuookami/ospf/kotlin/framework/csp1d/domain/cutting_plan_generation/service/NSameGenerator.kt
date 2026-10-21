@@ -75,7 +75,8 @@ class NSameGenerator<V : RealNumber<V>>(
             enableDominancePruning = enableDominancePruning,
             dominanceStrategy = dominanceStrategy,
             canonicalKeyOverride = canonicalKeyOverride,
-            dominanceAcceptOverride = dominanceAcceptOverride
+            dominanceAcceptOverride = dominanceAcceptOverride,
+            existingPlans = input.existingPlans
         )
         val quantityCache = GenerationQuantityCache(arithmetic)
         val widthCheck = input.widthFeasibilityCheck

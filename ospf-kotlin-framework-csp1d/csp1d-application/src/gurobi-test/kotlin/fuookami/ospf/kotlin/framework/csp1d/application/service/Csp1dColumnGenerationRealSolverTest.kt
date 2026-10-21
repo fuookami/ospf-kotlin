@@ -4,6 +4,14 @@ import kotlin.test.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.core.variable.URealVar
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.geq
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.gurobi.GurobiColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.csp1d.application.model.*
@@ -31,6 +39,104 @@ import fuookami.ospf.kotlin.quantities.unit.*
 class Csp1dColumnGenerationRealSolverTest {
 
     private val solver = GurobiColumnGenerationSolver(SolverConfig())
+
+    /** 不可行原生 LP 必须显式返回错误而不是访问未初始化对偶解。 / Infeasible native LPs return an error without reading missing duals. */
+    @Test
+    fun infeasibleNativeLpReturnsControlledFailure() = runBlocking {
+        val model = LinearMetaModel(name = "infeasible-dual-regression", converter = IntoValue.Identity)
+        val value = URealVar("infeasible-dual-value")
+        value.range.leq(Flt64.one)
+        assertTrue(model.add(value) is Ok)
+        assertTrue(model.addConstraint(value geq Flt64(2.0)) is Ok)
+        assertTrue(model.minimize(value) is Ok)
+        val result = solver.solveLP(name = "infeasible-dual-regression", metaModel = model)
+        assertTrue(result is Failed)
+        assertEquals(ErrorCode.ORModelInfeasible, result.error.code)
+    }
+
+    /** 初始列不覆盖全部硬需求时，通过人工短缺定价恢复可行性。 / Restore feasibility through deficit pricing without increasing the initial pool. */
+    @Test
+    fun incompleteInitialPoolIsRestoredByFeasibilityPricing() = runBlocking {
+        val first = product("phase-one-first", 0.6)
+        val second = product("phase-one-second", 0.7)
+        val material = material(id = "phase-one-material", lowerWidth = 0.7, upperWidth = 1.4)
+        val firstPlan = cuttingPlan(
+            id = "phase-one-initial",
+            product = first,
+            material = material,
+            rollContribution = Flt64.one
+        )
+        val secondPlan = cuttingPlan(
+            id = "phase-one-priced",
+            product = second,
+            material = material,
+            rollContribution = Flt64.one
+        )
+        val problem = Csp1dProblem(
+            products = listOf(first, second),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(first, Flt64(5.0)),
+                ProductDemand.legacyRoll(second, Flt64(5.0))
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = Int64.one,
+                maxPricingPlans = Int64.one,
+                iterationLimit = Int64(4)
+            )
+        )
+        var pricingCalls = 0
+        val result = Csp1dColumnGeneration(
+            solver = solver,
+            initialGenerator = Csp1dInitialCuttingPlanGenerator { listOf(firstPlan) },
+            pricingGenerator = Csp1dPricingGenerator<Flt64> { input ->
+                pricingCalls++
+                if (input.generationInput.existingPlans.any { it.id == secondPlan.id }) emptyList()
+                else {
+                    val key = ProductDemandShadowPriceKey(second.id, (problem.demands[1].quantity.unit.symbol ?: problem.demands[1].quantity.unit.toString()))
+                    assertTrue(requireNotNull(input.shadowPrices[key]) > Flt64.zero)
+                    assertEquals(Flt64.zero, input.pricingCostModifiers.single()(secondPlan, Flt64.one))
+                    listOf(secondPlan)
+                }
+            }
+        ).solveWithTrace(problem)
+        assertEquals(UInt64.one, result.trace.initialPlanCount)
+        assertEquals(UInt64(2UL), result.trace.finalPlanCount)
+        assertTrue(pricingCalls >= 2)
+        assertEquals(Csp1dFinalMilpStatus.Solved, result.trace.finalMilpStatus)
+        assertTrue(result.solution.produce.unmetDemands.isEmpty())
+        assertEquals(setOf(firstPlan.id, secondPlan.id), result.solution.produce.cuttingPlans.map { it.plan.id }.toSet())
+    }
+
+    /** 人工短缺不能作为最终业务产出；缺列无法恢复时必须保留失败。 / Artificial deficits must not become final business output. */
+    @Test
+    fun missingFeasibilityColumnsKeepHardDemandUnsatisfied() = runBlocking {
+        val first = product("phase-one-missing-first", 0.6)
+        val second = product("phase-one-missing-second", 0.7)
+        val material = material(id = "phase-one-missing-material", lowerWidth = 0.7, upperWidth = 1.4)
+        val firstPlan = cuttingPlan(
+            id = "phase-one-only",
+            product = first,
+            material = material,
+            rollContribution = Flt64.one
+        )
+        val problem = Csp1dProblem(
+            products = listOf(first, second),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(ProductDemand.legacyRoll(first, Flt64(5.0)), ProductDemand.legacyRoll(second, Flt64(5.0))),
+            configuration = Csp1dConfiguration(iterationLimit = Int64(4))
+        )
+        val result = Csp1dColumnGeneration(
+            solver = solver,
+            initialGenerator = Csp1dInitialCuttingPlanGenerator { listOf(firstPlan) },
+            pricingGenerator = Csp1dPricingGenerator<Flt64> { emptyList() }
+        ).solveWithTrace(problem)
+        assertEquals(Csp1dTerminationReason.LpInfeasible, result.trace.terminationReason)
+        assertTrue(result.solution.produce.unmetDemands.isNotEmpty())
+        assertNotEquals(Csp1dFinalMilpStatus.Solved, result.trace.finalMilpStatus)
+    }
 
     /**
      * 小规模样例：1 产品 + 1 原料，roll 需求 / Small-scale example: 1 product + 1 material, roll demand

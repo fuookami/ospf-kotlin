@@ -3,33 +3,20 @@ package fuookami.ospf.kotlin.core.solver.gurobi
 
 import fuookami.ospf.kotlin.core.solver.report.*
 import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.core.solver.report.*
 import gurobi.GRB
-import fuookami.ospf.kotlin.core.solver.report.*
+import fuookami.ospf.kotlin.core.solver.toSolverStatus
 import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.basic.ModelFileFormat
-import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
-import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
-import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.iis.IISConfig
-import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.output.*
-import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 
 /**
@@ -292,7 +279,7 @@ class GurobiColumnGenerationSolver(
                     })
                 }
 
-                lateinit var dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
+                var dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>? = null
                 val solver = GurobiLinearSolver(
                     config = config,
                     callBack = callBack.copy()
@@ -308,7 +295,7 @@ class GurobiColumnGenerationSolver(
                     is Ok -> {
                         result.value.solution?.let { metaModel.tokens.setSolution(it.values) }
                         jobs.joinAll()
-                        Ok(ColumnGenerationSolver.LPResult(result.value, dualSolution))
+                        lpResultWithDual(result.value, dualSolution)
                     }
 
                     is Failed -> {
@@ -380,7 +367,7 @@ class GurobiColumnGenerationSolver(
                     })
                 }
 
-                lateinit var dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
+                var dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>? = null
                 val solver = GurobiLinearSolver(
                     config = config,
                     callBack = callBack.copy()
@@ -404,14 +391,9 @@ class GurobiColumnGenerationSolver(
                                 val feasible = output as SolveReport<Flt64>
                                 feasible.solution?.let { metaModel.tokens.setSolution(it.values) }
                                 jobs.joinAll()
-                                Ok(
-                                    ColumnGenerationSolver.LPResultWithStatus.Feasible(
-                                        ColumnGenerationSolver.LPResult(
-                                            result = feasible,
-                                            dualSolution = dualSolution
-                                        )
-                                    )
-                                )
+                                lpResultWithDual(feasible, dualSolution).map {
+                                    ColumnGenerationSolver.LPResultWithStatus.Feasible(it)
+                                }
                             }
                             else -> {
                                 jobs.joinAll()
@@ -435,6 +417,31 @@ class GurobiColumnGenerationSolver(
             }
         }
     }
+
+    /**
+     * 只有具备最优解和真实对偶解时才交付定价结果。 / Only optimal reports with actual duals support pricing.
+     *
+     * @param report 原生求解报告 / native solve report
+     * @param dualSolution 成功回调取得的对偶值 / dual values from the successful callback
+     * @return 有效 LP 结果或明确的终态错误 / valid LP result or an explicit terminal error
+     */
+    private fun lpResultWithDual(
+        report: SolveReport<Flt64>,
+        dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>?
+    ): Ret<ColumnGenerationSolver.LPResult> {
+        if (report.toSolverStatus() != SolverStatus.Optimal || report.solution == null) {
+            val code = if (report.problemStatus == ProblemStatus.Infeasible) {
+                ErrorCode.ORModelInfeasible
+            } else {
+                ErrorCode.OREngineSolvingException
+            }
+            return Failed(code, "LP 没有可用于定价的最优解 / LP has no optimal pricing solution: ${report.problemStatus}, ${report.terminationReason}")
+        }
+        val duals = dualSolution ?: return Failed(
+            ErrorCode.OREngineSolvingException,
+            "LP 未取得对偶解 / LP dual solution is unavailable"
+        )
+        return Ok(ColumnGenerationSolver.LPResult(report, duals))
+    }
+
 }
-
-

@@ -27,6 +27,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductId
  * 自定义 canonical key 解析函数，返回非 null 时替代默认 canonicalKey()
  * @param dominanceAcceptOverride custom dominance acceptance function; returns true if the new candidate should be accepted
  * 自定义 dominance 接受函数，返回 true 表示新候选应被接受
+ * @param existingPlans 已有列，不占用本轮新列预算 / existing columns excluded before consuming the new-column budget
 */
 internal class GenerationCollector<V : RealNumber<V>>(
     private val maxPlans: Int64,
@@ -43,8 +44,10 @@ internal class GenerationCollector<V : RealNumber<V>>(
     /**
      * 自定义 dominance 接受函数，返回 true 表示新候选应被接受。 / Custom dominance acceptance function; returns true if the new candidate should be accepted.
     */
-    private val dominanceAcceptOverride: ((CuttingPlan<V>, List<CuttingPlan<V>>) -> Boolean)? = null
+    private val dominanceAcceptOverride: ((CuttingPlan<V>, List<CuttingPlan<V>>) -> Boolean)? = null,
+    existingPlans: List<CuttingPlan<V>> = emptyList()
 ) {
+    private val existingKeys = existingPlans.map { resolveCanonicalKey(it) }.toSet()
     private val startTime = System.nanoTime()
     private val canonicalKeys = HashSet<CuttingPlanCanonicalKey>()
     private val dominanceIndex = HashMap<DominanceKey, Int>()
@@ -173,7 +176,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
         }
 
         val key = resolveCanonicalKey(plan)
-        if (!canonicalKeys.add(key)) {
+        if (key in existingKeys || !canonicalKeys.add(key)) {
             duplicateCandidates = duplicateCandidates + Int64.one
             return false
         }

@@ -56,7 +56,8 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     private val wasteRestMaterialMeasure: RestMaterialMeasure = RestMaterialMeasure.RestWidthByMaterialLengthProxy,
     private val objectivePolicies: List<Csp1dObjectivePolicy<V>> = emptyList(),
     override val domainValueSample: V,
-    override val isFinalMilp: Boolean = false
+    override val isFinalMilp: Boolean = false,
+    private val feasibilityPhase: Boolean = false
 ) : Csp1dIterativeContext<V>, Csp1dModelingContext<V> {
 
     override val demands: List<ProductDemand<V>> get() = produce.demands
@@ -74,8 +75,8 @@ class Csp1dProduceContext<V : RealNumber<V>>(
             is Ok -> {}
         }
 
-        // LP 模式不加 yield/length slack 变量
-        if (mode == Csp1dModelingMode.MILP) {
+        // 可行性 LP 只注册人工产量偏差，最终 MILP 使用业务配置。 / Feasibility LP registers artificial yield deviations; final MILP uses business settings.
+        if (mode == Csp1dModelingMode.MILP || feasibilityPhase) {
             yield?.let { agg ->
                 when (val result = agg.register(model)) {
                     is Failed -> return Failed(result.error)
@@ -141,6 +142,12 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     */
     private fun setObjective(model: LinearMetaModel<Flt64>) {
         val monomials = ArrayList<LinearMonomial<Flt64>>()
+        if (feasibilityPhase) {
+            // 人工短缺只用于恢复受限主问题可行性，不进入最终模型。 / Artificial deficits never enter the final model.
+            monomials.addAll(yieldObjective?.objectiveMonomials() ?: emptyList())
+            model.minimize(polynomial = LinearPolynomial(monomials, Flt64.zero), name = "csp1d_phase_one")
+            return
+        }
 
         // 基础目标: 最小化批次 / Base objective: minimize batches
         // 允许 objective policy 修正每个方案的 batch coefficient
@@ -164,7 +171,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         }
 
         // LP 模式不加 yield/waste/length 目标项
-        if (mode == Csp1dModelingMode.MILP) {
+        if (mode == Csp1dModelingMode.MILP || feasibilityPhase) {
             monomials.addAll(yieldObjective?.objectiveMonomials() ?: emptyList())
             monomials.addAll(wasteObjective?.objectiveMonomials() ?: emptyList())
             monomials.addAll(lengthObjective?.objectiveMonomials() ?: emptyList())
@@ -418,7 +425,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         //    Append minimize(batchCoefficient * x_j) for each new plan to the objective
         val baseBatchCoefficient = lengthObjective?.batchCoefficient() ?: Flt64.one
         val latestBatch = produce.batchGroups.lastOrNull()
-        if (latestBatch != null) {
+        if (latestBatch != null && !feasibilityPhase) {
             for ((planIndex, plan) in addedPlans.withIndex()) {
                 if (planIndex >= latestBatch.shape[0]) break
                 val batchCoefficient = if (objectivePolicies.isNotEmpty()) {
@@ -594,6 +601,7 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
     private var _lengthConfig: LengthAssignmentModelingConfig<V>? = null
     private var _mode: Csp1dModelingMode = Csp1dModelingMode.MILP
     private var _isFinalMilp: Boolean = false
+    private var _feasibilityPhase: Boolean = false
     private val _extraPipelines = ArrayList<Pipeline<LinearMetaModel<Flt64>>>()
     private val _objectivePolicies = ArrayList<Csp1dObjectivePolicy<V>>()
     private val _extensions = ArrayList<Csp1dModelingExtension<V>>()
@@ -650,6 +658,16 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
     */
     fun isFinalMilp(isFinalMilp: Boolean): Csp1dProduceContextBuilder<V> {
         this._isFinalMilp = isFinalMilp
+        return this
+    }
+
+    /**
+     * 启用仅最小化人工需求短缺的 LP 可行性阶段。 / Enable the LP phase minimizing artificial demand deficits only.
+     *
+     * @return 构建器自身 / builder itself
+     */
+    internal fun feasibilityPhase(): Csp1dProduceContextBuilder<V> {
+        _feasibilityPhase = true
         return this
     }
 
@@ -728,8 +746,8 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
             }
         }
 
-        // LP 模式不加 yield/length slack
-        val yieldAgg = if (_mode == Csp1dModelingMode.MILP) {
+        // 可行性 LP 可注册人工需求偏差。 / Feasibility LP may register artificial demand deviations.
+        val yieldAgg = if (_mode == Csp1dModelingMode.MILP || _feasibilityPhase) {
             yieldCfg?.let { cfg ->
                 YieldAggregation(
                     config = cfg,
@@ -845,7 +863,8 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
             wasteRestMaterialMeasure = wasteCfg?.restMaterialMeasure ?: RestMaterialMeasure.RestWidthByMaterialLengthProxy,
             objectivePolicies = _objectivePolicies,
             domainValueSample = (resolveDomainValueSample(input) as Ok).value,
-            isFinalMilp = _isFinalMilp
+            isFinalMilp = _isFinalMilp,
+            feasibilityPhase = _feasibilityPhase
         )
     }
 

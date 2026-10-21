@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.serv
 import kotlin.test.*
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.canonicalKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -52,6 +53,36 @@ class ReducedCostPricingGeneratorTest {
 
     private fun unitSymbol(unit: PhysicalUnit): String {
         return unit.symbol ?: unit.name ?: unit.toString()
+    }
+
+    /** 已有列不能耗尽本轮候选预算并阻断缺失需求的定价。 / Existing columns must not consume the budget for new pricing candidates. */
+    @Test
+    fun existingColumnsDoNotExhaustSingleCandidateBudget() {
+        val first = product("budget-first", 0.6)
+        val second = product("budget-second", 0.7)
+        val arithmetic = (DefaultQuantityArithmetic.resolveFor(Flt64.one) as Ok).value
+        val input = CuttingPlanGenerationInput(
+            products = listOf(first, second),
+            materials = listOf(material(upperBound = 1.4)),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.roll(first, Quantity(Flt64(5.0), RollCountUnit)),
+                ProductDemand.roll(second, Quantity(Flt64(5.0), RollCountUnit))
+            )
+        )
+        val generators = listOf<Csp1dInitialCuttingPlanGenerator<Flt64>>(
+            NSameGenerator(arithmetic = arithmetic, maxPlans = Int64.one),
+            NSumGenerator(arithmetic = arithmetic, maxPlans = Int64.one),
+            FullSumGenerator(arithmetic = arithmetic, maxPlans = Int64.one),
+            DFSGenerator(arithmetic = arithmetic, maxPlans = Int64.one)
+        )
+        for (generator in generators) {
+            val initial = generator.generate(input)
+            assertEquals(1, initial.size)
+            val next = generator.generate(input.copy(existingPlans = initial))
+            assertEquals(1, next.size, "${generator::class.simpleName} must keep searching after an existing column")
+            assertNotEquals(initial.single().canonicalKey(), next.single().canonicalKey())
+        }
     }
 
     @Test

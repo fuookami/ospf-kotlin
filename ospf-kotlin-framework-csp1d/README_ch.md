@@ -249,3 +249,11 @@ demo3 编译门禁：
 ```powershell
 mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-infrastructure,.\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application,.\ospf-kotlin-starters\ospf-kotlin-starter-csp1d,.\ospf-kotlin-example "-Dexample.source.directory=src/main/fuookami/ospf/kotlin/example/framework_demo/demo3" -DskipTests compile
 ```
+
+## 初始受限主问题可行性
+
+初始列无法覆盖全部需求、导致 LP 不可行时，列生成会建立独立的可行性主问题，只最小化人工需求短缺；真实方案列在这个阶段的目标系数为零。它复用原有领域过滤器与建模扩展，不增加 `maxInitialPlans`，不改写最终需求约束。短缺目标降至求解容差后，丢弃该主问题，并使用累积列重建原始 LP。最终 MILP 始终使用原始业务配置。若定价未找到恢复列或达到迭代上限，人工短缺不会被当成业务产出或最优定价证书；这只说明当前生成范围无法恢复，不证明搜索范围之外没有可行列。
+
+Gurobi 的 LP 定价结果必须具备最优求解报告及真实取得的对偶值。不可行或其它非最优终态返回明确错误，不用零值伪造缺失对偶解。
+
+生成收集器会在候选预算计数之前排除已有 canonical 列，因此每轮只有一列预算时，后续定价仍可发现不同列，不需要扩大初始列池。
