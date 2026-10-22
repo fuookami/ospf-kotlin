@@ -18,6 +18,10 @@ ospf-kotlin-framework-network-scheduling/
 ├── network-scheduling-domain-resilience-context/ # Connectivity witnesses and explicit failure scenarios
 ├── network-scheduling-domain-route-generation-context/  # ESPPRC pricer, pricing graph, label dominance
 ├── network-scheduling-domain-route-compilation-context/ # Column pool, CG lifecycle, shadow prices
+├── network-scheduling-domain-allocation-context/ # Transport requests, compatibility, quotas and hubs
+├── network-scheduling-domain-path-compilation-context/ # Whole-path binary master and lifecycle
+├── network-scheduling-domain-structure-context/ # Rooted/Steiner tree and facility ownership
+├── network-scheduling-domain-generalized-flow-context/ # Loss/yield and single-input conversion
 └── network-scheduling-application/             # B&P algorithm, application service, solve result
 ```
 
@@ -286,3 +290,42 @@ mvn -B -ntp -pl ospf-kotlin-starters/ospf-kotlin-starter-network-scheduling -am 
 - [Migration guide](MIGRATION.md) — public API migration and proof boundaries
 - [ospf-kotlin-framework](../ospf-kotlin-framework/README.md) — shared solver, pipeline, and remote-solver abstractions
 - [ospf-kotlin-framework-gantt-scheduling](../ospf-kotlin-framework-gantt-scheduling/README.md) — Gantt scheduling framework (shared `TimeWindow<V>` infrastructure)
+
+## Business Construction And Path Selection
+
+The following optional domain modules extend Network without introducing a second scheduling framework:
+
+| Module | Public entry | Business use |
+|---|---|---|
+| [allocation-context](network-scheduling-domain-allocation-context/README.md) | `AllocationProblem<V>`, `AllocationContext.create` | Compatible transport allocation, quotas, transshipment layers and optional hubs; compiles to Flow/Design |
+| [path-compilation-context](network-scheduling-domain-path-compilation-context/README.md) | `PathCompilationProblem<V, C>`, `PathCompilationContext<V, C>` | Binary whole-path choices, unsplittable orders, shared resources, ordered services and arc-service coverage |
+| [structure-context](network-scheduling-domain-structure-context/README.md) | `NetworkStructureProblem<V>`, `NetworkStructureContext<V>` | Rooted directed tree, optional Steiner relays and eligible facility ownership/quotas |
+| [generalized-flow-context](network-scheduling-domain-generalized-flow-context/README.md) | `GeneralizedFlowProblem<V>`, `GeneralizedFlowContext<V>` | Input/arrival quantities, transport losses, yields and explicit single-input conversions |
+
+Dependency additions: `allocation -> design -> flow`, `structure -> design`, `path-compilation -> path -> infrastructure`, and `generalized-flow -> infrastructure`. All depend on the common framework/modeling foundation, never on Gantt tasks or application algorithms. The Network starter exposes these domains; embedded users may depend only on the domains needed. The optional Gantt bridge remains separate.
+
+Standalone services are `NetworkAllocationApplicationService`, `NetworkPathApplicationService`, `NetworkStructureApplicationService` and `NetworkGeneralizedFlowApplicationService`. They create fresh per-model contexts and reuse the same registration path as embedded models:
+
+```kotlin
+val result = NetworkPathApplicationService(solver, adapter).solve(pathProblem)
+val embedded = PathCompilationContext(pathProblem, adapter)
+val registered = embedded.register(model)
+```
+
+### Whole-Path And Pricing Semantics
+
+Every `PathColumn<V, C>` represents one complete indivisible choice and one binary variable. Its payload retains business activities, service order and any internal timing. `PathCompilationRow<V>` expresses exact/lower/upper coverage, resource usage or quotas with an explicit unit. Omitted coefficients mean zero; unknown row keys fail. Integer flow measurement steps in allocation still allow splitting between services; use binary path columns for indivisible orders.
+
+Column cost and row coefficients are evaluated for the **complete path**, so start/terminal and non-additive contributions are supported without unsafe additive assumptions or automatic dominance certification. Registration, add/remove, objective cleanup, normalization and reduced-cost evaluation share that same column definition. A stable ID denotes identical payload and normalized economics; conflicting reuse fails. Removing and later reintroducing an ID creates a new model variable.
+
+Dual snapshots bind the current context revision and caller-supplied pricing scope (including graph/rule/branch/fixing versions). Missing row duals, foreign/stale snapshots, changed model structure or bounds and scope mismatches fail. Callers must provide the dual result from the current LP solve; a raw `MetaDualSolution` does not carry its own solve provenance. Declare every priced constraint as a problem row: an unrepresented external constraint cannot be silently priced at zero. Full-path reduced cost is cost minus all declared signed row-dual contributions; it is not an optimality certificate.
+
+An optimal MILP result proves optimality only over `candidateIds`, the final finite pool. `PathSearchResult.complete`, `ColumnGenerationBatch` evidence and binary-master optimality are distinct contracts. Truncated generation cannot prove absence of an improving path, and no new exact branch-and-price tree is implied. Capacity-resource scheduling across separate selected activities remains Gantt's job.
+
+### Structure And Conversion Boundaries
+
+Rooted-tree selection has explicit unique-parent and bounded-depth acyclicity constraints, not merely a low-cost preference; self-loops are excluded and parallel service IDs remain distinct. Optional facilities gate assignments and tree activity. Coverage ownership is separate from flow demand and does not invent deliveries. Construction cost uses declared service-level/facility costs, not an implicit operating-flow cost.
+
+Generalized flow conserves outgoing **input** minus incoming **arrival output** against each node's declared supply. Business yield/loss and unit conversion are separate: cross-dimensional conversion requires an explicit output quantity per declared input quantity, not a dimensionless unit shortcut. Each arc has finite input capacity, including gain cycles. This is single-input conversion only, not multi-input BOM/MRP, process synchronization or repair scheduling.
+
+Executable native-free business examples live in `AllocationContextTest`, `PathCompilationContextTest` (indivisible orders, ordered multimodal service and stable arc coverage), `NetworkStructureContextTest` and `GeneralizedFlowContextTest`. They use hand witnesses and small-domain enumeration independently of solver installation. Opt-in SCIP tests are selected explicitly with `-Pscip-integration-tests`; read the actual executed/skipped counts, not just BUILD SUCCESS. Runtime tests and logs are not repository artifacts.

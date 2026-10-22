@@ -558,6 +558,26 @@
             <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-network-context</artifactId>
             <version>${project.version}</version>
         </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+                <artifactId>ospf-kotlin-framework-network-scheduling-domain-allocation-context</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+                <artifactId>ospf-kotlin-framework-network-scheduling-domain-path-compilation-context</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+                <artifactId>ospf-kotlin-framework-network-scheduling-domain-structure-context</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+                <artifactId>ospf-kotlin-framework-network-scheduling-domain-generalized-flow-context</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <!-- ospf-gantt-scheduling -->
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>

@@ -1059,6 +1059,17 @@ class LinearMetaModel<V>(
     internal val _flattenSubObjects: MutableList<LinearSubObject<V>> = ArrayList()
     internal val flattenSubObjects: List<LinearSubObject<V>> by ::_flattenSubObjects
 
+    /** 是否存在通过扁平 API 注册的目标；供需要完整目标来源的建模组件进行保守校验。
+     * / Whether flattened objectives exist, for conservative validation by components requiring complete objective provenance.
+     */
+    val hasFlattenedObjectives: Boolean get() = _flattenSubObjects.isNotEmpty()
+
+    /** 返回与机制模型相同的有效目标快照，包括扁平目标；修改快照不会改写模型目标。
+     * / Return the effective objective snapshot used by the mechanism model, including flattened objectives; modifying it does not change model objectives.
+     * @return 有效目标单元和常数项快照 / Snapshot of effective objective terms and constants
+     */
+    fun objectiveSnapshot(): List<LinearSubObject<V>> = buildLinearObjectiveSubObjects(this, tokens)
+
     /**
      * 使用线性多项式添加目标子项。 / Add an objective sub-item using a linear polynomial.
      *

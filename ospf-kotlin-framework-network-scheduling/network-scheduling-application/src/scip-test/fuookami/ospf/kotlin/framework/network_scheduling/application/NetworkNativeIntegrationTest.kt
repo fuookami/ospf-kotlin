@@ -8,6 +8,8 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.toMeta
 import fuookami.ospf.kotlin.core.solver.report.ProblemStatus
 import fuookami.ospf.kotlin.core.solver.scip.ScipColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
@@ -15,10 +17,108 @@ import fuookami.ospf.kotlin.framework.network_scheduling.domain.flow.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.flow.model.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.design.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.resilience.*
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.allocation.*
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.path_compilation.*
 import fuookami.ospf.kotlin.framework.network_scheduling.application.service.*
 
 /** 显式 SCIP profile 的真实结构/韧性闭环，不作为默认测试前置条件。 / Opt-in SCIP structural/resilience closure. */
 class NetworkNativeIntegrationTest {
+    @Test
+    fun actualLpDualOfExtraResourceChangesCompletePathPricing() = runBlocking {
+        assumeTrue(runtimeAvailable(), "SCIP native runtime unavailable; not verified")
+        val context = PathCompilationContext(
+            problem = PathCompilationProblem(
+                rows = listOf(
+                    PathCompilationRow(id = "order", unit = NoneUnit, lower = q(1.0), upper = q(1.0)),
+                    PathCompilationRow(id = "resource", unit = NoneUnit, upper = q(0.5))
+                ),
+                columns = listOf(
+                    PathColumn(id = "road", payload = "road", cost = q(1.0), coefficients = mapOf("order" to q(1.0), "resource" to q(1.0))),
+                    PathColumn(id = "rail", payload = "rail", cost = q(5.0), coefficients = mapOf("order" to q(1.0)))
+                ),
+                costUnit = NoneUnit
+            ),
+            adapter = Flt64NetworkSchedulingSolverValueAdapter
+        )
+        val model = LinearMetaModel(name = "complete_path_duals")
+        try {
+            assertTrue(context.register(model).ok)
+            val solver = ScipColumnGenerationSolver(config = SolverConfig(threadNum = UInt64.one))
+            val lp = assertNotNull(solver.solveLP(name = "complete_path_duals", metaModel = model).value)
+            assertTrue(assertNotNull(lp.result.solution?.objective) eq Flt64(3.0))
+            val duals = assertNotNull(context.aggregation.refreshShadowPrices(
+                target = model,
+                duals = lp.dualSolution.toMeta(),
+                scope = "unfixed/all-services/v1"
+            ).value)
+            val candidate = PathColumn(
+                id = "new-rail",
+                payload = "complete rail with terminal discount",
+                cost = q(4.0),
+                coefficients = mapOf("order" to q(1.0))
+            )
+            val reducedCost = assertNotNull(context.aggregation.reducedCost(
+                candidate = candidate,
+                duals = duals,
+                scope = "unfixed/all-services/v1"
+            ).value)
+            assertTrue(reducedCost eq Flt64(-1.0))
+            assertTrue(duals.prices.getValue("resource") eq Flt64(-4.0))
+        } finally {
+            model.close()
+        }
+    }
+
+    @Test
+    fun indivisibleOrdersAndAllocationMatchFiniteHandOracles() = runBlocking {
+        assumeTrue(runtimeAvailable(), "SCIP native runtime unavailable; not verified")
+        val solver = ScipColumnGenerationSolver(config = SolverConfig(threadNum = UInt64.one))
+        val rows = listOf(
+            PathCompilationRow(id = "order1", unit = NoneUnit, lower = q(1.0), upper = q(1.0)),
+            PathCompilationRow(id = "order2", unit = NoneUnit, lower = q(1.0), upper = q(1.0)),
+            PathCompilationRow(id = "truck", unit = NoneUnit, upper = q(3.0))
+        )
+        val columns = listOf(
+            PathColumn(id = "1-road", payload = "1-road", cost = q(1.0), coefficients = mapOf("order1" to q(1.0), "truck" to q(2.0))),
+            PathColumn(id = "1-rail", payload = "1-rail", cost = q(4.0), coefficients = mapOf("order1" to q(1.0))),
+            PathColumn(id = "2-road", payload = "2-road", cost = q(2.0), coefficients = mapOf("order2" to q(1.0), "truck" to q(2.0))),
+            PathColumn(id = "2-rail", payload = "2-rail", cost = q(8.0), coefficients = mapOf("order2" to q(1.0)))
+        )
+        val selected = assertNotNull(NetworkPathApplicationService(solver, Flt64NetworkSchedulingSolverValueAdapter).solve(
+            PathCompilationProblem(
+                rows = rows,
+                columns = columns,
+                costUnit = NoneUnit
+            )
+        ).value?.solution)
+        assertTrue(selected.cost.value eq Flt64(6.0))
+        assertEquals(setOf("1-rail", "2-road"), selected.selected.map { it.id }.toSet())
+
+        val source = NetworkNodeId("source")
+        val target = NetworkNodeId("target")
+        val problem = AllocationProblem(
+            locations = listOf(AllocationLocation<Flt64>(source), AllocationLocation<Flt64>(target)),
+            services = listOf(AllocationService(
+                id = NetworkArcId("road"),
+                from = source,
+                to = target,
+                cost = q(2.0),
+                capacity = assertNotNull(CapacityBounds(q(0.0), q(10.0)).value)
+            )),
+            requests = listOf(AllocationRequest(
+                id = "shipment",
+                origin = source,
+                destination = target,
+                quantity = q(4.0),
+                integerStep = q(1.0)
+            )),
+            zero = Flt64.zero
+        )
+        val allocated = assertNotNull(NetworkAllocationApplicationService(solver, Flt64NetworkSchedulingSolverValueAdapter).solve(problem).value?.solution)
+        assertTrue(allocated.totalCost.value eq Flt64(8.0))
+        assertTrue(allocated.shipments.getValue(AllocationFlowKey("shipment", NetworkArcId("road"))).value eq Flt64(4.0))
+    }
+
     @Test
     fun transportationDesignAndWorstScenarioMatchHandOracle() = runBlocking {
         assumeTrue(runtimeAvailable(), "SCIP native runtime unavailable; not verified")

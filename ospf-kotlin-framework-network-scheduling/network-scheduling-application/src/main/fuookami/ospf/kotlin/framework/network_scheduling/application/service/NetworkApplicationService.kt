@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.framework.network_scheduling.domain.resilience.*
 data class NetworkSolveResult<S>(val report: SolveReport<Flt64>, val solution: S?)
 
 /** 共用装配入口，不在 application 内重复领域约束。 / Shared orchestration without duplicating domain constraints. */
-private suspend fun <S> solveNetwork(
+internal suspend fun <S> solveNetwork(
     name: String,
     solver: ColumnGenerationSolver,
     register: (LinearMetaModel<Flt64>) -> Try,

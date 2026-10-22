@@ -33,3 +33,11 @@ mvn -pl :ospf-kotlin-example -am -Pdemo5-scip-bp test -T 0.75C > "$env:TEMP\ospf
 ```
 
 The Network-parent reactor expects external base-module dependencies to be installed locally. Prefer root-reactor `-pl ... -am` commands on a fresh checkout. SCIP/JSCIP and Gurobi runtimes and licenses are environment-provided; default builds do not download or bundle native runtimes.
+
+## Additional Business Domains
+
+- Prefer `AllocationProblem` over handwritten transport graph assembly when requests, compatibility, quotas or optional hubs are the business input. It compiles to the existing immutable Flow/Design problems; integer steps remain splittable.
+- Use `PathCompilationProblem<V, C>` for a finite set of indivisible choices, not VRPTW `RouteCompilationContext` with fictitious customers. Declare all priced rows and complete-path costs/coefficients; use explicit candidate IDs and caller pricing-scope versions. New contexts are required for new models.
+- Rooted/Steiner topology and facility ownership use `NetworkStructureProblem` with an immutable design problem. `NetworkStructureContext` owns fresh registration state. Flow, structural connectivity and coverage are separate modeling statements.
+- Use `GeneralizedFlowContext` only when arrivals differ from input through declared yield or single-input conversion. Its node accounting is not ordinary flow conservation and does not provide multi-input production semantics.
+- Four new application services reuse domain registration. No existing Gantt generator callback or global scheduling ownership changes in this expansion. No finite-pool optimum or reduced-cost minimum is promoted to a global proof.

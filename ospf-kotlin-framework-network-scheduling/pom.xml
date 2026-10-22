@@ -24,6 +24,10 @@
         <module>network-scheduling-domain-path-context</module>
         <module>network-scheduling-domain-design-context</module>
         <module>network-scheduling-domain-resilience-context</module>
+        <module>network-scheduling-domain-allocation-context</module>
+        <module>network-scheduling-domain-path-compilation-context</module>
+        <module>network-scheduling-domain-structure-context</module>
+        <module>network-scheduling-domain-generalized-flow-context</module>
     </modules>
 
     <dependencies>

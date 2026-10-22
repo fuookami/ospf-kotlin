@@ -18,6 +18,10 @@ ospf-kotlin-framework-network-scheduling/
 ├── network-scheduling-domain-resilience-context/ # 连通辅助流与显式故障场景
 ├── network-scheduling-domain-route-generation-context/  # ESPPRC 定价器、定价图、标签支配
 ├── network-scheduling-domain-route-compilation-context/ # 列池、列生成生命周期、影子价格
+├── network-scheduling-domain-allocation-context/ # 请求分配、兼容、配额与枢纽
+├── network-scheduling-domain-path-compilation-context/ # 整条路径二元选择及列生命周期
+├── network-scheduling-domain-structure-context/ # 根树/Steiner 中转与设施归属
+├── network-scheduling-domain-generalized-flow-context/ # 损耗/产率与单输入转换
 └── network-scheduling-application/             # 分支定价算法、应用服务、求解结果
 ```
 
@@ -271,3 +275,42 @@ mvn -B -ntp -pl ospf-kotlin-starters/ospf-kotlin-starter-network-scheduling -am 
 - [迁移说明](MIGRATION_ch.md) — 公共接口迁移与证明边界
 - [ospf-kotlin-framework](../ospf-kotlin-framework/README_ch.md) — 共享求解器、pipeline 和远程求解抽象
 - [ospf-kotlin-framework-gantt-scheduling](../ospf-kotlin-framework-gantt-scheduling/README_ch.md) — Gantt 调度框架（共享 `TimeWindow<V>` 基础设施）
+
+## 业务构造与通用路径选择
+
+新增四个独立领域模块，扩展 Network，但不建设第二套全局调度框架：
+
+| 模块 | 公共入口 | 业务场景 |
+|---|---|---|
+| [allocation-context](network-scheduling-domain-allocation-context/README_ch.md) | `AllocationProblem<V>`、`AllocationContext.create` | 兼容运输分配、共享配额、分层中转及可选枢纽，复用 Flow/Design |
+| [path-compilation-context](network-scheduling-domain-path-compilation-context/README_ch.md) | `PathCompilationProblem<V, C>`、`PathCompilationContext<V, C>` | 整条路径二元选择、不可拆订单、共享资源、有序服务链、多式服务及弧覆盖 |
+| [structure-context](network-scheduling-domain-structure-context/README_ch.md) | `NetworkStructureProblem<V>`、`NetworkStructureContext<V>` | 根有向树、可选 Steiner 中转、设施资格覆盖/归属与数量配额 |
+| [generalized-flow-context](network-scheduling-domain-generalized-flow-context/README_ch.md) | `GeneralizedFlowProblem<V>`、`GeneralizedFlowContext<V>` | 投入与到达产出、运输损耗、产率、回收和显式单输入转换 |
+
+新增依赖为 `allocation -> design -> flow`、`structure -> design`、`path-compilation -> path -> infrastructure`、`generalized-flow -> infrastructure`。这些模块共享 framework/modeling 基础，不引用 Gantt 任务或应用算法。Network starter 暴露新能力；嵌入业务可只依赖需要的 domain。Gantt 桥接仍是独立可选依赖。
+
+独立入口分别为 `NetworkAllocationApplicationService`、`NetworkPathApplicationService`、`NetworkStructureApplicationService`、`NetworkGeneralizedFlowApplicationService`，每次创建独立 context，与嵌入式用法走相同注册路径：
+
+```kotlin
+val result = NetworkPathApplicationService(solver, adapter).solve(pathProblem)
+val embedded = PathCompilationContext(pathProblem, adapter)
+val registered = embedded.register(model)
+```
+
+### 整条路径与定价合同
+
+每个 `PathColumn<V, C>` 对应一个完整不可拆选择及一个二元变量；payload 保留内部活动、服务顺序和业务时间。`PathCompilationRow<V>` 用显式单位表达精确覆盖、上下界、资源及配额。缺省系数为零，未知行键失败。分配中的整数流计量步长仍可在不同服务间拆分，整单不可拆必须用整条路径二元选择。
+
+成本和行系数按**完整路径**计算，支持开始/结束及非可加贡献，不强行假设可逐弧分解，也不自动认证支配。注册、增列、删列、目标清理、单位归一化和 reduced cost 使用同一个列定义。稳定 ID 必须对应相同载荷和规范化经济含义；冲突重用返回失败。删除后重新加入相同 ID 会创建新的模型变量。
+
+对偶快照绑定当前 context 修订及调用方提供的定价范围版本（含有效图、规则、分支和固定状态）。缺失行对偶、外部/过期快照、模型结构或变量边界改变、范围不符都返回失败。调用方必须传本轮 LP 求解的对偶；原始 `MetaDualSolution` 自身没有求解来源信息。参与定价的所有约束应声明为问题行，不能将未映射的外部约束静默按零价格处理。完整路径 reduced cost 等于总费用减全部声明行的有符号对偶贡献，但这个数值本身不是最优性证书。
+
+MILP 的最优状态仅证明最终 `candidateIds` 候选集合内最优。`PathSearchResult.complete`、共享 `ColumnGenerationBatch` 的证据及二元主问题最优状态是不同合同；生成截断不能证明不存在改进列，也没有新增精确分支定价树。跨独立活动的时间容量协调继续由 Gantt 处理。
+
+### 结构与转换边界
+
+根树采用显式唯一父弧和有界深度无环约束，而不是依赖低成本“自然成树”；排除自环，平行服务仍以稳定弧 ID 区分。可选设施控制归属和树节点启用；覆盖归属不等于流量需求，也不会凭空产生配送。建设费用使用明确的服务容量等级/设施费用，不隐式套用商品运行流费用。
+
+广义流按节点单位表达“流出投入减流入到达产出等于供需”。业务产率/损耗与单位换算分开；跨量纲转换必须声明每份投入对应的产出物理量，不能靠无单位比例伪装量纲转换。每条弧都有有限投入容量，增益循环也不例外。只支持单输入转换，不把多输入 BOM/MRP、加工同步或修复排程混入本模块。
+
+可执行无原生算例见 `AllocationContextTest`、`PathCompilationContextTest`（不可拆订单、有序多式服务、稳定弧覆盖）、`NetworkStructureContextTest`、`GeneralizedFlowContextTest`。这些测试以手算见证和小域枚举作独立对照。真实 SCIP 测试通过 `-Pscip-integration-tests` 显式启用，须核对实际执行/跳过数量，不能只看 BUILD SUCCESS；测试证据和日志不属于仓库交付源码。

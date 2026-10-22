@@ -152,7 +152,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * @return 是否为有限值
      * @return Whether the value is finite
     */
-    fun isFinite(): Boolean = !isInfinite()
+    fun isFinite(): Boolean = !isInfinite() && (constants.nan == null || this != constants.nan)
 
     override fun isWithinBounds(value: Self): Boolean {
         val lowerOkay = minBound?.let { value >= it } ?: true

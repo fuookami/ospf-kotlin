@@ -38,6 +38,26 @@
             <artifactId>ospf-kotlin-framework-network-scheduling-domain-resilience-context</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-network-scheduling-domain-allocation-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-network-scheduling-domain-path-compilation-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-network-scheduling-domain-structure-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-network-scheduling-domain-generalized-flow-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -95,7 +115,7 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-                            <test>NetworkNativeIntegrationTest</test>
+                            <test>NetworkNativeIntegrationTest,NetworkStructureNativeIntegrationTest</test>
                             <failIfNoTests>true</failIfNoTests>
                             <forkCount>1</forkCount>
                             <argLine>-XX:-UseJVMCICompiler -Djava.library.path="${env.JSCIP_HOME};${env.SCIP_HOME}/bin"</argLine>

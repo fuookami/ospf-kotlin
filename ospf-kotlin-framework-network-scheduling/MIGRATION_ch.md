@@ -33,3 +33,11 @@ mvn -pl :ospf-kotlin-example -am -Pdemo5-scip-bp test -T 0.75C > "$env:TEMP\ospf
 ```
 
 Network 父 reactor 的定向命令要求本机已有外部基础模块依赖；从新检出的仓库验证时优先使用根 reactor 的 `-pl ... -am` 命令。SCIP/JSCIP 和 Gurobi 的运行库及许可证由环境提供，默认构建不会下载或捆绑原生运行库。
+
+## 新增业务领域
+
+- 当业务输入是运输请求、兼容服务、配额和可选枢纽时，优先使用 `AllocationProblem`，由它构造现有不可变 Flow/Design 问题；整数步长仍允许拆单。
+- 有限候选的不可拆选择使用 `PathCompilationProblem<V, C>`，不要伪造客户后套用 VRPTW `RouteCompilationContext`。声明所有定价行及完整路径成本/系数，明确候选 ID 与业务定价范围版本；不同模型创建不同 context。
+- 根树/Steiner 拓扑及设施归属使用持有不可变 design 问题的 `NetworkStructureProblem`；`NetworkStructureContext` 拥有独立注册态。商品流、结构连通和服务覆盖分别建模。
+- 仅在到达量因显式产率或单输入转换而不同于投入量时使用 `GeneralizedFlowContext`；它的节点口径不是普通流守恒，也不提供多输入生产语义。
+- 四个新 application service 复用领域注册路径；本次扩展不改变 Gantt 生成回调或全局排程主体，不将有限候选最优或最小 reduced cost 提升为全局证明。

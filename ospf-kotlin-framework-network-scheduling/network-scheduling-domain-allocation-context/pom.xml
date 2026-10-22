@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+        <artifactId>ospf-kotlin-framework-network-scheduling</artifactId>
+        <version>1.1.1</version>
+    </parent>
+    <artifactId>ospf-kotlin-framework-network-scheduling-domain-allocation-context</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-network-scheduling-domain-flow-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-network-scheduling-domain-design-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src/main</sourceDirectory>
+    </build>
+</project>
