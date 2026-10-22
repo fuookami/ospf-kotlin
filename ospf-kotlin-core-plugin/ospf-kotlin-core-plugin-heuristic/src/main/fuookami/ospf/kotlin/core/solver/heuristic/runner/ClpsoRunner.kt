@@ -11,7 +11,6 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.heuristic.*
-import fuookami.ospf.kotlin.core.solver.heuristic.operator.compareStrictly
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.archive.Archive
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.stopping.StoppingCriterion
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.initializer.Initializer
@@ -161,7 +160,11 @@ class ClpsoRunner<ObjValue, V>(
                             stagnation = particle.stagnation + 1
                         )
 
-                    val improved = compareStrictly(model, candidate.fitness, particle.best.fitness) < 0
+                    val improved = compareIndividuals(
+    model = model,
+    lhs = candidate,
+    rhs = particle.best
+) < 0
                     when {
                         improved -> ClpsoParticle(
                             individual = candidate,

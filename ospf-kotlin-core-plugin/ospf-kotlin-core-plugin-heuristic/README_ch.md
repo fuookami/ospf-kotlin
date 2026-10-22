@@ -9,6 +9,9 @@
 参见[超启发式指南](src/main/fuookami/ospf/kotlin/core/solver/hyper_heuristic/README_ch.md)。
 `AbstractRunner.run` 返回 `Ret<List<Individual<O, V>>>`，调用方需显式处理错误，不再直接消费裸列表。
 
+原生 runner 支持类型化的可行性优先、epsilon 和随机约束排序，不替换业务目标。
+`AutoAcceptance` 无需温度或历史长度调参；多维 HV 提供精确计算或显式可复现采样、误差指标及可恢复参考点校准。
+
 ## 简介
 
 OSPF Kotlin 框架的元启发式算法插件模块。本模块中的算法都是**组合**出来的，而不是逐个手写：
@@ -312,3 +315,5 @@ class MyRunner(...) : AbstractRunner<MyState, ObjValue, V>(entropy, archive, sto
 |------|--------|------|
 | `ospf-kotlin-core` | compile | 模型接口、`Individual`、`Ret` |
 | `ospf-kotlin-math` | compile | `generator`、`chaotic`、`fractal`、`distribution` |
+
+新增非平稳信用分配、异构状态桥接、免温度接受、局部精调与 ALNS 组件，详见[超启发式指南](src/main/fuookami/ospf/kotlin/core/solver/hyper_heuristic/README_ch.md#非平稳信用与正交组合)。

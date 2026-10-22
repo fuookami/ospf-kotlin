@@ -200,9 +200,7 @@ class ShadeRunner<ObjValue, V>(
             return state
         }
 
-        val sorted = state.population.sortedWith { lhs, rhs ->
-            compareStrictly(model, lhs.fitness, rhs.fitness)
-        }
+        val sorted = rankIndividuals(model, state.population)
         val pBestAmount = max(1, (sorted.size * pBestRate).toInt())
         val pBestPool = sorted.take(pBestAmount)
 
@@ -260,7 +258,11 @@ class ShadeRunner<ObjValue, V>(
                 continue
             }
 
-            if (compareStrictly(model, candidate.fitness, target.fitness) <= 0) {
+            if (compareIndividuals(
+    model = model,
+    lhs = candidate,
+    rhs = target
+) <= 0) {
                 nextPopulation.add(candidate)
                 nextArchive.add(target.solution.toList())
                 successfulF.add(parameters.differentialWeight)
@@ -312,6 +314,7 @@ class ShadeRunner<ObjValue, V>(
         individuals: List<Individual<ObjValue, V>>,
         amount: Int
     ): List<Individual<ObjValue, V>> {
+        constraintHandling(model)?.let { return it.rank(individuals).take(amount) }
         val remaining = individuals.toMutableList()
         val kept = ArrayList<Individual<ObjValue, V>>(amount)
         repeat(amount.coerceAtMost(remaining.size)) {

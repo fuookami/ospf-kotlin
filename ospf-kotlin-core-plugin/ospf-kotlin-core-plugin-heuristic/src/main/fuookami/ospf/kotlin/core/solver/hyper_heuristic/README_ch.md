@@ -174,3 +174,147 @@ Bandit 仅更新实际执行动作。
 Q/UCB 手算、冻结推理、训练集隔离、多目标标量化及文件损坏。
 
 边界：单 JVM 多协程、选择型超启发式及固定组合；不含算法程序生成、数据库存储、分布式调度或深度学习平台。
+
+
+## 非平稳信用与正交组合
+
+`OrthogonalOperatorPortfolio.continuous()` 提供分布、自适应差分、围捕、重尾/对立、局部精调五个生态位，
+`permutation()` 提供保序交叉和交换/反转邻域，不将全部群智能更新塞入同一动作空间。
+组合不是跨问题的性能保证；请按相同评估预算与单算法、随机和轮询基线比较。
+
+两层 `selection` 均支持：
+
+| ID | 实现及参数 | 信用语义 |
+|---|---|---|
+| `frr-mab` | `FRRMABSelector`；`window=50`、`exploration=0.5`、`decay=0.8` | 最近反馈窗口内累积正收益，按秩衰减分配信用，再加窗口 UCB 探索项 |
+| `choice-function` | `ChoiceFunctionSelector`；`rate=0.2`、`recencyWeight=0.1` | 单动作与二阶转移收益的指数均值，加等待奖励；前驱在派发时冻结，异步完成不重配对 |
+| `adaptive-pursuit` | `AdaptivePursuitSelector`；`rate=0.2`、`minimumProbability=0.01` | 更新已执行动作的收益，追逐当前赢家，保留全动作探索概率下界 |
+
+`NonStationarySelector` 提供上述完整参数入口；动作掩码重新归一化概率，禁用动作不被选择。
+快照按 ID 保存滑动窗口、二阶分数、概率、派发上下文和修订号；冻结推理不改变学习状态。
+
+### 奖励与数值边界
+
+`learning.reward` 新增：
+
+- `dominance`：有效非支配新贡献比例，而不是子代数量或前沿大小。
+- `time-normalized`：`max(0, old-new)/(seconds+epsilonSeconds)`，默认 `epsilonSeconds=1e-9`。
+- `extreme-value`：最近 `window=50` 次观测中，该实际动作的最大标量突破；旧突破随全局窗口过期。
+- `hypervolume-delta`：多维最小化超体积并集增量。`reference` 是归一化后的劣参考坐标数组，
+  也保留二维 `referenceX`/`referenceY` 写法。`mode="exact"` 使用递归切片，几何操作额度
+  `maxWork=1000000` 耗尽时明确失败，绝不自动退化到采样。
+  高维可以显式选择 `mode="sampled"`、`samples=16384`、`seed=1`；共同随机数确保重复测量可复现。
+  `HypervolumeDeltaReward.measure`/`lastMeasurement` 提供样本数、标准误差和 99% Hoeffding 绝对误差界。
+  几何计算不调用业务目标，不消耗目标评估令牌；采样误差界不等于质量改善保证。
+
+不配置 `reference` 时，按 `calibrationObservations=32` 次有效候选观测校准，再添加 10% 余量并冻结。
+校准期及冻结动作奖励为零，之后不随档案漂移参考点。校准数据、冻结参考点和最近误差指标均进入检查点。
+参考点溢出时明确要求配置显式参考点，不生成不可用信用。
+
+标量收益和 HV 要求 `SearchProblem.objectiveCoordinates`：业务值在这个唯一适配边界投影为有限、
+已归一化、越小越优的坐标。最大化需显式取反；不同量纲需显式缩放，并将定义纳入问题指纹。
+`multiObjectiveProblem` 默认按明确的 `directions` 变换符号，也允许覆盖坐标映射。
+`singleObjectiveProblem` 不猜测业务目标的数值或方向。标量收益不接受多目标问题。
+耗时记录为 `SelectionTransition.elapsedNanos`；采用真实耗时奖励后，即使同步/评估预算模式也不保证策略轨迹逐位复现。
+
+每个 worker 和协调器有独立奖励实例；有状态奖励随会话/全局组件检查点恢复，不跨并发会话共享窗口。
+算子信用只反馈实际使用的动作；未执行的槽位会释放派发上下文。
+
+## 异构桥接与精调
+
+`ContextStateSynchronizer` 在已重评估解导入时：
+
+- PSO 按最近目的粒子匹配，用导入位置与其当前位置的差建立夹紧速度，并保留真实历史最优。
+  这不是源算法两代轨迹的臆造；如业务有真实配对位置，可直接调用 `velocity(previous,current)`。
+- SHADE/L-SHADE 合并工作种群、将淘汰成员放入有界外部档案，并保留真实 `M_F/M_CR`，
+  **不根据位置伪造成功的 F/CR 样本**。
+- CMA-ES 仍需显式 `restartOnImport=true`；群体导入估计含相关项的正则化协方差，
+  单解只重定心并保留原协方差；重置演化路径，历史最优保留。
+- 轨迹会话从导入群体中选择优解。算法切换本身只暂停调度，不清空目的会话状态。
+
+新增更新 ID：`pattern-search`（Hooke-Jeeves，`initialStep=0.1`、`contraction=0.5`、`sweeps=32`）、
+`opposition`、`pipeline`、`vnd`、`elite-local`、`mutation-stage`、`neighborhood-stage`。
+对立跳跃只对有有限上下界的坐标生效；缺界坐标保留原值。
+组合的 `parameters.stages` 是 `ComponentSpec` 数组，`vnd` 可设 `maxTrials`，`elite-local` 可设 `amount`。
+变异/邻域阶段用 `parameters.operator` 引用注册算子，变异阶段另有 `rate`。
+流水线中间产物重新计费评估后才传给下一阶段；VND 改善后重置到第一邻域。
+`EliteLocalSearchWrapper` 接收已排序父代，仅精调 Top-K。`NeighborhoodUpdate` 可以将轨迹邻域提升为标准更新阶段。
+组合配置目前只接受显式无状态的兼容编码组件；有状态业务组合需通过独立可恢复组件注册，不能丢失子状态。
+所有试探、中间评估及最终评估均受同一个父级令牌预算约束；请为精调按维度配置足够片段额度，
+不足时不提交残缺原生状态，但已完成的有效评估仍可进入全局档案。
+
+## 接受、排列与约束
+
+设置 `memory.acceptance=ComponentSpec("auto")` 使用 `AutoAcceptance`，无需用户指定温度、历史长度或容差。
+容量从已配置的全局预算自动推导并设界，延迟跨度按近期严格改善自适应调整；直接比较业务目标，
+支持单目标全序和多目标支配，对保持方向的单调目标缩放不敏感。拒绝也会推进历史。
+检查点保存适应计数和无损业务目标历史。这是配置边界免调参，不宣称实现内部不存在常数。
+既有默认仍为 `not-worse`。
+
+显式替代项为 `late`（`LateAcceptance`，`length=50`）和 `record-to-record`
+（`RecordToRecordAcceptance`，`initialRatio=0.05`、`horizon=1000`）。两者只支持单目标并保存历史。
+LAHC 免温度、对目标尺度不敏感，但仍有历史长度参数；记录到记录按显式标量坐标的历史量级缩放动态阈值，
+并非严格免调参。接受规则只影响工作解集，不回滚算法私有状态或删除有效档案。
+
+排列 ALNS 组件位于 `heuristic.operator.neighborhood`：`RandomRuin`、`WorstCostRuin`、`RelatednessRuin`、
+`GreedyInsertRepair`、`RegretKInsertRepair`、`RuinRecreateOperator`。
+元素须有唯一身份；代价/相关性通过类型化业务回调注入，不序列化闭包。
+遗憾插入优先处理可行位置不足 K 的元素，拒绝非有限代价，并在无法修复时返回错误而非丢弃元素。
+插入代价是部分解的业务估计，不应在闭包中绕过预算调用完整目标。
+将完整邻居交给 `SearchProblem.evaluate`，在自定义 `SearchSession` 中将每个 destroy/repair 配对注册为独立动作，
+即可沿用两层选择和高层协调器，无需修改主循环。
+
+`RuinRecreateSearchSession` 提供可直接注册的完整排列会话；例如对已定义的业务插入代价 `cost`：
+
+```kotlin
+registry.registerAlgorithm("domain-ruin") { context ->
+    Ok(RuinRecreateSearchSession(
+        problem = context.problem,
+        operator = RuinRecreateOperator(RandomRuin(), RegretKInsertRepair(cost)),
+        amount = 2,
+        random = context.random,
+        statelessEstimates = true
+    ))
+}
+```
+
+随后用 `AlgorithmConfig(id = "ruin", algorithm = ComponentSpec("domain-ruin"))` 加入算法池。
+`statelessEstimates=true` 只适用于真正无状态的业务估计；否则提供 `estimateState`，启用完整检查点时会明确校验。
+完整目标统一计费，部分解插入估计不冒充完整目标调用；此扩展及恢复路径有协调器集成测试。
+
+原生约束处理不再要求自定义会话。给 `SearchProblem.constraintViolation` 提供有限非负的归一化违约度回调
+（单/多目标便利工厂也接受该参数），再为叶算法设置 `AlgorithmConfig.constraints`：
+
+```kotlin
+constraints = ConstraintHandlingConfig(
+    mode = ConstraintMode.Epsilon,
+    horizon = 1000
+)
+```
+
+支持 `FeasibilityFirst`、`Epsilon`、`StochasticRanking`。epsilon 初值默认从初始化候选校准，
+也可显式给 `initialEpsilon`，按完整步逐渐收紧到零。GA/群智能/PSO/CLPSO/SHADE/CMA-ES、轨迹接受、
+个体/历史最优、导入及 NSGA-II/III 共用类型化桥；NSGA 在约束层内保留原生 Pareto、拥挤度和参考点选择。
+随机排序采用有界批扫描和独立可恢复随机流；逐对接受和历史比较仍使用确定性的可行性优先规则，
+不把随机过程塞进 comparator。预算中断或失败时，约束适应状态与原生状态一同回滚。
+
+显式启用处理后会放宽默认可行性 admission，但保留自定义 `admissible` 业务禁区和编码检查。
+业务目标不替换为惩罚值，严格 `feasible` 仍控制全局档案及工作集，违约度为零不等于已证明可行。
+违约估计回调不得绕过预算调用完整目标，其归一化定义应纳入问题指纹。
+组合根节点不接受约束配置，应配置到叶子；自定义算法须注册 `supportsConstraints=true` 并遵守
+`compareIndividuals`/`rankIndividuals` 协议，否则启动前明确失败。
+直接打开原生 runner 会话时也可用 `SearchProblem.withConstraints`。
+底层 `EpsilonConstraintEvaluator.rank`、`StochasticRanking.rank` 继续供自定义业务会话使用。
+
+## 双端奖励状态协议
+
+受控会话与 Rust 共同使用 `rewardStateVersion: 1` 及 `rewardState`；全局奖励状态仍保存于
+`components.reward`。每个 worker 和组合叶子均通过工厂创建独立实例；在搜索前拒绝跨作用域共享的
+可恢复奖励单例。仅真实调用的槽位推进局部奖励状态，顺序为 update、mutation、neighborhood，
+然后按名称字典序遍历参数槽位。初始化和未使用槽位不产生虚假奖励观测。
+
+读取时兼容无版本的旧 `rewardState` 和 Rust `reward`，拒绝别名冲突、未知版本和版本化状态缺失。
+自定义载荷仍需双方约定共同 schema，组件及配置身份必须相同；不代表任意闭包或新增自适应组件自动互通。
+无状态会话省略这些字段，继续支持 Kotlin `2eb7943` 读取；原始读取器无法恢复有状态内层奖励。
+Rust 的 `save_kotlin_checkpoint` 面向原始读取器，使用本协议时应调用普通 `save_checkpoint`。
+数值逐位一致性和异步调度重放属于独立契约，本协议不对此作保证。

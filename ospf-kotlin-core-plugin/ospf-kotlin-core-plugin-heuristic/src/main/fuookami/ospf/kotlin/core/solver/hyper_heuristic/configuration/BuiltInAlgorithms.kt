@@ -98,7 +98,7 @@ internal object BuiltInAlgorithms {
             return Ok(runner.openSession(
                 problem = problem,
                 codec = RunnerStateCodecs.trajectory(problem),
-                importer = { state, incoming -> Ok(incoming.firstOrNull() ?: state) }
+                importer = { state, incoming -> Ok(rankIndividuals(problem.model, incoming).firstOrNull() ?: state) }
             ))
         }
         if (type == "pso" || type == "apso") {
@@ -122,12 +122,10 @@ internal object BuiltInAlgorithms {
                 problem = problem,
                 codec = RunnerStateCodecs.particles(problem),
                 importer = { state, incoming ->
-                    val keep = state.sortedWith { a, b -> compare(problem, a.best, b.best) }.take((state.size - incoming.size).coerceAtLeast(0))
-                    Ok((keep + incoming.take(state.size).map { ParticleState(
-                        individual = it,
-                        velocity = List(it.solution.size) { Flt64.zero },
-                        best = it
-                    ) }).take(state.size))
+                    ContextStateSynchronizer(
+                        problem = problem,
+                        maxVelocity = p.number("maxVelocity", 10000.0)
+                    ).particles(state, incoming)
                 }
             ))
         }
@@ -153,18 +151,10 @@ internal object BuiltInAlgorithms {
                 problem = problem,
                 codec = RunnerStateCodecs.clpso(problem),
                 importer = { state, incoming ->
-                    val keep = state.sortedWith { a, b -> compare(problem, a.best, b.best) }.take((state.size - incoming.size).coerceAtLeast(0))
-                    Ok((keep + incoming.take(state.size).map { individual ->
-                        ClpsoParticle(
-                            individual = individual,
-                            velocity = List(individual.solution.size) { Flt64.zero },
-                            best = individual,
-                            exemplars = List(individual.solution.size) { 0 },
-                            stagnation = 0
-                        )
-                    }).take(state.size).mapIndexed { index, particle ->
-                        particle.copy(exemplars = List(particle.individual.solution.size) { index }, stagnation = 0)
-                    })
+                    ContextStateSynchronizer(
+                        problem = problem,
+                        maxVelocity = p.number("maxVelocity", 10000.0)
+                    ).clpso(state, incoming)
                 }
             ))
         }
@@ -189,7 +179,7 @@ internal object BuiltInAlgorithms {
                 problem = problem,
                 codec = RunnerStateCodecs.shade(problem),
                 importer = { state, incoming ->
-                    Ok(state.copy(population = ElitistSurvivor(problem.model, state.population, incoming, state.population.size)))
+                    ContextStateSynchronizer(problem).shade(state, incoming)
                 }
             ))
         }
@@ -207,19 +197,10 @@ internal object BuiltInAlgorithms {
                 problem = problem,
                 codec = RunnerStateCodecs.cmaEs(problem),
                 importer = if (p["restartOnImport"]?.jsonPrimitive?.booleanOrNull != true) null else { state, incoming ->
-                        val seed = incoming.firstOrNull()
-                        if (seed == null) Ok(state) else {
-                            val dimension = seed.solution.size
-                            Ok(CmaEsState(
-                                mean = seed.solution.map { it.toFlt64().toDouble() },
-                                sigma = sigma,
-                                covariance = List(dimension) { row -> List(dimension) { column -> if (row == column) 1.0 else 0.0 } },
-                                pathSigma = List(dimension) { 0.0 },
-                                pathCovariance = List(dimension) { 0.0 },
-                                generation = 0,
-                                best = seed
-                            ))
-                        }
+                    ContextStateSynchronizer(
+                        problem = problem,
+                        initialSigma = sigma
+                    ).cmaEs(state, incoming)
                 }
             ))
         }
@@ -263,7 +244,7 @@ internal object BuiltInAlgorithms {
         return Ok(runner.openSession(
             problem = problem,
             codec = RunnerStateCodecs.population(problem),
-            importer = { state, incoming -> Ok(runner.selectImported(state + incoming)) }
+            importer = { state, incoming -> Ok(runner.selectImported(problem.model, state + incoming)) }
         ))
     }
 

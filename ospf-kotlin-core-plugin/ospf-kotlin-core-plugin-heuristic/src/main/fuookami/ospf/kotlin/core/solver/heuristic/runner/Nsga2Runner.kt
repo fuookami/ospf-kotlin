@@ -145,12 +145,20 @@ open class Nsga2Runner<V>(
         state: List<Individual<List<Flt64>, V>>
     ): List<Individual<List<Flt64>, V>> {
         if (state.isEmpty()) return state
-        return select(state + breed(model = model, iteration = iteration, population = state))
+        return constraintSurvivors(
+            model = model,
+            entries = state + breed(model = model, iteration = iteration, population = state),
+            amount = size,
+            select = ::select
+        )
     }
 
     override fun membersOf(state: List<Individual<List<Flt64>, V>>): List<Individual<List<Flt64>, V>> = state
 
-    internal fun selectImported(candidates: List<Individual<List<Flt64>, V>>): List<Individual<List<Flt64>, V>> = select(candidates)
+    internal fun selectImported(
+        model: AbstractCallBackModelInterface<*, List<Flt64>, V>,
+        candidates: List<Individual<List<Flt64>, V>>
+    ): List<Individual<List<Flt64>, V>> = constraintSurvivors(model = model, entries = candidates, amount = size, select = ::select)
 
     private fun evaluate(
         model: AbstractCallBackModelInterface<*, List<Flt64>, V>,
@@ -206,9 +214,10 @@ open class Nsga2Runner<V>(
      * @return 新的种群 / New population
     */
     protected open fun select(
-        candidates: List<Individual<List<Flt64>, V>>
+        candidates: List<Individual<List<Flt64>, V>>,
+        amount: Int = size
     ): List<Individual<List<Flt64>, V>> {
-        if (candidates.size <= size) {
+        if (candidates.size <= amount) {
             return candidates
         }
 
@@ -218,9 +227,9 @@ open class Nsga2Runner<V>(
             dominance = dominance
         )
 
-        val selected = ArrayList<Individual<List<Flt64>, V>>(size)
+        val selected = ArrayList<Individual<List<Flt64>, V>>(amount)
         for (front in fronts) {
-            if (selected.size + front.size <= size) {
+            if (selected.size + front.size <= amount) {
                 selected.addAll(front)
                 continue
             }
@@ -228,7 +237,7 @@ open class Nsga2Runner<V>(
             // 最后一层：保留拥挤距离最大的那些，维持前沿的覆盖度。
             // Last layer: keep the largest crowding distances to preserve the spread of the front.
             val distances = CrowdingDistance.assign(front.map { it.fitness })
-            val remaining = size - selected.size
+            val remaining = amount - selected.size
             val order = MutableList(front.size) { it }
             repeat(remaining) {
                 var bestIndex = 0

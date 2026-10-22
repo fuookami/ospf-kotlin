@@ -68,7 +68,7 @@ private fun config(types: List<String> = listOf("genetic", "pso"), mode: Executi
 }
 
 private fun stripTiming(value: JsonElement): JsonElement = when (value) {
-    is JsonObject -> JsonObject(value.filterKeys { it != "activeNanos" }.mapValues { stripTiming(it.value) })
+    is JsonObject -> JsonObject(value.filterKeys { it != "activeNanos" && it != "elapsedNanos" }.mapValues { stripTiming(it.value) })
     is JsonArray -> JsonArray(value.map { stripTiming(it) })
     else -> value
 }
@@ -476,7 +476,7 @@ class HyperHeuristicTest {
             try {
                 success(original.run())
                 success(loaded.run())
-                assertEquals(original.transitions(), loaded.transitions())
+                assertEquals(original.transitions().map { it.copy(elapsedNanos = 0) }, loaded.transitions().map { it.copy(elapsedNanos = 0) })
                 assertEquals(success(original.checkpoint()).components, success(loaded.checkpoint()).components)
             } finally { success(loaded.close()) }
         } finally { success(original.close()) }

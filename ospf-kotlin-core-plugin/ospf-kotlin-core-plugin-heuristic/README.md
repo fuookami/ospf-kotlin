@@ -9,6 +9,9 @@ search sessions, two-level selection, evaluation budgets, synchronous/asynchrono
 tabular learning, instance training, JSON/YAML/DSL configuration and versioned recovery.
 See the [hyper-heuristic guide](src/main/fuookami/ospf/kotlin/core/solver/hyper_heuristic/README.md).
 `AbstractRunner.run` returns `Ret<List<Individual<O, V>>>`; handle failures instead of consuming a bare list.
+Native runners now support typed feasibility-first/epsilon/stochastic constraint handling without replacing
+business objectives. `AutoAcceptance` needs no temperature/history tuning; multidimensional HV offers exact
+or explicit reproducible sampling with uncertainty diagnostics and checkpointed reference calibration.
 
 ## Introduction
 
@@ -327,3 +330,5 @@ class MyRunner(...) : AbstractRunner<MyState, ObjValue, V>(entropy, archive, sto
 |------------|-------|-------------|
 | `ospf-kotlin-core` | compile | Model interfaces, `Individual`, `Ret` |
 | `ospf-kotlin-math` | compile | `generator`, `chaotic`, `fractal`, `distribution` |
+
+Adaptive credit assignment, heterogeneous state bridging, temperature-free acceptance, local intensification and ALNS building blocks are documented in [the hyper-heuristic guide](src/main/fuookami/ospf/kotlin/core/solver/hyper_heuristic/README.md#adaptive-credit-and-orthogonal-portfolios).

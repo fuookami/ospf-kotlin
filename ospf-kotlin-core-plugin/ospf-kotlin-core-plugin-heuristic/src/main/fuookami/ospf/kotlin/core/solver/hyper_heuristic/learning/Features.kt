@@ -1,6 +1,8 @@
 package fuookami.ospf.kotlin.core.solver.hyper_heuristic.learning
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.heuristic.*
 import fuookami.ospf.kotlin.core.solver.hyper_heuristic.selection.SelectionContext
 
 /** 搜索进度快照 / Search progress snapshot.
@@ -58,16 +60,41 @@ object ProgressFeatures : FeatureExtractor {
  * @property improved 相对参考档案是否改进 / Improvement against the reference archive
  * @property contribution 有效新贡献比例 / Effective novel contribution ratio
  * @property evaluations 评估成本 / Evaluation cost
+ * @property elapsedNanos 实际动作耗时 / Actual action duration
+ * @property action 稳定动作 ID / Stable action ID
+ * @property reference 派发时参考档案的最小化坐标 / Minimization coordinates at dispatch
+ * @property candidates 有效候选的最小化坐标 / Minimization coordinates of valid candidates
  */
-data class RewardContext(val improved: Boolean, val contribution: Flt64, val evaluations: Long)
+data class RewardContext(
+    val improved: Boolean,
+    val contribution: Flt64,
+    val evaluations: Long,
+    val elapsedNanos: Long = 0,
+    val action: String = "algorithm",
+    val reference: List<List<Flt64>> = emptyList(),
+    val candidates: List<List<Flt64>> = emptyList()
+)
 
 /** 可替换奖励 / Replaceable reward. */
 fun interface RewardPolicy {
+    /** 是否需要显式最小化坐标 / Whether explicit minimization coordinates are required. */
+    val requiresCoordinates: Boolean get() = false
+
     /** 计算有限奖励 / Compute a finite reward.
      * @param context 动作结果 / Action outcome
      * @return 无量纲奖励 / Dimensionless reward
      */
     fun reward(context: RewardContext): Flt64
+
+    /** 带错误信息的奖励入口 / Reward entry preserving failure details.
+     * @param context 动作结果 / Action outcome
+     * @return 有限奖励或明确失败 / Finite reward or explicit failure
+     */
+    fun evaluate(context: RewardContext): Ret<Flt64> {
+        return searchBoundary { reward(context) }.then { value ->
+            if (value.toDouble().isFinite()) Ok(value) else searchInvalid("奖励不是有限数 / Reward is not finite")
+        }
+    }
 }
 
 /** 单目标改善或 Pareto 新贡献奖励 / Improvement or novel Pareto contribution reward. */

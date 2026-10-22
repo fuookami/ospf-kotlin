@@ -45,7 +45,7 @@ class SearchRegistry<O, V>(val converter: IntoValue<V>) where V : RealNumber<V>,
     private val statelessProblems = hashSetOf<String>()
     private val statelessComponents = hashSetOf(
         "features:progress", "reward:improvement", "reward:cost-aware", "acceptance:not-worse", "acceptance:always",
-        "exchange:none", "exchange:periodic", "allocator:fixed"
+        "exchange:none", "exchange:periodic", "allocator:fixed", "reward:time-normalized", "reward:dominance"
     )
 
     internal fun componentRecoverable(
@@ -56,6 +56,7 @@ class SearchRegistry<O, V>(val converter: IntoValue<V>) where V : RealNumber<V>,
         return "$kind:${spec.type}" in statelessComponents || component is RecoverableComponent
     }
     private val algorithms = linkedMapOf<String, (AlgorithmContext<O, V>) -> Ret<SearchSession<O, V>>>()
+    private val constraintAlgorithms = (BuiltInAlgorithms.nativeIds + setOf("nsga-ii", "nsga-iii")).toMutableSet()
     private val updates = linkedMapOf<String, Entry<SolutionUpdate>>()
     private val mutations = linkedMapOf<String, Entry<Mutation>>()
     private val neighborhoods = linkedMapOf<String, Entry<Neighborhood>>()
@@ -111,6 +112,38 @@ class SearchRegistry<O, V>(val converter: IntoValue<V>) where V : RealNumber<V>,
         parameters["geometric"] = Entry(true) { spec -> numericParameters(spec, setOf("initial", "ratio")).map {
             GeometricSource(Flt64(spec.parameters.number("initial", 100.0)), Flt64(spec.parameters.number("ratio", 0.95)))
         } }
+        updates["pattern-search"] = Entry(true) { spec ->
+            numericParameters(spec, setOf("initialStep", "contraction", "sweeps")).then {
+                val step = spec.parameters.number("initialStep", 0.1)
+                val contraction = spec.parameters.number("contraction", 0.5)
+                val sweeps = spec.parameters.integer("sweeps", 32)
+                if (step <= 0 || contraction <= 0 || contraction >= 1 || sweeps <= 0) searchInvalid("invalid pattern-search parameters")
+                else Ok(PatternSearchUpdate(initialStep = step, contraction = contraction, sweeps = sweeps))
+            }
+        }
+        updates["opposition"] = Entry(true) { spec -> emptyParameters(spec).map { OppositionUpdate } }
+        for (id in listOf("pipeline", "vnd", "elite-local", "mutation-stage", "neighborhood-stage")) {
+            updates[id] = Entry(true, SearchEncoding.entries.toSet()) { spec -> compositeUpdate(spec, 0, SearchEncoding.Continuous) }
+        }
+        mutations["levy"] = Entry(true) { spec -> emptyParameters(spec).map { LevyMutation() } }
+        for (id in listOf("frr-mab", "choice-function", "adaptive-pursuit")) {
+            selectors[id] = { spec, actions, learning ->
+                numericParameters(spec, setOf("window", "exploration", "decay", "rate", "minimumProbability", "recencyWeight")).then {
+                    val policy = NonStationarySelector(
+                        type = id,
+                        actions = actions,
+                        learning = learning,
+                        windowSize = spec.parameters.integer("window", 50),
+                        exploration = spec.parameters.number("exploration", 0.5),
+                        decay = spec.parameters.number("decay", 0.8),
+                        rate = spec.parameters.number("rate", 0.2),
+                        minimumProbability = spec.parameters.number("minimumProbability", 0.01),
+                        recencyWeight = spec.parameters.number("recencyWeight", 0.1)
+                    )
+                    policy.validate().map { policy }
+                }
+            }
+        }
         exchangeFactories["none"] = { spec -> emptyParameters(spec).map { ExchangePolicy { _, _, _ -> emptyList() } } }
         exchangeFactories["periodic"] = { spec ->
             numericParameters(spec, setOf("period", "amount")).then {
@@ -124,6 +157,7 @@ class SearchRegistry<O, V>(val converter: IntoValue<V>) where V : RealNumber<V>,
 
     /** 注册问题工厂，工厂必须创建独立模型 / Register a problem factory that must create an independent model.
      * @param id 稳定 ID / Stable ID
+     * @param supportsConstraints 是否使用框架个体比较及批量排序协议 / Whether the session honors framework individual comparison and batch ordering
      * @param statelessCallbacks 是否明确声明回调无状态 / Whether callbacks are explicitly stateless
      * @param factory 问题构造 / Problem construction
      * @return 注册结果 / Registration result
@@ -147,10 +181,20 @@ class SearchRegistry<O, V>(val converter: IntoValue<V>) where V : RealNumber<V>,
 
     /** 注册算法，原生状态由返回会话负责 / Register an algorithm whose session owns native state.
      * @param id 稳定 ID / Stable ID
+     * @param supportsConstraints 是否使用框架个体比较及批量排序协议 / Whether the session honors framework individual comparison and batch ordering
      * @param factory 算法构造 / Algorithm construction
      * @return 注册结果 / Registration result
      */
-    fun registerAlgorithm(id: String, factory: (AlgorithmContext<O, V>) -> Ret<SearchSession<O, V>>): Try = register(algorithms, id, factory)
+    fun registerAlgorithm(
+        id: String,
+        supportsConstraints: Boolean = false,
+        factory: (AlgorithmContext<O, V>) -> Ret<SearchSession<O, V>>
+    ): Try {
+        return register(map = algorithms, id = id, value = factory).map {
+            if (supportsConstraints) constraintAlgorithms.add(id)
+            success
+        }
+    }
 
     /** 注册更新算子 / Register an update operator.
      * @param id 稳定 ID / Stable ID
@@ -319,8 +363,37 @@ class SearchRegistry<O, V>(val converter: IntoValue<V>) where V : RealNumber<V>,
     }
 
     internal fun features(spec: ComponentSpec): Ret<FeatureExtractor> = emptyParameters(spec).then { featureFactories[spec.type]?.let { searchBoundary(it) } ?: searchInvalid("unknown features: ${spec.type}") }
-    internal fun reward(spec: ComponentSpec): Ret<RewardPolicy> = emptyParameters(spec).then { rewardFactories[spec.type]?.let { searchBoundary(it) } ?: searchInvalid("unknown reward: ${spec.type}") }
-    internal fun acceptance(spec: ComponentSpec): Ret<AcceptancePolicy<O, V>> = emptyParameters(spec).then { acceptanceFactories[spec.type]?.let { searchBoundary(it) } ?: searchInvalid("unknown acceptance: ${spec.type}") }
+    internal fun reward(spec: ComponentSpec): Ret<RewardPolicy> {
+        return when (spec.type) {
+            "time-normalized" -> numericParameters(spec, setOf("epsilonSeconds")).then {
+                val epsilon = spec.parameters.number("epsilonSeconds", 1e-9)
+                if (epsilon <= 0) searchInvalid("invalid minimum reward duration") else Ok(TimeNormalizedReward(epsilon))
+            }
+            "extreme-value" -> numericParameters(spec, setOf("window")).map { ExtremeValueReward(spec.parameters.integer("window", 50)) }
+            "dominance" -> emptyParameters(spec).map { DominanceReward }
+            "hypervolume-delta" -> hypervolumeReward(spec)
+            else -> emptyParameters(spec).then { rewardFactories[spec.type]?.let { searchBoundary(it) } ?: searchInvalid("unknown reward: ${spec.type}") }
+        }
+    }
+    internal fun acceptance(
+        spec: ComponentSpec,
+        problem: SearchProblem<O, V>,
+        horizon: Long = Long.MAX_VALUE
+    ): Ret<AcceptancePolicy<O, V>> {
+        return when (spec.type) {
+            "auto" -> emptyParameters(spec).map { AutoAcceptance(problem.objectiveCodec, horizon) }
+            "late" -> numericParameters(spec, setOf("length")).then {
+                if (problem.multiObjective) searchInvalid("late acceptance requires a scalar objective")
+                else Ok(LateAcceptance(problem.objectiveCodec, spec.parameters.integer("length", 50)))
+            }
+            "record-to-record" -> numericParameters(spec, setOf("initialRatio", "horizon")).then {
+                val ratio = spec.parameters.number("initialRatio", 0.05)
+                if (problem.multiObjective || problem.objectiveCoordinates == null || ratio !in 0.0..1.0) searchInvalid("record acceptance requires scalar coordinates and a ratio in [0,1]")
+                else Ok(RecordToRecordAcceptance(initialRatio = ratio, horizon = spec.parameters.integer("horizon", 1000).toLong()))
+            }
+            else -> emptyParameters(spec).then { acceptanceFactories[spec.type]?.let { searchBoundary(it) } ?: searchInvalid("unknown acceptance: ${spec.type}") }
+        }
+    }
     internal fun exchange(spec: ComponentSpec): Ret<ExchangePolicy<O, V>> = boundary(exchangeFactories[spec.type]?.let { factory -> { factory(spec) } }, "exchange: ${spec.type}")
 
     internal fun create(
@@ -328,12 +401,14 @@ class SearchRegistry<O, V>(val converter: IntoValue<V>) where V : RealNumber<V>,
         problem: SearchProblem<O, V>,
         random: SearchRandom,
         learning: Boolean,
-        reward: RewardPolicy
+        rewardSpec: ComponentSpec,
+        claimReward: (RewardPolicy) -> Try = { ok }
     ): Ret<SearchSession<O, V>> {
         if (config.algorithm.version != 1 || config.size <= 0 || !config.id.matches(Regex("[A-Za-z0-9][A-Za-z0-9._-]*"))) return searchInvalid("invalid algorithm instance")
         val validated = validateAlgorithm(config)
         if (validated !is Ok) return searchFailure(validated)
         if (config.algorithm.type in setOf("island", "island-ga", "memetic")) {
+            if (config.constraints != null) return searchInvalid("组合约束必须在叶会话配置 / Configure constraints on composite leaves")
             if (config.importMode == ImportMode.Disabled) return searchInvalid("composites require native imports for child exchange")
             if (config.children.isEmpty() || config.children.map { it.id }.distinct().size != config.children.size || config.updates.isNotEmpty() || config.mutations.isNotEmpty() || config.neighborhoods.isNotEmpty() || config.parameters.isNotEmpty()) {
                 return searchInvalid("composites require distinct children and child-local slots")
@@ -341,13 +416,29 @@ class SearchRegistry<O, V>(val converter: IntoValue<V>) where V : RealNumber<V>,
             val children = linkedMapOf<String, SearchSession<O, V>>()
             val streams = config.children.associate { it.id to random.split(it.id) }
             for (child in config.children) {
-                when (val result = create(child, problem, streams.getValue(child.id), learning, reward)) {
+                when (val result = create(
+                    config = child,
+                    problem = problem,
+                    random = streams.getValue(child.id),
+                    learning = learning,
+                    rewardSpec = rewardSpec,
+                    claimReward = claimReward
+                )) {
                     is Ok -> children[child.id] = result.value
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
+                    is Failed -> {
+                        children.values.forEach { it.close() }
+                        return Failed(result.error)
+                    }
+                    is Fatal -> {
+                        children.values.forEach { it.close() }
+                        return Fatal(result.errors)
+                    }
                 }
             }
-            if (children.values.any { !it.supportsImport }) return searchInvalid("composite children must support solution imports")
+            if (children.values.any { !it.supportsImport }) {
+                children.values.forEach { it.close() }
+                return searchInvalid("composite children must support solution imports")
+            }
             return Ok(CompositeSearchSession(
                 children = children,
                 streams = streams,
@@ -356,7 +447,16 @@ class SearchRegistry<O, V>(val converter: IntoValue<V>) where V : RealNumber<V>,
                 problem = problem
             ))
         }
+        val localReward = reward(rewardSpec)
+        if (localReward !is Ok) return searchFailure(localReward)
+        val claimed = claimReward(localReward.value)
+        if (claimed !is Ok) return searchFailure(claimed)
         val factory = algorithms[config.algorithm.type] ?: return searchInvalid("unknown algorithm: ${config.algorithm.type}")
+        val effectiveProblem = if (config.constraints == null) Ok(problem) else {
+            if (config.algorithm.type !in constraintAlgorithms) return searchInvalid("算法未声明约束排序能力 / Algorithm does not declare constraint ordering support")
+            problem.withConstraints(config.constraints, random.split("constraints"))
+        }
+        if (effectiveProblem !is Ok) return searchFailure(effectiveProblem)
         val supported = BuiltInAlgorithms.slots(config.algorithm.type)
         if ((config.updates.isNotEmpty() && "update" !in supported || config.mutations.isNotEmpty() && "mutation" !in supported ||
             config.neighborhoods.isNotEmpty() && "neighborhood" !in supported) && config.algorithm.type in BuiltInAlgorithms.nativeIds) return searchInvalid("unsupported operator slot")
@@ -371,7 +471,7 @@ class SearchRegistry<O, V>(val converter: IntoValue<V>) where V : RealNumber<V>,
         ).then { slots ->
             searchBoundary { factory(AlgorithmContext(
                 config = config,
-                problem = problem,
+                problem = effectiveProblem.value,
                 random = random,
                 bindings = slots
             )) }.then { it }.then { session ->
@@ -383,7 +483,7 @@ class SearchRegistry<O, V>(val converter: IntoValue<V>) where V : RealNumber<V>,
                         override val supportsImport = false
                         override suspend fun importSolutions(solutions: List<fuookami.ospf.kotlin.core.model.basic.Solution<V>>, budget: SearchSlice): Ret<SearchStepResult<O, V>> = searchInvalid("imports disabled")
                     }
-                    Ok(ControlledSearchSession(native, problem, slots, reward))
+                    Ok(ControlledSearchSession(native, problem, slots, localReward.value))
                 }
             }
         }
@@ -467,7 +567,11 @@ class SearchRegistry<O, V>(val converter: IntoValue<V>) where V : RealNumber<V>,
             if (encoding !in entry.encodings) return searchInvalid("${spec.type} does not support $encoding")
             val key = "${spec.type}:${spec.version}:${fingerprint(spec.parameters)}"
             if (key in values) return searchInvalid("duplicate $id action")
-            when (val result = searchBoundary { entry.create(spec) }.then { it }) {
+            val created: Ret<T> = if (id == "update" && spec.type in setOf("pipeline", "vnd", "elite-local", "mutation-stage", "neighborhood-stage")) {
+                @Suppress("UNCHECKED_CAST")
+                (searchBoundary { compositeUpdate(spec, 0, encoding) }.then { it } as Ret<T>)
+            } else searchBoundary { entry.create(spec) }.then { it }
+            when (val result = created) {
                 is Ok -> values[key] = result.value
                 is Failed -> return Failed(result.error)
                 is Fatal -> return Fatal(result.errors)
@@ -484,6 +588,58 @@ class SearchRegistry<O, V>(val converter: IntoValue<V>) where V : RealNumber<V>,
                 stateless = stateless
             ))
         }
+    }
+
+    private fun compositeUpdate(spec: ComponentSpec, depth: Int, encoding: SearchEncoding): Ret<SolutionUpdate> {
+        if (depth > 16 || spec.version != 1) return searchInvalid("invalid composite depth/version")
+        val allowed = when (spec.type) {
+            "pipeline" -> setOf("stages")
+            "vnd" -> setOf("stages", "maxTrials")
+            "elite-local" -> setOf("stages", "amount")
+            "mutation-stage" -> setOf("operator", "rate")
+            "neighborhood-stage" -> setOf("operator")
+            else -> return searchInvalid("unknown composite update")
+        }
+        if (spec.parameters.keys.any { it !in allowed }) return searchInvalid("unknown composite parameters")
+        if (spec.type in setOf("mutation-stage", "neighborhood-stage")) {
+            val nested = spec.parameters["operator"] ?: return searchInvalid("missing composite operator")
+            val decoded = searchBoundary { kotlinx.serialization.json.Json.decodeFromJsonElement<ComponentSpec>(nested) }
+            if (decoded !is Ok) return searchFailure(decoded)
+            val child = decoded.value
+            if (child.version != 1) return searchInvalid("unsupported nested operator version")
+            return if (spec.type == "mutation-stage") {
+                val entry = mutations[child.type] ?: return searchInvalid("unknown nested mutation")
+                if (!entry.stateless || encoding !in entry.encodings) return searchInvalid("nested mutation requires stateless compatible encoding")
+                val rate = spec.parameters["rate"]?.let { (it as? JsonPrimitive)?.doubleOrNull } ?: if ("rate" in spec.parameters) return searchInvalid("invalid mutation rate") else 1.0
+                if (rate !in 0.0..1.0) return searchInvalid("invalid mutation rate")
+                entry.create(child).map { MutationUpdate(it, Flt64(rate)) }
+            } else {
+                val entry = neighborhoods[child.type] ?: return searchInvalid("unknown nested neighborhood")
+                if (!entry.stateless || encoding !in entry.encodings) return searchInvalid("nested neighborhood requires stateless compatible encoding")
+                entry.create(child).map { NeighborhoodUpdate(it) }
+            }
+        }
+        val decoded = searchBoundary { kotlinx.serialization.json.Json.decodeFromJsonElement<List<ComponentSpec>>(
+            spec.parameters["stages"] ?: JsonNull
+        ) }
+        if (decoded !is Ok) return searchFailure(decoded)
+        if (decoded.value.isEmpty() || decoded.value.size > 64) return searchInvalid("composite needs 1..64 stages")
+        val stages = ArrayList<SolutionUpdate>()
+        for (child in decoded.value) {
+            val entry = updates[child.type] ?: return searchInvalid("unknown composite stage: ${child.type}")
+            if (!entry.stateless || encoding !in entry.encodings || child.version != 1) return searchInvalid("composites require stateless encoding-compatible stages")
+            val result = if (child.type in setOf("pipeline", "vnd", "elite-local", "mutation-stage", "neighborhood-stage")) compositeUpdate(child, depth + 1, encoding) else entry.create(child)
+            if (result !is Ok) return searchFailure(result)
+            stages.add(result.value)
+        }
+        val trials = spec.parameters["maxTrials"]?.let { (it as? JsonPrimitive)?.intOrNull } ?: if ("maxTrials" in spec.parameters) return searchInvalid("invalid maxTrials") else 50
+        val amount = spec.parameters["amount"]?.let { (it as? JsonPrimitive)?.intOrNull } ?: if ("amount" in spec.parameters) return searchInvalid("invalid elite amount") else 1
+        if (trials <= 0 || amount <= 0) return searchInvalid("composite limits must be positive")
+        return Ok(when (spec.type) {
+            "vnd" -> VNDCompositeUpdate(stages, trials)
+            "elite-local" -> EliteLocalSearchWrapper(PipelineCompositeUpdate(stages), amount)
+            else -> PipelineCompositeUpdate(stages)
+        })
     }
 
     internal fun replaceNative(id: String, factory: (AlgorithmContext<O, V>) -> Ret<SearchSession<O, V>>) {
@@ -507,11 +663,52 @@ class SearchRegistry<O, V>(val converter: IntoValue<V>) where V : RealNumber<V>,
 
 internal fun emptyParameters(spec: ComponentSpec): Try = numericParameters(spec, emptySet())
 
+private fun hypervolumeReward(spec: ComponentSpec): Ret<RewardPolicy> {
+    val values = spec.parameters
+    val allowed = setOf("reference", "referenceX", "referenceY", "mode", "maxWork", "samples", "seed", "calibrationObservations")
+    if (spec.version != 1 || values.keys.any { it !in allowed } ||
+        ("reference" in values && ("referenceX" in values || "referenceY" in values)) ||
+        (("referenceX" in values) != ("referenceY" in values))) return searchInvalid("超体积配置无效 / Invalid hypervolume configuration")
+    val reference = when {
+        "reference" in values -> (values["reference"] as? JsonArray)?.map { value ->
+            val number = (value as? JsonPrimitive)?.doubleOrNull
+            if (number == null || !number.isFinite()) return searchInvalid("超体积参考点无效 / Invalid hypervolume reference")
+            Flt64(number)
+        } ?: return searchInvalid("超体积参考点必须为数组 / Hypervolume reference must be an array")
+        "referenceX" in values -> listOf("referenceX", "referenceY").map { key ->
+            val number = (values[key] as? JsonPrimitive)?.doubleOrNull
+            if (number == null || !number.isFinite()) return searchInvalid("超体积参考点无效 / Invalid hypervolume reference")
+            Flt64(number)
+        }
+        else -> emptyList()
+    }
+    val mode = when ((values["mode"] as? JsonPrimitive)?.content ?: if ("mode" in values) "invalid" else "exact") {
+        "exact" -> HypervolumeMode.Exact
+        "sampled" -> HypervolumeMode.Sampled
+        else -> return searchInvalid("未知超体积模式 / Unknown hypervolume mode")
+    }
+    fun integer(name: String, default: Long): Long? = if (name in values) (values[name] as? JsonPrimitive)?.longOrNull else default
+    val work = integer("maxWork", 1_000_000) ?: return searchInvalid("超体积额度必须为整数 / Hypervolume work must be an integer")
+    val samples = integer("samples", 16384) ?: return searchInvalid("采样数必须为整数 / Sample count must be an integer")
+    val calibration = integer("calibrationObservations", 32) ?: return searchInvalid("校准数必须为整数 / Calibration count must be an integer")
+    val seed = integer("seed", 1) ?: return searchInvalid("种子必须为整数 / Seed must be an integer")
+    if (samples !in 1..Int.MAX_VALUE.toLong() || calibration !in 1..Int.MAX_VALUE.toLong()) return searchInvalid("超体积计数超限 / Hypervolume count out of range")
+    val reward = HypervolumeDeltaReward(
+        referencePoint = reference,
+        mode = mode,
+        maxWork = work,
+        samples = samples.toInt(),
+        seed = seed,
+        calibrationObservations = calibration.toInt()
+    )
+    return reward.validate().map { reward }
+}
+
 internal fun numericParameters(spec: ComponentSpec, allowed: Set<String>): Try {
     if (spec.version != 1 || spec.parameters.keys.any { it !in allowed } || spec.parameters.values.any { (it as? JsonPrimitive)?.doubleOrNull?.isFinite() != true }) {
         return searchInvalid("invalid parameters for ${spec.type}")
     }
-    val positiveIntegers = setOf("states", "stagnationLimit", "amount", "period", "limit")
+    val positiveIntegers = setOf("states", "stagnationLimit", "amount", "period", "limit", "window", "length", "horizon", "sweeps", "maxTrials")
     if (spec.parameters.any { (key, value) -> key in positiveIntegers && ((value as? JsonPrimitive)?.intOrNull?.let { it <= 0 } != false) }) return searchInvalid("invalid integer parameter for ${spec.type}")
     if (spec.parameters.any { (key, value) -> key in setOf("sigma", "eta", "ratio") && value.jsonPrimitive.double <= 0.0 }) return searchInvalid("invalid positive parameter for ${spec.type}")
     if (spec.parameters.integer("states", 64) > 4096) return searchInvalid("too many tabular states")

@@ -8,9 +8,10 @@ import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.core.solver.heuristic.compareIndividuals
+import fuookami.ospf.kotlin.core.solver.heuristic.constraintHandling
 import fuookami.ospf.kotlin.core.solver.heuristic.Individual
 import fuookami.ospf.kotlin.core.solver.heuristic.Iteration
-import fuookami.ospf.kotlin.core.solver.heuristic.operator.compareStrictly
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.evolution.ParameterSource
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.evolution.GeometricSource
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.*
@@ -37,7 +38,13 @@ class MetropolisAcceptance(
         current: T,
         candidate: T
     ): Boolean where V : RealNumber<V>, V : NumberField<V>, T : Individual<ObjValue, V> {
-        if (compareStrictly(model, candidate.fitness, current.fitness) < 0) {
+        val tier = constraintHandling(model)?.compareTier(candidate, current) ?: 0
+        if (tier != 0) return tier < 0
+        if (compareIndividuals(
+            model = model,
+            lhs = candidate,
+            rhs = current
+        ) < 0) {
             return true
         }
 

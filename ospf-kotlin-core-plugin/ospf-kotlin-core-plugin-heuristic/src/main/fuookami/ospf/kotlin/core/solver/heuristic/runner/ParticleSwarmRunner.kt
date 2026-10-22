@@ -11,7 +11,6 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.heuristic.*
-import fuookami.ospf.kotlin.core.solver.heuristic.operator.compareStrictly
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.archive.Archive
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.stopping.StoppingCriterion
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.initializer.Initializer
@@ -108,7 +107,11 @@ class ParticleSwarmRunner<ObjValue, V>(
         }
 
         val globalBest = state.minWithOrNull { lhs, rhs ->
-            compareStrictly(model, lhs.individual.fitness, rhs.individual.fitness)
+            compareIndividuals(
+                model = model,
+                lhs = lhs.individual,
+                rhs = rhs.individual
+            )
         } ?: return state
 
         val weight = inertia(iteration).toDouble()
@@ -146,7 +149,11 @@ class ParticleSwarmRunner<ObjValue, V>(
                             best = particle.best
                         )
 
-                    val improved = compareStrictly(model, candidate.fitness, particle.best.fitness) < 0
+                    val improved = compareIndividuals(
+    model = model,
+    lhs = candidate,
+    rhs = particle.best
+) < 0
                     ParticleState(
                         individual = candidate,
                         velocity = velocity.map { Flt64(it) },

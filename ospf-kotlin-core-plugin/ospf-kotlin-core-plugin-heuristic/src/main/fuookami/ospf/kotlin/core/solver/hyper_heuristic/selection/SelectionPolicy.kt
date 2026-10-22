@@ -39,6 +39,8 @@ data class SelectionContext(
  * @property steps 完整低层步数 / Complete low-level steps
  * @property failed 动作是否失败 / Whether execution failed
  * @property mergedImprovement 全局归并是否改进 / Whether global merging improved the archive
+ * @property elapsedNanos 动作实际耗时 / Actual action duration
+ * @property previousAction 派发时前驱，用于无歧义协同重放 / Dispatch predecessor for unambiguous synergy replay
  */
 @Serializable
 data class SelectionTransition(
@@ -57,7 +59,9 @@ data class SelectionTransition(
     val scope: String = "algorithm",
     val steps: Long = 0,
     val failed: Boolean = false,
-    val mergedImprovement: Boolean = false
+    val mergedImprovement: Boolean = false,
+    val elapsedNanos: Long = 0,
+    val previousAction: String? = null
 )
 
 /** 可移植策略快照，动作按 ID 对齐 / Portable policy snapshot aligned by action IDs.
@@ -109,6 +113,17 @@ interface SelectionPolicy {
      * @return 更新结果 / Update result
      */
     fun observe(transition: SelectionTransition): Try
+
+    /** 释放未执行动作的派发上下文 / Release dispatch context for an unused action.
+     * @param decision 未执行的决策 / Unexecuted decision
+     */
+    fun discard(decision: Long) {}
+
+    /** 获取派发时冻结的前驱 / Get the predecessor frozen at dispatch.
+     * @param decision 决策序号 / Decision sequence
+     * @return 前驱动作或 null / Predecessor action or null
+     */
+    fun predecessor(decision: Long): String? = null
 
     /** 导出策略 / Export policy.
      * @return 策略快照 / Policy snapshot

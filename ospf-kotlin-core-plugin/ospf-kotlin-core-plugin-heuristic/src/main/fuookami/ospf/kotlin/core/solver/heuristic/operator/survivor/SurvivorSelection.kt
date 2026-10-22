@@ -6,6 +6,7 @@ package fuookami.ospf.kotlin.core.solver.heuristic.operator.survivor
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.heuristic.Individual
+import fuookami.ospf.kotlin.core.solver.heuristic.constraintHandling
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.compareStrictly
 
 /**
@@ -55,6 +56,7 @@ private fun <ObjValue, V, T> bestOf(
     individuals: List<T>,
     amount: Int
 ): List<T> where V : RealNumber<V>, V : NumberField<V>, T : Individual<ObjValue, V> {
+    constraintHandling(model)?.let { return it.rank(individuals).take(amount.coerceAtLeast(0)) }
     val remaining = individuals.toMutableList()
     val kept = ArrayList<T>(minOf(amount, remaining.size))
 

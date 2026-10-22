@@ -61,9 +61,10 @@ class Nsga3Runner<V>(
     override val name: String get() = "nsga-iii"
 
     override fun select(
-        candidates: List<Individual<List<Flt64>, V>>
+        candidates: List<Individual<List<Flt64>, V>>,
+        amount: Int
     ): List<Individual<List<Flt64>, V>> {
-        if (candidates.size <= size) {
+        if (candidates.size <= amount) {
             return candidates
         }
 
@@ -73,11 +74,11 @@ class Nsga3Runner<V>(
             dominance = dominance
         )
 
-        val selected = ArrayList<Individual<List<Flt64>, V>>(size)
+        val selected = ArrayList<Individual<List<Flt64>, V>>(amount)
         var lastFront: List<Individual<List<Flt64>, V>> = emptyList()
 
         for (front in fronts) {
-            if (selected.size + front.size <= size) {
+            if (selected.size + front.size <= amount) {
                 selected.addAll(front)
             } else {
                 lastFront = front
@@ -89,7 +90,7 @@ class Nsga3Runner<V>(
             return selected
         }
 
-        val remaining = size - selected.size
+        val remaining = amount - selected.size
         val referencePoints = ReferencePoints.dasDennis(
             objectiveAmount = candidates.first().fitness.size,
             divisions = divisions

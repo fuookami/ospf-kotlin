@@ -5,9 +5,10 @@ package fuookami.ospf.kotlin.core.solver.heuristic.operator.acceptance
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.core.solver.heuristic.compareIndividuals
+import fuookami.ospf.kotlin.core.solver.heuristic.constraintHandling
 import fuookami.ospf.kotlin.core.solver.heuristic.Individual
 import fuookami.ospf.kotlin.core.solver.heuristic.Iteration
-import fuookami.ospf.kotlin.core.solver.heuristic.operator.compareStrictly
 
 /**
  * 接受判据接口，决定候选解是否取代当前解。 / Acceptance criterion deciding whether a candidate replaces the current solution.
@@ -44,7 +45,11 @@ data object BetterOnlyAcceptance : Acceptance {
         current: T,
         candidate: T
     ): Boolean where V : RealNumber<V>, V : NumberField<V>, T : Individual<ObjValue, V> {
-        return compareStrictly(model, candidate.fitness, current.fitness) < 0
+        return compareIndividuals(
+            model = model,
+            lhs = candidate,
+            rhs = current
+        ) < 0
     }
 }
 
@@ -56,7 +61,11 @@ data object NotWorseAcceptance : Acceptance {
         current: T,
         candidate: T
     ): Boolean where V : RealNumber<V>, V : NumberField<V>, T : Individual<ObjValue, V> {
-        return compareStrictly(model, candidate.fitness, current.fitness) <= 0
+        return compareIndividuals(
+            model = model,
+            lhs = candidate,
+            rhs = current
+        ) <= 0
     }
 }
 
@@ -68,6 +77,6 @@ data object AlwaysAcceptance : Acceptance {
         current: T,
         candidate: T
     ): Boolean where V : RealNumber<V>, V : NumberField<V>, T : Individual<ObjValue, V> {
-        return true
+        return (constraintHandling(model)?.compareTier(candidate, current) ?: 0) <= 0
     }
 }

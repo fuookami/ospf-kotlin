@@ -59,6 +59,13 @@ class SearchSlice(
     /** 本片段已用请求 / Requests consumed by this slice. */
     val used: Long get() = counter.get()
 
+    /** 协作式剩余额度视图，不代替原子令牌领取 / Cooperative remaining allowance, never replacing atomic admission. */
+    val remaining: Long get() = minOf(
+        (evaluations - used).coerceAtLeast(0),
+        (global.limit - global.used).coerceAtLeast(0),
+        parent?.remaining ?: Long.MAX_VALUE
+    )
+
     /** 时间额度是否用尽 / Whether the deadline expired. */
     val expired: Boolean get() = begin.elapsedNow() >= duration || parent?.expired == true
 

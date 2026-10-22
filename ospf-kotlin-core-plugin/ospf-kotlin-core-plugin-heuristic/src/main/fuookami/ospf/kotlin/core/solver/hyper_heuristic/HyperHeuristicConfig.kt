@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.solver.heuristic.then
 import fuookami.ospf.kotlin.core.solver.heuristic.searchInvalid
 import fuookami.ospf.kotlin.core.solver.heuristic.searchBoundary
+import fuookami.ospf.kotlin.core.solver.heuristic.ConstraintHandlingConfig
 import fuookami.ospf.kotlin.core.solver.hyper_heuristic.configuration.HyperHeuristicBuilder
 
 /** 组件引用，不使用反射类名 / Component reference without reflective class names.
@@ -41,6 +42,7 @@ enum class ImportMode { Native, Disabled }
  * @property children 组合子会话 / Composite child sessions
  * @property initialization 初始化种子来源 / Initialization seed source
  * @property importMode 导入能力 / Import capability
+ * @property constraints 可选原生约束处理 / Optional native constraint handling
  */
 @Serializable
 data class AlgorithmConfig(
@@ -55,7 +57,8 @@ data class AlgorithmConfig(
     val scalarization: String? = null,
     val children: List<AlgorithmConfig> = emptyList(),
     val initialization: InitializationMode = InitializationMode.Model,
-    val importMode: ImportMode = ImportMode.Native
+    val importMode: ImportMode = ImportMode.Native,
+    val constraints: ConstraintHandlingConfig? = null
 )
 
 /** 执行方式 / Execution mode. */

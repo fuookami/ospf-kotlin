@@ -3,6 +3,7 @@
 */
 package fuookami.ospf.kotlin.core.solver.heuristic.runner
 
+import java.util.IdentityHashMap
 import kotlin.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -10,7 +11,6 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.heuristic.*
-import fuookami.ospf.kotlin.core.solver.heuristic.operator.compareStrictly
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.archive.Archive
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.stopping.StoppingCriterion
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.fitness.FitnessEvaluator
@@ -171,9 +171,9 @@ class CmaEsRunner<ObjValue, V>(
             return state
         }
 
-        val ranked = samples.sortedWith { lhs, rhs ->
-            compareStrictly(model, lhs.individual.fitness, rhs.individual.fitness)
-        }
+        val byIndividual = IdentityHashMap<Individual<ObjValue, V>, Sample>()
+        samples.forEach { byIndividual[it.individual] = it }
+        val ranked = rankIndividuals(model, samples.map { it.individual }).map { byIndividual.getValue(it) }
 
         // —— 重加权并移动均值—— / Reweighting and mean shift
         val newMean = DoubleArray(dimension)
@@ -258,7 +258,11 @@ class CmaEsRunner<ObjValue, V>(
         val best = when {
             bestCandidate == null -> state.best
             state.best == null -> bestCandidate
-            compareStrictly(model, bestCandidate.fitness, state.best.fitness) < 0 -> bestCandidate
+            compareIndividuals(
+                model = model,
+                lhs = bestCandidate,
+                rhs = state.best
+            ) < 0 -> bestCandidate
             else -> state.best
         }
 

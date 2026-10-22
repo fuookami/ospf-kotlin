@@ -5,6 +5,7 @@ import kotlinx.serialization.json.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 
@@ -61,6 +62,9 @@ interface SearchProblemState {
  * @property state 回调恢复状态 / Recoverable callback state
  * @property encoding 解编码 / Solution encoding
  * @property validSolution 编码与维度校验 / Encoding and dimension validation
+ * @property objectiveCoordinates 显式归一化最小化坐标，仅用于信用计算 / Explicit normalized minimization coordinates for credit only
+ * @property admissible 可搜索域，允许显式探索不可行域但不改变有效档案语义 / Search admission, allowing explicit infeasible exploration without relaxing valid archives
+ * @property constraintViolation 有限非负的归一化违约度，不能作为真实可行性证明 / Finite nonnegative normalized violation, never a proof of feasibility
  */
 class SearchProblem<ObjValue, V>(
     val id: String,
@@ -75,7 +79,10 @@ class SearchProblem<ObjValue, V>(
     val feasible: (Solution<V>) -> Boolean = { model.constraintSatisfied(it) == true },
     val state: SearchProblemState? = null,
     val encoding: SearchEncoding = SearchEncoding.Continuous,
-    val validSolution: (Solution<V>) -> Boolean = { it.size == model.tokens.tokensInSolver.size }
+    val validSolution: (Solution<V>) -> Boolean = { it.size == model.tokens.tokensInSolver.size },
+    val objectiveCoordinates: ((ObjValue) -> List<Flt64>)? = null,
+    val admissible: (Solution<V>) -> Boolean = feasible,
+    val constraintViolation: ((Solution<V>) -> Ret<Flt64>)? = null
 ) where V : RealNumber<V>, V : NumberField<V>
 
 /** 一次片段的执行报告 / Execution report for one slice.
@@ -127,6 +134,7 @@ data class SearchResult<O, V>(
  * @property state 算法原生状态 / Native algorithm state
  * @property archive 局部档案 / Local archive
  * @property activeNanos 有效运行纳秒数 / Active runtime in nanoseconds
+ * @property constraints 私有约束处理状态 / Private constraint handling state
  */
 @Serializable
 data class SearchSessionSnapshot(
@@ -136,7 +144,8 @@ data class SearchSessionSnapshot(
     val stagnation: Long,
     val state: JsonElement,
     val archive: JsonElement,
-    val activeNanos: Long = 0
+    val activeNanos: Long = 0,
+    val constraints: JsonElement = JsonNull
 )
 
 /** 可分片执行的搜索会话 / Sliceable search session.

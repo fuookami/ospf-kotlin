@@ -17,7 +17,6 @@ import fuookami.ospf.kotlin.core.solver.heuristic.operator.fitness.FitnessEvalua
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.fitness.toIndividual
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.survivor.SurvivorSelection
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.topology.Topology
-import fuookami.ospf.kotlin.core.solver.heuristic.operator.compareStrictly
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.update.SolutionUpdate
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.topology.GlobalTopology
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.mutation.Mutation
@@ -90,11 +89,11 @@ class PopulationRunner<ObjValue, V>(
                     // Neighbourhood parents are ranked by ascending quality first: crossover does not care about the order,
                     // whereas position-update operators (GWO's α/β/δ, …) rely on "the first k are the leaders", so the
                     // skeleton guarantees it uniformly.
-                    val parents = topology
+                    val neighbours = topology
                         .neighbours(index = index, size = state.size)
                         .sorted()
                         .map { state[it] }
-                        .sortedWith { lhs, rhs -> compareStrictly(model, lhs.fitness, rhs.fitness) }
+                    val parents = rankIndividuals(model, neighbours)
                     update(
                         iteration = iteration,
                         parents = parents,

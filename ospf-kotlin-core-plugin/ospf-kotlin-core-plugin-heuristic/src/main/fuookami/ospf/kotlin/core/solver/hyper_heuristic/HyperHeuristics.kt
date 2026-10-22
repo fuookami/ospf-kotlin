@@ -31,7 +31,7 @@ object HyperHeuristics {
     ): SearchRegistry<List<Flt64>, V> where V : RealNumber<V>, V : NumberField<V> {
         val registry = SearchRegistry<List<Flt64>, V>(converter)
         for (id in listOf("nsga-ii", "nsga-iii")) {
-            registry.registerAlgorithm(id) { context ->
+            registry.registerAlgorithm(id, supportsConstraints = true) { context ->
                 BuiltInAlgorithms.nsga(
                     config = context.config,
                     problem = context.problem,
@@ -69,11 +69,17 @@ object HyperHeuristics {
                     feasible = canonical.feasible,
                     state = canonical.state,
                     encoding = canonical.encoding,
-                    validSolution = canonical.validSolution
+                    validSolution = canonical.validSolution,
+                    admissible = canonical.admissible,
+                    constraintViolation = canonical.constraintViolation
                 )
+                val constrained = context.config.constraints?.let { configuration ->
+                    problem.withConstraints(configuration, context.random.split("scalar-constraints"))
+                } ?: Ok(problem)
+                if (constrained !is Ok) return@replaceNative searchFailure(constrained)
                 BuiltInAlgorithms.create(
                     config = context.config,
-                    problem = problem,
+                    problem = constrained.value,
                     random = context.random,
                     converter = converter,
                     bindings = context.bindings
@@ -123,6 +129,11 @@ object HyperHeuristics {
  * @param objectiveCodec 目标编码 / Objective codec
  * @param valueCodec 解值编码 / Solution value codec
  * @param valid 目标有效性检查 / Objective validity check
+ * @param state 回调恢复状态 / Callback recovery state
+ * @param encoding 解编码 / Solution encoding
+ * @param validSolution 编码与维度校验 / Encoding and dimension validation
+ * @param objectiveCoordinates 显式归一化最小化坐标 / Explicit normalized minimization coordinates
+ * @param constraintViolation 非负归一化违约度，不替换业务目标 / Nonnegative normalized violation, never replacing business objectives
  * @return 搜索问题 / Search problem
  */
 fun <O, V> singleObjectiveProblem(
@@ -134,7 +145,9 @@ fun <O, V> singleObjectiveProblem(
     valid: (O) -> Boolean = { it !is Flt64 || it.toDouble().isFinite() },
     state: SearchProblemState? = null,
     encoding: SearchEncoding = SearchEncoding.Continuous,
-    validSolution: (Solution<V>) -> Boolean = { it.size == model.tokens.tokensInSolver.size }
+    validSolution: (Solution<V>) -> Boolean = { it.size == model.tokens.tokensInSolver.size },
+    objectiveCoordinates: ((O) -> List<Flt64>)? = null,
+    constraintViolation: ((Solution<V>) -> Ret<Flt64>)? = null
 ): SearchProblem<O, V> where V : RealNumber<V>, V : NumberField<V> {
     return SearchProblem(
         id = id,
@@ -147,7 +160,9 @@ fun <O, V> singleObjectiveProblem(
         valid = valid,
         state = state,
         encoding = encoding,
-        validSolution = validSolution
+        validSolution = validSolution,
+        objectiveCoordinates = objectiveCoordinates,
+        constraintViolation = constraintViolation
     )
 }
 
@@ -158,6 +173,11 @@ fun <O, V> singleObjectiveProblem(
  * @param objectivesOf 目标向量提取 / Objective vector extraction
  * @param directions true 表示最小化 / True means minimization
  * @param valueCodec 解值编码 / Solution value codec
+ * @param state 回调恢复状态 / Callback recovery state
+ * @param encoding 解编码 / Solution encoding
+ * @param validSolution 编码与维度校验 / Encoding and dimension validation
+ * @param objectiveCoordinates 显式归一化最小化坐标 / Explicit normalized minimization coordinates
+ * @param constraintViolation 非负归一化违约度，不替换业务目标 / Nonnegative normalized violation, never replacing business objectives
  * @return 搜索问题 / Search problem
  */
 fun <V> multiObjectiveProblem(
@@ -169,7 +189,9 @@ fun <V> multiObjectiveProblem(
     valueCodec: SearchCodec<V>,
     state: SearchProblemState? = null,
     encoding: SearchEncoding = SearchEncoding.Continuous,
-    validSolution: (Solution<V>) -> Boolean = { it.size == model.tokens.tokensInSolver.size }
+    validSolution: (Solution<V>) -> Boolean = { it.size == model.tokens.tokensInSolver.size },
+    objectiveCoordinates: (List<Flt64>) -> List<Flt64> = { values -> values.mapIndexed { index, value -> if (directions[index]) value else -value } },
+    constraintViolation: ((Solution<V>) -> Ret<Flt64>)? = null
 ): SearchProblem<List<Flt64>, V> where V : RealNumber<V>, V : NumberField<V> {
     val dominance = ParetoDominance(directions)
     val view = objectiveModel(
@@ -195,6 +217,8 @@ fun <V> multiObjectiveProblem(
         valid = { it.size == directions.size && it.isNotEmpty() && it.all { value -> value.toDouble().isFinite() } },
         state = state,
         encoding = encoding,
-        validSolution = validSolution
+        validSolution = validSolution,
+        objectiveCoordinates = objectiveCoordinates,
+        constraintViolation = constraintViolation
     )
 }

@@ -6,7 +6,7 @@ package fuookami.ospf.kotlin.core.solver.heuristic.operator.archive
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.heuristic.Individual
-import fuookami.ospf.kotlin.core.solver.heuristic.operator.compareStrictly
+import fuookami.ospf.kotlin.core.solver.heuristic.compareIndividuals
 
 /**
  * 档案接口，负责维护「当前最优集合」，是单目标与多目标共享的收敛载体。 / Archive interface that maintains the current best set, the convergence carrier shared by single- and multi-objective search.
@@ -55,7 +55,11 @@ class BestArchive<ObjValue, V>(
         val previousBest = entries.firstOrNull()
         entries.addAll(candidates)
         entries.sortWith { lhs, rhs ->
-            compareStrictly(model, lhs.fitness, rhs.fitness)
+            compareIndividuals(
+                model = model,
+                lhs = lhs,
+                rhs = rhs
+            )
         }
         while (entries.size > amount) {
             entries.removeAt(entries.lastIndex)
@@ -65,7 +69,11 @@ class BestArchive<ObjValue, V>(
         return if (previousBest == null) {
             true
         } else {
-            compareStrictly(model, currentBest.fitness, previousBest.fitness) < 0
+            compareIndividuals(
+                model = model,
+                lhs = currentBest,
+                rhs = previousBest
+            ) < 0
         }
     }
 
@@ -90,7 +98,11 @@ class HistoryBestArchive<ObjValue, V> : Archive<ObjValue, V> where V : RealNumbe
         var improved = false
         for (candidate in candidates) {
             val current = entry
-            if (current == null || compareStrictly(model, candidate.fitness, current.fitness) < 0) {
+            if (current == null || compareIndividuals(
+                model = model,
+                lhs = candidate,
+                rhs = current
+            ) < 0) {
                 entry = candidate
                 improved = true
             }

@@ -60,6 +60,12 @@ class OperatorPool<T>(
         }
     }
 
+    internal val usedAction: String? get() = if (used) action else null
+
+    internal fun discard() {
+        policy.discard(before.decision)
+    }
+
     internal fun current(): T {
         used = true
         return candidates.getValue(action)
@@ -69,7 +75,10 @@ class OperatorPool<T>(
         after: SelectionContext,
         reward: Flt64,
         evaluations: Long,
-        terminal: Boolean
+        terminal: Boolean,
+        elapsedNanos: Long,
+        steps: Long,
+        failed: Boolean = false
     ): Try {
         if (!used) return ok
         val transition = SelectionTransition(
@@ -85,7 +94,10 @@ class OperatorPool<T>(
             terminal = terminal,
             policyVersion = revision,
             scope = id,
-            steps = 1
+            steps = steps,
+            elapsedNanos = elapsedNanos,
+            previousAction = policy.predecessor(before.decision),
+            failed = failed
         )
         transitions.add(transition)
         return policy.observe(transition)
@@ -148,7 +160,7 @@ class OperatorBindings(
     val neighborhood: OperatorPool<Neighborhood>?,
     val parameters: Map<String, OperatorPool<ParameterSource>>
 ) {
-    internal val pools: List<OperatorPool<*>> get() = listOfNotNull(update, mutation, neighborhood) + parameters.values
+    internal val pools: List<OperatorPool<*>> get() = listOfNotNull(update, mutation, neighborhood) + parameters.toSortedMap().values
 
     /** 更新槽位适配器 / Update slot adapter. */
     val solutionUpdate: SolutionUpdate? get() = update?.let { pool ->
@@ -214,7 +226,10 @@ private data class ControlledSnapshot(
     val localArchive: JsonElement,
     val initialized: Boolean,
     val decisions: Long,
-    val stagnation: Long
+    val stagnation: Long,
+    val rewardState: JsonElement = JsonNull,
+    val rewardStateVersion: Int = 0,
+    @SerialName("reward") val legacyReward: JsonElement = JsonNull
 )
 
 /** 在真实低层步边界选择和反馈算子 / Select and credit operators at actual low-level step boundaries.
@@ -258,26 +273,60 @@ class ControlledSearchSession<O, V>(
             if (initialized) {
                 for (pool in bindings.pools) {
                     val selected = pool.choose(before)
-                    if (selected !is Ok) return selected.map { SearchStepResult<O, V>(
-                        candidates = emptyList(),
-                        evaluations = evaluations,
-                        steps = steps,
-                        termination = SearchTermination.Failed
-                    ) }
+                    if (selected !is Ok) {
+                        bindings.pools.forEach { it.discard() }
+                        return selected.map { SearchStepResult<O, V>(
+                            candidates = emptyList(),
+                            evaluations = evaluations,
+                            steps = steps,
+                            termination = SearchTermination.Failed
+                        ) }
+                    }
                 }
             }
             val reference = memory.archive
             val slice = budget.child(budget.evaluations - evaluations, 1)
-            val outcome = delegate.step(slice)
-            if (outcome !is Ok) return outcome
+            val started = System.nanoTime()
+            val outcome = searchBoundary { delegate.step(slice) }.then { it }
+            val elapsedNanos = (System.nanoTime() - started).coerceAtLeast(0)
+            if (outcome !is Ok) {
+                if (initialized) {
+                    for (pool in bindings.pools) {
+                        if (pool.usedAction == null) {
+                            pool.discard()
+                            continue
+                        }
+                        val observed = searchBoundary { pool.observe(
+                            after = before,
+                            reward = Flt64.zero,
+                            evaluations = slice.used,
+                            terminal = true,
+                            elapsedNanos = elapsedNanos,
+                            steps = 0,
+                            failed = true
+                        ) }.then { it }
+                        if (observed !is Ok) diagnostics.add("失败算子反馈失败 / Failed-operator feedback failed: $observed")
+                    }
+                }
+                return Ok(SearchStepResult(
+                    candidates = candidates,
+                    evaluations = evaluations + slice.used,
+                    steps = steps,
+                    termination = SearchTermination.Failed,
+                    diagnostics = diagnostics + "低层执行失败 / Low-level execution failed: $outcome"
+                ))
+            }
             val result = outcome.value
             val contribution = memory.contribution(reference, result.candidates)
-            val value = reward.reward(RewardContext(
-                improved = contribution.first,
-                contribution = Flt64(contribution.second),
-                evaluations = result.evaluations
-            ))
-            if (!value.toDouble().isFinite()) return searchInvalid("non-finite operator reward")
+            val creditContext = rewardContext(
+                problem = problem,
+                reference = reference,
+                candidates = result.candidates,
+                contribution = contribution,
+                evaluations = result.evaluations,
+                elapsedNanos = elapsedNanos,
+                action = "operator"
+            )
             stagnation = if (contribution.first) 0 else stagnation + 1
             val after = ProgressFeatures.extract(SearchProgress(
                 decision = decisions + 1,
@@ -288,8 +337,24 @@ class ControlledSearchSession<O, V>(
             ))
             if (initialized) {
                 for (pool in bindings.pools) {
-                    val observed = pool.observe(after, value, result.evaluations, result.termination != SearchTermination.SliceComplete || budget.global.used >= budget.global.limit)
-                    if (observed !is Ok) return observed.map { result }
+                    val action = pool.usedAction
+                    if (action == null) {
+                        pool.discard()
+                        continue
+                    }
+                    val rewarded = searchBoundary { reward.evaluate(creditContext.copy(action = "${pool.id}/$action")) }.then { it }
+                    val validReward = rewarded is Ok && rewarded.value.toDouble().isFinite()
+                    if (!validReward) diagnostics.add("算子奖励无效 / Invalid operator reward: $rewarded")
+                    val observed = searchBoundary { pool.observe(
+                        after = after,
+                        reward = if (validReward) rewarded.value else Flt64.zero,
+                        evaluations = result.evaluations,
+                        terminal = !validReward || result.termination != SearchTermination.SliceComplete || budget.global.used >= budget.global.limit,
+                        elapsedNanos = elapsedNanos,
+                        steps = result.steps,
+                        failed = !validReward || result.termination == SearchTermination.Failed
+                    ) }.then { it }
+                    if (observed !is Ok) diagnostics.add("算子反馈失败 / Operator feedback failed: $observed")
                 }
             }
             memory.offer(result.candidates)
@@ -298,7 +363,7 @@ class ControlledSearchSession<O, V>(
             candidates.addAll(result.candidates)
             evaluations += result.evaluations
             steps += result.steps
-            reason = result.termination
+            reason = if (diagnostics.isEmpty()) result.termination else SearchTermination.Failed
             diagnostics.addAll(result.diagnostics)
             if (reason != SearchTermination.SliceComplete || evaluations >= budget.evaluations || budget.expired) {
                 return Ok(SearchStepResult(
@@ -330,6 +395,8 @@ class ControlledSearchSession<O, V>(
                 is Fatal -> return Fatal(result.errors)
             }
         }
+        val rewardState = (reward as? RecoverableComponent)?.save() ?: Ok(JsonNull)
+        if (rewardState !is Ok) return searchFailure(rewardState)
         return delegate.snapshot().then { native ->
             SearchCodecs.list(SearchCodecs.individual(problem)).encode(memory.archive).map { archive ->
                 native.copy(state = Json.encodeToJsonElement(ControlledSnapshot(
@@ -338,7 +405,9 @@ class ControlledSearchSession<O, V>(
                     localArchive = archive,
                     initialized = initialized,
                     decisions = decisions,
-                    stagnation = stagnation
+                    stagnation = stagnation,
+                    rewardState = rewardState.value,
+                    rewardStateVersion = if (rewardState.value == JsonNull) 0 else 1
                 )))
             }
         }
@@ -346,6 +415,14 @@ class ControlledSearchSession<O, V>(
 
     override fun restore(snapshot: SearchSessionSnapshot): Try {
         return searchBoundary { Json.decodeFromJsonElement<ControlledSnapshot>(snapshot.state) }.then { saved ->
+            if (saved.rewardStateVersion !in 0..1 ||
+                ("rewardState" in snapshot.state.jsonObject && "reward" in snapshot.state.jsonObject) ||
+                (saved.rewardStateVersion != 0 && saved.rewardState == JsonNull)) {
+                return@then searchInvalid("不支持或冲突的算子奖励状态 / Unsupported or conflicting operator reward state")
+            }
+            val state = if (saved.rewardState == JsonNull) saved.legacyReward else saved.rewardState
+            val restoredReward = (reward as? RecoverableComponent)?.load(state) ?: if (state == JsonNull) ok else searchInvalid("unexpected reward state")
+            if (restoredReward !is Ok) return@then restoredReward
             if (saved.slots.keys != bindings.pools.map { it.id }.toSet()) return@then searchInvalid("operator slots changed")
             for (pool in bindings.pools) {
                 val restored = pool.load(saved.slots.getValue(pool.id))

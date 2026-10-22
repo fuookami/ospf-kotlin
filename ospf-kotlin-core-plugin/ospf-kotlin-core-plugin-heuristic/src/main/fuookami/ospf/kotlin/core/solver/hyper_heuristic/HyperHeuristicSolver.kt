@@ -48,6 +48,7 @@ private class Dispatch<O, V>(
     val stepAllowance: Long
 ) where V : RealNumber<V>, V : NumberField<V> {
     var consumed = 0L
+    var elapsedNanos = 0L
 }
 
 private class Outcome<O, V>(val dispatch: Dispatch<O, V>, val result: Ret<SearchStepResult<O, V>>)
@@ -87,13 +88,19 @@ class HyperHeuristicSolver<O, V>(
         val selector = registry.selection(config.selection, config.algorithms.map { it.id }, config.learning.mode != LearningMode.Frozen)
         val features = registry.features(config.learning.features)
         val reward = registry.reward(config.learning.reward)
-        val acceptance = registry.acceptance(config.memory.acceptance)
+        val acceptance = registry.acceptance(
+            spec = config.memory.acceptance,
+            problem = problem,
+            horizon = config.budget.decisions ?: config.budget.steps ?: config.budget.evaluations ?: Long.MAX_VALUE
+        )
         val exchange = registry.exchange(config.memory.exchange)
         val allocator = registry.allocator(config.budget.allocator)
         if (selector !is Ok || features !is Ok || reward !is Ok || acceptance !is Ok || exchange !is Ok || allocator !is Ok) return fail("invalid selector, features, reward, acceptance, exchange or allocator")
         if (features.value.stateCount?.let { needed -> selector.value.stateCount?.let { it < needed } ?: false } == true) {
             return fail("selector state space is smaller than feature space")
         }
+        if (reward.value.requiresCoordinates && problem.objectiveCoordinates == null) return fail("reward requires explicit normalized minimization coordinates")
+        if (config.learning.reward.type in setOf("time-normalized", "extreme-value") && problem.multiObjective) return fail("scalar gain reward does not accept vector objectives")
         val components = linkedMapOf(
             "features" to Pair(config.learning.features, features.value),
             "reward" to Pair(config.learning.reward, reward.value),
@@ -115,6 +122,8 @@ class HyperHeuristicSolver<O, V>(
         models[problem.model] = true
         val tokens = IdentityHashMap<Any, Boolean>()
         tokens[problem.model.tokens] = true
+        val rewards = IdentityHashMap<RewardPolicy, Boolean>()
+        rewards[reward.value] = true
         for (algorithm in config.algorithms.sortedBy { it.id }) {
             val stream = SearchRandom(config.execution.seed).split("algorithm:${algorithm.id}")
             val created = registry.problem(config.problem, stream)
@@ -131,7 +140,18 @@ class HyperHeuristicSolver<O, V>(
                 searchBoundary { branch.model.close() }
                 return fail("branch callbacks are not recoverable")
             }
-            val session = registry.create(algorithm, branch, stream, config.learning.mode != LearningMode.Frozen, reward.value)
+            val session = registry.create(
+                config = algorithm,
+                problem = branch,
+                random = stream,
+                learning = config.learning.mode != LearningMode.Frozen,
+                rewardSpec = config.learning.reward
+            ) { localReward ->
+                if ((localReward is RecoverableComponent && rewards.put(localReward, true) != null) ||
+                    (config.persistence.enabled && !registry.componentRecoverable("reward", config.learning.reward, localReward))) {
+                    searchInvalid("算子奖励必须独立且可恢复 / Operator rewards must be independent and recoverable")
+                } else ok
+            }
             if (session !is Ok) {
                 searchBoundary { branch.model.close() }
                 return fail("algorithm ${algorithm.id} could not be created: $session")
@@ -324,17 +344,29 @@ class HyperHeuristicRun<O, V> internal constructor(
                 val context = extracted.value
                 val selected = searchBoundary { policy.select(context, available, random) }.then { it }
                 if (selected !is Ok) return selected.map { false }
-                if (selected.value !in available) return searchInvalid("selector returned a masked action")
+                if (selected.value !in available) {
+                    policy.discard(context.decision)
+                    return searchInvalid("selector returned a masked action")
+                }
                 val worker = workers.first { it.id == selected.value }
                 val allocated = searchBoundary { allocator.allocate(worker.id, config.budget.sliceEvaluations, remaining) }
-                if (allocated !is Ok) return searchFailure(allocated)
+                if (allocated !is Ok) {
+                    policy.discard(context.decision)
+                    return searchFailure(allocated)
+                }
                 val allowance = allocated.value
-                if (allowance <= 0 || allowance > remaining || allowance > config.budget.sliceEvaluations) return searchInvalid("allocator returned an invalid allowance")
+                if (allowance <= 0 || allowance > remaining || allowance > config.budget.sliceEvaluations) {
+                    policy.discard(context.decision)
+                    return searchInvalid("allocator returned an invalid allowance")
+                }
                 val exchanged = searchBoundary {
                     if (!worker.initialized && worker.initialization == InitializationMode.WorkingSet) memory.working.map { it.solution.toList() }
                     else exchange.select(completed, worker.id, memory.working).map { it.solution.toList() }
                 }
-                if (exchanged !is Ok) return searchFailure(exchanged)
+                if (exchanged !is Ok) {
+                    policy.discard(context.decision)
+                    return searchFailure(exchanged)
+                }
                 val seeds = exchanged.value
                 val dispatch = Dispatch(
                     worker = worker,
@@ -381,6 +413,7 @@ class HyperHeuristicRun<O, V> internal constructor(
         )
         val worker = dispatch.worker
         val candidates = ArrayList<Individual<O, V>>()
+        val started = System.nanoTime()
         return try { searchBoundary {
             if (worker.initialized && dispatch.seeds.isNotEmpty()) {
                 val imported = worker.session.importSolutions(dispatch.seeds, slice.child(dispatch.allowance, 0))
@@ -404,7 +437,10 @@ class HyperHeuristicRun<O, V> internal constructor(
                 termination = result.termination,
                 diagnostics = result.diagnostics
             ))
-        }.then { it } } finally { dispatch.consumed = slice.used }
+        }.then { it } } finally {
+            dispatch.consumed = slice.used
+            dispatch.elapsedNanos = (System.nanoTime() - started).coerceAtLeast(0)
+        }
     }
 
     private fun commit(outcome: Outcome<O, V>) {
@@ -426,6 +462,8 @@ class HyperHeuristicRun<O, V> internal constructor(
                     terminal = true,
                     policyVersion = dispatch.revision,
                     featureVersion = features.version,
+                    elapsedNanos = dispatch.elapsedNanos,
+                    previousAction = policy.predecessor(dispatch.decision),
                     failed = true
                 )
                 events.add(transition)
@@ -465,6 +503,8 @@ class HyperHeuristicRun<O, V> internal constructor(
                 terminal = true,
                 policyVersion = dispatch.revision,
                 featureVersion = features.version,
+                elapsedNanos = dispatch.elapsedNanos,
+                previousAction = policy.predecessor(dispatch.decision),
                 failed = true
             )
             events.add(transition)
@@ -489,14 +529,18 @@ class HyperHeuristicRun<O, V> internal constructor(
         if (improved) ++successes
         lastCost = result.evaluations
         if (result.termination == SearchTermination.NoCandidate || result.evaluations == 0L && result.steps == 0L) dispatch.worker.disabled = true
-        val value = reward.reward(RewardContext(
-            improved = contribution.first,
-            contribution = Flt64(contribution.second),
-            evaluations = result.evaluations
-        ))
-        if (!value.toDouble().isFinite()) {
-            diagnostics.add("奖励不是有限数 / Reward is not finite")
-            return
+        val rewarded = searchBoundary { reward.evaluate(rewardContext(
+            problem = problem,
+            reference = dispatch.reference,
+            candidates = result.candidates,
+            contribution = contribution,
+            evaluations = result.evaluations,
+            elapsedNanos = dispatch.elapsedNanos,
+            action = dispatch.worker.id
+        )) }.then { it }
+        val validReward = rewarded is Ok && rewarded.value.toDouble().isFinite()
+        if (!validReward) {
+            diagnostics.add("奖励无效 / Invalid reward: $rewarded")
         }
         val nextAvailable = workers.filter { !it.disabled && it.id !in active }.map { it.id }
         val transition = SelectionTransition(
@@ -507,14 +551,16 @@ class HyperHeuristicRun<O, V> internal constructor(
             after = state(),
             available = dispatch.available,
             nextAvailable = nextAvailable,
-            reward = value,
+            reward = if (validReward) rewarded.value else Flt64.zero,
             evaluations = result.evaluations,
             terminal = termination() != null,
             policyVersion = dispatch.revision,
             featureVersion = features.version,
             steps = result.steps,
             mergedImprovement = improved,
-            failed = result.termination == SearchTermination.Failed
+            elapsedNanos = dispatch.elapsedNanos,
+            previousAction = policy.predecessor(dispatch.decision),
+            failed = !validReward || result.termination == SearchTermination.Failed
         )
         events.add(transition)
         val observed = policy.observe(transition)

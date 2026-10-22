@@ -25,7 +25,7 @@ fun <O, V> SearchProblem<O, V>.evaluate(
     if (!budget.acquire()) return Ok(SearchEvaluationResult(false, null))
     return searchBoundary {
         val copied = solution.toList()
-        if (!validSolution(copied) || !feasible(copied)) {
+        if (!validSolution(copied) || !admissible(copied)) {
             SearchEvaluationResult<O, V>(true, null)
         } else {
             budget.global.objectiveCalled()
