@@ -78,3 +78,19 @@ mechanism/
 - **model/intermediate** — 机制模型被转储为 `LinearTriadModel` / `QuadraticTetradModel`
 - **token** — 模型使用 `TokenTable` 进行变量和符号管理
 - **symbol** — 中间符号通过机制层注册和展开
+
+## 线性模型状态与动态行
+
+`LinearMetaModel<V>.state` 是模型自有的 `LinearModelState<V>`，原始 MetaModel 仍是模型定义的唯一来源。
+`state.refresh()` 返回泛型 `LinearModelSnapshot<V>`：已展开行、变量范围、归一为最小化的目标、只计一次的目标常数和会话版本。
+`state.requireCurrent(revision)` 拒绝外模型或过期版本。刷新会展开并比较结构，包含直接 `addConstraint`、目标及变量范围修改；
+这是显式边界检查，不是所有可变对象的自动监听，不支持并发修改，也不承诺原生后端增量更新。
+
+动态线性行通过 `state.registerRow(ConstraintId("business:limit"), relation)` 注册到原始模型。
+目前支持已注册变量上的 `<=`、`=`、`>=`，不接受未展开符号、未知变量或非有限系数；表达式在注册时复制并规范化。
+相同 ID、相同内容幂等，相同 ID、不同内容失败。已有 `ModelElementIdentityRegistry` 时复用其身份绑定；
+没有显式身份的行使用保留的 `model-local-*` 身份，仅在当前模型会话有效。显示名称不是身份。
+第一版不支持动态行替换/删除；有效性、作用域和割的数学证明仍由调用方负责。
+列映射和定价投影属于 framework 共享分解层，不进入 MetaModel。
+
+快照会在临时机制模型上展开 AUTO/DEFERRED_NATIVE_FIRST 跳过的线性函数 fallback，以免遗漏函数约束；不改变原始模型的展开配置。

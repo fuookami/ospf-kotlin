@@ -1047,6 +1047,9 @@ class LinearMetaModel<V>(
     converter: IntoValue<V>,
     identityRegistry: ModelElementIdentityRegistry? = null
 ) : AbstractMetaModel<V>(Linear, configuration, converter, identityRegistry), AbstractLinearMetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
+    /** 模型自有的快照、版本和稳定动态行入口。 / Model-owned snapshots, revisions and stable dynamic-row entry. */
+    val state: LinearModelState<V> by lazy { LinearModelState(this) }
+
     // 基于数学不等式的约束存储 / Math inequality-based constraints storage
     internal val _relationConstraints: MutableList<LinearInequalityConstraint<V>> = ArrayList()
     override val constraints: List<MathConstraint> get() = _relationConstraints

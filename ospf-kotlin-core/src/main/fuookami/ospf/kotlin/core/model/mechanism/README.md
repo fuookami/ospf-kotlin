@@ -78,3 +78,21 @@ Subtypes:
 - **model/intermediate** — Mechanism models are dumped to `LinearTriadModel` / `QuadraticTetradModel`
 - **token** — Models use `TokenTable` for variable and symbol management
 - **symbol** — Intermediate symbols are registered and flattened through the mechanism layer
+
+## Linear Model State and Dynamic Rows
+
+`LinearMetaModel<V>.state` exposes model-owned `LinearModelState<V>`; the source MetaModel remains the sole model definition.
+`state.refresh()` returns a generic `LinearModelSnapshot<V>` containing expanded rows, variable bounds, a minimizing objective,
+its once-only constant, and a session revision. `state.requireCurrent(revision)` rejects stale and foreign revisions.
+Refresh expands and compares structure, including direct constraint, objective and variable-bound edits. This is explicit boundary
+validation, not universal mutation tracking, concurrent editing support, or native incremental backend modification.
+
+Register a dynamic linear row on the source through `state.registerRow(ConstraintId("business:limit"), relation)`.
+The first version supports `<=`, `=`, `>=` over registered variables, rejects unexpanded symbols and nonfinite/unknown terms,
+and copies/normalizes the expression. Identical IDs and definitions are idempotent; conflicting definitions fail.
+An existing `ModelElementIdentityRegistry` is reused. Unbound rows receive reserved `model-local-*` IDs valid only within
+this model session; display names are not identities. Row replacement/deletion is outside this version.
+Callers remain responsible for mathematical cut validity and scope. Column mapping and pricing projection belong to the shared
+framework decomposition layer, not MetaModel.
+
+Snapshots materialize deferred linear-function fallbacks in the temporary mechanism model, including AUTO/DEFERRED_NATIVE_FIRST policies, without changing source configuration.

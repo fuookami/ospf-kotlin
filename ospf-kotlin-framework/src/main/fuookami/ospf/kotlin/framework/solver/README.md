@@ -150,3 +150,31 @@ Migration example: preserve the serialized identity fields when moving a model t
 ## Async Coroutine Scope
 
 `FrameworkAsync.kt` provides a shared `CoroutineScope` (`SupervisorJob` + `Dispatchers.Default`) for creating `CompletableFuture` instances in framework-level async solving.
+
+## Dynamic Rows and Column Pricing Projection
+
+`ColumnProjection<V>` provides shared linear decomposition capabilities without BPP semantics or a joint CG/Benders algorithm.
+It consumes `LinearMetaModel.state`, with explicit `ColumnDecision` ownership of local variables by configuration block.
+Unmapped variables stay global. `ProjectedColumn` stores decision values, not stale copies of source-row coefficients.
+
+- `master` rebuilds Phase I, objective LP, integer selection, and resource-completion models from the current source snapshot.
+  Both paths use the same rows: `a(column) = sum(a_j * column_j)` and
+  `rc = sum((c_j - sum(pi_i*a_ij))*column_j) - sigma`.
+  Coupling/global rows enter the master and affect pricing through duals; only wholly local rows become local hard constraints
+  in `pricingModel`.
+- RHS, global variables and objective constants are counted once; maximizing objectives are normalized to minimization.
+  Resource completion preserves original variable types and excludes their contributions from columns.
+- `ColumnMasterRegistration` binds actual constraint objects, source/projection revisions and the master's own structural revision.
+  Dual binding never relies on names or cross-model token/row order. `refreshShadowPrice` requires complete, finite duals from
+  that registration; its caller must first confirm LP optimality.
+- Source-row/objective/bound edits, `columnsChanged()`, every rebuild, and direct master edits invalidate corresponding old results.
+  Ordinary `pricingRequest` requires current phase-specific duals; only explicit `seed = true` permits zero duals.
+  Price all blocks against one dual snapshot before batch insertion, and revalidate request versions before accepting certificates
+  and registrations before extraction.
+
+Callers own local feasibility/integrality, pricing certificates and mathematical row validity. Rebuilding checks current column
+bounds using an explicit tolerance; columns invalidated by tightened bounds must be removed or repriced.
+The implementation uses safe rebuilding and structural comparison, not automatic cut strengthening, joint iteration,
+branch-and-price or native incremental solver matrices.
+
+`extractSolution` merges the registration-frozen column vectors by source-variable identity and returns values in the source model's own token order. Stale registrations, nonintegral column selections and incomplete values fail; callers still independently verify the original complete model.

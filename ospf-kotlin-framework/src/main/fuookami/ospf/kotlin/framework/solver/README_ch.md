@@ -149,3 +149,25 @@ adapter/                    适配器
 ## 异步协程作用域
 
 `FrameworkAsync.kt` 提供共享的 `CoroutineScope`（`SupervisorJob` + `Dispatchers.Default`），用于框架层异步求解的 `CompletableFuture` 创建。
+
+## 动态行与列定价投影
+
+`ColumnProjection<V>` 是无 BPP 语义的共享线性分解能力，不是联合 CG/Benders 求解器。
+它消费 `LinearMetaModel.state`，用 `ColumnDecision` 显式绑定局部变量与配置块；未绑定变量保留为全局变量。
+`ProjectedColumn` 只保存局部决策值，不保存一份易过期的原始行系数。
+
+- `master` 从当前源快照重建 Phase I LP、目标 LP、最终整数主问题或资源补全模型。
+  行系数和定价系数来自同一行：`a(column) = sum(a_j * column_j)`，`rc = sum((c_j - sum(pi_i*a_ij))*column_j) - sigma`。
+  跨块/全局行仅投影到主问题并通过对偶进入定价，不复制为每块的局部限制；局部行可通过 `pricingModel` 注册。
+- 右端、全局变量和目标常数只计一次；最大化目标统一为最小化。资源补全保留原变量类型并扣除相应列贡献。
+- `ColumnMasterRegistration` 绑定实际约束对象、源版本、投影版本和主问题结构版本，不依赖名称、token 顺序或跨模型行序。
+  `refreshShadowPrice` 要求完整、有限、属于当前注册的原始行对偶；调用方必须先确认 LP 已最优。
+- 新行、源目标/边界变化、`columnsChanged()`、每次重建和主问题直接修改均使相应旧结果不可消费。
+  普通 `pricingRequest` 必须使用当前阶段对偶，只有显式 `seed = true` 才允许零对偶。
+  同轮多个块先消费同一对偶并验证请求版本，再统一加列。列生成器应在接收定价证明及提取结果前再次校验版本。
+
+调用方负责局部配置可行性、整数性、定价证明和新增行数学有效性。列范围在重建时按显式容差检查；
+旧列违反收紧后的范围时返回错误，调用方需删列或重新定价，不能静默使用旧列。
+当前采用安全重建和结构比较，未实现自动割强化、联合迭代、branch-and-price 或求解器原生增量矩阵修改。
+
+`extractSolution` 使用本次注册冻结的列向量，按原始变量身份合并并输出原模型自身 token 顺序；拒绝过期注册、非整数列选择和不完整值。调用方仍需独立复核原始完整模型。

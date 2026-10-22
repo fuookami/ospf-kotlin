@@ -103,11 +103,23 @@ class PartitionColumnGenerationApplicationService<V : FloatingNumber<V>>(
             is Fatal -> return Fatal(result.errors)
         }
         for ((index, partition) in partitions.withIndex()) {
-            val seed = when (val result = oracle.price(context, context.pricingRequest(partition.id, true))) {
+            val request = when (val result = context.pricingRequest(
+                partitionId = partition.id,
+                phaseOne = true,
+                seed = true
+            )) {
                 is Ok -> result.value
                 is Failed -> return Failed(result.error)
                 is Fatal -> return Fatal(result.errors)
             }
+            val seed = when (val result = oracle.price(context, request)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            val current = context.projection.requireCurrent(request.revision)
+            if (current is Failed) return Failed(current.error)
+            if (current is Fatal) return Fatal(current.errors)
             val available = config.columnLimit - context.columns.size - (partitions.size - index - 1)
             val added = context.register(seed.values.take(available).map { partition.id to it })
             if (added is Failed) return Failed(added.error)
@@ -137,18 +149,27 @@ class PartitionColumnGenerationApplicationService<V : FloatingNumber<V>>(
                 phaseOne = false
                 continue
             }
-            val refreshed = context.refreshShadowPrice(lp)
+            val refreshed = context.refreshShadowPrice(master, lp)
             if (refreshed is Failed) return Failed(refreshed.error)
             if (refreshed is Fatal) return Fatal(refreshed.errors)
             val before = context.columns.size
             var proven = true
+            var improvingFound = false
+            val pending = arrayListOf<Pair<String, Map<String, Flt64>>>()
             for (partition in partitions) {
-                val request = context.pricingRequest(partition.id, phaseOne)
+                val request = when (val result = context.pricingRequest(partition.id, phaseOne)) {
+                    is Ok -> result.value
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
                 val priced = when (val result = oracle.price(context, request)) {
                     is Ok -> result.value
                     is Failed -> return Failed(result.error)
                     is Fatal -> return Fatal(result.errors)
                 }
+                val current = context.projection.requireCurrent(request.revision)
+                if (current is Failed) return Failed(current.error)
+                if (current is Fatal) return Fatal(current.errors)
                 proven = proven && priced.optimal
                 val improving = arrayListOf<Map<String, Flt64>>()
                 for (values in priced.values) {
@@ -157,16 +178,19 @@ class PartitionColumnGenerationApplicationService<V : FloatingNumber<V>>(
                         is Failed -> return Failed(result.error)
                         is Fatal -> return Fatal(result.errors)
                     }
-                    if (cost < Flt64(-config.tolerance) && improving.size < config.columnLimit - context.columns.size) improving.add(values)
+                    if (cost < Flt64(-config.tolerance)) improvingFound = true
+                    if (cost < Flt64(-config.tolerance) && improving.size + pending.size < config.columnLimit - context.columns.size) improving.add(values)
                 }
-                val added = context.addColumns(improving.map { partition.id to it })
-                if (added is Failed) return Failed(added.error)
-                if (added is Fatal) return Fatal(added.errors)
+                pending.addAll(improving.map { partition.id to it })
             }
+            // 同轮所有分区消费同一组对偶，统一加列后再失效。 / All blocks consume one dual snapshot before batch insertion.
+            val inserted = context.addColumns(pending)
+            if (inserted is Failed) return Failed(inserted.error)
+            if (inserted is Fatal) return Fatal(inserted.errors)
             val added = context.columns.size - before
             trace.add(PartitionColumnGenerationIteration(phaseOne, lp.obj, added, proven))
             if (added == 0) {
-                converged = !phaseOne && proven
+                converged = !phaseOne && proven && !improvingFound
                 break
             }
             if (context.columns.size >= config.columnLimit) break

@@ -51,9 +51,9 @@ BPP1D/BPP2D 各自提供几何适配且互不依赖。贴边不重叠，物理�
 BPP1D/BPP2D 的几何 context 均可使用。**不是**单舱位方案列，也不是通用装箱列生成，更不是联合 CG/Benders。
 
 - `LoadingPartition` 显式且唯一地覆盖全部逻辑舱位，不按列表顺序、物理空间名或航空名称推断分区。
-- 一列包含分区内的具体分配、整体占位、货物使用向量、件数/实际重量、布局兼容集合、附加局部决策和完整行资源系数。
+- 一列包含分区内的具体分配、整体占位、货物使用向量、件数/实际重量、布局兼容集合、附加局部决策；行资源系数由共享层按当前源模型计算。
   空载配置也必须满足固定装载；跨区货物唯一性、几何冲突及共享布局仍属于主问题。
-- `PartitionLoadingContext` 先快照完整已展开模型的全部线性行和目标。下游 extra context/pipeline 在此之前注册的
+- `PartitionLoadingContext` 仅适配领域，模型快照/版本由 core `LinearModelState` 提供，列映射/定价由共享 `ColumnProjection` 提供。下游 extra context/pipeline 注册的
   资源、力矩、目标及辅助变量自动参与列系数和对偶定价，不能只在最终整数模型补规则。
 - `PartitionDecision` 显式声明预估、推荐重量等局部变量身份及归属；未归属的变量保留为全局主问题变量。
   `PartitionPricingOracle` 可替换局部 MILP 定价；默认 `MilpPartitionPricingOracle` 保留连续预估重量及整数推荐重量。
@@ -65,7 +65,12 @@ BPP1D/BPP2D 的几何 context 均可使用。**不是**单舱位方案列，也�
 - 根节点定价收敛不证明整数最优；当前实现没有 branch-and-price 或完整枚举证书，因此成功结果始终为 `Feasible`。
   有限列池找不到整数解只返回未收敛/受限池失败，不声称原问题不可行。连续资源补全也不提供全局整数最优证明。
 
-`PartitionMasterRow.sourceName` 保留下游行名称，`id` 为单次注册内跨重建稳定的行身份。
+`PartitionMasterRow`/`PartitionMasterRegistration`/`PartitionPricingRequest` 复用共享模型与分解类型。
+`source.state.registerRow(ConstraintId("business:limit"), relation)` 可在已生成列后追加业务行；
+下一次主问题重建与定价自动使用同一新行，不修改 application 主流程。
+`pricingRequest`、主问题注册、加列及提取现在通过 suspend Ret/Try 验证当前状态；种子定价显式指定 `seed = true`。
+对偶刷新必须提供产生该最优 LP 的 registration，缺失行不再默认为零；application 同轮定价后批量加列。
+`PartitionMasterRow.sourceName` 保留下游显示名称；显式 ConstraintId 可跨重建绑定，`model-local-*` 仅限模型会话。
 列的数值决策及行系数属于 solver adapter 边界；件数和实际货物重量分别保留 `UInt64` 与 `Quantity<V>`。
 
 ## 验证

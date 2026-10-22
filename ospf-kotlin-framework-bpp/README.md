@@ -71,10 +71,10 @@ single-slot patterns or ordinary bin-packing patterns. This is not combined CG/B
 
 - `LoadingPartition` explicitly and uniquely owns every logical position. No ordering, spatial-name
   or aviation-name inference is used. Columns retain assignments, whole-position occupancy, cargo-use
-  vectors, counts/actual weights, compatible layouts, local resource decisions and full-row contributions.
+  vectors, counts/actual weights, compatible layouts, local resource decisions; current row contributions are computed by shared projection.
 - The master retains cross-partition cargo uniqueness, geometric conflicts, shared layouts and every
   downstream global row. Empty configurations cannot bypass fixed cargo or fixed occupancy.
-- `PartitionLoadingContext` snapshots every expanded full-model linear row and objective **before**
+- `PartitionLoadingContext` consumes model-owned snapshots and shared column projection **before**
   pricing. Business extensions register through the ordinary context/pipeline path; their objective and
   global-row coefficients automatically enter reduced costs, not only final-model validation.
 - `PartitionDecision` explicitly owns estimated/recommended weights or other local decisions; unowned
@@ -92,8 +92,8 @@ single-slot patterns or ordinary bin-packing patterns. This is not combined CG/B
   certification, successful results are always `Feasible`. Restricted-pool infeasibility is not reported as
   original-problem infeasibility. Resource completion adds no global integer-optimality certificate.
 
-`PartitionMasterRow.sourceName` preserves the downstream row name; its `id` stays stable across master
-rebuilds in one registration. Column decision values/row coefficients are solver-boundary quantities;
+`PartitionMasterRow.sourceName` preserves the downstream row name; explicit IDs survive master
+rebuilds, while unbound `model-local-*` IDs are limited to one model session. Column decision values/row coefficients are solver-boundary quantities;
 cargo counts and actual cargo weights retain `UInt64` and `Quantity<V>`.
 
 ## Verification
@@ -102,3 +102,15 @@ Default tests exercise interval sweep vs seeded pairwise enumeration, sparse mod
 whole-position occupancy, layout selection and Benders certificate/identity handling.
 Logs and reports belong in the OS temporary directory. Demo2's commercial end-to-end
 checks are isolated under its `demo2-gurobi-e2e` profile.
+
+## Dynamic Row Integration
+
+`PartitionLoadingContext` now delegates model snapshots/revisions to core `LinearModelState` and column mapping, master assembly,
+local linear pricing and dual projection to shared `ColumnProjection`. It retains only loading-specific ownership, geometry,
+configuration validation and result adaptation. Columns no longer store stale row-contribution snapshots.
+Register late business rows with `source.state.registerRow(ConstraintId("business:limit"), relation)`; existing/new columns,
+LP pricing and final/refinement masters use the same source row without application changes.
+Pricing/master/column-insertion/extraction boundaries use suspend Ret/Try validation. Seeding explicitly uses `seed = true`;
+dual refresh requires the registration that produced an optimal LP, and missing rows are not silently zero.
+The application prices every block against one dual snapshot before batch insertion.
+Explicit row IDs survive rebuilds; `model-local-*` IDs are limited to one model session. This is capability plumbing, not joint CG/Benders.

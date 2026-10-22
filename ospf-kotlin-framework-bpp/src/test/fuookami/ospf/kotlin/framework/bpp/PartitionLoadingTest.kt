@@ -20,6 +20,7 @@ import fuookami.ospf.kotlin.core.solver.toSolveReport
 import fuookami.ospf.kotlin.core.solver.report.SolveReport
 import fuookami.ospf.kotlin.core.solver.output.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.solver.report.ConstraintId
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.bpp.application.*
 import fuookami.ospf.kotlin.framework.bpp.infrastructure.Flt64PackingValueAdapter
@@ -84,7 +85,7 @@ class PartitionLoadingTest {
         val context = assertIs<Ok<PartitionLoadingContext<Flt64>, *, *>>(PartitionLoadingContext.create(registered.context, registered.model, partitions)).value
         val oracle = AllConfigurations()
         for (partition in partitions) {
-            val generated = assertIs<Ok<PartitionPricingResult, *, *>>(oracle.price(context, context.pricingRequest(partition.id, true))).value
+            val generated = assertIs<Ok<PartitionPricingResult, *, *>>(oracle.price(context, request(context, partition.id, true))).value
             assertIs<Ok<*, *, *>>(context.register(generated.values.map { partition.id to it }))
         }
         assertTrue(context.columns.any { it.partitionId == "fore" && it.assignments.isEmpty() && it.occupiedPositions.isEmpty() })
@@ -93,12 +94,15 @@ class PartitionLoadingTest {
         val master = assertIs<Ok<PartitionMasterRegistration, *, *>>(context.master(false, false)).value
         assertIs<Ok<LinearMechanismModel<Flt64>, *, *>>(LinearMechanismModel(master.model)).value.use { expanded ->
             @Suppress("UNCHECKED_CAST")
-            val row = expanded.constraints.single { it.name == rowId } as Constraint<Flt64, Linear>
-            assertIs<Ok<*, *, *>>(context.refreshShadowPrice(ColumnGenerationSolver.LPResult(
-                SolverStatus.Optimal.toSolveReport(objective = Flt64.zero, values = emptyList(), solveTime = Duration.ZERO), mapOf(row to Flt64(3))
+            val dual = expanded.constraints.associate { row ->
+                @Suppress("UNCHECKED_CAST")
+                (row as Constraint<Flt64, Linear>) to if (row.name == rowId) Flt64(3) else Flt64.zero
+            }
+            assertIs<Ok<*, *, *>>(context.refreshShadowPrice(master, ColumnGenerationSolver.LPResult(
+                SolverStatus.Optimal.toSolveReport(objective = Flt64.zero, values = emptyList(), solveTime = Duration.ZERO), dual
             )))
         }
-        val priced = context.pricingRequest("aft", false)
+        val priced = request(context, "aft", false)
         val assignmentIds = context.decisions.filter { it.partitionId == "aft" && it.variable in registered.context.aggregation.assignments.values }.map { it.id }
         assertTrue(assignmentIds.all { priced.coefficients[it] == Flt64(-4) })
         val removed = context.columns.first { it.assignments.isNotEmpty() }.id
@@ -133,16 +137,16 @@ class PartitionLoadingTest {
     fun `cross partition clique retains internal conflicts in local pricing and column validation`(): Unit = runBlocking {
         val registered = registration(internalConflict = true)
         val context = assertIs<Ok<PartitionLoadingContext<Flt64>, *, *>>(PartitionLoadingContext.create(registered.context, registered.model, partitions)).value
-        val priced = assertIs<Ok<PartitionPricingResult, *, *>>(AllConfigurations().price(context, context.pricingRequest("aft", true))).value
+        val priced = assertIs<Ok<PartitionPricingResult, *, *>>(AllConfigurations().price(context, request(context, "aft", true))).value
         assertIs<Ok<*, *, *>>(context.register(priced.values.map { "aft" to it }))
         assertTrue(context.columns.all { it.occupiedPositions.size <= 1 })
         val invalid = context.decisions.filter { it.partitionId == "aft" }.associate { decision ->
             decision.id to if (decision.variable in registered.context.aggregation.occupied.values) Flt64.one else Flt64.zero
         }
         assertIs<Failed<*, *, *>>(context.addColumns(listOf("aft" to invalid)))
-        assertIs<Failed<*, *, *>>(context.pricingModel(context.pricingRequest("missing", true)))
-        assertIs<Failed<*, *, *>>(context.pricingModel(context.pricingRequest("aft", true).copy(coefficients = emptyMap())))
-        assertIs<Failed<*, *, *>>(context.pricingRequest("aft", true).reducedCost(emptyMap()))
+        assertIs<Failed<*, *, *>>(context.pricingRequest(partitionId = "missing", phaseOne = true, seed = true))
+        assertIs<Failed<*, *, *>>(context.pricingModel(request(context, "aft", true).copy(coefficients = emptyMap())))
+        assertIs<Failed<*, *, *>>(request(context, "aft", true).reducedCost(emptyMap()))
     }
 
     @Test
@@ -153,7 +157,7 @@ class PartitionLoadingTest {
             loading = registered.context, source = registered.model, partitions = partitions,
             extraDecisions = listOf(PartitionDecision("estimate", "fore", extra))
         )).value
-        val generated = assertIs<Ok<PartitionPricingResult, *, *>>(AllConfigurations().price(context, context.pricingRequest("fore", true))).value
+        val generated = assertIs<Ok<PartitionPricingResult, *, *>>(AllConfigurations().price(context, request(context, "fore", true))).value
         assertIs<Ok<*, *, *>>(context.addColumns(generated.values.map { "fore" to it }))
         assertTrue(context.columns.any { it.assignments.isEmpty() && it.decisions.getValue("estimate") > Flt64.zero && "big" in it.occupiedPositions })
         val tiny = Flt64(1e-12)
@@ -168,6 +172,52 @@ class PartitionLoadingTest {
         val normalized = context.columns.single { it.decisions["estimate"] == tiny }
         assertEquals(setOf("big"), normalized.occupiedPositions)
         assertTrue(normalized.decisions.filterKeys { it != "estimate" }.values.all { it == Flt64.zero || it == Flt64.one })
+    }
+
+    private suspend fun request(context: PartitionLoadingContext<Flt64>, partitionId: String, seed: Boolean): PartitionPricingRequest {
+        return assertIs<Ok<PartitionPricingRequest, *, *>>(context.pricingRequest(
+            partitionId = partitionId,
+            phaseOne = seed,
+            seed = seed
+        )).value
+    }
+
+    @Test
+    fun `late business row is projected onto existing and new columns without changing application`(): Unit = runBlocking {
+        val registered = registration()
+        val context = assertIs<Ok<PartitionLoadingContext<Flt64>, *, *>>(PartitionLoadingContext.create(
+            registered.context, registered.model, partitions
+        )).value
+        val oracle = AllConfigurations()
+        for (partition in partitions) {
+            val generated = assertIs<Ok<PartitionPricingResult, *, *>>(oracle.price(context, request(context, partition.id, true))).value
+            assertIs<Ok<*, *, *>>(context.addColumns(generated.values.map { partition.id to it }))
+        }
+        val old = assertIs<Ok<PartitionMasterRegistration, *, *>>(context.master(false, false)).value
+        val previousIds = context.columns.map { it.id }.toSet()
+        assertIs<Ok<*, *, *>>(registered.model.state.registerRow(
+            ConstraintId("late-occupancy-limit"),
+            sum(registered.context.aggregation.occupied.values.toList()) leq Flt64.one
+        ))
+        assertIs<Failed<*, *, *>>(context.projection.requireCurrent(old))
+        for (integer in listOf(false, true)) {
+            val master = assertIs<Ok<PartitionMasterRegistration, *, *>>(context.master(false, integer)).value
+            val snapshot = assertIs<Ok<LinearModelSnapshot<Flt64>, *, *>>(master.model.state.refresh()).value
+            val row = snapshot.rows.single { it.sourceName == "late-occupancy-limit" }
+            for (column in context.columns) {
+                assertEquals(Flt64(column.occupiedPositions.size), row.coefficients[master.columnVariables.getValue(column.id)] ?: Flt64.zero)
+            }
+        }
+        assertEquals(previousIds, context.columns.map { it.id }.toSet())
+        val generated = assertIs<Ok<PartitionPricingResult, *, *>>(oracle.price(context, request(context, "aft", true))).value
+        assertIs<Ok<*, *, *>>(context.addColumns(generated.values.map { "aft" to it }))
+        val final = assertIs<Ok<PartitionMasterRegistration, *, *>>(context.master(false, true)).value
+        val solved = assertIs<Ok<SolveReport<Flt64>, *, *>>(EnumerationSolver().solveMILP(final.model)).value
+        val direct = assertIs<Ok<SolveReport<Flt64>, *, *>>(EnumerationSolver().solveMILP(registered.model)).value
+        assertEquals(direct.solution?.objective, solved.solution?.objective)
+        val full = assertIs<Ok<List<Flt64>, *, *>>(context.extractSolution(final, solved.values)).value
+        val occupied = registered.context.aggregation.occupied.values.count { full[registered.model.tokens.indexOf(it)!!] > Flt64(0.5) }
+        assertTrue(occupied <= 1)
     }
 
     private fun URealVarForTest(registration: RegisteredDiscreteLoading<Flt64>): fuookami.ospf.kotlin.core.variable.URealVar {
