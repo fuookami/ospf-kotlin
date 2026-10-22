@@ -413,6 +413,72 @@ class EspprcTest {
     }
 
     @Test
+    fun espprcShouldPreserveParallelArcIdsAndUseSharedExtraCoefficients() {
+        val instance = makeInstance()
+        val h = makeHelpers(instance)
+        val vehicleTypeId = VehicleTypeId("v1")
+        val customer = instance.customers.first()
+        val fast = NetworkArcId("fast-service")
+        val safe = NetworkArcId("safe-service")
+        val endArc = ResourceArc(vehicleTypeId, customer.node.id, instance.endDepot.node.id)
+        val resourceGraph = assertNotNull(ResourceGraph(
+            nodes = listOf(instance.startDepot.node.id, instance.endDepot.node.id) + instance.customers.map { it.node.id },
+            arcs = listOf(
+                ResourceArc(vehicleTypeId, instance.startDepot.node.id, customer.node.id, fast),
+                ResourceArc(vehicleTypeId, instance.startDepot.node.id, customer.node.id, safe),
+                endArc
+            )
+        ).value)
+        val duals = PricingDuals(
+            phase = PricingPhase.PhaseTwo,
+            customer = mapOf(customer.id to Flt64(100.0)),
+            fleet = emptyMap(),
+            additional = mapOf("safe-row" to Flt64(5.0))
+        )
+        val coefficientProvider = object : RouteArcCoefficientProvider<Flt64> {
+            override fun coefficients(arc: ResourceArc<VehicleTypeId>): Map<String, Flt64> =
+                if (arc.id == safe) mapOf("safe-row" to Flt64.one) else emptyMap()
+        }
+        val graphBuilder = RouteGraphBuilder(
+            instance = instance,
+            valueAdapter = h.valueAdapter,
+            distanceCalculator = h.distanceCalculator,
+            travelTimeCalculator = h.travelTimeCalculator,
+            arcCostCalculator = h.arcCostCalculator,
+            resourceGraph = resourceGraph,
+            coefficientProviders = listOf(coefficientProvider)
+        )
+        val graph = assertNotNull(graphBuilder.build(vehicleTypeId, duals).value)
+        assertFalse(graphBuilder.build(vehicleTypeId, PricingDuals(
+            phase = duals.phase,
+            customer = duals.customer,
+            fleet = duals.fleet
+        )).ok)
+
+        val parallelArcs = graph.outgoingFrom(graph.startDepotIndex).filter { it.toNodeId == customer.node.id }
+        assertEquals(setOf(fast, safe), parallelArcs.map { it.id }.toSet())
+        assertEquals(Flt64(5.0), parallelArcs.first { it.id == fast }.reducedCost - parallelArcs.first { it.id == safe }.reducedCost)
+
+        val uncertifiedAggressiveDominance = object : LabelDominancePolicy {
+            override fun <V : RealNumber<V>> dominates(a: EspprcLabel<V>, b: EspprcLabel<V>): Boolean = true
+        }
+        val result = assertNotNull(EspprcPricer(instance, h.valueAdapter, uncertifiedAggressiveDominance).price(
+            graph = graph,
+            request = PricingRequest(
+                instance = instance,
+                duals = duals,
+                branchMask = null,
+                pricingTolerance = Flt64(1e-6),
+                vehicleTypeId = vehicleTypeId
+            )
+        ).value)
+        assertFalse(result.exactPricingComplete)
+        assertTrue(result.minReducedCost ls Flt64.zero)
+        assertTrue(result.routes.any { it.arcIds.first() == fast })
+        assertTrue(result.routes.any { it.arcIds.first() == safe })
+    }
+
+    @Test
     fun espprcShouldReportInterruptionWithoutClaimingExactPricing() {
         val instance = makeInstance()
         val h = makeHelpers(instance)
@@ -646,16 +712,14 @@ class EspprcTest {
     }
 
     /**
-     * 支配回归：较小 forbidden 集的标签必须继续扩展到 target，较大的标签不能扩展。
-     * Dominance regression: a label with the smaller forbidden set must extend to target,
-     * while the more restricted label must not.
+     * 合并路径回归：精确定价应保留时间可行路径并排除违反 target 时间窗的路径。
+     * Merged-path regression: exact pricing should retain the time-feasible path and reject
+     * the path that violates the target time window.
      */
     @Test
-    fun espprcShouldRetainExpandableLabelWhenForbiddenSetIsSmaller() {
+    fun espprcShouldFindCheapestFeasibleRouteAcrossMergedPaths() {
         val instance = makeForbiddenReachabilityInstance()
         val vehicleTypeId = VehicleTypeId("v1")
-        val mergeNodeId = NetworkNodeId("merge")
-        val targetIndex = instance.customers.indexOfFirst { it.id == CustomerId("target") }
         val allowedArcs = setOf(
             "start->a",
             "a->b",
@@ -702,29 +766,6 @@ class EspprcTest {
             val value = arcCosts[key] ?: fail("缺少弧成本：$key / Missing arc cost for arc: $key")
             ok(Quantity(value, NoneUnit))
         }
-        var safeLabelDominatedRestricted = false
-        var restrictedLabelDominatedSafe = false
-        val dominancePolicy = object : LabelDominancePolicy {
-            override fun <V : RealNumber<V>> dominates(
-                a: EspprcLabel<V>,
-                b: EspprcLabel<V>
-            ): Boolean {
-                val result = LabelDominancePolicy.Default.dominates(a, b)
-                if (a.currentNode == mergeNodeId && b.currentNode == mergeNodeId &&
-                    (0..2).all { a.visited.contains(it) && b.visited.contains(it) } &&
-                    !a.forbidden.contains(targetIndex) && b.forbidden.contains(targetIndex)
-                ) {
-                    safeLabelDominatedRestricted = safeLabelDominatedRestricted || result
-                }
-                if (a.currentNode == mergeNodeId && b.currentNode == mergeNodeId &&
-                    (0..2).all { a.visited.contains(it) && b.visited.contains(it) } &&
-                    a.forbidden.contains(targetIndex) && !b.forbidden.contains(targetIndex)
-                ) {
-                    restrictedLabelDominatedSafe = restrictedLabelDominatedSafe || result
-                }
-                return result
-            }
-        }
         val retainAllLabelsPolicy = object : LabelDominancePolicy {
             override fun <V : RealNumber<V>> dominates(
                 a: EspprcLabel<V>,
@@ -761,33 +802,83 @@ class EspprcTest {
         }
         assertTrue(
             unprunedSequences.contains(listOf("a", "b", "merge", "target")),
-            "即使不做支配裁剪，较少受限标签也应扩展到 target / The less restricted label should extend to target even without dominance pruning"
+            "不做支配裁剪时应找到时间可行路线 / Pricing without dominance should find the time-feasible route"
         )
         assertFalse(
             unprunedSequences.contains(listOf("b", "a", "merge", "target")),
-            "更受限标签必须无法扩展到 target / The more restricted label must fail the target extension"
+            "违反 target 时间窗的路线不得返回 / A route violating the target time window must not be returned"
         )
         val result = assertNotNull(EspprcPricer(
             instance = instance,
-            valueAdapter = Flt64NetworkSchedulingSolverValueAdapter,
-            dominancePolicy = dominancePolicy
+            valueAdapter = Flt64NetworkSchedulingSolverValueAdapter
         ).price(graph, request).value)
         val customerSequences = result.routes.map { route ->
             route.stops.mapNotNull { it.customerId?.value }
         }
 
-        assertTrue(safeLabelDominatedRestricted,
-            "可扩展的 merge 标签应支配更受限的 merge 标签 / The expandable merge label should dominate the more restricted merge label")
-        assertFalse(restrictedLabelDominatedSafe,
-            "更受限的 merge 标签不得支配可扩展标签 / The more restricted merge label must not dominate the expandable label")
+        assertEquals(withoutDominance.minReducedCost, result.minReducedCost,
+            "支配裁剪不得改变最优可行 reduced cost / Dominance pruning must preserve the best feasible reduced cost")
         assertTrue(
             customerSequences.contains(listOf("a", "b", "merge", "target")),
-            "较小 forbidden 集应到达公共 target / The smaller forbidden set must reach the common target"
+            "精确定价应返回时间可行路线 / Exact pricing should return the time-feasible route"
         )
         assertFalse(
             customerSequences.contains(listOf("b", "a", "merge", "target")),
-            "较大 forbidden 集不得到达公共 target / The larger forbidden set must not reach the common target"
+            "精确定价不得返回违反 target 时间窗的路线 / Exact pricing must not return a route violating the target time window"
         )
+    }
+
+    @Test
+    fun espprcShouldUseNonAdditiveTerminalCostToSelectBestRoute() {
+        val instance = makeInstance()
+        val helpers = makeHelpers(instance)
+        val vehicleTypeId = VehicleTypeId("v1")
+        val duals = PricingDuals(
+            phase = PricingPhase.PhaseTwo,
+            customer = mapOf(
+                CustomerId("c1") to Flt64(20.0),
+                CustomerId("c2") to Flt64(20.0)
+            ),
+            fleet = mapOf(vehicleTypeId to Flt64.zero)
+        )
+        val graph = assertNotNull(RouteGraphBuilder(
+            instance = instance,
+            valueAdapter = helpers.valueAdapter,
+            distanceCalculator = helpers.distanceCalculator,
+            travelTimeCalculator = helpers.travelTimeCalculator,
+            arcCostCalculator = helpers.arcCostCalculator
+        ).build(vehicleTypeId, duals).value)
+        val additivePolicy = FixedPlusArcCostPolicy<Flt64>(instance.units.costUnit)
+        val nonAdditivePolicy = object : RouteCostPolicy<Flt64> {
+            override fun cost(vehicleType: VehicleType<Flt64>, arcCosts: List<Quantity<Flt64>>) =
+                additivePolicy.cost(vehicleType, arcCosts).map { baseCost ->
+                    val routeDiscount = if (arcCosts.size == 3 && arcCosts.first().value == Flt64(2.0)) {
+                        Flt64(-10.0)
+                    } else {
+                        Flt64.zero
+                    }
+                    Quantity(baseCost.value + routeDiscount, instance.units.costUnit)
+                }
+        }
+        val request = PricingRequest(
+            instance = instance,
+            duals = duals,
+            branchMask = null,
+            pricingTolerance = Flt64(1e-6),
+            vehicleTypeId = vehicleTypeId
+        )
+
+        assertTrue(additivePolicy.isAdditive)
+        assertFalse(nonAdditivePolicy.isAdditive)
+        val result = assertNotNull(EspprcPricer(
+            instance = instance,
+            valueAdapter = helpers.valueAdapter,
+            routeCostPolicy = nonAdditivePolicy
+        ).price(graph, request).value)
+        val bestRoute = assertNotNull(result.routes.minByOrNull { it.cost.value })
+        assertEquals(listOf("c2", "c1"), bestRoute.stops.mapNotNull { it.customerId?.value })
+        assertEquals(Flt64(5.0), bestRoute.cost.value)
+        assertEquals(Flt64(-35.0), result.minReducedCost)
     }
 
     // ========== 穷举 Oracle 测试 ==========

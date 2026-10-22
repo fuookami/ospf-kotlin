@@ -5,7 +5,10 @@ import kotlin.time.Duration
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.path.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.*
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.pricing.*
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.policy.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.route_generation.model.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.route_generation.policy.LabelDominancePolicy
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
@@ -17,7 +20,7 @@ import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
  * 支持：
  * - 单路线 elementarity
  * - reduced cost、time、load 三资源支配
- * - Feillet 2004 不可达客户提前标记
+ * - 基于 elementarity 和容量单调性的客户排除标记
  * - 前驱索引链回溯生成完整 Route 和 RouteStop
  * - branch mask 在构图和扩展时均生效
  * - 只返回 reduced cost < -pricingTolerance 的列
@@ -27,7 +30,8 @@ import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
 class EspprcPricer<V : FloatingNumber<V>>(
     private val instance: VrptwInstance<V>,
     private val valueAdapter: NetworkSchedulingSolverValueAdapter<V>,
-    private val dominancePolicy: LabelDominancePolicy = LabelDominancePolicy.Default
+    private val dominancePolicy: LabelDominancePolicy = LabelDominancePolicy.Default,
+    private val routeCostPolicy: RouteCostPolicy<V> = FixedPlusArcCostPolicy(instance.units.costUnit)
 ) {
     /**
      * 执行精确定价。 / Execute exact pricing.
@@ -49,143 +53,126 @@ class EspprcPricer<V : FloatingNumber<V>>(
                 "执行定价失败：无法计算负定价容差 / Failed to execute pricing: cannot calculate negative pricing tolerance"
             )
 
-        // 每个节点的活跃标签索引列表 / Active label indices at each node
-        val labelsAtNode = Array(graph.nodes.size) { mutableListOf<Int>() }
-        // dominated 标记数组 / Dominated marker array
-        val dominated = mutableSetOf<Int>()
-        // 全局标签列表（用于前驱回溯） / Global label list (for predecessor backtracking)
-        val allLabels = mutableListOf<EspprcLabel<V>>()
-
-        // 创建根标签（在起始 depot，时间为 0，负载为 0） / Create root label
-        val startNode = graph.nodes[graph.startDepotIndex]
-        val rootLabel = EspprcLabel(
+        val topology = when (val result = NetworkGraph(
+            nodes = graph.nodes,
+            arcs = graph.arcs,
+            access = NetworkGraphAccess<PricingNode<V>, PricingArc<V>>(
+                nodeId = { it.nodeId },
+                arcId = { it.id },
+                from = { it.fromNodeId },
+                to = { it.toNodeId }
+            )
+        )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        val start = graph.nodes[graph.startDepotIndex]
+        val root = EspprcLabel(
             reducedCost = zero,
-            time = startNode.readyTime,
+            time = start.readyTime,
             load = zero,
-            currentNode = startNode.nodeId,
+            currentNode = start.nodeId,
             visited = VisitedCustomers.empty(customerCount),
             forbidden = ForbiddenCustomers.empty(customerCount),
             predecessor = -1,
-            routeIndex = -1
+            additiveObjectiveCost = zero
         )
-        allLabels.add(rootLabel)
-        labelsAtNode[graph.startDepotIndex].add(0)
-
-        // BFS 式标签扩展 / BFS-style label extension
-        var labelIdCounter = 1
-        var minReducedCost = zero
-        val negativeLabels = mutableListOf<EspprcLabel<V>>()
-
-        // 使用队列逐层扩展 / Use queue for level-by-level extension
-        val queue = ArrayDeque<Int>()
-        queue.add(0) // root label index
-        var interrupted = false
-
-        while (queue.isNotEmpty()) {
-            if (request.interruptionChecker.shouldStop()) {
-                interrupted = true
-                break
+        // 仅应用显式认证的支配策略；默认策略比较全部未来相关资源，负行驶时间已在构图时拒绝。
+        // Apply only certified dominance; the default compares all future-relevant resources and negative travel times are rejected during graph construction.
+        val exactDominance: ((PathLabel<EspprcLabel<V>, PricingArc<V>>, PathLabel<EspprcLabel<V>, PricingArc<V>>) -> Boolean)? =
+            if (routeCostPolicy.isAdditive && dominancePolicy.isExact) {
+                { a, b -> dominancePolicy.dominates(a.state, b.state) }
+            } else {
+                null
             }
-            val currentLabelIdx = queue.removeFirst()
-            if (currentLabelIdx in dominated) continue
-
-            val currentLabel = allLabels[currentLabelIdx]
-            val currentNodeIdx = graph.nodeIndexMap[currentLabel.currentNode] ?: continue
-
-            // 扩展到所有后继弧 / Extend to all successor arcs
-            for (arc in graph.outgoingFrom(currentNodeIdx)) {
-                if (request.interruptionChecker.shouldStop()) {
-                    interrupted = true
-                    break
-                }
-                val toNode = graph.nodes[arc.toIndex]
-
-                // elementarity 检查：不能重复访问客户 / Elementarity check
-                if (!toNode.isDepot && currentLabel.visited.contains(toNode.customerIndex)) continue
-
-                // 不可达客户检查 / Forbidden customer check
-                if (!toNode.isDepot && currentLabel.forbidden.contains(toNode.customerIndex)) continue
-
-                // 时间资源扩展 / Time resource extension
-                val arrivalTime = currentLabel.time + arc.travelTime
-                val serviceStartTime = maxOf(arrivalTime, toNode.readyTime)
-
-                // 时间窗可行性 / Time window feasibility
-                if (serviceStartTime gr toNode.dueTime) continue
-
-                // 负载资源扩展 / Load resource extension
-                val newLoad = currentLabel.load + toNode.demand
-
-                // 容量可行性 / Capacity feasibility
-                if (newLoad gr graph.vehicleCapacity) continue
-
-                // Reduced cost 扩展 / Reduced cost extension
-                val newReducedCost = currentLabel.reducedCost + arc.reducedCost
-
-                // 更新 visited / Update visited
-                val newVisited = if (toNode.isDepot) currentLabel.visited
-                    else currentLabel.visited.add(toNode.customerIndex)
-
-                // Feillet 2004 不可达客户标记 / Feillet 2004 unreachable customer marking
-                val departureTimeFromToNode = serviceStartTime + toNode.serviceTime
-                val newForbidden = updateForbiddenCustomers(
-                    currentLabel.forbidden, toNode, newVisited, graph,
-                    departureTimeFromToNode, newLoad
-                )
-
-                // 创建新标签 / Create new label
-                val newLabel = EspprcLabel(
-                    reducedCost = newReducedCost,
-                    time = serviceStartTime + toNode.serviceTime,
-                    load = newLoad,
-                    currentNode = toNode.nodeId,
-                    visited = newVisited,
-                    forbidden = newForbidden,
-                    predecessor = currentLabelIdx,
-                    routeIndex = -1
-                )
-
-                // 支配检查 / Dominance check
-                val dominatedByExisting = labelsAtNode[arc.toIndex].any { existingIdx ->
-                    existingIdx !in dominated && dominancePolicy.dominates(allLabels[existingIdx], newLabel)
-                }
-                if (dominatedByExisting) continue
-
-                // 移除被新标签支配的旧标签 / Remove labels dominated by the new one
-                val toRemove = labelsAtNode[arc.toIndex].filter { existingIdx ->
-                    existingIdx !in dominated && dominancePolicy.dominates(newLabel, allLabels[existingIdx])
-                }
-                for (removeIdx in toRemove) {
-                    dominated.add(removeIdx)
-                }
-                labelsAtNode[arc.toIndex].removeAll(toRemove.toSet())
-
-                // 添加新标签 / Add new label
-                val newLabelIdx = labelIdCounter++
-                allLabels.add(newLabel)
-                labelsAtNode[arc.toIndex].add(newLabelIdx)
-                queue.add(newLabelIdx)
-
-                // 到达 end depot 时检查 reduced cost / Check reduced cost when reaching end depot
-                if (arc.toIndex == endDepotIdx && newReducedCost ls negativePricingTolerance) {
-                    negativeLabels.add(newLabel)
-                    if (minReducedCost gr newReducedCost) {
-                        minReducedCost = newReducedCost
+        val problem = PathProblem(
+            graph = topology,
+            source = start.nodeId,
+            initial = root,
+            transition = { previous, arc ->
+                val current = previous.state
+                val next = graph.nodes[arc.toIndex]
+                if (!next.isDepot && (current.visited.contains(next.customerIndex) || current.forbidden.contains(next.customerIndex))) {
+                    ok(null)
+                } else {
+                    val serviceStart = maxOf(current.time + arc.travelTime, next.readyTime)
+                    val load = current.load + next.demand
+                    if (serviceStart gr next.dueTime || load gr graph.vehicleCapacity) {
+                        ok(null)
+                    } else {
+                        val visited = if (next.isDepot) current.visited else current.visited.add(next.customerIndex)
+                        val departure = serviceStart + next.serviceTime
+                        ok(EspprcLabel(
+                            reducedCost = current.reducedCost + arc.reducedCost,
+                            time = departure,
+                            load = load,
+                            currentNode = next.nodeId,
+                            visited = visited,
+                            forbidden = updateForbiddenCustomers(current.forbidden, next, visited, graph, load),
+                            predecessor = previous.index,
+                            arcCosts = current.arcCosts + arc.arcCost,
+                            additiveObjectiveCost = (current.additiveObjectiveCost ?: zero) + arc.objectiveCost
+                        ))
                     }
                 }
-            }
+            },
+            terminal = { node, _ -> node == graph.nodes[endDepotIdx].nodeId },
+            accept = { it.reducedCost ls negativePricingTolerance },
+            terminalContribution = { terminal ->
+                val state = terminal.state
+                val vehicleType = instance.vehicleTypeById[request.vehicleTypeId]
+                if (vehicleType == null) {
+                    networkSchedulingFailure(
+                        "执行定价失败：车辆类型不存在 / Failed to execute pricing: vehicle type does not exist"
+                    )
+                } else {
+                    when (val result = routeCostPolicy.cost(vehicleType, state.arcCosts)) {
+                        is Ok -> when (val normalized = valueAdapter.normalizeValue(result.value, instance.units.costUnit)) {
+                            is Ok -> {
+                                if (request.duals.phase == PricingPhase.PhaseTwo && state.additiveObjectiveCost == null) {
+                                    networkSchedulingFailure(
+                                        "执行定价失败：缺少增量目标成本 / Failed to execute pricing: accumulated additive objective cost is missing"
+                                    )
+                                } else {
+                                    val reducedCost = if (request.duals.phase == PricingPhase.PhaseTwo) {
+                                        state.reducedCost - (state.additiveObjectiveCost ?: zero) + normalized.value
+                                    } else {
+                                        state.reducedCost
+                                    }
+                                    ok(state.copy(reducedCost = reducedCost, routeCost = normalized.value))
+                                }
+                            }
+                            is Failed -> Failed(normalized.error)
+                            is Fatal -> Fatal(normalized.errors)
+                        }
+                        is Failed -> Failed(result.error)
+                        is Fatal -> Fatal(result.errors)
+                    }
+                }
+            },
+            dominates = exactDominance,
+            dominanceIsExact = exactDominance != null,
+            order = compareBy { it.reducedCost }
+        )
+        val search = when (val result = PathSearchContext().search(
+            problem = problem,
+            budget = PathSearchBudget(shouldStop = { request.interruptionChecker.shouldStop() })
+        )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
-
-        // 精确定价完成：没有任何标签的 reduced cost 小于 -pricingTolerance
-        val exactPricingComplete = !interrupted && minReducedCost geq negativePricingTolerance
+        val minReducedCost = search.paths.minOfOrNull { it.state.reducedCost } ?: zero
+        val interrupted = search.completion == PathSearchCompletion.Interrupted
+        val exactPricingComplete = search.complete && minReducedCost geq negativePricingTolerance
 
         // 回溯生成路线 / Backtrack to generate routes
         val routes = mutableListOf<Route<V>>()
-        val sortedNegativeLabels = negativeLabels.sortedBy { it.reducedCost }
 
-        for (label in sortedNegativeLabels) {
+        for (pathLabel in search.paths) {
             if (routes.size >= request.maxColumnsPerPricing) break
-            val route = backtrackRoute(label, allLabels, graph, request)
+            val route = backtrackRoute(search.trace(pathLabel), graph, request)
             when (route) {
                 is Ok -> routes.add(route.value)
                 is Failed -> return Failed(route.error)
@@ -202,17 +189,21 @@ class EspprcPricer<V : FloatingNumber<V>>(
     }
 
     /**
-     * Feillet 2004 不可达客户标记。 / Feillet 2004 unreachable customer marking.
+     * 保守的不可扩展客户标记。 / Conservative marking of customers that cannot be extended.
      *
-     * 在扩展到节点 j 后，检查哪些未访问客户从 j 出发不可达（时间窗或容量）。
-     * 使用当前标签的 departure time 和 load 来判断。
+     * 仅标记由 elementarity 和容量单调性必然排除的客户。
+     * Only mark customers excluded by elementarity or monotone capacity bounds.
+     *
+     * 不能根据单条 outgoing 弧的时间窗结果永久标记客户：非 metric 图中可能存在
+     * 经其他客户到达的替代路径，平行弧也可能有不同的可行性。
+     * A single outgoing arc must not permanently forbid a customer: non-metric graphs
+     * may provide an alternative path through another customer, and parallel arcs may differ.
      */
     private fun updateForbiddenCustomers(
         currentForbidden: ForbiddenCustomers,
         toNode: PricingNode<V>,
         visited: VisitedCustomers,
         graph: PricingGraph<V>,
-        departureTime: V,
         currentLoad: V
     ): ForbiddenCustomers {
         var forbidden = currentForbidden
@@ -221,22 +212,12 @@ class EspprcPricer<V : FloatingNumber<V>>(
         // 标记当前访问的客户为 forbidden（不可再访问）
         forbidden = forbidden.add(toNode.customerIndex)
 
-        // Feillet 标记：检查未访问客户是否从此节点出发不可达
-        val toNodeIdx = graph.nodeIndexMap[toNode.nodeId] ?: return forbidden
-
-        for (arc in graph.outgoingFrom(toNodeIdx)) {
-            val candidateNode = graph.nodes[arc.toIndex]
+        // 容量单调性：客户需求非负，因此当前负载超出容量后不可能通过后续访问恢复。
+        // Monotone capacity: demands are non-negative, so an over-capacity candidate can never recover later.
+        for (candidateNode in graph.nodes) {
             if (candidateNode.isDepot) continue
             if (visited.contains(candidateNode.customerIndex)) continue
             if (forbidden.contains(candidateNode.customerIndex)) continue
-
-            // 时间窗不可达检查 / Time window unreachable check
-            val arrivalAtCandidate = departureTime + arc.travelTime
-            val serviceStartAtCandidate = maxOf(arrivalAtCandidate, candidateNode.readyTime)
-            if (serviceStartAtCandidate gr candidateNode.dueTime) {
-                forbidden = forbidden.add(candidateNode.customerIndex)
-                continue
-            }
 
             // 容量不可达检查 / Capacity unreachable check
             val loadAtCandidate = currentLoad + candidateNode.demand
@@ -252,8 +233,7 @@ class EspprcPricer<V : FloatingNumber<V>>(
      * 从标签回溯生成完整路线。 / Backtrack from label to generate complete route.
      */
     private fun backtrackRoute(
-        label: EspprcLabel<V>,
-        allLabels: List<EspprcLabel<V>>,
+        pathLabels: List<PathLabel<EspprcLabel<V>, PricingArc<V>>>,
         graph: PricingGraph<V>,
         request: PricingRequest<V>
     ): Ret<Route<V>> {
@@ -263,30 +243,23 @@ class EspprcPricer<V : FloatingNumber<V>>(
                 "回溯路线失败：车辆类型不存在 / Failed to backtrack route: vehicle type does not exist"
             )
 
-        // 收集路径节点 / Collect path nodes
-        val path = mutableListOf<EspprcLabel<V>>()
-        var current: EspprcLabel<V>? = label
-        while (current != null) {
-            path.add(0, current)
-            current = if (current.predecessor >= 0) allLabels[current.predecessor] else null
+        val path = pathLabels.map { it.state }
+        val pathArcs = pathLabels.drop(1).mapNotNull { it.incoming }
+        if (pathArcs.size != path.size - 1) {
+            return networkSchedulingFailure(
+                "回溯路线失败：前驱链缺少弧 / Failed to backtrack route: predecessor chain is missing an arc"
+            )
         }
-
-        // 收集路径弧 / Collect path arcs
-        val pathArcs = mutableListOf<PricingArc<V>>()
-        for (i in 0 until path.lastIndex) {
-            val fromNodeId = path[i].currentNode
-            val toNodeId = path[i + 1].currentNode
-            val fromIdx = graph.nodeIndexMap[fromNodeId] ?: continue
-            val arc = graph.outgoingFrom(fromIdx).firstOrNull { it.toNodeId == toNodeId }
-            if (arc != null) pathArcs.add(arc)
-        }
+        val totalCost = path.lastOrNull()?.routeCost
+            ?: return networkSchedulingFailure(
+                "回溯路线失败：终点路线成本缺失 / Failed to backtrack route: terminal route cost is missing"
+            )
 
         // 构建 RouteStop 列表 / Build RouteStop list
         val stops = mutableListOf<RouteStop<V>>()
         val zero = graph.vehicleCapacity.constants.zero
         var accumulatedLoad = Quantity(zero, instance.units.loadUnit)
         var totalDistance = zero
-        var totalCost = zero
 
         for (i in path.indices) {
             val nodeLabel = path[i]
@@ -333,7 +306,6 @@ class EspprcPricer<V : FloatingNumber<V>>(
                 val arc = pathArcs.getOrNull(i - 1)
                 if (arc != null) {
                     totalDistance = totalDistance + arc.distance
-                    totalCost = totalCost + arc.objectiveCost
                 }
             }
 
@@ -351,7 +323,8 @@ class EspprcPricer<V : FloatingNumber<V>>(
             vehicleTypeId = request.vehicleTypeId,
             stops = stops,
             distance = Quantity(totalDistance, instance.units.distanceUnit),
-            cost = Quantity(totalCost, instance.units.costUnit)
+            cost = Quantity(totalCost, instance.units.costUnit),
+            arcIds = pathArcs.map { it.id }
         )
     }
 }

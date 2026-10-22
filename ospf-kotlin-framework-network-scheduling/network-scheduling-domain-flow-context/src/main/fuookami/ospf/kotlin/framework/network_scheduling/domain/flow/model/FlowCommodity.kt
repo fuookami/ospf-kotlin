@@ -15,7 +15,11 @@ class FlowCommodity<V : RealNumber<V>> private constructor(
     val supplyDemands: List<SupplyDemand<V>>
 ) {
     companion object {
-        /** 创建网络流商品。 / Create a flow commodity. */
+        /** 创建网络流商品。 / Create a flow commodity.
+         * @param id 商品标识 / Commodity identifier
+         * @param supplyDemands 节点供需 / Node balances
+         * @return 商品或校验错误 / Commodity or validation error
+         */
         operator fun <V : RealNumber<V>> invoke(
             id: String,
             supplyDemands: List<SupplyDemand<V>> = emptyList()

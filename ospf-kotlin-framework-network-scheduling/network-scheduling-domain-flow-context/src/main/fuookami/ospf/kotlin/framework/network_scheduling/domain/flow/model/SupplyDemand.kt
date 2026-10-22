@@ -5,7 +5,12 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
 
-/** 节点供需绑定。正值为供给，负值为需求。 / Node balance binding. */
+/** 节点供需绑定。正值为供给，负值为需求。
+ * / Node balance binding; positive values are supply, negative values are demand.
+ * @property nodeId 节点标识 / Node identifier
+ * @property balance 节点净供需 / Node net balance
+ * @property net 净供需量 / Net balance quantity
+ */
 class SupplyDemand<V : RealNumber<V>> private constructor(
     val nodeId: NetworkNodeId,
     val balance: NodeBalance<V>
@@ -14,7 +19,11 @@ class SupplyDemand<V : RealNumber<V>> private constructor(
     val net: Quantity<V> get() = balance.net
 
     companion object {
-        /** 绑定节点供需量。 / Bind a node to a supply-demand balance. */
+        /** 绑定节点供需量。 / Bind a node to a supply-demand balance.
+         * @param nodeId 节点标识 / Node identifier
+         * @param balance 节点净供需 / Node net balance
+         * @return 供需绑定或校验错误 / Balance binding or validation error
+         */
         operator fun <V : RealNumber<V>> invoke(
             nodeId: NetworkNodeId,
             balance: NodeBalance<V>
@@ -28,7 +37,11 @@ class SupplyDemand<V : RealNumber<V>> private constructor(
             }
         }
 
-        /** 直接使用净供需量绑定节点。 / Bind a node directly to a net balance quantity. */
+        /** 直接使用净供需量绑定节点。 / Bind a node directly to a net balance quantity.
+         * @param nodeId 节点标识 / Node identifier
+         * @param net 节点净供需量 / Node net balance quantity
+         * @return 供需绑定或校验错误 / Balance binding or validation error
+         */
         operator fun <V : RealNumber<V>> invoke(
             nodeId: NetworkNodeId,
             net: Quantity<V>

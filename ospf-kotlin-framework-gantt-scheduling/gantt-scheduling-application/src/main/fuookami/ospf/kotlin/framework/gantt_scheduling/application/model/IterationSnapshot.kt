@@ -19,11 +19,11 @@ typealias IterationObjectiveQuantity<V> = Quantity<V>
  * @property runTime 运行时间 / Runtime
  * @property bestObjective 最佳整数目标值 / Best integer objective
  * @property bestLpObjective 最佳 LP 目标值 / Best LP objective
- * @property bestDualObjective 最佳对偶目标值 / Best dual objective
- * @property lowerBound 下界 / Lower bound
+ * @property bestDualObjective 最佳对偶目标值；无可用证据时为空 / Best dual objective; null when no evidence is available
+ * @property lowerBound 已证明的下界；尚无证明时为空 / Certified lower bound, null when no proof is available
  * @property upperBound 上界 / Upper bound
  * @property slowLpImprovementStep LP 改进缓慢步长 / Slow LP improvement step
- * @property optimalRate 最优率，无量纲 / Optimal rate, dimensionless
+ * @property optimalRate 启发式进度指标，无量纲，不作为最优性证据 / Heuristic progress indicator, dimensionless, not an optimality certificate
  * @property isImprovementSlow 是否改进缓慢 / Whether improvement is slow
 */
 data class IterationSnapshot<V : RealNumber<V>>(
@@ -31,8 +31,8 @@ data class IterationSnapshot<V : RealNumber<V>>(
     val runTime: Duration,
     val bestObjective: IterationObjectiveQuantity<V>,
     val bestLpObjective: IterationObjectiveQuantity<V>,
-    val bestDualObjective: IterationObjectiveQuantity<V>,
-    val lowerBound: IterationObjectiveQuantity<V>,
+    val bestDualObjective: IterationObjectiveQuantity<V>?,
+    val lowerBound: IterationObjectiveQuantity<V>?,
     val upperBound: IterationObjectiveQuantity<V>?,
     val slowLpImprovementStep: IterationObjectiveQuantity<V>?,
     val optimalRate: V,

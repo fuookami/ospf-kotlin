@@ -5,7 +5,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.*
-import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.infrastructure.BranchMask
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.infrastructure.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.policy.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.service.RouteValidator
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
@@ -31,7 +31,8 @@ class InitialRouteGenerator<V : RealNumber<V>>(
     private val arcCostCalculator: ArcCostCalculator<V>,
     private val routeCostPolicy: RouteCostPolicy<V>,
     private val arcFeasibilityPolicy: ArcFeasibilityPolicy<V> = DefaultArcFeasibilityPolicy(),
-    private val routeValidator: RouteValidator = RouteValidator
+    private val routeValidator: RouteValidator = RouteValidator,
+    private val resourceGraph: ResourceGraph<VehicleTypeId>? = null
 ) {
     /**
      * 生成初始路线。 / Generate initial routes.
@@ -44,28 +45,44 @@ class InitialRouteGenerator<V : RealNumber<V>>(
     fun generate(branchMask: BranchMask<VehicleTypeId>? = null): List<Route<V>> {
         val routes = mutableListOf<Route<V>>()
 
-        for ((custIdx, customer) in instance.customers.withIndex()) {
-            // 分支掩码检查
-            val vehicleType = instance.vehicleTypes.firstOrNull { vt ->
-                branchMask?.allowsNode(vt.id, customer.node.id) != false
-            } ?: continue
+        for (customer in instance.customers) {
+            for (vehicleType in instance.vehicleTypes) {
+                if (branchMask?.allowsNode(vehicleType.id, customer.node.id) == false) continue
+                val startArcs = resourceGraph?.between(
+                    vehicleType.id,
+                    instance.startDepot.node.id,
+                    customer.node.id
+                ) ?: listOf(ResourceArc(vehicleType.id, instance.startDepot.node.id, customer.node.id))
+                val endArcs = resourceGraph?.between(
+                    vehicleType.id,
+                    customer.node.id,
+                    instance.endDepot.node.id
+                ) ?: listOf(ResourceArc(vehicleType.id, customer.node.id, instance.endDepot.node.id))
 
-            val route = buildSingleCustomerRoute(customer, vehicleType) ?: continue
-            if (branchMask?.isRouteCompatible(
-                    resourceKey = vehicleType.id,
-                    path = route.stops.map { it.nodeId }
-                ) == false
-            ) {
-                continue
-            }
+                for (startArc in startArcs) {
+                    if (branchMask?.allowsArc(startArc) == false) continue
+                    for (endArc in endArcs) {
+                        if (branchMask?.allowsArc(endArc) == false) continue
+                        val route = buildSingleCustomerRoute(customer, vehicleType, startArc.id, endArc.id) ?: continue
+                        if (branchMask?.isRouteCompatible(
+                                resourceKey = vehicleType.id,
+                                path = route.stops.map { it.nodeId },
+                                arcIds = route.arcIds
+                            ) == false
+                        ) {
+                            continue
+                        }
 
-            // 复核可行性 / Validate feasibility
-            val validation = routeValidator.validate(
-                instance, route, distanceCalculator, travelTimeCalculator,
-                arcCostCalculator, routeCostPolicy, valueAdapter
-            )
-            if (validation is Ok) {
-                routes.add(route)
+                        // 复核可行性 / Validate feasibility
+                        val validation = routeValidator.validate(
+                            instance, route, distanceCalculator, travelTimeCalculator,
+                            arcCostCalculator, routeCostPolicy, valueAdapter
+                        )
+                        if (validation is Ok) {
+                            routes.add(route)
+                        }
+                    }
+                }
             }
         }
 
@@ -75,18 +92,27 @@ class InitialRouteGenerator<V : RealNumber<V>>(
     /**
      * 构建单客户路线：start depot -> customer -> end depot。 / Build single-customer route.
      */
-    private fun buildSingleCustomerRoute(customer: Customer<V>, vehicleType: VehicleType<V>): Route<V>? {
+    private fun buildSingleCustomerRoute(
+        customer: Customer<V>,
+        vehicleType: VehicleType<V>,
+        startArcId: NetworkArcId,
+        endArcId: NetworkArcId
+    ): Route<V>? {
         val schedulingWindow = instance.schedulingWindow
         val zero = vehicleType.capacity.value.constants.zero
 
         val startDepot = instance.startDepot
         val endDepot = instance.endDepot
+        val startArc = ResourceArc(vehicleType.id, startDepot.node.id, customer.node.id, startArcId)
+        val endArc = ResourceArc(vehicleType.id, customer.node.id, endDepot.node.id, endArcId)
         val startArcFeasible = arcFeasibilityPolicy.isFeasible(
+            arc = startArc,
             from = startDepot.node,
             to = customer.node,
             vehicleType = vehicleType
         ).value ?: return null
         val endArcFeasible = arcFeasibilityPolicy.isFeasible(
+            arc = endArc,
             from = customer.node,
             to = endDepot.node,
             vehicleType = vehicleType
@@ -113,9 +139,9 @@ class InitialRouteGenerator<V : RealNumber<V>>(
         ))
 
         // start -> customer
-        val travelTime1 = travelTimeCalculator.travelTime(startDepot.node, customer.node, vehicleType).value ?: return null
-        val distance1 = distanceCalculator.distance(startDepot.node, customer.node).value ?: return null
-        val arcCost1 = arcCostCalculator.cost(startDepot.node, customer.node, distance1, travelTime1, vehicleType).value ?: return null
+        val travelTime1 = travelTimeCalculator.travelTime(startArc, startDepot.node, customer.node, vehicleType).value ?: return null
+        val distance1 = distanceCalculator.distance(startArc, startDepot.node, customer.node).value ?: return null
+        val arcCost1 = arcCostCalculator.cost(startArc, startDepot.node, customer.node, distance1, travelTime1, vehicleType).value ?: return null
         arcCosts.add(arcCost1)
         totalDistance = totalDistance + (valueAdapter.normalizeValue(distance1, instance.units.distanceUnit).value ?: return null)
 
@@ -140,9 +166,9 @@ class InitialRouteGenerator<V : RealNumber<V>>(
         ))
 
         // customer -> end depot
-        val travelTime2 = travelTimeCalculator.travelTime(customer.node, endDepot.node, vehicleType).value ?: return null
-        val distance2 = distanceCalculator.distance(customer.node, endDepot.node).value ?: return null
-        val arcCost2 = arcCostCalculator.cost(customer.node, endDepot.node, distance2, travelTime2, vehicleType).value ?: return null
+        val travelTime2 = travelTimeCalculator.travelTime(endArc, customer.node, endDepot.node, vehicleType).value ?: return null
+        val distance2 = distanceCalculator.distance(endArc, customer.node, endDepot.node).value ?: return null
+        val arcCost2 = arcCostCalculator.cost(endArc, customer.node, endDepot.node, distance2, travelTime2, vehicleType).value ?: return null
         arcCosts.add(arcCost2)
         totalDistance = totalDistance + (valueAdapter.normalizeValue(distance2, instance.units.distanceUnit).value ?: return null)
 
@@ -165,7 +191,8 @@ class InitialRouteGenerator<V : RealNumber<V>>(
             vehicleTypeId = vehicleType.id,
             stops = stops,
             distance = Quantity(totalDistance, instance.units.distanceUnit),
-            cost = cost
+            cost = cost,
+            arcIds = listOf(startArcId, endArcId)
         ).value
     }
 }

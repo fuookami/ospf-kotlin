@@ -15,8 +15,6 @@ import fuookami.ospf.kotlin.core.solver.scip.ScipColumnGenerationSolver
 import fuookami.ospf.kotlin.core.solver.scip.ScipSolverCallBack
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.flow.model.*
-import fuookami.ospf.kotlin.framework.network_scheduling.domain.flow.service.MinCostFlowObjective
-import fuookami.ospf.kotlin.framework.network_scheduling.domain.flow.service.limits.*
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
 
 /** SCIP 真实求解网络流的集成校验。 / Integration check that solves a network flow with SCIP. */
@@ -45,33 +43,24 @@ class ScipMinCostFlowIntegrationTest {
             }
             flowArc(it, upper, lower)
         }
-        val graph = assertNotNull(
-            FlowGraph(
-                networkGraph = assertNotNull(
-                    NetworkGraph(
-                        nodes = listOf("source", "a", "b", "sink").map(::node),
-                        arcs = networkArcs
-                    ).value
-                ),
-                arcs = flowArcs,
-                supplyDemands = listOf(
-                    supply("source", Flt64(4.0)),
-                    supply("sink", Flt64(-4.0))
-                ),
-                flowUnit = NoneUnit
-            ).value
+        val problem = FlowProblem(
+            graph = assertNotNull(NetworkGraph(
+                nodes = listOf("source", "a", "b", "sink").map(::node),
+                arcs = networkArcs
+            ).value),
+            arcs = flowArcs,
+            commodities = listOf(CommodityFlow(
+                commodity = assertNotNull(FlowCommodity("default", listOf(
+                    supply("source", Flt64(4.0)), supply("sink", Flt64(-4.0))
+                )).value),
+                unit = NoneUnit
+            )),
+            zero = Flt64.zero
         )
+        val context = FlowContext(problem, Flt64NetworkSchedulingSolverValueAdapter)
         val model = LinearMetaModel(name = "scip_four_node_mcmf")
         try {
-            assertTrue(FlowConservationConstraint(graph, Flt64NetworkSchedulingSolverValueAdapter)(model).ok)
-            assertTrue(CapacityBoundConstraint(graph, Flt64NetworkSchedulingSolverValueAdapter)(model).ok)
-            assertTrue(
-                MinCostFlowObjective(
-                    graph = graph,
-                    valueAdapter = Flt64NetworkSchedulingSolverValueAdapter,
-                    costUnit = NoneUnit
-                )(model).ok
-            )
+            assertTrue(context.register(model).ok)
 
             val solver = ScipColumnGenerationSolver(
                 config = SolverConfig(threadNum = UInt64.one),
@@ -101,7 +90,7 @@ class ScipMinCostFlowIntegrationTest {
             model.setSolution(lpResult.solution)
             val expected = listOf(Flt64.one, Flt64(3.0), Flt64.one, Flt64.zero, Flt64(4.0))
             for ((index, expectedValue) in expected.withIndex()) {
-                val actual = assertNotNull(model.tokens.find(graph.flowVariables[index])?.result)
+                val actual = assertNotNull(context.extractSolution(model).value).flows.getValue(FlowKey("default", networkArcs[index].id)).value
                 assertTrue(actual eq expectedValue, "Unexpected flow at arc index $index: $actual")
             }
         } finally {

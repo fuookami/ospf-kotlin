@@ -23,4 +23,45 @@ class BranchGroupTrackerTest {
             fixedBunches = setOf("executor/slot-1", "executor/slot-2")
         ))
     }
+
+    @Test
+    fun `only unrestricted pricing over all executors is global`() {
+        val allExecutors = setOf("executor-1", "executor-2")
+
+        assertTrue(hasFullPricingDomain(
+            allExecutors = allExecutors,
+            requestedExecutors = allExecutors,
+            hasFixedBunches = false,
+            hasKeptBunches = false,
+            hasHiddenExecutors = false
+        ))
+        assertFalse(hasFullPricingDomain(
+            allExecutors = allExecutors,
+            requestedExecutors = setOf("executor-1"),
+            hasFixedBunches = false,
+            hasKeptBunches = false,
+            hasHiddenExecutors = false
+        ))
+        assertFalse(hasFullPricingDomain(
+            allExecutors = allExecutors,
+            requestedExecutors = allExecutors,
+            hasFixedBunches = true,
+            hasKeptBunches = false,
+            hasHiddenExecutors = false
+        ))
+        assertFalse(hasFullPricingDomain(
+            allExecutors = allExecutors,
+            requestedExecutors = allExecutors,
+            hasFixedBunches = false,
+            hasKeptBunches = true,
+            hasHiddenExecutors = false
+        ))
+        assertFalse(hasFullPricingDomain(
+            allExecutors = allExecutors,
+            requestedExecutors = allExecutors,
+            hasFixedBunches = false,
+            hasKeptBunches = false,
+            hasHiddenExecutors = true
+        ))
+    }
 }

@@ -37,23 +37,25 @@ class PassengerClassChangeMinimization(
      * @return 注册结果 / Registration result
     */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
-        val poly = sum(passengers.flatMap { passenger ->
-            PassengerClass.entries.filter { it != passenger.cls }.map { cls ->
-                coefficient(passenger, cls) * change.passengerClassChange[passenger, cls]!!
-            }
-        })
-        when (val result = model.minimize(
-            LinearExpressionSymbol(poly),
-            name = "passenger class change"
-        )) {
-            is Ok -> {}
+        if (passengers.isNotEmpty()) {
+            val poly = sum(passengers.flatMap { passenger ->
+                PassengerClass.entries.filter { it != passenger.cls }.map { cls ->
+                    coefficient(passenger, cls) * change.passengerClassChange[passenger, cls]!!
+                }
+            })
+            when (val result = model.minimize(
+                LinearExpressionSymbol(poly),
+                name = "passenger class change"
+            )) {
+                is Ok -> {}
 
-            is Failed -> {
-                return Failed(result.error)
-            }
+                is Failed -> {
+                    return Failed(result.error)
+                }
 
-            is Fatal -> {
-                return Fatal(result.errors)
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 

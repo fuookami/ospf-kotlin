@@ -5,9 +5,10 @@ import kotlin.time.Duration
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow as SchedulingTimeWindow
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.*
-import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.infrastructure.BranchMask
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.infrastructure.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.pricing.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.policy.*
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
@@ -25,7 +26,9 @@ class RouteGraphBuilder<V : FloatingNumber<V>>(
     private val distanceCalculator: DistanceCalculator<V>,
     private val travelTimeCalculator: TravelTimeCalculator<V>,
     private val arcCostCalculator: ArcCostCalculator<V>,
-    private val arcFeasibilityPolicy: ArcFeasibilityPolicy<V> = DefaultArcFeasibilityPolicy()
+    private val arcFeasibilityPolicy: ArcFeasibilityPolicy<V> = DefaultArcFeasibilityPolicy(),
+    private val resourceGraph: ResourceGraph<VehicleTypeId>? = null,
+    private val coefficientProviders: List<RouteArcCoefficientProvider<V>> = emptyList()
 ) {
     /**
      * 构建定价图。 / Build the pricing graph.
@@ -40,6 +43,13 @@ class RouteGraphBuilder<V : FloatingNumber<V>>(
                 "构建定价图失败：车辆类型 ${vehicleTypeId.value} 不存在 / " +
                         "Failed to build pricing graph: vehicle type ${vehicleTypeId.value} does not exist"
             )
+        val instanceNodeIds = (listOf(instance.startDepot.node.id, instance.endDepot.node.id) +
+                instance.customers.map { it.node.id }).toSet()
+        if (resourceGraph?.nodes?.any { it !in instanceNodeIds } == true) {
+            return networkSchedulingFailure(
+                "构建定价图失败：资源图包含实例外节点 / Failed to build pricing graph: resource graph contains a node outside the instance"
+            )
+        }
 
         val schedulingWindow: SchedulingTimeWindow<V> = instance.schedulingWindow
         val zero = vehicleType.capacity.value.constants.zero
@@ -103,89 +113,117 @@ class RouteGraphBuilder<V : FloatingNumber<V>>(
                 if (toNode.nodeId == instance.startDepot.node.id) continue // 不能回到起始 depot
                 if (fromNode.nodeId == instance.endDepot.node.id) continue // 不能从结束 depot 出发
 
-                // 分支掩码检查
-                if (branchMask?.allowsArc(vehicleTypeId, fromNode.nodeId, toNode.nodeId) == false) continue
-
                 // 解析领域节点对象 / Resolve domain node objects
                 val fromNodeObj = if (fromNode.isDepot && fromNode.nodeId == instance.startDepot.node.id)
                     instance.startDepot.node else instance.customerByNodeId[fromNode.nodeId]?.node ?: continue
                 val toNodeObj = if (toNode.isDepot && toNode.nodeId == instance.endDepot.node.id)
                     instance.endDepot.node else instance.customerByNodeId[toNode.nodeId]?.node ?: continue
 
-                // 弧可行性
-                val feasible = when (val r = arcFeasibilityPolicy.isFeasible(fromNodeObj, toNodeObj, vehicleType)) {
-                    is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
-                }
-                if (!feasible) continue
+                val resourceArcs = resourceGraph?.between(vehicleTypeId, fromNode.nodeId, toNode.nodeId)
+                    ?: listOf(ResourceArc(vehicleTypeId, fromNode.nodeId, toNode.nodeId))
+                for (resourceArc in resourceArcs) {
+                    if (branchMask?.allowsArc(resourceArc) == false) continue
 
-                // 计算 objective cost
-
-                val distance = when (val r = distanceCalculator.distance(fromNodeObj, toNodeObj)) {
-                    is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
-                }
-                val travelTime = when (val r = travelTimeCalculator.travelTime(fromNodeObj, toNodeObj, vehicleType)) {
-                    is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
-                }
-                val arcCost = when (val r = arcCostCalculator.cost(fromNodeObj, toNodeObj, distance, travelTime, vehicleType)) {
-                    is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
-                }
-                val normalizedArcCost = when (val r = valueAdapter.normalizeValue(arcCost, instance.units.costUnit)) {
-                    is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
-                }
-
-                val normalizedDistance = when (val r = valueAdapter.normalizeValue(distance, instance.units.distanceUnit)) {
-                    is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
-                }
-
-                val routeObjectiveCost = if (fromNode.isDepot && fromNode.nodeId == instance.startDepot.node.id) {
-                    val fixedCost = when (val r = valueAdapter.normalizeValue(vehicleType.fixedCost, instance.units.costUnit)) {
+                    // 弧可行性
+                    val feasible = when (val r = arcFeasibilityPolicy.isFeasible(resourceArc, fromNodeObj, toNodeObj, vehicleType)) {
                         is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
                     }
-                    fixedCost + normalizedArcCost
-                } else {
-                    normalizedArcCost
-                }
+                    if (!feasible) continue
 
-                // Reduced cost = objective cost - customer dual - fleet dual
-                val customerDual = if (toNode.isDepot) {
-                    zero
-                } else {
-                    val solverDual = duals.customer[instance.customers[toNode.customerIndex].id] ?: Flt64.zero
-                    valueAdapter.fromSolverValue(solverDual).value
-                        ?: return networkSchedulingFailure(
-                            "构建定价图失败：客户对偶转换失败 / Failed to build pricing graph: customer dual conversion failed"
+                    // 计算 objective cost
+
+                    val distance = when (val r = distanceCalculator.distance(resourceArc, fromNodeObj, toNodeObj)) {
+                        is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
+                    }
+                    val travelTime = when (val r = travelTimeCalculator.travelTime(resourceArc, fromNodeObj, toNodeObj, vehicleType)) {
+                        is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
+                    }
+                    if (travelTime.isNegative()) {
+                        return networkSchedulingFailure(
+                            "构建定价图失败：弧行驶时间不能为负 / Failed to build pricing graph: arc travel time cannot be negative"
                         )
-                }
-                val fleetDual = if (fromNode.isDepot && fromNode.nodeId == instance.startDepot.node.id) {
-                    val solverDual = duals.fleet[vehicleTypeId] ?: Flt64.zero
-                    valueAdapter.fromSolverValue(solverDual).value
-                        ?: return networkSchedulingFailure(
-                            "构建定价图失败：车队对偶转换失败 / Failed to build pricing graph: fleet dual conversion failed"
-                        )
-                } else {
-                    zero
-                }
+                    }
+                    val arcCost = when (val r = arcCostCalculator.cost(resourceArc, fromNodeObj, toNodeObj, distance, travelTime, vehicleType)) {
+                        is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
+                    }
+                    val normalizedArcCost = when (val r = valueAdapter.normalizeValue(arcCost, instance.units.costUnit)) {
+                        is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
+                    }
 
-                val phaseObjectiveCost = when (duals.phase) {
-                    PricingPhase.PhaseOne -> zero
-                    PricingPhase.PhaseTwo -> routeObjectiveCost
+                    val normalizedDistance = when (val r = valueAdapter.normalizeValue(distance, instance.units.distanceUnit)) {
+                        is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
+                    }
+
+                    val routeObjectiveCost = if (fromNode.isDepot && fromNode.nodeId == instance.startDepot.node.id) {
+                        val fixedCost = when (val r = valueAdapter.normalizeValue(vehicleType.fixedCost, instance.units.costUnit)) {
+                            is Ok -> r.value; is Failed -> return Failed(r.error); is Fatal -> return Fatal(r.errors)
+                        }
+                        fixedCost + normalizedArcCost
+                    } else {
+                        normalizedArcCost
+                    }
+
+                    // Reduced cost = objective cost - customer dual - fleet dual - extra row duals
+                    val customerDual = if (toNode.isDepot) {
+                        zero
+                    } else {
+                        val solverDual = duals.customer[instance.customers[toNode.customerIndex].id] ?: Flt64.zero
+                        valueAdapter.fromSolverValue(solverDual).value
+                            ?: return networkSchedulingFailure(
+                                "构建定价图失败：客户对偶转换失败 / Failed to build pricing graph: customer dual conversion failed"
+                            )
+                    }
+                    val fleetDual = if (fromNode.isDepot && fromNode.nodeId == instance.startDepot.node.id) {
+                        val solverDual = duals.fleet[vehicleTypeId] ?: Flt64.zero
+                        valueAdapter.fromSolverValue(solverDual).value
+                            ?: return networkSchedulingFailure(
+                                "构建定价图失败：车队对偶转换失败 / Failed to build pricing graph: fleet dual conversion failed"
+                            )
+                    } else {
+                        zero
+                    }
+
+                    val phaseObjectiveCost = when (duals.phase) {
+                        PricingPhase.PhaseOne -> zero
+                        PricingPhase.PhaseTwo -> routeObjectiveCost
+                    }
+                    var reducedCost = phaseObjectiveCost - customerDual - fleetDual
+                    for (provider in coefficientProviders) {
+                        for ((key, coefficient) in provider.coefficients(resourceArc)) {
+                            val solverDual = duals.additional[key]
+                                ?: return networkSchedulingFailure(
+                                    "构建定价图失败：扩展行 $key 缺少当前对偶 / Failed to build pricing graph: missing current dual for extra row $key"
+                                )
+                            when (val result = valueAdapter.toSolverValue(coefficient)) {
+                                is Ok -> {}
+                                is Failed -> return Failed(result.error)
+                                is Fatal -> return Fatal(result.errors)
+                            }
+                            val dual = valueAdapter.fromSolverValue(solverDual).value
+                                ?: return networkSchedulingFailure(
+                                    "构建定价图失败：扩展对偶转换失败 / Failed to build pricing graph: extra dual conversion failed"
+                                )
+                            reducedCost -= coefficient * dual
+                        }
+                    }
+
+                    // 时间、距离和业务成本保留 V；仅 reduced cost 参与 solver 适配时才转换。
+                    // Preserve time, distance and business cost as V; convert only at the solver boundary.
+                    val travelTimeValue = schedulingWindow.valueOf(travelTime)
+
+                    arcs.add(PricingArc(
+                        fromIndex = fromIdx,
+                        toIndex = toIdx,
+                        objectiveCost = routeObjectiveCost,
+                        arcCost = Quantity(normalizedArcCost, instance.units.costUnit),
+                        reducedCost = reducedCost,
+                        travelTime = travelTimeValue,
+                        distance = normalizedDistance,
+                        fromNodeId = fromNode.nodeId,
+                        toNodeId = toNode.nodeId,
+                        id = resourceArc.id
+                    ))
                 }
-                val reducedCost = phaseObjectiveCost - customerDual - fleetDual
-
-                // 时间、距离和业务成本保留 V；仅 reduced cost 参与 solver 适配时才转换。
-                // Preserve time, distance and business cost as V; convert only at the solver boundary.
-                val travelTimeValue = schedulingWindow.valueOf(travelTime)
-
-                arcs.add(PricingArc(
-                    fromIndex = fromIdx,
-                    toIndex = toIdx,
-                    objectiveCost = routeObjectiveCost,
-                    reducedCost = reducedCost,
-                    travelTime = travelTimeValue,
-                    distance = normalizedDistance,
-                    fromNodeId = fromNode.nodeId,
-                    toNodeId = toNode.nodeId
-                ))
             }
         }
 
@@ -217,11 +255,13 @@ data class PricingArc<V : FloatingNumber<V>>(
     val fromIndex: Int,
     val toIndex: Int,
     val objectiveCost: V,
+    val arcCost: Quantity<V>,
     val reducedCost: V,
     val travelTime: V,
     val distance: V,
     val fromNodeId: NetworkNodeId,
-    val toNodeId: NetworkNodeId
+    val toNodeId: NetworkNodeId,
+    val id: NetworkArcId = defaultResourceArcId(fromNodeId, toNodeId)
 )
 
 /** 定价图 / Pricing graph */

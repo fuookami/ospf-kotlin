@@ -202,8 +202,10 @@ class GurobiColumnGenerationSolver(
 
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
-                        result.value.solution?.let { metaModel.tokens.setSolution(it.values) }
-                        results.add(0, result.value.values)
+                        result.value.solution?.let {
+                            metaModel.tokens.setSolution(it.values)
+                            results.add(0, it.values)
+                        }
                         jobs.joinAll()
                         Ok(Pair(result.value, results))
                     }

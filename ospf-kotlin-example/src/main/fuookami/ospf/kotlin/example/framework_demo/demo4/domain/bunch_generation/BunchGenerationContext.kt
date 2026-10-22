@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation
 
 import kotlinx.datetime.*
+import fuookami.ospf.kotlin.framework.model.*
 import kotlin.time.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -41,6 +42,10 @@ class BunchGenerationContext(
     private lateinit var generators: Map<Aircraft, FlightTaskBunchGenerator>
     private lateinit var costCalculator: CostCalculator
     private lateinit var totalCostCalculator: TotalCostCalculator
+
+    /** 最近生成批次，保留预算完成状态。 / Latest generation batch retaining budget completion. */
+    var lastBatch: ColumnGenerationBatch<FlightTaskBunch>? = null
+        private set
 
     /** 获取路线图。Gets route graphs. */
     val graphs get() = if (::aggregation.isInitialized) aggregation.graphs else emptyMap()
@@ -164,12 +169,14 @@ class BunchGenerationContext(
      * @param aircrafts 需要生成束的飞机列表 / list of aircraft to generate bunches for
      * @param iteration 当前迭代次数 / current iteration number
      * @param shadowPriceMap 影子价格映射 / shadow price map
+     * @param scope 本次批次的预期证据作用域 / Expected evidence scope for this batch
      * @return 生成的航班任务束 / generated flight task bunches
     */
     fun generateFlightTaskBunch(
         aircrafts: List<Aircraft>,
         iteration: Int64,
-        shadowPriceMap: ShadowPriceMap
+        shadowPriceMap: ShadowPriceMap,
+        scope: ColumnGenerationScope? = null
     ): Ret<List<FlightTaskBunch>> {
         if (!::generators.isInitialized) {
             return Failed(
@@ -193,6 +200,40 @@ class BunchGenerationContext(
             bunches.addAll(thisBunches)
         }
 
+        val expectedGroup = aircrafts.map { "${it.id}#0:$it" }.sorted().joinToString("|")
+        val scopeMatches = scope == null || (scope.group == expectedGroup && scope.executorSlots.isEmpty())
+        val batches = aircrafts.map { aircraft ->
+            val batch = generators[aircraft]?.lastBatch
+            val childScope = (scope ?: batch?.scope)?.let { baseScope ->
+                baseScope.copy(
+                    request = "${baseScope.request}:aircraft:${aircraft.id}",
+                    group = "${aircraft.id}#0:$aircraft",
+                    global = scope != null && scopeMatches,
+                    executorSlots = emptySet()
+                )
+            }
+            batch?.copy(scope = childScope) ?: ColumnGenerationBatch(
+                columns = emptyList(),
+                completion = ColumnGenerationCompletion.Heuristic,
+                scope = childScope
+            )
+        }
+        val completion = when {
+            batches.isEmpty() -> ColumnGenerationCompletion.Heuristic
+            batches.any { it.completion == ColumnGenerationCompletion.Interrupted } -> ColumnGenerationCompletion.Interrupted
+            batches.any { it.completion == ColumnGenerationCompletion.BudgetLimit } -> ColumnGenerationCompletion.BudgetLimit
+            batches.any { it.completion == ColumnGenerationCompletion.Heuristic } -> ColumnGenerationCompletion.Heuristic
+            else -> ColumnGenerationCompletion.Exhausted
+        }
+        val noImprovementEvidence = completion == ColumnGenerationCompletion.Exhausted &&
+            scope?.global == true && scopeMatches && batches.all { it.noImprovingColumns == true }
+        lastBatch = ColumnGenerationBatch(
+            columns = bunches.toList(),
+            completion = if (scopeMatches) completion else ColumnGenerationCompletion.Heuristic,
+            scope = scope?.takeIf { scopeMatches },
+            noImprovingColumns = true.takeIf { noImprovementEvidence },
+            children = batches
+        )
         return Ok(bunches)
     }
 }

@@ -22,5 +22,6 @@
         <module>ospf-kotlin-starter-csp2d</module>
         <module>ospf-kotlin-starter-gantt-scheduling</module>
         <module>ospf-kotlin-starter-network-scheduling</module>
+        <module>ospf-kotlin-starter-gantt-network</module>
     </modules>
 </project>

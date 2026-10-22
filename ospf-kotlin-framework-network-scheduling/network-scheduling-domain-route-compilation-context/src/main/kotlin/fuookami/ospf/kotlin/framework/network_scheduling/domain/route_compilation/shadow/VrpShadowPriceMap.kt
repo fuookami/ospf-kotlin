@@ -17,6 +17,19 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  */
 class VrpShadowPriceMap : AbstractShadowPriceMap<VrpShadowPriceArguments, VrpShadowPriceMap>() {
 
+    private val _additionalDuals = mutableMapOf<String, Flt64>()
+
+    /** 扩展主问题行对偶快照。 / Snapshot of extra master-row duals. */
+    val additionalDuals: Map<String, Flt64> get() = _additionalDuals.toMap()
+
+    /** 写入扩展行的 solver 有符号对偶。 / Store a signed solver dual for an extra master row.
+     * @param key 扩展行稳定键 / Stable extra-row ID
+     * @param price solver 有符号对偶值 / Signed solver dual value
+     */
+    fun putAdditionalDual(key: String, price: Flt64) {
+        _additionalDuals[key] = price
+    }
+
     /**
      * 获取客户覆盖对偶。 / Get customer-coverage dual.
      *
@@ -71,7 +84,8 @@ class VrpShadowPriceMap : AbstractShadowPriceMap<VrpShadowPriceArguments, VrpSha
         return PricingDuals(
             phase = phase,
             customer = customerDuals,
-            fleet = fleetDuals
+            fleet = fleetDuals,
+            additional = additionalDuals
         )
     }
 }

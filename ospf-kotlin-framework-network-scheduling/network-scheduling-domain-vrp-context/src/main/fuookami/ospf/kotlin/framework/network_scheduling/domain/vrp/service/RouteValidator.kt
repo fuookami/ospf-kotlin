@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.*
-import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.infrastructure.ServiceTimeWindow
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.infrastructure.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.policy.*
 
 /** 路线资源递推与成本独立校验器。 / Independent route resource-recursion and cost validator. */
@@ -83,9 +83,15 @@ object RouteValidator {
                 ?: return stopFailure(route, previous, "节点不存在", "node does not exist")
             val toNode = node(instance, current)
                 ?: return stopFailure(route, current, "节点不存在", "node does not exist")
-            val distance = distanceCalculator.distance(fromNode, toNode).value
+            val resourceArc = ResourceArc(
+                resourceKey = route.vehicleTypeId,
+                from = fromNode.id,
+                to = toNode.id,
+                id = route.arcIds[index - 1]
+            )
+            val distance = distanceCalculator.distance(resourceArc, fromNode, toNode).value
                 ?: return arcFailure(route, fromNode, toNode, "距离计算失败", "distance calculation failed")
-            val travelTime = travelTimeCalculator.travelTime(fromNode, toNode, vehicleType).value
+            val travelTime = travelTimeCalculator.travelTime(resourceArc, fromNode, toNode, vehicleType).value
                 ?: return arcFailure(route, fromNode, toNode, "行驶时间计算失败", "travel-time calculation failed")
             val expectedArrival = previous.departure + travelTime
             if (current.arrival != expectedArrival) {
@@ -121,6 +127,7 @@ object RouteValidator {
             totalDistance = add(totalDistance, distance)
                 ?: return arcFailure(route, fromNode, toNode, "距离单位不兼容", "distance units are incompatible")
             val arcCost = arcCostCalculator.cost(
+                arc = resourceArc,
                 from = fromNode,
                 to = toNode,
                 distance = distance,

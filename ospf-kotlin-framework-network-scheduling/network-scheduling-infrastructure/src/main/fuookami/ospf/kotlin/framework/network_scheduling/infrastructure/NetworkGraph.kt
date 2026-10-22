@@ -1,74 +1,265 @@
 package fuookami.ospf.kotlin.framework.network_scheduling.infrastructure
 
+import java.util.Collections
+import java.util.IdentityHashMap
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 
-/**
- * 具有稳定节点索引的不可变网络图。 / Immutable network graph with stable node indices.
- *
+/** 稳定弧标识；平行服务必须显式区分。 / Stable arc identity; parallel services need distinct identifiers. */
+@JvmInline
+value class NetworkArcId(val value: String)
+
+/** 与数值和业务无关的拓扑访问。 / Numeric- and business-independent topology access.
+ * @property nodeId 节点标识提取器 / Node identity selector
+ * @property arcId 弧标识提取器 / Arc identity selector
+ * @property from 起点提取器 / Origin selector
+ * @property to 终点提取器 / Destination selector
+ */
+class NetworkGraphAccess<N, A>(
+    val nodeId: (N) -> NetworkNodeId,
+    val arcId: (A) -> NetworkArcId,
+    val from: (A) -> NetworkNodeId,
+    val to: (A) -> NetworkNodeId
+)
+
+/** 不可变有向多重图；拓扑标识在创建时快照化。 / Immutable directed multigraph with snapshotted topology identities.
  * @property nodes 节点快照 / Node snapshot
  * @property arcs 弧快照 / Arc snapshot
+ * @property nodeIds 稳定节点标识 / Stable node identities
+ * @property arcIds 稳定弧标识 / Stable arc identities
+ * @property access 拓扑约定 / Topology access
  */
-class NetworkGraph<V : RealNumber<V>> private constructor(
-    nodes: List<NetworkNode<V>>,
-    arcs: List<NetworkArc<V>>
+class NetworkGraph<N, A> private constructor(
+    nodes: List<N>,
+    arcs: List<A>,
+    val access: NetworkGraphAccess<N, A>,
+    nodeIds: List<NetworkNodeId>,
+    arcIds: List<NetworkArcId>,
+    arcFrom: List<NetworkNodeId>,
+    arcTo: List<NetworkNodeId>,
+    private val reversed: Boolean = false
 ) {
-    val nodes: List<NetworkNode<V>> = nodes.toList()
-    val arcs: List<NetworkArc<V>> = arcs.toList()
-    private val nodeIndex: Map<NetworkNodeId, Int> = this.nodes.mapIndexed { index, node -> node.id to index }.toMap()
-    private val outgoing: Map<NetworkNodeId, List<NetworkArc<V>>> = this.arcs.groupBy { it.from }
-    private val incoming: Map<NetworkNodeId, List<NetworkArc<V>>> = this.arcs.groupBy { it.to }
+    val nodes: List<N> = immutableList(nodes)
+    val arcs: List<A> = immutableList(arcs)
+    val nodeIds: List<NetworkNodeId> = immutableList(nodeIds)
+    val arcIds: List<NetworkArcId> = immutableList(arcIds)
+    private val arcFrom: List<NetworkNodeId> = immutableList(arcFrom)
+    private val arcTo: List<NetworkNodeId> = immutableList(arcTo)
+    private val nodeIndex = this.nodeIds.withIndex().associate { (index, id) -> id to index }
+    private val arcPosition = this.arcIds.withIndex().associate { (index, id) -> id to index }
+    private val arcIndex = this.arcs.indices.associate { this.arcIds[it] to this.arcs[it] }
+    private val nodePositionsByIdentity = IdentityHashMap<N, Int>().apply {
+        this@NetworkGraph.nodes.forEachIndexed { index, node -> put(node, index) }
+    }
+    private val arcPositionsByIdentity = IdentityHashMap<A, Int>().apply {
+        this@NetworkGraph.arcs.forEachIndexed { index, arc -> put(arc, index) }
+    }
+    private val outgoing = this.arcs.indices.groupBy { index ->
+        if (reversed) this.arcTo[index] else this.arcFrom[index]
+    }.mapValues { (_, indices) -> immutableList(indices.map(this.arcs::get)) }
+    private val incoming = this.arcs.indices.groupBy { index ->
+        if (reversed) this.arcFrom[index] else this.arcTo[index]
+    }.mapValues { (_, indices) -> immutableList(indices.map(this.arcs::get)) }
 
-    /** 获取图内稳定索引。 / Get the stable graph-local index. */
+    /** 查询节点索引。 / Look up the node index.
+     * @param id 节点标识 / Node identity
+     * @return 索引或空 / Index or null
+     */
     fun indexOf(id: NetworkNodeId): Int? = nodeIndex[id]
 
-    /** 获取节点。 / Get a node. */
-    fun node(id: NetworkNodeId): NetworkNode<V>? = nodeIndex[id]?.let(nodes::get)
+    /** 获取节点的快照标识。 / Get a node's snapshotted identity.
+     * @param node 节点载荷 / Node payload
+     * @return 稳定标识 / Stable identity
+     */
+    fun nodeId(node: N): NetworkNodeId = nodePositionsByIdentity[node]?.let(nodeIds::get) ?: access.nodeId(node)
 
-    /** 获取出弧快照。 / Get the outgoing-arc snapshot. */
-    fun outgoing(id: NetworkNodeId): List<NetworkArc<V>> = outgoing[id].orEmpty()
+    /** 获取弧的快照标识。 / Get an arc's snapshotted identity.
+     * @param arc 弧载荷 / Arc payload
+     * @return 稳定标识 / Stable identity
+     */
+    fun arcId(arc: A): NetworkArcId = arcPositionsByIdentity[arc]?.let(arcIds::get) ?: access.arcId(arc)
 
-    /** 获取入弧快照。 / Get the incoming-arc snapshot. */
-    fun incoming(id: NetworkNodeId): List<NetworkArc<V>> = incoming[id].orEmpty()
+    /** 查询节点。 / Look up a node.
+     * @param id 节点标识 / Node identity
+     * @return 节点或空 / Node or null
+     */
+    fun node(id: NetworkNodeId): N? = nodeIndex[id]?.let(nodes::get)
 
-    /** 以谓词创建过滤后的新图。 / Create a filtered graph with a predicate. */
-    fun filtered(predicate: (NetworkArc<V>) -> Boolean): NetworkGraph<V> {
-        return NetworkGraph(nodes, arcs.filter(predicate))
+    /** 查询弧。 / Look up an arc.
+     * @param id 弧标识 / Arc identity
+     * @return 弧或空 / Arc or null
+     */
+    fun arc(id: NetworkArcId): A? = arcIndex[id]
+
+    /** 获取视图中的起点。 / Get the origin in this view.
+     * @param arc 弧 / Arc
+     * @return 起点标识 / Origin identity
+     */
+    fun from(arc: A): NetworkNodeId {
+        val index = arcPositionsByIdentity[arc] ?: arcPosition[access.arcId(arc)]
+        return index?.let { if (reversed) arcTo[it] else arcFrom[it] } ?: access.from(arc)
     }
 
+    /** 获取视图中的终点。 / Get the destination in this view.
+     * @param arc 弧 / Arc
+     * @return 终点标识 / Destination identity
+     */
+    fun to(arc: A): NetworkNodeId {
+        val index = arcPositionsByIdentity[arc] ?: arcPosition[access.arcId(arc)]
+        return index?.let { if (reversed) arcFrom[it] else arcTo[it] } ?: access.to(arc)
+    }
+
+    /** 获取出弧。 / Get outgoing arcs.
+     * @param id 节点标识 / Node identity
+     * @return 弧快照 / Arc snapshot
+     */
+    fun outgoing(id: NetworkNodeId): List<A> = outgoing[id].orEmpty()
+
+    /** 获取入弧。 / Get incoming arcs.
+     * @param id 节点标识 / Node identity
+     * @return 弧快照 / Arc snapshot
+     */
+    fun incoming(id: NetworkNodeId): List<A> = incoming[id].orEmpty()
+
+    /** 过滤弧，保留原始标识。 / Filter arcs, preserving their original identities.
+     * @param predicate 弧过滤器 / Arc predicate
+     * @return 过滤图 / Filtered graph
+     */
+    fun filtered(predicate: (A) -> Boolean): NetworkGraph<N, A> {
+        val retained = arcs.indices.filter { predicate(arcs[it]) }
+        return NetworkGraph(
+            nodes = nodes,
+            arcs = retained.map(arcs::get),
+            access = access,
+            nodeIds = nodeIds,
+            arcIds = retained.map(arcIds::get),
+            arcFrom = retained.map(arcFrom::get),
+            arcTo = retained.map(arcTo::get),
+            reversed = reversed
+        )
+    }
+
+    /** 过滤节点并移除所有关联弧。 / Filter nodes and remove every incident arc.
+     * @param predicate 节点过滤器 / Node predicate
+     * @return 过滤图 / Filtered graph
+     */
+    fun filteredNodes(predicate: (N) -> Boolean): NetworkGraph<N, A> {
+        val retainedNodes = nodes.indices.filter { predicate(nodes[it]) }.toSet()
+        val retainedIds = retainedNodes.map(nodeIds::get).toSet()
+        val retainedArcs = arcs.indices.filter { arcFrom[it] in retainedIds && arcTo[it] in retainedIds }
+        return NetworkGraph(
+            nodes = retainedNodes.map(nodes::get),
+            arcs = retainedArcs.map(arcs::get),
+            access = access,
+            nodeIds = retainedNodes.map(nodeIds::get),
+            arcIds = retainedArcs.map(arcIds::get),
+            arcFrom = retainedArcs.map(arcFrom::get),
+            arcTo = retainedArcs.map(arcTo::get),
+            reversed = reversed
+        )
+    }
+
+    /** 反向视图不改写业务载荷或稳定标识。 / Reverse view without changing payloads or stable identities.
+     * @return 反向图 / Reversed graph
+     */
+    fun reverse(): NetworkGraph<N, A> = NetworkGraph(
+        nodes = nodes,
+        arcs = arcs,
+        access = access,
+        nodeIds = nodeIds,
+        arcIds = arcIds,
+        arcFrom = arcFrom,
+        arcTo = arcTo,
+        reversed = !reversed
+    )
+
     companion object {
-        /**
-         * 创建并校验网络图。 / Create and validate a network graph.
-         *
+        /** 创建并校验通用图。 / Create and validate a generic graph.
          * @param nodes 节点 / Nodes
          * @param arcs 弧 / Arcs
-         * @return 网络图或校验失败 / Network graph or validation failure
+         * @param access 拓扑访问 / Topology access
+         * @return 图或错误 / Graph or error
+         */
+        operator fun <N, A> invoke(
+            nodes: List<N>,
+            arcs: List<A>,
+            access: NetworkGraphAccess<N, A>
+        ): Ret<NetworkGraph<N, A>> {
+            val nodeIds = nodes.map(access.nodeId)
+            if (nodeIds.any { it.value.isBlank() } || nodeIds.toSet().size != nodeIds.size) {
+                return networkSchedulingFailure("节点标识为空或重复 / Blank or duplicate node identity")
+            }
+            val arcIds = arcs.map(access.arcId)
+            if (arcIds.any { it.value.isBlank() } || arcIds.toSet().size != arcIds.size) {
+                return networkSchedulingFailure("弧标识为空或重复 / Blank or duplicate arc identity")
+            }
+            val arcFrom = arcs.map(access.from)
+            val arcTo = arcs.map(access.to)
+            val nodeIdSet = nodeIds.toSet()
+            if (arcFrom.indices.any { arcFrom[it] !in nodeIdSet || arcTo[it] !in nodeIdSet }) {
+                return networkSchedulingFailure("弧引用缺失节点 / Arc references a missing node")
+            }
+            return ok(
+                NetworkGraph(
+                    nodes = nodes,
+                    arcs = arcs,
+                    access = access,
+                    nodeIds = nodeIds,
+                    arcIds = arcIds,
+                    arcFrom = arcFrom,
+                    arcTo = arcTo
+                )
+            )
+        }
+
+        /** 创建内置物理量图。 / Create a physical-quantity graph.
+         * @param nodes 节点 / Nodes
+         * @param arcs 弧 / Arcs
+         * @return 图或错误 / Graph or error
          */
         operator fun <V : RealNumber<V>> invoke(
             nodes: List<NetworkNode<V>>,
             arcs: List<NetworkArc<V>>
-        ): Ret<NetworkGraph<V>> {
-            val ids = nodes.map { it.id }
-            if (ids.toSet().size != ids.size) {
-                return networkSchedulingFailure(
-                    "创建网络图失败：节点 ID 重复 / Failed to create network graph: duplicate node ID"
+        ): Ret<NetworkGraph<NetworkNode<V>, NetworkArc<V>>> {
+            return invoke(
+                nodes = nodes,
+                arcs = arcs,
+                access = NetworkGraphAccess(
+                    nodeId = { it.id },
+                    arcId = { it.id },
+                    from = { it.from },
+                    to = { it.to }
                 )
-            }
-            val idSet = ids.toSet()
-            val missing = arcs.firstOrNull { it.from !in idSet || it.to !in idSet }
-            if (missing != null) {
-                return networkSchedulingFailure(
-                    "创建网络图失败：弧 ${missing.from.value}->${missing.to.value} 引用了缺失节点 / " +
-                            "Failed to create network graph: arc ${missing.from.value}->${missing.to.value} references a missing node"
-                )
-            }
-            val arcKeys = arcs.map { it.from to it.to }
-            if (arcKeys.toSet().size != arcKeys.size) {
-                return networkSchedulingFailure(
-                    "创建网络图失败：存在重复弧 / Failed to create network graph: duplicate arc detected"
-                )
-            }
-            return ok(NetworkGraph(nodes, arcs))
+            )
         }
     }
 }
+
+/** 可重用图构建器。 / Reusable graph builder.
+ * @property access 拓扑约定 / Topology access
+ */
+class NetworkGraphBuilder<N, A>(private val access: NetworkGraphAccess<N, A>) {
+    private val nodes = mutableListOf<N>()
+    private val arcs = mutableListOf<A>()
+
+    /** 添加节点。 / Add a node.
+     * @param node 节点 / Node
+     */
+    fun addNode(node: N) {
+        nodes.add(node)
+    }
+
+    /** 添加弧。 / Add an arc.
+     * @param arc 弧 / Arc
+     */
+    fun addArc(arc: A) {
+        arcs.add(arc)
+    }
+
+    /** 校验并构建快照。 / Validate and build a snapshot.
+     * @return 图或错误 / Graph or error
+     */
+    fun build(): Ret<NetworkGraph<N, A>> = NetworkGraph(nodes = nodes, arcs = arcs, access = access)
+}
+
+private fun <T> immutableList(values: Collection<T>): List<T> = Collections.unmodifiableList(ArrayList(values))

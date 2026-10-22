@@ -53,13 +53,39 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V
 
     private var bestObj = Flt64.Companion.maximum
     private var bestLpObj = Flt64.Companion.maximum
-    private var bestDualObj = Flt64.Companion.minimum
-    private var lowerBound = Flt64.Companion.zero
+    private var bestDualObj: Flt64? = null
+    private var lowerBound = -Flt64.infinity
     private var upperBound: Flt64? = null
+    private var generatedColumnsInPricingRound = false
+    private var completedPricingCallsInRound = 0
 
-    /** 最优率，值域 [0, 1]，越接近 1 越优 / Optimal rate in [0, 1]; closer to 1 means more optimal */
+    /** 是否已具备全局整数最优证据；启发式迭代不提供此证据。 / Whether global integer optimality is certified. */
+    val hasCertifiedOptimality: Boolean get() = lowerBound.isFinite() && bestObj.isFinite() && (bestObj - lowerBound).abs() leq Flt64(1e-8)
+
+    /** 本轮定价是否返回过候选列；这不是最优性证明。 / Whether this pricing round returned columns; this is not an optimality proof. */
+    val hasGeneratedColumnsInPricingRound: Boolean get() = generatedColumnsInPricingRound
+
+    /** 本轮无候选列时停止迭代；这不代表全局最优。 / Stop after a round with no returned columns; this does not imply global optimality. */
+    val shouldStopAfterPricingRound: Boolean get() = completedPricingCallsInRound > 0 && !generatedColumnsInPricingRound
+
+    /** 开始新一轮定价跟踪。 / Start tracking a new pricing round. */
+    fun beginPricingRound() {
+        generatedColumnsInPricingRound = false
+        completedPricingCallsInRound = 0
+    }
+
+    /** 记录一次定价返回的候选列数量。 / Record the number of candidate columns returned by one pricing call.
+     * @param columnCount 返回列数 / Number of returned columns
+     */
+    fun recordPricingColumnCount(columnCount: Int) {
+        ++completedPricingCallsInRound
+        if (columnCount > 0) generatedColumnsInPricingRound = true
+    }
+
+    /** 启发式进度指标，值域 [0, 1]，不作为最优性证据 / Heuristic progress indicator in [0, 1], not an optimality certificate */
     val optimalRate: Flt64
         get() {
+            if (!lowerBound.isFinite() || !bestObj.isFinite()) return Flt64.zero
             val actualOptimalRate = ((lowerBound + Flt64.Companion.one) / (bestObj + Flt64.Companion.one)).sqrt()
             return min(Flt64.Companion.one, upperBound?.let { max(actualOptimalRate, (it - bestObj) / it) } ?: actualOptimalRate)
         }
@@ -74,23 +100,7 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V
         newBunches: List<AbstractTaskBunch<T, E, A, V>>,
         reducedCost: (AbstractTaskBunch<T, E, A, V>) -> Flt64
     ) {
-        val bestReducedCost = HashMap<E, Flt64>()
-        for (bunch in newBunches) {
-            val thisReducedCost = reducedCost(bunch)
-            bestReducedCost[bunch.executor] =
-                bestReducedCost[bunch.executor]?.let { min(thisReducedCost, it) } ?: thisReducedCost
-        }
-
-        val currentDualObj = prevLpObj + bestReducedCost.values.sum(Flt64)
-        if (bestDualObj ls currentDualObj && currentDualObj ls bestObj) {
-            logger.debug { "best dual obj: $bestDualObj -> $currentDualObj" }
-            bestDualObj = currentDualObj
-            if (lowerBound ls currentDualObj) {
-                logger.debug { "lower bound: $lowerBound -> $bestDualObj" }
-                lowerBound = currentDualObj
-                logger.debug { "optimal rate: ${String.format("%.2f", (optimalRate * Flt64(100.0)).toDouble())}%" }
-            }
-        }
+        // 候选列仅是可行见证，不能代替穷尽定价的最小缩减成本证明。 / Candidate columns do not certify the minimum reduced cost.
     }
 
     /**
@@ -117,11 +127,6 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V
             logger.debug { "best lp obj: $bestLpObj -> $obj" }
             flag = true
             bestLpObj = obj
-            if (bestLpObj ls lowerBound) {
-                logger.debug { "lower bound: $lowerBound -> $bestLpObj" }
-                lowerBound = bestLpObj
-                logger.debug { "optimal rate: ${String.format("%.2f", (optimalRate * Flt64(100.0)).toDouble())}%" }
-            }
         }
         return flag
     }
@@ -148,11 +153,6 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V
             logger.debug { "best obj: $bestObj -> $obj" }
             flag = true
             bestObj = obj
-            if (bestObj ls lowerBound) {
-                logger.debug { "lower bound: $lowerBound -> $bestObj" }
-                lowerBound = bestObj
-                logger.debug { "optimal rate: ${String.format("%.2f", (optimalRate * Flt64(100.0)).toDouble())}%" }
-            }
         }
         return flag
     }
@@ -179,8 +179,8 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V
             runTime = runTime,
             bestObjective = quantity(bestObj, adapter, unit),
             bestLpObjective = quantity(bestLpObj, adapter, unit),
-            bestDualObjective = quantity(bestDualObj, adapter, unit),
-            lowerBound = quantity(lowerBound, adapter, unit),
+            bestDualObjective = bestDualObj?.let { quantity(it, adapter, unit) },
+            lowerBound = lowerBound.takeIf { it.isFinite() }?.let { quantity(it, adapter, unit) },
             upperBound = upperBound?.let { quantity(it, adapter, unit) },
             slowLpImprovementStep = if (slowLpImprovementStep.isInfinity()) {
                 null
@@ -225,4 +225,23 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V
     ): Quantity<R> {
         return Quantity(adapter.intoValue(value), unit)
     }
+}
+
+/**
+ * 构造列生成终态的结构化诊断。 / Build structured diagnostics for column-generation termination.
+ * @param solveId 求解运行标识 / Solver run identifier
+ * @param fallbackTermination 未因空定价轮停止时的终止原因 / Termination reason when no empty pricing round stopped the run
+ * @return 最终进度诊断 / Final progress diagnostics
+ */
+internal fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V : RealNumber<V>>
+    Iteration<T, E, A, V>.finalProgressDiagnostics(
+        solveId: String,
+        fallbackTermination: String
+    ): Map<String, String> {
+    val termination = if (shouldStopAfterPricingRound) "no-pricing-columns" else fallbackTermination
+    return mapOf(
+        "solve" to solveId,
+        "termination" to termination,
+        "optimality" to if (hasCertifiedOptimality) "certified" else "not-certified"
+    )
 }

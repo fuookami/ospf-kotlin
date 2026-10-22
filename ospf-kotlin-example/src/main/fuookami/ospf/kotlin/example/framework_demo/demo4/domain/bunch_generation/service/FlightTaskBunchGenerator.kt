@@ -5,14 +5,18 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generatio
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.NetworkNodeId
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.path.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.network.NetworkBunchGenerationContext
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 批次生成配置。Configuration for bunch generation.
@@ -32,7 +36,6 @@ data class BunchGenerationConfiguration(
  *
  * @param cost 代价 / Cost
  * @param shadowPrice 影子价格 / Shadow price
- * @param delay 延迟 / Delay
  * @param arrivalTime 到达时间 / Arrival time
  * @param flightHour 飞行小时 / Flight hour
  * @param flightCycle 飞行循环 / Flight cycle
@@ -43,7 +46,6 @@ data class BunchGenerationConfiguration(
 private data class LabelBuilder(
     var cost: Cost<FltX> = Cost(FltX),
     var shadowPrice: Flt64 = Flt64.zero,
-    val delay: Duration = Duration.ZERO,
     val arrivalTime: Instant,
     val flightHour: FlightHour = FlightHour.zero,
     val flightCycle: FlightCycle = FlightCycle.zero,
@@ -69,7 +71,6 @@ private data class LabelBuilder(
         operator fun invoke(node: Node, previousLabel: Label, recoveryFlightTask: FlightTask) = LabelBuilder(
             cost = previousLabel.cost.copy(),
             shadowPrice = previousLabel.shadowPrice,
-            delay = previousLabel.delay + recoveryFlightTask.actualDelay,
             arrivalTime = recoveryFlightTask.time!!.end,
             flightHour = previousLabel.flightHour + (recoveryFlightTask.flightHour ?: FlightHour.zero),
             flightCycle = previousLabel.flightCycle + recoveryFlightTask.flightCycle,
@@ -85,7 +86,6 @@ private data class LabelBuilder(
  *
  * @param cost 代价 / Cost
  * @param shadowPrice 影子价格 / Shadow price
- * @param delay 延迟 / Delay
  * @param arrivalTime 到达时间 / Arrival time
  * @param flightHour 飞行小时 / Flight hour
  * @param flightCycle 飞行循环 / Flight cycle
@@ -96,7 +96,6 @@ private data class LabelBuilder(
 private data class Label(
     val cost: Cost<FltX>,
     val shadowPrice: Flt64,
-    val delay: Duration,
     val arrivalTime: Instant,
     val flightHour: FlightHour,
     val flightCycle: FlightCycle,
@@ -109,7 +108,6 @@ private data class Label(
         operator fun invoke(builder: LabelBuilder) = Label(
             cost = builder.cost,
             shadowPrice = builder.shadowPrice,
-            delay = builder.delay,
             arrivalTime = builder.arrivalTime,
             flightHour = builder.flightHour,
             flightCycle = builder.flightCycle,
@@ -120,61 +118,27 @@ private data class Label(
     }
 
     val reducedCost: Flt64 get() = cost.solverCostOrNull(Flt64.zero)!! - shadowPrice
-    val aircraftChange: UInt64 =
-        if (flightTask?.aircraftChanged == true) {
-            UInt64.one
-        } else {
-            UInt64.zero
-        }
-    val trace: List<UInt64>
     val isBetterBunch get() = reducedCost < Flt64.zero
-    val originFlightTask get() = flightTask?.originTask
 
-    init {
-        assert(
-            when (node) {
-                is TaskNode -> {
-                    flightTask != null
-                }
-
-                is RootNode -> {
-                    flightTask == null && prevLabel == null
-                }
-
-                is EndNode -> {
-                    flightTask == null
-                }
-            }
-        )
-
-        val trace = prevLabel?.trace?.toMutableList() ?: ArrayList()
-        when (node) {
-            is TaskNode -> {
-                trace.add(node.index)
-            }
-
-            else -> {}
+    fun flightTasks(): List<FlightTask> {
+        val labels = ArrayList<Label>()
+        var label = prevLabel
+        while (label != null && label.node !is RootNode) {
+            labels.add(label)
+            label = label.prevLabel
         }
-        this.trace = trace
+
+        val flightTasks = ArrayList<FlightTask>(labels.size)
+        while (labels.isNotEmpty()) {
+            flightTasks.add(labels.removeLast().flightTask ?: return emptyList())
+        }
+        return flightTasks
     }
 
-    /**
-     * Checks whether the given node has already been visited in this label's trace.
-     * 检查给定节点是否已在此标签的轨迹中被访问过。
-     *
-     * @param node 要检查的节点 / The node to check
-     * @return 节点是否已被访问 / Whether the node has been visited
-    */
-    fun visited(node: Node): Boolean {
-        return when (node) {
-            is RootNode, is EndNode -> {
-                false
-            }
-
-            is TaskNode -> {
-                return trace.contains(node.index)
-            }
-        }
+    fun withTotalCost(totalCost: Cost<*>): Label? {
+        if (!totalCost.valid) return null
+        @Suppress("UNCHECKED_CAST")
+        return copy(cost = totalCost as Cost<FltX>)
     }
 
     /**
@@ -183,53 +147,18 @@ private data class Label(
      *
      * @param iteration 当前迭代索引 / The current iteration index
      * @param aircraft 分配给此束的航空器 / The aircraft assigned to this bunch
-     * @param aircraftUsability 航空器可用性上下文 / The aircraft usability context
-     * @param totalCostCalculator 总代价计算函数 / The total cost calculator function
-     * @return 生成的航班任务束，若总代价不可用则返回 null / The generated flight task bunch, or null if total cost is unavailable
+     * @return 使用已验证总代价的航班任务束 / A bunch with its validated total cost
     */
     fun generateBunch(
         iteration: Int64,
-        aircraft: Aircraft,
-        aircraftUsability: AircraftUsability,
-        totalCostCalculator: TotalCostCalculator
+        aircraft: Aircraft
     ): FlightTaskBunch? {
         assert(node is EndNode)
-        val labels = ArrayList<Label>()
-        var label = prevLabel
-        while (label!!.node !is RootNode) {
-            labels.add(label)
-            label = label.prevLabel
-        }
-
-        val flightTasks = ArrayList<FlightTask>()
-        while (labels.isNotEmpty()) {
-            label = labels.last()
-            labels.removeLast()
-
-            flightTasks.add(label.flightTask!!)
-        }
-        val totalCost = totalCostCalculator(aircraft, flightTasks)
-        @Suppress("UNCHECKED_CAST")
-        return totalCost
-            ?.takeIf { it.valid }
-            ?.let { FlightTaskBunch(aircraft, flightTasks, iteration, it as Cost<FltX>) }
-    }
-
-    /**
-     * Lexicographic dominance comparison: returns true if this label dominates the right-hand side label.
-     * 字典序支配比较：若此标签支配右侧标签则返回 true。
-     *
-     * @param rhs 用于比较的右侧标签 / The right-hand side label to compare against
-     * @return 此标签是否支配 rhs 标签 / Whether this label dominates the rhs label
-    */
-    infix fun ls(rhs: Label): Boolean {
-        return (reducedCost - rhs.reducedCost) < Flt64.zero
-                && delay <= rhs.delay
-                && ((node is EndNode) || (aircraftChange >= rhs.aircraftChange))
+        val flightTasks = flightTasks()
+        if (flightTasks.isEmpty()) return null
+        return FlightTaskBunch(aircraft, flightTasks, iteration, cost)
     }
 }
-
-private typealias LabelMap = MutableMap<Node, MutableList<Label>>
 
 /**
  * 使用标号设置算法生成航班任务束。Generates flight task bunches using Label Setting algorithm.
@@ -253,54 +182,11 @@ class FlightTaskBunchGenerator(
     private val totalCostCalculator: TotalCostCalculator,
     private val configuration: BunchGenerationConfiguration
 ) {
-    companion object {
-        /**
-         * Sorts the graph nodes in topological order using Kahn's algorithm with time-based tie-breaking.
-         * 使用 Kahn 算法按拓扑排序图节点，以时间为平局打破依据。
-         *
-         * @param graph 要排序的有向无环图 / The directed acyclic graph to sort
-         * @return 按拓扑排序的节点列表 / The list of nodes in topological order
-        */
-        private fun sortNodes(graph: Graph): List<Node> {
-            val inDegree = HashMap<Node, UInt64>()
-            for ((_, node) in graph.nodes) {
-                inDegree[node] = UInt64.zero
-            }
-            for ((_, node) in graph.nodes) {
-                for (edge in graph[node]) {
-                    inDegree[edge.to] = (inDegree[edge.to] ?: UInt64.zero) + UInt64.one
-                }
-            }
-
-            val nodes = ArrayList<Node>()
-            while (inDegree.isNotEmpty()) {
-                val removeNeededNodes = inDegree.filterValues { it == UInt64.zero }
-                if (removeNeededNodes.isNotEmpty()) {
-                    for ((node, _) in removeNeededNodes) {
-                        for (edge in graph[node]) {
-                            inDegree[edge.to] = inDegree[edge.to]!! - UInt64.one
-                        }
-                        nodes.add(node)
-                        inDegree.remove(node)
-                    }
-                } else {
-                    val minInDegree = inDegree.values.min()
-                    val minInDegreeNodes = inDegree.filterValues { it == minInDegree }
-                    nodes.addAll(minInDegreeNodes.keys.toList().sortedBy { it.time })
-                    for ((node, _) in minInDegreeNodes) {
-                        for (edge in graph[node]) {
-                            inDegree[edge.to] = inDegree[edge.to]!! - UInt64.one
-                        }
-                        inDegree.remove(node)
-                    }
-                }
-            }
-            return nodes
-        }
-    }
-
     private val enabledTime by aircraftUsability::enabledTime
-    private val nodes = if (!configuration.withOrderChange) { sortNodes(graph) } else { emptyList() }
+
+    /** 最近一次生成合同，不将预算截断视为收敛。 / Latest generation contract; truncation is not convergence. */
+    var lastBatch: ColumnGenerationBatch<FlightTaskBunch>? = null
+        private set
 
     /** 最近一次 pricing 统计 / Diagnostics from the most recent pricing round. */
     var diagnostics: PricingDiagnostics = PricingDiagnostics()
@@ -316,111 +202,98 @@ class FlightTaskBunchGenerator(
     operator fun invoke(iteration: Int64, shadowPriceMap: ShadowPriceMap): Ret<List<FlightTaskBunch>> {
         val currentDiagnostics = PricingDiagnostics()
         diagnostics = currentDiagnostics
-        val labels: LabelMap = HashMap()
-        initRootLabel(labels, shadowPriceMap)
-
-        if (configuration.withOrderChange) {
-            val labelDeque = ArrayList<Label>()
-            labelDeque.addAll(labels[graph[Node.root]!!]!!)
-
-            while (labelDeque.isNotEmpty()) {
-                val prevLabel = labelDeque.first()
-                labelDeque.removeFirst()
-                val prevNode = prevLabel.node
-                if (prevNode is TaskNode && labels[prevNode]?.none { it === prevLabel } == true) {
-                    continue
-                }
-                currentDiagnostics.expandedLabelCount += 1
-                val edges = graph[prevNode].sortedBy { it.to.time }
-
-                for (edge in edges) {
-                    val succNode = edge.to
-                    val succLabels = getLabels(labels, succNode)
-                    if (succNode is EndNode) {
-                        if (prevNode !is RootNode) {
-                            val builder = LabelBuilder(succNode, prevLabel)
-                            builder.shadowPrice += shadowPriceMap(prevLabel.flightTask!!, null as FlightTask?)
-                            insertLabel(succLabels, Label(builder), currentDiagnostics)
-                        }
-                    } else if (!prevLabel.visited(succNode)) {
-                        currentDiagnostics.candidateTaskCount += 1
-                        val succLabel = generateFlightTaskLabel(prevLabel, succNode, shadowPriceMap)
-                        if (succLabel != null) {
-                            currentDiagnostics.feasibleExpansionCount += 1
-                            if (insertLabel(succLabels, succLabel, currentDiagnostics)) {
-                                labelDeque.add(succLabel)
-                            }
-                        } else {
-                            currentDiagnostics.infeasibleExpansionCount += 1
-                        }
-                    }
-                }
-            }
-        } else {
-            for (prevNode in nodes) {
-                for (prevLabel in getLabels(labels, prevNode)) {
-                    currentDiagnostics.expandedLabelCount += 1
-                    for (edge in graph[prevNode]) {
-                        val succNode = edge.to
-                        val succLabels = getLabels(labels, succNode)
-
-                        if (succNode is EndNode) {
-                            if (prevNode !is RootNode) {
-                                val builder = LabelBuilder(succNode, prevLabel)
-                                builder.shadowPrice += shadowPriceMap(prevLabel.flightTask!!, null as FlightTask?)
-                                insertLabel(succLabels, Label(builder), currentDiagnostics)
-                            }
-                        } else if (!prevLabel.visited(succNode)) {
-                            currentDiagnostics.candidateTaskCount += 1
-                            val succLabel = generateFlightTaskLabel(prevLabel, succNode, shadowPriceMap)
-                            if (succLabel != null) {
-                                currentDiagnostics.feasibleExpansionCount += 1
-                                insertLabel(succLabels, succLabel, currentDiagnostics)
-                            } else {
-                                currentDiagnostics.infeasibleExpansionCount += 1
-                            }
-                        }
-                    }
-                }
-            }
+        val topology = when (val result = graph.network()) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
-        val endLabels = labels[EndNode].orEmpty()
-        currentDiagnostics.noFeasiblePath = endLabels.isEmpty() && !currentDiagnostics.searchTruncatedByLabelLimit
-        currentDiagnostics.negativeReducedCostLabelCount = endLabels.count { it.isBetterBunch }
-        currentDiagnostics.noNegativeReducedCost = currentDiagnostics.negativeReducedCostLabelCount == 0
-        val bunches = selectBunches(iteration, endLabels, currentDiagnostics)
-        currentDiagnostics.generatedColumnCount = bunches.size
-        return Ok(bunches)
-    }
-
-    /**
-     * Initializes the root label in the label map with the aircraft's enabled time and shadow price.
-     * 使用航空器的启用时间和影子价格初始化标签映射中的根标签。
-     *
-     * @param labels 要初始化的可变标签映射 / The mutable label map to initialize
-     * @param shadowPriceMap 用于对偶值的影子价格映射 / The shadow price map for dual values
-    */
-    private fun initRootLabel(labels: LabelMap, shadowPriceMap: ShadowPriceMap) {
-        assert(labels.isEmpty())
-        val rootNode = graph[Node.root]!!
-        val builder = LabelBuilder(rootNode, enabledTime)
+        val builder = LabelBuilder(RootNode, enabledTime)
         builder.shadowPrice += shadowPriceMap(aircraft)
-        labels[rootNode] = mutableListOf(Label(builder))
-    }
-
-    /**
-     * Retrieves the list of labels for the given node, creating an empty list if none exists.
-     * 获取给定节点的标签列表，若不存在则创建空列表。
-     *
-     * @param labels 可变标签映射 / The mutable label map
-     * @param node 要获取标签的节点 / The node whose labels to retrieve
-     * @return 该节点的可变标签列表 / The mutable list of labels for the node
-    */
-    private fun getLabels(labels: LabelMap, node: Node): MutableList<Label> {
-        if (!labels.containsKey(node)) {
-            labels[node] = ArrayList()
+        val validTerminalLabelIds = mutableSetOf<Int>()
+        val problem = PathProblem(
+            graph = topology,
+            source = NetworkNodeId(RootNode.index.toString()),
+            initial = Label(builder),
+            transition = { previous, edge ->
+                val label = previous.state
+                if (edge.to is EndNode) {
+                    if (label.node is RootNode) {
+                        Ok(null)
+                    } else {
+                        val end = LabelBuilder(EndNode, label)
+                        end.shadowPrice += shadowPriceMap(label.flightTask!!, null as FlightTask?)
+                        Ok(Label(end))
+                    }
+                } else {
+                    currentDiagnostics.candidateTaskCount += 1
+                    val successor = generateFlightTaskLabel(label, edge.to, shadowPriceMap)
+                    if (successor == null) currentDiagnostics.infeasibleExpansionCount += 1
+                    else currentDiagnostics.feasibleExpansionCount += 1
+                    Ok(successor)
+                }
+            },
+            terminal = { _, state -> state.node is EndNode },
+            accept = { it.isBetterBunch },
+            terminalContribution = { pathLabel ->
+                val flightTasks = pathLabel.state.flightTasks()
+                val totalCost = totalCostCalculator(aircraft, flightTasks)
+                val terminalState = totalCost?.let(pathLabel.state::withTotalCost)
+                if (flightTasks.isEmpty() || terminalState == null) {
+                    currentDiagnostics.invalidColumnCount += 1
+                    Ok(null)
+                } else {
+                    validTerminalLabelIds.add(pathLabel.index)
+                    Ok(terminalState)
+                }
+            },
+            // 不沿用忽略到达状态与访问历史的旧支配。 / Do not reuse old dominance ignoring arrival state and history.
+            order = compareBy { it.reducedCost }
+        )
+        val configuredLabelLimit = configuration.maximumLabelPerNode.toInt()
+        val labelLimit = configuredLabelLimit.coerceAtLeast(1)
+        val batch = when (val result = NetworkBunchGenerationContext().generate(
+            problem = problem,
+            budget = PathSearchBudget(
+                maximumLabels = if (configuredLabelLimit < 1) 1 else Int.MAX_VALUE,
+                maximumLabelsPerNode = labelLimit
+            ),
+            scope = ColumnGenerationScope(
+                request = iteration.toString(),
+                group = aircraft.toString(),
+                branch = "demo4-business-domain",
+                global = false
+            ),
+            maximumResults = configuration.maximumColumnGeneratedPerAircraft.toInt().coerceAtLeast(0),
+            noImprovementEvidence = { search ->
+                currentDiagnostics.invalidColumnCount == 0 && search.labels.none {
+                    it.index in validTerminalLabelIds && it.state.node is EndNode && it.state.isBetterBunch
+                }
+            },
+            onSearchCompleted = { search ->
+                currentDiagnostics.expandedLabelCount = search.expandedLabels
+                currentDiagnostics.dominatedLabelCount = search.dominatedLabels
+                currentDiagnostics.negativeReducedCostLabelCount = search.labels.count {
+                    it.index in validTerminalLabelIds && it.state.node is EndNode && it.state.isBetterBunch
+                }
+                currentDiagnostics.searchTruncatedByLabelLimit = search.completion == PathSearchCompletion.BudgetLimit
+                currentDiagnostics.labelLimitReachedCount = if (currentDiagnostics.searchTruncatedByLabelLimit) 1 else 0
+                currentDiagnostics.noFeasiblePath = search.terminalCount == 0 &&
+                    currentDiagnostics.invalidColumnCount == 0 && search.complete
+            },
+            extract = { label, _ ->
+                Ok(label.state.generateBunch(iteration, aircraft))
+            }
+        )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
-        return labels[node]!!
+        lastBatch = batch
+        currentDiagnostics.generatedColumnCount = batch.columns.size
+        currentDiagnostics.noNegativeReducedCost = currentDiagnostics.negativeReducedCostLabelCount == 0 &&
+            currentDiagnostics.invalidColumnCount == 0 &&
+            batch.completion == ColumnGenerationCompletion.Exhausted
+        return Ok(batch.columns)
     }
 
     /**
@@ -510,89 +383,6 @@ class FlightTaskBunchGenerator(
         } else {
             succTask.recovery(recoveryPolicy)
         }
-    }
-
-    /**
-     * Inserts a label into the label list, applying dominance pruning and capacity limits for task nodes.
-     * 将标签插入标签列表，对任务节点应用支配剪枝和容量限制。
-     *
-     * @param labels 该节点的可变标签列表 / The mutable list of labels for the node
-     * @param label 要插入的标签 / The label to insert
-    */
-    private fun insertLabel(
-        labels: MutableList<Label>,
-        label: Label,
-        diagnostics: PricingDiagnostics
-    ): Boolean {
-        when (label.node) {
-            is TaskNode -> {
-                if (labels.any { it ls label }) {
-                    diagnostics.dominatedLabelCount += 1
-                    return false
-                }
-                val dominatedLabels = labels.filter { label ls it }
-                labels.removeAll(dominatedLabels.toSet())
-                diagnostics.dominatedLabelCount += dominatedLabels.size
-                val insertIndex = labels.indexOfFirst {
-                    (label.reducedCost - it.reducedCost) < Flt64.zero
-                }
-                if (insertIndex < 0) {
-                    labels.add(label)
-                } else {
-                    labels.add(insertIndex, label)
-                }
-
-                val maximumLabelPerNode = configuration.maximumLabelPerNode.toInt()
-                if (labels.size > maximumLabelPerNode) {
-                    diagnostics.labelLimitReachedCount += 1
-                    diagnostics.searchTruncatedByLabelLimit = true
-                    while (labels.size > maximumLabelPerNode) {
-                        labels.removeAt(labels.lastIndex)
-                    }
-                }
-                return labels.any { it === label }
-            }
-            is EndNode -> {
-                labels.add(label)
-                return true
-            }
-            else -> {
-                return false
-            }
-        }
-    }
-
-    /**
-     * Selects the best flight task bunches from end-node labels based on reduced cost, up to the configured maximum.
-     * 根据缩减代价从终端节点标签中选择最优航班任务束，直到达到配置的最大数量。
-     *
-     * @param iteration 当前迭代索引 / The current iteration index
-     * @param labels 终端节点的标签列表 / The list of labels at the end node
-     * @return 选中的航班任务束列表 / The list of selected flight task bunches
-    */
-    private fun selectBunches(
-        iteration: Int64,
-        labels: List<Label>,
-        diagnostics: PricingDiagnostics
-    ): List<FlightTaskBunch> {
-        val bunches = ArrayList<FlightTaskBunch>()
-        val maximumColumnGeneratedPerAircraft = configuration.maximumColumnGeneratedPerAircraft.toInt()
-        if (maximumColumnGeneratedPerAircraft <= 0) {
-            return bunches
-        }
-        val sortedLabels = labels.asIterable().filter { it.isBetterBunch }.sortedBy { it.reducedCost }
-        for (label in sortedLabels) {
-            val newBunch = label.generateBunch(iteration, aircraft, aircraftUsability, totalCostCalculator)
-            if (newBunch != null) {
-                bunches.add(newBunch)
-            } else {
-                diagnostics.invalidColumnCount += 1
-            }
-            if (bunches.size >= maximumColumnGeneratedPerAircraft) {
-                break
-            }
-        }
-        return bunches
     }
 
     /**

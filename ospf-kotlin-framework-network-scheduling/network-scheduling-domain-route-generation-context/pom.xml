@@ -18,6 +18,11 @@
             <artifactId>ospf-kotlin-framework-network-scheduling-domain-vrp-context</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-network-scheduling-domain-path-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

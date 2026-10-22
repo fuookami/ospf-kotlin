@@ -114,6 +114,7 @@ class Demo5BranchAndPriceE2ETest {
         }
 
         assertNotEquals(BranchAndPriceStatus.SolverStopped, result.status)
+        assertNoIncumbentMetrics(result)
         result.solution?.let { solution ->
             assertSolutionFeasible(
                 instance = instance,
@@ -188,6 +189,7 @@ class Demo5BranchAndPriceE2ETest {
 
         // 验证返回有效状态（不是 Failed）/ Verify valid status (not Failed)
         assertNotEquals(BranchAndPriceStatus.SolverStopped, result.status, "Should not be SolverStopped")
+        assertNoIncumbentMetrics(result)
 
         // 如果有 incumbent，验证路线 / If incumbent exists, verify routes
         if (result.solution != null) {
@@ -250,7 +252,9 @@ class Demo5BranchAndPriceE2ETest {
         val bpSolution = bpResult.solution ?: fail("B&P should produce a solution")
         val bpCost = bpSolution.totalCost.value
 
-        assertTrue((oracle.obj - bpCost).abs().leq(Flt64(1e-6)))
+        val oracleObjective = oracle.solution?.objective
+            ?: fail("Full-route master MILP returned no incumbent objective")
+        assertTrue((oracleObjective - bpCost).abs().leq(Flt64(1e-6)))
 
         // 验证 B&P 路线可行 / Verify B&P routes are feasible
         if (bpResult.solution != null) {
@@ -443,6 +447,18 @@ class Demo5BranchAndPriceE2ETest {
             )
             assertTrue(validation.ok, "Route ${route.vehicleTypeId} should pass validation: $validation")
         }
+    }
+
+    private fun assertNoIncumbentMetrics(result: VrptwSolveResult<Flt64>) {
+        if (result.solution != null) {
+            return
+        }
+        assertTrue(result.status in setOf(
+            BranchAndPriceStatus.TimeLimit,
+            BranchAndPriceStatus.NodeLimit
+        ))
+        assertEquals(Flt64.infinity, result.upperBound)
+        assertEquals(Flt64.infinity, result.relativeGap)
     }
 
     private fun makeSmallInstance(sw: SchedulingTimeWindow<Flt64>): VrptwInstance<Flt64> {

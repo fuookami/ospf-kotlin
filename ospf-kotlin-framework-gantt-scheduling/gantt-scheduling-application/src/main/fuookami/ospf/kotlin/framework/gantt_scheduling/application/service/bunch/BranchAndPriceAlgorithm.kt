@@ -15,6 +15,9 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.report.SolveReport
 import fuookami.ospf.kotlin.core.solver.progress.*
+import fuookami.ospf.kotlin.framework.model.ColumnGenerationBatch
+import fuookami.ospf.kotlin.framework.model.ColumnGenerationCompletion
+import fuookami.ospf.kotlin.framework.model.ColumnGenerationScope
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.solver.FrameworkSolveOptions
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
@@ -23,6 +26,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.SolverRunId
 import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.bunch.Iteration
+import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.bunch.finalProgressDiagnostics
 
 /**
  * 分支分组跟踪器 / Branch group tracker
@@ -47,6 +51,28 @@ internal class BranchGroupTracker<B, E>(
         val fixedGroups = fixedBunches.map(groupOfBunch).toSet()
         return groupsOfExecutor(executor).all { it in fixedGroups }
     }
+}
+
+/**
+ * 判断定价请求是否覆盖未受限的完整执行器域。 / Check whether pricing covers the full unrestricted executor domain.
+ * @param allExecutors 主问题中的全部执行器 / All executors in the master problem
+ * @param requestedExecutors 本次请求中的执行器 / Executors in this request
+ * @param hasFixedBunches 是否存在固定任务束 / Whether any bunches are fixed
+ * @param hasKeptBunches 是否存在保留任务束限制 / Whether any bunches are kept
+ * @param hasHiddenExecutors 是否存在隐藏执行器 / Whether any executors are hidden
+ * @return 请求是否覆盖完整且无限制的执行器域 / Whether the request covers the complete unrestricted executor domain
+ */
+internal fun <E> hasFullPricingDomain(
+    allExecutors: Set<E>,
+    requestedExecutors: Set<E>,
+    hasFixedBunches: Boolean,
+    hasKeptBunches: Boolean,
+    hasHiddenExecutors: Boolean
+): Boolean {
+    return requestedExecutors == allExecutors &&
+        !hasFixedBunches &&
+        !hasKeptBunches &&
+        !hasHiddenExecutors
 }
 
 /**
@@ -106,6 +132,7 @@ class BranchAndPriceAlgorithm<
      * @property bunchGenerator 任务束生成器 / Bunch generator
      * @property bunchGeneratorWithBranchContext 带分支状态的可选任务束生成器 / Optional bunch generator carrying branch state
      * @property bunchGeneratorByExecutorAndSlot 按执行器和时隙调用的可选定价器 / Optional executor-slot pricing generator
+     * @property bunchGenerationBatch 带精确请求证据作用域的批次生成器 / Batch generator with an exact evidence scope
      * @property branchGroupOfBunch 任务束的分支分组键，默认按执行器 / Branch group key for a bunch, executor by default
      * @property branchGroupsOfExecutor 一个执行器对应的分支分组键 / Branch groups associated with an executor
     */
@@ -125,6 +152,7 @@ class BranchAndPriceAlgorithm<
         val bunchGenerator: suspend (UInt64, List<E>, Map) -> Ret<List<B>>,
         val bunchGeneratorWithBranchContext: (suspend (UInt64, List<E>, Map, Set<B>, Set<B>, Set<E>) -> Ret<List<B>>)? = null,
         val bunchGeneratorByExecutorAndSlot: (suspend (UInt64, E, TimeSlot, Map, Set<B>, Set<B>, Set<E>) -> Ret<List<B>>)? = null,
+        val bunchGenerationBatch: (suspend (UInt64, List<E>, Map, Set<B>, Set<B>, Set<E>, ColumnGenerationScope) -> Ret<ColumnGenerationBatch<B>>)? = null,
         val branchGroupOfBunch: (B) -> Any = { it.executor },
         val branchGroupsOfExecutor: (E) -> Set<Any> = { setOf(it) }
     )
@@ -145,6 +173,13 @@ class BranchAndPriceAlgorithm<
     )
 
     private val logger = logger()
+
+    /** 最近一次子问题完成信息；不构成整数最优证明。 / Last subproblem completion, not integer optimality. */
+    var lastGenerationBatch: ColumnGenerationBatch<B>? = null
+        private set
+
+    private var generationRequestSequence = UInt64.zero
+    private var dualRevisionSequence = UInt64.zero
 
     private val context = policy.contextBuilder()
     private val extractContexts = policy.extractContextBuilder.flatMap { it(context) }
@@ -198,7 +233,7 @@ class BranchAndPriceAlgorithm<
      * 执行分支定价算法 / Execute branch and price algorithm
      *
      * @param id 标识符 / Identifier
-     * @param heartBeatCallBack 心跳回调，第三个参数为无量纲最优率标量 / Heartbeat callback whose third argument is a dimensionless optimal-rate scalar
+     * @param heartBeatCallBack 心跳回调，第三个参数为非证明性的启发式进度 / Heartbeat callback whose third argument is non-certifying heuristic progress
      * @return 任务束解 / Bunch solution
     */
     suspend operator fun invoke(
@@ -310,9 +345,12 @@ class BranchAndPriceAlgorithm<
                 }
 
                 var mainIteration = UInt64.one
+                var terminationReason = "improvement-slow"
                 while (!iteration.isImprovementSlow
                     && iteration.runTime < configuration.timeLimit
                 ) {
+                    terminationReason = "time-limit"
+                    iteration.beginPricingRound()
                     logger.debug { "Iteration $mainIteration begin!" }
                     val iterationProgress = (iteration.optimalRate * Flt64(100.0)).toDouble().toInt().coerceIn(0, 100)
                     progressContext?.report(
@@ -379,9 +417,10 @@ class BranchAndPriceAlgorithm<
                                 return Fatal(result.errors)
                             }
                         }
+                        iteration.recordPricingColumnCount(newBunches.size)
                         if (newBunches.isEmpty()) {
                             logger.debug { "There is no bunch generated in global column generation of iteration $mainIteration." }
-                            if (iteration.optimalRate eq Flt64.one) {
+                            if (iteration.hasCertifiedOptimality) {
                                 return Ok(bestSolution)
                             }
                         }
@@ -508,6 +547,7 @@ class BranchAndPriceAlgorithm<
                                 return Fatal(result.errors)
                             }
                         }
+                        iteration.recordPricingColumnCount(newBunches.size)
                         if (newBunches.isEmpty()) {
                             --iteration
                             logger.debug { "There is no bunch generated in local column generation of iteration $mainIteration: $iteration." }
@@ -630,14 +670,26 @@ class BranchAndPriceAlgorithm<
                     iteration.halveStep()
 
                     logger.debug {
-                        "Iteration $mainIteration end, optimal rate: ${
+                        "Iteration $mainIteration end, heuristic progress (not an optimality certificate): ${
                             String.format(
                                 "%.2f",
                                 (iteration.optimalRate * Flt64(100.0)).toDouble()
                             )
                         }%"
                     }
+                    if (iteration.shouldStopAfterPricingRound) {
+                        terminationReason = "no-pricing-columns"
+                        logger.info {
+                            "No columns were returned in the completed pricing round; stopping without claiming global optimality."
+                        }
+                        break
+                    }
                     ++mainIteration
+                }
+
+                if (terminationReason != "no-pricing-columns") {
+                    if (iteration.isImprovementSlow) terminationReason = "improvement-slow"
+                    else if (iteration.runTime >= configuration.timeLimit) terminationReason = "time-limit"
                 }
 
                 progressContext?.report(
@@ -645,7 +697,7 @@ class BranchAndPriceAlgorithm<
                         stage = SolverStages.PostProcessing,
                         progressInStage = 100,
                         overallProgress = 100,
-                        diagnostics = mapOf("solve" to id.value)
+                        diagnostics = iteration.finalProgressDiagnostics(id.value, terminationReason)
                     )
                 )
                 Ok(bestSolution)
@@ -657,13 +709,13 @@ class BranchAndPriceAlgorithm<
     }
 
     /**
-     * 记录算法心跳，最优率是无量纲内部标量 / Record algorithm heartbeat with dimensionless internal optimal-rate scalar
+     * 记录算法心跳，进度不构成最优性证明 / Record algorithm heartbeat; progress is not an optimality certificate
      *
-     * @param optimalRate 无量纲最优率标量 / Dimensionless optimal-rate scalar
+     * @param optimalRate 无量纲启发式进度 / Dimensionless heuristic progress
     */
     private fun heartBeat(optimalRate: Flt64) {
         logger.info {
-            "Heart beat, current optimal rate: ${
+            "Heart beat, heuristic progress (not an optimality certificate): ${
                 String.format(
                     "%.2f",
                     (optimalRate * Flt64(100.0)).toDouble()
@@ -804,6 +856,8 @@ class BranchAndPriceAlgorithm<
             }
         }
 
+        ++dualRevisionSequence
+
         return Ok(shadowPriceMap)
     }
 
@@ -825,10 +879,74 @@ class BranchAndPriceAlgorithm<
     ): Ret<List<B>> {
         val beginTime = Clock.System.now()
         val slotGenerator = policy.bunchGeneratorByExecutorAndSlot
-        val newBunches = if (slotGenerator != null && slots.isNotEmpty()) {
+        val batchGenerator = policy.bunchGenerationBatch
+        ++generationRequestSequence
+        val expectedScope = generationScope(
+            id = id,
+            dualRevision = dualRevisionSequence,
+            executors = executors,
+            fixedBunches = fixedBunches,
+            keptBunches = keptBunches,
+            hiddenExecutors = hiddenExecutors
+        )
+        lastGenerationBatch = null
+        val legacySlotBatches = mutableListOf<ColumnGenerationBatch<B>>()
+        val newBunches = if (batchGenerator != null) {
+            when (val result = batchGenerator(
+                iteration.iteration,
+                executors,
+                shadowPriceMap,
+                fixedBunches.toSet(),
+                keptBunches.toSet(),
+                hiddenExecutors.toSet(),
+                expectedScope
+            )) {
+                is Ok -> {
+                    val returnedBatch = result.value
+                    val batch = when {
+                        returnedBatch.scope != expectedScope -> {
+                            logger.warn { "Pricing batch returned evidence for a different request scope; treating it as heuristic." }
+                            returnedBatch.copy(
+                                completion = ColumnGenerationCompletion.Heuristic,
+                                scope = null,
+                                noImprovingColumns = null
+                            )
+                        }
+                        returnedBatch.completion == ColumnGenerationCompletion.Exhausted &&
+                            !returnedBatch.hasConsistentChildren(expectedScope) -> {
+                            val childCompletion = when {
+                                returnedBatch.children.any { it.completion == ColumnGenerationCompletion.Interrupted } ->
+                                    ColumnGenerationCompletion.Interrupted
+                                returnedBatch.children.any { it.completion == ColumnGenerationCompletion.BudgetLimit } ->
+                                    ColumnGenerationCompletion.BudgetLimit
+                                else -> ColumnGenerationCompletion.Heuristic
+                            }
+                            logger.warn { "Pricing batch has incomplete or mismatched child evidence; downgrading aggregate completion." }
+                            returnedBatch.copy(
+                                completion = childCompletion,
+                                noImprovingColumns = null
+                            )
+                        }
+                        returnedBatch.noImprovingColumns == true &&
+                            returnedBatch.children.isNotEmpty() &&
+                            !returnedBatch.children.all { child ->
+                                val childScope = child.scope ?: return@all false
+                                child.certifiesNoImprovingColumns(childScope)
+                            } -> {
+                            returnedBatch.copy(noImprovingColumns = null)
+                        }
+                        else -> returnedBatch
+                    }
+                    lastGenerationBatch = batch
+                    batch.columns
+                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+        } else if (slotGenerator != null && slots.isNotEmpty()) {
             val generated = mutableListOf<B>()
             for (executor in executors) {
-                for (slot in slots) {
+                for ((slotIndex, slot) in slots.withIndex()) {
                     when (val result = slotGenerator.invoke(
                         iteration.iteration,
                         executor,
@@ -838,7 +956,21 @@ class BranchAndPriceAlgorithm<
                         keptBunches.toSet(),
                         hiddenExecutors.toSet()
                     )) {
-                        is Ok -> generated += result.value
+                        is Ok -> {
+                            generated += result.value
+                            legacySlotBatches.add(
+                                ColumnGenerationBatch(
+                                    columns = result.value,
+                                    scope = legacySlotScope(
+                                        parentScope = expectedScope,
+                                        executor = executor,
+                                        slot = slot,
+                                        slotIndex = slotIndex,
+                                        fixedBunches = fixedBunches
+                                    )
+                                )
+                            )
+                        }
                         is Failed -> return Failed(result.error)
                         is Fatal -> return Fatal(result.errors)
                     }
@@ -861,9 +993,94 @@ class BranchAndPriceAlgorithm<
         }
         subProblemSolvingTimes += UInt64.one
         subProblemSolvingTime = Clock.System.now() - beginTime
-        iteration.refreshLowerBound(newBunches) { policy.reducedCost(shadowPriceMap, it) }
+        // 候选列不是全域最小 reduced cost 的下界证明。 / Candidate columns are not a full-domain pricing bound.
+        if (batchGenerator == null) {
+            lastGenerationBatch = ColumnGenerationBatch(
+                columns = newBunches,
+                scope = expectedScope,
+                children = legacySlotBatches
+            )
+        }
         heartBeat(iteration.optimalRate)
         return Ok(newBunches)
+    }
+
+    private fun legacySlotScope(
+        parentScope: ColumnGenerationScope,
+        executor: E,
+        slot: TimeSlot,
+        slotIndex: Int,
+        fixedBunches: Set<B>
+    ): ColumnGenerationScope {
+        val fixedGroups = fixedBunches.map(policy.branchGroupOfBunch).toSet()
+        val groupSlots = policy.branchGroupsOfExecutor(executor)
+            .filterNot { it in fixedGroups }
+            .sortedBy { it.toString() }
+            .mapIndexed { groupIndex, group ->
+                val groupId = "${executor.id}#$groupIndex:$group"
+                val slotId = "${executor.id}#$groupIndex@$slotIndex:${slot.start}-${slot.end}"
+                "$groupId/$slotId" to slotId
+            }
+        return parentScope.copy(
+            request = "${parentScope.request}:executor:${executor.id}:slot:$slotIndex",
+            group = groupSlots.map { it.first }.joinToString("|"),
+            global = false,
+            executorSlots = groupSlots.map { it.second }.toSet()
+        )
+    }
+
+    private fun generationScope(
+        id: SolverRunId,
+        dualRevision: UInt64,
+        executors: List<E>,
+        fixedBunches: Set<B>,
+        keptBunches: Set<B>,
+        hiddenExecutors: Set<E>
+    ): ColumnGenerationScope {
+        val fixedGroups = fixedBunches.map(policy.branchGroupOfBunch).toSet()
+        val requestedGroups = mutableListOf<String>()
+        val executorSlots = mutableSetOf<String>()
+        for (executor in executors) {
+            if (executor in hiddenExecutors) {
+                continue
+            }
+            val groups = policy.branchGroupsOfExecutor(executor)
+                .filterNot { it in fixedGroups }
+                .sortedBy { it.toString() }
+            for ((groupIndex, group) in groups.withIndex()) {
+                val groupId = "${executor.id}#$groupIndex:${group}"
+                if (slots.isEmpty()) {
+                    requestedGroups.add(groupId)
+                } else {
+                    for ((slotIndex, slot) in slots.withIndex()) {
+                        val slotId = "${executor.id}#$groupIndex@$slotIndex:${slot.start}-${slot.end}"
+                        requestedGroups.add("$groupId/$slotId")
+                        executorSlots.add(slotId)
+                    }
+                }
+            }
+        }
+
+        val branch = listOf(
+            fixedBunches.map { policy.branchGroupOfBunch(it).toString() }.sorted().joinToString(","),
+            keptBunches.map { policy.branchGroupOfBunch(it).toString() }.sorted().joinToString(","),
+            hiddenExecutors.map { it.id.toString() }.sorted().joinToString(",")
+        ).joinToString("|")
+        return ColumnGenerationScope(
+            request = "${id.value}:pricing:$generationRequestSequence",
+            group = requestedGroups.sorted().joinToString("|"),
+            branch = branch,
+            global = hasFullPricingDomain(
+                allExecutors = this.executors.toSet(),
+                requestedExecutors = executors.toSet(),
+                hasFixedBunches = fixedBunches.isNotEmpty(),
+                hasKeptBunches = keptBunches.isNotEmpty(),
+                hasHiddenExecutors = hiddenExecutors.isNotEmpty()
+            ),
+            model = id.value,
+            dual = "${id.value}:dual:$dualRevision",
+            executorSlots = executorSlots
+        )
     }
 
     /**

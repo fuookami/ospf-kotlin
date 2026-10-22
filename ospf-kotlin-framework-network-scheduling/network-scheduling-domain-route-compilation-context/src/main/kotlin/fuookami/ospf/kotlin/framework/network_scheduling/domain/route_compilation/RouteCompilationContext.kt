@@ -38,7 +38,6 @@ import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
  * - extra pipelines 通过管线列表参与 register（管线 invoke）和 shadow price（refresh + extractor）；
  * - addColumns/removeColumns 只修改路线变量和相关中间符号表达式，不影响管线中已注册的约束结构；
  * - extractRouteValues/extractSolution 只提取路线列池中的解，extra pipeline 的约束值由 model 自身管理；
- * - 若 extra pipeline 需要在列变更时执行额外逻辑，应通过扩展 RouteCompilationAggregation 实现。
  *
  * - extra pipelines participate in register (pipeline invoke) and shadow price (refresh + extractor)
  *   via the pipeline list;
@@ -46,14 +45,16 @@ import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
  *   without affecting already-registered constraint structures in pipelines;
  * - extractRouteValues/extractSolution only extract solutions from the route column pool;
  *   extra pipeline constraint values are managed by the model itself;
- * - if an extra pipeline needs additional logic during column changes,
- *   extend RouteCompilationAggregation rather than CGPipeline.
  */
 class RouteCompilationContext<V : RealNumber<V>>(
     private val instance: VrptwInstance<V>,
     private val valueAdapter: NetworkSchedulingSolverValueAdapter<V>,
-    private val extraPipelines: List<CGPipeline<VrpShadowPriceArguments, AbstractLinearMetaModel<Flt64>, VrpShadowPriceMap>> = emptyList()
+    private val extraPipelines: List<CGPipeline<VrpShadowPriceArguments, AbstractLinearMetaModel<Flt64>, VrpShadowPriceMap>> = emptyList(),
+    extraContributions: List<RouteCompilationContribution<V>> = emptyList()
 ) {
+    /** 当前模型专属的扩展贡献快照。 / Model-local extra-contribution snapshot. */
+    val extraContributions: List<RouteCompilationContribution<V>> = extraContributions.toList()
+
     /** 聚合 / Aggregation */
     val aggregation = RouteCompilationAggregation(instance, valueAdapter)
 
@@ -82,6 +83,10 @@ class RouteCompilationContext<V : RealNumber<V>>(
     var phase: PricingPhase = PricingPhase.PhaseOne
         private set
 
+    /** 最近一次从解中提取的额外贡献结果。 / Extra-contribution values from the latest solution extraction. */
+    var extractedContributions: Map<String, Any?> = emptyMap()
+        private set
+
     /**
      * 注册到模型。 / Register to model.
      *
@@ -97,6 +102,13 @@ class RouteCompilationContext<V : RealNumber<V>>(
             is Ok -> {}
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
+        }
+        for (contribution in extraContributions) {
+            when (val result = contribution.register(compilation, model)) {
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
         }
         return ok
     }
@@ -122,6 +134,18 @@ class RouteCompilationContext<V : RealNumber<V>>(
                         is Fatal -> return Fatal(objectiveResult.errors)
                     }
                 }
+                for (contribution in extraContributions) {
+                    val columns = when (val columnResult = columnsFor(contribution, result.value)) {
+                        is Ok -> columnResult.value
+                        is Failed -> return Failed(columnResult.error)
+                        is Fatal -> return Fatal(columnResult.errors)
+                    }
+                    when (val contributionResult = contribution.addColumns(columns, model)) {
+                        is Ok -> {}
+                        is Failed -> return Failed(contributionResult.error)
+                        is Fatal -> return Fatal(contributionResult.errors)
+                    }
+                }
                 result
             }
             is Failed -> Failed(result.error)
@@ -136,7 +160,22 @@ class RouteCompilationContext<V : RealNumber<V>>(
         routesToRemove: List<Route<V>>,
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
-        return aggregation.removeColumns(routesToRemove, model)
+        val routesBySignature = compilation.routes.associateBy { it.signature }
+        val existingRoutes = routesToRemove.mapNotNull { routesBySignature[it.signature] }
+            .distinctBy { it.signature }
+        for (contribution in extraContributions) {
+            val columns = when (val columnResult = columnsFor(contribution, existingRoutes)) {
+                is Ok -> columnResult.value
+                is Failed -> return Failed(columnResult.error)
+                is Fatal -> return Fatal(columnResult.errors)
+            }
+            when (val result = contribution.removeColumns(columns, model)) {
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+        }
+        return aggregation.removeColumns(existingRoutes, model)
     }
 
     /**
@@ -158,6 +197,22 @@ class RouteCompilationContext<V : RealNumber<V>>(
             }
             val extractor = pipeline.extractor() ?: continue
             shadowPriceMap.put(extractor)
+        }
+        val additionalRows = mutableSetOf<String>()
+        for (contribution in extraContributions) {
+            val additional = when (val result = contribution.refreshShadowPrices(model, shadowPrices)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            for ((key, value) in additional) {
+                if (!additionalRows.add(key)) {
+                    return networkSchedulingFailure(
+                        "刷新扩展对偶失败：扩展行键 $key 重复 / Failed to refresh extra duals: duplicate extra-row key $key"
+                    )
+                }
+                shadowPriceMap.putAdditionalDual(key, value)
+            }
         }
         return ok
     }
@@ -223,7 +278,17 @@ class RouteCompilationContext<V : RealNumber<V>>(
         model: AbstractLinearMetaModel<Flt64>,
         integralityTolerance: Flt64 = instance.tolerances.integrality
     ): Ret<List<Pair<Route<V>, Flt64>>> {
-        return aggregation.extractRouteValues(model, integralityTolerance)
+        val routeValues = when (val result = aggregation.extractRouteValues(model, integralityTolerance)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        extractedContributions = when (val result = extractContributionValues(model, routeValues)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        return Ok(routeValues)
     }
 
     /**
@@ -233,6 +298,73 @@ class RouteCompilationContext<V : RealNumber<V>>(
         model: AbstractLinearMetaModel<Flt64>,
         integralityTolerance: Flt64 = instance.tolerances.integrality
     ): Ret<List<Route<V>>> {
-        return aggregation.extractSolution(model, integralityTolerance)
+        val routeValues = when (val result = extractRouteValues(model, integralityTolerance)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        return Ok(routeValues.filter { (_, value) -> value geq (Flt64.one - integralityTolerance) }
+            .map { (route, _) -> route })
+    }
+
+    /** 为额外贡献解析路线变量与同源可加弧系数。 / Resolve route variables and shared additive arc coefficients for extensions.
+     * @param contribution 目标扩展贡献 / Target extension
+     * @param routes 路线列 / Route columns
+     * @return 扩展列快照或系数转换失败 / Extension-column snapshot or coefficient-conversion failure
+     */
+    private fun columnsFor(
+        contribution: RouteCompilationContribution<V>,
+        routes: List<Route<V>>
+    ): Ret<List<RouteCompilationColumn<V>>> {
+        val columns = mutableListOf<RouteCompilationColumn<V>>()
+        for (route in routes) {
+            val variable = when (val result = compilation.columnVariable(route)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            val coefficients = contribution.routeCoefficients(route)
+            val solverCoefficients = mutableMapOf<String, Flt64>()
+            for ((key, value) in coefficients) {
+                val solverValue = when (val result = valueAdapter.toSolverValue(value)) {
+                    is Ok -> result.value
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
+                solverCoefficients[key] = solverValue
+            }
+            columns.add(RouteCompilationColumn(
+                route = route,
+                variable = variable,
+                coefficients = coefficients,
+                solverCoefficients = solverCoefficients
+            ))
+        }
+        return Ok(columns)
+    }
+
+    /** 执行额外贡献的最终结果提取。 / Extract final results from every extra contribution.
+     * @param model 最终线性主问题 / Final linear master problem
+     * @param routeValues 路线列及其解值 / Route columns and their solution values
+     * @return 按扩展名称索引的异构结果 / Heterogeneous results keyed by contribution name
+     */
+    fun extractContributionValues(
+        model: AbstractLinearMetaModel<Flt64>,
+        routeValues: List<Pair<Route<V>, Flt64>>
+    ): Ret<Map<String, Any?>> {
+        val values = mutableMapOf<String, Any?>()
+        for (contribution in extraContributions) {
+            if (contribution.name.isBlank() || contribution.name in values) {
+                return networkSchedulingFailure(
+                    "提取扩展结果失败：扩展名称为空或重复 / Failed to extract extra results: blank or duplicate contribution name"
+                )
+            }
+            when (val result = contribution.extract(model, routeValues)) {
+                is Ok -> values[contribution.name] = result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+        }
+        return Ok(values.toMap())
     }
 }

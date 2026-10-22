@@ -48,5 +48,20 @@
             <artifactId>ospf-kotlin-framework-network-scheduling-application</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-network-scheduling-domain-path-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-network-scheduling-domain-design-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-network-scheduling-domain-resilience-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

@@ -18,6 +18,8 @@ import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.pricing.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.policy.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.service.RouteValidator
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.infrastructure.ResourceGraph
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.route_compilation.RouteCompilationContribution
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.route_compilation.shadow.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.route_generation.model.PricingInterruptionChecker
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.route_generation.policy.*
@@ -53,6 +55,7 @@ class BranchAndPriceAlgorithm<V : FloatingNumber<V>>(
 
     /**
      * B&P 策略注入。 / B&P policy injection.
+     * @property extraContributionFactory 为每个分支节点模型创建扩展贡献；必须返回未与其他模型共享的实例 / Creates extensions for each branch-node model and must return instances not shared with other models
      */
     data class Policy<V : FloatingNumber<V>>(
         val valueAdapter: NetworkSchedulingSolverValueAdapter<V>,
@@ -64,7 +67,9 @@ class BranchAndPriceAlgorithm<V : FloatingNumber<V>>(
         val labelDominancePolicy: LabelDominancePolicy = LabelDominancePolicy.Default,
         val pricingColumnSelector: PricingColumnSelector<V> = PricingColumnSelector.default(),
         val traceListener: BranchAndPriceTraceListener = BranchAndPriceTraceListener.None,
-        val extraPipelines: List<CGPipeline<VrpShadowPriceArguments, AbstractLinearMetaModel<Flt64>, VrpShadowPriceMap>> = emptyList()
+        val extraPipelines: List<CGPipeline<VrpShadowPriceArguments, AbstractLinearMetaModel<Flt64>, VrpShadowPriceMap>> = emptyList(),
+        val extraContributionFactory: (VrptwInstance<V>, LinearMetaModel<Flt64>) -> List<RouteCompilationContribution<V>> = { _, _ -> emptyList() },
+        val resourceGraph: ResourceGraph<VehicleTypeId>? = null
     )
 
     /**
@@ -199,7 +204,9 @@ class BranchAndPriceAlgorithm<V : FloatingNumber<V>>(
                 interruptionChecker = PricingInterruptionChecker {
                     beginTime.elapsedNow() >= configuration.timeLimit
                 },
-                inheritedColumns = columnPool
+                inheritedColumns = columnPool,
+                resourceGraph = policy.resourceGraph,
+                extraContributionFactory = policy.extraContributionFactory
             )
 
             val result = when (val r = nodeSolver.solve(node)) {
@@ -460,17 +467,23 @@ class BranchAndPriceAlgorithm<V : FloatingNumber<V>>(
         }
 
         // 3. 计算 edgeValue[k, (i, j)] / Compute edgeValue[k, (i, j)]
-        val edgeValue = mutableMapOf<Triple<VehicleTypeId, NetworkNodeId, NetworkNodeId>, Flt64>()
+        data class EdgeKey(
+            val vehicleTypeId: VehicleTypeId,
+            val arcId: NetworkArcId,
+            val from: NetworkNodeId,
+            val to: NetworkNodeId
+        )
+        val edgeValue = mutableMapOf<EdgeKey, Flt64>()
         for ((route, value) in routeValues) {
             val path = route.stops.map { it.nodeId }
             for (i in 0 until path.lastIndex) {
-                val key = Triple(route.vehicleTypeId, path[i], path[i + 1])
+                val key = EdgeKey(route.vehicleTypeId, route.arcIds[i], path[i], path[i + 1])
                 edgeValue[key] = (edgeValue[key] ?: Flt64.zero) + value
             }
         }
 
         // 4. 找最接近 0.5 的非整数 edgeValue / Find edgeValue closest to 0.5
-        var bestArc: Triple<VehicleTypeId, NetworkNodeId, NetworkNodeId>? = null
+        var bestArc: EdgeKey? = null
         var bestArcFractionality = Flt64.one
 
         for ((key, value) in edgeValue) {
@@ -484,8 +497,12 @@ class BranchAndPriceAlgorithm<V : FloatingNumber<V>>(
         }
 
         if (bestArc != null) {
-            val (vehicleTypeId, from, to) = bestArc
-            return BranchDecision.ForbidArc(vehicleTypeId, from, to)
+            return BranchDecision.ForbidArc(
+                vehicleTypeId = bestArc.vehicleTypeId,
+                from = bestArc.from,
+                to = bestArc.to,
+                arcId = bestArc.arcId
+            )
         }
 
         // 5. assignment/edge 均为整数，检查路线变量 / Both integer, check route variables
@@ -513,10 +530,10 @@ class BranchAndPriceAlgorithm<V : FloatingNumber<V>>(
             decision.vehicleTypeId, decision.customerId, decision.customerNodeId
         )
         is BranchDecision.ForbidArc -> BranchDecision.RequireArc(
-            decision.vehicleTypeId, decision.from, decision.to
+            decision.vehicleTypeId, decision.from, decision.to, decision.arcId
         )
         is BranchDecision.RequireArc -> BranchDecision.ForbidArc(
-            decision.vehicleTypeId, decision.from, decision.to
+            decision.vehicleTypeId, decision.from, decision.to, decision.arcId
         )
     }
 

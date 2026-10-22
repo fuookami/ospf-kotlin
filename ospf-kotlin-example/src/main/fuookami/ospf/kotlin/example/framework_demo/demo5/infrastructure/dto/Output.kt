@@ -32,7 +32,8 @@ data class RouteOutput(
     val stops: List<StopOutput>,
     val cost: Double,
     val distance: Double,
-    val load: Double
+    val load: Double,
+    val arcIds: List<String> = emptyList()
 )
 
 /**

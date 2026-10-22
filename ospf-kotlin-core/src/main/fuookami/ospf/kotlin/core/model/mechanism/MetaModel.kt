@@ -1087,6 +1087,31 @@ class LinearMetaModel<V>(
     }
 
     /**
+     * 从所有目标子项中移除指定变量项。 / Remove terms for the specified variables from every objective sub-object.
+     * @param variables 待移除的变量 / Variables whose terms should be removed
+     * @return 操作结果 / Operation result
+     */
+    fun removeObjectiveTerms(variables: Set<AbstractVariableItem<*, *>>): Try {
+        if (variables.isEmpty()) return ok
+
+        _flattenSubObjects.forEach { it.removeTerms(variables) }
+        for (index in _subObjects.indices) {
+            val source = _subObjects[index]
+            val retained = source.polynomial.monomials.filterNot { it.symbol in variables }
+            if (retained.size != source.polynomial.monomials.size) {
+                _subObjects[index] = MetaModel.SubObject(
+                    parent = this,
+                    category = source.category,
+                    name = source.name,
+                    displayName = source.displayName,
+                    polynomial = LinearPolynomial(retained, source.polynomial.constant)
+                )
+            }
+        }
+        return ok
+    }
+
+    /**
      * 使用 LinearFlattenData 添加目标函数（新 API）
      * Add objective using LinearFlattenData (new API)
      */

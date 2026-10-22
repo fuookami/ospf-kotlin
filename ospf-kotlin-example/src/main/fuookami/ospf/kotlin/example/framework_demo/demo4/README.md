@@ -24,7 +24,7 @@
 | `rule` | Scheduling rules: links, locks, flow control, restrictions, cost calculation |
 | `cargo` | Cargo domain: aggregation and context |
 | `passenger` | Passenger management: cancellations, changes, capacity constraints |
-| `bunch_generation` | Generate feasible crew bunches from flight graph (pricing sub-problem) |
+| `bunch_generation` | Generate feasible flight-task bunches from aircraft route graphs (pricing sub-problem) |
 | `bunch_compilation` | Compile bunches: fleet balance, flight links, flight capacity |
 | `bunch_selection` | Branch-and-price algorithm for bunch selection |
 | `infrastructure` | Solver, DTOs (Input/Output), semantic parameters |
@@ -67,13 +67,13 @@ demo4/
       BunchGenerationContext.kt -- Bunch generation context
       Aggregation.kt           -- Bunch generation aggregation (graphs, reverse, initialBunches)
       model/
-        Graph.kt               -- Flight graph (Node, Edge, Graph)
+        Graph.kt               -- Aviation graph facade (Node, Edge; exports Network topology)
         FlightTaskReverse.kt   -- Reversible task pair management
       service/
         Operator.kt            -- Type aliases (RuleChecker, CostCalculator, etc.)
         FlightTaskFeasibilityJudger.kt -- 10-step feasibility checks
-        RouteGraphGenerator.kt -- BFS route graph generation
-        FlightTaskBunchGenerator.kt -- Label Setting algorithm
+        RouteGraphGenerator.kt -- Aviation-specific route graph construction
+        FlightTaskBunchGenerator.kt -- Network path search with aviation-specific state transitions
         InitialFlightTaskBunchGenerator.kt -- Initial column generation
         AggregationInitializer.kt -- Initialization orchestration
     bunch_compilation/
@@ -98,11 +98,10 @@ demo4/
    - Generate initial bunches with `InitialFlightTaskBunchGenerator`.
 
 2. **Pricing** (`FlightTaskBunchGenerator`)
-   - Run the Label Setting algorithm.
-   - Traverse graph nodes in topological order, or use a label queue when order changes are enabled.
-   - Accumulate task shadow prices.
-   - Apply dominance pruning and the per-node label limit.
-   - Return bunches whose reduced cost is negative.
+   - Delegate finite path traversal to the shared Network `PathSearchContext` through the Gantt network bridge.
+   - Keep aircraft recovery, timing, cost, shadow-price and task-feasibility rules in Demo4 transition/extraction callbacks.
+   - Enforce elementary paths and a per-node label budget; do not reuse the legacy dominance rule because it ignored arrival time and visited-path state.
+   - Return negative reduced-cost bunches up to the configured output limit while still completing the full search.
 
 3. **Output**
    - New bunch columns.
@@ -116,7 +115,7 @@ demo4/
 | `reduced cost` | Original cost minus the applicable shadow prices; a negative value identifies a useful column. |
 | `initial bunch` | An initial feasible column for an aircraft, preserving locked tasks. |
 | `generated bunch` | A new column found by the pricing sub-problem. |
-| `dominance` | At the same node, retain labels that are no worse in cost, time, and aircraft-change state. |
+| `search completion` | `Exhausted`, `BudgetLimit`, `Interrupted` or `Heuristic`; capped or rejected batches are never treated as exhaustive. |
 
 ### Boundary with compilation and selection
 
@@ -126,7 +125,11 @@ demo4/
 | `bunch_compilation` | Master constraint registration, fleet balance, and flight links. | Label Setting, route graph construction, or reduced-cost search. |
 | `bunch_selection` | Branch-and-price orchestration, shadow-price extraction, and column addition. | The concrete pricing rules. |
 
-The master solver passes shadow prices to `BunchGenerationContext.generateFlightTaskBunch`; the context reuses its static graphs and exposes the latest `routeGraphDiagnostics` and `pricingDiagnostics` to the calling flow.
+The master solver passes shadow prices to `BunchGenerationContext.generateFlightTaskBunch`; the context reuses its static aviation graphs and exposes the latest `routeGraphDiagnostics` and `pricingDiagnostics` to the calling flow.
+
+### Pricing evidence boundary
+
+`ColumnGenerationBatch` carries returned columns and a completion state, plus an exact scope for the request, model, dual revision, branch state, executor group and time slots. Exhaustion certifies only completion of that scope; `noImprovingColumns` requires independent explicit evidence and is never inferred from an empty output list. A label budget, rejected path validation or rejected bunch downgrades completion; the output-column limit only caps returned columns and does not truncate search. Invalid total-cost terminals prevent a no-improvement certificate. Candidate columns are witnesses, not a minimum-reduced-cost proof, and the current Demo4 branch-and-price flow does not turn scoped pricing completion into a global lower bound or integer-optimality claim.
 
 ## Reference Mapping
 
@@ -134,7 +137,7 @@ The master solver passes shadow prices to `BunchGenerationContext.generateFlight
 | --- | --- | --- | --- |
 | `bunch_generation/BunchGenerationContext.kt`, `AggregationInitializer.kt` | `fsra-domain-bunch-generation-context` aggregation and initialization | `ospf-rust-example/src/framework` bunch-generation context | Kotlin keeps an object context and `Try`/`Ret` error flow; Rust ownership and trait boundaries are not copied literally. |
 | `RouteGraphGenerator.kt`, `FlightTaskReverse.kt` | FSRA route graph and reverse-task services | Rust route graph and reverse-task services | Kotlin uses `Graph`, `Node`, and `Edge` domain objects and records route-graph diagnostics. |
-| `FlightTaskBunchGenerator.kt` | FSRA pricing and label-setting logic | Rust pricing sub-problem | Kotlin reuses a static graph across pricing rounds and exposes label diagnostics through the context. |
+| `FlightTaskBunchGenerator.kt` | FSRA aviation pricing rules | Rust pricing sub-problem | Kotlin reuses aviation graph data and delegates generic path traversal to the shared Network kernel; unsafe legacy dominance is not carried over. |
 | `bunch_compilation` | FSRA master/bunch compilation context | Rust master model and column compilation | Both own master constraints; pricing and graph traversal remain in `bunch_generation`. |
 | `bunch_selection/BranchAndPriceAlgorithm.kt` | FSRA branch-and-price orchestration | Rust branch-and-price orchestration | Kotlin delegates the iteration mechanics to the generic framework algorithm. |
 

@@ -6,13 +6,8 @@ import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.*
 /**
  * 路线列池。 / Route column pool.
  *
- * 按"车辆类型 ID + 有序节点序列"签名去重，禁止同一路线的重复变量破坏整数性判断。
- * 在无平行弧前提下，有序节点序列唯一确定了弧序列，因此节点序列去重
- * 与合同要求的"车辆类型 ID + 有序节点/弧序列"去重语义等价。 / Deduplicates by "vehicle type ID + ordered node sequence" signature, preventing
- * duplicate route variables from breaking integrality judgments.
- * Without parallel arcs, an ordered node sequence uniquely determines
- * the arc sequence, making node-sequence deduplication semantically equivalent
- * to the contract's "vehicle type ID + ordered node/arc sequence" deduplication.
+ * 按 Route.signature 中的车辆类型、有序节点和稳定弧 ID 去重，避免重复变量破坏整数性判断。
+ * Deduplicates by vehicle type, ordered nodes and stable arc IDs in Route.signature, preventing duplicate route variables.
  */
 class RouteColumnPool<V : RealNumber<V>> {
 
@@ -48,8 +43,9 @@ class RouteColumnPool<V : RealNumber<V>> {
      * @param routesToRemove 待移除路线 / Routes to remove
      */
     fun removeColumns(routesToRemove: Set<Route<V>>) {
-        _routes.removeAll(routesToRemove.toSet())
-        _signatures.removeAll(routesToRemove.map { it.signature }.toSet())
+        val signatures = routesToRemove.map { it.signature }.toSet()
+        _routes.removeAll { it.signature in signatures }
+        _signatures.removeAll(signatures)
     }
 
     /**

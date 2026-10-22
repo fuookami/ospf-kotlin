@@ -65,6 +65,25 @@ class RouteCompilation<V : RealNumber<V>>(
     private val _routeVariableIndex = mutableMapOf<String, Pair<Int, Int>>()
     val routeVariableIndex: Map<String, Pair<Int, Int>> get() = _routeVariableIndex.toMap()
 
+    /** 获取路线对应的变量多项式，供额外主问题贡献增量装配使用。
+     * Get a route's variable polynomial for incremental assembly by extra master contributions.
+     * @param route 路线 / Route
+     * @return 列变量多项式或缺少变量时失败 / Column variable polynomial or failure when absent
+     */
+    fun columnVariable(route: Route<V>): Ret<LinearPolynomial<Flt64>> {
+        val (groupIndex, routeIndex) = _routeVariableIndex[route.signature]
+            ?: return networkSchedulingFailure(
+                "获取路线变量失败：路线 ${route.signature} 缺少变量索引 / " +
+                        "Failed to get route variable: route ${route.signature} has no variable index"
+            )
+        val variableGroup = _x.getOrNull(groupIndex)
+            ?: return networkSchedulingFailure(
+                "获取路线变量失败：路线 ${route.signature} 的变量组不存在 / " +
+                        "Failed to get route variable: variable group for route ${route.signature} does not exist"
+            )
+        return Ok(LinearPolynomial(variableGroup[routeIndex]))
+    }
+
     /** 是否已注册 / Whether registered */
     private var registered = false
 
@@ -216,7 +235,26 @@ class RouteCompilation<V : RealNumber<V>>(
         routesToRemove: List<Route<V>>,
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
-        for (route in routesToRemove) {
+        val routesBySignature = columnPool.routes.associateBy { it.signature }
+        val existingRoutes = routesToRemove.mapNotNull { routesBySignature[it.signature] }
+            .distinctBy { it.signature }
+        val removedVariables = existingRoutes.mapNotNull { route ->
+            val (groupIndex, routeIndex) = _routeVariableIndex[route.signature] ?: return@mapNotNull null
+            _x.getOrNull(groupIndex)?.get(routeIndex)
+        }.toSet()
+        if (removedVariables.isNotEmpty()) {
+            val linearModel = model as? LinearMetaModel<*>
+                ?: return networkSchedulingFailure(
+                    "删除路线列失败：线性元模型不支持目标项更新 / " +
+                            "Failed to remove route columns: linear meta model does not support objective-term updates"
+                )
+            when (val result = linearModel.removeObjectiveTerms(removedVariables)) {
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+        }
+        for (route in existingRoutes) {
             val (iterIdx, routeIdx) = _routeVariableIndex[route.signature] ?: continue
             val xi = _x[iterIdx]
             val variable = xi[routeIdx]
@@ -236,7 +274,7 @@ class RouteCompilation<V : RealNumber<V>>(
             model.remove(xi[routeIdx])
             _routeVariableIndex.remove(route.signature)
         }
-        columnPool.removeColumns(routesToRemove.toSet())
+        columnPool.removeColumns(existingRoutes.toSet())
         return ok
     }
 

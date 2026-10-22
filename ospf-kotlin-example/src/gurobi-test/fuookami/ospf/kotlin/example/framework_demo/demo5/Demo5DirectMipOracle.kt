@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.solver.report.SolveReport
+import fuookami.ospf.kotlin.core.solver.report.SolutionPresence
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.variable.*
@@ -238,7 +238,28 @@ internal object Demo5DirectMipOracle {
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
         }
-        model.setSolution(output.solution)
+        val incumbent = output.solution
+            ?.takeIf { output.solutionPresence != SolutionPresence.None }
+            ?: return oracleFailure(
+                "直接 MIP 未找到 incumbent（${output.problemStatus}, ${output.terminationReason}）",
+                "direct MIP produced no incumbent (${output.problemStatus}, ${output.terminationReason})"
+            )
+        val objective = incumbent.objective
+            ?: return oracleFailure("直接 MIP incumbent 缺少目标值", "direct-MIP incumbent has no objective")
+        val bestBound = output.statistics.bestBound ?: if (output.solutionPresence == SolutionPresence.Optimal) {
+            objective
+        } else {
+            return oracleFailure(
+                "直接 MIP incumbent 缺少 best bound",
+                "direct-MIP incumbent has no best bound"
+            )
+        }
+        val gap = output.statistics.gap ?: if (output.solutionPresence == SolutionPresence.Optimal) {
+            Flt64.zero
+        } else {
+            Flt64.infinity
+        }
+        model.setSolution(incumbent.values)
         val sequences = extractCustomerSequences(
             instance = instance,
             model = model,
@@ -247,9 +268,9 @@ internal object Demo5DirectMipOracle {
             endIndex = endIndex
         ).value ?: return oracleFailure("直接 MIP 路线提取失败", "direct-MIP route extraction failed")
         return ok(Result(
-            objective = output.obj,
-            bestBound = output.bestBound ?: output.possibleBestObj,
-            gap = output.mipGap,
+            objective = objective,
+            bestBound = bestBound,
+            gap = gap,
             customerSequences = sequences
         ))
     }

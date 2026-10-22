@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.pricing.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.policy.*
-import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.infrastructure.BranchMask
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.infrastructure.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.route_compilation.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.route_compilation.shadow.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.route_generation.model.*
@@ -46,7 +46,9 @@ class BranchNodeSolver<V : FloatingNumber<V>>(
     private val maxColumnsPerPricing: Int = Int.MAX_VALUE,
     private val maxCGIterations: Int = 1000,
     private val interruptionChecker: PricingInterruptionChecker = PricingInterruptionChecker.Never,
-    private val inheritedColumns: List<Route<V>> = emptyList()
+    private val inheritedColumns: List<Route<V>> = emptyList(),
+    private val resourceGraph: ResourceGraph<VehicleTypeId>? = null,
+    private val extraContributionFactory: (VrptwInstance<V>, LinearMetaModel<Flt64>) -> List<RouteCompilationContribution<V>> = { _, _ -> emptyList() }
 ) {
     private data class ColumnGenerationResult(
         val pricingComplete: Boolean,
@@ -101,10 +103,12 @@ class BranchNodeSolver<V : FloatingNumber<V>>(
             "node_${node.id}",
             converter = converter
         )
+        val extraContributions = extraContributionFactory(instance, model).toList()
         val context = RouteCompilationContext(
             instance = instance,
             valueAdapter = valueAdapter,
-            extraPipelines = extraPipelines
+            extraPipelines = extraPipelines,
+            extraContributions = extraContributions
         )
 
         // 1. 注册 / Register
@@ -122,9 +126,14 @@ class BranchNodeSolver<V : FloatingNumber<V>>(
             travelTimeCalculator = travelTimeCalculator,
             arcCostCalculator = arcCostCalculator,
             routeCostPolicy = routeCostPolicy,
-            arcFeasibilityPolicy = arcFeasibilityPolicy
+            arcFeasibilityPolicy = arcFeasibilityPolicy,
+            resourceGraph = resourceGraph
         )
-        val compatibleInheritedColumns = filterRouteColumnsForBranch(node.branchMask, inheritedColumns)
+        val compatibleInheritedColumns = filterRouteColumnsForBranch(
+            branchMask = node.branchMask,
+            columns = inheritedColumns,
+            resourceGraph = resourceGraph
+        )
         val initialRoutes = initialRouteGenerator.generate(node.branchMask)
         val routesToAdd = compatibleInheritedColumns + initialRoutes
         if (routesToAdd.isNotEmpty()) {
@@ -329,12 +338,15 @@ class BranchNodeSolver<V : FloatingNumber<V>>(
             distanceCalculator = distanceCalculator,
             travelTimeCalculator = travelTimeCalculator,
             arcCostCalculator = arcCostCalculator,
-            arcFeasibilityPolicy = arcFeasibilityPolicy
+            arcFeasibilityPolicy = arcFeasibilityPolicy,
+            resourceGraph = resourceGraph,
+            coefficientProviders = context.extraContributions
         )
         val pricer = EspprcPricer(
             instance = instance,
             valueAdapter = valueAdapter,
-            dominancePolicy = labelDominancePolicy
+            dominancePolicy = labelDominancePolicy,
+            routeCostPolicy = routeCostPolicy
         )
 
         var iteration = UInt64.one
@@ -458,12 +470,25 @@ class BranchNodeSolver<V : FloatingNumber<V>>(
  */
 internal fun <V : RealNumber<V>> filterRouteColumnsForBranch(
     branchMask: BranchMask<VehicleTypeId>,
-    columns: List<Route<V>>
+    columns: List<Route<V>>,
+    resourceGraph: ResourceGraph<VehicleTypeId>? = null
 ): List<Route<V>> {
     return columns.filter { route ->
-        branchMask.isRouteCompatible(
+        val branchCompatible = branchMask.isRouteCompatible(
             resourceKey = route.vehicleTypeId,
-            path = route.stops.map { it.nodeId }
+            path = route.stops.map { it.nodeId },
+            arcIds = route.arcIds
         )
+        val graphCompatible = resourceGraph?.let { graph ->
+            route.arcIds.indices.all { index ->
+                ResourceArc(
+                    resourceKey = route.vehicleTypeId,
+                    from = route.stops[index].nodeId,
+                    to = route.stops[index + 1].nodeId,
+                    id = route.arcIds[index]
+                ) in graph.arcs
+            }
+        } ?: true
+        branchCompatible && graphCompatible
     }
 }

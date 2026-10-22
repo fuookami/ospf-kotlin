@@ -538,6 +538,26 @@
                 <artifactId>ospf-kotlin-framework-network-scheduling-application</artifactId>
                 <version>${project.version}</version>
             </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-network-scheduling-domain-path-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-network-scheduling-domain-design-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-network-scheduling-domain-resilience-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-network-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
             <!-- ospf-gantt-scheduling -->
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
@@ -635,6 +655,11 @@
                 <artifactId>ospf-kotlin-example</artifactId>
                 <version>${project.version}</version>
             </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-starter-gantt-network</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

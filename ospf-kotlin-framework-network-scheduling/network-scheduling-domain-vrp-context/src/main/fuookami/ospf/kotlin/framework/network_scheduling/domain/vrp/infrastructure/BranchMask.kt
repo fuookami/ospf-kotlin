@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.infrastructure
 
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.NetworkArcId
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.NetworkNodeId
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.networkSchedulingFailure
 
@@ -46,19 +47,46 @@ class BranchMask<K> private constructor(
         from: NetworkNodeId,
         to: NetworkNodeId
     ): Boolean {
-        val candidate = ResourceArc(
+        return allowsArc(
             resourceKey = resourceKey,
             from = from,
-            to = to
+            to = to,
+            arcId = defaultResourceArcId(from, to)
         )
-        if (!allowsNode(resourceKey, from) || !allowsNode(resourceKey, to) || candidate in forbiddenArcs) {
+    }
+
+    /** 判断带稳定弧标识的资源弧是否可用。 / Check whether an identified resource arc is allowed.
+     * @param resourceKey 资源稳定键 / Stable resource key
+     * @param from 起点 / Origin
+     * @param to 终点 / Destination
+     * @param arcId 独立稳定弧标识 / Independent stable arc identity
+     * @return 是否允许 / Whether the arc is allowed
+     */
+    fun allowsArc(
+        resourceKey: K,
+        from: NetworkNodeId,
+        to: NetworkNodeId,
+        arcId: NetworkArcId
+    ): Boolean {
+        return allowsArc(ResourceArc(resourceKey, from, to, arcId))
+    }
+
+    /** 判断资源弧是否可用。 / Check whether a resource arc is allowed.
+     * @param arc 候选弧 / Candidate arc
+     * @return 是否允许 / Whether the arc is allowed
+     */
+    fun allowsArc(arc: ResourceArc<K>): Boolean {
+        val resourceKey = arc.resourceKey
+        val from = arc.from
+        val to = arc.to
+        if (!allowsNode(resourceKey, from) || !allowsNode(resourceKey, to) || arc in forbiddenArcs) {
             return false
         }
         for (required in requiredArcs) {
-            if (required.from != startDepot && from == required.from && candidate != required) {
+            if (required.resourceKey == resourceKey && required.from != startDepot && from == required.from && arc != required) {
                 return false
             }
-            if (required.to != endDepot && to == required.to && candidate != required) {
+            if (required.resourceKey == resourceKey && required.to != endDepot && to == required.to && arc != required) {
                 return false
             }
         }
@@ -73,13 +101,44 @@ class BranchMask<K> private constructor(
         if (path.any { !allowsNode(resourceKey, it) }) {
             return false
         }
-        return path.zipWithNext().all { (from, to) ->
-            allowsArc(
-                resourceKey = resourceKey,
-                from = from,
-                to = to
-            )
+        return isRouteCompatible(resourceKey, path, path.zipWithNext { from, to ->
+            defaultResourceArcId(from, to)
+        })
+    }
+
+    /** 判断包含明确平行弧 ID 的完整路线是否兼容。 / Check a complete route with explicit parallel-arc identities.
+     * @param resourceKey 资源稳定键 / Stable resource key
+     * @param path 有序节点 / Ordered nodes
+     * @param arcIds 有序弧 ID / Ordered arc IDs
+     * @return 是否兼容 / Whether compatible
+     */
+    fun isRouteCompatible(
+        resourceKey: K,
+        path: List<NetworkNodeId>,
+        arcIds: List<NetworkArcId>
+    ): Boolean {
+        if (path.size < 2 || path.first() != startDepot || path.last() != endDepot ||
+            arcIds.size != path.size - 1 || path.any { !allowsNode(resourceKey, it) }) {
+            return false
         }
+        return path.zipWithNext().zip(arcIds).all { (endpoints, arcId) ->
+            allowsArc(resourceKey, endpoints.first, endpoints.second, arcId)
+        }
+    }
+
+    /** 判断显式资源弧序列组成的路线是否兼容。 / Check a route expressed as explicit resource arcs.
+     * @param resourceKey 资源稳定键 / Stable resource key
+     * @param arcs 有序资源弧 / Ordered resource arcs
+     * @return 是否兼容 / Whether compatible
+     */
+    fun isResourceArcSequenceCompatible(resourceKey: K, arcs: List<ResourceArc<K>>): Boolean {
+        if (arcs.isEmpty() || arcs.any { it.resourceKey != resourceKey } ||
+            arcs.first().from != startDepot || arcs.last().to != endDepot ||
+            arcs.zipWithNext().any { (first, next) -> first.to != next.from }) {
+            return false
+        }
+        val path = listOf(arcs.first().from) + arcs.map { it.to }
+        return isRouteCompatible(resourceKey, path, arcs.map { it.id })
     }
 
     companion object {

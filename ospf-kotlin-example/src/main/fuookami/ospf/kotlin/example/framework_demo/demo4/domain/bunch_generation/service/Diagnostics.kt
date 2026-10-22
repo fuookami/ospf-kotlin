@@ -24,7 +24,7 @@ data class RouteGraphDiagnostics(
  * @property expandedLabelCount 实际从队列取出并扩展的标签数 / Number of labels actually dequeued and expanded.
  * @property dominatedLabelCount 因支配剪枝丢弃的标签数 / Number of labels discarded by dominance pruning.
  * @property labelLimitReachedCount 触发标签上限的次数 / Number of insertions that reached the label limit.
- * @property negativeReducedCostLabelCount 负 reduced cost 终点标签数 / Number of negative reduced-cost end labels.
+ * @property negativeReducedCostLabelCount 完整终止成本有效的负 reduced cost 终点标签数 / Negative reduced-cost end labels with a valid complete terminal cost.
  * @property generatedColumnCount 实际生成列数 / Number of generated columns.
  * @property invalidColumnCount 负 reduced cost 但无法生成列的标签数 / Number of negative labels rejected by total-cost construction.
  * @property searchTruncatedByLabelLimit 标签上限是否截断了搜索 / Whether the label limit truncated the search.

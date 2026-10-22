@@ -4,15 +4,16 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.model.ColumnGenerationCompletion
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.service.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
 
 /**
  * 航班任务束生成器的配置和构造测试 / Tests for FlightTaskBunchGenerator configuration and construction.
@@ -45,24 +46,14 @@ class FlightTaskBunchGeneratorTest {
     }
 
     @Test
-    fun `FlightTaskBunchGenerator sortNodes handles empty graph`() {
-        // sortNodes is a companion object method, tested indirectly through construction
-        val config = BunchGenerationConfiguration()
-        assertNotNull(config)
-    }
+    fun `pricing reports a missing source as a Result failure`() {
+        val fixture = demo4TestFixture()
+        val generator = generator(fixture = fixture, graph = Graph())
 
-    @Test
-    fun `FlightTaskBunchGenerator with order change uses empty nodes list`() {
-        val config = BunchGenerationConfiguration(withOrderChange = true)
-        assertTrue(config.withOrderChange)
-        // When withOrderChange is true, nodes list should be empty (BFS used instead)
-    }
+        val result = generator(Int64.zero, ShadowPriceMap())
 
-    @Test
-    fun `FlightTaskBunchGenerator without order change uses sorted nodes`() {
-        val config = BunchGenerationConfiguration(withOrderChange = false)
-        assertFalse(config.withOrderChange)
-        // When withOrderChange is false, topological sort is used
+        assertTrue(result is Failed)
+        assertNull(generator.lastBatch)
     }
 
     @Test
@@ -122,10 +113,13 @@ class FlightTaskBunchGeneratorTest {
 
         assertEquals(1, bunches.size)
         assertEquals(1, generator.diagnostics.generatedColumnCount)
+        assertEquals(2, generator.diagnostics.negativeReducedCostLabelCount)
+        assertEquals(ColumnGenerationCompletion.Exhausted, generator.lastBatch?.completion)
+        assertNull(generator.lastBatch?.noImprovingColumns)
     }
 
     @Test
-    fun `dominance rejects a more expensive label at a merge node`() {
+    fun `pricing retains different flight histories at a merge node`() {
         val fixture = demo4TestFixture()
         val alternativeTask = demo4FlightTask(
             fixture = fixture,
@@ -145,13 +139,21 @@ class FlightTaskBunchGeneratorTest {
             }
         )
 
-        runPricing(generator, ShadowPriceMap())
+        val shadowPrices = ShadowPriceMap()
+        shadowPrices.put { _, arguments ->
+            if (arguments.task != null) Flt64(100.0) else Flt64.zero
+        }
+        val bunches = runPricing(generator, shadowPrices)
 
-        assertTrue(generator.diagnostics.dominatedLabelCount > 0)
+        assertEquals(0, generator.diagnostics.dominatedLabelCount)
+        assertTrue(bunches.any {
+            it.tasks.map { task -> task.originTask } == listOf(alternativeTask, fixture.secondTask)
+        })
+        assertEquals(ColumnGenerationCompletion.Exhausted, generator.lastBatch?.completion)
     }
 
     @Test
-    fun `dominance counts every existing label removed by a better label`() {
+    fun `pricing keeps distinct merge histories instead of unsafe dominance pruning`() {
         val fixture = demo4TestFixture()
         val costlyTask = demo4FlightTask(
             fixture = fixture,
@@ -192,9 +194,17 @@ class FlightTaskBunchGeneratorTest {
             }
         )
 
-        runPricing(generator, ShadowPriceMap())
+        val shadowPrices = ShadowPriceMap()
+        shadowPrices.put { _, arguments ->
+            if (arguments.task != null) Flt64(100.0) else Flt64.zero
+        }
+        val bunches = runPricing(generator, shadowPrices)
 
-        assertEquals(2, generator.diagnostics.dominatedLabelCount)
+        val sequences = bunches.map { bunch -> bunch.tasks.map { it.originTask } }.toSet()
+        assertTrue(listOf(costlyTask, fixture.secondTask) in sequences)
+        assertTrue(listOf(delayedTask, fixture.secondTask) in sequences)
+        assertTrue(listOf(betterTask, fixture.secondTask) in sequences)
+        assertEquals(0, generator.diagnostics.dominatedLabelCount)
     }
 
     @Test

@@ -64,21 +64,23 @@ class FleetBalanceLimit(
             }
         }
 
-        val poly = sum(fleetBalance.limits.withIndex().map { (l, checkPoint) ->
-            coefficient(checkPoint.first.airport, checkPoint.first.aircraftMinorType) * fleetBalance.slack[l]
-        })
-        when (val result = model.minimize(
-            LinearExpressionSymbol(poly),
-            name = "fleet balance")
-        ) {
-            is Ok -> {}
+        if (fleetBalance.limits.isNotEmpty()) {
+            val poly = sum(fleetBalance.limits.withIndex().map { (l, checkPoint) ->
+                coefficient(checkPoint.first.airport, checkPoint.first.aircraftMinorType) * fleetBalance.slack[l]
+            })
+            when (val result = model.minimize(
+                LinearExpressionSymbol(poly),
+                name = "fleet balance")
+            ) {
+                is Ok -> {}
 
-            is Failed -> {
-                return Failed(result.error)
-            }
+                is Failed -> {
+                    return Failed(result.error)
+                }
 
-            is Fatal -> {
-                return Fatal(result.errors)
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 

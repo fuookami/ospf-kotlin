@@ -7,6 +7,8 @@ import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.framework.solver.*
+import fuookami.ospf.kotlin.framework.model.ColumnGenerationBatch
+import fuookami.ospf.kotlin.framework.model.ColumnGenerationCompletion
 import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.application.service.bunch.BranchAndPriceAlgorithm as FrameworkBranchAndPriceAlgorithm
@@ -65,6 +67,22 @@ class BranchAndPriceAlgorithm(
             extractContextBuilder = listOf(),
             shadowPriceMap = { ShadowPriceMap() },
             reducedCost = { map, bunch -> map.reducedCost(bunch as FlightTaskBunch) },
+            bunchGenerationBatch = { iteration, aircrafts, map, fixed, _, hidden, scope ->
+                val visible = aircrafts.filter { it !in hidden && fixed.none { bunch -> bunch.executor == it } }
+                when (val result = context.bunchGenerationContext.generateFlightTaskBunch(
+                    aircrafts = visible,
+                    iteration = iteration.toInt64(),
+                    shadowPriceMap = map,
+                    scope = scope
+                )) {
+                    is Ok -> Ok(context.bunchGenerationContext.lastBatch ?: ColumnGenerationBatch(
+                        columns = result.value,
+                        completion = ColumnGenerationCompletion.Heuristic
+                    ))
+                    is Failed -> Failed(result.error)
+                    is Fatal -> Fatal(result.errors)
+                }
+            },
             bunchGenerator = { iteration: UInt64, aircrafts: List<Aircraft>, map: ShadowPriceMap ->
                 context.bunchGenerationContext.generateFlightTaskBunch(
                     aircrafts = aircrafts,

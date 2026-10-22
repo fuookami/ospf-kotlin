@@ -29,12 +29,15 @@ enum class PricingPhase {
  * @property phase 当前阶段 / Current phase
  * @property customer 客户覆盖对偶 / Customer-coverage duals
  * @property fleet 车队数量对偶 / Fleet-size duals
+ * @property additional 扩展主问题行的有符号对偶 / Signed duals for extra master rows
  */
 class PricingDuals(
     val phase: PricingPhase,
     customer: Map<CustomerId, Flt64>,
-    fleet: Map<VehicleTypeId, Flt64>
+    fleet: Map<VehicleTypeId, Flt64>,
+    additional: Map<String, Flt64> = emptyMap()
 ) {
     val customer: Map<CustomerId, Flt64> = customer.toMap()
     val fleet: Map<VehicleTypeId, Flt64> = fleet.toMap()
+    val additional: Map<String, Flt64> = additional.toMap()
 }

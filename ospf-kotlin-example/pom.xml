@@ -23,6 +23,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-network-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
             <artifactId>ospf-kotlin-starter</artifactId>
             <version>${project.version}</version>
@@ -595,9 +600,8 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-                            <includes>
-                                <include>**/Demo4BranchAndPriceE2EIntegration.*</include>
-                            </includes>
+                            <test>Demo4BranchAndPriceE2EIntegration</test>
+                            <failIfNoTests>true</failIfNoTests>
                             <systemPropertyVariables>
                                 <ospf.kotlin.math.enableCompanionReflectionFallback>true</ospf.kotlin.math.enableCompanionReflectionFallback>
                             </systemPropertyVariables>
@@ -669,14 +673,13 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-                            <includes>
-                                <include>**/Demo5Scip*Test.*</include>
-                            </includes>
-                            <forkCount>0</forkCount>
+                            <test>Demo5Scip*Test</test>
+                            <failIfNoTests>true</failIfNoTests>
+                            <forkCount>1</forkCount>
+                            <argLine>-XX:-UseJVMCICompiler --enable-native-access=ALL-UNNAMED -Djava.library.path="${env.JSCIP_HOME};${env.SCIP_HOME}/bin"</argLine>
                             <systemPropertyVariables>
                                 <ospf.demo5.solver>scip</ospf.demo5.solver>
                                 <ospf.kotlin.math.enableCompanionReflectionFallback>true</ospf.kotlin.math.enableCompanionReflectionFallback>
-                                <java.library.path>${env.JSCIP_HOME};${env.SCIP_HOME};${java.library.path}</java.library.path>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>
@@ -746,9 +749,8 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-                            <includes>
-                                <include>**/Demo5*Test.*</include>
-                            </includes>
+                            <test>Demo5*Test</test>
+                            <failIfNoTests>true</failIfNoTests>
                             <forkCount>1</forkCount>
                             <systemPropertyVariables>
                                 <ospf.kotlin.math.enableCompanionReflectionFallback>true</ospf.kotlin.math.enableCompanionReflectionFallback>

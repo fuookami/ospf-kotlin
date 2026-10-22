@@ -21,6 +21,9 @@
         <module>network-scheduling-domain-route-generation-context</module>
         <module>network-scheduling-domain-route-compilation-context</module>
         <module>network-scheduling-application</module>
+        <module>network-scheduling-domain-path-context</module>
+        <module>network-scheduling-domain-design-context</module>
+        <module>network-scheduling-domain-resilience-context</module>
     </modules>
 
     <dependencies>

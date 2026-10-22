@@ -53,7 +53,7 @@ class Iteration<T : IterativeAbstractTask<E, A>, E : Executor, A : AssignmentPol
 
     private var bestObj = Flt64.Companion.maximum
     private var bestLpObj = Flt64.Companion.maximum
-    private var bestDualObj = Flt64.Companion.minimum
+    private var bestDualObj: Flt64? = null
     private var lowerBound = Flt64.Companion.zero
     private var upperBound: Flt64? = null
 
@@ -82,7 +82,8 @@ class Iteration<T : IterativeAbstractTask<E, A>, E : Executor, A : AssignmentPol
         }
 
         val currentDualObj = prevLpObj + bestReducedCost.values.sum(Flt64)
-        if (bestDualObj ls currentDualObj && currentDualObj ls bestObj) {
+        val previousBestDualObj = bestDualObj
+        if ((previousBestDualObj == null || (previousBestDualObj ls currentDualObj)) && currentDualObj ls bestObj) {
             logger.debug { "best dual obj: $bestDualObj -> $currentDualObj" }
             bestDualObj = currentDualObj
             if (lowerBound ls currentDualObj) {
@@ -179,7 +180,7 @@ class Iteration<T : IterativeAbstractTask<E, A>, E : Executor, A : AssignmentPol
             runTime = runTime,
             bestObjective = quantity(bestObj, adapter, unit),
             bestLpObjective = quantity(bestLpObj, adapter, unit),
-            bestDualObjective = quantity(bestDualObj, adapter, unit),
+            bestDualObjective = bestDualObj?.let { quantity(it, adapter, unit) },
             lowerBound = quantity(lowerBound, adapter, unit),
             upperBound = upperBound?.let { quantity(it, adapter, unit) },
             slowLpImprovementStep = if (slowLpImprovementStep.isInfinity()) {

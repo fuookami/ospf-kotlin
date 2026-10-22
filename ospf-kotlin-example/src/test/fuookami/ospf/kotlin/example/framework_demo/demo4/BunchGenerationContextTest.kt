@@ -10,6 +10,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.model.ColumnGenerationCompletion
+import fuookami.ospf.kotlin.framework.model.ColumnGenerationScope
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.functional.*
 import org.junit.jupiter.api.Assertions.*
@@ -61,6 +63,78 @@ class BunchGenerationContextTest {
     }
 
     @Test
+    fun `network pricing output matches legal Demo4 flight sequences`() {
+        val fixture = demo4TestFixture()
+        val context = initializedContext(fixture)
+        val judger = FlightTaskFeasibilityJudger(
+            aircraftUsability = mapOf(fixture.aircraft to fixture.usability),
+            connectionTimeCalculator = connectionTimeCalculator(),
+            ruleChecker = RuleChecker { _, _, _ -> true }
+        )
+
+        val result = context.generateFlightTaskBunch(
+            aircrafts = listOf(fixture.aircraft),
+            iteration = Int64.zero,
+            shadowPriceMap = shadowPriceMap(fixture, 3.0)
+        )
+
+        assertTrue(result is Ok)
+        val bunches = (result as Ok).value
+        val sequences = bunches.map { bunch -> bunch.tasks.map { it.originTask } }.toSet()
+        assertEquals(
+            setOf(listOf(fixture.firstTask), listOf(fixture.firstTask, fixture.secondTask)),
+            sequences
+        )
+        for (bunch in bunches) {
+            assertEquals(fixture.aircraft, bunch.executor)
+            var previousTask = fixture.usability.lastTask
+            for (task in bunch.tasks) {
+                assertTrue(
+                    judger(
+                        aircraft = fixture.aircraft,
+                        prevFlightTask = previousTask,
+                        flightTask = task,
+                        config = FlightTaskFeasibilityJudger.Config(timeExtractor = { it.time })
+                    ),
+                    "generated route must remain legal under the Demo4 business rules"
+                )
+                previousTask = task
+            }
+        }
+        assertEquals(ColumnGenerationCompletion.Exhausted, context.lastBatch?.completion)
+    }
+
+    @Test
+    fun `batch evidence is returned only for the requested aircraft scope`() {
+        val fixture = demo4TestFixture()
+        val context = initializedContext(fixture)
+        val scope = ColumnGenerationScope(
+            request = "demo4:pricing:1",
+            group = "${fixture.aircraft.id}#0:${fixture.aircraft}",
+            branch = "root",
+            global = true,
+            model = "demo4-model",
+            dual = "lp-1"
+        )
+
+        val result = context.generateFlightTaskBunch(
+            aircrafts = listOf(fixture.aircraft),
+            iteration = Int64.zero,
+            shadowPriceMap = ShadowPriceMap(),
+            scope = scope
+        )
+
+        assertTrue(result is Ok)
+        assertEquals(scope, context.lastBatch?.scope)
+        assertTrue(context.lastBatch!!.certifiesNoImprovingColumns(scope))
+        assertEquals(1, context.lastBatch!!.children.size)
+        val child = context.lastBatch!!.children.single()
+        assertEquals("${scope.request}:aircraft:${fixture.aircraft.id}", child.scope?.request)
+        assertEquals("${fixture.aircraft.id}#0:${fixture.aircraft}", child.scope?.group)
+        assertTrue(child.certifiesNoImprovingColumns(child.scope!!))
+    }
+
+    @Test
     fun `pricing diagnostics distinguish a feasible path from no negative reduced cost`() {
         val fixture = demo4TestFixture()
         val context = BunchGenerationContext()
@@ -92,7 +166,7 @@ class BunchGenerationContextTest {
     }
 
     @Test
-    fun `pricing diagnostics preserve negative labels when total cost rejects a column`() {
+    fun `unknown terminal cost does not certify negative labels or no improvement`() {
         val fixture = demo4TestFixture()
         val context = BunchGenerationContext()
         val result = context.init(
@@ -122,8 +196,9 @@ class BunchGenerationContextTest {
         val diagnostics = context.pricingDiagnostics[fixture.aircraft]!!
         assertFalse(diagnostics.noFeasiblePath)
         assertFalse(diagnostics.noNegativeReducedCost)
-        assertTrue(diagnostics.negativeReducedCostLabelCount > 0)
+        assertEquals(0, diagnostics.negativeReducedCostLabelCount)
         assertEquals(1, diagnostics.invalidColumnCount)
+        assertFalse(context.lastBatch?.noImprovingColumns == true)
     }
 
     @Test

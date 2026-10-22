@@ -161,11 +161,18 @@ class RouteCompilationTest {
 
         val route1 = makeRoute(instance, listOf(CustomerId("c1")))
         val route2 = makeRoute(instance, listOf(CustomerId("c2")))
+        val sameSignature = assertNotNull(Route(
+            vehicleTypeId = route1.vehicleTypeId,
+            stops = route1.stops,
+            distance = route1.distance,
+            cost = Quantity(Flt64(999.0), NoneUnit),
+            arcIds = route1.arcIds
+        ).value)
 
         pool.addColumns(listOf(route1, route2))
         assertEquals(2, pool.size)
 
-        pool.removeColumns(setOf(route1))
+        pool.removeColumns(setOf(sameSignature))
         assertEquals(1, pool.size)
         assertFalse(pool.contains(route1.signature))
         assertTrue(pool.contains(route2.signature))
@@ -256,6 +263,32 @@ class RouteCompilationTest {
 
         assertTrue(mechanism is Ok)
         assertTrue(mechanism.value.objectFunction.subObjects.any { it.name == "route_cost_minimization_1" })
+    }
+
+    @Test
+    fun phaseTwoRemovedColumnsShouldNotLeaveObjectiveTermsInCompiledModel() {
+        val instance = makeInstance()
+        val context = RouteCompilationContext(instance, Flt64NetworkSchedulingSolverValueAdapter)
+        val model = LinearMetaModel("test_phase_two_remove_objective_term")
+        val retainedRoute = makeRoute(instance, listOf(CustomerId("c1")))
+        val removedRoute = makeRoute(instance, listOf(CustomerId("c2")))
+
+        assertTrue(context.register(model) is Ok)
+        assertTrue(context.addColumns(UInt64.zero, listOf(retainedRoute), model) is Ok)
+        assertTrue(context.switchToPhaseTwo(model) is Ok)
+        assertTrue(context.addColumns(UInt64.one, listOf(removedRoute), model) is Ok)
+        val (groupIndex, routeIndex) = assertNotNull(context.compilation.routeVariableIndex[removedRoute.signature])
+        val removedVariable = context.compilation.x[groupIndex][routeIndex]
+
+        assertTrue(context.removeColumns(listOf(removedRoute), model) is Ok)
+        val mechanism = runBlocking {
+            LinearMechanismModel.invoke(metaModel = model, concurrent = false)
+        }
+
+        assertTrue(mechanism is Ok)
+        val objectiveTerms = mechanism.value.objectFunction.subObjects.flatMap { it.linearTerms() }
+        assertFalse(objectiveTerms.any { (_, variable) -> variable == removedVariable })
+        assertTrue(objectiveTerms.any { (_, variable) -> variable == context.compilation.x[0][0] })
     }
 
     @Test
@@ -520,5 +553,75 @@ class RouteCompilationTest {
         assertTrue(solutionResult is Ok, "extractSolution should succeed")
         val solution = (solutionResult as Ok).value
         assertNotNull(solution, "Solution should not be null")
+    }
+
+    @Test
+    fun extraContributionShouldShareCoefficientsAcrossColumnAndPricingLifecycle() {
+        val instance = makeInstance()
+        val route = makeRoute(instance, listOf(CustomerId("c1")))
+        val added = mutableListOf<RouteCompilationColumn<Flt64>>()
+        val removed = mutableListOf<RouteCompilationColumn<Flt64>>()
+        var registered = false
+        val contribution = object : RouteCompilationContribution<Flt64> {
+            override val name = "route_arc_count"
+
+            override fun coefficients(arc: ResourceArc<VehicleTypeId>): Map<String, Flt64> =
+                mapOf("route_arc_count" to Flt64.one)
+
+            override fun register(compilation: RouteCompilation<Flt64>, model: AbstractLinearMetaModel<Flt64>): Try {
+                registered = true
+                return ok
+            }
+
+            override fun addColumns(columns: List<RouteCompilationColumn<Flt64>>, model: AbstractLinearMetaModel<Flt64>): Try {
+                added.addAll(columns)
+                return ok
+            }
+
+            override fun removeColumns(columns: List<RouteCompilationColumn<Flt64>>, model: AbstractLinearMetaModel<Flt64>): Try {
+                removed.addAll(columns)
+                return ok
+            }
+
+            override fun refreshShadowPrices(
+                model: AbstractLinearMetaModel<Flt64>,
+                shadowPrices: MetaDualSolution
+            ): Ret<Map<String, Flt64>> = ok(mapOf("route_arc_count" to Flt64(-2.0)))
+
+            override fun extract(
+                model: AbstractLinearMetaModel<Flt64>,
+                routeValues: List<Pair<Route<Flt64>, Flt64>>
+            ): Ret<Any?> = Ok(routeValues.map { it.first.signature })
+        }
+        val context = RouteCompilationContext(
+            instance = instance,
+            valueAdapter = Flt64NetworkSchedulingSolverValueAdapter,
+            extraContributions = listOf(contribution)
+        )
+        val model = LinearMetaModel("test_extra_route_contribution")
+
+        assertTrue(context.register(model) is Ok)
+        assertTrue(registered)
+        assertTrue(context.addColumns(UInt64.zero, listOf(route), model) is Ok)
+        assertEquals(Flt64(2.0), added.single().coefficients["route_arc_count"])
+        assertEquals(Flt64(2.0), added.single().solverCoefficients["route_arc_count"])
+        val sameSignature = assertNotNull(Route(
+            vehicleTypeId = route.vehicleTypeId,
+            stops = route.stops,
+            distance = route.distance,
+            cost = Quantity(Flt64(999.0), NoneUnit),
+            arcIds = route.arcIds
+        ).value)
+        assertTrue(context.removeColumns(listOf(sameSignature), model) is Ok)
+        assertSame(route, removed.single().route)
+        assertEquals(Flt64(2.0), removed.single().coefficients["route_arc_count"])
+
+        val pricingDuals = assertNotNull(context.extractPricingDuals(
+            model = model,
+            shadowPrices = MetaDualSolution(constraints = emptyMap(), symbols = emptyMap())
+        ).value)
+        assertEquals(Flt64(-2.0), pricingDuals.additional["route_arc_count"])
+        val extracted = assertNotNull(context.extractContributionValues(model, listOf(route to Flt64.one)).value)
+        assertEquals(listOf(route.signature), extracted[contribution.name])
     }
 }

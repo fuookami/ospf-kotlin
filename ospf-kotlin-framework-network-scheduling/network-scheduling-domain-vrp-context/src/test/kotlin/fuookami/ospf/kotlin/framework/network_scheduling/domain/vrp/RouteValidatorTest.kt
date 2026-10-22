@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.Flt64NetworkSchedulingSolverValueAdapter
+import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.NetworkArcId
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.policy.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.service.RouteValidator
@@ -56,6 +57,22 @@ class RouteValidatorTest {
                 valueAdapter = Flt64NetworkSchedulingSolverValueAdapter
             ).failed
         )
+    }
+
+    @Test
+    fun routeSignatureShouldDistinguishParallelArcSequences() {
+        val instance = assertNotNull(VrptwTestFixtures.oneCustomerInstance().value)
+        val route = validRoute(instance)
+        val parallelRoute = assertNotNull(Route(
+            vehicleTypeId = route.vehicleTypeId,
+            stops = route.stops,
+            distance = route.distance,
+            cost = route.cost,
+            arcIds = listOf(NetworkArcId("parallel-in"), NetworkArcId("parallel-out"))
+        ).value)
+
+        assertNotEquals(route.signature, parallelRoute.signature)
+        assertEquals(2, parallelRoute.arcIds.size)
     }
 
     private fun validRoute(instance: VrptwInstance<Flt64>): Route<Flt64> {

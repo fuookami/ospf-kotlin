@@ -1,62 +1,25 @@
 package fuookami.ospf.kotlin.framework.network_scheduling.domain.flow.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.operation.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.model.Pipeline
-import fuookami.ospf.kotlin.framework.network_scheduling.domain.flow.model.*
-import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
 
-/**
- * 网络流守恒约束：sum(out) - sum(in) = balance。 / Flow conservation: sum(out) - sum(in) = balance.
+/** 节点净流量守恒。 / Node net-flow conservation.
+ * @property name 约束名称 / Constraint name
  */
-class FlowConservationConstraint<V : RealNumber<V>>(
-    private val graph: FlowGraph<V>,
-    private val valueAdapter: NetworkSchedulingSolverValueAdapter<V>,
-    override val name: String = "flow_conservation"
+class FlowConservationConstraint(
+    private val balance: LinearPolynomial<Flt64>,
+    private val net: Flt64,
+    override val name: String
 ) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    /** 注册节点流量守恒约束。 / Register the node flow-conservation constraint.
+     * @param model 元模型 / Meta model
+     * @return 注册结果 / Registration result
+     */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
-        when (val result = graph.register(model)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        for (commodity in graph.commodities) {
-            for (node in graph.nodes) {
-                var polynomial = LinearPolynomial()
-                for (arc in graph.arcs) {
-                    if (arc.from == node.id || arc.to == node.id) {
-                        val variable = when (val result = graph.flowVariable(commodity.id, arc)) {
-                            is Ok -> result.value
-                            is Failed -> return Failed(result.error)
-                            is Fatal -> return Fatal(result.errors)
-                        }
-                        val coefficient = if (arc.from == node.id) Flt64.one else -Flt64.one
-                        polynomial += coefficient * variable
-                    }
-                }
-                val balance = graph.supplyDemandOf(commodity.id, node.id)?.net?.let {
-                    when (val result = graph.normalizeFlow(it, valueAdapter)) {
-                        is Ok -> result.value
-                        is Failed -> return Failed(result.error)
-                        is Fatal -> return Fatal(result.errors)
-                    }
-                } ?: Flt64.zero
-                when (val result = model.addConstraint(
-                    polynomial eq balance,
-                    name = "${name}_${commodity.id}_${node.id.value}"
-                )) {
-                    is Ok -> {}
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
-            }
-        }
-        return ok
+        return model.addConstraint(balance eq net, name = name)
     }
 }

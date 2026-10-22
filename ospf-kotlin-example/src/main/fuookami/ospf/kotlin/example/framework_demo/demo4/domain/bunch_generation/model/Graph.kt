@@ -3,6 +3,8 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.model
 
 import kotlin.time.Instant
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
@@ -69,6 +71,22 @@ class Graph(
     val nodes: MutableMap<UInt64, Node> = HashMap(),
     val edges: MutableMap<Node, MutableSet<Edge>> = HashMap()
 ) {
+
+    /** 以 Network 拓扑发布业务图快照。 / Publish a business graph as a Network topology snapshot.
+     * @return 网络图或错误 / Network graph or error
+     */
+    fun network(): Ret<NetworkGraph<Node, Edge>> {
+        return NetworkGraph(
+            nodes = nodes.values.toList(),
+            arcs = edges.values.flatMap { it },
+            access = NetworkGraphAccess(
+                nodeId = { NetworkNodeId(it.index.toString()) },
+                arcId = { NetworkArcId("${it.from.index}:${it.to.index}") },
+                from = { NetworkNodeId(it.from.index.toString()) },
+                to = { NetworkNodeId(it.to.index.toString()) }
+            )
+        )
+    }
 
     /**
      * 向图中添加节点。Adds a node to the graph.

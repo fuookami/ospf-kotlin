@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.infrastruct
 import kotlin.test.*
 import kotlin.time.Instant
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.NetworkArcId
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.NetworkNodeId
 
 class VrpInfrastructureTest {
@@ -82,6 +83,36 @@ class VrpInfrastructureTest {
         assertFalse(mask.isRouteCompatible("v1", listOf(start, b, end)))
         assertFalse(mask.isRouteCompatible("v1", listOf(start, a, b, end)))
         assertTrue(mask.isRouteCompatible("v2", listOf(start, b, c, end)))
+    }
+
+    @Test
+    fun resourceGraphAndBranchMaskShouldPreserveParallelArcIdentity() {
+        val start = NetworkNodeId("start")
+        val end = NetworkNodeId("end")
+        val a = NetworkNodeId("a")
+        val fast = ResourceArc("v1", start, a, NetworkArcId("fast"))
+        val safe = ResourceArc("v1", start, a, NetworkArcId("safe"))
+        val graph = assertNotNull(ResourceGraph(
+            nodes = listOf(start, a, end),
+            arcs = listOf(
+                fast,
+                safe,
+                ResourceArc("v1", a, end)
+            )
+        ).value)
+        assertEquals(listOf(fast, safe), graph.between("v1", start, a))
+
+        val mask = assertNotNull(BranchMask(
+            startDepot = start,
+            endDepot = end,
+            forbiddenArcs = setOf(fast),
+            requiredArcs = setOf(ResourceArc("v1", a, end))
+        ).value)
+
+        assertFalse(mask.allowsArc(fast))
+        assertTrue(mask.allowsArc(safe))
+        assertFalse(mask.isRouteCompatible("v1", listOf(start, a, end), listOf(fast.id, defaultResourceArcId(a, end))))
+        assertTrue(mask.isRouteCompatible("v1", listOf(start, a, end), listOf(safe.id, defaultResourceArcId(a, end))))
     }
 
     @Test

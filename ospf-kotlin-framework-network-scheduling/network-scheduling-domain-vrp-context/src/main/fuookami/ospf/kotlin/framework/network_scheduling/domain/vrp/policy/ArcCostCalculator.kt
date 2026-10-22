@@ -5,8 +5,9 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.infrastructure.ResourceArc
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.VehicleType
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.*
 
 /** 弧成本计算扩展点。 / Arc-cost calculation extension point. */
 fun interface ArcCostCalculator<V : RealNumber<V>> {
@@ -27,6 +28,25 @@ fun interface ArcCostCalculator<V : RealNumber<V>> {
         travelTime: Duration,
         vehicleType: VehicleType<V>
     ): Ret<Quantity<V>>
+
+    /** 按稳定弧 ID 计算成本；默认退回端点策略。
+     * Calculate cost by stable arc ID; defaults to the endpoint policy.
+     * @param arc 资源弧 / Resource arc
+     * @param from 起点 / Origin
+     * @param to 终点 / Destination
+     * @param distance 距离 / Distance
+     * @param travelTime 行驶时间 / Travel time
+     * @param vehicleType 车辆类型 / Vehicle type
+     * @return 弧成本或计算失败 / Arc cost or calculation failure
+     */
+    fun cost(
+        arc: ResourceArc<VehicleTypeId>,
+        from: NetworkNode<V>,
+        to: NetworkNode<V>,
+        distance: Quantity<V>,
+        travelTime: Duration,
+        vehicleType: VehicleType<V>
+    ): Ret<Quantity<V>> = cost(from, to, distance, travelTime, vehicleType)
 }
 
 /** 将距离数值映射到成本单位的 Demo17 策略。 / Demo17 policy mapping distance values to the cost unit. */

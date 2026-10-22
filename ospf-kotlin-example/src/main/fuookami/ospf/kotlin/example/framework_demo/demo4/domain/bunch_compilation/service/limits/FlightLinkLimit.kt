@@ -64,22 +64,24 @@ class FlightLinkLimit(
             }
         }
 
-        val poly = sum(flightLink.links.withIndex().map { (k, link) ->
-            coefficient(link) * flightLink.slack[k]
-        })
+        if (flightLink.links.isNotEmpty()) {
+            val poly = sum(flightLink.links.withIndex().map { (k, link) ->
+                coefficient(link) * flightLink.slack[k]
+            })
 
-        when (val result = model.minimize(
-            LinearExpressionSymbol(poly),
-            name = "link"
-        )) {
-            is Ok -> {}
+            when (val result = model.minimize(
+                LinearExpressionSymbol(poly),
+                name = "link"
+            )) {
+                is Ok -> {}
 
-            is Failed -> {
-                return Failed(result.error)
-            }
+                is Failed -> {
+                    return Failed(result.error)
+                }
 
-            is Fatal -> {
-                return Fatal(result.errors)
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 

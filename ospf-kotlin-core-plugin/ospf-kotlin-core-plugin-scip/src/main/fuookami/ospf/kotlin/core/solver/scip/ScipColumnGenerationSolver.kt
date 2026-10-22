@@ -103,7 +103,9 @@ class ScipColumnGenerationSolver(
 
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
-                        metaModel.tokens.setSolution(result.value.values)
+                        if (result.value.hasIncumbent()) {
+                            metaModel.tokens.setSolution(result.value.values)
+                        }
                         jobs.joinAll()
                         Ok(result.value)
                     }
@@ -176,9 +178,10 @@ class ScipColumnGenerationSolver(
                     is Ok -> {
                         if (result.value is SolveReport<*>) {
                             @Suppress("UNCHECKED_CAST")
-                            metaModel.tokens.setSolution(
-                                (result.value as SolveReport<Flt64>).values
-                            )
+                            val report = result.value as SolveReport<Flt64>
+                            if (report.hasIncumbent()) {
+                                metaModel.tokens.setSolution(report.values)
+                            }
                         }
                         jobs.joinAll()
                         toMilpSolveResult(result.value)
@@ -278,8 +281,10 @@ class ScipColumnGenerationSolver(
 
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
-                        metaModel.tokens.setSolution(result.value.values)
-                        results.add(0, result.value.values)
+                        if (result.value.hasIncumbent()) {
+                            metaModel.tokens.setSolution(result.value.values)
+                            results.add(0, result.value.values)
+                        }
                         jobs.joinAll()
                         Ok(Pair(result.value, results))
                     }
@@ -371,6 +376,16 @@ class ScipColumnGenerationSolver(
 
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
+                        if (!result.value.hasIncumbent()) {
+                            jobs.joinAll()
+                            return Failed(Err(
+                                ErrorCode.Other,
+                                "SCIP LP 未找到 incumbent，不能回填解或生成定价对偶 / " +
+                                    "SCIP LP produced no incumbent; solution values and pricing duals are unavailable " +
+                                    "(problemStatus=${result.value.problemStatus}, " +
+                                    "terminationReason=${result.value.terminationReason})"
+                            ))
+                        }
                         metaModel.tokens.setSolution(result.value.values)
                         if (abs(dualObject - (result.value.solution?.objective ?: Flt64.zero)) gr Flt64(1e-6)) {
                             // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution / 某些配置可能未正确设置，导致对偶解不准确，因此需要重新求解对偶问题以获取对偶解
@@ -493,6 +508,16 @@ class ScipColumnGenerationSolver(
                             is SolveReport<*> -> {
                                 @Suppress("UNCHECKED_CAST")
                                 val feasible = output as SolveReport<Flt64>
+                                if (!feasible.hasIncumbent()) {
+                                    jobs.joinAll()
+                                    return Failed(Err(
+                                        ErrorCode.Other,
+                                        "SCIP LP 未找到 incumbent，不能回填解或生成定价对偶 / " +
+                                            "SCIP LP produced no incumbent; solution values and pricing duals are unavailable " +
+                                            "(problemStatus=${feasible.problemStatus}, " +
+                                            "terminationReason=${feasible.terminationReason})"
+                                    ))
+                                }
                                 metaModel.tokens.setSolution(feasible.values)
                                 if (abs(dualObject - (feasible.solution?.objective ?: Flt64.zero)) gr Flt64(1e-6)) {
                                     when (val dualResult = solveDual(model, ScipLinearSolver(config))) {
@@ -557,6 +582,10 @@ class ScipColumnGenerationSolver(
                     "SCIP linear solver returned an unsupported MILP output type: ${output::class.qualifiedName}"
             ))
         }
+    }
+
+    private fun SolveReport<Flt64>.hasIncumbent(): Boolean {
+        return solutionPresence != SolutionPresence.None && solution != null
     }
 }
 

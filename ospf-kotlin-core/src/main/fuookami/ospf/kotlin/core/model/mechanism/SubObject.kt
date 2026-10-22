@@ -63,9 +63,14 @@ class LinearSubObject<V : RealNumber<V>>(
     private val _constant: V,
     name: String = "",
     origin: Any? = null,
-    private val unresolvedTerms: List<Pair<V, AbstractVariableItem<*, *>>> = emptyList()
+    private var unresolvedTerms: List<Pair<V, AbstractVariableItem<*, *>>> = emptyList()
 ) : SubObject<V>(category, name, origin) {
     override val constant: V get() = _constant
+
+    internal fun removeTerms(variables: Set<AbstractVariableItem<*, *>>) {
+        cells.removeAll { it.token.variable in variables }
+        unresolvedTerms = unresolvedTerms.filterNot { (_, variable) -> variable in variables }
+    }
 
     /**
      * 提取所有线性项为（系数, 变量）对列表。 / Extract all linear terms as a list of (coefficient, variable) pairs.

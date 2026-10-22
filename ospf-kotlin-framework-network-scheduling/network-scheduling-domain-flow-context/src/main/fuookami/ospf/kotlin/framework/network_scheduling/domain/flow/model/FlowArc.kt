@@ -5,7 +5,10 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
 
-/** 网络流弧，携带容量上下界。 / Network-flow arc with capacity bounds. */
+/** 网络流弧，不持有任何模型注册状态。 / Flow arc without model registration state.
+ * @property networkArc 业务服务弧 / Business service
+ * @property capacity 运行容量；设计问题中上界是有限建设包络 / Operating bounds; the upper bound is a finite construction envelope in design models
+ */
 class FlowArc<V : RealNumber<V>> private constructor(
     val networkArc: NetworkArc<V>,
     val capacity: CapacityBounds<V>
@@ -22,11 +25,12 @@ class FlowArc<V : RealNumber<V>> private constructor(
     /** 通用弧属性。 / Generic arc attributes. */
     val attributes: Map<String, Quantity<V>> get() = networkArc.attributes
 
-    /** 变量在弧流量组合中的位置。 / Variable slot in the arc-flow combination. */
-    internal var variableIndex: Int? = null
-
     companion object {
-        /** 包装网络弧与容量上下界。 / Wrap a network arc and its capacity bounds. */
+        /** 包装网络弧与容量上下界。 / Wrap a network arc and its capacity bounds.
+         * @param networkArc 业务服务弧 / Business service arc
+         * @param capacity 服务容量 / Service capacity bounds
+         * @return 网络流弧或错误 / Flow arc or error
+         */
         operator fun <V : RealNumber<V>> invoke(
             networkArc: NetworkArc<V>,
             capacity: CapacityBounds<V>
@@ -34,7 +38,14 @@ class FlowArc<V : RealNumber<V>> private constructor(
             return ok(FlowArc(networkArc, capacity))
         }
 
-        /** 创建网络流弧。 / Create a network-flow arc. */
+        /** 创建网络流弧。 / Create a network-flow arc.
+         * @param from 起点 / Origin
+         * @param to 终点 / Destination
+         * @param cost 单位流量费用 / Unit-flow cost
+         * @param capacity 服务容量 / Service capacity bounds
+         * @param attributes 通用弧属性 / Generic arc attributes
+         * @return 网络流弧或错误 / Flow arc or error
+         */
         operator fun <V : RealNumber<V>> invoke(
             from: NetworkNodeId,
             to: NetworkNodeId,
@@ -42,7 +53,12 @@ class FlowArc<V : RealNumber<V>> private constructor(
             capacity: CapacityBounds<V>,
             attributes: Map<String, Quantity<V>> = emptyMap()
         ): Ret<FlowArc<V>> {
-            return when (val arc = NetworkArc(from, to, cost, attributes)) {
+            return when (val arc = NetworkArc(
+                from = from,
+                to = to,
+                cost = cost,
+                attributes = attributes
+            )) {
                 is Ok -> Ok(FlowArc(arc.value, capacity))
                 is Failed -> Failed(arc.error)
                 is Fatal -> Fatal(arc.errors)

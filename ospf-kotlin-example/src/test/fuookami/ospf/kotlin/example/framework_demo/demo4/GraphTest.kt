@@ -5,6 +5,8 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4
 import kotlin.time.Instant
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.NetworkNodeId
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.model.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -78,6 +80,31 @@ class GraphTest {
 
         val edges = graph[RootNode]
         assertTrue(edges.isEmpty())
+    }
+
+    @Test
+    fun `Graph publishes stable Network topology ids`() {
+        val graph = Graph()
+        graph.put(RootNode)
+        graph.put(EndNode)
+        graph.put(RootNode, EndNode)
+
+        val result = graph.network()
+
+        assertTrue(result is Ok)
+        val topology = (result as Ok).value
+        assertEquals(setOf(NetworkNodeId("0"), NetworkNodeId(UInt64.maximum.toString())), topology.nodeIds.toSet())
+        assertEquals(NetworkNodeId("0"), topology.from(graph[RootNode].single()))
+        assertEquals(NetworkNodeId(UInt64.maximum.toString()), topology.to(graph[RootNode].single()))
+    }
+
+    @Test
+    fun `Graph publishes malformed edge as a Result failure`() {
+        val graph = Graph()
+        graph.put(RootNode)
+        graph.put(RootNode, EndNode)
+
+        assertTrue(graph.network() !is Ok)
     }
 
     @Test

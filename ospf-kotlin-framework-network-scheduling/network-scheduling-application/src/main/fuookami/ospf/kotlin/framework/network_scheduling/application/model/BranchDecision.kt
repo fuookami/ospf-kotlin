@@ -51,7 +51,8 @@ sealed class BranchDecision {
     data class ForbidArc(
         val vehicleTypeId: VehicleTypeId,
         val from: NetworkNodeId,
-        val to: NetworkNodeId
+        val to: NetworkNodeId,
+        val arcId: NetworkArcId = defaultResourceArcId(from, to)
     ) : BranchDecision()
 
     /**
@@ -71,7 +72,8 @@ sealed class BranchDecision {
     data class RequireArc(
         val vehicleTypeId: VehicleTypeId,
         val from: NetworkNodeId,
-        val to: NetworkNodeId
+        val to: NetworkNodeId,
+        val arcId: NetworkArcId = defaultResourceArcId(from, to)
     ) : BranchDecision()
 }
 
@@ -106,11 +108,11 @@ fun accumulateBranchMask(
             }
 
             is BranchDecision.ForbidArc -> {
-                forbiddenArcs.add(ResourceArc(decision.vehicleTypeId, decision.from, decision.to))
+                forbiddenArcs.add(ResourceArc(decision.vehicleTypeId, decision.from, decision.to, decision.arcId))
             }
 
             is BranchDecision.RequireArc -> {
-                requiredArcs.add(ResourceArc(decision.vehicleTypeId, decision.from, decision.to))
+                requiredArcs.add(ResourceArc(decision.vehicleTypeId, decision.from, decision.to, decision.arcId))
             }
         }
     }

@@ -47,6 +47,14 @@ class Demo5ScipBranchAndPriceE2ETest {
             BranchAndPriceStatus.TimeLimit,
             BranchAndPriceStatus.NodeLimit
         ))
+        if (result.solution == null) {
+            assertTrue(result.status in setOf(
+                BranchAndPriceStatus.TimeLimit,
+                BranchAndPriceStatus.NodeLimit
+            ))
+            assertEquals(Flt64.infinity, result.upperBound)
+            assertEquals(Flt64.infinity, result.relativeGap)
+        }
         result.solution?.routes?.forEach { route ->
             val distanceCalculator = EuclideanDistanceCalculator<Flt64>(Meter)
             assertTrue(RouteValidator.validate(

@@ -33,6 +33,7 @@ import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.iis.IISConfig
 import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.core.solver.report.*
@@ -54,11 +55,19 @@ import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.policy.*
 import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.service.VrptwValidator
 import fuookami.ospf.kotlin.core.solver.report.*
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.route_compilation.*
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.route_compilation.model.RouteCompilation
+import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.route_compilation.shadow.*
 import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.network_scheduling.application.model.*
 import fuookami.ospf.kotlin.core.solver.report.*
 import fuookami.ospf.kotlin.framework.network_scheduling.application.service.*
+import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.route_generation.model.*
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.route_generation.service.*
 
 class BranchAndPriceAlgorithmTest {
 
@@ -127,7 +136,8 @@ class BranchAndPriceAlgorithmTest {
         customerIds: List<CustomerId>,
         vehicleTypeId: VehicleTypeId = VehicleTypeId("v1"),
         cost: Flt64 = Flt64(10.0),
-        distance: Flt64 = Flt64(1.0)
+        distance: Flt64 = Flt64(1.0),
+        arcIds: List<NetworkArcId>? = null
     ): Route<Flt64> {
         val startDepot = instance.startDepot
         val endDepot = instance.endDepot
@@ -165,7 +175,8 @@ class BranchAndPriceAlgorithmTest {
             vehicleTypeId = vehicleTypeId,
             stops = stops,
             distance = Quantity(distance, Meter),
-            cost = Quantity(cost, NoneUnit)
+            cost = Quantity(cost, NoneUnit),
+            arcIds = arcIds ?: stops.zipWithNext { from, to -> defaultResourceArcId(from.nodeId, to.nodeId) }
         ).value ?: fail("route creation failed")
     }
 
@@ -583,6 +594,239 @@ class BranchAndPriceAlgorithmTest {
         val nodeResult = (result as Ok).value
         assertFalse(nodeResult.isFeasible)
         assertEquals(SolverStatus.Infeasible, nodeResult.solverStatus)
+    }
+
+    @Test
+    fun extraContributionFactoryCreatesModelLocalInstancesForEachNode() {
+        val instance = makeInstance()
+        val created = mutableListOf<RouteCompilationContribution<Flt64>>()
+        val registeredModels = mutableListOf<AbstractLinearMetaModel<Flt64>>()
+        val nodeSolver = BranchNodeSolver(
+            instance = instance,
+            solver = SequencedLpSolver(infeasibleCalls = setOf(0, 1)),
+            valueAdapter = Flt64NetworkSchedulingSolverValueAdapter,
+            distanceCalculator = EuclideanDistanceCalculator(Meter),
+            travelTimeCalculator = ConstantTravelTimeCalculator(Duration.ZERO),
+            arcCostCalculator = ZeroArcCostCalculator(),
+            routeCostPolicy = FixedCostOnlyPolicy(),
+            extraContributionFactory = { _, _ ->
+                val contribution = object : RouteCompilationContribution<Flt64> {
+                    override val name = "node_local_${created.size}"
+
+                    private var registeredModel: AbstractLinearMetaModel<Flt64>? = null
+
+                    override fun coefficients(arc: ResourceArc<VehicleTypeId>): Map<String, Flt64> = emptyMap()
+
+                    override fun register(
+                        compilation: RouteCompilation<Flt64>,
+                        model: AbstractLinearMetaModel<Flt64>
+                    ): Try {
+                        registeredModel = model
+                        registeredModels.add(model)
+                        return ok
+                    }
+
+                    override fun addColumns(
+                        columns: List<RouteCompilationColumn<Flt64>>,
+                        model: AbstractLinearMetaModel<Flt64>
+                    ): Try {
+                        assertSame(registeredModel, model)
+                        return ok
+                    }
+                }
+                created.add(contribution)
+                listOf(contribution)
+            }
+        )
+        val root = assertNotNull(BranchNode.root(
+            startDepot = instance.startDepot.node.id,
+            endDepot = instance.endDepot.node.id
+        ).value)
+        val child = assertNotNull(BranchNode.child(
+            id = 1,
+            parent = root,
+            decision = BranchDecision.ForbidVehicleType(
+                vehicleTypeId = instance.vehicleTypes.first().id,
+                customerId = instance.customers.first().id,
+                customerNodeId = instance.customers.first().node.id
+            ),
+            startDepot = instance.startDepot.node.id,
+            endDepot = instance.endDepot.node.id
+        ).value)
+
+        val rootResult = runBlocking { nodeSolver.solve(root) }
+        val childResult = runBlocking { nodeSolver.solve(child) }
+
+        assertTrue(rootResult is Ok)
+        assertTrue(childResult is Ok)
+        assertEquals(2, created.size)
+        assertNotSame(created[0], created[1])
+        assertEquals(2, registeredModels.size)
+        assertNotSame(registeredModels[0], registeredModels[1])
+    }
+
+    @Test
+    fun extraMasterArcLimitDualChangesPreferredPricedRoute() {
+        val instance = makeInstance()
+        val vehicleType = instance.vehicleTypes.first()
+        val customer = instance.customers.first()
+        val fastArcId = NetworkArcId("fast")
+        val safeArcId = NetworkArcId("safe")
+        val endArcId = defaultResourceArcId(customer.node.id, instance.endDepot.node.id)
+        val resourceGraph = assertNotNull(ResourceGraph(
+            nodes = listOf(instance.startDepot.node.id, instance.endDepot.node.id) + instance.customers.map { it.node.id },
+            arcs = listOf(
+                ResourceArc(vehicleType.id, instance.startDepot.node.id, customer.node.id, fastArcId),
+                ResourceArc(vehicleType.id, instance.startDepot.node.id, customer.node.id, safeArcId),
+                ResourceArc(vehicleType.id, customer.node.id, instance.endDepot.node.id, endArcId)
+            )
+        ).value)
+        val rowGroup = object : MetaConstraintGroup {
+            override val name: String = "test_fast_arc_limit"
+        }
+        var fastArcConstraint: MathConstraint? = null
+        val fastArcLimit = object : RouteCompilationContribution<Flt64> {
+            override val name: String = "fast_arc_limit"
+
+            private lateinit var expression: LinearExpressionSymbol<Flt64>
+
+            override fun coefficients(arc: ResourceArc<VehicleTypeId>): Map<String, Flt64> =
+                if (arc.id == fastArcId) mapOf("fast-arc-limit" to Flt64.one) else emptyMap()
+
+            override fun register(
+                compilation: RouteCompilation<Flt64>,
+                model: AbstractLinearMetaModel<Flt64>
+            ): Try {
+                expression = LinearExpressionSymbol(Flt64, name = "fast_arc_usage")
+                when (val result = model.add(expression)) {
+                    is Ok -> {}
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
+                model.registerConstraintGroup(rowGroup)
+                when (val result = rowGroup.run {
+                    model.addConstraint(expression leq Flt64.zero, name = "fast_arc_limit")
+                }) {
+                    is Ok -> fastArcConstraint = rowGroup.run { model.constraintsOfGroup().single() }
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
+                return ok
+            }
+
+            override fun addColumns(
+                columns: List<RouteCompilationColumn<Flt64>>,
+                model: AbstractLinearMetaModel<Flt64>
+            ): Try {
+                expression.flush()
+                for (column in columns) {
+                    val coefficient = column.coefficients["fast-arc-limit"] ?: Flt64.zero
+                    if (coefficient != Flt64.zero) {
+                        expression.asMutable() += coefficient * column.variable
+                    }
+                }
+                return ok
+            }
+
+            override fun refreshShadowPrices(
+                model: AbstractLinearMetaModel<Flt64>,
+                shadowPrices: MetaDualSolution
+            ): Ret<Map<String, Flt64>> {
+                val constraint = rowGroup.run { model.constraintsOfGroup().single() }
+                return Ok(mapOf("fast-arc-limit" to (shadowPrices.constraints[constraint] ?: Flt64.zero)))
+            }
+        }
+        val context = RouteCompilationContext(
+            instance = instance,
+            valueAdapter = Flt64NetworkSchedulingSolverValueAdapter,
+            extraContributions = listOf(fastArcLimit)
+        )
+        val model = LinearMetaModel<Flt64>(
+            "extra_arc_limit_pricing_test",
+            converter = IntoValue.fromConverter(Flt64)
+        )
+        assertTrue(context.register(model) is Ok)
+        val fastRoute = makeRoute(
+            instance = instance,
+            customerIds = listOf(customer.id),
+            cost = Flt64(10.0),
+            arcIds = listOf(fastArcId, endArcId)
+        )
+        val safeRoute = makeRoute(
+            instance = instance,
+            customerIds = listOf(customer.id),
+            cost = Flt64(14.0),
+            arcIds = listOf(safeArcId, endArcId)
+        )
+        assertTrue(context.addColumns(UInt64.zero, listOf(fastRoute, safeRoute), model) is Ok)
+        assertTrue(context.switchToPhaseTwo(model) is Ok)
+
+        val fakeLpDuals = MetaDualSolution(
+            constraints = mapOf(assertNotNull(fastArcConstraint) to Flt64(-10.0)),
+            symbols = emptyMap()
+        )
+        val extraDuals = assertNotNull(context.extractPricingDuals(model, fakeLpDuals).value)
+        assertEquals(Flt64(-10.0), extraDuals.additional["fast-arc-limit"])
+
+        val arcCostCalculator = object : ArcCostCalculator<Flt64> {
+            override fun cost(
+                from: NetworkNode<Flt64>,
+                to: NetworkNode<Flt64>,
+                distance: Quantity<Flt64>,
+                travelTime: Duration,
+                vehicleType: VehicleType<Flt64>
+            ): Ret<Quantity<Flt64>> = ok(Quantity(Flt64.zero, NoneUnit))
+
+            override fun cost(
+                arc: ResourceArc<VehicleTypeId>,
+                from: NetworkNode<Flt64>,
+                to: NetworkNode<Flt64>,
+                distance: Quantity<Flt64>,
+                travelTime: Duration,
+                vehicleType: VehicleType<Flt64>
+            ): Ret<Quantity<Flt64>> = ok(Quantity(
+                if (arc.id == safeArcId) Flt64(4.0) else Flt64.zero,
+                NoneUnit
+            ))
+        }
+        val builder = RouteGraphBuilder(
+            instance = instance,
+            valueAdapter = Flt64NetworkSchedulingSolverValueAdapter,
+            distanceCalculator = EuclideanDistanceCalculator(Meter),
+            travelTimeCalculator = ConstantTravelTimeCalculator(Duration.ZERO),
+            arcCostCalculator = arcCostCalculator,
+            resourceGraph = resourceGraph,
+            coefficientProviders = context.extraContributions
+        )
+        val baseDuals = PricingDuals(
+            phase = PricingPhase.PhaseTwo,
+            customer = mapOf(customer.id to Flt64(100.0)),
+            fleet = emptyMap(),
+            additional = extraDuals.additional.keys.associateWith { Flt64.zero }
+        )
+        val pricedDuals = PricingDuals(
+            phase = PricingPhase.PhaseTwo,
+            customer = baseDuals.customer,
+            fleet = emptyMap(),
+            additional = extraDuals.additional
+        )
+        fun bestArc(duals: PricingDuals): NetworkArcId {
+            val graph = assertNotNull(builder.build(vehicleType.id, duals).value)
+            val result = assertNotNull(EspprcPricer(instance, Flt64NetworkSchedulingSolverValueAdapter).price(
+                graph = graph,
+                request = PricingRequest(
+                    instance = instance,
+                    duals = duals,
+                    branchMask = null,
+                    pricingTolerance = Flt64(1e-6),
+                    vehicleTypeId = vehicleType.id
+                )
+            ).value)
+            return assertNotNull(result.routes.firstOrNull()).arcIds.first()
+        }
+
+        assertEquals(fastArcId, bestArc(baseDuals))
+        assertEquals(safeArcId, bestArc(pricedDuals))
     }
 
     // ========== Stub Solver ==========

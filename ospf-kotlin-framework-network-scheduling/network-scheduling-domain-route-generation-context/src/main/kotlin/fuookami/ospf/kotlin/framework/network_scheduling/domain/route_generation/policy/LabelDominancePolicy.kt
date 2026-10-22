@@ -15,6 +15,11 @@ import fuookami.ospf.kotlin.framework.network_scheduling.domain.route_generation
  */
 interface LabelDominancePolicy {
 
+    /** 只有经过证明安全的策略才可剪枝并认证精确定价；自定义策略默认不认证。
+     * Only proven-safe policies may prune and certify exact pricing; custom policies default to uncertified.
+     */
+    val isExact: Boolean get() = false
+
     /**
      * 判断 label a 是否支配 label b。 / Whether label a dominates label b.
      */
@@ -23,6 +28,8 @@ interface LabelDominancePolicy {
     companion object {
         /** 默认支配策略：三资源支配 + elementarity + 不可达子集 / Default: three-resource + elementarity + forbidden subset */
         val Default = object : LabelDominancePolicy {
+            override val isExact: Boolean get() = true
+
             override fun <V : RealNumber<V>> dominates(a: EspprcLabel<V>, b: EspprcLabel<V>): Boolean {
                 if (a.currentNode != b.currentNode) return false
 

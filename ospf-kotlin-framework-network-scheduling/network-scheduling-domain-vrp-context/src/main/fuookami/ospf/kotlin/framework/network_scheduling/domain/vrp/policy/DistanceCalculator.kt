@@ -5,6 +5,8 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.FloatingImpl
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.infrastructure.ResourceArc
+import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.VehicleTypeId
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
 
 /** 距离计算扩展点。 / Distance-calculation extension point. */
@@ -17,6 +19,19 @@ fun interface DistanceCalculator<V : RealNumber<V>> {
      * @return 距离或计算失败 / Distance or calculation failure
      */
     fun distance(from: NetworkNode<V>, to: NetworkNode<V>): Ret<Quantity<V>>
+
+    /** 按稳定弧 ID 计算距离；默认退回端点策略以保持旧调用方兼容。
+     * Calculate distance by stable arc ID; defaults to the endpoint policy for compatibility.
+     * @param arc 资源弧 / Resource arc
+     * @param from 起点 / Origin
+     * @param to 终点 / Destination
+     * @return 距离或计算失败 / Distance or calculation failure
+     */
+    fun distance(
+        arc: ResourceArc<VehicleTypeId>,
+        from: NetworkNode<V>,
+        to: NetworkNode<V>
+    ): Ret<Quantity<V>> = distance(from, to)
 }
 
 /** 完整精度欧氏距离策略。 / Full-precision Euclidean distance policy. */

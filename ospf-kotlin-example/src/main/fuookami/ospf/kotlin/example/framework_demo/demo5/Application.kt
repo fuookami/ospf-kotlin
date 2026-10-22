@@ -120,7 +120,8 @@ object Application {
                 },
                 cost = route.cost.value.toDouble(),
                 distance = route.distance.value.toDouble(),
-                load = route.stops.lastOrNull()?.accumulatedLoad?.value?.toDouble() ?: 0.0
+                load = route.stops.lastOrNull()?.accumulatedLoad?.value?.toDouble() ?: 0.0,
+                arcIds = route.arcIds.map { it.value }
             )
         } ?: emptyList()
 

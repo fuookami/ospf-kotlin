@@ -37,21 +37,23 @@ class PassengerCancelMinimization(
      * @return 注册结果 / Registration result
     */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
-        val poly = sum(passengers.map { passenger ->
-            coefficient(passenger) * cancel.passengerCancel[passenger]
-        })
-        when (val result = model.minimize(
-            LinearExpressionSymbol(poly),
-            name = "passenger cancel"
-        )) {
-            is Ok -> {}
+        if (passengers.isNotEmpty()) {
+            val poly = sum(passengers.map { passenger ->
+                coefficient(passenger) * cancel.passengerCancel[passenger]
+            })
+            when (val result = model.minimize(
+                LinearExpressionSymbol(poly),
+                name = "passenger cancel"
+            )) {
+                is Ok -> {}
 
-            is Failed -> {
-                return Failed(result.error)
-            }
+                is Failed -> {
+                    return Failed(result.error)
+                }
 
-            is Fatal -> {
-                return Fatal(result.errors)
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 

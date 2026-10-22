@@ -24,7 +24,7 @@
 | `rule` | 排班规则：链接、锁定、流控、限制、成本计算 |
 | `cargo` | 货物领域：聚合和上下文 |
 | `passenger` | 旅客管理：取消、变更、容量约束 |
-| `bunch_generation` | 从飞行图生成可行机组束（pricing 子问题） |
+| `bunch_generation` | 从航空器航线图生成可行航班任务束（pricing 子问题） |
 | `bunch_compilation` | 编译束：机队平衡、航班链接、航班容量（master 约束） |
 | `bunch_selection` | 分支定阶算法选择束（branch-and-price 编排） |
 | `infrastructure` | 求解器、DTO（输入/输出）、语义参数 |
@@ -67,13 +67,13 @@ demo4/
       BunchGenerationContext.kt -- 束生成上下文
       Aggregation.kt           -- 束生成聚合（graphs, reverse, initialBunches）
       model/
-        Graph.kt               -- 飞行图（Node, Edge, Graph）
+        Graph.kt               -- 航空业务图门面（Node、Edge；导出 Network 拓扑）
         FlightTaskReverse.kt   -- 可逆任务对管理
       service/
         Operator.kt            -- 类型别名（RuleChecker, CostCalculator 等）
         FlightTaskFeasibilityJudger.kt -- 10 步可行性检查
-        RouteGraphGenerator.kt -- BFS 路由图生成
-        FlightTaskBunchGenerator.kt -- Label Setting 算法
+        RouteGraphGenerator.kt -- 航空业务航线图构造
+        FlightTaskBunchGenerator.kt -- 使用航空状态转移的 Network 路径搜索
         InitialFlightTaskBunchGenerator.kt -- 初始列生成
         AggregationInitializer.kt -- 初始化编排
     bunch_compilation/
@@ -98,12 +98,10 @@ demo4/
    - 生成初始 bunch（`InitialFlightTaskBunchGenerator`）
 
 2. **定价**（`FlightTaskBunchGenerator`）
-   - Label Setting 算法
-   - 无换序时按拓扑序遍历图节点，启用换序时使用标签队列 BFS
-   - 沿出边扩展标签
-   - 累加任务覆盖 shadow price
-   - 支配剪枝（reduced cost、delay、aircraft change）
-   - 输出负 reduced cost bunch
+   - 通过 Gantt Network bridge 委托共享 `PathSearchContext` 穷举有限路径
+   - 将飞机恢复、时刻、成本、影子价格和任务可行性保留在 Demo4 转移/提取回调中
+   - 使用 elementary path 和节点标签预算；不沿用忽略到达时刻及访问路径状态的旧支配规则
+   - 按配置的输出上限返回负 reduced cost 航班任务束，但仍完成全量搜索
 
 3. **输出**
    - 新 bunch 列
@@ -117,7 +115,7 @@ demo4/
 | `reduced cost` | 原始成本 - shadow price 扣减，负值表示有价值的列 |
 | `initial bunch` | 每架飞机的初始可行列，包含 locked task |
 | `generated bunch` | 通过 pricing 生成的新列 |
-| `dominance` | 同一节点保留在成本、延误和飞机变更状态上均不劣的标签 |
+| `search completion` | `Exhausted`、`BudgetLimit`、`Interrupted` 或 `Heuristic`；受限或被拒绝的批次不会被视为穷尽搜索 |
 
 ### 与 bunch_compilation 和 bunch_selection 的边界
 
@@ -127,7 +125,11 @@ demo4/
 | `bunch_compilation` | master 约束注册、fleet balance、flight link | Label Setting、route graph、reduced cost |
 | `bunch_selection` | branch-and-price 编排、shadow price 提取、add columns | 具体 pricing 逻辑 |
 
-master 求解器将 shadow price 传入 `BunchGenerationContext.generateFlightTaskBunch`；上下文复用静态路线图，并向调用方暴露最近一轮的 `routeGraphDiagnostics` 和 `pricingDiagnostics`。
+master 求解器将 shadow price 传入 `BunchGenerationContext.generateFlightTaskBunch`；上下文复用静态航空业务图，并向调用方暴露最近一轮的 `routeGraphDiagnostics` 和 `pricingDiagnostics`。
+
+### Pricing 证明边界
+
+`ColumnGenerationBatch` 携带候选列、完成状态，以及精确的请求、模型、对偶版本、分支状态、执行器组和时隙作用域。穷尽状态只证明该作用域已完成；`noImprovingColumns` 必须由独立的显式证据给出，不能从空输出列表推导。标签预算、完整路径校验拒绝或任务束构造被拒绝会降级完成状态；输出列上限只限制返回列数，不会截断搜索。无效总代价终点会阻止无改进证明。候选列只是可行见证，不是最小 reduced cost 证明；当前 Demo4 branch-and-price 不会把作用域内的定价完成提升为全局下界或整数最优证明。
 
 ## Kotlin、FSRA 与 Rust 对照
 
@@ -135,7 +137,7 @@ master 求解器将 shadow price 传入 `BunchGenerationContext.generateFlightTa
 | --- | --- | --- | --- |
 | `bunch_generation/BunchGenerationContext.kt`、`AggregationInitializer.kt` | `fsra-domain-bunch-generation-context` 聚合与初始化 | `ospf-rust-example/src/framework` 的 bunch-generation 上下文 | Kotlin 保留对象上下文和 `Try`/`Ret` 错误流，不逐字复制 Rust 的所有权和 trait 边界。 |
 | `RouteGraphGenerator.kt`、`FlightTaskReverse.kt` | FSRA 路线图和换序任务服务 | Rust 路线图和换序任务服务 | Kotlin 使用 `Graph`、`Node`、`Edge` 领域对象，并记录路线图诊断。 |
-| `FlightTaskBunchGenerator.kt` | FSRA pricing 和 Label Setting 逻辑 | Rust pricing 子问题 | Kotlin 在多轮 pricing 间复用静态图，并通过上下文暴露标签诊断。 |
+| `FlightTaskBunchGenerator.kt` | FSRA 航空定价规则 | Rust pricing 子问题 | Kotlin 复用航空业务图数据，并将通用路径遍历委托给共享 Network 内核；不会迁移不安全的旧支配剪枝。 |
 | `bunch_compilation` | FSRA master/bunch compilation 上下文 | Rust master 模型和列编译 | 两者都负责 master 约束；pricing 和图遍历仍归属 `bunch_generation`。 |
 | `bunch_selection/BranchAndPriceAlgorithm.kt` | FSRA branch-and-price 编排 | Rust branch-and-price 编排 | Kotlin 将迭代机制委托给通用框架算法。 |
 

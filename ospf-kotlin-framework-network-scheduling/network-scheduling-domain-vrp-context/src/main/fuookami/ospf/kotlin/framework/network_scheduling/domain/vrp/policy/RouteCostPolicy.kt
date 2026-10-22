@@ -10,6 +10,12 @@ import fuookami.ospf.kotlin.framework.network_scheduling.domain.vrp.model.Vehicl
 /** 路线总成本计算扩展点。 / Route total-cost calculation extension point. */
 fun interface RouteCostPolicy<V : RealNumber<V>> {
     /**
+     * 是否符合增量定价使用的固定成本加逐弧成本分解。
+     * Whether this policy matches the fixed-plus-each-arc decomposition used by incremental pricing.
+     */
+    val isAdditive: Boolean get() = false
+
+    /**
      * 汇总固定成本与弧成本。 / Aggregate fixed and arc costs.
      *
      * @param vehicleType 车辆类型 / Vehicle type
@@ -23,6 +29,8 @@ fun interface RouteCostPolicy<V : RealNumber<V>> {
 open class FixedPlusArcCostPolicy<V : RealNumber<V>>(
     private val costUnit: PhysicalUnit
 ) : RouteCostPolicy<V> {
+    override val isAdditive: Boolean get() = true
+
     override fun cost(vehicleType: VehicleType<V>, arcCosts: List<Quantity<V>>): Ret<Quantity<V>> {
         val fixed = vehicleType.fixedCost.convertTo(costUnit)
             ?: return incompatibleCost("车辆固定成本", "vehicle fixed cost")

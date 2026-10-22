@@ -25,6 +25,7 @@
         <module>gantt-scheduling-domain-resource-context</module>
         <module>gantt-scheduling-domain-produce-context</module>
         <module>gantt-scheduling-application</module>
+        <module>gantt-scheduling-domain-network-context</module>
     </modules>
 
     <dependencies>
