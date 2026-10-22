@@ -721,9 +721,9 @@ private fun validateAlgorithm(config: AlgorithmConfig): Try {
         in BuiltInAlgorithms.populationUpdates.keys -> setOf("mutationRate")
         "pso", "apso" -> setOf("maxVelocity")
         "clpso" -> setOf("maxVelocity", "learningWeight", "refreshInterval", "stagnationLimit")
-        "shade" -> setOf("memorySize", "pBestRate", "minimumSize")
-        "l-shade" -> setOf("memorySize", "pBestRate", "minimumSize", "sizeReductionSteps")
-        "cma-es" -> setOf("initialSigma", "restartOnImport")
+        "shade" -> setOf("memorySize", "pBestRate", "minimumSize", "numerics")
+        "l-shade" -> setOf("memorySize", "pBestRate", "minimumSize", "sizeReductionSteps", "numerics")
+        "cma-es" -> setOf("initialSigma", "restartOnImport", "numerics")
         "nsga-ii", "nsga-iii" -> setOf("mutationRate", "divisions")
         "island", "island-ga" -> setOf("migrationPeriod")
         "memetic" -> setOf("phaseSteps")
@@ -732,7 +732,8 @@ private fun validateAlgorithm(config: AlgorithmConfig): Try {
     }
     val values = config.algorithm.parameters
     if (values.keys.any { it !in allowed } || values.any { (key, value) ->
-        if (key == "restartOnImport") (value as? JsonPrimitive)?.booleanOrNull == null
+        if (key == "numerics") (value as? JsonPrimitive)?.let { it.isString && it.content in setOf("native", if (type == "cma-es") "cma-polar-fdlibm-v1" else "shade-fdlibm-v1") } != true
+        else if (key == "restartOnImport") (value as? JsonPrimitive)?.booleanOrNull == null
         else (value as? JsonPrimitive)?.doubleOrNull?.isFinite() != true
     }) return searchInvalid("invalid algorithm parameters: $type")
     val integers = setOf("memorySize", "minimumSize", "refreshInterval", "stagnationLimit", "divisions", "sizeReductionSteps", "migrationPeriod", "phaseSteps")

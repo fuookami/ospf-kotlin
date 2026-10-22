@@ -318,3 +318,42 @@ constraints = ConstraintHandlingConfig(
 无状态会话省略这些字段，继续支持 Kotlin `2eb7943` 读取；原始读取器无法恢复有状态内层奖励。
 Rust 的 `save_kotlin_checkpoint` 面向原始读取器，使用本协议时应调用普通 `save_checkpoint`。
 数值逐位一致性和异步调度重放属于独立契约，本协议不对此作保证。
+
+## SHADE 数值契约
+
+SHADE 与 L-SHADE 在算法参数中支持 `"numerics": "shade-fdlibm-v1"`。该模式固定柯西参数采样采用 fdlibm 正切（本端 `StrictMath.tan`，Rust 精确依赖 `libm=0.2.16`）、binary64 运算顺序及每对参数五次均匀抽样。省略或使用 `"native"` 保留历史实现；未知 ID 或不兼容的算法/契约组合会在预检阶段失败。直接构建 runner 时显式使用 `ShadeNumerics.FdlibmV1`。
+
+模式纳入配置与策略指纹，更换模式后检查点和策略不兼容。原始 Kotlin `2eb7943` 读取器不支持该参数。本契约只覆盖该采样器，不承诺自定义目标、参数源、CMA-ES 或异步执行的逐位一致；JVM/Rust 位模式和完整状态比较与数值容差检查分别验收。
+
+## CMA 数值契约
+
+CMA-ES 支持 `"numerics": "cma-polar-fdlibm-v1"`。直接使用 runner 时，Rust 通过
+`with_numerics` 选择 `CmaNumerics::PolarFdlibmV1`，Kotlin 选择 `CmaNumerics.PolarFdlibmV1`。
+采用 Marsaglia 极坐标高斯采样：拒绝零半径和单位圆外的抽样对，每次尝试消耗两次均匀抽样，
+只使用第一分量、不缓存第二分量；保留高斯分布，不依赖平台余弦。默认 native Box-Muller 不变。
+
+共同模式固定原始 fdlibm 对数的运算分组（不是分组不同的 musl log），Rust `libm=0.2.16`
+exp/pow/sqrt 对应 Kotlin `StrictMath`，以正零起始顺序累加，Jacobi 分解固定 60 轮、
+停止及逐对阈值 `1e-12`，不重排特征值、按列输出特征向量。模式进入配置及策略指纹。
+restartOnImport 使用全部导入候选的均值及样本协方差；单候选保留协方差，更优历史 best 不丢失。
+多维、标量化及 SHADE 转 CMA 的 memetic 轨迹已进行完整状态及 binary64 位模式测试；
+这不是任意回调算术、舍入环境或所有机器的通用认证。
+
+## 异步调度重放
+
+仅支持 `Asynchronous`、parallelism >= 2 且**无时间预算**的执行模式。首次派发前调用
+`record_schedule()`（Rust）或 `recordSchedule()`（Kotlin）；终止后通过 `export_schedule()` /
+`exportSchedule()` 导出版本 1 的 `ScheduleLog`。`FileSearchStore` 提供校验并原子写入的
+`save_schedule` / `load_schedule`，Kotlin 对应 `saveSchedule` / `loadSchedule`。
+新运行绑定 `replay_schedule(&log)` / `replaySchedule(log)` 后真实执行算法，等待日志指定的
+worker，即使自然完成先后反转也不改变归并顺序；不是重放目标值替身或只重放学习更新。
+
+`begin/dispatch/complete/drain/yield/end` 记录 advance 边界、按序可用动作、随机位模式、
+预留及实际预算、停止/失败标志和静止排空屏障。校验规范 JSON SHA-256、配置/问题身份、
+事件配对及总量。偏离立即报错，并对已派发任务恰好一次排空；偏离后禁止生成检查点。
+损坏、截断和不兼容身份不会静默回退到自然完成顺序。
+
+静止检查点的可选 `schedule` 保存已消费前缀及游标。常规恢复后，在推进前必须显式重新绑定
+**完整源日志**继续重放，或显式继续录制；源日志须匹配该前缀，检查点身份及完成计数须与运行一致。
+已覆盖停止及 worker 失败排空。原始 Kotlin 导出保护拒绝该新状态。自定义回调和组件仍须有
+相同的确定性语义，依赖时钟的奖励及外部副作用不在契约内；普通未录制的异步模式仍然非确定。

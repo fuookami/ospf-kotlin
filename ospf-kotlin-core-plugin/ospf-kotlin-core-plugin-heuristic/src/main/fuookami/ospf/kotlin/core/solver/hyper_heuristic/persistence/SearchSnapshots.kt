@@ -64,6 +64,7 @@ data class WorkerCheckpoint(
  * @property lastCost 最近动作评估成本 / Evaluation cost of the latest action
  * @property configurationData 完整运行配置 / Complete run configuration
  * @property components 全局扩展组件状态 / Global extension component state
+ * @property schedule 已消费调度前缀，恢复后必须显式重新绑定 / Consumed schedule prefix; restoration requires explicit rebinding
  */
 @Serializable
 data class RunCheckpoint(
@@ -88,5 +89,7 @@ data class RunCheckpoint(
     val successes: Long = 0,
     val lastCost: Long = 0,
     val configurationData: JsonElement = JsonNull,
-    val components: Map<String, JsonElement> = emptyMap()
+    val components: Map<String, JsonElement> = emptyMap(),
+    /** 已消费的调度前缀；恢复后必须重新绑定 / Consumed schedule prefix; restore requires rebinding. */
+    val schedule: fuookami.ospf.kotlin.core.solver.hyper_heuristic.scheduling.ScheduleCheckpoint? = null
 )

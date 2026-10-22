@@ -66,6 +66,7 @@ data class CmaEsState<ObjValue, V>(
  * @param V 值类型 / Value type
  * @property initialSigma 初始步长 / Initial step size
  * @property fitnessEvaluator 适应度评估算子 / Fitness evaluation operator
+ * @property numerics 数值及采样协议 / Numerical and sampling contract
 */
 class CmaEsRunner<ObjValue, V>(
     val initialSigma: Double = 0.3,
@@ -73,7 +74,8 @@ class CmaEsRunner<ObjValue, V>(
     private val entropy: Generator<Flt64>,
     archive: Archive<ObjValue, V>,
     stopping: StoppingCriterion,
-    converter: IntoValue<V>
+    converter: IntoValue<V>,
+    val numerics: CmaNumerics = CmaNumerics.Native
 ) : AbstractRunner<CmaEsState<ObjValue, V>, ObjValue, V>(archive, stopping, converter)
     where V : RealNumber<V>, V : NumberField<V> {
 
@@ -108,9 +110,9 @@ class CmaEsRunner<ObjValue, V>(
         }
 
         // —— 策略参数（Hansen 的标准取值）—— / Strategy parameters (Hansen's standard values)
-        val lambda = 4 + floor(3.0 * ln(dimension.toDouble())).toInt()
+        val lambda = 4 + floor(3.0 * numerics.ln(dimension.toDouble())).toInt()
         val mu = lambda / 2
-        val rawWeights = List(mu) { ln(mu + 0.5) - ln(it + 1.0) }
+        val rawWeights = List(mu) { numerics.ln(mu + 0.5) - numerics.ln(it + 1.0) }
         var weightTotal = 0.0
         for (weight in rawWeights) {
             weightTotal += weight
@@ -131,14 +133,14 @@ class CmaEsRunner<ObjValue, V>(
             1.0 - c1,
             2.0 * (effectiveMass - 2.0 + 1.0 / effectiveMass) / ((n + 2.0) * (n + 2.0) + effectiveMass)
         )
-        val damps = 1.0 + 2.0 * max(0.0, sqrt((effectiveMass - 1.0) / (n + 1.0)) - 1.0) + cs
-        val chiN = sqrt(n) * (1.0 - 1.0 / (4.0 * n) + 1.0 / (21.0 * n * n))
+        val damps = 1.0 + 2.0 * max(0.0, numerics.sqrt((effectiveMass - 1.0) / (n + 1.0)) - 1.0) + cs
+        val chiN = numerics.sqrt(n) * (1.0 - 1.0 / (4.0 * n) + 1.0 / (21.0 * n * n))
 
-        val eigen = SymmetricEigen.decompose(state.covariance)
+        val eigen = numerics.eigen(state.covariance)
         if (!eigen.isValid) {
             return state
         }
-        val axes = eigen.values.map { sqrt(it.coerceAtLeast(1.0e-20)) }
+        val axes = eigen.values.map { numerics.sqrt(it.coerceAtLeast(1.0e-20)) }
 
         // —— 采样—— / Sampling
         data class Sample(val y: List<Double>, val individual: Individual<ObjValue, V>)
@@ -187,7 +189,7 @@ class CmaEsRunner<ObjValue, V>(
         val meanShift = List(dimension) { (newMean[it] - state.mean[it]) / state.sigma }
 
         // —— 步长路径与协方差路径—— / Step-size path and covariance path
-        val sigmaCoefficient = sqrt(cs * (2.0 - cs) * effectiveMass)
+        val sigmaCoefficient = numerics.sqrt(cs * (2.0 - cs) * effectiveMass)
 
         // B·y_w：把均值位移投到主方向后再变换回来。
         // B·y_w: project the mean shift onto the principal axes and transform back.
@@ -217,13 +219,13 @@ class CmaEsRunner<ObjValue, V>(
         for (value in newPathSigma) {
             pathNorm += value * value
         }
-        pathNorm = sqrt(pathNorm)
+        pathNorm = numerics.sqrt(pathNorm)
 
         val generation = state.generation + 1
         val hSigma = pathNorm /
-            sqrt(1.0 - (1.0 - cs).pow(2.0 * generation)) < (1.4 + 2.0 / (n + 1.0)) * chiN
+            numerics.sqrt(1.0 - numerics.pow(1.0 - cs, 2.0 * generation)) < (1.4 + 2.0 / (n + 1.0)) * chiN
 
-        val covCoefficient = sqrt(cc * (2.0 - cc) * effectiveMass) * (if (hSigma) 1.0 else 0.0)
+        val covCoefficient = numerics.sqrt(cc * (2.0 - cc) * effectiveMass) * (if (hSigma) 1.0 else 0.0)
         val newPathCovariance = List(dimension) {
             (1.0 - cc) * state.pathCovariance[it] + covCoefficient * meanShift[it]
         }
@@ -251,7 +253,7 @@ class CmaEsRunner<ObjValue, V>(
             newCovariance.add(rowValues)
         }
 
-        val newSigma = (state.sigma * exp((cs / damps) * (pathNorm / chiN - 1.0)))
+        val newSigma = (state.sigma * numerics.exp((cs / damps) * (pathNorm / chiN - 1.0)))
             .coerceIn(1.0e-12, 1.0e12)
 
         val bestCandidate = ranked.firstOrNull()?.individual
@@ -288,8 +290,6 @@ class CmaEsRunner<ObjValue, V>(
 
     /** 由均匀熵源生成标准正态（Box–Muller）/ Standard normal from a uniform source (Box–Muller) */
     private fun gaussian(): Double {
-        val first = entropy.unit().coerceAtLeast(1.0e-12)
-        val second = entropy.unit()
-        return sqrt(-2.0 * ln(first)) * cos(2.0 * PI * second)
+        return numerics.gaussian(entropy)
     }
 }

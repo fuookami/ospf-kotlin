@@ -352,3 +352,61 @@ closures or the additional adaptive components. Stateless sessions omit these fi
 by Kotlin `2eb7943`; that original reader cannot restore stateful inner rewards. Rust's
 `save_kotlin_checkpoint` targets the original reader; use ordinary `save_checkpoint` for this protocol.
 Numerical bit parity and asynchronous scheduling replay are separate contracts, not guaranteed here.
+
+## SHADE Numerical Contract
+
+SHADE and L-SHADE accept `"numerics": "shade-fdlibm-v1"` in their algorithm parameters.
+This fixes the Cauchy parameter sampler to fdlibm tangent (`StrictMath.tan` here and Rust
+`libm=0.2.16`), binary64 operation order, and five uniform draws per parameter pair. Omission
+or `"native"` retains the historical implementation. Unknown IDs and incompatible algorithm/contract pairs fail preflight. Direct runners use `ShadeNumerics.FdlibmV1` explicitly.
+
+The mode participates in configuration and policy fingerprints, so changing it invalidates
+checkpoint/policy compatibility. The original Kotlin `2eb7943` reader does not support this
+parameter. This is a sampler contract, not a promise of bit parity for custom objectives,
+custom parameter sources, CMA-ES, or asynchronous execution. JVM/Rust bit-vector and full-state
+tests are separate from numerical tolerance checks.
+
+## CMA Numerical Contract
+
+CMA-ES accepts `"numerics": "cma-polar-fdlibm-v1"`. Direct runners select
+`CmaNumerics::PolarFdlibmV1` with `with_numerics` in Rust, or `CmaNumerics.PolarFdlibmV1`
+in Kotlin. It uses Marsaglia polar Gaussian sampling: reject zero/outside-unit-disk pairs,
+consume two uniform draws per attempt, use the first component only, and do not cache its
+partner. This preserves Gaussian sampling without relying on platform cosine. Native
+Box-Muller remains the default.
+
+The shared mode fixes the original fdlibm logarithm's operation grouping (not the differently
+grouped musl log), Rust `libm=0.2.16` exp/pow/sqrt against Kotlin `StrictMath`, positive-zero
+sequential sums, and a 60-sweep Jacobi decomposition with `1e-12` stopping/pair thresholds,
+unsorted eigenvalues and column eigenvectors. Mode identity participates in configuration
+and policy compatibility. Restart-on-import uses all imported candidates for the mean and
+sample covariance; a single candidate retains covariance, and a better historical best is
+retained. Multi-dimensional, scalarized and SHADE-to-CMA memetic trajectories have exact
+full-state and binary64 tests. Arbitrary callback arithmetic, rounding modes and every
+machine are not certified.
+
+## Asynchronous Schedule Replay
+
+For `Asynchronous` execution with parallelism >= 2 and **no time budget**, enable
+`record_schedule()` (Rust) / `recordSchedule()` (Kotlin) before the first dispatch. After
+termination, `export_schedule()` / `exportSchedule()` returns a version-1 `ScheduleLog`.
+`FileSearchStore` provides validated atomic `save_schedule` / `load_schedule` (Rust) and
+`saveSchedule` / `loadSchedule` (Kotlin). A fresh run binds `replay_schedule(&log)` /
+`replaySchedule(log)` and executes the algorithms normally. It waits for the recorded
+worker even when natural completion order is reversed; it does not replay stored objective
+values or just learning updates.
+
+Events `begin/dispatch/complete/drain/yield/end` capture advance boundaries, ordered available
+actions, random bits, reserved/actual budgets, stop/failure flags and quiescent drain barriers.
+Canonical JSON SHA-256, configuration/problem identities, event pairing and totals are
+verified. Divergence fails and drains already-dispatched slices exactly once; a diverged
+run cannot produce a checkpoint. Source corruption/truncation and incompatible identities
+are rejected rather than silently falling back to natural completion order.
+
+Quiescent checkpoints embed the consumed prefix and cursor in optional `schedule`. Restore
+normally, then explicitly rebind replay with the **complete source log**, or resume recording,
+before advancing. The source must match that prefix; checkpoint identities and completion
+totals must agree with the run. Stop and worker-failure drains are covered. The original
+Kotlin export guard rejects this new state. Custom callbacks/components must independently
+have identical deterministic semantics; time-dependent rewards or external side effects
+are outside this contract. Ordinary unrecorded asynchronous execution remains nondeterministic.

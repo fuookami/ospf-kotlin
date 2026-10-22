@@ -162,6 +162,7 @@ internal object BuiltInAlgorithms {
             val runner = ShadeRunner<O, V>(
                 size = config.size,
                 memorySize = p.integer("memorySize", 5),
+                numerics = if ((p["numerics"] as? JsonPrimitive)?.content == "shade-fdlibm-v1") ShadeNumerics.FdlibmV1 else ShadeNumerics.Native,
                 pBestRate = p.number("pBestRate", 0.2),
                 sizeRatio = bindings.parameter("sizeRatio", if (type == "l-shade") LinearSource(
                     from = Flt64.one,
@@ -187,6 +188,7 @@ internal object BuiltInAlgorithms {
             val sigma = p.number("initialSigma", 0.3)
             val runner = CmaEsRunner<O, V>(
                 initialSigma = sigma,
+                numerics = if ((p["numerics"] as? JsonPrimitive)?.content == "cma-polar-fdlibm-v1") CmaNumerics.PolarFdlibmV1 else CmaNumerics.Native,
                 fitnessEvaluator = ObjectiveFitnessEvaluator,
                 entropy = random,
                 archive = archive,

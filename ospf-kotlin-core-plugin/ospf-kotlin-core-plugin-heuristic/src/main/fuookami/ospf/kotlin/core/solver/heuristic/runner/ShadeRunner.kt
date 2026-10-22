@@ -34,6 +34,19 @@ data class ShadeParameters(
     val crossRate: Double
 )
 
+/** SHADE 采样数值协议，原生模式保留历史轨迹 / SHADE sampling numerical contract; native mode preserves historical trajectories. */
+enum class ShadeNumerics {
+    /** 平台原生正切 / Platform-native tangent. */
+    Native,
+    /** fdlibm 正切与固定运算顺序；协议 shade-fdlibm-v1 / fdlibm tangent and fixed operation order; protocol shade-fdlibm-v1. */
+    FdlibmV1;
+
+    internal fun tangent(angle: Double): Double = when (this) {
+        Native -> kotlin.math.tan(angle)
+        FdlibmV1 -> StrictMath.tan(angle)
+    }
+}
+
 /**
  * 成功历史自适应记忆（SHADE 的核心）。 / Success-history adaptive memory, the core of SHADE.
  *
@@ -70,11 +83,12 @@ data class ShadeMemory(
      * distribution; both are clamped to `[0, 1]`.
      *
      * @param entropy 均匀分布熵源 / Uniform entropy source
+     * @param numerics 参数采样数值协议 / Parameter-sampling numerical contract
      * @return 参数与槽位 / Parameters and slot
     */
-    fun sample(entropy: Generator<Flt64>): ShadeParameters {
+    fun sample(entropy: Generator<Flt64>, numerics: ShadeNumerics = ShadeNumerics.Native): ShadeParameters {
         val index = (entropy.unit() * memoryF.size).toInt().coerceIn(0, memoryF.size - 1)
-        var differentialWeight = memoryF[index] + 0.1 * kotlin.math.tan(PI * (entropy.unit() - 0.5))
+        var differentialWeight = memoryF[index] + 0.1 * numerics.tangent(PI * (entropy.unit() - 0.5))
         if (differentialWeight <= 0.0) {
             differentialWeight = memoryF[index]
         }
@@ -156,6 +170,7 @@ data class ShadeState<ObjValue, V>(
  * @property sizeRatio 种群规模的缩减源；恒为 1 时即 SHADE，递减时即 L-SHADE / Shrinking source of the population size; constant 1 gives SHADE, decreasing gives L-SHADE
  * @property minimumSize 缩减后的种群规模下界 / Lower bound of the shrunk population size
  * @property fitnessEvaluator 适应度评估算子 / Fitness evaluation operator
+ * @property numerics 参数采样数值协议 / Parameter-sampling numerical contract
 */
 class ShadeRunner<ObjValue, V>(
     val size: Int,
@@ -167,7 +182,8 @@ class ShadeRunner<ObjValue, V>(
     private val entropy: Generator<Flt64>,
     archive: Archive<ObjValue, V>,
     stopping: StoppingCriterion,
-    converter: IntoValue<V>
+    converter: IntoValue<V>,
+    val numerics: ShadeNumerics = ShadeNumerics.Native
 ) : AbstractRunner<ShadeState<ObjValue, V>, ObjValue, V>(archive, stopping, converter)
     where V : RealNumber<V>, V : NumberField<V> {
 
@@ -211,7 +227,7 @@ class ShadeRunner<ObjValue, V>(
 
         for (index in state.population.indices) {
             val target = state.population[index]
-            val parameters = state.memory.sample(entropy)
+            val parameters = state.memory.sample(entropy, numerics)
             val pBest = pBestPool[(entropy.unit() * pBestPool.size).toInt().coerceIn(0, pBestPool.size - 1)]
 
             // r1 取当前种群，r2 取「种群 + 外部档案」的并集——外部档案保留了已被淘汰的父代位置，

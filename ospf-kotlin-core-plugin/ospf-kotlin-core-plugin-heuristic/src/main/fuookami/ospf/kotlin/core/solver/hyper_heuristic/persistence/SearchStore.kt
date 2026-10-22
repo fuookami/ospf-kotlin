@@ -51,6 +51,21 @@ class FileSearchStore(
 ) : SearchStore {
     private val root = directory.toAbsolutePath().normalize()
 
+    /** 保存已校验的完整调度日志 / Save a validated complete schedule log.
+     * @param key 文件键 / File key
+     * @param log 完整日志 / Complete log
+     * @return 保存结果 / Save result
+     */
+    fun saveSchedule(key: String, log: fuookami.ospf.kotlin.core.solver.hyper_heuristic.scheduling.ScheduleLog): Try =
+        log.validate().then { searchBoundary { Json.encodeToJsonElement(log) } }.then { write(key, "schedule", it) }
+
+    /** 载入并校验完整调度日志 / Load and validate a complete schedule log.
+     * @param key 文件键 / File key
+     * @return 完整日志 / Complete log
+     */
+    fun loadSchedule(key: String): Ret<fuookami.ospf.kotlin.core.solver.hyper_heuristic.scheduling.ScheduleLog> =
+        read(key, "schedule").then { value -> searchBoundary { Json.decodeFromJsonElement<fuookami.ospf.kotlin.core.solver.hyper_heuristic.scheduling.ScheduleLog>(value) } }.then { log -> log.validate().map { log } }
+
     override fun savePolicy(key: String, policy: PolicyArchive): Try = searchBoundary { Json.encodeToJsonElement(policy) }.then { write(key, "policy", it) }
     override fun loadPolicy(key: String): Ret<PolicyArchive> = read(key, "policy").then { value -> migrate(value, policyMigrations) }.then { value -> searchBoundary { Json.decodeFromJsonElement<PolicyArchive>(value) } }
     override fun saveCheckpoint(key: String, checkpoint: RunCheckpoint): Try = searchBoundary { Json.encodeToJsonElement(checkpoint) }.then { write(key, "checkpoint", it) }

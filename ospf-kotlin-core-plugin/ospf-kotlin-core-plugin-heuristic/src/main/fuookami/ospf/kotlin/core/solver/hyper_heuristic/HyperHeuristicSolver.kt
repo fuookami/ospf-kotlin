@@ -240,9 +240,12 @@ class HyperHeuristicRun<O, V> internal constructor(
 ) where V : RealNumber<V>, V : NumberField<V> {
     private val gate = Mutex()
     private val stopped = AtomicBoolean(false)
+    private var observedStopped = false
     private val scope = CoroutineScope(context + SupervisorJob() + Dispatchers.Default)
     private val completions = Channel<Outcome<O, V>>(Channel.UNLIMITED)
     private val active = linkedMapOf<String, Pair<Dispatch<O, V>, Deferred<Outcome<O, V>>>>()
+    private val readyCompletions = linkedMapOf<String, Outcome<O, V>>()
+    private val schedule = ScheduleControl()
     private val memory = SearchMemory(
         problem = problem,
         capacity = config.memory.archiveCapacity,
@@ -277,8 +280,9 @@ class HyperHeuristicRun<O, V> internal constructor(
 
     private fun termination(): SearchTermination? = when {
         diagnostics.isNotEmpty() -> SearchTermination.Failed
-        stopped.get() -> SearchTermination.Stopped
-        budget.used >= budget.limit -> SearchTermination.EvaluationLimit
+        (if (schedule.enabled) observedStopped else stopped.get()) -> SearchTermination.Stopped
+        // 同步归并不能读取其他 worker 的并发计费 / Synchronous merging must not read another worker's racing charges.
+        (if (schedule.enabled || config.execution.mode == ExecutionMode.Synchronous) accounted else budget.used) >= budget.limit -> SearchTermination.EvaluationLimit
         steps >= (config.budget.steps ?: Long.MAX_VALUE) -> SearchTermination.StepLimit
         dispatched >= (config.budget.decisions ?: Long.MAX_VALUE) -> SearchTermination.StepLimit
         config.budget.timeMillis?.let { elapsed() >= it.milliseconds.inWholeNanoseconds } == true -> SearchTermination.TimeLimit
@@ -313,10 +317,62 @@ class HyperHeuristicRun<O, V> internal constructor(
      */
     fun transitions(): List<SelectionTransition> = events.toList()
 
+    private fun bindSchedule(source: ScheduleLog?): Try {
+        if (config.execution.mode != ExecutionMode.Asynchronous || config.execution.parallelism < 2 || config.budget.timeMillis != null || active.isNotEmpty() || closed) return searchInvalid("schedule control requires quiescent asynchronous threaded execution without time budgets")
+        if (dispatched != 0L && !schedule.enabled) return searchInvalid("enable schedule control before dispatching")
+        return schedule.bind(configFingerprint, "${problem.id}:${problem.fingerprint}", source)
+    }
+
+    /** 开启或显式继续录制 / Start or explicitly resume recording.
+     * @return 绑定结果 / Binding result
+     */
+    suspend fun recordSchedule(): Try = gate.withLock { bindSchedule(null) }
+
+    /** 绑定完整日志并重新执行算法 / Bind a complete log and re-execute algorithms.
+     * @param source 完整源日志 / Complete source log
+     * @return 绑定结果 / Binding result
+     */
+    suspend fun replaySchedule(source: ScheduleLog): Try = gate.withLock { bindSchedule(source) }
+
+    /** 导出终止运行的完整日志 / Export a terminated run's complete log.
+     * @return 完整日志 / Complete log
+     */
+    suspend fun exportSchedule(): Ret<ScheduleLog> = gate.withLock {
+        drain()
+        finishSchedule().then { schedule.export() }
+    }
+
+    private fun finishSchedule(): Try {
+        observeStop()
+        if (schedule.enabled && !schedule.ended && active.isEmpty() && termination() != null) return schedule.event(ScheduleEvent(
+            kind = "end", evaluations = accounted, steps = steps, stopped = observedStopped, failed = diagnostics.isNotEmpty()
+        ))
+        return ok
+    }
+
+    private fun observeStop() {
+        // 只在录制事件边界采样外部停止，避免归并时发生未记录的竞态。
+        // Sample external stopping only at recorded event boundaries, avoiding unlogged races during merging.
+        observedStopped = observedStopped || stopped.get() || (schedule.replaying && schedule.peek?.let { it.stopped && it.kind in listOf("complete", "drain", "end") } == true)
+    }
+
     /** 执行一轮同步批次或一次异步完成事件 / Execute a synchronous batch or one asynchronous completion.
      * @return 是否仍有工作 / Whether work remains
      */
     suspend fun advance(): Ret<Boolean> = gate.withLock {
+        val ready = schedule.ready()
+        if (ready !is Ok) return@withLock searchFailure(ready)
+        observeStop()
+        while (schedule.replaying && schedule.peek?.kind == "drain") {
+            if (schedule.peek?.stopped == true) stopped.set(true)
+            drain()
+        }
+        if (schedule.replaying && schedule.peek?.kind == "end" && schedule.peek?.stopped == true) stopped.set(true)
+        val advancing = termination() == null && !closed
+        if (advancing) {
+            val begin = schedule.event(ScheduleEvent("begin"))
+            if (begin !is Ok) return@withLock searchFailure(begin)
+        }
         val result = searchBoundary { advanceLocked() }.then { it }
         if (result !is Ok) {
             diagnostics.add("协调器失败 / Coordinator failed: $result")
@@ -324,6 +380,12 @@ class HyperHeuristicRun<O, V> internal constructor(
             accumulatedNanos = elapsed()
             activeStart = null
         }
+        if (advancing) {
+            val yielded = schedule.event(ScheduleEvent("yield"))
+            if (yielded !is Ok) return@withLock searchFailure(yielded)
+        }
+        val finished = finishSchedule()
+        if (finished !is Ok) return@withLock searchFailure(finished)
         result
     }
 
@@ -335,7 +397,7 @@ class HyperHeuristicRun<O, V> internal constructor(
             var reserved = active.values.fold(0L) { sum, entry -> sum + entry.first.allowance }
             var reservedSteps = active.values.fold(0L) { sum, entry -> sum + entry.first.stepAllowance }
             val available = workers.filter { !it.disabled && it.id !in active }.map { it.id }.toMutableList()
-            while (active.size < parallelism && available.isNotEmpty() && dispatched < (config.budget.decisions ?: Long.MAX_VALUE)) {
+            while (active.size < parallelism && available.isNotEmpty() && dispatched < (config.budget.decisions ?: Long.MAX_VALUE) && (!schedule.replaying || schedule.peek?.kind == "dispatch")) {
                 val remaining = budget.limit - accounted - reserved
                 val remainingSteps = (config.budget.steps ?: Long.MAX_VALUE) - steps - reservedSteps
                 if (remaining <= 0 || remainingSteps <= 0) break
@@ -379,6 +441,11 @@ class HyperHeuristicRun<O, V> internal constructor(
                     allowance = allowance,
                     stepAllowance = minOf(config.budget.sliceSteps, remainingSteps)
                 )
+                val recorded = schedule.event(ScheduleEvent(
+                    kind = "dispatch", decision = dispatch.decision, action = worker.id, evaluations = allowance,
+                    steps = dispatch.stepAllowance, random = random.state, available = dispatch.available
+                ))
+                if (recorded !is Ok) return recorded.map { false }
                 available.remove(worker.id)
                 reserved += allowance
                 reservedSteps += dispatch.stepAllowance
@@ -391,7 +458,7 @@ class HyperHeuristicRun<O, V> internal constructor(
             }
         }
         if (config.execution.mode == ExecutionMode.Asynchronous && termination() == null && active.isNotEmpty()) {
-            commit(completions.receive())
+            if (schedule.replaying && schedule.peek?.kind == "drain") drain() else commit(nextOutcome())
         } else {
             drain()
         }
@@ -444,6 +511,15 @@ class HyperHeuristicRun<O, V> internal constructor(
     }
 
     private fun commit(outcome: Outcome<O, V>) {
+        observeStop()
+        val report = outcome.result
+        val recorded = schedule.event(ScheduleEvent(
+            kind = "complete", decision = outcome.dispatch.decision, action = outcome.dispatch.worker.id,
+            evaluations = outcome.dispatch.consumed, steps = if (report is Ok) report.value.steps else 0,
+            stopped = observedStopped,
+            failed = report !is Ok || report.value.termination == SearchTermination.Failed || report.value.diagnostics.isNotEmpty()
+        ))
+        if (recorded !is Ok) diagnostics.add("调度重放失败 / Schedule replay failed: $recorded")
         val result = searchBoundary { commitOutcome(outcome) }
         if (result !is Ok) {
             diagnostics.add("归并回调失败 / Merge callback failed: $result")
@@ -568,10 +644,34 @@ class HyperHeuristicRun<O, V> internal constructor(
     }
 
     private suspend fun drain() {
+        observeStop()
+        if (active.isNotEmpty()) {
+            val recorded = schedule.event(ScheduleEvent(kind = "drain", stopped = observedStopped))
+            if (recorded !is Ok) {
+                schedule.diverged = true
+                diagnostics.add("调度排空失败 / Schedule drain failed: $recorded")
+            }
+        }
         if (config.execution.mode == ExecutionMode.Asynchronous) {
-            while (active.isNotEmpty()) commit(completions.receive())
+            while (active.isNotEmpty()) commit(nextOutcome())
         } else {
             for ((_, entry) in active.toSortedMap()) commit(entry.second.await())
+        }
+    }
+
+    private suspend fun nextOutcome(): Outcome<O, V> {
+        var wanted = if (schedule.replaying) schedule.peek?.takeIf { it.kind == "complete" }?.action else null
+        if (schedule.replaying && (wanted == null || wanted !in active)) {
+            schedule.diverged = true
+            diagnostics.add("调度缺失完成事件 / Missing schedule completion")
+            wanted = null
+        }
+        while (true) {
+            if (wanted != null) readyCompletions.remove(wanted)?.let { return it }
+            else readyCompletions.keys.firstOrNull()?.let { readyCompletions.remove(it) }?.let { return it }
+            val outcome = completions.receive()
+            if (wanted == null || outcome.dispatch.worker.id == wanted) return outcome
+            readyCompletions[outcome.dispatch.worker.id] = outcome
         }
     }
 
@@ -608,6 +708,8 @@ class HyperHeuristicRun<O, V> internal constructor(
         drain()
         accumulatedNanos = elapsed()
         activeStart = null
+        val finished = finishSchedule()
+        if (finished !is Ok) return@withLock searchFailure(finished)
         Ok(policyArchive())
     }
 
@@ -641,6 +743,10 @@ class HyperHeuristicRun<O, V> internal constructor(
         drain()
         accumulatedNanos = elapsed()
         activeStart = null
+        val finished = finishSchedule()
+        if (finished !is Ok) return@withLock searchFailure(finished)
+        val scheduleState = schedule.snapshot()
+        if (scheduleState !is Ok) return@withLock searchFailure(scheduleState)
         val componentStates = linkedMapOf<String, JsonElement>()
         for ((id, component) in components) {
             val saved = searchBoundary { component.save() }.then { it }
@@ -686,13 +792,34 @@ class HyperHeuristicRun<O, V> internal constructor(
                     successes = successes,
                     lastCost = lastCost,
                     configurationData = Json.encodeToJsonElement(config),
-                    components = componentStates
+                    components = componentStates,
+                    schedule = scheduleState.value
                 )
             }
         }
     }
 
     internal fun restore(saved: RunCheckpoint): Try {
+        saved.schedule?.let { schedule ->
+            val completions = schedule.log.events.filter { it.kind == "complete" }
+            var evaluations = 0L
+            var steps = 0L
+            for (event in completions) {
+                if (event.evaluations < 0 || event.steps < 0 || Long.MAX_VALUE - evaluations < event.evaluations || Long.MAX_VALUE - steps < event.steps) return searchInvalid("invalid checkpoint schedule counters")
+                evaluations += event.evaluations
+                steps += event.steps
+            }
+            if (config.execution.mode != ExecutionMode.Asynchronous || config.execution.parallelism < 2 || config.budget.timeMillis != null ||
+                schedule.log.configuration != saved.configuration || schedule.log.problem != saved.problem ||
+                schedule.log.events.count { it.kind == "dispatch" }.toLong() != saved.dispatched || completions.size.toLong() != saved.completed ||
+                evaluations != saved.evaluations || steps != saved.steps) return searchInvalid("inconsistent checkpoint schedule identity or counters")
+        }
+        val scheduleState = schedule.restore(saved.schedule)
+        if (scheduleState !is Ok) return scheduleState
+        if (saved.schedule?.log?.events?.lastOrNull()?.let { it.kind == "end" && it.stopped } == true) {
+            stopped.set(true)
+            observedStopped = true
+        }
         if (!config.persistence.enabled || saved.version != 1 || saved.configuration != configFingerprint || fingerprint(saved.configurationData) != configFingerprint || saved.problem != "${problem.id}:${problem.fingerprint}" ||
             saved.components.keys != components.keys || saved.workers.keys != workers.map { it.id }.toSet() || listOf(saved.evaluations, saved.dispatched, saved.completed, saved.steps, saved.stagnation, saved.activeNanos).any { it < 0 } ||
             saved.objectiveCalls < 0 || saved.objectiveCalls > saved.evaluations || saved.evaluations > budget.limit || saved.completed != saved.dispatched) return searchInvalid("incompatible or non-quiescent checkpoint")
