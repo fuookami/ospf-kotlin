@@ -31,6 +31,8 @@ class QlearningSource(
     val candidates: List<ParameterSource>,
     val agent: QlearningAgent
 ) : ParameterSource, IterationObserver {
+    override fun reset() = agent.reset()
+
 
     override fun invoke(iteration: Iteration): Flt64 {
         if (candidates.isEmpty()) {

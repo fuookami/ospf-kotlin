@@ -84,7 +84,7 @@ class PopulationRunner<ObjValue, V>(
 
         val offspring = coroutineScope {
             state.indices.map { index ->
-                async(Dispatchers.Default) {
+                async(SearchExecution.dispatcher()) {
                     // 邻域内的父代先按优度升序排列：交叉本身不关心顺序，而位置更新类算子（GWO 的 α/β/δ 等）
                     // 依赖「前 k 名即头狼」的约定，因此由骨架统一保证。
                     // Neighbourhood parents are ranked by ascending quality first: crossover does not care about the order,
@@ -108,7 +108,7 @@ class PopulationRunner<ObjValue, V>(
 
         val mutants = coroutineScope {
             state.map { individual ->
-                async(Dispatchers.Default) {
+                async(SearchExecution.dispatcher()) {
                     val solution = mutation(
                         iteration = iteration,
                         individual = individual,

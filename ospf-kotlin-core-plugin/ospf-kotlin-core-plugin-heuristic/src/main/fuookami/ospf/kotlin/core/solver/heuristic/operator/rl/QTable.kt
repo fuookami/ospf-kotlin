@@ -101,7 +101,9 @@ class QTable(
         reward: Flt64,
         nextState: Int,
         alpha: Flt64,
-        gamma: Flt64
+        gamma: Flt64,
+        terminal: Boolean = false,
+        availableActions: List<Int>? = null
     ): Ret<Flt64> {
         if (state !in 0 until stateAmount) {
             return Failed(ErrorCode.IllegalArgument, "state out of range: $state / 状态越界：$state")
@@ -113,21 +115,45 @@ class QTable(
             return Failed(ErrorCode.IllegalArgument, "nextState out of range: $nextState / 下一状态越界：$nextState")
         }
         val alphaValue = alpha.toDouble()
-        if (alphaValue < 0.0 || alphaValue > 1.0) {
+        if (!alphaValue.isFinite() || alphaValue < 0.0 || alphaValue > 1.0) {
             return Failed(ErrorCode.IllegalArgument, "alpha must lie in [0, 1], got $alphaValue / 学习率须位于 [0, 1]")
         }
         val gammaValue = gamma.toDouble()
-        if (gammaValue < 0.0 || gammaValue > 1.0) {
+        if (!gammaValue.isFinite() || gammaValue < 0.0 || gammaValue > 1.0) {
             return Failed(ErrorCode.IllegalArgument, "gamma must lie in [0, 1], got $gammaValue / 折扣因子须位于 [0, 1]")
         }
 
         // 下一状态的最大动作价值，而非当前状态自身的最大值。 / The maximum over the next state, not over the current one.
-        val nextBest = entries[nextState].maxOrNull() ?: Flt64.zero
+        if (!reward.toDouble().isFinite() || availableActions?.any { it !in 0 until actionAmount } == true) {
+            return Failed(ErrorCode.IllegalArgument, "奖励或动作掩码无效 / Invalid reward or action mask")
+        }
+        val nextBest = if (terminal) Flt64.zero else {
+            (availableActions ?: (0 until actionAmount).toList()).map { entries[nextState][it] }.maxOrNull() ?: Flt64.zero
+        }
         val target = reward + gamma * nextBest
         val current = entries[state][action]
         val updated = current + alpha * (target - current)
         entries[state][action] = updated
         return ok(updated)
+    }
+
+    /** 导出完整 Q 表 / Export the complete Q table.
+     * @return 按状态排列的行 / Rows ordered by state
+     */
+    fun snapshot(): List<List<Flt64>> = entries.map { it.toList() }
+
+    /** 校验后原子恢复 Q 表 / Validate then restore the Q table atomically.
+     * @param values 完整表格 / Complete table
+     * @return 恢复结果 / Restore result
+     */
+    fun restore(values: List<List<Flt64>>): Try {
+        if (values.size != stateAmount || values.any { row -> row.size != actionAmount || row.any { !it.toDouble().isFinite() } }) {
+            return Failed(ErrorCode.IllegalArgument, "Q 表形状或数值无效 / Invalid Q table shape or values")
+        }
+        for (state in entries.indices) {
+            for (action in entries[state].indices) entries[state][action] = values[state][action]
+        }
+        return ok
     }
 
     /** 清空 Q 表 / Clear the table */

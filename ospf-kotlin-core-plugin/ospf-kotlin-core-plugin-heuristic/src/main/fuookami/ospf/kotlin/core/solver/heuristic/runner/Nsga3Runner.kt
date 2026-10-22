@@ -61,8 +61,8 @@ class Nsga3Runner<V>(
     override val name: String get() = "nsga-iii"
 
     override fun select(
-        candidates: List<SolutionWithFitness<List<Flt64>, V>>
-    ): List<SolutionWithFitness<List<Flt64>, V>> {
+        candidates: List<Individual<List<Flt64>, V>>
+    ): List<Individual<List<Flt64>, V>> {
         if (candidates.size <= size) {
             return candidates
         }
@@ -73,8 +73,8 @@ class Nsga3Runner<V>(
             dominance = dominance
         )
 
-        val selected = ArrayList<SolutionWithFitness<List<Flt64>, V>>(size)
-        var lastFront: List<SolutionWithFitness<List<Flt64>, V>> = emptyList()
+        val selected = ArrayList<Individual<List<Flt64>, V>>(size)
+        var lastFront: List<Individual<List<Flt64>, V>> = emptyList()
 
         for (front in fronts) {
             if (selected.size + front.size <= size) {
@@ -120,7 +120,7 @@ class Nsga3Runner<V>(
             }
         }
 
-        fun normalise(individual: SolutionWithFitness<List<Flt64>, V>): List<Double> {
+        fun normalise(individual: Individual<List<Flt64>, V>): List<Double> {
             return List(dimension) { index ->
                 val span = maximum[index] - minimum[index]
                 if (span <= 1.0e-12) 0.0 else (individual.fitness[index].toDouble() - minimum[index]) / span

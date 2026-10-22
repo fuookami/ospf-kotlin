@@ -30,6 +30,8 @@ class QlearningUpdate(
     val candidates: List<SolutionUpdate>,
     val agent: QlearningAgent
 ) : SolutionUpdate, IterationObserver {
+    override fun reset() = agent.reset()
+
 
     override fun <V, T> invoke(
         iteration: Iteration,

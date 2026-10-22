@@ -2,6 +2,9 @@
 
 :us: English | :cn: [简体中文](README_ch.md)
 
+For persistent sessions and high-level scheduling, see the [hyper-heuristic framework](../hyper_heuristic/README.md).
+Complete `AbstractRunner.run` calls return `Ret<List<Individual<O, V>>>`.
+
 ## Overview
 
 The `heuristic` package is the contract and composition layer of the metaheuristic plugin. Every

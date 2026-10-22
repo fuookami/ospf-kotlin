@@ -128,7 +128,7 @@ class ClpsoRunner<ObjValue, V>(
 
         return coroutineScope {
             state.map { particle ->
-                async(Dispatchers.Default) {
+                async(SearchExecution.dispatcher()) {
                     val dimension = particle.individual.solution.size
                     val refresh = particle.stagnation >= refreshInterval
                     val velocity = DoubleArray(dimension)

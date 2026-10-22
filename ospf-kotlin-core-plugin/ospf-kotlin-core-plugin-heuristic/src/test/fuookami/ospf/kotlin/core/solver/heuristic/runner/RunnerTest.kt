@@ -85,7 +85,7 @@ class RunnerTest {
             converter = IntoValue.Identity
         )
         val initialBest = zeroRunner
-            .run(model = model)
+            .run(model = model).also { assertTrue(it is Ok) }.value!!
             .first()
             .fitness
             .toDouble()
@@ -102,7 +102,7 @@ class RunnerTest {
             stopping = IterationLimit(UInt64(20)),
             converter = IntoValue.Identity
         )
-        val individuals = runner.run(model = model)
+        val individuals = runner.run(model = model).also { assertTrue(it is Ok) }.value!!
 
         assertTrue(individuals.isNotEmpty(), "population runner produced no individual")
         assertTrue(individuals.all { it.solution.size == 2 }, "population runner produced malformed solutions")
@@ -127,7 +127,7 @@ class RunnerTest {
             stopping = IterationLimit(UInt64(30)),
             converter = IntoValue.Identity
         )
-        val individuals = runner.run(model = model)
+        val individuals = runner.run(model = model).also { assertTrue(it is Ok) }.value!!
 
         assertTrue(individuals.isNotEmpty(), "trajectory runner produced no individual")
         assertTrue(

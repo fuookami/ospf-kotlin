@@ -66,6 +66,14 @@ class QlearningAgent(
     var started: Boolean = false
         private set
 
+    /** 清空独立搜索的学习状态 / Clear learning state for an independent search. */
+    fun reset() {
+        table.clear()
+        action = 0
+        state = 0
+        started = false
+    }
+
     /**
      * 推进一轮：先按上一轮的结果更新 Q 值，再为下一轮挑选动作。 / Advance one round: update the Q value from the
      * previous round's outcome, then pick the action for the next round.

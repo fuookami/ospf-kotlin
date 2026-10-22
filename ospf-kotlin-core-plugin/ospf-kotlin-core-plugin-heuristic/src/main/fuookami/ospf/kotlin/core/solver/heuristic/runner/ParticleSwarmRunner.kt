@@ -118,7 +118,7 @@ class ParticleSwarmRunner<ObjValue, V>(
 
         return coroutineScope {
             state.map { particle ->
-                async(Dispatchers.Default) {
+                async(SearchExecution.dispatcher()) {
                     val dimension = particle.individual.solution.size
                     val velocity = DoubleArray(dimension)
                     val moved = ArrayList<V>(dimension)

@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.heuristic.Individual
 import fuookami.ospf.kotlin.core.solver.heuristic.SolutionWithFitness
+import fuookami.ospf.kotlin.core.solver.heuristic.runner.SearchEvaluation
 
 /**
  * 适应度评估算子接口，把「如何给解打分」从算法中独立出来。 / Fitness evaluation interface that separates "how to score a solution" from the algorithm.
@@ -56,6 +57,7 @@ data object ConstraintAwareFitnessEvaluator : FitnessEvaluator {
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         solution: Solution<V>
     ): ObjValue? where V : RealNumber<V>, V : NumberField<V> {
+        if (model is SearchEvaluation) return model.objective(solution)
         return when (model.constraintSatisfied(solution)) {
             false -> null
             else -> model.objective(solution) ?: model.defaultObjective
@@ -77,6 +79,9 @@ fun <ObjValue, V> FitnessEvaluator.toIndividual(
     solution: Solution<V>
 ): Individual<ObjValue, V>? where V : RealNumber<V>, V : NumberField<V> {
     val fitness = invoke(model, solution) ?: return null
+    if (model is SearchEvaluation && model.rejected) {
+        return null
+    }
 
     // Flt64 目标值非有限（NaN / ±∞）时该解不可比较：NaN 与任何值比较都被判为「持平」，
     // 会破坏排序所需的全序，因此必须在入口处丢弃，而不是让它在种群里传播。

@@ -313,7 +313,7 @@ class QlearningIntegrationTest {
             observers = listOf(update)
         )
 
-        val members = runner.run(model)
+        val members = runner.run(model).also { assertTrue(it is Ok) }.value!!
         assertTrue(members.isNotEmpty())
 
         var learned = false

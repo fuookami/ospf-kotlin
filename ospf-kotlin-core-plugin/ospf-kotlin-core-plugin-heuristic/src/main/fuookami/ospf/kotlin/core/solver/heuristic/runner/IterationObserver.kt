@@ -21,6 +21,9 @@ import fuookami.ospf.kotlin.core.solver.heuristic.Individual
  * plain `List<IterationObserver>`.
 */
 interface IterationObserver {
+    /** 开始独立搜索时清空运行状态 / Clear runtime state before an independent search. */
+    fun reset() {}
+
 
     /**
      * 观测一轮结果 / Observe the outcome of one round

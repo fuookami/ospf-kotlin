@@ -2,6 +2,9 @@
 
 :us: [English](README.md) | :cn: 简体中文
 
+持久化会话和高层调度参见[超启发式框架](../hyper_heuristic/README_ch.md)。
+完整求解 `AbstractRunner.run` 现在返回 `Ret<List<Individual<O, V>>>`。
+
 ## 概述
 
 `heuristic` 包是元启发式插件的契约层与组装层。这里的算法都是**组合**出来的，从不手写：

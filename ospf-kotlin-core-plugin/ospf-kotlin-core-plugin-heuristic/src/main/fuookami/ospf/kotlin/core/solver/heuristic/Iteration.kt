@@ -11,14 +11,16 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
  *
  * @property _iteration 当前迭代次数 / Current iteration count
  * @property _notBetterIteration 连续无改进迭代次数 / Consecutive no-improvement iteration count
- * @property begin 迭代开始时间 / Iteration start time
+ * @param elapsed 恢复的有效运行时间 / Restored active runtime
 */
 @OptIn(ExperimentalTime::class)
 open class Iteration(
     private var _iteration: UInt64 = UInt64.zero,
     private var _notBetterIteration: UInt64 = UInt64.zero,
-    private val begin: Instant = Clock.System.now()
+    elapsed: Duration = Duration.ZERO
 ) {
+    private var accumulated = elapsed
+    private var mark: TimeMark? = TimeSource.Monotonic.markNow()
 
     /** 当前迭代次数 / Current iteration count */
     val iteration by ::_iteration
@@ -27,7 +29,18 @@ open class Iteration(
     val notBetterIteration by ::_notBetterIteration
 
     /** 已用时间 / Elapsed time */
-    val time get() = Clock.System.now() - begin
+    val time get() = accumulated + (mark?.elapsedNow() ?: Duration.ZERO)
+
+    /** 暂停有效计时，不影响迭代计数 / Pause active timing without changing iteration counters. */
+    fun pause() {
+        accumulated = time
+        mark = null
+    }
+
+    /** 恢复有效计时 / Resume active timing. */
+    fun resume() {
+        if (mark == null) mark = TimeSource.Monotonic.markNow()
+    }
 
     /**
      * 推进迭代计数器。 / Advance the iteration counter.

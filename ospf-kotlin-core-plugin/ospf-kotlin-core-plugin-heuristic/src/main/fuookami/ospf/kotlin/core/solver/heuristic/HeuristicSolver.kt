@@ -49,7 +49,9 @@ class RunnerSolver<ObjValue, V>(
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         iteration: Iteration
     ): Ret<HeuristicResult<ObjValue, V>> {
-        val individuals = runner.run(model = model, iteration = iteration)
+        val searched = runner.run(model = model, iteration = iteration)
+        if (searched !is Ok) return searchFailure(searched)
+        val individuals = searched.value
         val best = individuals.firstOrNull()
             ?: return Failed(
                 ErrorCode.IllegalArgument,

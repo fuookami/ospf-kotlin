@@ -7,8 +7,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.solver.heuristic.Iteration
-import fuookami.ospf.kotlin.core.solver.heuristic.Individual
+import fuookami.ospf.kotlin.core.solver.heuristic.*
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.archive.Archive
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.stopping.StoppingCriterion
 
@@ -68,42 +67,94 @@ abstract class AbstractRunner<State, ObjValue, V>(
     */
     protected abstract fun membersOf(state: State): List<Individual<ObjValue, V>>
 
-    /**
-     * 执行搜索 / Run the search
-     *
-     * @param model 回调模型接口 / Callback model interface
+    internal suspend fun initializeStep(
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
+        iteration: Iteration
+    ): State = initialize(model, iteration)
+
+    internal suspend fun advanceStep(
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
+        iteration: Iteration,
+        state: State
+    ): State = advance(model, iteration, state)
+
+    internal fun stateMembers(state: State): List<Individual<ObjValue, V>> = membersOf(state)
+
+    /** 创建保留原生状态的会话 / Open a native-state session.
+     * @param problem 独占问题 / Exclusively owned problem
+     * @param codec 状态编码器 / State codec
+     * @param importer 解导入策略 / Import policy
+     * @return 新会话 / New session
+     */
+    fun openSession(
+        problem: SearchProblem<ObjValue, V>,
+        codec: SearchCodec<State>,
+        importer: ((State, List<Individual<ObjValue, V>>) -> Ret<State>)? = null
+    ): RunnerSearchSession<State, ObjValue, V> {
+        archive.clear()
+        observers.forEach { it.reset() }
+        return RunnerSearchSession(
+            runner = this,
+            problem = problem,
+            codec = codec,
+            importer = importer
+        )
+    }
+
+    /** 执行完整搜索，复用会话步进 / Run a complete search using session steps.
+     * @param model 回调模型 / Callback model
      * @param iteration 迭代计数器 / Iteration counter
-     * @param runningCallBack 每轮回调，返回非 `Ok` 时提前结束 / Per-round callback; returning non-`Ok` ends the search early
-     * @return 档案中的个体，按优度排列 / Individuals in the archive, ordered by quality
-    */
+     * @param runningCallBack 运行回调 / Running callback
+     * @return 档案或错误 / Archive or error
+     */
     open suspend fun run(
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         iteration: Iteration = Iteration(),
         runningCallBack: ((Iteration, List<Individual<ObjValue, V>>) -> Try)? = null
-    ): List<Individual<ObjValue, V>> {
-        var state = initialize(model, iteration)
-        archive.update(model, membersOf(state))
-        iteration.next(true)
-
-        while (!stopping(iteration)) {
-            state = advance(model, iteration, state)
-            val members = membersOf(state)
-            val improved = archive.update(model, members)
-
-            // 奖励信号只有骨架知道，因此在推进迭代前广播给观测者。自适应算子（如 Q 学习）据此更新自己的状态。 /
-            // Only the skeleton knows the reward signal, so it is broadcast to observers before the iteration advances.
-            // Adaptive operators (Q-learning, …) update their own state from it.
-            for (observer in observers) {
-                observer.observe(iteration, members, improved, converter)
+    ): Ret<List<Individual<ObjValue, V>>> {
+        archive.clear()
+        observers.forEach { it.reset() }
+        val problem = SearchProblem(
+            id = "standalone",
+            fingerprint = "standalone",
+            model = model,
+            objectiveCodec = unavailableCodec<ObjValue>(),
+            valueCodec = unavailableCodec<V>(),
+            dominates = { lhs, rhs -> fuookami.ospf.kotlin.core.solver.heuristic.operator.compareStrictly(model, lhs, rhs) < 0 }
+        )
+        val session = RunnerSearchSession(
+            runner = this,
+            problem = problem,
+            codec = null,
+            importer = null,
+            initialIteration = iteration
+        )
+        val budget = SearchBudget(Long.MAX_VALUE)
+        var first = true
+        while (first || !stopping(iteration)) {
+            first = false
+            val result = session.step(SearchSlice(budget, Long.MAX_VALUE))
+            if (result !is Ok) return searchFailure(result)
+            if (result.value.termination == SearchTermination.Failed) {
+                return fuookami.ospf.kotlin.utils.functional.Failed(
+                    fuookami.ospf.kotlin.utils.error.ErrorCode.ApplicationFailed,
+                    result.value.diagnostics.joinToString("; "),
+                    archive.individuals
+                )
             }
-
-            model.flush()
-            iteration.next(improved)
-
-            if (runningCallBack != null && runningCallBack(iteration, members) is Failed) {
-                break
+            if (result.value.termination == SearchTermination.NoCandidate) break
+            if (runningCallBack != null) {
+                val callback = searchBoundary { runningCallBack(iteration, archive.individuals) }.then { it }
+                if (callback !is Ok) return searchFailure(callback)
             }
         }
-        return archive.individuals
+        return Ok(archive.individuals)
+    }
+
+    private fun <T> unavailableCodec(): SearchCodec<T> {
+        return object : SearchCodec<T> {
+            override fun encode(value: T): Ret<kotlinx.serialization.json.JsonElement> = searchInvalid("standalone searches do not expose checkpoints")
+            override fun decode(value: kotlinx.serialization.json.JsonElement): Ret<T> = searchInvalid("standalone searches do not expose checkpoints")
+        }
     }
 }

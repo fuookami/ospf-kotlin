@@ -2,6 +2,13 @@
 
 :us: [English](README.md) | :cn: 简体中文
 
+## 超启发式框架
+
+同一制品现在提供 `fuookami.ospf.kotlin.core.solver.hyper_heuristic`：持久化搜索会话、
+双层选择、评估预算、同步/异步调度、表格学习、实例训练、JSON/YAML/DSL 配置及版本化恢复。
+参见[超启发式指南](src/main/fuookami/ospf/kotlin/core/solver/hyper_heuristic/README_ch.md)。
+`AbstractRunner.run` 返回 `Ret<List<Individual<O, V>>>`，调用方需显式处理错误，不再直接消费裸列表。
+
 ## 简介
 
 OSPF Kotlin 框架的元启发式算法插件模块。本模块中的算法都是**组合**出来的，而不是逐个手写：

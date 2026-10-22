@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.core.solver.heuristic.operator.update.SolutionUpdate
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.multi_objective.Dominance
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.multi_objective.CrowdingDistance
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.multi_objective.FastNonDominatedSort
-import fuookami.ospf.kotlin.core.solver.heuristic.operator.multi_objective.ParetoArchive
+import fuookami.ospf.kotlin.core.solver.heuristic.operator.archive.ParetoSearchArchive
 import fuookami.ospf.kotlin.core.solver.heuristic.operator.mutation.Mutation
 
 /**
@@ -59,9 +59,8 @@ interface MultiObjectiveSolver<V> where V : RealNumber<V>, V : NumberField<V> {
 /**
  * NSGA-II 骨架。 / NSGA-II skeleton.
  *
- * 与单目标骨架的区别是根本性的，因此它是一个独立类而不是 [AbstractRunner] 的子类： /
- * The difference from the single-objective skeleton is fundamental, so this is a standalone class rather than an [AbstractRunner]
- * subclass:
+ * 复用 [AbstractRunner] 的生命周期，但保留多目标环境选择与档案语义： /
+ * Reuses the [AbstractRunner] lifecycle while retaining multiobjective survival and archive semantics:
  *
  * - 环境选择不是「比较两个目标值」，而是「先分层、层内再按拥挤距离截断」；
  *   survivor selection is not "compare two objective values" but "layer first, then truncate each layer by crowding distance";
@@ -92,9 +91,13 @@ open class Nsga2Runner<V>(
     val mutation: Mutation,
     val mutationRate: Flt64 = Flt64(0.1),
     val entropy: Generator<Flt64>,
-    val stopping: StoppingCriterion,
-    val converter: IntoValue<V>,
+    stopping: StoppingCriterion,
+    converter: IntoValue<V>,
     val archiveAmount: Int = 100
+) : AbstractRunner<List<Individual<List<Flt64>, V>>, List<Flt64>, V>(
+    archive = ParetoSearchArchive(archiveAmount, dominance),
+    stopping = stopping,
+    converter = converter
 ) where V : RealNumber<V>, V : NumberField<V> {
 
     /** 算法名 / Algorithm name */
@@ -107,67 +110,66 @@ open class Nsga2Runner<V>(
      * @return 多目标结果 / Multi-objective result
     */
     suspend fun run(model: AbstractCallBackModelInterface<*, *, V>): Ret<MultiObjectiveResult<V>> {
+        val view = objectiveModel(
+            source = model,
+            defaultObjective = emptyList<Flt64>(),
+            objective = objectivesOf,
+            compare = { lhs, rhs ->
+                when {
+                    dominance.dominates(lhs, rhs) -> Order.Less()
+                    dominance.dominates(rhs, lhs) -> Order.Greater()
+                    else -> null
+                }
+            }
+        )
         val iteration = Iteration()
-        val archive = ParetoArchive(
-            capacity = archiveAmount,
-            objectivesOf = { individual: SolutionWithFitness<List<Flt64>, V> -> individual.fitness },
-            dominance = dominance
-        )
-
-        var population = model
-            .initialSolutions(UInt64(size))
-            .mapNotNull { evaluate(it) }
-            .take(size)
-
-        if (population.isEmpty()) {
-            return Failed(
-                ErrorCode.IllegalArgument,
-                "the model produced no initial solution / 模型未产生初始解"
-            )
+        val searched = super.run(model = view, iteration = iteration, runningCallBack = null)
+        if (searched !is Ok) return searchFailure(searched)
+        val front = searched.value
+        if (front.isEmpty()) {
+            return Failed(ErrorCode.IllegalArgument, "模型未产生有效解 / The model produced no valid solution")
         }
-
-        archive.offer(population)
-
-        while (!stopping(iteration)) {
-            val offspring = breed(model = model, iteration = iteration, population = population)
-            val combined = population + offspring
-
-            population = select(combined)
-            archive.offer(population)
-
-            val improved = offspring.isNotEmpty()
-            iteration.next(improved)
-            model.flush()
-        }
-
-        val front = archive.items
-        return ok(
-            MultiObjectiveResult(
-                front = front.map { it.solution },
-                objectives = front.map { it.fitness },
-                iteration = iteration
-            )
-        )
+        return Ok(MultiObjectiveResult(front.map { it.solution }, front.map { it.fitness }, iteration))
     }
 
-    /** 评估一个解 / Evaluate one solution */
-    private fun evaluate(solution: Solution<V>): SolutionWithFitness<List<Flt64>, V>? {
-        val objectives = objectivesOf(solution)
-        if (objectives.isEmpty() || objectives.any { !it.toDouble().isFinite() }) {
-            return null
-        }
+    override suspend fun initialize(
+        model: AbstractCallBackModelInterface<*, List<Flt64>, V>,
+        iteration: Iteration
+    ): List<Individual<List<Flt64>, V>> {
+        return model.initialSolutions(UInt64(size)).mapNotNull { evaluate(model, it) }.take(size)
+    }
+
+    override suspend fun advance(
+        model: AbstractCallBackModelInterface<*, List<Flt64>, V>,
+        iteration: Iteration,
+        state: List<Individual<List<Flt64>, V>>
+    ): List<Individual<List<Flt64>, V>> {
+        if (state.isEmpty()) return state
+        return select(state + breed(model = model, iteration = iteration, population = state))
+    }
+
+    override fun membersOf(state: List<Individual<List<Flt64>, V>>): List<Individual<List<Flt64>, V>> = state
+
+    internal fun selectImported(candidates: List<Individual<List<Flt64>, V>>): List<Individual<List<Flt64>, V>> = select(candidates)
+
+    private fun evaluate(
+        model: AbstractCallBackModelInterface<*, List<Flt64>, V>,
+        solution: Solution<V>
+    ): Individual<List<Flt64>, V>? {
+        val objectives = model.objective(solution) ?: return null
+        if (objectives.isEmpty() || objectives.any { !it.toDouble().isFinite() }) return null
         return SolutionWithFitness(solution = solution, fitness = objectives)
     }
 
     /** 由当前种群繁殖子代 / Breed offspring from the current population */
     private suspend fun breed(
-        model: AbstractCallBackModelInterface<*, *, V>,
+        model: AbstractCallBackModelInterface<*, List<Flt64>, V>,
         iteration: Iteration,
-        population: List<SolutionWithFitness<List<Flt64>, V>>
-    ): List<SolutionWithFitness<List<Flt64>, V>> {
+        population: List<Individual<List<Flt64>, V>>
+    ): List<Individual<List<Flt64>, V>> {
         return coroutineScope {
             val groups = population.indices.map { index ->
-                async(Dispatchers.Default) {
+                async(SearchExecution.dispatcher()) {
                     val parents = listOf(population[index], population[(index + 1) % population.size])
                     update(
                         iteration = iteration,
@@ -175,12 +177,12 @@ open class Nsga2Runner<V>(
                         model = model,
                         converter = converter,
                         entropy = entropy
-                    ).mapNotNull { evaluate(it) }
+                    ).mapNotNull { evaluate(model, it) }
                 }
             }.awaitAll().flatten()
 
             val mutants = population.map { individual ->
-                async(Dispatchers.Default) {
+                async(SearchExecution.dispatcher()) {
                     val solution = mutation(
                         iteration = iteration,
                         individual = individual,
@@ -189,7 +191,7 @@ open class Nsga2Runner<V>(
                         entropy = entropy,
                         mutationRate = mutationRate
                     )
-                    evaluate(solution)
+                    evaluate(model, solution)
                 }
             }.awaitAll().filterNotNull()
 
@@ -204,8 +206,8 @@ open class Nsga2Runner<V>(
      * @return 新的种群 / New population
     */
     protected open fun select(
-        candidates: List<SolutionWithFitness<List<Flt64>, V>>
-    ): List<SolutionWithFitness<List<Flt64>, V>> {
+        candidates: List<Individual<List<Flt64>, V>>
+    ): List<Individual<List<Flt64>, V>> {
         if (candidates.size <= size) {
             return candidates
         }
@@ -216,7 +218,7 @@ open class Nsga2Runner<V>(
             dominance = dominance
         )
 
-        val selected = ArrayList<SolutionWithFitness<List<Flt64>, V>>(size)
+        val selected = ArrayList<Individual<List<Flt64>, V>>(size)
         for (front in fronts) {
             if (selected.size + front.size <= size) {
                 selected.addAll(front)

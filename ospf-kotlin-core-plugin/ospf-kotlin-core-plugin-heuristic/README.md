@@ -2,6 +2,14 @@
 
 :us: English | :cn: [简体中文](README_ch.md)
 
+## Hyper-Heuristic Framework
+
+The same artifact now includes `fuookami.ospf.kotlin.core.solver.hyper_heuristic`: persistent
+search sessions, two-level selection, evaluation budgets, synchronous/asynchronous scheduling,
+tabular learning, instance training, JSON/YAML/DSL configuration and versioned recovery.
+See the [hyper-heuristic guide](src/main/fuookami/ospf/kotlin/core/solver/hyper_heuristic/README.md).
+`AbstractRunner.run` returns `Ret<List<Individual<O, V>>>`; handle failures instead of consuming a bare list.
+
 ## Introduction
 
 Metaheuristic algorithm plugin for the OSPF Kotlin framework. Every algorithm in this module is
