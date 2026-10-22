@@ -22,7 +22,10 @@ data class ResponseDTO(
     val objective: Double? = null,
     val assignments: List<String> = emptyList(),
     val notes: List<String> = emptyList(),
-    val diagnostics: List<DiagnosticNote> = emptyList()
+    val diagnostics: List<DiagnosticNote> = emptyList(),
+    val frameworkPath: String? = null,
+    val selectedLayouts: Map<String, String> = emptyMap(),
+    val occupiedPositions: Set<String> = emptySet()
 ) {
 
     /**

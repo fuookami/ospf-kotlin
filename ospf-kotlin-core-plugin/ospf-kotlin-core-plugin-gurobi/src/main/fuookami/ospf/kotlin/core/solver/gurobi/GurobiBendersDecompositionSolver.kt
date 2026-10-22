@@ -2,6 +2,7 @@
 package fuookami.ospf.kotlin.core.solver.gurobi
 
 import kotlinx.coroutines.*
+import kotlin.time.Duration
 import gurobi.GRB
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
@@ -13,6 +14,7 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.toSolverStatus
 import fuookami.ospf.kotlin.core.solver.output.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -35,6 +37,13 @@ class GurobiLinearBendersDecompositionSolver(
     private val linearCallBack: GurobiLinearSolverCallBack = GurobiLinearSolverCallBack()
 ) : LinearBendersDecompositionSolver {
     override val name = "gurobi"
+
+    override fun withTimeLimit(timeLimit: Duration): LinearBendersDecompositionSolver {
+        return GurobiLinearBendersDecompositionSolver(
+            config = config.copy(time = minOf(config.time, timeLimit)),
+            linearCallBack = linearCallBack.copy()
+        )
+    }
 
     /**
      * 求解线性主问题 / Solve linear master problem
@@ -170,9 +179,9 @@ class GurobiLinearBendersDecompositionSolver(
         }.use { mechanismModel ->
             LinearTriadModel(
                 model = mechanismModel,
-                fixedVariables = null,
-                dumpConstraintsToBounds = config.dumpIntermediateModelBounds ?: true,
-                forceDumpBounds = config.dumpIntermediateModelForceBounds ?: false,
+                fixedVariables = fixedVariables,
+                dumpConstraintsToBounds = false,
+                forceDumpBounds = false,
                 concurrent = config.dumpIntermediateModelConcurrent
             ).use { model ->
                 model.linearRelax()
@@ -182,19 +191,22 @@ class GurobiLinearBendersDecompositionSolver(
                     })
                 }
 
-                lateinit var dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
-                lateinit var farkasSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
+                var dualSolution = emptyMap<Constraint<Flt64, Linear>, Flt64>()
+                var farkasSolution = emptyMap<Constraint<Flt64, Linear>, Flt64>()
                 val solver = GurobiLinearSolver(
                     config = config,
                     callBack = linearCallBack.copy()
                         .configuration { _, model, _, _ ->
                             model.set(GRB.IntParam.InfUnbdInfo, 1)
+                            model.set(GRB.IntParam.DualReductions, 0)
                             ok
                         }
-                        .analyzingSolution { _, _, _, constraints ->
-                            dualSolution = model.tidyDualSolution(constraints.map { constraint ->
-                                Flt64(constraint.get(GRB.DoubleAttr.Pi))
-                            })
+                        .analyzingSolution { status, _, _, constraints ->
+                            if (status == SolverStatus.Optimal) {
+                                dualSolution = model.tidyDualSolution(constraints.map { constraint ->
+                                    Flt64(constraint.get(GRB.DoubleAttr.Pi))
+                                })
+                            }
                             ok
                         }
                         .afterFailure { status, _, _, constraints ->
@@ -209,6 +221,22 @@ class GurobiLinearBendersDecompositionSolver(
 
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
+                        // 统一报告可成功返回不可行终态，此时不能读取空解向量。
+                        // A successful report can carry an infeasible terminal state with no incumbent vector.
+                        if (result.value.toSolverStatus() == SolverStatus.Infeasible) {
+                            jobs.joinAll()
+                            return@use Ok(LinearBendersDecompositionSolver.LinearInfeasibleResult(
+                                farkasDualSolution = farkasSolution,
+                                cuts = mechanismModel.generateFlt64FeasibleCut(
+                                    fixedVariables = fixedVariables,
+                                    farkasDualSolution = farkasSolution
+                                )
+                            ))
+                        }
+                        if (result.value.solution == null || result.value.values.size != model.tokensInSolver.size) {
+                            jobs.joinAll()
+                            return@use Failed(ErrorCode.OREngineSolvingException, "连续子问题没有可行解 / Continuous subproblem has no incumbent: ${result.value.toSolverStatus()}")
+                        }
                         metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
                             token.variable to result.value.values[index]
                         }.toMap() + fixedVariables)
@@ -217,11 +245,11 @@ class GurobiLinearBendersDecompositionSolver(
                             LinearBendersDecompositionSolver.LinearFeasibleResult(
                                 result = result.value,
                                 dualSolution = dualSolution,
-                                cuts = mechanismModel.generateFlt64OptimalCut(
+                                cuts = if (result.value.toSolverStatus() == SolverStatus.Optimal) mechanismModel.generateFlt64OptimalCut(
                                     objectVariable = objectVariable,
                                     fixedVariables = fixedVariables,
                                     dualSolution = dualSolution
-                                )
+                                ) else emptyList()
                             )
                         )
                     }

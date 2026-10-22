@@ -97,6 +97,13 @@ interface LinearBendersDecompositionSolver {
     /** 求解器名称 / Solver name */
     val name: String
 
+    /** 返回受本轮剩余预算约束的后端；无此能力的实现保留原实例。
+     * / Return a backend limited by the remaining call budget; unsupported implementations retain themselves.
+     * @param timeLimit 剩余时间 / Remaining time
+     * @return 限时后端 / Budgeted backend
+     */
+    fun withTimeLimit(timeLimit: Duration): LinearBendersDecompositionSolver = this
+
     /**
      * 求解线性 Benders 主问题 / Solve linear Benders master problem
      *

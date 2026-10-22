@@ -1,48 +1,61 @@
 # ospf-kotlin-framework-bpp1d
 
-:us: English | :cn: [简体中文](README_ch.md)
+English | [简体中文](README_ch.md)
 
-## Introduction
+## Modules and Entry Points
 
-`ospf-kotlin-framework-bpp1d` is the planned one-dimensional bin packing framework module. At the moment it is a Maven module shell with no tracked Kotlin implementation. Its README records the intended boundary so future implementation starts with the same architecture and documentation shape as the other framework modules.
+The seven modules separate infrastructure, item definitions, pattern generation,
+pattern assignment, discrete loading, packing, and application orchestration.
 
-## Scope
+- `Bpp1dMilp` solves an integer pattern-assignment model.
+- `Bpp1dColumnGeneration` registers FFD/BFD seeds, solves the restricted LP, refreshes
+  dual prices, adds negative-reduced-cost columns, and solves a fresh final MILP over
+  the generated pool. Bounded enumeration provides pricing candidates, not an
+  unrestricted branch-and-price optimality certificate.
+- `TailBinOptimizer` repacks a selected tail while preserving prefix inventory. Global
+  business rules belong in its full-result acceptance policy, not a local extension.
+- `Bpp1dCsvDatasetLoader` reads closed item/bin CSV schemas; numeric parsing and units
+  are explicit. Empty inventory means unlimited stock, not zero stock.
+- `PackingContext` independently checks exact demand, stock, length, spacing and weight;
+  it emits physical placements, free tail intervals and material totals.
+- `PackingRendererAdapter` and `PackingResult.kpi(unit)` produce rendering and metrics.
+- `Bpp1dDiscreteLoading.context` adapts explicit longitudinal intervals to the
+  [shared discrete kernel](../ospf-kotlin-framework-bpp/README.md).
 
-The module is reserved for reusable BPP1D domain modeling, such as item/bin definitions, packing policies, candidate generation, model registration, and solution extraction.
+## Domain Contract
 
-Out of scope for this module:
+`Item<V>`, `BinType<V>`, `Bin<V>`, `Placement<V>`, `PackingPattern<V>` and
+`PackingPlan<V>` use `V : FloatingNumber<V>`. Length, coordinate, spacing, weight and
+remnant fields use `Quantity<V>`; demands and stock use `UInt64`.
 
-1. Business request DTOs and tenant-specific runtime parameters.
-2. Solver backend implementations.
-3. Starter dependency aggregation.
+There is inter-piece spacing but no trailing spacing. Every pattern has one bin type
+and exact per-item counts. Multiple bin types, finite stock, zero-weight items and
+exact demands are supported; items are never merged based on dimensions alone.
 
-## Public API
+`Flt64PackingValueAdapter` and `FltXPackingValueAdapter` normalize values only at solver
+registration/extraction boundaries. Quantity dimensions are checked before modeling.
 
-No stable public runtime API is available yet. Future APIs should expose generic domain models and contexts rather than solver-specific `Flt64` models.
+## Extensions and Certificates
 
-## Modeling Extensions
+`PatternPolicy` controls candidate acceptance. `PatternModelingExtension` provides
+`register`, column `refresh`, reduced-cost contribution and final result extraction.
+The same registration context exposes `MILP`, `LP` and `FINAL_MILP` stages. Extensions
+must keep model-local state keyed by context, since finalization uses a fresh model.
+Removing columns refreshes expressions before removing their tokens.
 
-Future implementation should follow the framework architecture rules:
+An `Optimal` result requires both a complete candidate set and an optimal final
+integer solve. Candidate/node limits yield `candidateComplete=false`; an optimal
+restricted pool is reported only as `Feasible`. LP convergence alone does not prove
+integer optimality. Solver failures propagate through `Ret`/`Try`.
 
-1. Keep `MetaModel` registration inside domain context, aggregation, model component, and pipeline types.
-2. Put solver orchestration in the application layer only after a reusable domain kernel exists.
-3. Provide extension points for extra constraints, objectives, shadow price extraction, and solution enrichment.
+## Validation
 
-## Generic Numeric Boundaries
+Fixed-position loading also supports shared `PartitionColumnGenerationApplicationService`, using
+complete configurations of explicitly declared partitions. This is distinct from ordinary
+`Bpp1dColumnGeneration` and is not combined with Benders. Restricted integer-pool success is `Feasible`.
 
-The primary domain API should be generic over `V : RealNumber<V>` or `V : FloatingNumber<V>`. Solver adapters may specialize to `Flt64`, but that conversion should stay at the adapter or registration boundary.
-
-## Physical Quantity Boundaries
-
-Lengths, widths, weights, capacities, and other dimensional values should use `Quantity<V>` or a module-level dimensional wrapper. Bare numeric values should be reserved for dimensionless scores, ratios, and coefficients.
-
-## Related Notes
-
-- [daily.md](daily.md) records the current genericization plan.
-- [ospf-kotlin-framework](../ospf-kotlin-framework/README.md) provides shared solver and pipeline abstractions.
-
-## Local Validation
+No default test requires a commercial solver license. From the repository root:
 
 ```powershell
-mvn -B -ntp -pl ospf-kotlin-framework-bpp1d -am -DskipTests compile
+mvn -B -ntp -pl ospf-kotlin-framework-bpp1d/bpp1d-application -am test '-Dtest=Bpp1dTest,DiscreteLoadingTest,LinearBendersAlgorithmTest' '-Dsurefire.failIfNoSpecifiedTests=false' -T 0.75C *> "$env:TEMP/ospf-bpp1d-tests.log"
 ```

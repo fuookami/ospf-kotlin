@@ -37,32 +37,15 @@ data class SolutionAnalyzer(
         model: AbstractLinearMetaModel<Flt64>
     ): Ret<StowageSolution> {
         val stowage = LinkedHashMap<Position, MutableList<Item>>()
-        for (position in aggregation.positions) {
-            if (position.loadedItems.isNotEmpty()) {
-                stowage[position] = position.loadedItems.sortedBy { it.id }.toMutableList()
+        for ((key, variable) in aggregation.stowage.loadingContext.aggregation.assignments) {
+            val item = aggregation.items.first { it.id == key.itemId }
+            val position = aggregation.positions.first { it.spaceName == key.positionId }
+            val value = when (val result = solverValue(solution = solution, model = model, variable = variable, name = "${key.itemId}->${key.positionId}")) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
-        }
-
-        for ((i, item) in aggregation.items.withIndex()) {
-            for ((j, position) in aggregation.positions.withIndex()) {
-                if (!Stowage.stowageNeeded(item, position)) {
-                    continue
-                }
-
-                val value = when (val result = solverValue(
-                    solution = solution,
-                    model = model,
-                    variable = aggregation.stowage.x[i, j],
-                    name = "货物 ${item.id} 到舱位 ${position.spaceName} 的配载变量"
-                )) {
-                    is Ok -> result.value!!
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
-                if (value gr Flt64.half) {
-                    stowage.getOrPut(position) { ArrayList() }.add(item)
-                }
-            }
+            if (value > Flt64.half) stowage.getOrPut(position) { arrayListOf() }.add(item)
         }
 
         val predicateLoadWeight = LinkedHashMap<Position, Quantity<Flt64>>()

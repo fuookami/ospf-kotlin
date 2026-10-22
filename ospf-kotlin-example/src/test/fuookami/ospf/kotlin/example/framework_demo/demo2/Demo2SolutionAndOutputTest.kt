@@ -26,7 +26,7 @@ class Demo2SolutionAndOutputTest {
         val model = registeredModel(context, StowageMode.Predistribution)
         val values = MutableList(model.tokens.tokenList.tokensInSolver.size) { Flt64.zero }
 
-        val assignmentIndex = model.tokens.indexOf(context.aggregation.stowage.x[0, 1])!!
+        val assignmentIndex = model.tokens.indexOf(context.aggregation.stowage.assignmentVariable(0, 1)!!)!!
         val predicateWeightIndex = model.tokens.indexOf(context.aggregation.load.y[0].value)!!
         values[assignmentIndex] = Flt64.one
         values[predicateWeightIndex] = Flt64(7.0)
@@ -154,8 +154,9 @@ class Demo2SolutionAndOutputTest {
     }
 
     @Test
-    fun `all applications report hard capacity infeasibility before solving`() = runBlocking {
+    fun `all applications reject fixed cargo exceeding position capacity before solving`() = runBlocking {
         val request = RequestDTO.sample().copy(
+            positions = RequestDTO.sample().positions.mapIndexed { index, position -> position.copy(loadedItems = if (index == 0) listOf("too-heavy") else emptyList()) },
             cargos = listOf(
                 CargoInput(
                     name = "too-heavy",
@@ -171,8 +172,8 @@ class Demo2SolutionAndOutputTest {
             val (response, render) = result
 
             assertFalse(response.succeed, "$path should reject a cargo that exceeds every position")
-            assertEquals("NoSolution", response.status)
-            assertTrue(response.notes.any { it.contains("exceeds every position") })
+            assertEquals("Error", response.status)
+            assertTrue(response.notes.any { it.contains("fixed capacity") })
             assertNull(render)
         }
     }

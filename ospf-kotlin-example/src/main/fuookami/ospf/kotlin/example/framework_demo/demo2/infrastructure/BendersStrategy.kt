@@ -96,7 +96,7 @@ object BendersStrategy {
      * @return 如果航空器类型受支持则返回 true，否则返回 false / True if the aircraft type is supported, false otherwise.
     */
     fun supportedAircraft(aircraftType: AircraftTypeInput): Boolean {
-        return aircraftType == AircraftTypeInput.B737 || aircraftType == AircraftTypeInput.B757
+        return aircraftType != AircraftTypeInput.Unknown
     }
 
     /**
@@ -164,8 +164,11 @@ object BendersStrategy {
      * @param notes 收集诊断信息的可变列表 / Mutable list for collecting diagnostic notes.
      * @return 解析后的求解模式 / The resolved solve mode.
     */
-    fun resolveSolveMode(request: RequestDTO, notes: MutableList<String>): SolveMode {
-        val binaryVariables = request.cargos.size * request.positions.size
+    fun resolveSolveMode(
+        request: RequestDTO,
+        notes: MutableList<String>,
+        binaryVariables: Int = request.cargos.sumOf { cargo -> request.positions.count { position -> cargo.allowedPositions?.contains(position.name) != false } }
+    ): SolveMode {
         val tunedAdaptive = tuneAdaptiveConfig(request.bendersAdaptive, binaryVariables)
         val qualityGuard = resolveQualityGuardConfig(request.bendersQualityOverrides)
 

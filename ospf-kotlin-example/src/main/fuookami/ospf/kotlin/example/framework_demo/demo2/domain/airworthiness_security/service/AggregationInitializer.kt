@@ -18,6 +18,9 @@ data object AggregationInitializer {
         input: RequestDTO
     ): Ret<Aggregation> {
         val aircraftModel = aircraftAggregation.aircraftModel
+        val momentFactor = Quantity(Flt64.one, input.lengthUnit.unit).to(aircraftModel.lengthUnit)!!.value *
+            Quantity(Flt64.one, input.weightUnit.unit).to(aircraftModel.weightUnit)!!.value
+
         val positions = stowageAggregation.positions
         if (positions.isEmpty()) {
             return Failed(
@@ -149,18 +152,18 @@ data object AggregationInitializer {
         val envelopePoints = listOf(
             AbstractEnvelope.Point(
                 totalWeight = Quantity(Flt64.zero, aircraftModel.weightUnit),
-                index = Quantity(Flt64(input.envelopeLongitudinalMomentMin), aircraftModel.torqueUnit)
+                index = Quantity(Flt64(input.envelopeLongitudinalMomentMin) * momentFactor, aircraftModel.torqueUnit)
             ),
             AbstractEnvelope.Point(
                 totalWeight = Quantity(
                     Flt64(maxOf(1.0, input.payloadUpperBound, totalCargoWeight)),
                     aircraftModel.weightUnit
                 ),
-                index = Quantity(Flt64(input.envelopeLongitudinalMomentMin), aircraftModel.torqueUnit)
+                index = Quantity(Flt64(input.envelopeLongitudinalMomentMin) * momentFactor, aircraftModel.torqueUnit)
             )
         )
         val envelopeUpperPoints = envelopePoints.map {
-            it.copy(index = Quantity(Flt64(input.envelopeLongitudinalMomentMax), aircraftModel.torqueUnit))
+            it.copy(index = Quantity(Flt64(input.envelopeLongitudinalMomentMax) * momentFactor, aircraftModel.torqueUnit))
         }
         val maxClim = maxOf(
             kotlin.math.abs(input.envelopeLongitudinalMomentMin),
@@ -170,14 +173,14 @@ data object AggregationInitializer {
             listOf(
                 MaxCLIM.Point(
                     tow = Quantity(Flt64.zero, aircraftModel.weightUnit),
-                    maxCLIM = Quantity(Flt64(maxClim), aircraftModel.torqueUnit)
+                    maxCLIM = Quantity(Flt64(maxClim) * momentFactor, aircraftModel.torqueUnit)
                 ),
                 MaxCLIM.Point(
                     tow = Quantity(
                         Flt64(maxOf(1.0, input.payloadUpperBound, totalCargoWeight)),
                         aircraftModel.weightUnit
                     ),
-                    maxCLIM = Quantity(Flt64(maxClim), aircraftModel.torqueUnit)
+                    maxCLIM = Quantity(Flt64(maxClim) * momentFactor, aircraftModel.torqueUnit)
                 )
             )
         } else {
@@ -198,23 +201,23 @@ data object AggregationInitializer {
             maxCumulativeLoadWeight = cumulativeLoadWeight,
             minPayload = minPayload,
             envelopeLongitudinalMomentMin = Quantity(
-                Flt64(input.envelopeLongitudinalMomentMin),
+                Flt64(input.envelopeLongitudinalMomentMin) * momentFactor,
                 aircraftModel.torqueUnit
             ),
             envelopeLongitudinalMomentMax = Quantity(
-                Flt64(input.envelopeLongitudinalMomentMax),
+                Flt64(input.envelopeLongitudinalMomentMax) * momentFactor,
                 aircraftModel.torqueUnit
             ),
             targetLongitudinalMoment = Quantity(
-                Flt64(input.targetLongitudinalMoment),
+                Flt64(input.targetLongitudinalMoment) * momentFactor,
                 aircraftModel.torqueUnit
             ),
             maxLongitudinalMomentDeviation = Quantity(
-                Flt64(input.maxLongitudinalMomentDeviation),
+                Flt64(input.maxLongitudinalMomentDeviation) * momentFactor,
                 aircraftModel.torqueUnit
             ),
             maxLateralImbalance = Quantity(
-                Flt64(input.maxLateralImbalance),
+                Flt64(input.maxLateralImbalance) * momentFactor,
                 aircraftModel.torqueUnit
             ),
             maxCLIMPoints = maxCLIMPoints,

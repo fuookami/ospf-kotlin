@@ -179,7 +179,22 @@ class BendersApplicationTest {
             CargoInput(name = "C$i", weight = 1.0, priority = 1, source = "S", destination = "D")
         }
         val positions = (0 until 10).map { i ->
-            PositionInput(name = "P$i", maxWeight = 100.0, longitudinalArm = i.toDouble(), lateralArm = 0.0)
+            PositionInput(
+                name = "P$i",
+                maxWeight = 100.0,
+                longitudinalArm = i.toDouble(),
+                lateralArm = 0.0,
+                spaceId = "main",
+                partitionId = "explicit-zone",
+                geometry = PositionGeometryInput(
+                    front = i.toDouble(),
+                    back = i.toDouble() + 1.0,
+                    left = -0.5,
+                    right = 0.5
+                ),
+                loadingOrder = i,
+                maxLoadCount = 3
+            )
         }
         val request = RequestDTO.sample().copy(
             cargos = cargos,

@@ -67,9 +67,9 @@ domain/<context>/
 | `preferBenders = false` | Direct MILP | Successful responses contain `solver_path=milp_direct`. |
 | `preferBenders = true` and the binary-variable threshold is met | Gurobi Benders | Successful responses contain `solver_path=benders`. |
 | Benders fails and `bendersFallbackToMilp = true` | Direct MILP fallback | Successful responses contain `solver_path=milp_fallback_after_benders`. |
-| Benders fails and fallback is disabled | No solution | The response status is `BendersFailed`. |
+| Benders fails and fallback is disabled | No incumbent | The response preserves `NotConverged`, proven `Infeasible`, or an input/backend `Error`. |
 
-`ResponseDTO.status` is `Optimal` for a solution, `NoSolution` for pre-solve hard infeasibility, `UnsupportedAircraft` for B767, B747, or unknown aircraft input, and `Error` for other structured failures. `notes` and `diagnostics` retain solver-path and feasibility details. Benders is available only for B737 and B757 and requires a working Gurobi installation and license.
+`ResponseDTO.status` distinguishes `Optimal`, `Feasible`, `Infeasible`, `NotConverged` and `Error`. Only unknown aircraft types return `UnsupportedAircraft`. All four supported types and all three loading modes support MILP and linear Benders; real solves require a working Gurobi installation and license. `notes` and `diagnostics` preserve solver-path details.
 
 ## Mode Boundaries
 
@@ -128,4 +128,54 @@ The four Rust-aligned limits are registered in their domain pipelines:
 
 ```powershell
 mvn -B -ntp -pl ospf-kotlin-example -Pdemo2-only test
+```
+
+## Explicit Geometry Contract (Breaking Change)
+
+Requests must declare `lengthUnit`, `weightUnit`, `spaces`, `layoutGroups` and
+`positionConflicts` (explicit empty collections are valid). Each position must include
+`maxWeight`, `maxLoadCount`, `spaceId`, `geometry {front, back, left, right}` and a unique `loadingOrder` in 0..255.
+No layout is inferred from list order, fixed lateral width or a default area. Area is
+computed from declared rectangle bounds. Explicit moment arms remain independent
+business inputs, normalized from the request length unit; moment constraints use the
+request length/weight unit product. Geometric centers do not silently replace arms.
+
+B737/B757 use `bpp1d`; B767/B747 use `bpp2d`. Unknown aircraft types are rejected.
+A physical-space ID isolates decks; geometric overlap cannot be cancelled by an empty
+business conflict list. Layout groups govern exactly-one regional/global choices;
+without groups, non-conflicting regions can mix. Cargo declares `deckLocation` (main by
+default) and may further restrict `allowedPositions`. Lower-deck cargo must explicitly
+declare `LowForward` or `LowAft`; no deck is inferred from names or list order.
+`loadedItems` fixes cargo assignments; `ala` / `alw` are advisory soft targets, not
+additional existing cargo.
+Full-load payload sums actual assignments rather than all offered optional cargo;
+fixed cargo is counted once as well.
+Predistribution conserves the planned payload through an equality over actual and
+additional position weights, rather than an unrelated constant payload expression.
+
+`StowageContext` adapts aviation inputs into shared sparse contexts. The three public
+entries delegate to a common service; all aviation contexts are rebuilt on fallback.
+The old demo-specific Benders entry is a compatibility adapter to the shared executor,
+not an independent iteration algorithm. Response fields `frameworkPath`,
+`selectedLayouts`, `occupiedPositions` and the actual solver `status` expose the path.
+An incomplete feasible solve is not labeled optimal.
+
+Every position also requires an explicit `partitionId`, independent of its physical space/deck.
+Set `SolvePolicy(partitionColumnGeneration = true)` to use complete partition configurations in
+all three loading modes and all four aircraft types. Direct MILP, partition CG and linear Benders
+are independent strategies; simultaneously enabling `preferBenders` is rejected, not treated as a joint algorithm.
+All aviation rows/objectives participate before pricing, including cross-partition conflicts,
+shared layouts and global MAC/CLIM constraints. Estimated/recommended weights keep their continuous/integer
+types and explicit partition ownership. Final resource completion stays inside generated assignment/occupancy
+profiles and materializes complete columns before the integer master. Without a global integer proof,
+success returns `Feasible` with `solver_path=partition_column_generation`, column/iteration counts and root LP convergence.
+
+The example supplies simplified aircraft/airworthiness data, not an airworthiness-
+certified aircraft database. Geometry support does not certify a real loading plan.
+
+For isolated verification without unrelated example modules:
+
+```powershell
+mvn -B -ntp -pl ospf-kotlin-example -am test -Pdemo2-only '-Dospf.demo2.isolated=true' -T 0.75C *> "$env:TEMP/demo2-tests.log"
+mvn -B -ntp -pl ospf-kotlin-example -am test -Pdemo2-gurobi-e2e '-Dospf.demo2.isolated=true' -T 0.75C *> "$env:TEMP/demo2-gurobi.log"
 ```

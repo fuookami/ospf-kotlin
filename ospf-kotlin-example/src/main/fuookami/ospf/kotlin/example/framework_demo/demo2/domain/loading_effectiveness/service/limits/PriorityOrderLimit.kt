@@ -41,12 +41,13 @@ class PriorityOrderLimit(
                 }
 
                 // sum((p + bigM) * x[i][p] for all p) + sum((-p + bigM) * x[j][p] for all p) <= 2 * bigM
-                val monomials = mutableListOf<LinearMonomial<Flt64>>()
+                var lhs = LinearPolynomial()
+                val order = positions.sortedBy { it.base.linearLoadingOrder }.withIndex().associate { it.value to it.index }
                 for (p in positions.indices) {
-                    monomials.add(Flt64(p.toDouble() + bigM) * stowage.x[i, p])
-                    monomials.add(Flt64(-p.toDouble() + bigM) * stowage.x[j, p])
+                    val rank = order.getValue(positions[p]).toDouble()
+                    lhs += Flt64(rank + bigM) * stowage.stowage[i, p]
+                    lhs += Flt64(-rank + bigM) * stowage.stowage[j, p]
                 }
-                val lhs = LinearPolynomial(monomials, Flt64.zero)
                 val rhs = Flt64(2.0 * bigM)
 
                 when (val result = model.addConstraint(

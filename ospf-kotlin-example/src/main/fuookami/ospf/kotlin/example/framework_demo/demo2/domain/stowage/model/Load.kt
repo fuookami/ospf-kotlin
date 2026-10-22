@@ -151,7 +151,6 @@ class Load(
                 Quantity(
                     if (position.status.predicateWeightNeeded) {
                         // 需要预估重量的舱位，且仅有一个 1，即该舱位装载后是一个二元值（0 或 1）
-                        assert(position.mla eq UInt64.one)
                         if (position.status.stowageNeeded || position.status.adjustmentNeeded) {
                             LinearFunctionSymbolAdapter(
                                 delegate = SlackFunction(
@@ -240,8 +239,8 @@ class Load(
                             delegate = SameAsFunction(
                                 inequalities = listOf(loadAmount[j].toLinearPolynomial() eq position.mla.toFlt64()),
                                 constraint = true,
-                                epsilon = Flt64(1e-6),
-                                m = Flt64(1e6),
+                                epsilon = Flt64.one,
+                                m = position.mla.toFlt64() + Flt64.one,
                                 converter = flt64Converter,
                                 name = "full_${position}"
                             ),
@@ -334,76 +333,10 @@ class Load(
 
         if (!::estimateLoaded.isInitialized) {
             estimateLoaded = LinearIntermediateSymbols1<Flt64>("estimate_loaded", Shape1(positions.size)) { j, _ ->
-                val position = positions[j]
-                if (position.status.available) {
-                    val loadedItem: LinearIntermediateSymbol<Flt64> = if (position.mla eq UInt64.one) {
-                        LinearExpressionSymbol(
-                            loadAmount[j],
-                            Flt64,
-                            name = "estimate_loaded_item_${position}"
-                        )
-                    } else {
-                        LinearFunctionSymbolAdapter(
-                            delegate = BinaryzationFunction(
-                                LinearPolynomial(loadAmount[j]),
-                                converter = flt64Converter,
-                                name = "estimate_loaded_item_${position}"
-                            ),
-                            converter = flt64Converter
-                        )
-                    }
-                    val withPredicateLoadWeight = if (position.status.predicateWeightNeeded) {
-                        LinearFunctionSymbolAdapter(
-                            delegate = IfFunction(
-                                condition = LinearPolynomial(y[j].to(aircraftModel.weightUnit)!!.value)
-                                    - LinearPolynomial(Flt64.one) + Flt64(NONZERO_TOLERANCE),
-                                converter = flt64Converter,
-                                name = "estimate_loaded_predicate_load_weight_${position}"
-                            ),
-                            converter = flt64Converter
-                        )
-                    } else {
-                        null
-                    }
-                    val withRecommendLoadWeight = if (position.status.recommendedWeightNeeded) {
-                        LinearFunctionSymbolAdapter(
-                            delegate = BinaryzationFunction(
-                                LinearPolynomial(z[j].to(aircraftModel.weightUnit)!!.value),
-                                converter = flt64Converter,
-                                name = "estimate_loaded_recommended_load_weight_${position}"
-                            ),
-                            converter = flt64Converter
-                        )
-                    } else {
-                        null
-                    }
-                    val polys: List<LinearPolynomial<Flt64>> = listOfNotNull(loadedItem, withPredicateLoadWeight, withRecommendLoadWeight).map { sym ->
-                        if (sym is LinearFunctionSymbolAdapter<*>) {
-                            val adapter = sym as LinearFunctionSymbolAdapter<Flt64>
-                            when (val d = adapter.delegate) {
-                                is IfFunction<Flt64> -> d.result
-                                is BinaryzationFunction<Flt64> -> LinearPolynomial(d.resultVar)
-                                is SameAsFunction<Flt64> -> LinearPolynomial(d.resultVar)
-                                else -> sym.toLinearPolynomial()
-                            }
-                        } else {
-                            sym.toLinearPolynomial()
-                        }
-                    }
-                    LinearFunctionSymbolAdapter(
-                        delegate = OrFunction(
-                            polynomials = polys,
-                            converter = flt64Converter,
-                            name = "estimate_load_${position}"
-                        ),
-                        converter = flt64Converter
-                    )
-                } else {
-                    LinearExpressionSymbol(
-                        Flt64.one,
-                        name = "estimate_loaded_${position}"
-                    )
-                }
+                LinearExpressionSymbol(
+                    LinearPolynomial(stowage.loadingContext.aggregation.occupied.getValue(positions[j].spaceName)),
+                    name = "estimate_loaded_${positions[j]}"
+                )
             }
         }
         when (val result = model.add(estimateLoaded)) {
@@ -597,6 +530,17 @@ class Load(
                 }
         }
 
+        for ((j, position) in positions.withIndex()) {
+            var additional = LinearPolynomial()
+            if (position.status.predicateWeightNeeded) additional += LinearPolynomial(y[j].value)
+            if (position.status.recommendedWeightNeeded) additional += LinearPolynomial(z[j].value)
+            val linked = stowage.loadingContext.linkAdditionalWeight(
+                positionId = position.spaceName,
+                additionalWeight = additional,
+                model = model
+            )
+            if (linked !is Ok) return linked
+        }
         return ok
     }
 }

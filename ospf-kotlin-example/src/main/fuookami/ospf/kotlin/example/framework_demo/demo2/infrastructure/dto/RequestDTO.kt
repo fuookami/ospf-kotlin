@@ -23,7 +23,10 @@ data class CargoInput(
     val source: String,
     val destination: String,
     val requiresSeparation: Boolean = false,
-    val order: Int? = null
+    val order: Int? = null,
+    val allowedPositions: Set<String>? = null,
+    /** 货物所属甲板；不从舱位名称或顺序推断。 / Cargo deck, never inferred from position names or order. */
+    val deckLocation: DeckLocationInput = DeckLocationInput.Main
 )
 
 /**
@@ -33,13 +36,15 @@ data class CargoInput(
  * @property maxWeight 舱位最大承重 / the maximum weight capacity of the position
  * @property longitudinalArm 舱位的纵向力臂 / the longitudinal arm (moment arm) of the position
  * @property lateralArm 舱位的横向力臂 / the lateral arm (moment arm) of the position
- * @property area 舱位可用面积 / the usable area of the position
- * @property length 舱位纵向长度 / the longitudinal length of the position
+ * @property spaceId 独立物理空间 ID / Independent physical-space ID
+ * @property partitionId 显式局部分区 ID，不由舱位顺序推断 / Explicit local partition ID, never inferred from position order
+ * @property geometry 显式舱位边界，面积由此计算 / Explicit bounds used to derive area
+ * @property loadingOrder 显式装载顺序，不由列表位置推断 / Explicit loading order, never inferred from list position
  * @property maxLoadCount 舱位最大装载件数 / the maximum number of items for the position
  * @property loadedItems 已经装载的货物名称 / names of items already loaded in the position
  * @property predicateLoadWeightMin 预配载最小载荷重量 / the minimum predicate load weight
- * @property ala 实际装载件数 / the actual loaded item count
- * @property alw 实际装载重量 / the actual loaded weight
+ * @property ala 建议装载件数（软目标），固定装载须使用 loadedItems / Advisory count, not a fixed load
+ * @property alw 建议装载重量（软目标），不是已占用载荷 / Advisory weight, not an existing occupied load
 */
 @Serializable
 data class PositionInput(
@@ -47,14 +52,19 @@ data class PositionInput(
     val maxWeight: Double,
     val longitudinalArm: Double,
     val lateralArm: Double,
-    val area: Double = 5.0,
-    val length: Double = 2.0,
-    val maxLoadCount: Int = 3,
+    val spaceId: String,
+    val partitionId: String,
+    val geometry: PositionGeometryInput,
+    val loadingOrder: Int,
+    val maxLoadCount: Int,
     val loadedItems: List<String> = emptyList(),
     val predicateLoadWeightMin: Double? = null,
     val ala: Int? = null,
     val alw: Double? = null
-)
+) {
+    /** 几何长度，不再由默认常量产生。 / Geometric length, no implicit constant. */
+    val length: Double get() = geometry.back - geometry.front
+}
 
 /** Input trailer type used by loading-effectiveness initialization. / 装车效能初始化使用的拖车类型。 */
 @Serializable
@@ -108,6 +118,11 @@ enum class AircraftTypeInput {
 @Serializable
 data class RequestDTO(
     val id: String,
+    val lengthUnit: LengthUnitInput,
+    val weightUnit: WeightUnitInput,
+    val spaces: List<LoadingSpaceInput>,
+    val layoutGroups: List<LayoutGroupInput>,
+    val positionConflicts: Set<PositionConflictInput>,
     val cargos: List<CargoInput> = emptyList(),
     val positions: List<PositionInput> = emptyList(),
     val aircraftType: AircraftTypeInput = AircraftTypeInput.B737,
@@ -145,14 +160,41 @@ data class RequestDTO(
         */
         fun sample(): RequestDTO = RequestDTO(
             id = "sample-001",
+            lengthUnit = LengthUnitInput.Inch,
+            weightUnit = WeightUnitInput.Kilogram,
+            spaces = listOf(LoadingSpaceInput("main", DeckLocationInput.Main)),
+            layoutGroups = emptyList(),
+            positionConflicts = emptySet(),
             cargos = listOf(
                 CargoInput(name = "C1", weight = 8.0, priority = 10, source = "S1", destination = "D1", requiresSeparation = true, order = 0),
                 CargoInput(name = "C2", weight = 6.0, priority = 6, source = "S2", destination = "D1", requiresSeparation = false, order = 1),
                 CargoInput(name = "C3", weight = 4.0, priority = 4, source = "S1", destination = "D2", requiresSeparation = true, order = 2)
             ),
             positions = listOf(
-                PositionInput(name = "P1", maxWeight = 10.0, longitudinalArm = -1.0, lateralArm = -0.5, predicateLoadWeightMin = 1.0),
-                PositionInput(name = "P2", maxWeight = 10.0, longitudinalArm = 1.0, lateralArm = 0.5, predicateLoadWeightMin = 1.0)
+                PositionInput(
+                    name = "P1",
+                    maxWeight = 10.0,
+                    longitudinalArm = -1.0,
+                    lateralArm = -0.5,
+                    spaceId = "main",
+                    partitionId = "front",
+                    geometry = PositionGeometryInput(front = -2.0, back = 0.0, left = -1.0, right = 0.0),
+                    loadingOrder = 0,
+                    maxLoadCount = 3,
+                    predicateLoadWeightMin = 1.0
+                ),
+                PositionInput(
+                    name = "P2",
+                    maxWeight = 10.0,
+                    longitudinalArm = 1.0,
+                    lateralArm = 0.5,
+                    spaceId = "main",
+                    partitionId = "rear",
+                    geometry = PositionGeometryInput(front = 0.0, back = 2.0, left = 0.0, right = 1.0),
+                    loadingOrder = 1,
+                    maxLoadCount = 3,
+                    predicateLoadWeightMin = 1.0
+                )
             ),
             aircraftType = AircraftTypeInput.B737,
             solvePolicy = SolvePolicy(preferBenders = false, bendersFallbackToMilp = true),

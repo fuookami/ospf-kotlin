@@ -94,10 +94,12 @@ class PositionCoordinate(
     val backArm: Quantity<Flt64>,
     val leftArm: Quantity<Flt64>,
     val rightArm: Quantity<Flt64>,
-    val offsets: HashMap<ULDCode, Quantity<Flt64>>
+    val offsets: HashMap<ULDCode, Quantity<Flt64>>,
+    declaredLongitudinalArm: Quantity<Flt64>? = null,
+    declaredLateralArm: Quantity<Flt64>? = null
 ) {
-    val longitudinalArm = ((frontArm + backArm)!! / Flt64.two)!!
-    val lateralArm = ((leftArm + rightArm)!! / Flt64.two)!!
+    val longitudinalArm = declaredLongitudinalArm ?: ((frontArm + backArm)!! / Flt64.two)!!
+    val lateralArm = declaredLateralArm ?: ((leftArm + rightArm)!! / Flt64.two)!!
 
     val averageOffset = if (offsets.isNotEmpty()) {
         (offsets.values.fold(Flt64.zero * aircraftModel.lengthUnit) { acc, offset -> (acc + offset)!! } / Flt64(offsets.size))!!
@@ -276,9 +278,20 @@ data class Position(
             offsets: HashMap<ULDCode, Quantity<Flt64>>,
             location: PositionLocation,
             linearLoadingOrder: UInt8,
-            declaredArea: Quantity<Flt64>? = null
+            declaredArea: Quantity<Flt64>? = null,
+            declaredLongitudinalArm: Quantity<Flt64>? = null,
+            declaredLateralArm: Quantity<Flt64>? = null
         ): Position {
-            val coordinate = PositionCoordinate(aircraftModel, frontArm, backArm, leftArm, rightArm, offsets)
+            val coordinate = PositionCoordinate(
+                aircraftModel = aircraftModel,
+                frontArm = frontArm,
+                backArm = backArm,
+                leftArm = leftArm,
+                rightArm = rightArm,
+                offsets = offsets,
+                declaredLongitudinalArm = declaredLongitudinalArm,
+                declaredLateralArm = declaredLateralArm
+            )
             val shape = PositionShape(
                 aircraftModel = aircraftModel,
                 length = (backArm - frontArm)!!,

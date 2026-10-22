@@ -33,15 +33,16 @@ class SourceEarlyLimit(
     override val name: String = "source_early_limit"
 ) : Pipeline<AbstractLinearMetaModel<Flt64>> {
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
-        // For each source with multiple cargos, at least one must be in early positions
+        val earlyPositions = positions.indices.sortedBy { positions[it].base.linearLoadingOrder }
+            .take((earlyEnd + 1).coerceIn(0, positions.size))
+        // 早期舱位由显式装载顺序确定，不依赖输入列表顺序。 / Early positions follow explicit loading order, not input-list order.
         for ((source, cargos) in cargosBySource) {
             if (cargos.size <= 1) {
                 continue
             }
 
-            // sum(x[c][p] for c in cargos, p in 0..earlyEnd) >= 1
             val symbols = cargos.flatMap { c ->
-                (0..earlyEnd).map { p -> stowage.stowage[c, p] }
+                earlyPositions.map { p -> stowage.stowage[c, p] }
             }
             val lhs = sum(symbols)
             val rhs = Flt64.one

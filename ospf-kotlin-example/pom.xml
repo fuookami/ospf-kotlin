@@ -23,28 +23,13 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-            <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-network-context</artifactId>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp1d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp1d-domain-discrete-loading-context</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-starter</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-starter-gantt-scheduling</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-starter-csp1d</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-starter-network-scheduling</artifactId>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp2d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp2d-domain-discrete-loading-context</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -55,11 +40,6 @@
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
             <artifactId>ospf-kotlin-core-plugin-scip</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-            <artifactId>ospf-kotlin-core-plugin-heuristic</artifactId>
             <version>${project.version}</version>
         </dependency>
 <!--        <dependency>-->
@@ -108,6 +88,43 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>example-extra-dependencies</id>
+            <activation><property><name>!ospf.demo2.isolated</name></property></activation>
+            <dependencies>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
+                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-network-context</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin</groupId>
+                <artifactId>ospf-kotlin-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin</groupId>
+                <artifactId>ospf-kotlin-starter-gantt-scheduling</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin</groupId>
+                <artifactId>ospf-kotlin-starter-csp1d</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin</groupId>
+                <artifactId>ospf-kotlin-starter-network-scheduling</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+                <artifactId>ospf-kotlin-core-plugin-heuristic</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            </dependencies>
+        </profile>
+
         <profile>
             <id>build-only-function-tests</id>
             <properties>
@@ -430,13 +447,7 @@
                                 <id>test-compile</id>
                                 <configuration>
                                     <sourceDirs combine.self="override">
-                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/framework_demo/demo2/Demo2LimitBehaviorTest.kt</sourceDir>
-                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/framework_demo/demo2/Demo2ApplicationErrorBoundaryTest.kt</sourceDir>
-                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/framework_demo/demo2/Demo2AggregationInitializerTest.kt</sourceDir>
-                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/framework_demo/demo2/Demo2SafetyAndMacInitializationTest.kt</sourceDir>
-                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/framework_demo/demo2/Demo2AdditionalModelInitializationTest.kt</sourceDir>
-                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/framework_demo/demo2/Demo2SolutionAndOutputTest.kt</sourceDir>
-                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/framework_demo/demo2/Demo2BendersSolverTest.kt</sourceDir>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/framework_demo/demo2</sourceDir>
                                     </sourceDirs>
                                 </configuration>
                             </execution>
@@ -447,13 +458,7 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <includes>
-                                <include>**/Demo2LimitBehaviorTest.*</include>
-                                <include>**/Demo2ApplicationErrorBoundaryTest.*</include>
-                                <include>**/Demo2AggregationInitializerTest.*</include>
-                                <include>**/Demo2SafetyAndMacInitializationTest.*</include>
-                                <include>**/Demo2AdditionalModelInitializationTest.*</include>
-                                <include>**/Demo2SolutionAndOutputTest.*</include>
-                                <include>**/Demo2BendersSolverTest.*</include>
+                                <include>**/framework_demo/demo2/*Test.*</include>
                             </includes>
                         </configuration>
                     </plugin>
@@ -506,6 +511,8 @@
                             <includes>
                                 <include>**/Demo2ApplicationE2EIntegration.*</include>
                             </includes>
+                            <argLine>-XX:-UseJVMCICompiler --enable-native-access=ALL-UNNAMED -Djava.library.path="${env.GUROBI_HOME}/bin"</argLine>
+                            <reportsDirectory>${env.TEMP}/ospf-kotlin-demo2-gurobi-reports</reportsDirectory>
                         </configuration>
                     </plugin>
                 </plugins>

@@ -67,9 +67,9 @@ domain/<context>/
 | `preferBenders = false` | 直接 MILP | 成功响应包含 `solver_path=milp_direct`。 |
 | `preferBenders = true` 且达到二元变量阈值 | Gurobi Benders | 成功响应包含 `solver_path=benders`。 |
 | Benders 失败且 `bendersFallbackToMilp = true` | 回退到直接 MILP | 成功响应包含 `solver_path=milp_fallback_after_benders`。 |
-| Benders 失败且禁用回退 | 无解 | 响应状态为 `BendersFailed`。 |
+| Benders 失败且禁用回退 | 无可行 incumbent | 响应保留 `NotConverged`、已证明的 `Infeasible` 或输入/后端 `Error`。 |
 
-有解时 `ResponseDTO.status` 为 `Optimal`；预求解发现硬不可行时为 `NoSolution`；B767、B747 或未知机型输入为 `UnsupportedAircraft`；其他结构化失败为 `Error`。`notes` 和 `diagnostics` 会保留求解路径和可行性细节。Benders 仅适用于 B737、B757，且需要可用的 Gurobi 安装和许可证。
+`ResponseDTO.status` 区分 `Optimal`、`Feasible`、`Infeasible`、`NotConverged` 和 `Error`，仅未知机型返回 `UnsupportedAircraft`。四种机型和三种装载模式均支持 MILP 与线性 Benders；实际求解需要可用的 Gurobi 安装和许可证。`notes` 和 `diagnostics` 保留真实求解路径。
 
 ## 模式边界
 
@@ -129,3 +129,41 @@ suspend fun main() {
 ```powershell
 mvn -B -ntp -pl ospf-kotlin-example -Pdemo2-only test
 ```
+
+## 显式几何契约（不兼容升级）
+
+请求必须显式提供 `lengthUnit`、`weightUnit`、`spaces`、`layoutGroups`、`positionConflicts`，
+后两者可显式传空。每个舱位必须提供 `maxWeight`、`maxLoadCount`、`spaceId`、`partitionId`、`geometry {front, back, left, right}` 及
+0..255 内唯一的 `loadingOrder`。不再按列表顺序、固定横向宽度或默认面积拼布局；
+面积由矩形边界计算，显式业务力臂独立保留，按请求长度单位归一，力矩约束采用声明的重量/长度单位乘积。
+
+B737/B757 走 `bpp1d`，B767/B747 走 `bpp2d`，未知机型仍拒绝。
+物理空间 ID 隔离甲板，业务互斥只能追加，不能取消真实几何冲突。
+可选布局组约束整机/甲板/区域恰选一种布局，无组时允许无冲突区域混搭。
+货物通过 `deckLocation` 声明甲板（默认为主舱），并可通过 `allowedPositions` 进一步限制合法舱位；
+下舱货物须显式声明 `LowForward` 或 `LowAft`，不从名称或列表顺序推断。
+`loadedItems` 表示固定装载；`ala` / `alw` 是建议件数/重量的软目标，不代表额外已装货物。
+全装载模式的业载按实际分配求和，不将未选中的可选货物计入业载，固定货物也只计一次。
+预分配模式通过实际与附加舱位重量之和的等式保持计划业载守恒，而不是使用独立常数业载。
+
+三个入口委托公共应用服务，`StowageContext` 是航空领域到共享稀疏装载内核的边界。
+回退重新初始化全部领域上下文和变量。旧 demo Benders 入口仅转接共享执行器，不再维护独立迭代循环。
+响应增加 `frameworkPath`、`selectedLayouts`、`occupiedPositions`，`status` 保留真实求解结论，
+可行但未收敛不能冒充最优。
+
+本示例使用简化飞机及适航参数，并非经过适航认证的真实机型数据库；支持几何不代表装载方案已获认证。
+隔离验证命令参见[英文说明](README.md#explicit-geometry-contract-breaking-change)，
+`-Dospf.demo2.isolated=true` 排除无关示例依赖；真实 Gurobi 检查使用 `demo2-gurobi-e2e` profile。
+
+## 分区组合列生成
+
+`PositionInput.partitionId` 显式声明唯一分区，可独立于甲板/物理空间划分；框架不硬编码前段、后段或腹舱。
+同一分区可含多个重叠舱位，不同分区之间的实际几何冲突仍在全机主问题中生效。
+三种装载模式和四种机型均可设置 `SolvePolicy(partitionColumnGeneration = true)`，选择共享分区列生成入口。
+它与直接 MILP、线性 Benders 是三条独立路径；同时设置 `preferBenders=true` 会返回输入错误，不暗示联合算法。
+
+航空管线在生成列之前注册，所有业务行和目标自动参与列系数和定价。预估/推荐重量显式绑定到所属舱位的分区，
+保留各自的连续/整数类型。全机主问题保留货物唯一性、跨区冲突、共享布局及适航/MAC/CLIM 等全局行。
+最终资源补全仅限已生成的分配/占位轮廓，补全结果物化为完整新列后再求整数主问题。
+列池没有全局整数最优证书，因此响应为 `Feasible`，不是 `Optimal`，并记录
+`solver_path=partition_column_generation` 及列数、迭代数、根节点 LP 是否收敛。

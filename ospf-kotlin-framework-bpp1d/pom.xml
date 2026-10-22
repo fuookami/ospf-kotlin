@@ -14,6 +14,15 @@
     <groupId>io.github.fuookami.ospf.kotlin.framework.bpp1d</groupId>
     <artifactId>ospf-kotlin-framework-bpp1d</artifactId>
     <packaging>pom</packaging>
+    <modules>
+        <module>bpp1d-infrastructure</module>
+        <module>bpp1d-domain-item-context</module>
+        <module>bpp1d-domain-pattern-generation-context</module>
+        <module>bpp1d-domain-pattern-assignment-context</module>
+        <module>bpp1d-domain-discrete-loading-context</module>
+        <module>bpp1d-domain-packing-context</module>
+        <module>bpp1d-application</module>
+    </modules>
 
     <dependencies>
         <dependency>

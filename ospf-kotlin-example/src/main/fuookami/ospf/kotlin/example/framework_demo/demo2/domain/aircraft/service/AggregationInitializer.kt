@@ -66,11 +66,17 @@ data object AggregationInitializer {
                 "舱位力臂必须为有限值 / Position arms must be finite"
             )
         }
-        if (input.positions.any { !it.length.isFinite() || it.length <= 0.0 || !it.area.isFinite() || it.area <= 0.0 }) {
-            return Failed(
-                ErrorCode.IllegalArgument,
-                "舱位长度和面积必须为正且有限 / Position length and area must be positive and finite"
-            )
+        val spaces = input.spaces.associateBy { it.id }
+        if (spaces.size != input.spaces.size || spaces.keys.any { it.isBlank() } ||
+            input.positions.any { it.spaceId !in spaces || it.partitionId.isBlank() || it.loadingOrder !in 0..255 } ||
+            input.positions.map { it.loadingOrder }.distinct().size != input.positions.size) {
+            return Failed(ErrorCode.IllegalArgument, "物理空间或装载顺序无效 / Invalid physical space or loading order")
+        }
+        if (input.positions.any { position ->
+                val g = position.geometry
+                listOf(g.front, g.back, g.left, g.right).any { !it.isFinite() } || g.front >= g.back || g.left >= g.right
+            }) {
+            return Failed(ErrorCode.IllegalArgument, "舱位必须提供有限正矩形边界 / Positions require finite positive rectangle bounds")
         }
 
         val aircraftModel = AircraftModel(AircraftMinorModel(input.aircraftType.name))
@@ -89,39 +95,51 @@ data object AggregationInitializer {
             balancedArm = Quantity(Flt64.zero, aircraftModel.lengthUnit)
         )
         val basePositions = input.positions.mapIndexed { index, position ->
-            val longitudinalArm = Flt64(position.longitudinalArm)
-            val lateralArm = Flt64(position.lateralArm)
-            val halfLength = Flt64(position.length / 2.0)
+            fun length(value: Double) = Quantity(Flt64(value), input.lengthUnit.unit).to(aircraftModel.lengthUnit)!!
+            val g = position.geometry
+            val lengthInMeter = Quantity(Flt64(g.back - g.front), input.lengthUnit.unit).to(Meter)!!.value
+            val widthInMeter = Quantity(Flt64(g.right - g.left), input.lengthUnit.unit).to(Meter)!!.value
             Position(
                 aircraftModel = aircraftModel,
                 id = UInt64(index.toULong()),
                 spaceName = position.name,
                 sizeCode = "N",
-                frontArm = Quantity(longitudinalArm - halfLength, aircraftModel.lengthUnit),
-                backArm = Quantity(longitudinalArm + halfLength, aircraftModel.lengthUnit),
-                leftArm = Quantity(lateralArm - Flt64(0.5), aircraftModel.lengthUnit),
-                rightArm = Quantity(lateralArm + Flt64(0.5), aircraftModel.lengthUnit),
-                volume = Quantity(Flt64.one, aircraftModel.volumeUnit),
+                frontArm = length(g.front),
+                backArm = length(g.back),
+                leftArm = length(g.left),
+                rightArm = length(g.right),
+                volume = Quantity(Flt64.zero, aircraftModel.volumeUnit),
                 offsets = HashMap(),
-                location = PositionLocation.normalMain,
-                linearLoadingOrder = UInt8(index.toUByte()),
-                declaredArea = Quantity(Flt64(position.area), aircraftModel.areaUnit)
+                location = when (spaces.getValue(position.spaceId).location) {
+                    DeckLocationInput.Main -> PositionLocation.normalMain
+                    DeckLocationInput.LowForward -> PositionLocation.lowForwardNotBulk
+                    DeckLocationInput.LowAft -> PositionLocation.lowAftNotBulk
+                },
+                linearLoadingOrder = UInt8(position.loadingOrder.toUByte()),
+                declaredArea = Quantity(lengthInMeter * widthInMeter, SquareMeter).to(aircraftModel.areaUnit)!!,
+                declaredLongitudinalArm = length(position.longitudinalArm),
+                declaredLateralArm = length(position.lateralArm)
             )
         }
-        for ((index, position) in basePositions.withIndex()) {
+        val orderedPositions = basePositions.sortedBy { it.linearLoadingOrder }
+        for ((index, position) in orderedPositions.withIndex()) {
             position._loadingOrder = LoadingOrder(
                 location = position.location.location,
-                order = UInt8(index.toUByte()),
-                directPrec = if (index == 0) emptySet() else setOf(basePositions[index - 1]),
-                directSucc = if (index == basePositions.lastIndex) emptySet() else setOf(basePositions[index + 1])
+                order = position.linearLoadingOrder,
+                directPrec = if (index == 0) emptySet() else setOf(orderedPositions[index - 1]),
+                directSucc = if (index == basePositions.lastIndex) emptySet() else setOf(orderedPositions[index + 1])
             )
         }
-        val adjacentNeighbours = basePositions.zipWithNext { first, second ->
+        val adjacentNeighbours = orderedPositions.zipWithNext { first, second ->
             Neighbour(NeighbourType.Physics, first to second)
         }
+        val spacesByPosition = input.positions.associate { it.name to it.spaceId }
+        val physicalNeighbours = orderedPositions.groupBy { spacesByPosition.getValue(it.spaceName) }.values.flatMap { space ->
+            space.zipWithNext { first, second -> Neighbour(NeighbourType.Physics, first to second) }
+        }
         val neighbours = hashMapOf<NeighbourType, List<Neighbour>>(
-            NeighbourType.Physics to adjacentNeighbours,
-            NeighbourType.IndirectPhysics to adjacentNeighbours.map { neighbour ->
+            NeighbourType.Physics to physicalNeighbours,
+            NeighbourType.IndirectPhysics to physicalNeighbours.map { neighbour ->
                 Neighbour(NeighbourType.IndirectPhysics, neighbour.pair)
             },
             NeighbourType.LinearLoadingOrder to adjacentNeighbours.map { neighbour ->
@@ -150,12 +168,9 @@ data object AggregationInitializer {
             fuselage = fuselage,
             fuelTanks = Quantity(defaultFuelTank, NoneUnit),
             fuel = FlightPhase.entries.associateWith { defaultFuel },
-            decks = listOf(Deck(
-                location = DeckLocation.Main,
-                doors = emptyList(),
-                positions = basePositions,
-                doorUbieties = emptyMap()
-            )),
+            decks = basePositions.groupBy { it.location.location }.map { (location, positions) ->
+                Deck(location = location, doors = emptyList(), positions = positions, doorUbieties = emptyMap())
+            },
             neighbours = neighbours
         ))
     }

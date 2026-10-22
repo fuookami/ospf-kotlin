@@ -2,6 +2,9 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo2
 
+import fuookami.ospf.kotlin.framework.bpp.infrastructure.Flt64PackingValueAdapter
+import fuookami.ospf.kotlin.framework.bpp.domain.discrete_loading.DiscreteLoadingContext
+import fuookami.ospf.kotlin.framework.bpp.domain.discrete_loading.model.*
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
@@ -40,6 +43,7 @@ import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.multiarray.*
@@ -377,7 +381,7 @@ class Demo2LimitBehaviorTest {
     @Test
     fun `effectiveness initializers derive Rust aligned aggregation data`() {
         val fixture = limitFixture(itemCount = 3, positionCount = 5)
-        val input = RequestDTO(
+        val input = RequestDTO.sample().copy(
             id = "derived-aggregation",
             cargos = listOf(
                 CargoInput(name = "C0", weight = 1.0, priority = 8, source = "SRC-A", destination = "DST"),
@@ -708,12 +712,23 @@ class Demo2LimitBehaviorTest {
             )
         }
         val stowage = Stowage(items, positions)
-        stowage.x = BinVariable2("x", Shape2(items.size, positions.size))
+        stowage.loadingContext = DiscreteLoadingContext(
+            problem = DiscreteLoadingProblem(
+                items = items.map { LoadingItem(it.id, it.weight) },
+                positions = positions.map { LoadingPosition(it.spaceName, it.mla, it.mlw.mlw) },
+                allowedAssignments = items.flatMap { item -> positions.map { AssignmentKey(item.id, it.spaceName) } }.toSet(),
+                conflicts = emptySet(), layoutGroups = emptyList(), weightUnit = aircraftModel.weightUnit
+            ),
+            adapter = Flt64PackingValueAdapter
+        )
+        for (key in stowage.loadingContext.problem.allowedAssignments) {
+            stowage.loadingContext.aggregation.assignments[key] = BinVar("test_${key.itemId}_${key.positionId}")
+        }
         stowage.stowage = LinearIntermediateSymbols2(
             "stowage",
             Shape2(items.size, positions.size)
         ) { _, index ->
-            LinearExpressionSymbol(Flt64.zero, name = "stowage_${index.joinToString("_")}")
+            LinearExpressionSymbol(LinearPolynomial(stowage.assignmentVariable(index[0], index[1])!!), name = "stowage_${index.joinToString("_")}")
         }
         val formula = Formula(
             aircraftModel = aircraftModel,
@@ -868,6 +883,7 @@ class Demo2LimitBehaviorTest {
                 )
             )
         )
+        aggregation.stowage.loadingContext = stowage.loadingContext
         aggregation.load.estimateLoadWeight = load.estimateLoadWeight
         aggregation.maxLoadWeight.maxLoadWeight = QuantityLinearIntermediateSymbols1(
             "max_load_weight",

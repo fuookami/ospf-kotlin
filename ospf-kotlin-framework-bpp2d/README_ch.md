@@ -120,3 +120,14 @@ mvn -s D:\environment\apache-maven-3.9.12\conf\settings.xml -f ospf-kotlin-frame
 
 `bpp2d-infrastructure` 只保留 bpp2d 专属的错误类型（`Bpp2dValidationError` 等）与渲染 DTO。
 放置类型已统一命名为 `Placement2`，bpp2d 的代码与文档直接使用该名称。
+
+## 固定舱位离散装载
+
+固定舱位支持共享 `PartitionColumnGenerationApplicationService`：以显式分区的完整装载组合为列，
+保留跨区二维冲突、货物唯一性和全局布局；这不是单舱位列，也不与 Benders 联合。
+详见[共享分区列契约](../ospf-kotlin-framework-bpp/README_ch.md#分区装载组合列生成)。
+
+`bpp2d-domain-discrete-loading-context` 提供 `Bpp2dDiscreteLoading.context` 及显式
+`LoadingRectangle<V>`。纵向扫描筛选候选，再调用共享 `Box2Geometry` 精确判断内部相交；
+物理空间 ID 隔离甲板。稀疏分配、整体占位、布局选择及 MILP/Benders 编排参见
+[共享内核](../ospf-kotlin-framework-bpp/README_ch.md)。

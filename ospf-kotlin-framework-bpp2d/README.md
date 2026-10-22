@@ -127,3 +127,16 @@ cutting stock (csp2d) reuse one implementation:
 
 `bpp2d-infrastructure` keeps only bpp2d-specific errors (`Bpp2dValidationError` and friends) and renderer DTOs.
 The placement type was unified as `Placement2`; bpp2d code and docs use that name directly.
+
+## Discrete Fixed-Position Loading
+
+Fixed positions also support shared `PartitionColumnGenerationApplicationService`: complete explicit
+partition configurations preserve cross-partition 2D conflicts, cargo uniqueness and global layouts.
+These are not single-position columns and are not combined with Benders. See the
+[shared partition contract](../ospf-kotlin-framework-bpp/README.md#partition-configuration-column-generation).
+
+`bpp2d-domain-discrete-loading-context` provides `Bpp2dDiscreteLoading.context` and
+explicit `LoadingRectangle<V>` inputs. A longitudinal sweep filters candidates before
+shared `Box2Geometry` exact interior-intersection checks. Physical-space IDs isolate
+decks. See the [shared kernel](../ospf-kotlin-framework-bpp/README.md) for sparse
+assignment, whole-position occupancy, layout groups and MILP/Benders orchestration.

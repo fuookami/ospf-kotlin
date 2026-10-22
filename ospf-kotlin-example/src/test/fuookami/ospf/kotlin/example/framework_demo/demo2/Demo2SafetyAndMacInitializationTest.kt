@@ -45,7 +45,9 @@ class Demo2SafetyAndMacInitializationTest {
         val softSecurity = softSecurityAggregation(aircraft, stowage, request)
         val macOptimization = macOptimizationAggregation(aircraft, stowage, mac, request)
 
-        assertEquals(4, airworthiness.maxCumulativeLoadWeight.checkPoints.size)
+        val distinctBoundaries = request.positions.map { it.geometry.front }.distinct().size +
+            request.positions.map { it.geometry.back }.distinct().size
+        assertEquals(distinctBoundaries, airworthiness.maxCumulativeLoadWeight.checkPoints.size)
         assertEquals(1, airworthiness.linearDensity.limitsZones.size)
         assertTrue(airworthiness.linearDensity.limitLines.isNotEmpty())
         assertEquals(1, airworthiness.surfaceDensity.limitsZones.size)
@@ -130,8 +132,38 @@ class Demo2SafetyAndMacInitializationTest {
     @Test
     fun `unsymmetrical density zone creates bilateral limits for paired positions`() {
         val request = RequestDTO.sample().copy(positions = listOf(
-            PositionInput(name = "L", maxWeight = 10.0, longitudinalArm = 0.0, lateralArm = -2.0),
-            PositionInput(name = "R", maxWeight = 10.0, longitudinalArm = 0.0, lateralArm = 2.0)
+            PositionInput(
+                name = "L",
+                maxWeight = 10.0,
+                longitudinalArm = 0.0,
+                lateralArm = -2.0,
+                spaceId = "main",
+                partitionId = "explicit-zone",
+                geometry = PositionGeometryInput(
+                    front = -0.5,
+                    back = 0.5,
+                    left = -3.0,
+                    right = -1.0
+                ),
+                loadingOrder = 0,
+                maxLoadCount = 3
+            ),
+            PositionInput(
+                name = "R",
+                maxWeight = 10.0,
+                longitudinalArm = 0.0,
+                lateralArm = 2.0,
+                spaceId = "main",
+                partitionId = "explicit-zone",
+                geometry = PositionGeometryInput(
+                    front = -0.5,
+                    back = 0.5,
+                    left = 1.0,
+                    right = 3.0
+                ),
+                loadingOrder = 1,
+                maxLoadCount = 3
+            )
         ))
         val aircraft = aircraftAggregation(request)
         val stowage = stowageAggregation(aircraft, request)
@@ -674,8 +706,38 @@ class Demo2SafetyAndMacInitializationTest {
 
     private fun pairedPositionRequest(): RequestDTO {
         return RequestDTO.sample().copy(positions = listOf(
-            PositionInput(name = "L", maxWeight = 10.0, longitudinalArm = -1.0, lateralArm = -2.0),
-            PositionInput(name = "R", maxWeight = 10.0, longitudinalArm = 1.0, lateralArm = 2.0)
+            PositionInput(
+                name = "L",
+                maxWeight = 10.0,
+                longitudinalArm = -1.0,
+                lateralArm = -2.0,
+                spaceId = "main",
+                partitionId = "explicit-zone",
+                geometry = PositionGeometryInput(
+                    front = -0.5,
+                    back = 0.5,
+                    left = -3.0,
+                    right = -1.0
+                ),
+                loadingOrder = 0,
+                maxLoadCount = 3
+            ),
+            PositionInput(
+                name = "R",
+                maxWeight = 10.0,
+                longitudinalArm = 1.0,
+                lateralArm = 2.0,
+                spaceId = "main",
+                partitionId = "explicit-zone",
+                geometry = PositionGeometryInput(
+                    front = -0.5,
+                    back = 0.5,
+                    left = 1.0,
+                    right = 3.0
+                ),
+                loadingOrder = 1,
+                maxLoadCount = 3
+            )
         ))
     }
 

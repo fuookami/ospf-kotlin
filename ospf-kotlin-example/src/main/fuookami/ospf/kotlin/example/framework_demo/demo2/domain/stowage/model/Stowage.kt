@@ -1,227 +1,69 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
 
-import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.symbol.*
-import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.framework.bpp.domain.discrete_loading.DiscreteLoadingContext
+import fuookami.ospf.kotlin.framework.bpp.domain.discrete_loading.model.AssignmentKey
 
-/**
- * Stowage model managing the binary assignment variables between items and positions,
- * including stowage decisions and adjustment decisions.
- * 装载模型，管理货物与舱位之间的二元分配变量，包括装载决策和调整决策。
-*/
-class Stowage(
-    private val items: List<Item>,
-    private val positions: List<Position>,
-) {
+/** 航空业务表达式适配，分配和整体占位由框架拥有。 / Aviation expression bridge; the framework owns assignment and occupancy.
+ * @property items 货物 / Cargo
+ * @property positions 舱位 / Positions
+ */
+class Stowage(private val items: List<Item>, private val positions: List<Position>) {
     companion object {
+        /** 业务合法性。 / Business compatibility.
+         * @param item 货物 / Cargo
+         * @param position 舱位 / Position
+         * @return 是否允许 / Whether allowed
+         */
+        fun stowageNeeded(item: Item, position: Position): Boolean = item.status.stowageNeeded && position.status.stowageNeeded && position.enabled(item).ok
 
-    /**
-     * Checks whether stowage is needed for the given item-position pair.
-     * 检查给定货物-舱位对是否需要装载决策。
-     *
-     * @param item 货物 / the cargo item
-     * @param position 舱位 / the stowage position
-     * @return 是否需要装载决策 / true if stowage is needed
-    */
-    fun stowageNeeded(item: Item, position: Position): Boolean {
-            return item.status.stowageNeeded && position.status.stowageNeeded && position.enabled(item).ok
-        }
-
-    /**
-     * Checks whether adjustment is needed for the given item-position pair.
-     * 检查给定货物-舱位对是否需要调整决策。
-     *
-     * @param item 货物 / the cargo item
-     * @param position 舱位 / the stowage position
-     * @return 是否需要调整决策 / true if adjustment is needed
-    */
-    fun adjustmentNeeded(item: Item, position: Position): Boolean {
-            if (!item.status.adjustmentNeeded) {
-                return false
-            }
-
-            return if (position.status.stowageNeeded && position.enabled(item).ok) {
-                true
-            } else if (position.status.adjustmentNeeded && (position.enabled(item).ok || position.loadedItems.contains(item))) {
-                true
-            } else {
-                false
-            }
-        }
+        /** 调整合法性。 / Adjustment compatibility.
+         * @param item 货物 / Cargo
+         * @param position 舱位 / Position
+         * @return 是否允许 / Whether allowed
+         */
+        fun adjustmentNeeded(item: Item, position: Position): Boolean = item.status.adjustmentNeeded &&
+            ((position.status.stowageNeeded && position.enabled(item).ok) || (position.status.adjustmentNeeded && (position.enabled(item).ok || item in position.loadedItems)))
     }
 
-    lateinit var x: BinVariable2
-    lateinit var u: BTerVariable2
-
+    lateinit var loadingContext: DiscreteLoadingContext<Flt64>
     lateinit var stowage: LinearIntermediateSymbols2<Flt64>
     lateinit var loaded: LinearIntermediateSymbols1<Flt64>
 
-    /**
-     * Registers all stowage variables and intermediate symbols into the model.
-     * 将所有装载变量和中间符号注册到模型中。
-     *
-     * @param model 要注册到的线性元模型 / the linear meta-model to register into
-     * @return 成功或失败 / success or failure
-    */
-    fun register(
-        model: AbstractLinearMetaModel<Flt64>
-    ): Try {
-        if (!::x.isInitialized) {
-            x = BinVariable2("x", Shape2(items.size, positions.size))
-            for ((i, item) in items.withIndex()) {
-                for ((j, position) in positions.withIndex()) {
-                    x[i, j].name = "x_${item}_${position}"
-                    if (position.loadedItems.contains(item)) {
-                        x[i, j].range.eq(true)
-                    } else if (!stowageNeeded(item, position)) {
-                        x[i, j].range.eq(false)
-                    }
-                }
-            }
+    /** 稀疏决策查询，非法组合不存在变量。 / Sparse decision lookup; illegal combinations have no variable.
+     * @param i 货物索引 / Cargo index
+     * @param j 舱位索引 / Position index
+     * @return 可选分配变量 / Optional assignment variable
+     */
+    fun assignmentVariable(i: Int, j: Int): BinVar? = loadingContext.aggregation.assignments[AssignmentKey(items[i].id, positions[j].spaceName)]
+
+    /** 注册共享内核并桥接业务符号。 / Register the shared kernel and bridge business symbols.
+     * @param model 完整元模型 / Full meta model
+     * @return 注册结果 / Registration result
+     */
+    fun register(model: AbstractLinearMetaModel<Flt64>): Try {
+        if (!::loadingContext.isInitialized) return Failed(ErrorCode.IllegalArgument, "装载上下文未初始化 / Loading context is not initialized")
+        val result = loadingContext.register(model)
+        if (result !is Ok) return result
+        stowage = LinearIntermediateSymbols2<Flt64>("stowage", Shape2(items.size, positions.size)) { _, v ->
+            LinearExpressionSymbol(
+                assignmentVariable(v[0], v[1])?.let { LinearPolynomial(it) } ?: LinearPolynomial(),
+                name = "stowage_${v.joinToString("_")}"
+            )
         }
-        for ((i, item) in items.withIndex()) {
-            for ((j, position) in positions.withIndex()) {
-                if (stowageNeeded(item, position)) {
-                    when (val result = model.add(x[i, j])) {
-                        is Ok -> {}
-
-                        is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-                    }
-                }
-            }
+        val symbols = model.add(stowage)
+        if (symbols !is Ok) return symbols
+        loaded = LinearIntermediateSymbols1<Flt64>("loaded", Shape1(items.size)) { i, _ ->
+            LinearExpressionSymbol(loadingContext.aggregation.loaded.getValue(items[i].id), name = "loaded_${items[i].id}")
         }
-
-        if (!::u.isInitialized) {
-            u = BTerVariable2("u", Shape2(items.size, positions.size))
-            for ((i, item) in items.withIndex()) {
-                for ((j, position) in positions.withIndex()) {
-                    u[i, j].name = "u_${item}_${position}"
-                    if (!adjustmentNeeded(item, position)) {
-                        u[i, j].range.eq(false)
-                    }
-                }
-            }
-        }
-        for ((i, item) in items.withIndex()) {
-            for ((j, position) in positions.withIndex()) {
-                if (adjustmentNeeded(item, position)) {
-                    when (val result = model.add(u[i, j])) {
-                        is Ok -> {}
-
-                        is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-                    }
-                }
-            }
-        }
-
-        if (!::stowage.isInitialized) {
-            stowage = LinearIntermediateSymbols2<Flt64>("stowage", Shape2(items.size, positions.size)) { _, v ->
-                val item = items[v[0]]
-                val position = positions[v[1]]
-                var poly = LinearPolynomial()
-                if (stowageNeeded(item, position)) {
-                    poly += x[v]
-                }
-                if (adjustmentNeeded(item, position)) {
-                    poly += this.u[v]
-                }
-                if (position.loadedItems.contains(item)) {
-                    poly += Flt64.one
-                }
-                val sym = LinearExpressionSymbol(
-                    poly,
-                    name = "stowage_${v.joinToString("_")}",
-                )
-                sym.range.set(ValueRange(Flt64.zero, Flt64.one).value!!)
-                sym
-            }
-            for ((i, item) in items.withIndex()) {
-                for ((j, position) in positions.withIndex()) {
-                    if (stowage[i, j].range.fixedValue == null) {
-                        if (position.enabled(item).ok || position.loadedItems.contains(item)) {
-                            stowage[i, j].range.set(ValueRange(Flt64.zero, Flt64.one).value!!)
-                        } else {
-                            stowage[i, j].range.set(ValueRange(Flt64.zero, Flt64.zero).value!!)
-                        }
-                    }
-                }
-            }
-        }
-        when (val result = model.add(stowage)) {
-            is Ok -> {}
-
-            is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-        }
-
-        if (!::loaded.isInitialized) {
-            loaded = LinearIntermediateSymbols1<Flt64>("loaded", Shape1(items.size)) { i, _ ->
-                val item = items[i]
-                LinearExpressionSymbol(
-                    sum(stowage[i, _a]),
-                    name = "loaded_${item}",
-                )
-            }
-            for ((i, item) in items.withIndex()) {
-                if (loaded[i].range.fixedValue == null) {
-                    when (item.status) {
-                        ItemStatus.Reserved -> {
-                            loaded[i].range.set(ValueRange(Flt64.zero, Flt64.zero).value!!)
-                        }
-
-                        ItemStatus.Optional -> {
-                            loaded[i].range.set(ValueRange(Flt64.zero, Flt64.one).value!!)
-                        }
-
-                        ItemStatus.Preassigned, ItemStatus.Loaded, ItemStatus.AdjustmentNeeded -> {
-                            loaded[i].range.set(ValueRange(Flt64.one, Flt64.one).value!!)
-                        }
-                    }
-                }
-            }
-        }
-        when (val result = model.add(loaded)) {
-            is Ok -> {}
-
-            is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-        }
-
-        return ok
+        return model.add(loaded)
     }
 }
-

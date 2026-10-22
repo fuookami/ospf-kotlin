@@ -12,5 +12,7 @@ import kotlinx.serialization.*
 @Serializable
 data class SolvePolicy(
     val preferBenders: Boolean = false,
-    val bendersFallbackToMilp: Boolean = true
+    val bendersFallbackToMilp: Boolean = true,
+    /** 独立的分区组合列生成路径，不与 Benders 联合。 / Independent partition CG path, not combined with Benders. */
+    val partitionColumnGeneration: Boolean = false
 )

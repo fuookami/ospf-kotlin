@@ -22,6 +22,7 @@
         <module>bpp2d-domain-layer-generation-context</module>
         <module>bpp2d-domain-layer-assignment-context</module>
         <module>bpp2d-domain-packing-context</module>
+        <module>bpp2d-domain-discrete-loading-context</module>
         <module>bpp2d-application</module>
     </modules>
 

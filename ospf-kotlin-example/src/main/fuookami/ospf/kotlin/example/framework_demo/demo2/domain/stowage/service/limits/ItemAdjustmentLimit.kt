@@ -32,7 +32,7 @@ class ItemAdjustmentLimit(
             when (item.status) {
                 ItemStatus.AdjustmentNeeded -> {
                     when (val result = model.addConstraint(
-            relation = sum(stowage.u[i, _a]) eq Flt64.zero,
+            relation = LinearPolynomial(stowage.loaded[i]) eq Flt64.one,
             name = "${name}_${item}"
                     )) {
                         is Ok -> {}

@@ -137,7 +137,7 @@ data object AggregationInitializer {
                 source = FlightNo(cargo.source),
                 uld = null,
                 weight = Quantity(Flt64(cargo.weight), aircraftModel.weightUnit),
-                location = ItemLocation.normalMain,
+                location = if (cargo.deckLocation == DeckLocationInput.Main) ItemLocation.normalMain else ItemLocation.lowNotBulk,
                 cargo = ItemCargo(
                     types = setOf(CargoType("GENERAL")),
                     priority = CargoPriority(
@@ -171,7 +171,7 @@ data object AggregationInitializer {
             }.toSet()
         }
         val positions = aircraftAggregation.positions.mapIndexed { index, basePosition ->
-            val inputPosition = input.positions[index]
+            val inputPosition = input.positions.first { it.name == basePosition.spaceName }
             val status = PositionStatus(
                 location = basePosition.location,
                 code = PositionStatusCode.Unloaded,
@@ -180,9 +180,9 @@ data object AggregationInitializer {
             val maximumLoadWeight = Quantity(Flt64(inputPosition.maxWeight), aircraftModel.weightUnit)
             Position(
                 base = basePosition,
-                loadedItems = loadedItemsByPosition[index],
+                loadedItems = loadedItemsByPosition[input.positions.indexOf(inputPosition)],
                 ala = inputPosition.ala?.let { UInt64(it.toULong()) },
-                mla = if (status.predicateWeightNeeded) UInt64.one else UInt64(inputPosition.maxLoadCount.toULong()),
+                mla = UInt64(inputPosition.maxLoadCount.toULong()),
                 alw = inputPosition.alw?.let { Quantity(Flt64(it), aircraftModel.weightUnit) },
                 mlw = PositionMaximumLoadWeight(
                     aircraftModel = aircraftModel,
@@ -214,7 +214,7 @@ data object AggregationInitializer {
             aircraftModel.weightUnit
         )
 
-        return Ok(Aggregation(
+        val aggregation = Aggregation(
             aircraftModel = aircraftModel,
             formula = aircraftAggregation.formula,
             fuselage = aircraftAggregation.fuselage,
@@ -235,6 +235,12 @@ data object AggregationInitializer {
             appointment = Appointment(emptyMap()),
             biologicalLimit = BiologicalLimit(emptyList(), emptyList(), emptyList()),
             neighbours = HashMap(aircraftAggregation.neighbours)
-        ))
+        )
+        when (val result = LoadingContextFactory.build(input, aggregation)) {
+            is Ok -> aggregation.stowage.loadingContext = result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        return Ok(aggregation)
     }
 }

@@ -18,5 +18,10 @@
             <artifactId>ospf-kotlin-starter</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp1d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp1d-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

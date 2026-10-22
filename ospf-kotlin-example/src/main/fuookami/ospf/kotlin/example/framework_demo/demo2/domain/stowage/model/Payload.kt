@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -57,19 +58,13 @@ class Payload(
             mainEstimatePayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // 全装载模式下，主舱的装载重量之和
-                        LinearExpressionSymbol(
-                            LinearPolynomial(
-                                items.fold(Flt64.zero) { acc, item ->
-                                    if (item.location.enabledIn(DeckLocation.Main).ok) {
-                                        acc + item.weight.to(aircraftModel.weightUnit)!!.value
-                                    } else {
-                                        acc
-                                    }
-                                }
-                            ),
-                            name = "main_estimate_payload"
-                        )
+                        // 可选货物只按实际分配计重，固定货物也只计一次。
+                        // Count optional and fixed cargo once, through actual assignments.
+                        var poly = LinearPolynomial()
+                        for ((j, position) in positions.withIndex()) {
+                            if (position.location.location == DeckLocation.Main) poly += load.actualLoadWeight[j].to(aircraftModel.weightUnit)!!.value
+                        }
+                        LinearExpressionSymbol(poly, name = "main_estimate_payload")
                     }
 
                     StowageMode.Predistribution, StowageMode.WeightRecommendation -> {
@@ -108,19 +103,13 @@ class Payload(
             lowEstimatePayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // 全装载模式下，下舱的装载重量之和
-                        LinearExpressionSymbol(
-                            LinearPolynomial(
-                                items.fold(Flt64.zero) { acc, item ->
-                                    if (item.location.enabledIn(DeckLocation.LowAft).ok || item.location.enabledIn(DeckLocation.LowForward).ok) {
-                                        acc + item.weight.to(aircraftModel.weightUnit)!!.value
-                                    } else {
-                                        acc
-                                    }
-                                }
-                            ),
-                            name = "low_estimate_payload"
-                        )
+                        // 可选货物只按实际分配计重，固定货物也只计一次。
+                        // Count optional and fixed cargo once, through actual assignments.
+                        var poly = LinearPolynomial()
+                        for ((j, position) in positions.withIndex()) {
+                            if (position.location.location != DeckLocation.Main) poly += load.actualLoadWeight[j].to(aircraftModel.weightUnit)!!.value
+                        }
+                        LinearExpressionSymbol(poly, name = "low_estimate_payload")
                     }
 
                     StowageMode.Predistribution, StowageMode.WeightRecommendation -> {
@@ -159,21 +148,24 @@ class Payload(
             estimatePayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // 全装载模式下，总舱的装载重量之和
-                        LinearExpressionSymbol(
-                            LinearPolynomial(
-                                items.fold(Flt64.zero) { acc, item ->
-                                    acc + item.weight.to(aircraftModel.weightUnit)!!.value
-                                }
-                            ),
-                            name = "estimate_payload"
-                        )
+                        // 可选货物只按实际分配计重，固定货物也只计一次。
+                        // Count optional and fixed cargo once, through actual assignments.
+                        var poly = LinearPolynomial()
+                        for ((j, position) in positions.withIndex()) {
+                            if (true) poly += load.actualLoadWeight[j].to(aircraftModel.weightUnit)!!.value
+                        }
+                        LinearExpressionSymbol(poly, name = "estimate_payload")
                     }
 
                     StowageMode.Predistribution -> {
-                        // 预分配模式下，总舱为预估业载
+                        // 预分配业载必须来自舱位重量，不能用独立常数绕过总容量。
+                        // Predistribution payload must conserve position weights instead of bypassing capacity with a constant.
+                        var poly = LinearPolynomial()
+                        for ((j, _) in positions.withIndex()) {
+                            poly += load.estimateLoadWeight[j].to(aircraftModel.weightUnit)!!.value
+                        }
                         LinearExpressionSymbol(
-                            (computedPayload ?: plannedPayload).to(aircraftModel.weightUnit)!!.value,
+                            poly,
                             name = "estimate_payload"
                         )
                     }
@@ -204,23 +196,25 @@ class Payload(
                 }
         }
 
+        if (stowageMode == StowageMode.Predistribution) {
+            val target = model.addConstraint(
+                relation = estimatePayload.value eq (computedPayload ?: plannedPayload).to(aircraftModel.weightUnit)!!.value,
+                name = "predistribution_payload_conservation"
+            )
+            if (target !is Ok) return target
+        }
+
         if (!::mainActualPayload.isInitialized) {
             mainActualPayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // 全装载模式下，主舱的实际装载重量之和
-                        LinearExpressionSymbol(
-                            LinearPolynomial(
-                                items.fold(Flt64.zero) { acc, item ->
-                                    if (item.location.enabledIn(DeckLocation.Main).ok) {
-                                        acc + item.weight.to(aircraftModel.weightUnit)!!.value
-                                    } else {
-                                        acc
-                                    }
-                                }
-                            ),
-                            name = "main_actual_payload"
-                        )
+                        // 可选货物只按实际分配计重，固定货物也只计一次。
+                        // Count optional and fixed cargo once, through actual assignments.
+                        var poly = LinearPolynomial()
+                        for ((j, position) in positions.withIndex()) {
+                            if (position.location.location == DeckLocation.Main) poly += load.actualLoadWeight[j].to(aircraftModel.weightUnit)!!.value
+                        }
+                        LinearExpressionSymbol(poly, name = "main_actual_payload")
                     }
 
                     StowageMode.Predistribution, StowageMode.WeightRecommendation -> {
@@ -259,19 +253,13 @@ class Payload(
             lowActualPayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // 全装载模式下，下舱的实际装载重量之和
-                        LinearExpressionSymbol(
-                            LinearPolynomial(
-                                items.fold(Flt64.zero) { acc, item ->
-                                    if (item.location.enabledIn(DeckLocation.LowAft).ok || item.location.enabledIn(DeckLocation.LowForward).ok) {
-                                        acc + item.weight.to(aircraftModel.weightUnit)!!.value
-                                    } else {
-                                        acc
-                                    }
-                                }
-                            ),
-                            name = "low_actual_payload"
-                        )
+                        // 可选货物只按实际分配计重，固定货物也只计一次。
+                        // Count optional and fixed cargo once, through actual assignments.
+                        var poly = LinearPolynomial()
+                        for ((j, position) in positions.withIndex()) {
+                            if (position.location.location != DeckLocation.Main) poly += load.actualLoadWeight[j].to(aircraftModel.weightUnit)!!.value
+                        }
+                        LinearExpressionSymbol(poly, name = "low_actual_payload")
                     }
 
                     StowageMode.Predistribution, StowageMode.WeightRecommendation -> {
@@ -310,15 +298,13 @@ class Payload(
             actualPayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // 全装载模式下，总舱的实际装载重量之和
-                        LinearExpressionSymbol(
-                            LinearPolynomial(
-                                items.fold(Flt64.zero) { acc, item ->
-                                    acc + item.weight.to(aircraftModel.weightUnit)!!.value
-                                }
-                            ),
-                            name = "actual_payload"
-                        )
+                        // 可选货物只按实际分配计重，固定货物也只计一次。
+                        // Count optional and fixed cargo once, through actual assignments.
+                        var poly = LinearPolynomial()
+                        for ((j, position) in positions.withIndex()) {
+                            if (true) poly += load.actualLoadWeight[j].to(aircraftModel.weightUnit)!!.value
+                        }
+                        LinearExpressionSymbol(poly, name = "actual_payload")
                     }
 
                     StowageMode.Predistribution, StowageMode.WeightRecommendation -> {

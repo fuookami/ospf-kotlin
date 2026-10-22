@@ -17,8 +17,6 @@ class Demo2ApplicationErrorBoundaryTest {
             ApplicationCase("weight-recommendation") { request -> WeightRecommendationApplication()(request) }
         )
         val unsupportedTypes = listOf(
-            AircraftTypeInput.B767,
-            AircraftTypeInput.B747,
             AircraftTypeInput.Unknown
         )
 

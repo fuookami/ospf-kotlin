@@ -101,7 +101,16 @@ class Demo2AggregationInitializerTest {
                     loadedItems = listOf("C1"),
                     predicateLoadWeightMin = 1.0,
                     ala = 1,
-                    alw = 8.0
+                    alw = 8.0,
+                    spaceId = "main",
+                    partitionId = "explicit-zone",
+                    geometry = PositionGeometryInput(
+                        front = 0.0,
+                        back = 0.0 + 1.0,
+                        left = -0.5,
+                        right = 0.5
+                    ),
+                    loadingOrder = 0
                 ),
                 PositionInput(
                     name = "P2",
@@ -109,7 +118,16 @@ class Demo2AggregationInitializerTest {
                     longitudinalArm = 1.0,
                     lateralArm = 0.5,
                     maxLoadCount = 4,
-                    predicateLoadWeightMin = 1.5
+                    predicateLoadWeightMin = 1.5,
+                    spaceId = "main",
+                    partitionId = "explicit-zone",
+                    geometry = PositionGeometryInput(
+                        front = 1.0,
+                        back = 1.0 + 1.0,
+                        left = -0.5,
+                        right = 0.5
+                    ),
+                    loadingOrder = 1
                 )
             )
         )
