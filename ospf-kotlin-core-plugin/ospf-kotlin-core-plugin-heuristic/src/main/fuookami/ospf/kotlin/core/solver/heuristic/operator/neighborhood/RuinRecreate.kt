@@ -135,6 +135,7 @@ open class RegretKInsertRepair<T>(val insertionCost: InsertionCost<T>, val k: In
                 if (options.isEmpty()) continue
                 options.sortBy { it.second }
                 val regret = options.take(k).map { it.second - options.first().second }.sum()
+                if (!regret.isFinite()) return searchInvalid("插入遗憾溢出 / Non-finite insertion regret")
                 val urgent = if (k > 1) options.size.coerceAtMost(k) else k
                 if (urgent < chosenOptions || urgent == chosenOptions && (regret > chosenRegret || regret == chosenRegret && options.first().second < chosenCost)) {
                     chosenItem = itemIndex
@@ -168,6 +169,21 @@ class RuinRecreateOperator<T>(val ruin: Ruin<T>, val repair: RegretKInsertRepair
      * @return 完整排列 / Complete permutation
      */
     operator fun invoke(solution: List<T>, amount: Int, random: SearchRandom): Ret<List<T>> {
-        return ruin.remove(solution, amount, random).then { repair.repair(it) }
+        val valid = checkRuin(solution, amount)
+        if (valid !is Ok) return searchFailure(valid)
+        return searchBoundary { ruin.remove(
+            solution = solution,
+            amount = amount,
+            random = random
+        ) }.then { it }.then { ruined ->
+            val all = ruined.retained + ruined.removed
+            if (ruined.removed.size != amount || all.size != solution.size || all.distinct().size != all.size || all.any { it !in solution }) {
+                searchInvalid("破坏未保持元素身份和移除数量 / Ruin did not conserve identities and removal count")
+            } else searchBoundary { repair.repair(ruined) }.then { it }.then { result ->
+                if (result.size != solution.size || result.distinct().size != result.size || result.any { it !in solution }) {
+                    searchInvalid("修复未保持元素身份 / Repair did not conserve element identities")
+                } else Ok(result)
+            }
+        }
     }
 }

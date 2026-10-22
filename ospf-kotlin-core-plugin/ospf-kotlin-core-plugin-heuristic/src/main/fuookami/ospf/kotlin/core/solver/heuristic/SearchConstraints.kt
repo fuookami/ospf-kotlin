@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.solver.heuristic
 
-import kotlin.math.pow
+import java.lang.StrictMath.pow
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -68,7 +68,7 @@ internal class SearchConstraintHandling<O, V>(
     var failure: String? = null
         private set
 
-    val epsilon: Double get() = (scale ?: 0.0) * (1.0 - steps.toDouble() / config.horizon).coerceIn(0.0, 1.0).pow(config.exponent)
+    val epsilon: Double get() = (scale ?: 0.0) * pow((1.0 - steps.toDouble() / config.horizon).coerceIn(0.0, 1.0), config.exponent)
 
     fun save(): ConstraintSearchState = ConstraintSearchState(config = config, steps = steps, scale = scale, random = random.state)
 

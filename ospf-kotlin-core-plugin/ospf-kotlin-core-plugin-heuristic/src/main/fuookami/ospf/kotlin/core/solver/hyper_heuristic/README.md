@@ -410,3 +410,17 @@ totals must agree with the run. Stop and worker-failure drains are covered. The 
 Kotlin export guard rejects this new state. Custom callbacks/components must independently
 have identical deterministic semantics; time-dependent rewards or external side effects
 are outside this contract. Ordinary unrecorded asynchronous execution remains nondeterministic.
+
+## Adaptive Numerics And TOML
+
+ConfigurationFormats supports JSON, YAML, and TOML with shared validation and explicit
+migrations. TOML reading uses the standard tomlj parser to preserve floating-point values
+and signed zero; Jackson is only used for TOML output. Duplicate keys, non-finite values,
+unknown model fields, and inputs exceeding 4 MiB of UTF-8 are rejected. Optional model
+nulls are omitted for TOML, but null domain parameters fail rather than disappear.
+TOML date/time values are converted to ISO strings.
+
+New FRR-MAB log/pow, epsilon powers, sampled-HV uncertainty, and Auto square roots use
+StrictMath to match the Rust fixed fdlibm implementation. Shared probes cover 50,000
+primitive/formula results and capacity boundaries; arbitrary callback arithmetic and all
+platforms are not certified. Existing explicit CMA/SHADE modes are unchanged.

@@ -28,7 +28,7 @@ class EpsilonConstraintEvaluator(
      */
     fun <T> rank(candidates: List<ConstraintAssessment<T>>, step: Long): Ret<List<ConstraintAssessment<T>>> {
         if (!initialEpsilon.isFinite() || initialEpsilon < 0 || horizon <= 0 || !exponent.isFinite() || exponent <= 0 || step < 0 || !valid(candidates)) return searchInvalid("invalid epsilon constraint inputs")
-        val epsilon = initialEpsilon * Math.pow((1.0 - step.toDouble() / horizon).coerceIn(0.0, 1.0), exponent)
+        val epsilon = initialEpsilon * StrictMath.pow((1.0 - step.toDouble() / horizon).coerceIn(0.0, 1.0), exponent)
         return Ok(candidates.sortedWith { a, b ->
             val av = a.violation.toDouble()
             val bv = b.violation.toDouble()

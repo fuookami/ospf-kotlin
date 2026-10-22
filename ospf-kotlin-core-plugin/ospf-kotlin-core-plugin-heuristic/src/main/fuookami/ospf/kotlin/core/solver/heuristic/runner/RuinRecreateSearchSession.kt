@@ -39,18 +39,29 @@ class RuinRecreateSearchSession<O, V>(
         val candidates = ArrayList<Individual<O, V>>()
         var steps = 0L
         var reason = SearchTermination.SliceComplete
+        fun failed(message: String): Ret<SearchStepResult<O, V>> = Ok(SearchStepResult(
+            candidates = candidates,
+            evaluations = budget.used - start,
+            steps = steps,
+            termination = SearchTermination.Failed,
+            diagnostics = listOf(message)
+        ))
         while (steps < budget.steps && !budget.expired) {
             currentCoroutineContext().ensureActive()
             val previous = current
             val neighbor = if (previous == null) {
                 searchBoundary { problem.model.initialSolutions(UInt64.one).firstOrNull()?.toList() }
-            } else operator(previous.solution, amount, random).map { it }
-            if (neighbor !is Ok) return searchFailure(neighbor)
+            } else searchBoundary { operator(
+                solution = previous.solution,
+                amount = amount,
+                random = random
+            ) }.then { it }
+            if (neighbor !is Ok) return failed("破坏修复失败 / Ruin/recreate failed: $neighbor")
             val solution = neighbor.value ?: return Ok(SearchStepResult(
                 candidates = candidates, evaluations = budget.used - start, steps = steps, termination = SearchTermination.NoCandidate
             ))
-            val evaluated = problem.evaluate(solution, budget)
-            if (evaluated !is Ok) return searchFailure(evaluated)
+            val evaluated = searchBoundary { problem.evaluate(solution, budget) }.then { it }
+            if (evaluated !is Ok) return failed("完整评估失败 / Complete evaluation failed: $evaluated")
             if (!evaluated.value.admitted) {
                 reason = if (budget.expired) SearchTermination.TimeLimit else SearchTermination.EvaluationLimit
                 break
@@ -58,7 +69,9 @@ class RuinRecreateSearchSession<O, V>(
             val candidate = evaluated.value.candidate
             if (candidate != null) {
                 candidates.add(candidate)
-                if (previous == null || !problem.dominates(previous.fitness, candidate.fitness)) current = candidate
+                val accepted = searchBoundary { previous == null || !problem.dominates(previous.fitness, candidate.fitness) }
+                if (accepted !is Ok) return failed("个体比较失败 / Individual comparison failed: $accepted")
+                if (accepted.value) current = candidate
             }
             ++iterations
             ++steps
@@ -89,8 +102,14 @@ class RuinRecreateSearchSession<O, V>(
         val candidates = ArrayList<Individual<O, V>>()
         var reason = SearchTermination.SliceComplete
         for (solution in solutions) {
-            val result = problem.evaluate(solution, budget)
-            if (result !is Ok) return searchFailure(result)
+            val result = searchBoundary { problem.evaluate(solution, budget) }.then { it }
+            if (result !is Ok) return Ok(SearchStepResult(
+                candidates = candidates,
+                evaluations = budget.used - start,
+                steps = 0,
+                termination = SearchTermination.Failed,
+                diagnostics = listOf("导入评估失败 / Import evaluation failed: $result")
+            ))
             if (!result.value.admitted) {
                 reason = SearchTermination.EvaluationLimit
                 break
@@ -98,7 +117,15 @@ class RuinRecreateSearchSession<O, V>(
             val candidate = result.value.candidate ?: continue
             candidates.add(candidate)
             val previous = current
-            if (previous == null || !problem.dominates(previous.fitness, candidate.fitness)) current = candidate
+            val accepted = searchBoundary { previous == null || !problem.dominates(previous.fitness, candidate.fitness) }
+            if (accepted !is Ok) return Ok(SearchStepResult(
+                candidates = candidates,
+                evaluations = budget.used - start,
+                steps = 0,
+                termination = SearchTermination.Failed,
+                diagnostics = listOf("导入比较失败 / Import comparison failed: $accepted")
+            ))
+            if (accepted.value) current = candidate
         }
         return Ok(SearchStepResult(
             candidates = candidates, evaluations = budget.used - start, steps = 0,

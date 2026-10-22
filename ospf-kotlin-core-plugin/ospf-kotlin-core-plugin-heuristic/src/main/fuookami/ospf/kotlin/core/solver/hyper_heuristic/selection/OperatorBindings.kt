@@ -349,7 +349,8 @@ class ControlledSearchSession<O, V>(
                         after = after,
                         reward = if (validReward) rewarded.value else Flt64.zero,
                         evaluations = result.evaluations,
-                        terminal = !validReward || result.termination != SearchTermination.SliceComplete || budget.global.used >= budget.global.limit,
+                        // 其他 worker 的全局消耗不能改变本地信用历史 / Other workers' global consumption must not alter local credit history.
+                        terminal = !validReward || result.termination != SearchTermination.SliceComplete,
                         elapsedNanos = elapsedNanos,
                         steps = result.steps,
                         failed = !validReward || result.termination == SearchTermination.Failed

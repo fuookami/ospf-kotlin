@@ -1,5 +1,7 @@
 package fuookami.ospf.kotlin.core.solver.hyper_heuristic.learning
 
+import java.lang.StrictMath.log as ln
+import java.lang.StrictMath.sqrt
 import kotlin.math.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*

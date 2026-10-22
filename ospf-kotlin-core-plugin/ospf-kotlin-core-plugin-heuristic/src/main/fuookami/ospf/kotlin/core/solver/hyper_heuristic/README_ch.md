@@ -357,3 +357,14 @@ worker，即使自然完成先后反转也不改变归并顺序；不是重放�
 **完整源日志**继续重放，或显式继续录制；源日志须匹配该前缀，检查点身份及完成计数须与运行一致。
 已覆盖停止及 worker 失败排空。原始 Kotlin 导出保护拒绝该新状态。自定义回调和组件仍须有
 相同的确定性语义，依赖时钟的奖励及外部副作用不在契约内；普通未录制的异步模式仍然非确定。
+
+## 自适应数值与TOML
+
+ConfigurationFormats支持JSON、YAML、TOML，共用校验和显式版本迁移。
+TOML读取使用标准tomlj解析器保留浮点类型和负零，Jackson仅负责TOML输出。
+重复键、非有限数、未知模型字段及超过4MiB UTF-8的输入均拒绝；模型Option的null
+可在TOML省略，但业务参数null直接报错，不静默丢失。TOML日期时间值转ISO字符串。
+
+新增FRR-MAB的log/pow、epsilon的pow、采样HV误差及Auto的sqrt使用StrictMath，
+对应Rust固定fdlibm实现；共同探针覆盖50000个原语/公式结果和容量边界，
+不据此认证任意回调算术或全部平台。既有显式CMA/SHADE模式不变。

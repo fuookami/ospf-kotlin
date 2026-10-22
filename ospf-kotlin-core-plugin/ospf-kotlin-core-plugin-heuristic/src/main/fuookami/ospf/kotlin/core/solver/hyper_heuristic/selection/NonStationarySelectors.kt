@@ -1,5 +1,8 @@
 package fuookami.ospf.kotlin.core.solver.hyper_heuristic.selection
 
+import java.lang.StrictMath.log as ln
+import java.lang.StrictMath.pow
+import java.lang.StrictMath.sqrt
 import kotlin.math.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
@@ -83,7 +86,7 @@ open class NonStationarySelector(
                 val scale = (window.maxOfOrNull { it.reward.coerceAtLeast(0.0) } ?: 0.0).let { if (it == 0.0) 1.0 else it }
                 val totals = actions.associateWith { action -> window.filter { it.action == action }.map { it.reward.coerceAtLeast(0.0) / scale }.sum() }
                 val ranking = actions.sortedByDescending { totals.getValue(it) }
-                val credits = ranking.mapIndexed { rank, action -> action to if (totals.getValue(action) > 0) decay.pow(rank) * (actions.size - rank) else 0.0 }.toMap()
+                val credits = ranking.mapIndexed { rank, action -> action to if (totals.getValue(action) > 0) pow(decay, rank.toDouble()) * (actions.size - rank) else 0.0 }.toMap()
                 val total = credits.values.sum().coerceAtLeast(1.0)
                 if (learning) mask.firstOrNull { counts.getValue(it) == 0 } ?: mask.maxBy {
                     credits.getValue(it) / total + exploration * sqrt(2 * ln(window.size.coerceAtLeast(1).toDouble() + 1) / counts.getValue(it))
@@ -136,7 +139,8 @@ open class NonStationarySelector(
             val winner = actions.maxBy { quality.getValue(it) }
             for (id in actions) {
                 val target = if (id == winner) 1.0 - minimumProbability * (actions.size - 1) else minimumProbability
-                probabilities[id] = probabilities.getValue(id) + rate * (target - probabilities.getValue(id))
+                // 全更新率直接取目标，避免消去误差跌破概率下界。 / Full-rate updates use the target directly to avoid cancellation below the probability floor.
+                probabilities[id] = if (rate == 1.0) target else probabilities.getValue(id) + rate * (target - probabilities.getValue(id))
             }
         }
         ++clock

@@ -96,6 +96,67 @@ private class DecrementUpdate(val name: String, val trace: MutableList<Pair<Stri
 
 class AdaptiveSystemTest {
     @Test
+    fun fullRatePursuitShouldPreserveExactFloorAndRemainRestorable() {
+        val policy = NonStationarySelector(
+            type = "adaptive-pursuit",
+            actions = listOf("a", "b"),
+            rate = 1.0,
+            minimumProbability = 0.1
+        )
+        checked(policy.observe(credit(action = "a", reward = 2.0)))
+        val saved = policy.snapshot()
+        assertEquals(0.1, saved.extension.jsonObject.getValue("probabilities").jsonObject.getValue("b").jsonPrimitive.double)
+        val restored = NonStationarySelector(
+            type = "adaptive-pursuit",
+            actions = listOf("b", "a"),
+            rate = 1.0,
+            minimumProbability = 0.1
+        )
+        checked(restored.restore(saved))
+        assertEquals(saved.extension, restored.snapshot().extension)
+    }
+
+    @Test
+    fun exactSharedBudgetExhaustionShouldNotTerminateCommittedSlotCredit(): Unit = runBlocking {
+        val policy = ChoiceFunctionSelector(listOf("local"))
+        val pool = OperatorPool<SolutionUpdate>(
+            id = "update",
+            candidates = mapOf("local" to PatternSearchUpdate()),
+            policy = policy,
+            random = SearchRandom(1),
+            stateless = setOf("local")
+        )
+        var initialized = false
+        val delegate = object : SearchSession<Flt64, Flt64> {
+            override suspend fun step(budget: SearchSlice): Ret<SearchStepResult<Flt64, Flt64>> {
+                if (initialized) pool.current()
+                assertTrue(budget.acquire())
+                initialized = true
+                return Ok(SearchStepResult(
+                    candidates = listOf(point(2.0, 4.0)), evaluations = 1, steps = 1,
+                    termination = SearchTermination.SliceComplete
+                ))
+            }
+
+            override suspend fun importSolutions(solutions: List<Solution<Flt64>>, budget: SearchSlice): Ret<SearchStepResult<Flt64, Flt64>> = searchInvalid("unused")
+            override fun snapshot(): Ret<SearchSessionSnapshot> = searchInvalid("unused")
+            override fun restore(snapshot: SearchSessionSnapshot): Try = searchInvalid("unused")
+        }
+        val session = ControlledSearchSession(
+            delegate = delegate,
+            problem = adaptiveProblem(),
+            bindings = OperatorBindings(update = pool, mutation = null, neighborhood = null, parameters = emptyMap()),
+            reward = RewardPolicy { Flt64.one }
+        )
+        val budget = SearchBudget(2)
+        val result = checked(session.step(SearchSlice(global = budget, evaluations = 2, steps = 2)))
+        assertEquals(2L, result.steps)
+        assertEquals(2L, budget.used)
+        assertFalse(session.drainTransitions().single().terminal)
+        assertEquals("local", policy.snapshot().extension.jsonObject.getValue("previous").jsonPrimitive.content)
+    }
+
+    @Test
     fun controlledFailuresShouldPairUsedActionsAndRecordActualSteps(): Unit = runBlocking {
         for (throws in listOf(false, true)) {
             val policy = ChoiceFunctionSelector(listOf("local"))
@@ -518,6 +579,96 @@ class AdaptiveSystemTest {
         assertEquals(expected.candidates, actual.candidates)
         assertEquals(4L, budget.used)
         assertEquals(checked(source.snapshot()), checked(restored.snapshot()))
+    }
+
+    @Test
+    fun regretInsertionShouldRejectOverflowFromFiniteBusinessCosts() {
+        val repair = RegretKInsertRepair(
+            insertionCost = InsertionCost<Int> { _, _, position ->
+                Ok(Flt64(if (position == 0) -Double.MAX_VALUE else Double.MAX_VALUE))
+            },
+            k = 2
+        )
+        assertFalse(repair.repair(RuinResult(retained = listOf(0), removed = listOf(1))) is Ok)
+    }
+
+    @Test
+    fun customRuinMustNotLoseOrSubstituteElementsOrLeakExceptions() {
+        for (mode in 0..2) {
+            val ruin = object : Ruin<Int> {
+                override fun remove(solution: List<Int>, amount: Int, random: SearchRandom): Ret<RuinResult<Int>> {
+                    return when (mode) {
+                        0 -> Ok(RuinResult(retained = emptyList(), removed = emptyList()))
+                        1 -> Ok(RuinResult(retained = listOf(0), removed = listOf(99)))
+                        else -> error("custom ruin failed")
+                    }
+                }
+            }
+            val operator = RuinRecreateOperator(ruin, GreedyInsertRepair(InsertionCost<Int> { _, _, _ -> Ok(Flt64.zero) }))
+            assertFalse(operator(solution = listOf(0, 1), amount = 1, random = SearchRandom(1)) is Ok)
+        }
+    }
+
+    @Test
+    fun ruinFailureShouldRetainAlreadyEvaluatedPrefixAndExactBudget(): Unit = runBlocking {
+        val session = RuinRecreateSearchSession(
+            problem = permutationProblem(),
+            operator = RuinRecreateOperator(
+                ruin = RandomRuin<Flt64>(),
+                repair = RegretKInsertRepair(InsertionCost<Flt64> { _, _, _ -> searchInvalid("estimate failed") })
+            ),
+            amount = 2,
+            random = SearchRandom(123),
+            statelessEstimates = true
+        )
+        val budget = SearchBudget(5)
+        val report = checked(session.step(SearchSlice(global = budget, evaluations = 5, steps = 5)))
+        assertEquals(SearchTermination.Failed, report.termination)
+        assertEquals(1L, report.steps)
+        assertEquals(1L, report.evaluations)
+        assertEquals(1, report.candidates.size)
+        assertEquals(1L, budget.used)
+        assertEquals(1L, checked(session.snapshot()).iteration)
+        assertTrue(report.diagnostics.isNotEmpty())
+    }
+
+    @Test
+    fun ruinComparisonFailureShouldRetainBothEvaluatedCandidates(): Unit = runBlocking {
+        for (importing in listOf(false, true)) {
+            val base = permutationProblem()
+            val problem = SearchProblem(
+                id = base.id,
+                fingerprint = base.fingerprint,
+                model = base.model,
+                objectiveCodec = base.objectiveCodec,
+                valueCodec = base.valueCodec,
+                dominates = { _: Flt64, _: Flt64 -> error("comparison failed") },
+                feasible = base.feasible,
+                encoding = base.encoding,
+                validSolution = base.validSolution
+            )
+            val session = RuinRecreateSearchSession(
+                problem = problem,
+                operator = RuinRecreateOperator(
+                    ruin = RandomRuin<Flt64>(),
+                    repair = RegretKInsertRepair(InsertionCost<Flt64> { _, _, _ -> Ok(Flt64.zero) })
+                ),
+                amount = 2,
+                random = SearchRandom(123),
+                statelessEstimates = true
+            )
+            val budget = SearchBudget(5)
+            val slice = SearchSlice(global = budget, evaluations = 5, steps = 5)
+            val report = checked(if (importing) {
+                session.importSolutions(List(3) { listOf(Flt64.zero, Flt64.one, Flt64.two) }, slice)
+            } else session.step(slice))
+            assertEquals(SearchTermination.Failed, report.termination)
+            assertEquals(if (importing) 0L else 1L, report.steps)
+            assertEquals(2L, report.evaluations)
+            assertEquals(2, report.candidates.size)
+            assertEquals(2L, budget.used)
+            assertTrue(report.diagnostics.isNotEmpty())
+        }
     }
 
     @Test

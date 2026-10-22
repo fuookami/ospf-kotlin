@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.solver.hyper_heuristic.memory
 
-import kotlin.math.sqrt
+import java.lang.StrictMath.sqrt
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import fuookami.ospf.kotlin.utils.functional.*

@@ -70,6 +70,30 @@ private fun noTiming(element: JsonElement): JsonElement = when (element) {
 
 class SearchBoundaryTest {
     @Test
+    fun autoCapacityShouldMatchSharedSquareRootBoundaryVectors() {
+        for ((horizon, capacity) in listOf(0L to 8, 63L to 8, 64L to 8, 80L to 8, 81L to 9, 99L to 9, 100L to 10,
+            65535L to 255, 65536L to 256, 65537L to 256, Long.MAX_VALUE to 256)) {
+            val policy = AutoAcceptance<Flt64, Flt64>(SearchCodecs.flt64, horizon)
+            assertEquals(capacity, boundaryValue(policy.save()).jsonObject.getValue("capacity").jsonPrimitive.int)
+            assertEquals(capacity / 2, policy.historySpan)
+        }
+    }
+
+    @Test
+    fun epsilonShouldMatchSharedStrictMathBinary64Vectors() {
+        val config = ConstraintHandlingConfig(
+            mode = ConstraintMode.Epsilon, initialEpsilon = 0.75, horizon = 10001, exponent = 1.37
+        )
+        val handling = SearchConstraintHandling(config, boundaryProblem(), SearchRandom(42))
+        for ((steps, expected) in listOf(1283L to 0x3fe3e28720023000L, 1284L to 0x3fe3e1ba572774e1L, 2028L to 0x3fe1982836c8e2ecL)) {
+            boundaryValue(handling.load(handling.save().copy(steps = steps)))
+            assertEquals(expected, handling.epsilon.toRawBits())
+        }
+        assertEquals(0x40223f54a1c504c2L, StrictMath.log(9170.0).toRawBits())
+        assertEquals(0x3fd799126e159c7eL, StrictMath.pow(547.0 / 10001.0, 1.0 / 3.0 + 0.01).toRawBits())
+    }
+
+    @Test
     fun exactHypervolumeShouldMatchThreeAndFourDimensionalInclusionExclusion() {
         for (dimension in 1..6) {
             val reference = List(dimension) { Flt64(5.0) }
@@ -339,6 +363,47 @@ class SearchBoundaryTest {
         val registry = HyperHeuristics.registry<Flt64, Flt64>(IntoValue.Identity)
         assertTrue(registry.reward(ComponentSpec("hypervolume-delta", buildJsonObject { put("mode", "magic") })) is Failed)
         assertTrue(registry.reward(ComponentSpec("hypervolume-delta", buildJsonObject { put("samples", 1.5) })) is Failed)
+    }
+
+    @Test
+    fun tomlShouldRoundtripNestedStagesAndRejectInvalidDocuments() {
+        val stages = buildJsonObject {
+            put("stages", JsonArray(listOf(buildJsonObject {
+                put("type", "vnd")
+                put("parameters", buildJsonObject {
+                    put("stages", JsonArray(listOf(buildJsonObject { put("type", "pattern-search") })))
+                })
+            })))
+        }
+        val config = HyperHeuristicConfig(
+            problem = ComponentSpec("boundary", buildJsonObject { put("signedZero", -0.0); put("float", 5.0) }),
+            algorithms = listOf(AlgorithmConfig(
+                id = "local",
+                algorithm = ComponentSpec("genetic"),
+                updates = listOf(ComponentSpec("pipeline", stages)),
+                constraints = ConstraintHandlingConfig(mode = ConstraintMode.Epsilon, exponent = 1.5)
+            )),
+            budget = BudgetConfig(evaluations = 100)
+        )
+        val text = boundaryValue(ConfigurationFormats.encode(config, ConfigurationFormat.Toml))
+        assertEquals(config, boundaryValue(ConfigurationFormats.decode(text, ConfigurationFormat.Toml)))
+        val dated = text.replace("signedZero = -0.0", "signedZero = -0.0\nproblem.parameters.date = 2026-10-22T10:00:00Z")
+        assertEquals(JsonPrimitive("2026-10-22T10:00:00Z"), boundaryValue(ConfigurationFormats.decode(dated, ConfigurationFormat.Toml)).problem.parameters["date"])
+        for (invalid in listOf(
+            "version = 1\nversion = 1\n$text",
+            "unknown = 1\n$text",
+            text.replace("version = 1", "version = 2"),
+            "value = nan\n$text",
+            "value = +inf\n$text",
+            " ".repeat(4 * 1024 * 1024 + 1)
+        )) {
+            assertTrue(ConfigurationFormats.decode(invalid, ConfigurationFormat.Toml) is Failed)
+        }
+        val nullable = config.copy(problem = ComponentSpec("boundary", buildJsonObject { put("businessNull", JsonNull) }))
+        assertTrue(ConfigurationFormats.encode(nullable, ConfigurationFormat.Toml) is Failed)
+        assertEquals(nullable, boundaryValue(ConfigurationFormats.decode(
+            boundaryValue(ConfigurationFormats.encode(nullable, ConfigurationFormat.Json)), ConfigurationFormat.Json
+        )))
     }
 
     @Test
