@@ -2,13 +2,14 @@
 
 :us: [English](README.md) | :cn: 简体中文
 
-`ospf-kotlin-framework-gantt-scheduling` 是可复用的甘特排程优化框架,基于列生成与分支定价算法。它提供高级计划与排程（APS）、主生产计划（MPS）和批次排序计划（LSP）的通用排程内核。下游请求 DTO、公式语言、项目运行参数、租户上下文、心跳逻辑和 solver 插件选择留给业务适配层。
+`ospf-kotlin-framework-gantt-scheduling` 是可复用的时间、活动与资源联合优化框架，提供有限候选活动 MILP、产能分配和任务束列生成等建模路径。APS、MPS、LSP 类目前是业务层级标记，不代表完整独立业务入口。下游请求 DTO、公式语言、项目运行参数、租户上下文、心跳逻辑和 solver 插件选择留给业务适配层。
 
 ## 范围
 
 框架覆盖以下领域能力：
 
 - **任务建模**：任务定义、执行者分配、时间排程、任务状态、分配策略
+- **活动级排程**：[有限候选模式、多资源占用、端点依赖、日历、滚动恢复及时序库存](gantt-scheduling-domain-activity-context/README_ch.md)，与 Network 无强制依赖
 - **任务编译**：任务级决策变量、约束与目标
 - **任务束（路线）编译**：列生成主问题 — 束选择、成本与覆盖约束
 - **任务束生成**：定价问题 — 带资源约束的标签设定最短路径
@@ -21,7 +22,7 @@
 明确非目标：
 
 1. 下游请求 DTO、租户上下文、公式语言和项目运行时策略。
-2. 超出步进图的复杂任务依赖 DAG、复杂班次日历和自定义成本公式。
+2. 完整行业法规、自动抢占/分批、完整 BOM/MRP 和任意连续时间排程的通用精确求解。活动模块支持显式有限域端点依赖与候选费用策略，不能据此宣称原有任务编译入口也全部实现。
 3. 求解器后端安装、许可证管理或后端插件所有权。
 4. 并发树执行和求解器原生节点回调。
 
@@ -111,6 +112,7 @@
 |-------|------|
 | `gantt-scheduling-infrastructure` | 时间原语：TimeRange、TimeWindow、TimeSlot、DurationRange、WorkingCalendar |
 | `gantt-scheduling-domain-task-context` | 核心任务模型：Task、TaskBunch、TaskPlan、Executor、AssignmentPolicy |
+| `gantt-scheduling-domain-activity-context` | 有限候选活动 MILP、联合资源、依赖、恢复与逐事件库存 |
 | `gantt-scheduling-domain-task-compilation-context` | 任务级 MILP：Compilation、TaskTime、Switch、Makespan、约束与目标 |
 | `gantt-scheduling-domain-task-generation-context` | 任务生成（占位，与束生成集成） |
 | `gantt-scheduling-domain-bunch-compilation-context` | 列生成主问题：BunchCompilation、BunchAggregation、SlotBasedBunch |
@@ -124,9 +126,10 @@
 
 ### 业务入口
 
-- **`APS`** — 高级计划与排程：跨完整时域的战略级规划
-- **`MPS`** — 主生产计划：生产数量与时间决策
-- **`LSP`** — 批次排序计划：生产批次的详细排序与排程
+- **`ActivitySchedulingApplicationService<V>`** — 可执行的有限候选活动排程入口，与嵌入式使用共享领域注册。
+- **`APS`** — 高级计划与排程层级标记，尚非完整应用服务。
+- **`MPS`** — 主生产计划层级标记，尚非完整应用服务。
+- **`LSP`** — 批次排序计划层级标记，尚非完整应用服务。
 
 ### 算法服务
 

@@ -2,13 +2,14 @@
 
 :us: English | :cn: [简体中文](README_ch.md)
 
-`ospf-kotlin-framework-gantt-scheduling` is a reusable Gantt scheduling optimization framework based on column generation and branch-and-price algorithms. It provides generic scheduling kernels for Advanced Planning and Scheduling (APS), Master Production Scheduling (MPS), and Lot Scheduling Planning (LSP). Downstream request DTOs, formula languages, project runtime parameters, tenant context, heartbeat logic, and solver plugin selection are left to business adapters.
+`ospf-kotlin-framework-gantt-scheduling` is a reusable framework for joint time, activity, and resource optimization, with finite-candidate activity MILP, capacity allocation, and bunch column-generation paths. APS, MPS, and LSP classes currently mark business tiers rather than complete standalone application services. Downstream request DTOs, formula languages, project runtime parameters, tenant context, heartbeat logic, and solver plugin selection are left to business adapters.
 
 ## Scope
 
 The framework covers the following domain capabilities:
 
 - **Task modeling**: task definition, executor assignment, time scheduling, task status, assignment policies
+- **Activity scheduling**: [finite modes, joint-resource phases, endpoint dependencies, calendars, rolling recovery, and temporal inventory](gantt-scheduling-domain-activity-context/README.md), without a mandatory Network dependency
 - **Task compilation**: task-level decision variables, constraints, and objectives for MILP
 - **Task bunch (route) compilation**: column-generation master problem — bunch selection, cost, and coverage constraints
 - **Task bunch generation**: pricing problem — label-setting shortest path with resource constraints
@@ -20,7 +21,7 @@ The framework covers the following domain capabilities:
 Explicit non-goals:
 
 1. Downstream request DTOs, tenant context, formula languages, and project runtime policies.
-2. Task dependency DAGs beyond step graphs, complex shift calendars, and custom cost formulas.
+2. Full industry regulations, automatic preemption/splitting, full BOM/MRP, and universal exact continuous-time scheduling. The activity module supports explicit finite-domain endpoint dependencies and candidate-cost policies; this does not imply every legacy task-compilation path implements them.
 3. Solver backend installation, license management, or backend plugin ownership.
 4. Concurrent tree execution and solver-native node callbacks.
 
@@ -110,6 +111,7 @@ Capacity scheduling handles time-slot-based capacity allocation. Executors are d
 |-----------|---------------|
 | `gantt-scheduling-infrastructure` | Time primitives: TimeRange, TimeWindow, TimeSlot, DurationRange, WorkingCalendar |
 | `gantt-scheduling-domain-task-context` | Core task model: Task, TaskBunch, TaskPlan, Executor, AssignmentPolicy |
+| `gantt-scheduling-domain-activity-context` | Finite-candidate activity MILP, joint resources, dependencies, recovery, and event-wise inventory |
 | `gantt-scheduling-domain-task-compilation-context` | Task-level MILP: Compilation, TaskTime, Switch, Makespan, constraints & objectives |
 | `gantt-scheduling-domain-task-generation-context` | Task generation (placeholder, integrated with bunch-generation) |
 | `gantt-scheduling-domain-bunch-compilation-context` | Column-generation master: BunchCompilation, BunchAggregation, SlotBasedBunch |
@@ -123,9 +125,10 @@ Capacity scheduling handles time-slot-based capacity allocation. Executors are d
 
 ### Business Entry Points
 
-- **`APS`** — Advanced Planning and Scheduling: strategic-level planning across the full horizon
-- **`MPS`** — Master Production Scheduling: production quantity and timing decisions
-- **`LSP`** — Lot Scheduling Planning: detailed sequencing and scheduling of production lots
+- **`ActivitySchedulingApplicationService<V>`** — executable finite-candidate activity scheduling, sharing domain registration with embedded use.
+- **`APS`** — Advanced Planning and Scheduling tier marker, not a complete application service.
+- **`MPS`** — Master Production Scheduling tier marker, not a complete application service.
+- **`LSP`** — Lot Scheduling Planning tier marker, not a complete application service.
 
 ### Algorithm Services
 

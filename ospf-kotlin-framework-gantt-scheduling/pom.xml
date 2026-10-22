@@ -17,6 +17,7 @@
     <modules>
         <module>gantt-scheduling-infrastructure</module>
         <module>gantt-scheduling-domain-task-context</module>
+        <module>gantt-scheduling-domain-activity-context</module>
         <module>gantt-scheduling-domain-task-compilation-context</module>
         <module>gantt-scheduling-domain-task-generation-context</module>
         <module>gantt-scheduling-domain-bunch-compilation-context</module>
