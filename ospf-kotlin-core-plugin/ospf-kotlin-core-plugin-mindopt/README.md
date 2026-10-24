@@ -54,7 +54,7 @@ MindOPT (达摩院求解器) solver plugin for the OSPF Kotlin framework. This m
 ### Dependency
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-mindopt:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-mindopt:1.1.2")
 ```
 
 > **Note:** The MindOPT native library (`mindopt`) must be provided separately with `provided` scope. Ensure the MindOPT runtime is installed and the license is valid.

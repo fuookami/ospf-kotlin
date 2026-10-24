@@ -45,7 +45,7 @@ OSPF Kotlin 框架的 MOSEK 求解器插件模块。本模块提供了将核心�
 ### 依赖
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-mosek:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-mosek:1.1.2")
 ```
 
 > **注意：** MOSEK 原生库（`mosek`）需要以 `provided` 作用域单独提供。请确保 MOSEK 运行时已安装且许可证有效。

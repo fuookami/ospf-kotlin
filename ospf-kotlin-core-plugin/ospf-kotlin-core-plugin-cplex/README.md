@@ -54,7 +54,7 @@ IBM ILOG CPLEX solver plugin for the OSPF Kotlin framework. This module provides
 ### Dependency
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-cplex:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-cplex:1.1.2")
 ```
 
 > **Note:** The CPLEX Java library (`cplex.jar`) must be provided separately with `provided` scope. Ensure CPLEX is installed and the license is valid.

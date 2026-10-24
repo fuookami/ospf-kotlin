@@ -40,14 +40,14 @@ OSPF Kotlin 框架的 OPTVerse 求解器插件模块。本模块将提供将核�
 ### 依赖
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-optverse:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-optverse:1.1.2")
 ```
 
 与其他求解器插件不同，OPTVerse 使用华为云 SDK 作为编译依赖：
 
 ```kotlin
 dependencies {
-    implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-optverse:1.1.0")
+    implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-optverse:1.1.2")
     // 华为云 SDK 已作为编译依赖捆绑
 }
 ```

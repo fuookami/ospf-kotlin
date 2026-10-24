@@ -45,7 +45,7 @@ MOSEK solver plugin for the OSPF Kotlin framework. This module provides concrete
 ### Dependency
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-mosek:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-mosek:1.1.2")
 ```
 
 > **Note:** The MOSEK native library (`mosek`) must be provided separately with `provided` scope. Ensure the MOSEK runtime is installed and the license is valid.

@@ -40,7 +40,7 @@ LINGO solver plugin for the OSPF Kotlin framework. This module will provide conc
 ### Dependency
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-lingo:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-lingo:1.1.2")
 ```
 
 > **Note:** The LINGO native library (`lingo`) must be provided separately with `provided` scope when implementation is complete.

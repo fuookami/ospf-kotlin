@@ -202,7 +202,7 @@ import fuookami.ospf.kotlin.core.solver.heuristic.operator.mutation.*  // 变异
 ### 依赖
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-heuristic:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-heuristic:1.1.2")
 ```
 
 ### 组合求解器

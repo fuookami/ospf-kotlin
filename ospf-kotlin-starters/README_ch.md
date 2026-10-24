@@ -31,7 +31,7 @@ starter 模块只应聚合依赖，不应包含领域逻辑、求解编排或业
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-csp1d</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 

@@ -41,13 +41,15 @@ Top-level Maven modules now follow the same bilingual README convention: English
 | `ospf-kotlin-framework` | Shared framework abstractions | [EN](ospf-kotlin-framework/README.md) / [中文](ospf-kotlin-framework/README_ch.md) |
 | `ospf-kotlin-core-plugin` | Solver backend plugins | [EN](ospf-kotlin-core-plugin/README.md) / [中文](ospf-kotlin-core-plugin/README_ch.md) |
 | `ospf-kotlin-framework-plugin` | Framework infrastructure plugins | [EN](ospf-kotlin-framework-plugin/README.md) / [中文](ospf-kotlin-framework-plugin/README_ch.md) |
-| `ospf-kotlin-framework-bpp1d` | Planned 1D bin packing framework | [EN](ospf-kotlin-framework-bpp1d/README.md) / [中文](ospf-kotlin-framework-bpp1d/README_ch.md) |
-| `ospf-kotlin-framework-bpp2d` | Early-stage 2D bin packing framework | [EN](ospf-kotlin-framework-bpp2d/README.md) / [中文](ospf-kotlin-framework-bpp2d/README_ch.md) |
+| `ospf-kotlin-framework-geometry2d` | Shared unit-aware 2D geometry | [EN](ospf-kotlin-framework-geometry2d/README.md) / [中文](ospf-kotlin-framework-geometry2d/README_ch.md) |
+| `ospf-kotlin-framework-bpp` | Shared discrete loading and partition column generation | [EN](ospf-kotlin-framework-bpp/README.md) / [中文](ospf-kotlin-framework-bpp/README_ch.md) |
+| `ospf-kotlin-framework-bpp1d` | 1D bin packing, MILP and column generation | [EN](ospf-kotlin-framework-bpp1d/README.md) / [中文](ospf-kotlin-framework-bpp1d/README_ch.md) |
+| `ospf-kotlin-framework-bpp2d` | 2D rectangular/circular bin packing and column generation | [EN](ospf-kotlin-framework-bpp2d/README.md) / [中文](ospf-kotlin-framework-bpp2d/README_ch.md) |
 | `ospf-kotlin-framework-bpp3d` | 3D bin packing framework | [EN](ospf-kotlin-framework-bpp3d/README.md) / [中文](ospf-kotlin-framework-bpp3d/README_ch.md) |
 | `ospf-kotlin-framework-csp1d` | 1D cutting stock framework | [EN](ospf-kotlin-framework-csp1d/README.md) / [中文](ospf-kotlin-framework-csp1d/README_ch.md) |
-| `ospf-kotlin-framework-csp2d` | Planned 2D cutting stock framework | [EN](ospf-kotlin-framework-csp2d/README.md) / [中文](ospf-kotlin-framework-csp2d/README_ch.md) |
-| `ospf-kotlin-framework-gantt-scheduling` | Gantt scheduling framework | [EN](ospf-kotlin-framework-gantt-scheduling/README.md) / [中文](ospf-kotlin-framework-gantt-scheduling/README_ch.md) |
-| `ospf-kotlin-framework-network-scheduling` | Network scheduling / VRPTW Branch-and-Price framework | [EN](ospf-kotlin-framework-network-scheduling/README.md) / [中文](ospf-kotlin-framework-network-scheduling/README_ch.md) |
+| `ospf-kotlin-framework-csp2d` | Sheet/coil cutting stock with freeform and guillotine patterns | [EN](ospf-kotlin-framework-csp2d/README.md) / [中文](ospf-kotlin-framework-csp2d/README_ch.md) |
+| `ospf-kotlin-framework-gantt-scheduling` | Gantt and finite-domain activity scheduling with temporal inventory | [EN](ospf-kotlin-framework-gantt-scheduling/README.md) / [中文](ospf-kotlin-framework-gantt-scheduling/README_ch.md) |
+| `ospf-kotlin-framework-network-scheduling` | Standalone network optimization and VRPTW Branch-and-Price | [EN](ospf-kotlin-framework-network-scheduling/README.md) / [中文](ospf-kotlin-framework-network-scheduling/README_ch.md) |
 | `ospf-kotlin-starters` | Starter dependency bundles | [EN](ospf-kotlin-starters/README.md) / [中文](ospf-kotlin-starters/README_ch.md) |
 | `ospf-kotlin-example` | Examples and compatibility tests | [EN](ospf-kotlin-example/README.md) / [中文](ospf-kotlin-example/README_ch.md) |
 | `ospf-kotlin-benchmark` | JMH benchmark smoke and reports | [EN](ospf-kotlin-benchmark/README.md) / [中文](ospf-kotlin-benchmark/README_ch.md) |
@@ -67,13 +69,13 @@ ospf-kotlin has been released to the maven central repository. Therefore, if you
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-jdk8</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
@@ -83,13 +85,13 @@ If you need to use the bpp1d development package, add the dependency in the pom.
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp1d</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp1d-jdk8</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
@@ -99,13 +101,13 @@ If you need to use the bpp2d development package, add the dependency in the pom.
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp2d</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp2d-jdk8</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
@@ -115,13 +117,13 @@ If you need to use the bpp3d development package, add the dependency in the pom.
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp3d</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp3d-jdk8</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
@@ -131,13 +133,13 @@ If you need to use the csp1d development package, add the dependency in the pom.
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-csp1d</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-csp1d-jdk8</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
@@ -147,13 +149,13 @@ If you need to use the csp2d development package, add the dependency in the pom.
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-csp2d</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-csp2d-jdk8</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
@@ -163,13 +165,13 @@ If you need to use the gantt scheduling development package, add the dependency 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-gantt-scheduling</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-gantt-scheduling-jdk8</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
@@ -179,13 +181,13 @@ If you need to use the network scheduling development package, add the dependenc
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-network-scheduling</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-network-scheduling-jdk8</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
@@ -196,7 +198,11 @@ If you need to use the network scheduling development package, add the dependenc
 The SCIP CP entry point is a strict finite MIP-backed facade. It is not a native SCIP/CIP CP backend. The declared CP capability scope is complete: generic MIP lowering returns verified exact lowering for the supported finite subset and structured unsupported errors for `Cumulative`, `Circuit`, `Automaton`, and `Reservoir`; raw cumulative FFI is a conditional research probe, and true incremental CP sessions remain unsupported. Snapshot-rebuild sessions are correct but must not be described as native incremental resume. The fake CP solver is for contract tests and small exhaustive oracles, not production search.
 ## Changelog
 
-See [1.1.0 release notes](changelog/1.1.0.md) for the full change record.
+The current release version is **1.1.2**. See the [1.1.2 release notes](changelog/1.1.2.md)
+for packing/cutting frameworks, network and activity scheduling, heuristic search,
+shared decomposition, and breaking API migration notes.
+
+Previous releases: [1.1.1](changelog/1.1.1.md) / [1.1.0](changelog/1.1.0.md).
 
 ## Benchmark Baseline
 

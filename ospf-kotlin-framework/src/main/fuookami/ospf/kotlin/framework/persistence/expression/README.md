@@ -403,7 +403,7 @@ One available option is `me.kpavlov.ksp.maven:ksp-maven-plugin`:
 
 ```xml
 <properties>
-    <ospf-kotlin.version>1.1.0</ospf-kotlin.version>
+    <ospf-kotlin.version>1.1.2</ospf-kotlin.version>
     <ksp-maven-plugin.version>0.4.2</ksp-maven-plugin.version>
 </properties>
 

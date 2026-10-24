@@ -27,7 +27,7 @@ This starter depends on the general [ospf-kotlin-starter](../ospf-kotlin-starter
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp3d</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 

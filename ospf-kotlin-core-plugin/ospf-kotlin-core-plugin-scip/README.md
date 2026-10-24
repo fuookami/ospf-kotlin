@@ -60,7 +60,7 @@ SCIP (Solving Constraint Integer Programs) solver plugin for the OSPF Kotlin fra
 ### Dependency
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-scip:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-scip:1.1.2")
 ```
 
 > **Note:** The SCIP Java binding (`jscip`) must be provided separately with `provided` scope. Ensure the SCIP native library is available in your system or packaged in the JAR.

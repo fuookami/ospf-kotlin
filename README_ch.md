@@ -48,13 +48,15 @@ SCIP CP 入口是一个严格的有限 MIP 支持门面，并非原生 SCIP/CIP 
 | `ospf-kotlin-framework` | 共享 framework 抽象 | [EN](ospf-kotlin-framework/README.md) / [中文](ospf-kotlin-framework/README_ch.md) |
 | `ospf-kotlin-core-plugin` | 求解器后端插件 | [EN](ospf-kotlin-core-plugin/README.md) / [中文](ospf-kotlin-core-plugin/README_ch.md) |
 | `ospf-kotlin-framework-plugin` | framework 基础设施插件 | [EN](ospf-kotlin-framework-plugin/README.md) / [中文](ospf-kotlin-framework-plugin/README_ch.md) |
-| `ospf-kotlin-framework-bpp1d` | 规划中的一维装箱框架 | [EN](ospf-kotlin-framework-bpp1d/README.md) / [中文](ospf-kotlin-framework-bpp1d/README_ch.md) |
-| `ospf-kotlin-framework-bpp2d` | 早期阶段二维装箱框架 | [EN](ospf-kotlin-framework-bpp2d/README.md) / [中文](ospf-kotlin-framework-bpp2d/README_ch.md) |
+| `ospf-kotlin-framework-geometry2d` | 共享的物理量化二维几何 | [EN](ospf-kotlin-framework-geometry2d/README.md) / [中文](ospf-kotlin-framework-geometry2d/README_ch.md) |
+| `ospf-kotlin-framework-bpp` | 共享离散装载与分区列生成 | [EN](ospf-kotlin-framework-bpp/README.md) / [中文](ospf-kotlin-framework-bpp/README_ch.md) |
+| `ospf-kotlin-framework-bpp1d` | 一维装箱、MILP 与列生成 | [EN](ospf-kotlin-framework-bpp1d/README.md) / [中文](ospf-kotlin-framework-bpp1d/README_ch.md) |
+| `ospf-kotlin-framework-bpp2d` | 二维矩形/圆形装箱与列生成 | [EN](ospf-kotlin-framework-bpp2d/README.md) / [中文](ospf-kotlin-framework-bpp2d/README_ch.md) |
 | `ospf-kotlin-framework-bpp3d` | 三维装箱框架 | [EN](ospf-kotlin-framework-bpp3d/README.md) / [中文](ospf-kotlin-framework-bpp3d/README_ch.md) |
 | `ospf-kotlin-framework-csp1d` | 一维下料框架 | [EN](ospf-kotlin-framework-csp1d/README.md) / [中文](ospf-kotlin-framework-csp1d/README_ch.md) |
-| `ospf-kotlin-framework-csp2d` | 规划中的二维下料框架 | [EN](ospf-kotlin-framework-csp2d/README.md) / [中文](ospf-kotlin-framework-csp2d/README_ch.md) |
-| `ospf-kotlin-framework-gantt-scheduling` | 甘特调度框架 | [EN](ospf-kotlin-framework-gantt-scheduling/README.md) / [中文](ospf-kotlin-framework-gantt-scheduling/README_ch.md) |
-| `ospf-kotlin-framework-network-scheduling` | 网络调度 / VRPTW 分支定价框架 | [EN](ospf-kotlin-framework-network-scheduling/README.md) / [中文](ospf-kotlin-framework-network-scheduling/README_ch.md) |
+| `ospf-kotlin-framework-csp2d` | 定尺板材/卷材下料与自由排样、断头台切分 | [EN](ospf-kotlin-framework-csp2d/README.md) / [中文](ospf-kotlin-framework-csp2d/README_ch.md) |
+| `ospf-kotlin-framework-gantt-scheduling` | 甘特与有限域活动调度、时序库存 | [EN](ospf-kotlin-framework-gantt-scheduling/README.md) / [中文](ospf-kotlin-framework-gantt-scheduling/README_ch.md) |
+| `ospf-kotlin-framework-network-scheduling` | 独立网络优化与 VRPTW 分支定价 | [EN](ospf-kotlin-framework-network-scheduling/README.md) / [中文](ospf-kotlin-framework-network-scheduling/README_ch.md) |
 | `ospf-kotlin-starters` | starter 依赖包 | [EN](ospf-kotlin-starters/README.md) / [中文](ospf-kotlin-starters/README_ch.md) |
 | `ospf-kotlin-example` | 示例和兼容性测试 | [EN](ospf-kotlin-example/README.md) / [中文](ospf-kotlin-example/README_ch.md) |
 | `ospf-kotlin-benchmark` | JMH benchmark smoke 与报告 | [EN](ospf-kotlin-benchmark/README.md) / [中文](ospf-kotlin-benchmark/README_ch.md) |
@@ -74,13 +76,13 @@ ospf-kotlin 已经发布到 maven 中央仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-jdk8</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
@@ -90,13 +92,13 @@ ospf-kotlin 已经发布到 maven 中央仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp1d</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp1d-jdk8</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
@@ -106,13 +108,13 @@ ospf-kotlin 已经发布到 maven 中央仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp2d</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp2d-jdk8</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
@@ -122,13 +124,13 @@ ospf-kotlin 已经发布到 maven 中央仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp3d</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp3d-jdk8</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
@@ -138,13 +140,13 @@ ospf-kotlin 已经发布到 maven 中央仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-csp1d</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-csp1d-jdk8</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
@@ -154,13 +156,13 @@ ospf-kotlin 已经发布到 maven 中央仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-csp2d</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-csp2d-jdk8</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
@@ -170,13 +172,13 @@ ospf-kotlin 已经发布到 maven 中央仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-gantt-scheduling</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-gantt-scheduling-jdk8</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
@@ -186,19 +188,22 @@ ospf-kotlin 已经发布到 maven 中央仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-network-scheduling</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-network-scheduling-jdk8</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
 ## 版本记录
 
-完整变更记录请查看 [1.1.0 版本说明](changelog/1.1.0_ch.md)。
+当前发布版本为 **1.1.2**。装箱/下料框架、网络与活动调度、启发式搜索、共享分解能力，
+以及不兼容 API 的迁移说明，请查看 [1.1.2 版本说明](changelog/1.1.2_ch.md)。
+
+历史版本：[1.1.1](changelog/1.1.1_ch.md) / [1.1.0](changelog/1.1.0_ch.md)。
 
 ## Benchmark 基线
 

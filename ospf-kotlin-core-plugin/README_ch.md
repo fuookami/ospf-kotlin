@@ -179,7 +179,7 @@ Optional interval 和 variable duration 在 MIP-backed 路径上是精确支持�
 
 ```kotlin
 // build.gradle.kts
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi:1.1.2")
 ```
 
 ### 使用求解器

@@ -54,7 +54,7 @@ OSPF Kotlin 框架的 MindOPT（达摩院求解器）插件模块。本模块提
 ### 依赖
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-mindopt:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-mindopt:1.1.2")
 ```
 
 > **注意：** MindOPT 原生库（`mindopt`）需要以 `provided` 作用域单独提供。请确保 MindOPT 运行时已安装且许可证有效。

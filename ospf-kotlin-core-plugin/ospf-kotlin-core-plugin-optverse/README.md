@@ -40,14 +40,14 @@ OPTVerse solver plugin for the OSPF Kotlin framework. This module will provide c
 ### Dependency
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-optverse:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-optverse:1.1.2")
 ```
 
 Unlike other solver plugins, OPTVerse uses Huawei Cloud SDK as compile dependencies:
 
 ```kotlin
 dependencies {
-    implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-optverse:1.1.0")
+    implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-optverse:1.1.2")
     // Huawei Cloud SDK is already bundled as compile dependency
 }
 ```

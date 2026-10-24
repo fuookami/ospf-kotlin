@@ -60,7 +60,7 @@ Gurobi 10+ solver plugin for the OSPF Kotlin framework. This module provides con
 ### Dependency
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi:1.1.2")
 ```
 
 > **Note:** The Gurobi native library (`gurobi.jar`) must be provided separately with `provided` scope. Ensure Gurobi is installed and the license is valid.

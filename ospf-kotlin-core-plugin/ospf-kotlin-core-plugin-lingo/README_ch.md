@@ -40,7 +40,7 @@ OSPF Kotlin 框架的 LINGO 求解器插件模块。本模块将提供将核心�
 ### 依赖
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-lingo:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-lingo:1.1.2")
 ```
 
 > **注意：** 实现完成后，LINGO 原生库（`lingo`）需要以 `provided` 作用域单独提供。

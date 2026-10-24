@@ -49,7 +49,7 @@ OSPF Kotlin 框架的 [Hexaly](https://www.hexaly.com/)（原名 LocalSolver）�
 ### 依赖
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-hexaly:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-hexaly:1.1.2")
 ```
 
 > **注意：** Hexaly 原生库需要以 `provided` 作用域单独提供。请确保 Hexaly 已安装且许可证有效。

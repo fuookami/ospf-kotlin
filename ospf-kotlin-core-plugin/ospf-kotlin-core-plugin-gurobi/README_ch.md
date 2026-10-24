@@ -60,7 +60,7 @@ OSPF Kotlin 框架的 Gurobi 10+ 求解器插件模块。本模块提供了将�
 ### 依赖
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi:1.1.2")
 ```
 
 > **注意：** Gurobi 原生库（`gurobi.jar`）需要以 `provided` 作用域单独提供。请确保 Gurobi 已安装且许可证有效。

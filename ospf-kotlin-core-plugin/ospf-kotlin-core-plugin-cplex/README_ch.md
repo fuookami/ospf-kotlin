@@ -54,7 +54,7 @@ OSPF Kotlin 框架的 IBM ILOG CPLEX 求解器插件模块。本模块提供了�
 ### 依赖
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-cplex:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-cplex:1.1.2")
 ```
 
 > **注意：** CPLEX Java 库（`cplex.jar`）需要以 `provided` 作用域单独提供。请确保 CPLEX 已安装且许可证有效。

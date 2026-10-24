@@ -60,7 +60,7 @@ OSPF Kotlin 框架的 SCIP（求解约束整数规划）求解器插件模块。
 ### 依赖
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-scip:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-scip:1.1.2")
 ```
 
 > **注意：** SCIP Java 绑定（`jscip`）需要以 `provided` 作用域单独提供。请确保 SCIP 原生库在系统中可用或打包在 JAR 中。

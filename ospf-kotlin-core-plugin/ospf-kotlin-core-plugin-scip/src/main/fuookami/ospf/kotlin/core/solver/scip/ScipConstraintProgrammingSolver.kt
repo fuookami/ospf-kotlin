@@ -68,7 +68,7 @@ import fuookami.ospf.kotlin.core.solver.report.TerminationReason
 import fuookami.ospf.kotlin.core.solver.report.VariableId
 
 private const val UNKNOWN_RUNTIME_VERSION = "unknown"
-private const val BUILD_PLUGIN_VERSION = "1.1.0"
+private const val BUILD_PLUGIN_VERSION = "1.1.2"
 
 private fun stableRuntimeVersion(value: String?): String? {
     val normalized = value?.trim()?.takeUnless { it.isEmpty() } ?: return null

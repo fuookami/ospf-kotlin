@@ -57,7 +57,7 @@ OSPF Kotlin 框架的 COPT（杉数求解器）插件模块。本模块提供了
 ### 依赖
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-copt:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-copt:1.1.2")
 ```
 
 > **注意：** COPT 原生库（`copt.jar`）需要以 `provided` 作用域单独提供。请确保 COPT 运行时已安装且许可证有效。

@@ -403,7 +403,7 @@ Maven 的 `kapt` 只适用于 Java annotation processor；当前模块提供的�
 
 ```xml
 <properties>
-    <ospf-kotlin.version>1.1.0</ospf-kotlin.version>
+    <ospf-kotlin.version>1.1.2</ospf-kotlin.version>
     <ksp-maven-plugin.version>0.4.2</ksp-maven-plugin.version>
 </properties>
 

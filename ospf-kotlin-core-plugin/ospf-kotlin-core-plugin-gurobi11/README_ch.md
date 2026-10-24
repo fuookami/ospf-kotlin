@@ -49,7 +49,7 @@ Gurobi 11 将其 Java 包从 `gurobi.*` 重定位到 `com.gurobi.gurobi.*`。本
 ### 依赖
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi11:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi11:1.1.2")
 ```
 
 > **注意：** Gurobi 11+ 原生库（`gurobi.jar`）必须在类路径上。该依赖使用 `compile` 作用域（非 `provided`），因为 Gurobi 11 已发布到 Maven 仓库。
@@ -60,10 +60,10 @@ API 与 Gurobi 10 模块完全兼容。只需切换依赖：
 
 ```kotlin
 // Gurobi 10
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi:1.1.2")
 
 // Gurobi 11+
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi11:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi11:1.1.2")
 ```
 
 所有类名（`GurobiLinearSolver`、`GurobiQuadraticSolver` 等）保持不变。

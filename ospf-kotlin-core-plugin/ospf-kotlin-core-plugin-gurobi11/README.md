@@ -49,7 +49,7 @@ The architecture mirrors the Gurobi 10 module. See [`ospf-kotlin-core-plugin-gur
 ### Dependency
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi11:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi11:1.1.2")
 ```
 
 > **Note:** The Gurobi 11+ native library (`gurobi.jar`) must be on the classpath. The dependency uses `compile` scope (not `provided`) as Gurobi 11 is published to Maven repositories.
@@ -60,10 +60,10 @@ The API is fully compatible with the Gurobi 10 module. Simply swap the dependenc
 
 ```kotlin
 // Gurobi 10
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi:1.1.2")
 
 // Gurobi 11+
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi11:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi11:1.1.2")
 ```
 
 All class names (`GurobiLinearSolver`, `GurobiQuadraticSolver`, etc.) remain the same.

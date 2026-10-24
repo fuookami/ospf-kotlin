@@ -57,7 +57,7 @@ COPT (Cardinal Optimizer) solver plugin for the OSPF Kotlin framework. This modu
 ### Dependency
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-copt:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-copt:1.1.2")
 ```
 
 > **Note:** The COPT native library (`copt.jar`) must be provided separately with `provided` scope. Ensure the COPT runtime is installed and the license is valid.

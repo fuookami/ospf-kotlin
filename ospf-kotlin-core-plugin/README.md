@@ -180,7 +180,7 @@ All heuristic algorithms support:
 
 ```kotlin
 // build.gradle.kts
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi:1.1.2")
 ```
 
 ### Using a Solver

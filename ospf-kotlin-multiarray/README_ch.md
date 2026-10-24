@@ -40,7 +40,7 @@
 <dependency>
     <groupId>fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-multiarray</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 

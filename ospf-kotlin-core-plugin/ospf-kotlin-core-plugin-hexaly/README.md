@@ -49,7 +49,7 @@
 ### Dependency
 
 ```kotlin
-implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-hexaly:1.1.0")
+implementation("io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-hexaly:1.1.2")
 ```
 
 > **Note:** The Hexaly native library must be provided separately with `provided` scope. Ensure Hexaly is installed and the license is valid.
