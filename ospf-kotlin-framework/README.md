@@ -6,6 +6,17 @@
 
 ## Scope
 
+Column projection keeps full source/master freshness checks at the original refresh
+boundaries. Its revision-local index captures coefficient entries and resolves variable
+identities eagerly, but sorts/groups objective and row terms independently on first use.
+Captured terms preserve decision-order accumulation and do not re-read caller maps. Lazy
+publication supports concurrent read-only index access, not concurrent model mutation;
+there are no background tasks or cross-revision deferred results. Local-row classification
+remains eager to preserve custom-map access timing.
+First-use sorting mutates only private captured lists, avoiding an extra sorted copy.
+Master assembly captures grouped row/objective tables outside its column loops; empty
+column sets do not force these tables to initialize.
+
 This module covers:
 
 1. **Solver abstractions** — column generation, Benders decomposition, and combinatorial solver interfaces with MILP/LP solving, async variants, and generic value conversion.

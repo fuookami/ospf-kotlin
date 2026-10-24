@@ -48,6 +48,10 @@ token/
 
 所有列表维护按 `solverIndex` 排序的 `tokensInSolver` 视图，并支持按列表/映射形式设置求解结果。
 
+对于固定的 Token 结构，并发首次 `indexOf` 读取共享一次同步位置索引构建；就绪后的读取通过
+volatile 发布的 Map 完成，不获取建表锁。失效操作使用同一把锁。位置仍不同于可能有空洞的
+`solverIndex`。这不代表支持并发修改 Token/模型，也不会冻结可变变量标识或启动后台预热。
+
 ### TokenTable (`TokenTable.kt`)
 
 Token 表是更高层的抽象，将 Token 列表与中间符号集合组合在一起，提供：

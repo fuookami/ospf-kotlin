@@ -134,7 +134,7 @@ class NSumGenerator<V : RealNumber<V>>(
                                     widthCheck = widthCheck
                                 )
                             } else {
-                                val templateRecorder = GenerationSliceTemplateRecorder<V>()
+                                val templateRecorder = materialSliceTemplateCache?.let { GenerationSliceTemplateRecorder<V>() }
                                 nSumSearch(
                                     material = material,
                                     widthIndex = materialWidthIndex,
@@ -145,7 +145,7 @@ class NSumGenerator<V : RealNumber<V>>(
                                     templateRecorder = templateRecorder,
                                     widthCheck = widthCheck
                                 )
-                                if (!localCollector.shouldStop()) {
+                                if (!localCollector.shouldStop() && templateRecorder != null) {
                                     materialSliceTemplateCache?.put(material, templateRecorder.templates)
                                 }
                             }

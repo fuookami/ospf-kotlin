@@ -48,6 +48,12 @@ Manages the mapping between variables and tokens, providing four implementations
 
 All lists maintain a `tokensInSolver` view sorted by `solverIndex`, and support setting solve results via list or map form.
 
+For a fixed token structure, concurrent first `indexOf` readers share one synchronized
+position-index build; ready reads use the volatile published map without taking that lock.
+Invalidation uses the same lock. Positions remain distinct from potentially sparse
+`solverIndex` values. This does not make concurrent token/model mutation safe, freeze
+mutable variable identifiers, or start background prewarming.
+
 ### TokenTable (`TokenTable.kt`)
 
 Token table is a higher-level abstraction combining token lists with intermediate symbol collections, providing:

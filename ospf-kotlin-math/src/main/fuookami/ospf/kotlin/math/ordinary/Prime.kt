@@ -8,14 +8,14 @@
  * 算法复杂庌O(n log log n)，适用于批量生成素数。
  * PrimeCache 类实现可扩展的素数缓存，支持动态扩展筛法范围，
  * 对于超过缓存范围的大数，使用试除法结合缓存质数进行快速判定。
- * 线程安全：通过 synchronized 锁保证多线程访问的安全性。 / Provides prime number detection and prime table generation functionality.
+ * 线程安全：读完整快照，扩容使用单写锁。 / Provides prime number detection and prime table generation functionality.
  * Prime definition: positive integer greater than 1 divisible only by 1 and itself.
  * Boundary cases: 0 and 1 are not primes; 2 is the smallest prime.
  * Uses Sieve of Eratosthenes to generate prime table,
  * algorithm complexity O(n log log n), suitable for batch prime generation.
  * PrimeCache class implements extensible prime caching with dynamic sieve expansion,
  * for large numbers beyond cache range, uses trial division with cached primes for fast detection.
- * Thread-safe: uses synchronized lock to ensure safe multi-threaded access.
+ * Thread-safe: readers use complete snapshots; expansion uses a single writer lock.
 */
 package fuookami.ospf.kotlin.math.ordinary
 
@@ -28,24 +28,23 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * 使用埃拉托斯特尼筛法维护素数表，支持动态扩展筛法范围。
  * 对于超过缓存范围的大数，使用试除法结合已缓存素数进行快速判定。
- * 通过 synchronized 锁保证多线程访问的安全性。 / Maintains a prime table using the Sieve of Eratosthenes with dynamic sieve range expansion.
+ * 扩容后原子发布完整快照，已有范围的读取不等待扩容锁。 / Maintains a prime table using the Sieve of Eratosthenes with dynamic sieve range expansion.
  * For large numbers beyond the cache range, uses trial division with cached primes for fast detection.
- * Thread-safe via synchronized lock for multi-threaded access.
+ * Complete snapshots are published after expansion; covered reads do not wait for the writer lock.
  *
- * @property current 当前筛法的上界 / Current upper bound of the sieve
- * @property isPrime 素性标记数组，isPrime[i] 为 true 表示 i 是素数 / Primality flag array; isPrime[i] is true if i is prime
- * @property primes 已缓存的素数列表 / List of cached primes
+ * @property state 已完整构建且发布后不再修改的筛表 / Complete sieve generation, never mutated after publication
  * @property lock 线程同步锁 / Thread synchronization lock
 */
 class PrimeCache {
-    private var current = UInt64.zero
-    private lateinit var isPrime: BooleanArray
-    private val primes = mutableListOf<UInt64>()
     private val lock = Any()
+    @Volatile
+    private var state = sieve(UInt64(1000))
 
-    init {
-        sieve(UInt64(1000))
-    }
+    private data class Sieve(
+        val limit: UInt64,
+        val flags: BooleanArray,
+        val primes: List<UInt64>
+    )
 
     /**
      * 扩展筛法范围至 new / Extend sieve range up to new
@@ -55,24 +54,21 @@ class PrimeCache {
      * First marks composites in the new interval using known primes, then scans the new interval to collect newly found primes.
      *
      * @param new 新的筛法上界 / New sieve upper bound
+     * @return 覆盖目标范围的完整快照 / Complete snapshot covering the requested range
     */
-    private fun extendSieve(new: UInt64) {
-        synchronized(lock) {
-            if (new <= current) return
+    private fun extendSieve(new: UInt64): Sieve {
+        val ready = state
+        if (new <= ready.limit) return ready
+        return synchronized(lock) {
+            val previous = state
+            if (new <= previous.limit) return@synchronized previous
 
-            val old = current
-            val oldSize = if (current == UInt64.zero) UInt64.zero else current + UInt64.one
+            val old = previous.limit
+            val oldSize = old + UInt64.one
 
             val newIsPrime = BooleanArray(new.toInt() + 1) { true }
-            if (current > UInt64.zero) {
-                System.arraycopy(isPrime, 0, newIsPrime, 0, oldSize.toInt())
-            } else {
-                if (new >= UInt64.zero) newIsPrime[0] = false
-                if (new >= UInt64.one) newIsPrime[1] = false
-            }
-
-            isPrime = newIsPrime
-            current = new
+            System.arraycopy(previous.flags, 0, newIsPrime, 0, oldSize.toInt())
+            val primes = ArrayList(previous.primes)
 
             val sqrtLimit = (new.sqrt() as Flt64).floor().toUInt64()
 
@@ -109,6 +105,12 @@ class PrimeCache {
                     }
                 }
             }
+            // 旧数组和列表保持只读；不可提前发布半成品。 / Keep old arrays/lists read-only; never publish a partial generation.
+            Sieve(
+                limit = new,
+                flags = newIsPrime,
+                primes = primes
+            ).also { state = it }
         }
     }
 
@@ -119,14 +121,10 @@ class PrimeCache {
      * @return 不超过 limit 的素数列表 / List of primes up to limit
     */
     fun getPrimes(limit: UInt64): List<UInt64> {
-        synchronized(lock) {
-            if (limit > current) {
-                extendSieve(limit)
-            }
-            val index = primes.binarySearch(limit)
-            val end = if (index >= 0) index + 1 else -index - 1
-            return primes.subList(0, end).toList()
-        }
+        val snapshot = extendSieve(limit)
+        val index = snapshot.primes.binarySearch(limit)
+        val end = if (index >= 0) index + 1 else -index - 1
+        return snapshot.primes.subList(0, end).toList()
     }
 
     /**
@@ -139,19 +137,18 @@ class PrimeCache {
         if (num <= UInt64.one) {
             return false
         }
-        synchronized(lock) {
-            if (num > current) {
-                if (num <= UInt64(1000000UL)) {
-                    // 几何扩容避免连续素性查询逐整数复制整张筛表。
-                    // Grow geometrically so consecutive primality checks do not copy the sieve per integer.
-                    extendSieve(maxOf(num, minOf(current * UInt64.two, UInt64(1000000UL))))
-                    return isPrime[num.toInt()]
-                } else {
-                    return isPrimeQuickCheck(num)
-                }
+        val snapshot = state
+        if (num > snapshot.limit) {
+            return if (num <= UInt64(1000000UL)) {
+                // 几何扩容避免连续素性查询逐整数复制整张筛表。
+                // Grow geometrically so consecutive primality checks do not copy the sieve per integer.
+                val expanded = extendSieve(maxOf(num, minOf(snapshot.limit * UInt64.two, UInt64(1000000UL))))
+                expanded.flags[num.toInt()]
+            } else {
+                isPrimeQuickCheck(num, snapshot.primes)
             }
-            return isPrime[num.toInt()]
         }
+        return snapshot.flags[num.toInt()]
     }
 
     /**
@@ -164,9 +161,10 @@ class PrimeCache {
      * Suitable for large numbers beyond the sieve cache range.
      *
      * @param n 待判定的正整数 / Positive integer to check
+     * @param primes 完整已发布快照的素数前缀 / Prime prefix from a completely published snapshot
      * @return 是素数返回 true，否则返回 false / True if prime, false otherwise
     */
-    private fun isPrimeQuickCheck(n: UInt64): Boolean {
+    private fun isPrimeQuickCheck(n: UInt64, primes: List<UInt64>): Boolean {
         if (n <= UInt64.one) {
             return false
         }
@@ -177,11 +175,9 @@ class PrimeCache {
             return false
         }
 
-        synchronized(lock) {
-            for (p in primes) {
-                if (p * p > n) break
-                if (n % p == UInt64.zero) return false
-            }
+        for (p in primes) {
+            if (p * p > n) break
+            if (n % p == UInt64.zero) return false
         }
 
         var i = UInt64.five
@@ -204,11 +200,10 @@ class PrimeCache {
      * Algorithm complexity O(n log log n).
      *
      * @param limit 筛法上界 / Sieve upper bound
+     * @return 尚未发布的完整初始筛表 / Complete initial sieve, not yet published
     */
-    private fun sieve(limit: UInt64) {
-        if (limit <= current) return
-
-        isPrime = BooleanArray(limit.toInt() + 1) { true }
+    private fun sieve(limit: UInt64): Sieve {
+        val isPrime = BooleanArray(limit.toInt() + 1) { true }
         if (limit >= UInt64.zero) {
             isPrime[0] = false
         }
@@ -226,14 +221,18 @@ class PrimeCache {
             }
         }
 
-        primes.clear()
+        val primes = ArrayList<UInt64>()
         for (i in UInt64.two..limit) {
             if (isPrime[i.toInt()]) {
                 primes.add(i)
             }
         }
 
-        current = limit
+        return Sieve(
+            limit = limit,
+            flags = isPrime,
+            primes = primes
+        )
     }
 }
 

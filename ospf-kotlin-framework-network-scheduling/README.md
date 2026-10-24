@@ -6,6 +6,20 @@
 
 `ospf-kotlin-framework-network-scheduling` supports standalone network topology, supply/demand flows, resource paths, network design and explicit-scenario resilience, while retaining the VRPTW (Vehicle Routing Problem with Time Windows) Branch-and-Price entry point. The shared path kernel also serves Gantt network subproblems; Gantt remains responsible for global space-time orchestration.
 
+## Graph Index Lifecycle
+
+`NetworkGraph` captures IDs and endpoints during validation. Reverse views share that
+immutable topology and its indexes; filtered graphs own a separate snapshot. The frequently
+used arc-identity table stays eager to avoid volatile reads per arc endpoint. Other lookup
+tables and each adjacency direction initialize on first use with synchronized publication.
+Concurrent read-only first access is supported without background workers. Index construction
+never re-reads custom accessors; unknown-payload lookups retain their original accessor fallback.
+Payload objects are not deep-copied; callers still own their
+thread-safety. A first read pays the required lazy-index build, while unused optional indexes remain absent.
+Topology algorithms capture each needed immutable direction map outside traversal loops,
+avoiding per-node lazy-state reads. Empty traversals and zero-length witnesses do not
+force adjacency construction.
+
 ## Module Structure
 
 ```

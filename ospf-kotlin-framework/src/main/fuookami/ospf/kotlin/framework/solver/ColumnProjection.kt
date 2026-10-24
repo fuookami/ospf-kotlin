@@ -213,13 +213,17 @@ class ColumnProjection<V>(
     }
 
     /** 同一原始行对配置列的贡献。 / Contribution of the same source row to a column.
-     * @param row 原始线性行 / Source linear row
+     * @param terms 原始行按块分组的快照项 / Captured source-row terms grouped by block
      * @param column 配置列 / Configuration column
      * @param excluded 改为独立变量的资源 / Resources represented as independent variables
      * @return 配置列系数 / Column coefficient
      */
-    private fun coefficient(row: LinearModelRow<V>, column: ProjectedColumn<V>, excluded: Set<AbstractVariableItem<*, *>> = emptySet()): V {
-        return projectionIndex!!.rowTerms.getValue(row.id)[column.blockId].orEmpty().fold(zero) { total, (decision, coefficient) ->
+    private fun coefficient(
+        terms: Map<String, List<Pair<ColumnDecision, V>>>,
+        column: ProjectedColumn<V>,
+        excluded: Set<AbstractVariableItem<*, *>> = emptySet()
+    ): V {
+        return terms[column.blockId].orEmpty().fold(zero) { total, (decision, coefficient) ->
             if (decision.variable in excluded) total else total + coefficient * column.values.getValue(decision.id)
         }
     }
@@ -256,6 +260,7 @@ class ColumnProjection<V>(
             rows.filter { it.coefficients.keys.none { variable -> variable in refinedResources } }
         }
         val columnsByBlock = columns.groupBy { it.blockId }
+        val projectedRows = if (columns.isEmpty() || snapshot.rows.isEmpty()) emptyMap() else index.rowTerms
         for (column in columns) {
             for (decision in index.decisionsByBlock[column.blockId].orEmpty()) {
                 if (decision.variable in refinedResources) continue
@@ -266,7 +271,7 @@ class ColumnProjection<V>(
                 }
             }
             for (row in localRows.getValue(column.blockId)) {
-                val value = coefficient(row, column)
+                val value = coefficient(projectedRows.getValue(row.id), column)
                 val feasible = when (row.comparison) {
                     Comparison.LE -> value <= row.rhs + tolerance
                     Comparison.GE -> value >= row.rhs - tolerance
@@ -328,8 +333,9 @@ class ColumnProjection<V>(
         var objective = LinearPolynomial(constant = if (phaseOne) zero else snapshot.objectiveConstant)
         if (!phaseOne) {
             objective += LinearPolynomial(snapshot.objective.filterKeys { it !in mapped || it in refinedResources }.map { LinearMonomial(it.value, it.key) }, zero)
+            val objectiveTerms = if (columns.isEmpty()) emptyMap() else index.objectiveTerms
             for (column in columns) {
-                val coefficient = index.objectiveTerms[column.blockId].orEmpty().fold(zero) { total, (decision, coefficient) ->
+                val coefficient = objectiveTerms[column.blockId].orEmpty().fold(zero) { total, (decision, coefficient) ->
                     if (decision.variable in refinedResources) total else total + coefficient * column.values.getValue(decision.id)
                 }
                 objective += LinearPolynomial(listOf(LinearMonomial(coefficient, lambdas.getValue(column.id))), zero)
@@ -338,7 +344,15 @@ class ColumnProjection<V>(
         val rows = linkedMapOf<String, MathConstraint>()
         for ((index, row) in snapshot.rows.withIndex()) {
             var lhs = LinearPolynomial(row.coefficients.filterKeys { it !in mapped || it in refinedResources }.map { LinearMonomial(it.value, it.key) }, zero)
-            for (column in columns) lhs += LinearPolynomial(listOf(LinearMonomial(coefficient(row, column, refinedResources), lambdas.getValue(column.id))), zero)
+            val terms = projectedRows[row.id].orEmpty()
+            for (column in columns) {
+                val value = coefficient(
+                    terms = terms,
+                    column = column,
+                    excluded = refinedResources
+                )
+                lhs += LinearPolynomial(listOf(LinearMonomial(value, lambdas.getValue(column.id))), zero)
+            }
             if (phaseOne) {
                 if (row.comparison != Comparison.GE) {
                     val slack = URealVar("excess_$index")

@@ -93,6 +93,15 @@ val (lo, hi) = minmax(a, b)               // Pair(Flt64(1.0), Flt64(3.0))
 
 ## Performance
 
+`PrimeCache` starts with the same small sieve and expands synchronously on demand.
+One writer builds a new flags array and prime prefix, then atomically publishes the
+complete generation. Covered primality queries read that snapshot without the expansion
+monitor; older generations remain unchanged for concurrent readers. `getPrimes` still
+returns an independent inclusive prefix. Expansion additionally copies the old prime
+list, and active readers may temporarily retain an older generation. Workloads with
+frequent tiny explicit expansions should therefore be measured separately.
+No background thread or speculative large-table prewarming is used.
+
 | Operation | Complexity | Notes |
 |-----------|------------|-------|
 | `gcd` / `gcdMod` | O(log(min(a,b))) | Euclidean algorithm |

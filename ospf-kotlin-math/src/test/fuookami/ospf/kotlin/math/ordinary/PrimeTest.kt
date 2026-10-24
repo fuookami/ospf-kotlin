@@ -1,10 +1,72 @@
 package fuookami.ospf.kotlin.math.ordinary
 
+import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import kotlin.test.*
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.*
 
 class PrimeTest {
+    @Test
+    fun readyReadersDoNotWaitForTheExpansionMonitor() {
+        val cache = PrimeCache()
+        val field = PrimeCache::class.java.getDeclaredField("lock").apply { isAccessible = true }
+        val lock = field.get(cache)
+        val held = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        val pool = Executors.newFixedThreadPool(2)
+        try {
+            val writer = pool.submit {
+                synchronized(lock) {
+                    held.countDown()
+                    assertTrue(release.await(10, TimeUnit.SECONDS))
+                }
+            }
+            assertTrue(held.await(10, TimeUnit.SECONDS))
+            val reader = pool.submit<Boolean> { cache.isPrime(UInt64(997)) }
+            assertTrue(reader.get(2, TimeUnit.SECONDS))
+            release.countDown()
+            writer.get(10, TimeUnit.SECONDS)
+        } finally {
+            release.countDown()
+            pool.shutdownNow()
+        }
+    }
+
+    @Test
+    fun concurrentExtensionsPublishCompleteGenerationsAndKeepOldPrefixes() {
+        val cache = PrimeCache()
+        val prefix = cache.getPrimes(UInt64(1000))
+        val pool = Executors.newFixedThreadPool(5)
+        val start = CountDownLatch(1)
+        try {
+            val tasks = List(5) { worker -> Callable {
+                assertTrue(start.await(10, TimeUnit.SECONDS))
+                if (worker == 0) {
+                    for (limit in listOf(2000, 10_000, 20_000, 100_000)) cache.getPrimes(UInt64(limit))
+                } else {
+                    repeat(1000) {
+                        assertTrue(cache.isPrime(UInt64(997)))
+                        assertFalse(cache.isPrime(UInt64(999)))
+                        assertEquals(prefix, cache.getPrimes(UInt64(1000)))
+                    }
+                }
+            } }
+            val futures = tasks.map(pool::submit)
+            start.countDown()
+            futures.forEach { it.get(30, TimeUnit.SECONDS) }
+            assertEquals(9592, cache.getPrimes(UInt64(100_000)).size)
+            assertEquals(UInt64(997), prefix.last())
+            assertTrue(cache.isPrime(UInt64(1_000_003)))
+            assertFalse(cache.isPrime(UInt64(1_000_005)))
+        } finally {
+            start.countDown()
+            pool.shutdownNow()
+        }
+    }
+
     @Test
     fun consecutiveColdQueriesAgreeWithAnIndependentSieve() {
         val cache = PrimeCache()

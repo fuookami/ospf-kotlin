@@ -15,8 +15,14 @@ internal class ColumnProjectionIndex<V>(
     val idsByBlock = blockIds.associateWith { block -> decisionsByBlock[block].orEmpty().map { it.id }.toSet() }
     val mappedVariables = decisions.map { it.variable }.toSet()
     private val positions = decisions.withIndex().associateBy { it.value.variable }
-    val objectiveTerms = terms(snapshot.objective)
-    val rowTerms = snapshot.rows.associate { it.id to terms(it.coefficients) }
+    private val objectiveTermsCache = captureTerms(snapshot.objective).let { captured ->
+        lazy { groupTerms(captured) }
+    }
+    private val rowTermsCache = snapshot.rows.map { it.id to captureTerms(it.coefficients) }.let { captured ->
+        lazy { captured.associate { (id, terms) -> id to groupTerms(terms) } }
+    }
+    val objectiveTerms get() = objectiveTermsCache.value
+    val rowTerms get() = rowTermsCache.value
     val localRows: Map<String, List<LinearModelRow<V>>>
 
     init {
@@ -43,11 +49,25 @@ internal class ColumnProjectionIndex<V>(
         localRows = local
     }
 
-    private fun terms(coefficients: Map<AbstractVariableItem<*, *>, V>): Map<String, List<Pair<ColumnDecision, V>>> {
-        // 稀疏项仍按原 decision 顺序求和，不能使用行 Map 的遍历顺序。 / Sum sparse terms in original decision order, never row-map iteration order.
-        return coefficients.mapNotNull { (variable, coefficient) ->
+    /** 已构建派生表的观测快照，不增加热路径计数。 / Observe built derived tables without hot-path counters.
+     * @return 已完成内部排序和分组的表名 / Names of tables whose internal sorting and grouping has completed
+     */
+    internal fun initializedTermIndexes(): Set<String> = listOf(
+        "objective" to objectiveTermsCache,
+        "rows" to rowTermsCache
+    ).filter { it.second.isInitialized() }.map { it.first }.toSet()
+
+    private fun captureTerms(coefficients: Map<AbstractVariableItem<*, *>, V>): MutableList<Pair<IndexedValue<ColumnDecision>, V>> {
+        // 在原刷新边界读取Map并解析变量身份，不能延后外部访问器。 / Read maps and resolve variable identities at the original refresh boundary, never defer external accessors.
+        return coefficients.mapNotNullTo(ArrayList()) { (variable, coefficient) ->
             positions[variable]?.let { it to coefficient }
-        }.sortedBy { it.first.index }.groupBy(
+        }
+    }
+
+    private fun groupTerms(captured: MutableList<Pair<IndexedValue<ColumnDecision>, V>>): Map<String, List<Pair<ColumnDecision, V>>> {
+        // 稀疏项仍按原decision顺序求和；只延后内部排序和分组。 / Preserve original decision summation order; defer only internal sorting and grouping.
+        captured.sortBy { it.first.index }
+        return captured.groupBy(
             keySelector = { it.first.value.blockId },
             valueTransform = { it.first.value to it.second }
         )

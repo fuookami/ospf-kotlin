@@ -1,5 +1,9 @@
 package fuookami.ospf.kotlin.framework.solver
 
+import java.util.concurrent.Callable
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import kotlin.test.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
@@ -58,6 +62,9 @@ class ColumnProjectionIndexTest {
             snapshot = snapshot
         )
         val initialReads = reads
+        assertTrue(index.initializedTermIndexes().isEmpty())
+        values.clear()
+        values[variables[3]] = Flt64.two
         repeat(100) {
             val terms = index.rowTerms.getValue("ordered").getValue("b0")
             assertEquals(listOf("d0", "d1", "d2"), terms.map { it.first.id })
@@ -66,7 +73,51 @@ class ColumnProjectionIndexTest {
             assertEquals(listOf("empty"), index.localRows.getValue("b1").map { it.id })
             assertEquals(listOf("empty"), index.localRows.getValue("unused").map { it.id })
         }
+        assertEquals(setOf("rows"), index.initializedTermIndexes())
+        assertEquals(listOf("d0", "d1", "d2"), index.objectiveTerms.getValue("b0").map { it.first.id })
+        assertEquals(setOf("rows", "objective"), index.initializedTermIndexes())
         assertEquals(initialReads, reads)
+    }
+
+    @Test
+    fun concurrentFirstTermReadersShareTheCapturedRevision() {
+        val variable = BinVar("v")
+        val coefficients = mutableMapOf<AbstractVariableItem<*, *>, Flt64>(variable to Flt64.one)
+        val index = ColumnProjectionIndex(
+            decisions = listOf(ColumnDecision(id = "d", blockId = "b", variable = variable)),
+            blockIds = setOf("b"),
+            snapshot = LinearModelSnapshot(
+                revision = LinearModelRevision(11, 3),
+                variables = emptyList(),
+                rows = listOf(LinearModelRow(
+                    id = "r",
+                    sourceName = "r",
+                    coefficients = coefficients,
+                    rhs = Flt64.one,
+                    comparison = Comparison.LE
+                )),
+                objective = coefficients,
+                objectiveConstant = Flt64.zero,
+                objectCategory = ObjectCategory.Minimum
+            )
+        )
+        coefficients.clear()
+        val pool = Executors.newFixedThreadPool(8)
+        val barrier = CyclicBarrier(8)
+        try {
+            val results = pool.invokeAll(List(8) { Callable {
+                barrier.await(10, TimeUnit.SECONDS)
+                index.rowTerms to index.objectiveTerms
+            } }, 30, TimeUnit.SECONDS).map { it.get() }
+            results.forEach {
+                assertSame(results.first().first, it.first)
+                assertSame(results.first().second, it.second)
+            }
+            assertEquals(Flt64.one, index.rowTerms.getValue("r").getValue("b").single().second)
+            assertEquals(Flt64.one, index.objectiveTerms.getValue("b").single().second)
+        } finally {
+            pool.shutdownNow()
+        }
     }
 
     @Test

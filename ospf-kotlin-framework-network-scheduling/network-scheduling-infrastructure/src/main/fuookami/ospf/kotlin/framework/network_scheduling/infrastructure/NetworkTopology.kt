@@ -55,8 +55,9 @@ class NetworkTopology<N, A>(private val graph: NetworkGraph<N, A>) {
         }
         val visited = sources.filter(allowedNode).toMutableSet()
         val queue = ArrayDeque(visited)
+        val outgoing = if (queue.isEmpty()) emptyMap() else graph.outgoingIndex()
         while (queue.isNotEmpty()) {
-            for (arc in graph.outgoing(queue.removeFirst()).filter(allowed)) {
+            for (arc in outgoing[queue.removeFirst()].orEmpty().filter(allowed)) {
                 val next = graph.to(arc)
                 if (allowedNode(next) && visited.add(next)) queue.add(next)
             }
@@ -81,15 +82,17 @@ class NetworkTopology<N, A>(private val graph: NetworkGraph<N, A>) {
             return networkSchedulingFailure("路径端点不存在 / Path endpoint does not exist")
         }
         if (!allowedNode(source) || !allowedNode(target)) return ok(null)
+        if (source == target) return ok(emptyList())
         val previous = mutableMapOf<NetworkNodeId, A>()
         val visited = mutableSetOf(source)
         val queue = ArrayDeque(listOf(source))
+        val outgoing = graph.outgoingIndex()
         while (queue.isNotEmpty()) {
             val node = queue.removeFirst()
             if (node == target) {
                 return ok(backtrack(source = source, target = target, previous = previous))
             }
-            for (arc in graph.outgoing(node).filter(allowedArc)) {
+            for (arc in outgoing[node].orEmpty().filter(allowedArc)) {
                 val next = graph.to(arc)
                 if (allowedNode(next) && visited.add(next)) {
                     previous[next] = arc
@@ -104,13 +107,15 @@ class NetworkTopology<N, A>(private val graph: NetworkGraph<N, A>) {
      * @return 节点顺序 / Node order
      */
     fun topologicalOrder(): List<NetworkNodeId>? {
-        val degree = graph.nodeIds.associateWith { graph.incoming(it).size }.toMutableMap()
+        val incoming = if (graph.nodes.isEmpty()) emptyMap() else graph.incomingIndex()
+        val degree = graph.nodeIds.associateWith { incoming[it].orEmpty().size }.toMutableMap()
         val queue = ArrayDeque(degree.filterValues { it == 0 }.keys)
         val result = mutableListOf<NetworkNodeId>()
+        val outgoing = if (queue.isEmpty()) emptyMap() else graph.outgoingIndex()
         while (queue.isNotEmpty()) {
             val node = queue.removeFirst()
             result.add(node)
-            for (arc in graph.outgoing(node)) {
+            for (arc in outgoing[node].orEmpty()) {
                 val next = graph.to(arc)
                 val count = degree.getValue(next) - 1
                 degree[next] = count
@@ -131,6 +136,7 @@ class NetworkTopology<N, A>(private val graph: NetworkGraph<N, A>) {
     fun stronglyConnectedComponents(): List<Set<NetworkNodeId>> {
         val seen = mutableSetOf<NetworkNodeId>()
         val order = mutableListOf<NetworkNodeId>()
+        val outgoing = if (graph.nodes.isEmpty()) emptyMap() else graph.outgoingIndex()
         for (root in graph.nodeIds) {
             val stack = ArrayDeque(listOf(root to false))
             while (stack.isNotEmpty()) {
@@ -139,12 +145,13 @@ class NetworkTopology<N, A>(private val graph: NetworkGraph<N, A>) {
                     order.add(node)
                 } else if (seen.add(node)) {
                     stack.add(node to true)
-                    graph.outgoing(node).asReversed().forEach { stack.add(graph.to(it) to false) }
+                    outgoing[node].orEmpty().asReversed().forEach { stack.add(graph.to(it) to false) }
                 }
             }
         }
         seen.clear()
         val components = mutableListOf<Set<NetworkNodeId>>()
+        val incoming = if (order.isEmpty()) emptyMap() else graph.incomingIndex()
         for (root in order.asReversed()) {
             if (root in seen) continue
             val component = mutableSetOf<NetworkNodeId>()
@@ -153,7 +160,7 @@ class NetworkTopology<N, A>(private val graph: NetworkGraph<N, A>) {
                 val node = stack.removeLast()
                 if (!seen.add(node)) continue
                 component.add(node)
-                graph.incoming(node).forEach { stack.add(graph.from(it)) }
+                incoming[node].orEmpty().forEach { stack.add(graph.from(it)) }
             }
             components.add(Collections.unmodifiableSet(LinkedHashSet(component)))
         }
@@ -231,12 +238,13 @@ class NetworkTopology<N, A>(private val graph: NetworkGraph<N, A>) {
             return true
         }
         if (weights.values.none { it ls zero }) {
+            val outgoing = graph.outgoingIndex()
             val queue = PriorityQueue<Pair<NetworkNodeId, V>>(compareBy { it.second })
             queue.add(source to zero)
             while (queue.isNotEmpty()) {
                 val (node, value) = queue.remove()
                 if (value != distance[node]) continue
-                for (arc in graph.outgoing(node)) {
+                for (arc in outgoing[node].orEmpty()) {
                     if (relax(arc)) queue.add(graph.to(arc) to distance.getValue(graph.to(arc)))
                 }
             }

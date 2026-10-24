@@ -60,6 +60,13 @@ SCIP 原生求解耗时、节点数和峰值内存仍需由插件集成套件单
 
 ## 结果报告
 
+`NetworkIndexBuildBenchmark` 测量真实图构造、出向可达性、双向强连通分量、反向视图、过滤可达性和稳态遍历。
+`size=256,1024,4096` 扩展节点数量，每节点四条弧；仅构造/仅反向场景特意不读索引，冷遍历计入首次建表成本。
+`ProjectionIndexBuildBenchmark` 用相同规模扩展决策变量，行数为变量数的一半，每行三个局部项。
+`consumer=snapshot,pricing,master` 区分消费面；`coldRevision` 新建投影，`warmRevision` 复用同一投影，
+二者均包含生产新鲜度检查。使用标准 `org.openjdk.jmh.Main`，保持 forks/JVM/预热一致，启用 `-prof gc`，
+将 JSON 和完整日志写入临时目录。这些夹具不能代替线上频率、求解时间或后台重叠窗口的测量。
+
 `ModelPreparationBenchmark` 覆盖长依赖链的真实 token 注册、稀疏 `ColumnProjection.master`
 装配与标量局部定价请求/模型准备。small/medium/large 按 N/2N/4N 扩展链长度或决策数，
 行数、块数、列数固定。调用内模型创建与必要 freshness 检查计时，夹具输入创建不计时。
@@ -110,5 +117,13 @@ benchmark 的正确性和回放元数据统一使用 `SolveReport<V>`；新增�
 见 [`plans/solver_cp.md`](../plans/solver_cp.md)。
 
 ## 说明
+
+`SharedPrimeReadBenchmark.readyRead` 共享一份生产 `PrimeCache`，初始建表不计时。通过标准
+`org.openjdk.jmh.Main` 分别使用 `-t 1`、`-t 4`，并对照
+`PreparationHotPathBenchmark.coldPrimeSequence` 检查冷扩容成本。
+`GenerationCacheBuildBenchmark.generate` 在 `scenario=equivalent,distinct,custom`、
+`workers=1,4` 下执行完整生产 DFS；custom 场景关闭模板复用。返回值是包含缓存命中、miss 和
+访问节点数的真实报告。这些是受控负载，不代表生产命中率或尾延迟。比较时保持 JVM、fork、预热一致，
+启用 `-prof gc`，保留置信区间和临时输出路径；不要与构建同时运行。
 
 JMH 分数对机器环境敏感。CI smoke 应验证 benchmark 可运行并保留 artifact，不应把绝对分数比较作为硬门禁。

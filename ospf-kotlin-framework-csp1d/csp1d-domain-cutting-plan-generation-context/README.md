@@ -13,6 +13,20 @@ Cutting plan generation domain context for the CSP1D framework. Provides enumera
 - Support parallel generation by material with cross-worker deduplication
 - Cache quantity computations, width indices, and slice templates for performance
 
+## Cache Construction Boundaries
+
+DFS, N-Sum and FullSum allocate slice-template recorders only when their template cache
+is enabled, including material-parallel paths. Custom constraints that disable reuse no
+longer record leaf templates that would be discarded. Plan budgets, deadline checks,
+canonical identity and constraint callbacks retain their existing behavior.
+
+The width-index cache still serializes cold builds, including custom width callbacks.
+Template cache lookup and publication remain separate: concurrent equivalent materials
+may repeat a cold search. No worker waits for another worker's complete DFS, and partial
+or timed-out templates are not published. Per-key concurrency or background prewarming
+requires a separate purity and deadline/cancellation contract; it is not inferred from
+the absence of a custom constraint.
+
 ## Key Types
 
 | Type | Description |

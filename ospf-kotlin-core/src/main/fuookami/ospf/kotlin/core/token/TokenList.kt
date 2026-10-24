@@ -39,10 +39,13 @@ sealed class AbstractTokenList<T : RealNumber<T>> : AutoCloseable {
 
     @Volatile
     private var cache: Map<VariableItemKey, Int>? = null
+    private val indexCacheLock = Any()
 
     /** 清除 token 索引缓存 / Clears the token index cache */
     protected fun clearIndexCache() {
-        cache = null
+        synchronized(indexCacheLock) {
+            cache = null
+        }
     }
 
     /**
@@ -52,7 +55,8 @@ sealed class AbstractTokenList<T : RealNumber<T>> : AutoCloseable {
      * @return 求解器索引，未找到返回 null / Solver index, or null if not found
     */
     open fun indexOf(token: Token<T>): Int? {
-        val indices = cache ?: run {
+        val indices = cache ?: synchronized(indexCacheLock) {
+            cache?.let { return@synchronized it }
             // Token 相等性只依赖 key；位置不是可能有空洞的 solverIndex。 / Token equality uses only key; positions are not potentially sparse solverIndex values.
             val built = HashMap<VariableItemKey, Int>()
             for ((index, candidate) in tokensInSolver.withIndex()) {

@@ -62,6 +62,17 @@ and must be recorded with the plugin integration suite. / CP 夹具的可移植 
 
 ## Result Reports
 
+`NetworkIndexBuildBenchmark` measures real graph creation, outgoing reachability,
+bidirectional components, reverse views, filtered reachability and warm traversal.
+`size=256,1024,4096` scales nodes with four arcs per node. Construction-only and reverse-only
+cases deliberately leave indexes unread; cold traversals include first-read build costs.
+`ProjectionIndexBuildBenchmark` uses the same sizes for decision count and half as many
+three-term local rows. `consumer=snapshot,pricing,master` separates consumption surfaces;
+`coldRevision` creates a new projection while `warmRevision` reuses one. Both include full
+production freshness checks, not just cached map reads. Use standard `org.openjdk.jmh.Main`
+with matched forks/JVM/warmup and `-prof gc`, preserving temporary JSON/log files. These
+fixtures do not measure production traffic frequency, solver time or background overlap.
+
 `ModelPreparationBenchmark` measures the production token registration path for a long
 dependency chain, sparse `ColumnProjection.master` assembly and scalar local-pricing
 request/model preparation. Small/medium/large scales chain length or decision count at
@@ -133,5 +144,15 @@ and model/configuration fingerprints; legacy solver output views are compatibili
 The remaining plugin migration and capability scope is tracked in [`plans/solver_cp.md`](../plans/solver_cp.md).
 
 ## Notes
+
+`SharedPrimeReadBenchmark.readyRead` uses one shared production `PrimeCache` with its
+initial table prepared outside timing. Run standard `org.openjdk.jmh.Main` separately
+with `-t 1` and `-t 4`; compare against `PreparationHotPathBenchmark.coldPrimeSequence`
+to include cold expansion costs. `GenerationCacheBuildBenchmark.generate` runs full
+production DFS for `scenario=equivalent,distinct,custom` and `workers=1,4`; the custom
+scenario disables template reuse. It returns the real report, including cache hits,
+misses and visited nodes. These are controlled workloads, not production hit-rate or
+tail-latency evidence. Keep matching JVM/forks/warmup, `-prof gc`, confidence intervals
+and temporary output paths; do not run builds concurrently with measurements.
 
 JMH scores are machine-sensitive. CI smoke runs should validate benchmark executability and preserve artifacts, not compare absolute scores as hard gates.
