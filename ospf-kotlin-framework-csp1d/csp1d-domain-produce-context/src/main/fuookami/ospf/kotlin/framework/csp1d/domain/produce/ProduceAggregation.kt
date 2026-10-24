@@ -230,18 +230,19 @@ class ProduceAggregation<V : RealNumber<V>>(
             is Fatal -> return Fatal(result.errors)
         }
 
+        val batchTerms = PlanBatchTerms(
+            plans = cuttingPlans,
+            batch = batch0,
+            demands = demands
+        )
+
         // 3. 创建需求贡献中间符号 / Create demand contribution intermediate symbols
         demandQuantity = LinearExpressionSymbols1(
             name = "demand_quantity",
             shape = Shape1(demands.size)
         ) { demandIndex, _ ->
             val demand = demands[demandIndex]
-            val monomials = cuttingPlans.mapIndexedNotNull { planIndex, plan ->
-                val contribution = plan.demandContributions.find {
-                    it.product.id == demand.product.id && it.quantity.unit == demand.quantity.unit
-                } ?: return@mapIndexedNotNull null
-                contribution.quantity.value.toFlt64() * batch0[planIndex]
-            }
+            val monomials = batchTerms.demandTerms[demand.product.id to demand.quantity.unit].orEmpty()
             if (monomials.isNotEmpty()) {
                 LinearExpressionSymbol(
                     LinearPolynomial(monomials, Flt64.zero),
@@ -266,10 +267,7 @@ class ProduceAggregation<V : RealNumber<V>>(
             shape = Shape1(materials.size)
         ) { materialIndex, _ ->
             val material = materials[materialIndex]
-            val monomials = cuttingPlans.mapIndexedNotNull { planIndex, plan ->
-                if (plan.material.id != material.id) return@mapIndexedNotNull null
-                Flt64.one * batch0[planIndex]
-            }
+            val monomials = batchTerms.materialTerms[material.id].orEmpty()
             if (monomials.isNotEmpty()) {
                 LinearExpressionSymbol(
                     LinearPolynomial(monomials, Flt64.zero),
@@ -294,10 +292,7 @@ class ProduceAggregation<V : RealNumber<V>>(
             shape = Shape1(machines.size)
         ) { machineIndex, _ ->
             val machine = machines[machineIndex]
-            val monomials = cuttingPlans.mapIndexedNotNull { planIndex, plan ->
-                if (plan.machineId != machine.id) return@mapIndexedNotNull null
-                Flt64.one * batch0[planIndex]
-            }
+            val monomials = batchTerms.machineTerms[machine.id].orEmpty()
             if (monomials.isNotEmpty()) {
                 LinearExpressionSymbol(
                     LinearPolynomial(monomials, Flt64.zero),
@@ -322,14 +317,7 @@ class ProduceAggregation<V : RealNumber<V>>(
             shape = Shape1(machines.size)
         ) { machineIndex, _ ->
             val machine = machines[machineIndex]
-            val monomials = cuttingPlans.mapIndexedNotNull { planIndex, plan ->
-                if (plan.machineId != machine.id) return@mapIndexedNotNull null
-                val capacity = machine.capacity ?: return@mapIndexedNotNull null
-                val consumption = plan.capacityConsumption ?: return@mapIndexedNotNull null
-                if (consumption.unit != capacity.unit) return@mapIndexedNotNull null
-                if (consumption.value leq consumption.value.constants.zero) return@mapIndexedNotNull null
-                consumption.value.toFlt64() * batch0[planIndex]
-            }
+            val monomials = batchTerms.capacityTerms(machine)
             if (monomials.isNotEmpty()) {
                 LinearExpressionSymbol(
                     LinearPolynomial(monomials, Flt64.zero),
@@ -402,14 +390,15 @@ class ProduceAggregation<V : RealNumber<V>>(
             is Fatal -> return Fatal(result.errors)
         }
 
+        val batchTerms = PlanBatchTerms(
+            plans = unduplicatedPlans,
+            batch = batchI,
+            demands = demands
+        )
+
         // 3. 刷新需求贡献中间符号 / Refresh demand contribution intermediate symbols
         for ((demandIndex, demand) in demands.withIndex()) {
-            val newMonomials = unduplicatedPlans.mapIndexedNotNull { planIndex, plan ->
-                val contribution = plan.demandContributions.find {
-                    it.product.id == demand.product.id && it.quantity.unit == demand.quantity.unit
-                } ?: return@mapIndexedNotNull null
-                contribution.quantity.value.toFlt64() * batchI[planIndex]
-            }
+            val newMonomials = batchTerms.demandTerms[demand.product.id to demand.quantity.unit].orEmpty()
             if (newMonomials.isNotEmpty()) {
                 demandQuantity[demandIndex].flush()
                 demandQuantity[demandIndex].asMutable() += LinearPolynomial(newMonomials, Flt64.zero)
@@ -418,10 +407,7 @@ class ProduceAggregation<V : RealNumber<V>>(
 
         // 4. 刷新物料用量中间符号 / Refresh material usage intermediate symbols
         for ((materialIndex, material) in materials.withIndex()) {
-            val newMonomials = unduplicatedPlans.mapIndexedNotNull { planIndex, plan ->
-                if (plan.material.id != material.id) return@mapIndexedNotNull null
-                Flt64.one * batchI[planIndex]
-            }
+            val newMonomials = batchTerms.materialTerms[material.id].orEmpty()
             if (newMonomials.isNotEmpty()) {
                 materialQuantity[materialIndex].flush()
                 materialQuantity[materialIndex].asMutable() += LinearPolynomial(newMonomials, Flt64.zero)
@@ -430,10 +416,7 @@ class ProduceAggregation<V : RealNumber<V>>(
 
         // 5. 刷新设备批次数中间符号 / Refresh machine batch count intermediate symbols
         for ((machineIndex, machine) in machines.withIndex()) {
-            val newMonomials = unduplicatedPlans.mapIndexedNotNull { planIndex, plan ->
-                if (plan.machineId != machine.id) return@mapIndexedNotNull null
-                Flt64.one * batchI[planIndex]
-            }
+            val newMonomials = batchTerms.machineTerms[machine.id].orEmpty()
             if (newMonomials.isNotEmpty()) {
                 machineBatchQuantity[machineIndex].flush()
                 machineBatchQuantity[machineIndex].asMutable() += LinearPolynomial(newMonomials, Flt64.zero)
@@ -442,14 +425,7 @@ class ProduceAggregation<V : RealNumber<V>>(
 
         // 6. 刷新设备产能消耗中间符号 / Refresh machine capacity consumption intermediate symbols
         for ((machineIndex, machine) in machines.withIndex()) {
-            val newMonomials = unduplicatedPlans.mapIndexedNotNull { planIndex, plan ->
-                if (plan.machineId != machine.id) return@mapIndexedNotNull null
-                val capacity = machine.capacity ?: return@mapIndexedNotNull null
-                val consumption = plan.capacityConsumption ?: return@mapIndexedNotNull null
-                if (consumption.unit != capacity.unit) return@mapIndexedNotNull null
-                if (consumption.value leq consumption.value.constants.zero) return@mapIndexedNotNull null
-                consumption.value.toFlt64() * batchI[planIndex]
-            }
+            val newMonomials = batchTerms.capacityTerms(machine)
             if (newMonomials.isNotEmpty()) {
                 machineCapacityQuantity[machineIndex].flush()
                 machineCapacityQuantity[machineIndex].asMutable() += LinearPolynomial(newMonomials, Flt64.zero)

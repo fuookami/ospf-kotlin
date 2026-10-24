@@ -37,15 +37,21 @@ class ServiceBandwidth(
     */
     fun register(model: LinearMetaModel<Flt64>): Try {
         val y = edgeBandwidth.y
-        val to: (Node) -> Predicate<Edge> =
-            { node -> fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.to(node) }
+        val incoming = HashMap<Node, MutableList<Edge>>()
+        val outgoing = HashMap<Node, MutableList<Edge>>()
+        if (!::inDegree.isInitialized || !::outDegree.isInitialized) {
+            for (edge in graph.edges) {
+                incoming.getOrPut(edge.to) { ArrayList() }.add(edge)
+                outgoing.getOrPut(edge.from) { ArrayList() }.add(edge)
+            }
+        }
 
         if (!::inDegree.isInitialized) {
             inDegree = flatMap(
                 "bandwidth_indegree_service",
                 graph.nodes,
                 services,
-                { n, s -> sumVars(graph.edges.filter { to(n)(it) }) { e -> y[e, s] } },
+                { n, s -> sumVars(incoming[n] ?: emptyList()) { e -> y[e, s] } },
                 { (_, n), (_, s) -> "${n}_$s" }
             )
         }
@@ -58,7 +64,7 @@ class ServiceBandwidth(
                 services,
                 { n, s ->
                     if (n is NormalNode) {
-                        sumVars(graph.edges.filter { from(n)(it) }) { e -> y[e, s] }
+                        sumVars(outgoing[n] ?: emptyList()) { e -> y[e, s] }
                     } else {
                         LinearPolynomial()
                     }

@@ -84,9 +84,13 @@ class FleetBalance(
     val limits: List<Pair<CheckPoint, Limit>> by lazy {
         ManualIndexed.flush<CheckPoint>()
 
+        val originByAircraft = HashMap<Aircraft, FlightTaskBunch>()
+        for (bunch in originBunches) {
+            originByAircraft.putIfAbsent(bunch.aircraft, bunch)
+        }
         val limits = HashMap<CheckPoint, Pair<UInt64, MutableList<Aircraft>>>()
         for (aircraft in aircrafts) {
-            val bunch = originBunches.find { it.aircraft == aircraft }
+            val bunch = originByAircraft[aircraft]
             val key = if (bunch != null && !bunch.empty) {
                 CheckPoint(bunch.arr, aircraft.minorType)
             } else {
@@ -184,9 +188,10 @@ class FleetBalance(
         bunches: List<FlightTaskBunch>,
     ): Try {
         val xi = compilation.x[iteration.toInt()]
+        val bunchesByArrival = bunches.groupBy { it.arr to it.aircraft.minorType }
 
         for ((checkPoint, _) in limits) {
-            val thisBunches = bunches.filter { checkPoint(it) }
+            val thisBunches = bunchesByArrival[checkPoint.airport to checkPoint.aircraftMinorType] ?: emptyList()
             if (thisBunches.isNotEmpty()) {
                 val thisFleet = fleet[checkPoint]
                 thisFleet.flush()

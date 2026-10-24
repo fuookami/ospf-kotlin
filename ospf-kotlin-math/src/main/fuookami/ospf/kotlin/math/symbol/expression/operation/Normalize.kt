@@ -6,6 +6,8 @@
 */
 package fuookami.ospf.kotlin.math.symbol.expression.operation
 
+import java.util.IdentityHashMap
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.identity
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.Trivalent
@@ -49,6 +51,18 @@ data class NormalizeConfig(
  * @return 规范化后的表达式 / Normalized expression
 */
 fun normalize(expr: BooleanExpression, config: NormalizeConfig = NormalizeConfig()): BooleanExpression {
+    return normalize(
+        expr = expr,
+        config = config,
+        keys = if (config.deduplicate || config.sortOperands) normalizationKeys(expr) else null
+    )
+}
+
+private fun normalize(
+    expr: BooleanExpression,
+    config: NormalizeConfig,
+    keys: NormalizationKeys?
+): BooleanExpression {
     var result = expr
 
     // 1. 扁平匌And/Or / Flatten And/Or
@@ -73,16 +87,16 @@ fun normalize(expr: BooleanExpression, config: NormalizeConfig = NormalizeConfig
 
     // 5. 去重 / Deduplicate
     if (config.deduplicate) {
-        result = deduplicate(result)
+        result = deduplicate(result, keys)
     }
 
     // 6. 排序操作敌/ Sort operands
     if (config.sortOperands) {
-        result = sortOperands(result)
+        result = sortOperands(result, keys)
     }
 
     // 递归处理子表达式 / Recursively process sub-expressions
-    result = normalizeChildren(result, config)
+    result = normalizeChildren(expr = result, config = config, keys = keys)
 
     // 7. 最终简化：单操作数皌And/Or 简化为该操作数 / Final simplification
     result = simplifySingleOperand(result)
@@ -126,11 +140,20 @@ private fun simplifySingleOperand(expr: BooleanExpression): BooleanExpression {
  * @param config 规范化配置 / Normalization configuration
  * @return 递归处理后的表达式 / Expression after recursive processing
 */
-private fun normalizeChildren(expr: BooleanExpression, config: NormalizeConfig): BooleanExpression {
+private fun normalizeChildren(
+    expr: BooleanExpression,
+    config: NormalizeConfig,
+    keys: NormalizationKeys?
+): BooleanExpression {
+    fun child(expr: BooleanExpression): BooleanExpression = normalize(
+        expr = expr,
+        config = config,
+        keys = keys
+    )
     return when (expr) {
-        is AndExpression -> AndExpression(expr.operands.map { normalize(it, config) })
-        is OrExpression -> OrExpression(expr.operands.map { normalize(it, config) })
-        is NotExpression -> NotExpression(normalize(expr.operand, config))
+        is AndExpression -> AndExpression(expr.operands.map { child(it) })
+        is OrExpression -> OrExpression(expr.operands.map { child(it) })
+        is NotExpression -> NotExpression(child(expr.operand))
         else -> expr
     }
 }
@@ -277,24 +300,28 @@ fun constantFold(expr: BooleanExpression): BooleanExpression {
  * @return 去重后的表达式 / Deduplicated expression
 */
 fun deduplicate(expr: BooleanExpression): BooleanExpression {
+    return deduplicate(expr, normalizationKeys(expr))
+}
+
+private fun deduplicate(expr: BooleanExpression, keys: NormalizationKeys?): BooleanExpression {
     return when (expr) {
         is AndExpression -> {
             val uniqueOperands = expr.operands
-                .map { deduplicate(it) }
-                .distinctBy { it.structuralKey() }
+                .map { deduplicate(it, keys) }
+                .distinctBy { keys?.boolean(it) ?: it.structuralKey() }
 
             AndExpression(uniqueOperands)
         }
 
         is OrExpression -> {
             val uniqueOperands = expr.operands
-                .map { deduplicate(it) }
-                .distinctBy { it.structuralKey() }
+                .map { deduplicate(it, keys) }
+                .distinctBy { keys?.boolean(it) ?: it.structuralKey() }
 
             OrExpression(uniqueOperands)
         }
 
-        is NotExpression -> NotExpression(deduplicate(expr.operand))
+        is NotExpression -> NotExpression(deduplicate(expr.operand, keys))
 
         else -> expr
     }
@@ -359,16 +386,20 @@ fun applyDeMorgan(expr: BooleanExpression): BooleanExpression {
  * @return 操作数排序后的表达式 / Expression with sorted operands
 */
 fun sortOperands(expr: BooleanExpression): BooleanExpression {
+    return sortOperands(expr, normalizationKeys(expr))
+}
+
+private fun sortOperands(expr: BooleanExpression, keys: NormalizationKeys?): BooleanExpression {
     return when (expr) {
         is AndExpression -> {
-            val sorted = expr.operands.map { sortOperands(it) }.sortedBy { it.structuralKey() }
+            val sorted = expr.operands.map { sortOperands(it, keys) }.sortedBy { keys?.boolean(it) ?: it.structuralKey() }
             AndExpression(sorted)
         }
         is OrExpression -> {
-            val sorted = expr.operands.map { sortOperands(it) }.sortedBy { it.structuralKey() }
+            val sorted = expr.operands.map { sortOperands(it, keys) }.sortedBy { keys?.boolean(it) ?: it.structuralKey() }
             OrExpression(sorted)
         }
-        is NotExpression -> NotExpression(sortOperands(expr.operand))
+        is NotExpression -> NotExpression(sortOperands(expr.operand, keys))
         else -> expr
     }
 }
@@ -410,5 +441,145 @@ fun ScalarExpression<*>.structuralKey(): String {
         is ScalarConditional<*> -> "Cond:${condition.structuralKey()}:${thenBranch.structuralKey()}:${elseBranch.structuralKey()}"
         is ScalarBoolean<*> -> "Bool:${expr.structuralKey()}"
         is ScalarCustom<*> -> "Custom:$description"
+    }
+}
+
+private fun normalizationKeys(expression: BooleanExpression): NormalizationKeys? {
+    fun compositeScalar(expression: ScalarExpression<*>): Boolean {
+        return when (expression) {
+            is ScalarConstant<*>, is ScalarReference<*>, is ScalarSymbolReference<*>, is ScalarCustom<*> -> false
+            else -> true
+        }
+    }
+    fun compositeOperand(expression: BooleanExpression): Boolean {
+        return when (expression) {
+            is Comparison<*> -> compositeScalar(expression.left) || compositeScalar(expression.right)
+            is InExpression<*> -> compositeScalar(expression.value) || expression.candidates.any { compositeScalar(it) }
+            is PatternMatch<*> -> compositeScalar(expression.value) || compositeScalar(expression.pattern)
+            is AndExpression, is OrExpression, is NotExpression -> true
+            else -> false
+        }
+    }
+    val reusable = when (expression) {
+        is AndExpression -> expression.operands.any { compositeOperand(it) }
+        is OrExpression -> expression.operands.any { compositeOperand(it) }
+        else -> compositeOperand(expression)
+    }
+    if (reusable) return NormalizationKeys(expression)
+    val operands = when (expression) {
+        is AndExpression -> expression.operands
+        is OrExpression -> expression.operands
+        else -> return null
+    }
+    if (operands.size < 8) return null
+    fun stableAtom(expression: ScalarExpression<*>): Boolean {
+        return when (expression) {
+            is ScalarReference<*>, is ScalarCustom<*> -> true
+            is ScalarConstant<*> -> when (expression.value) {
+                null, is String, is Boolean, is Char, is Byte, is Short, is Int, is Long, is Float, is Double,
+                is Int8, is Int16, is Int32, is Int64, is IntX, is UInt8, is UInt16, is UInt32, is UInt64, is UIntX,
+                is Flt32, is Flt64, is FltX, is Trivalent -> true
+                else -> false
+            }
+            else -> false
+        }
+    }
+    fun stableOperand(expression: BooleanExpression): Boolean {
+        return when (expression) {
+            is Comparison<*> -> stableAtom(expression.left) && stableAtom(expression.right)
+            is InExpression<*> -> stableAtom(expression.value) && expression.candidates.all { stableAtom(it) }
+            is PatternMatch<*> -> stableAtom(expression.value) && stableAtom(expression.pattern)
+            is BooleanConstant, is NullCheck, is BooleanCustom -> true
+            else -> false
+        }
+    }
+    val stable = operands.all { stableOperand(it) }
+    // 浅层原子操作数只复用布尔键，不建立安全扫描表或缓存廉价的标量叶键。
+    // Shallow atomic operands reuse only Boolean keys, without a safety map or cheap scalar-leaf keys.
+    return if (stable) NormalizationKeys(expression = expression, atomic = true) else null
+}
+
+private class NormalizationKeys(expression: BooleanExpression, private val atomic: Boolean = false) {
+    private val keys = IdentityHashMap<Any, String>()
+    private val safeNodes = if (atomic) null else IdentityHashMap<Any, Boolean>()
+    private val enabled = atomic || canMemoize(expression)
+    private var cachedCharacters = 0
+
+    private inline fun cachedKey(expression: Any, build: () -> String): String {
+        keys[expression]?.let { return it }
+        val key = build()
+        // 单次调用的缓存有界，避免深树的所有祖先键同时驻留。
+        // Bound per-call retention so deep trees do not retain every large ancestor key.
+        if (keys.size < 4096 && key.length <= 1_048_576 - cachedCharacters) {
+            keys[expression] = key
+            cachedCharacters += key.length
+        }
+        return key
+    }
+
+    private fun canMemoize(expression: Any): Boolean {
+        val safeNodes = safeNodes ?: return false
+        safeNodes[expression]?.let { return it }
+        safeNodes[expression] = false
+        val safe = when (expression) {
+            is BooleanConstant, is NullCheck, is BooleanCustom, is ScalarReference<*>, is ScalarCustom<*> -> true
+            is Comparison<*> -> canMemoize(expression.left) && canMemoize(expression.right)
+            is InExpression<*> -> canMemoize(expression.value) && expression.candidates.all { canMemoize(it) }
+            is PatternMatch<*> -> canMemoize(expression.value) && canMemoize(expression.pattern)
+            is AndExpression -> expression.operands.all { canMemoize(it) }
+            is OrExpression -> expression.operands.all { canMemoize(it) }
+            is NotExpression -> canMemoize(expression.operand)
+            is ScalarConstant<*> -> when (expression.value) {
+                null, is String, is Boolean, is Char, is Byte, is Short, is Int, is Long, is Float, is Double,
+                is Int8, is Int16, is Int32, is Int64, is IntX, is UInt8, is UInt16, is UInt32, is UInt64, is UIntX,
+                is Flt32, is Flt64, is FltX, is Trivalent -> true
+                else -> false
+            }
+            is ScalarUnary<*> -> canMemoize(expression.operand)
+            is ScalarBinary<*> -> canMemoize(expression.left) && canMemoize(expression.right)
+            is ScalarFunction<*> -> expression.arguments.all { canMemoize(it) }
+            is ScalarConditional<*> -> canMemoize(expression.condition) &&
+                canMemoize(expression.thenBranch) && canMemoize(expression.elseBranch)
+            is ScalarBoolean<*> -> canMemoize(expression.expr)
+            else -> false
+        }
+        safeNodes[expression] = safe
+        return safe
+    }
+
+    fun boolean(expression: BooleanExpression): String {
+        // 未知常量的toString与自定义符号身份可能有状态，整个调用保留原键读取路径。
+        // Unknown constant formatting and custom symbol identity may be stateful; retain original reads for the call.
+        if (!enabled) return expression.structuralKey()
+        if (atomic) return cachedKey(expression) { expression.structuralKey() }
+        return cachedKey(expression) {
+            when (expression) {
+                is BooleanConstant -> "Const:${when (expression.value) { Trivalent.True -> "True"; Trivalent.False -> "False"; Trivalent.Unknown -> "Unknown" }}"
+                is Comparison<*> -> "Cmp:${expression.operator}:${scalar(expression.left)}:${scalar(expression.right)}"
+                is InExpression<*> -> "In:${expression.negated}:${scalar(expression.value)}:${expression.candidates.joinToString(",") { scalar(it) }}"
+                is PatternMatch<*> -> "Match:${expression.mode}:${expression.negated}:${scalar(expression.value)}:${scalar(expression.pattern)}"
+                is NullCheck -> "Null:${expression.type}:${expression.path}"
+                is AndExpression -> "And:${expression.operands.joinToString(",") { boolean(it) }}"
+                is OrExpression -> "Or:${expression.operands.joinToString(",") { boolean(it) }}"
+                is NotExpression -> "Not:${boolean(expression.operand)}"
+                is BooleanCustom -> "Custom:${expression.description}"
+            }
+        }
+    }
+
+    private fun scalar(expression: ScalarExpression<*>): String {
+        return cachedKey(expression) {
+            when (expression) {
+                is ScalarConstant<*> -> "Const:${expression.value}"
+                is ScalarReference<*> -> "Ref:${expression.path}"
+                is ScalarSymbolReference<*> -> "SymRef:${expression.symbol.identity()}"
+                is ScalarUnary<*> -> "Unary:${expression.operator}:${scalar(expression.operand)}"
+                is ScalarBinary<*> -> "Bin:${expression.operator}:${scalar(expression.left)}:${scalar(expression.right)}"
+                is ScalarFunction<*> -> "Func:${expression.name}:${expression.arguments.joinToString(",") { scalar(it) }}"
+                is ScalarConditional<*> -> "Cond:${boolean(expression.condition)}:${scalar(expression.thenBranch)}:${scalar(expression.elseBranch)}"
+                is ScalarBoolean<*> -> "Bool:${boolean(expression.expr)}"
+                is ScalarCustom<*> -> "Custom:${expression.description}"
+            }
+        }
     }
 }

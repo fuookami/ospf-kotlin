@@ -93,16 +93,21 @@ class TrailerLoading(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::trailerChange.isInitialized) {
+            val requiredPositions = adjacentPositions.flatMap { listOf(it.first, it.second) }
+            val groupedAmounts by lazy {
+                orderedTrailers.flatMap { listOf(it.first, it.second) }.distinct().associateWith { trailer ->
+                    load.loadAmountsOf(
+                        positions = requiredPositions,
+                        itemIndices = load.itemIndicesOf { it in trailer.items }
+                    )
+                }
+            }
             trailerChange = LinearIntermediateSymbols2<Flt64>("trailer_change", Shape2(orderedTrailers.size, adjacentPositions.size)) { _, v ->
                 val (trailer1, trailer2) = orderedTrailers[v[0]]
                 val (position1, position2) = adjacentPositions[v[1]]
 
-                val loadAmount1 = load.loadAmountOf(position1) { item ->
-                    item in trailer2.items
-                }
-                val loadAmount2 = load.loadAmountOf(position2) { item ->
-                    item in trailer1.items
-                }
+                val loadAmount1 = groupedAmounts.getValue(trailer2).getValue(position1)
+                val loadAmount2 = groupedAmounts.getValue(trailer1).getValue(position2)
 
                 LinearFunctionSymbolAdapter(
                     delegate = IfFunction(
@@ -127,13 +132,15 @@ class TrailerLoading(
         }
 
         if (!::trailerCircling.isInitialized) {
+            val itemIndices = firstOccurrenceIndices(items)
+            val positionIndices = firstOccurrenceIndices(positions)
             trailerCircling = LinearIntermediateSymbols2<Flt64>("trailer_circling", Shape2(orderedItemsInTrailers.size, adjacentPositions.size)) { _, v ->
                 val (item1, item2) = orderedItemsInTrailers[v[0]]
-                val i1 = items.indexOf(item1)
-                val i2 = items.indexOf(item2)
+                val i1 = itemIndices[item1] ?: -1
+                val i2 = itemIndices[item2] ?: -1
                 val (position1, position2) = adjacentPositions[v[1]]
-                val j1 = positions.indexOf(position1)
-                val j2 = positions.indexOf(position2)
+                val j1 = positionIndices[position1] ?: -1
+                val j2 = positionIndices[position2] ?: -1
 
                 if (Stowage.stowageNeeded(item2, position1) && Stowage.stowageNeeded(item1, position2)) {
                     LinearFunctionSymbolAdapter(

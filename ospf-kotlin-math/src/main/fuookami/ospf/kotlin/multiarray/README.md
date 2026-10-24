@@ -68,3 +68,20 @@ val batchC = einsumDouble(batchA, batchB, "bij,bjk->bik")
 - [Main README](../../README.md)
 - [Functional Module](../utils/functional/README.md)
 - [Algebra Module](../math/algebra/README.md)
+
+### Contraction Preparation
+
+`contract` decodes non-contracted output coordinates once per output rather than once
+per contracted element. Products and additions retain their original order, including
+floating-point cancellation and non-finite values. This optimization retains the existing
+row-major linear-address interpretation of inputs, even for column-major shapes; it is
+not a correction of that pre-existing storage-order limitation.
+
+### Reduction Address Preparation
+
+For built-in Shape1-4/DynShape with canonical public `offsets`, `sumAxisSafe` and
+`sumAxesSafe` advance output addresses in source-linear order; `cumsumAxisSafe` uses
+the axis stride to locate the previous prefix. This avoids per-element coordinate
+arrays while retaining the original left-fold arithmetic and output layout, including
+the existing column-major behavior. Custom shapes and externally modified offsets
+retain the coordinate/Result path rather than assuming contiguous indexing.

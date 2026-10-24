@@ -82,6 +82,44 @@ class Load(
     }
 
     /**
+     * 捕获当前货物列表中匹配分类的下标；不缓存任意谓词。
+     * Capture matching indices from the current item list without caching arbitrary predicates.
+     *
+     * @param predicate 本次分类谓词 / Predicate for this classification
+     * @return 按货物 occurrence 原序的下标 / Indices in original item occurrence order
+     */
+    fun itemIndicesOf(predicate: (Item) -> Boolean): List<Int> {
+        return items.mapIndexedNotNull { index, item -> index.takeIf { predicate(item) } }
+    }
+
+    /**
+     * 为显式下标分类批量构造装载量，每个相等位置复用本批符号。
+     * Build load amounts for an explicit index group, sharing equal-position symbols only within this batch.
+     *
+     * @param positions 本批需要的位置 / Positions required by this batch
+     * @param itemIndices 当前货物下标，保留调用方顺序及重复项；列表结构变更后应重新分类 /
+     * Current item indices; caller order and duplicates are retained, and structural changes require recapturing
+     * @return 按位置的装载量符号 / Load amount symbols by position
+     */
+    fun loadAmountsOf(
+        positions: Iterable<Position>,
+        itemIndices: List<Int>
+    ): Map<Position, LinearIntermediateSymbol<Flt64>> {
+        val positionIndices = firstOccurrenceIndices(this.positions)
+        val amounts = LinkedHashMap<Position, LinearIntermediateSymbol<Flt64>>()
+        for (position in positions) {
+            if (!amounts.containsKey(position)) {
+                val j = positionIndices[position] ?: -1
+                amounts[position] = LinearExpressionSymbol(
+                    sum(itemIndices.map { i -> stowage.stowage[i, j] }),
+                    name = "load_amount_of_${position}"
+                )
+            }
+        }
+        return amounts
+    }
+
+    /**
      * Registers all load-related variables and intermediate symbols into the model.
      * 将所有装载相关的变量和中间符号注册到模型中。
      *

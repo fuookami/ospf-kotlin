@@ -6,6 +6,12 @@ Produce domain context for the CSP1D framework. Manages the master problem varia
 
 ## Responsibilities
 
+Initial registration and each added batch dispatch sparse plan terms once by demand,
+material and machine. Demand matches retain the first contribution for each product/unit
+pair; capacity terms retain unit compatibility and positive-consumption checks.
+The per-batch index does not cache mutable input across registrations or change numeric
+conversion boundaries, variable groups or extension pipelines.
+
 - Manage x variables (plan usage counts) and batch intermediate symbols
 - Register demand, material, machine batch, and machine capacity intermediate symbols
 - Support column generation incremental addColumns with flush + asMutable

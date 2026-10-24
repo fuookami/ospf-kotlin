@@ -141,8 +141,14 @@ class Bpp1dColumnGeneration<V : FloatingNumber<V>>(
                 is Fatal -> return Fatal(result.errors)
             }
             val existing = context.patterns.map { it.key }.toSet()
-            val candidates = generated.patterns.filter { it.key !in existing }
-                .map { it to context.reducedCost(it) }
+            val unregistered = generated.patterns.filter { it.key !in existing }
+            // 既有扩展未承诺只读，保留它们逐候选读取当前价格的行为。 / Existing extensions do not promise read-only pricing; retain their per-candidate current-price reads.
+            val priced = if (context.extensions.isEmpty()) {
+                unregistered.zip(context.reducedCosts(unregistered))
+            } else {
+                unregistered.map { it to context.reducedCost(it) }
+            }
+            val candidates = priced
                 .filter { it.second < Flt64(-1e-6) }
                 .sortedBy { it.second }
                 .take(config.columnsPerIteration)

@@ -1,5 +1,8 @@
 # gantt-scheduling-domain-bunch-compilation-context
 
+`BunchCompilation.addColumns` 每批新列一次建立任务/执行器成员桶。标准任务束沿用已有 task-key
+归属，子类仍调用覆写的 `contains` 谓词；保留束顺序、重复任务 occurrence 和增量变量分组。
+
 :us: [English](README.md) | :cn: 简体中文
 
 甘特调度框架的列生成主问题模块。处理集合划分公式中的束选择、成本计算和覆盖约束。提供基于时间槽的编译和容量预求解，以实现高效的列生成。

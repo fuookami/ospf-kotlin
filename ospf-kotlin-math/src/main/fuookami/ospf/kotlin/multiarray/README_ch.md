@@ -68,3 +68,16 @@ val batchC = einsumDouble(batchA, batchB, "bij,bjk->bik")
 - [主 README](../../README.md)
 - [Functional 模块](../utils/functional/README_ch.md)
 - [Algebra 模块](../math/algebra/README_ch.md)
+
+### 缩并准备
+
+`contract` 对每个输出只解码一次非缩并坐标，不再对每个缩并元素重复解码。
+乘法与加法保留原执行次序，包括浮点消去与非有限值。本次优化保留输入既有的
+行主序线性地址解释（包括列主序 shape），不在性能修改中修正该已有存储顺序限制。
+
+### 归约地址准备
+
+当内置 Shape1-4/DynShape 的公开 `offsets` 符合规范 stride 时，`sumAxisSafe` 与
+`sumAxesSafe` 按源线性顺序推进输出地址，`cumsumAxisSafe` 使用轴 stride 定位前一项。
+该路径消除逐元素坐标数组，保留原左折叠运算次序与输出布局，包括既有列主序行为。
+自定义 shape 或外部改写的 offsets 仍走坐标/Result 路径，不假设索引连续。

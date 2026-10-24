@@ -6,18 +6,27 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.toSolveReport
 import fuookami.ospf.kotlin.core.solver.toSolverStatus
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
+import fuookami.ospf.kotlin.framework.solver.ColumnPricingBatch
+import fuookami.ospf.kotlin.framework.solver.ColumnPricingEntry
 import fuookami.ospf.kotlin.framework.bpp.domain.partition_loading.*
 
 /** 分区列生成预算。 / Partition-column generation budget.
  * @property iterationLimit 包含可行性阶段的根节点迭代上限 / Root iteration limit including feasibility phase
  * @property columnLimit 根节点列数上限；资源补全最多另加每分区一列 / Root column budget; resource completion may add one column per partition
  * @property tolerance 定价及人工变量容差 / Pricing and artificial-variable tolerance
+ * @property batchPricingEnabled 是否对内置 MILP 定价器批量准备非种子模型 / Whether to batch-prepare non-seed models for the built-in MILP pricer
  */
-data class PartitionColumnGenerationConfig(val iterationLimit: Int = 64, val columnLimit: Int = 10000, val tolerance: Double = 1e-6)
+data class PartitionColumnGenerationConfig(
+    val iterationLimit: Int = 64,
+    val columnLimit: Int = 10000,
+    val tolerance: Double = 1e-6,
+    val batchPricingEnabled: Boolean = false
+)
 
 /** 分区列生成轨迹。 / Partition-column generation trace.
  * @property phaseOne 是否人工变量可行性阶段 / Whether in the artificial-variable feasibility phase
@@ -50,10 +59,47 @@ class MilpPartitionPricingOracle<V : FloatingNumber<V>>(private val solver: Colu
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
         }
-        val solved = when (val result = solver.solveMILP(model)) {
-            is Ok -> result.value
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
+        return try {
+            solvePricingModel(
+                context = context,
+                request = request,
+                model = model,
+                batch = null
+            )
+        } finally {
+            model.close()
+        }
+    }
+
+    internal suspend fun <T : FloatingNumber<T>> pricePrepared(
+        context: PartitionLoadingContext<T>,
+        entry: ColumnPricingEntry<Flt64>,
+        batch: ColumnPricingBatch<Flt64>
+    ): Ret<PartitionPricingResult> {
+        return solvePricingModel(
+            context = context,
+            request = entry.request,
+            model = entry.model,
+            batch = batch
+        )
+    }
+
+    private suspend fun <T : FloatingNumber<T>> solvePricingModel(
+        context: PartitionLoadingContext<T>,
+        request: PartitionPricingRequest,
+        model: LinearMetaModel<Flt64>,
+        batch: ColumnPricingBatch<Flt64>?
+    ): Ret<PartitionPricingResult> {
+        val solveResult = solver.solveMILP(model)
+        if (batch != null) {
+            val current = context.requireCurrent(batch)
+            if (current is Failed) return Failed(current.error)
+            if (current is Fatal) return Fatal(current.errors)
+        }
+        val solved = when (solveResult) {
+            is Ok -> solveResult.value
+            is Failed -> return Failed(solveResult.error)
+            is Fatal -> return Fatal(solveResult.errors)
         }
         if (solved.solution == null) return Failed(ErrorCode.OREngineSolvingException, "局部定价没有可行配置 / Local pricing has no feasible configuration: ${solved.toSolverStatus()}")
         val values = context.decisions.filter { it.partitionId == request.partitionId }.associate { decision ->
@@ -102,6 +148,7 @@ class PartitionColumnGenerationApplicationService<V : FloatingNumber<V>>(
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
         }
+        val batchOracle = if (config.batchPricingEnabled && oracle is MilpPartitionPricingOracle<*>) oracle else null
         for ((index, partition) in partitions.withIndex()) {
             val request = when (val result = context.pricingRequest(
                 partitionId = partition.id,
@@ -117,7 +164,7 @@ class PartitionColumnGenerationApplicationService<V : FloatingNumber<V>>(
                 is Failed -> return Failed(result.error)
                 is Fatal -> return Fatal(result.errors)
             }
-            val current = context.projection.requireCurrent(request.revision)
+            val current = context.requireCurrent(request.revision)
             if (current is Failed) return Failed(current.error)
             if (current is Fatal) return Fatal(current.errors)
             val available = config.columnLimit - context.columns.size - (partitions.size - index - 1)
@@ -156,20 +203,11 @@ class PartitionColumnGenerationApplicationService<V : FloatingNumber<V>>(
             var proven = true
             var improvingFound = false
             val pending = arrayListOf<Pair<String, Map<String, Flt64>>>()
-            for (partition in partitions) {
-                val request = when (val result = context.pricingRequest(partition.id, phaseOne)) {
-                    is Ok -> result.value
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
-                val priced = when (val result = oracle.price(context, request)) {
-                    is Ok -> result.value
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
-                val current = context.projection.requireCurrent(request.revision)
-                if (current is Failed) return Failed(current.error)
-                if (current is Fatal) return Fatal(current.errors)
+            fun consumePricing(
+                partition: LoadingPartition,
+                request: PartitionPricingRequest,
+                priced: PartitionPricingResult
+            ): Try {
                 proven = proven && priced.optimal
                 val improving = arrayListOf<Map<String, Flt64>>()
                 for (values in priced.values) {
@@ -182,6 +220,70 @@ class PartitionColumnGenerationApplicationService<V : FloatingNumber<V>>(
                     if (cost < Flt64(-config.tolerance) && improving.size + pending.size < config.columnLimit - context.columns.size) improving.add(values)
                 }
                 pending.addAll(improving.map { partition.id to it })
+                return ok
+            }
+            if (batchOracle == null) {
+                for (partition in partitions) {
+                    val request = when (val result = context.pricingRequest(partition.id, phaseOne)) {
+                        is Ok -> result.value
+                        is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
+                    }
+                    val priced = when (val result = oracle.price(context, request)) {
+                        is Ok -> result.value
+                        is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
+                    }
+                    val current = context.requireCurrent(request.revision)
+                    if (current is Failed) return Failed(current.error)
+                    if (current is Fatal) return Fatal(current.errors)
+                    when (val consumed = consumePricing(
+                        partition = partition,
+                        request = request,
+                        priced = priced
+                    )) {
+                        is Ok -> {}
+                        is Failed -> return Failed(consumed.error)
+                        is Fatal -> return Fatal(consumed.errors)
+                    }
+                }
+            } else {
+                val partitionsById = linkedMapOf<String, LoadingPartition>()
+                for (partition in partitions) partitionsById.putIfAbsent(partition.id, partition)
+                val batch = when (val result = context.preparePricingBatch(
+                    partitionIds = partitions.map { it.id },
+                    phaseOne = phaseOne
+                )) {
+                    is Ok -> result.value
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
+                try {
+                    for (entry in batch.entries) {
+                        val priced = when (val result = batchOracle.pricePrepared(
+                            context = context,
+                            entry = entry,
+                            batch = batch
+                        )) {
+                            is Ok -> result.value
+                            is Failed -> return Failed(result.error)
+                            is Fatal -> return Fatal(result.errors)
+                        }
+                        val partition = partitionsById[entry.request.partitionId]
+                            ?: return Failed(ErrorCode.IllegalArgument, "未知定价分区 / Unknown pricing partition: ${entry.request.partitionId}")
+                        when (val consumed = consumePricing(
+                            partition = partition,
+                            request = entry.request,
+                            priced = priced
+                        )) {
+                            is Ok -> {}
+                            is Failed -> return Failed(consumed.error)
+                            is Fatal -> return Fatal(consumed.errors)
+                        }
+                    }
+                } finally {
+                    batch.entries.forEach { it.model.close() }
+                }
             }
             // 同轮所有分区消费同一组对偶，统一加列后再失效。 / All blocks consume one dual snapshot before batch insertion.
             val inserted = context.addColumns(pending)

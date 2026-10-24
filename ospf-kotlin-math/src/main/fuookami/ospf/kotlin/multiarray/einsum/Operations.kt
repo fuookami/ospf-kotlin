@@ -544,32 +544,28 @@ fun <T : Ring<T>> contract(
     // 遍历输出位置
     // Iterate over output positions
     for (outLinear in 0 until outSize) {
+        // 同一输出的非缩并坐标只解码一次，保留缩并轴的原累加次序。
+        // Decode non-contraction coordinates once per output, preserving contraction accumulation order.
+        var remaining = outLinear
+        var aBase = 0
+        var bBase = 0
+        for (i in aNonContractDims.indices) {
+            val outCoord = remaining / aOutStrides[i]
+            remaining %= aOutStrides[i]
+            aBase += outCoord * aStrides[aNonContractDims[i]]
+        }
+        for (i in bNonContractDims.indices) {
+            val outCoord = remaining / bOutStrides[i]
+            remaining %= bOutStrides[i]
+            bBase += outCoord * bStrides[bNonContractDims[i]]
+        }
         var sum = zero
 
         // 遍历缩并轴
         // Iterate over contraction axis
         for (k in 0 until contractionSize) {
-            // 将输出索引分解为坐标
-            // Decompose output index to coordinates
-            var remaining = outLinear
-            var aLinear = k * aStrides[axisA]
-            var bLinear = k * bStrides[axisB]
-
-            // 计算输入数组的非缩并轴坐标贡猌
-            // Calculate non-contraction axis contributions for input arrays
-            for (i in aNonContractDims.indices) {
-                val outCoord = remaining / aOutStrides[i]
-                remaining %= aOutStrides[i]
-                val aAxisIdx = aNonContractDims[i]
-                aLinear += outCoord * aStrides[aAxisIdx]
-            }
-
-            for (i in bNonContractDims.indices) {
-                val outCoord = remaining / bOutStrides[i]
-                remaining %= bOutStrides[i]
-                val bAxisIdx = bNonContractDims[i]
-                bLinear += outCoord * bStrides[bAxisIdx]
-            }
+            val aLinear = aBase + k * aStrides[axisA]
+            val bLinear = bBase + k * bStrides[axisB]
 
             sum = sum + a[aLinear] * b[bLinear]
         }

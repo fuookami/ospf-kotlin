@@ -58,3 +58,7 @@
 ## Parent Module
 
 [OSPF Kotlin Framework BPP3D](../README.md)
+
+## Pile Preparation
+
+`ItemMerger.mergePiles` reuses the already weight-sorted suffix for plain views of built-in `ActualItem`/`PatternedItem` instances with fixed weights. Successful piles remove a matching leading segment with one shift; other selections remove the first required number of equal occurrences in one stable compaction, matching repeated `remove` without repeated array shifts. Custom item subclasses or views retain suffix sorting and removal behavior, including dynamic weight reads. Trial stacking, geometry predicates, floating-point accumulation order and the required pairwise work are unchanged; dense or unmergeable inputs can still require quadratic feasibility checks.

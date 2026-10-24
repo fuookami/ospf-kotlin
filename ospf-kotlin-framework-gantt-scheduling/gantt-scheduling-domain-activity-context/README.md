@@ -16,6 +16,14 @@ This module registers activity-level MILP models independently of bunch generati
 
 ## Temporal Materials and Inventory
 
+Capacity assembly groups reservations once by resource and sweeps their endpoints;
+only choices whose active reservations change are recomputed. Inventory assembly
+groups material events once and advances per-choice prefixes. Both retain the original
+input-occurrence floating-point accumulation order: removals or earlier insertions
+recompute the affected group rather than subtracting or reassociating values.
+Output work still depends on the generated nonzero coefficients; adversarial unordered
+or heavily overlapping groups can still require repeated local folds.
+
 `ActivityMaterial<V>` declares named opening stock, a minimum (zero by default), and an optional storage limit. `ActivityMode.materialFlows` contains signed stock changes at offsets within mode duration: positive quantities supply, negative quantities consume. These cover start consumption, completion production, and intermediate events. Materials never compensate one another, and quantities normalize to the opening-stock unit.
 
 `problem.materialEvents` supplies fixed future receipts or demands. Rows check opening stock before horizon-start events and cumulative stock after every event, including both horizon endpoints. Future production cannot cover past shortages. Simultaneous events settle atomically as a net change; if unloading order or transient storage peaks matter, declare distinct event times or explicit intermediate activities.

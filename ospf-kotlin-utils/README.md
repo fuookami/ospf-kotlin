@@ -331,6 +331,11 @@ data class Timing(
 
 ### Testing
 
+The bounded plain worker pool writes each result into its original input-index slot and
+reads slots only after all workers join. This preserves nullable results and input order
+without a result-channel sort; extractor exceptions and caller cancellation still cancel
+the structured worker scope. Error-collecting variants retain their separate Result policy.
+
 ```bash
 mvn -pl ospf-kotlin-utils test -DskipITs
 ```

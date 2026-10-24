@@ -212,6 +212,19 @@ The legacy `Expr` AST and `LegacyExprBridge` have been removed. Use `BooleanExpr
 | Serialization | Direct DTO | `kotlinx.serialization` JSON |
 | Normalization | None | Flatten, constant fold, de Morgan |
 
+## Normalization Key Reuse
+
+Normalization, deduplication and operand sorting share structural keys only within one
+call. Keys use reference identity, preserve the existing key format and stable first-match
+order, and retain at most 4096 keys / 1048576 characters. Unknown constant formatting or
+symbol identity falls back to original reads for the whole call. Mutable argument/candidate
+lists are reread on subsequent calls; normalized AST nodes are not memoized or aliased.
+Shallow atomic groups use a smaller Boolean-key-only cache without a safety-scan map
+or scalar-leaf keys; groups with fewer than eight operands keep the original key path.
+When both deduplication and sorting are disabled, no key cache is created. The framework
+query canonicalizer uses that disabled configuration, so this change does not claim to
+accelerate its query path; benefits apply to key-using public normalization operations.
+
 ## Related
 
 - [symbol/README.md](../README.md) - Main symbol module documentation

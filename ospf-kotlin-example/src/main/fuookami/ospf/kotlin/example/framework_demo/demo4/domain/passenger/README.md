@@ -30,3 +30,9 @@ Bounded context responsible for passenger domain operations in the flight recove
 
 - **task** — provides `FlightTask`, `FlightTaskBunch`, `PassengerClass`.
 - **bunch_compilation** — provides `FlightCapacity`, `TaskTime`.
+
+## Preparation And Preconditions
+
+Alternative flights are bucketed by departure/arrival once. Amount registration builds an inbound index at the original inbound stage, retaining duplicate passenger occurrences and treating duplicate candidate flights as one membership match. Successor preparation keeps the first equal predecessor match, including branched itineraries. These indices are local to initialization or pipeline invocation, not persistent caches of mutable inputs.
+
+The existing `PassengerAmount` path reads flight-change variables unconditionally. For nonempty passengers, explicitly enable `PassengerChange(withFlightChange = true)` and register it before registering amounts. The default disabled path still fails on uninitialized flight-change variables; this performance change does not silently change that business switch or its failure boundary.

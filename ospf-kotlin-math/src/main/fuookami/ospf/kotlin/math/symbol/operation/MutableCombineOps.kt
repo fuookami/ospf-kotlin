@@ -29,9 +29,7 @@ fun <T : NumberField<T>> MutableLinearPolynomial<T>.combineTerms(
     zero: T,
     isZero: (T) -> Boolean = { it == zero }
 ) {
-    val combinedMonomials = _monomials.combineLinearMonomials(zero, isZero)
-    _monomials.clear()
-    _monomials.addAll(combinedMonomials)
+    replaceMonomials { it.combineLinearMonomials(zero, isZero) }
 }
 
 /**
@@ -47,8 +45,7 @@ fun <T : NumberField<T>> MutableLinearPolynomial<T>.addAssignAndCombine(
     isZero: (T) -> Boolean = { it == zero }
 ) {
     // Add rhs monomials / 添加右侧多项式的单项式
-    _monomials.addAll(rhs.monomials)
-    _constant = _constant + rhs.constant
+    this += rhs
     // Combine / 合并同类项
     this.combineTerms(zero, isZero)
 }
@@ -66,8 +63,7 @@ fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssignAndCombine(
     isZero: (T) -> Boolean = { it == zero }
 ) {
     // Subtract rhs monomials / 减去右侧多项式的单项式
-    _monomials.addAll(rhs.monomials.map { -it })
-    _constant -= rhs.constant
+    this -= rhs
     // Combine / 合并同类项
     this.combineTerms(zero, isZero)
 }

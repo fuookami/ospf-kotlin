@@ -43,6 +43,25 @@ The same registration context exposes `MILP`, `LP` and `FINAL_MILP` stages. Exte
 must keep model-local state keyed by context, since finalization uses a fresh model.
 Removing columns refreshes expressions before removing their tokens.
 
+With the built-in numeric adapters, unchanged historical base-expression terms are
+retained and only new columns are appended. Each refresh still validates historical
+pattern counts, variable bindings and costs because public maps have no mutation
+notifications. Modified history or base expressions causes a rebuild; deletion always
+rebuilds. Extension refresh hooks keep their original order and failure behavior, and
+extension writes are detected before the next update. Arbitrary custom adapters retain
+the original full-refresh phases and reads because conversions may have side effects.
+Both paths construct rebuilt term lists once rather than repeatedly concatenating
+growing immutable polynomials. This does not promise constant-time total addColumns:
+validation, cache invalidation and generated coefficients still have their own cost.
+
+`PatternAssignmentContext.reducedCosts(candidates)` shares a sparse dual-price index
+within one read-only pricing batch. It preserves candidate order, dual-row accumulation
+order and extension contributions. Callers and extensions must not modify the model
+or dual maps during that call. The scalar `reducedCost` overloads remain available for
+independent calls; `refreshShadowPrice` supplies the prices for each new batch.
+The built-in solver uses the batch fast path only without modeling extensions;
+existing extensions retain scalar pricing and its per-candidate state reads.
+
 An `Optimal` result requires both a complete candidate set and an optimal final
 integer solve. Candidate/node limits yield `candidateComplete=false`; an optimal
 restricted pool is reported only as `Feasible`. LP convergence alone does not prove

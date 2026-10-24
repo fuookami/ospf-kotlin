@@ -841,12 +841,13 @@ class TargetFeasibilityAnalyzer(
         integerBound: Int64,
         solution: ConstraintProgrammingSolution
     ): String? {
-        val unknown = solution.values.keys.firstOrNull { snapshot.variable(it) == null }
+        val variables = snapshot.indexVariables()
+        val unknown = solution.values.keys.firstOrNull { it !in variables }
         if (unknown != null) {
             return "见证解包含未知变量：$unknown / witness contains an unknown variable: $unknown"
         }
         val outside = solution.values.entries.firstOrNull { (id, value) ->
-            snapshot.variable(id)?.domain?.contains(value) != true
+            variables[id]?.domain?.contains(value) != true
         }
         if (outside != null) {
             return "见证解超出变量值域：${outside.key} / witness is outside a variable domain: ${outside.key}"

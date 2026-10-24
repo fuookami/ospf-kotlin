@@ -171,6 +171,10 @@ Unmapped variables stay global. `ProjectedColumn` stores decision values, not st
   Ordinary `pricingRequest` requires current phase-specific duals; only explicit `seed = true` permits zero duals.
   Price all blocks against one dual snapshot before batch insertion, and revalidate request versions before accepting certificates
   and registrations before extraction.
+- `preparePricingBatch` prepares ordered requests and extensible local models from one refreshed source snapshot. It only shares
+  synchronous preparation work; after any async pricing/solve, call `requireCurrent(batch)` before accepting its candidates.
+  This check refreshes the source state, so direct model edits are not hidden by revision-only caching. The scalar request/model
+  APIs remain available when an extension needs to customize one block's model.
 
 Callers own local feasibility/integrality, pricing certificates and mathematical row validity. Rebuilding checks current column
 bounds using an explicit tolerance; columns invalidated by tightened bounds must be removed or repriced.

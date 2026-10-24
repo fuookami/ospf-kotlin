@@ -189,10 +189,19 @@ class FlowAggregation<V : RealNumber<V>>(
             relaxationCost += penalty * unused + penalty * unmet
             slackVariables[key] = unused to unmet
         }
+        // 保留原始弧顺序及自环的正负两项，只跳过与节点无关的弧。
+        // Preserve arc order and both self-loop terms, skipping only nonincident arcs.
+        val incidentArcs = mutableMapOf<NetworkNodeId, MutableList<FlowArc<V>>>()
+        for (arc in problem.arcs) {
+            incidentArcs.getOrPut(arc.from) { mutableListOf() }.add(arc)
+            if (arc.to != arc.from) {
+                incidentArcs.getOrPut(arc.to) { mutableListOf() }.add(arc)
+            }
+        }
         for (product in products) {
             for (node in problem.graph.nodes) {
                 var balance = LinearPolynomial()
-                for (arc in problem.arcs) {
+                for (arc in incidentArcs[node.id].orEmpty()) {
                     val expression = expressions[FlowKey(product.commodity.id, arc.networkArc.id)] ?: continue
                     if (arc.from == node.id) balance += expression
                     if (arc.to == node.id) balance -= expression
@@ -230,6 +239,11 @@ class FlowAggregation<V : RealNumber<V>>(
      */
     fun extractSolution(model: AbstractLinearMetaModel<Flt64>): Ret<FlowSolution<V>> {
         if (registeredModel !== model) return networkSchedulingFailure("流模型未注册 / Flow model is not registered")
+        val commodityById = buildMap {
+            for (product in problem.commodities) {
+                putIfAbsent(product.commodity.id, product)
+            }
+        }
         fun evaluate(polynomial: LinearPolynomial<Flt64>): Flt64? {
             var value = polynomial.constant
             for (term in polynomial.monomials) {
@@ -243,7 +257,7 @@ class FlowAggregation<V : RealNumber<V>>(
             val solverValue = model.tokens.find(variable)?.result ?: return networkSchedulingFailure("缺失流量结果：$key / Missing flow result: $key")
             val value = adapter.fromSolverValue(solverValue * stepValues.getValue(key.commodity)).value
                 ?: return networkSchedulingFailure("流量转换失败 / Flow conversion failed")
-            flows[key] = Quantity(value, problem.commodities.first { it.commodity.id == key.commodity }.unit)
+            flows[key] = Quantity(value, commodityById.getValue(key.commodity).unit)
         }
         val utilization = mutableMapOf<String, Quantity<V>>()
         for (row in rows) {
@@ -254,7 +268,7 @@ class FlowAggregation<V : RealNumber<V>>(
         val unused = mutableMapOf<Pair<String, NetworkNodeId>, Quantity<V>>()
         val unmet = mutableMapOf<Pair<String, NetworkNodeId>, Quantity<V>>()
         for ((key, pair) in slackVariables) {
-            val unit = problem.commodities.first { it.commodity.id == key.first }.unit
+            val unit = commodityById.getValue(key.first).unit
             val a = model.tokens.find(pair.first)?.result?.let { adapter.fromSolverValue(it).value }
                 ?: return networkSchedulingFailure("缺失弃供结果 / Missing unused-supply result")
             val b = model.tokens.find(pair.second)?.result?.let { adapter.fromSolverValue(it).value }
@@ -274,9 +288,14 @@ class FlowAggregation<V : RealNumber<V>>(
             ?: return networkSchedulingFailure("罚费用提取失败 / Penalty extraction failed")
         val balances = mutableMapOf<Pair<String, NetworkNodeId>, Quantity<V>>()
         for (product in problem.commodities) {
+            val balanceByNode = buildMap {
+                for (balance in product.commodity.supplyDemands) {
+                    putIfAbsent(balance.nodeId, balance)
+                }
+            }
             for (node in problem.graph.nodes) {
                 val key = product.commodity.id to node.id
-                val balance = product.commodity.supplyDemands.firstOrNull { it.nodeId == node.id }
+                val balance = balanceByNode[node.id]
                 var net = if (balance == null) Flt64.zero else adapter.normalize(balance.net, product.unit).value
                     ?: return networkSchedulingFailure("供需结果换算失败 / Balance result conversion failed")
                 val pair = slackVariables[key]

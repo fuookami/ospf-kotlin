@@ -530,3 +530,10 @@ mvn -pl ospf-kotlin-math -Dtest=FastSumTest test
 - [Value Range 模块](../algebra/value_range/README.md)
 - [MultiArray 模块](../multiarray/README.md)
 - [基准报告](../../benchmark/BENCHMARK_REPORT_TEMPLATE.md)
+
+## 编译后的规范梯度
+
+内置整数共享幂与前后缀积，在编译期以加倍法准备整数倍系数；保留定长整数环绕与大整数精确结果，
+不通过输入除法求导。Flt32/Flt64/FltX 在编译期按原重复加法准备系数，仅共享相同系数的严格左前缀，
+每个偏导保留原浮点乘法次序。浮点后缀工作仍可能随因子数二次增长，不宣称代数重结合。
+自定义 Ring 保留原运行期算术路径。编译开销与求值开销应分别报告；优化针对重复求值闭包。

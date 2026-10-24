@@ -91,3 +91,7 @@ bandwidthContext.construct(model)
 // Analyze results after solving
 val paths = bandwidthContext.analyze(model, solverResult)
 ```
+
+### Preparation and extraction order
+
+Service degree expressions build incoming/outgoing adjacency from the current graph edge list during first initialization, without assuming `Node.edges` is complete. Self-loops, parallel edges and repeated occurrences retain their order. Path extraction indexes selected edges by source, uses a path-local visited set and push/pop buffer, and copies only completed paths; it preserves branch and occurrence order, including the existing initial self-loop behavior. Enumerating all valid paths can still be exponential; no global visited pruning is used. Token lookup retains first matching entity index and the existing positional service lookup for bandwidth variables.

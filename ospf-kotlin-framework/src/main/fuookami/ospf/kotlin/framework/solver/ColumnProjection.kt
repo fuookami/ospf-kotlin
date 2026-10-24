@@ -71,6 +71,25 @@ data class ColumnPricingRequest<V>(
     }
 }
 
+/** 同一已校验投影快照的局部定价请求与模型。 / Pricing request and local model from one validated projection snapshot.
+ * @property request 当前块的定价请求 / Pricing request for this block
+ * @property model 当前块的局部模型 / Local model for this block
+ */
+data class ColumnPricingEntry<V>(
+    val request: ColumnPricingRequest<V>,
+    val model: LinearMetaModel<V>
+) where V : RealNumber<V>, V : NumberField<V>
+
+/** 一次同步准备生成的同源定价批次；异步定价后仍须重新校验。 / Same-source pricing batch prepared synchronously; revalidate after asynchronous pricing.
+ * @property revision 批次共用的源模型及列池版本 / Shared source-model and pool revision
+ * @property entries 按输入块顺序生成的请求与局部模型 / Requests and local models in input block order
+ */
+class ColumnPricingBatch<V> internal constructor(
+    internal val owner: Any,
+    val revision: ColumnProjectionRevision,
+    val entries: List<ColumnPricingEntry<V>>
+) where V : RealNumber<V>, V : NumberField<V>
+
 /** 一次主问题注册的变量、行身份和投影版本。 / Variables, row bindings and projection revision of one master registration.
  * @property model 当前主问题 / Current master
  * @property columnVariables 配置列到当前变量 / Column IDs to model-local variables
@@ -112,6 +131,7 @@ class ColumnProjection<V>(
     private val owner = owners.incrementAndGet()
     private var sequence = 0L
     private var current: LinearModelSnapshot<V>? = null
+    private var projectionIndex: ColumnProjectionIndex<V>? = null
     private var prices: Pair<ColumnProjectionRevision, Map<String, V>>? = null
     private var convexityPrices = emptyMap<String, V>()
     private var active: ColumnMasterRegistration<V>? = null
@@ -145,6 +165,13 @@ class ColumnProjection<V>(
         val variables = snapshot.variables.map { it.variable }.toSet()
         if (decisions.any { it.variable !in variables }) return Failed(ErrorCode.IllegalArgument, "列决策引用未知变量 / Column decision references an unknown variable")
         if (current?.revision != snapshot.revision) prices = null
+        if (projectionIndex?.revision != snapshot.revision) {
+            projectionIndex = ColumnProjectionIndex(
+                decisions = decisions,
+                blockIds = blockIds,
+                snapshot = snapshot
+            )
+        }
         current = snapshot
         return Ok(snapshot)
     }
@@ -173,6 +200,18 @@ class ColumnProjection<V>(
         return if (registration != null) registration.model.state.requireCurrent(registration.modelRevision) else ok
     }
 
+    /** 校验定价批次仍对应当前模型；应在任何异步定价结果被接受前调用。
+     * / Validate that a pricing batch still belongs to the current model before accepting asynchronous results.
+     * @param batch 待消费的定价批次 / Pricing batch to consume
+     * @return freshness 验证结果 / Freshness validation result
+     */
+    suspend fun requireCurrent(batch: ColumnPricingBatch<V>): Try {
+        if (batch.owner !== this || batch.entries.isEmpty() || batch.entries.any { it.request.revision != batch.revision }) {
+            return Failed(ErrorCode.IllegalArgument, "定价批次无效 / Invalid pricing batch")
+        }
+        return requireCurrent(batch.revision)
+    }
+
     /** 同一原始行对配置列的贡献。 / Contribution of the same source row to a column.
      * @param row 原始线性行 / Source linear row
      * @param column 配置列 / Configuration column
@@ -180,8 +219,8 @@ class ColumnProjection<V>(
      * @return 配置列系数 / Column coefficient
      */
     private fun coefficient(row: LinearModelRow<V>, column: ProjectedColumn<V>, excluded: Set<AbstractVariableItem<*, *>> = emptySet()): V {
-        return decisions.filter { it.blockId == column.blockId && it.variable !in excluded }.fold(zero) { total, decision ->
-            total + (row.coefficients[decision.variable] ?: zero) * column.values.getValue(decision.id)
+        return projectionIndex!!.rowTerms.getValue(row.id)[column.blockId].orEmpty().fold(zero) { total, (decision, coefficient) ->
+            if (decision.variable in excluded) total else total + coefficient * column.values.getValue(decision.id)
         }
     }
 
@@ -206,18 +245,20 @@ class ColumnProjection<V>(
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
         }
-        val mapped = decisions.map { it.variable }.toSet()
+        val index = projectionIndex!!
+        val mapped = index.mappedVariables
         if (!tolerance.isFinite() || tolerance < zero) return Failed(ErrorCode.IllegalArgument, "列范围容差无效 / Invalid column-bound tolerance")
         if (!mapped.containsAll(refinedResources) || columns.map { it.id }.distinct().size != columns.size || columns.any { column ->
-                column.id.isBlank() || column.blockId !in blockIds || column.values.keys != decisions.filter { it.blockId == column.blockId }.map { it.id }.toSet() || column.values.values.any { !it.isFinite() }
+                column.id.isBlank() || column.blockId !in blockIds || column.values.keys != index.idsByBlock[column.blockId] || column.values.values.any { !it.isFinite() }
             }) return Failed(ErrorCode.IllegalArgument, "列向量或资源映射无效 / Invalid column vector or resource mapping")
         val bounds = snapshot.variables.associateBy { it.variable }
-        val localRows = blockIds.associateWith { block ->
-            val variables = decisions.filter { it.blockId == block }.map { it.variable }.toSet()
-            snapshot.rows.filter { variables.containsAll(it.coefficients.keys) && it.coefficients.keys.none { variable -> variable in refinedResources } }
+        val localRows = index.localRows.mapValues { (_, rows) ->
+            rows.filter { it.coefficients.keys.none { variable -> variable in refinedResources } }
         }
+        val columnsByBlock = columns.groupBy { it.blockId }
         for (column in columns) {
-            for (decision in decisions.filter { it.blockId == column.blockId && it.variable !in refinedResources }) {
+            for (decision in index.decisionsByBlock[column.blockId].orEmpty()) {
+                if (decision.variable in refinedResources) continue
                 val value = column.values.getValue(decision.id)
                 val state = bounds.getValue(decision.variable)
                 if (state.lowerBound?.let { value < it - tolerance } == true || state.upperBound?.let { value > it + tolerance } == true) {
@@ -273,7 +314,7 @@ class ColumnProjection<V>(
         }
         val convexities = linkedMapOf<String, MathConstraint>()
         for ((index, block) in blockIds.withIndex()) {
-            val lhs = LinearPolynomial(columns.filter { it.blockId == block }.map { LinearMonomial(one, lambdas.getValue(it.id)) }, zero)
+            val lhs = LinearPolynomial(columnsByBlock[block].orEmpty().map { LinearMonomial(one, lambdas.getValue(it.id)) }, zero)
             when (val result = model.addConstraint(relation = LinearInequality(
                 lhs = lhs,
                 rhs = LinearPolynomial(constant = one),
@@ -288,8 +329,8 @@ class ColumnProjection<V>(
         if (!phaseOne) {
             objective += LinearPolynomial(snapshot.objective.filterKeys { it !in mapped || it in refinedResources }.map { LinearMonomial(it.value, it.key) }, zero)
             for (column in columns) {
-                val coefficient = decisions.filter { it.blockId == column.blockId && it.variable !in refinedResources }.fold(zero) { total, decision ->
-                    total + (snapshot.objective[decision.variable] ?: zero) * column.values.getValue(decision.id)
+                val coefficient = index.objectiveTerms[column.blockId].orEmpty().fold(zero) { total, (decision, coefficient) ->
+                    if (decision.variable in refinedResources) total else total + coefficient * column.values.getValue(decision.id)
                 }
                 objective += LinearPolynomial(listOf(LinearMonomial(coefficient, lambdas.getValue(column.id))), zero)
             }
@@ -393,26 +434,35 @@ class ColumnProjection<V>(
         return ok
     }
 
-    /** 从同源行生成当前定价目标；只有种子阶段允许不提供对偶。
-     * / Generate pricing from the same source rows; only seeding permits absent duals.
-     * @param blockId 配置块 / Configuration block
-     * @param phaseOne 是否人工变量阶段 / Whether in artificial feasibility phase
-     * @param seed 是否零对偶种子定价 / Whether pricing seeds with zero duals
-     * @return 带版本定价请求 / Versioned pricing request
-     */
-    suspend fun pricingRequest(blockId: String, phaseOne: Boolean, seed: Boolean = false): Ret<ColumnPricingRequest<V>> {
-        val snapshot = when (val result = snapshot()) { is Ok -> result.value; is Failed -> return Failed(result.error); is Fatal -> return Fatal(result.errors) }
-        if (blockId !in blockIds) return Failed(ErrorCode.IllegalArgument, "未知配置块 / Unknown configuration block")
+    private suspend fun validatePricingState(
+        snapshot: LinearModelSnapshot<V>,
+        phaseOne: Boolean,
+        seed: Boolean
+    ): Try {
         val revision = currentRevision(snapshot)
         if (!seed && prices?.first != revision) return Failed(ErrorCode.IllegalArgument, "定价需要当前注册的对偶 / Pricing requires current-registration duals")
         if (!seed) {
             val registration = active ?: return Failed(ErrorCode.IllegalArgument, "缺少当前主问题 / Missing active master")
             val valid = registration.model.state.requireCurrent(registration.modelRevision)
-            if (valid !is Ok) return when (valid) { is Failed -> Failed(valid.error); is Fatal -> Fatal(valid.errors); else -> Failed(ErrorCode.ApplicationError) }
+            if (valid !is Ok) return when (valid) {
+                is Failed -> Failed(valid.error)
+                is Fatal -> Fatal(valid.errors)
+                else -> Failed(ErrorCode.ApplicationError)
+            }
             if (registration.phaseOne != phaseOne) return Failed(ErrorCode.IllegalArgument, "定价阶段与对偶不一致 / Pricing phase disagrees with dual phase")
         }
+        return ok
+    }
+
+    private fun pricingRequest(
+        snapshot: LinearModelSnapshot<V>,
+        blockId: String,
+        phaseOne: Boolean,
+        seed: Boolean
+    ): Ret<ColumnPricingRequest<V>> {
+        val revision = currentRevision(snapshot)
         val dual = if (seed) emptyMap() else prices!!.second
-        val coefficients = decisions.filter { it.blockId == blockId }.associate { decision ->
+        val coefficients = projectionIndex!!.decisionsByBlock[blockId].orEmpty().associate { decision ->
             var value = if (phaseOne) zero else snapshot.objective[decision.variable] ?: zero
             for (row in snapshot.rows) value -= (dual[row.id] ?: zero) * (row.coefficients[decision.variable] ?: zero)
             decision.id to value
@@ -427,6 +477,113 @@ class ColumnProjection<V>(
         ))
     }
 
+    /** 从同源行生成当前定价目标；只有种子阶段允许不提供对偶。
+     * / Generate pricing from the same source rows; only seeding permits absent duals.
+     * @param blockId 配置块 / Configuration block
+     * @param phaseOne 是否人工变量阶段 / Artificial-variable phase
+     * @param seed 是否零对偶种子定价 / Whether pricing seeds with zero duals
+     * @return 带版本定价请求 / Versioned pricing request
+     */
+    suspend fun pricingRequest(blockId: String, phaseOne: Boolean, seed: Boolean = false): Ret<ColumnPricingRequest<V>> {
+        val snapshot = when (val result = snapshot()) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        if (blockId !in blockIds) return Failed(ErrorCode.IllegalArgument, "未知配置块 / Unknown configuration block")
+        when (val result = validatePricingState(
+            snapshot = snapshot,
+            phaseOne = phaseOne,
+            seed = seed
+        )) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        return pricingRequest(
+            snapshot = snapshot,
+            blockId = blockId,
+            phaseOne = phaseOne,
+            seed = seed
+        )
+    }
+
+    /** 一次刷新后为多个块准备同版本请求和局部模型。
+     * / Refresh once and prepare same-revision requests and local models for multiple blocks.
+     *
+     * 此 API 仅合并同步准备阶段的快照工作；定价可能跨越异步求解边界，调用方必须在接收候选前
+     * 使用 [requireCurrent] 重新完整检查源模型及主问题。局部模型仍可按块追加扩展约束。
+     * This API only shares the synchronous preparation snapshot. Pricing can cross an async solver boundary,
+     * so callers must revalidate the source and master with [requireCurrent] before accepting candidates.
+     * Local models remain extensible with block-specific constraints.
+     *
+     * @param blockIds 按所需输出顺序排列的不同配置块 / Distinct blocks in desired output order
+     * @param phaseOne 是否人工变量阶段 / Artificial-variable phase
+     * @param seed 是否零对偶种子定价 / Whether pricing seeds with zero duals
+     * @return 同一快照下按输入顺序生成的定价批次 / Pricing batch in input order from one snapshot
+     */
+    suspend fun preparePricingBatch(
+        blockIds: List<String>,
+        phaseOne: Boolean,
+        seed: Boolean = false
+    ): Ret<ColumnPricingBatch<V>> {
+        val snapshot = when (val result = snapshot()) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        if (blockIds.isEmpty() || blockIds.distinct().size != blockIds.size) {
+            return Failed(ErrorCode.IllegalArgument, "定价批次必须包含不同配置块 / Pricing batch must contain distinct blocks")
+        }
+        if (blockIds.any { it !in this.blockIds }) return Failed(ErrorCode.IllegalArgument, "未知配置块 / Unknown configuration block")
+        when (val result = validatePricingState(
+            snapshot = snapshot,
+            phaseOne = phaseOne,
+            seed = seed
+        )) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        val index = projectionIndex!!
+        val entries = mutableListOf<ColumnPricingEntry<V>>()
+        for (blockId in blockIds) {
+            val request = when (val result = pricingRequest(
+                snapshot = snapshot,
+                blockId = blockId,
+                phaseOne = phaseOne,
+                seed = seed
+            )) {
+                is Ok -> result.value
+                is Failed -> {
+                    entries.forEach { it.model.close() }
+                    return Failed(result.error)
+                }
+                is Fatal -> {
+                    entries.forEach { it.model.close() }
+                    return Fatal(result.errors)
+                }
+            }
+            val model = when (val result = pricingModel(request, index)) {
+                is Ok -> result.value
+                is Failed -> {
+                    entries.forEach { it.model.close() }
+                    return Failed(result.error)
+                }
+                is Fatal -> {
+                    entries.forEach { it.model.close() }
+                    return Fatal(result.errors)
+                }
+            }
+            entries.add(ColumnPricingEntry(request = request, model = model))
+        }
+        return Ok(ColumnPricingBatch(
+            owner = this,
+            revision = currentRevision(snapshot),
+            entries = entries.toList()
+        ))
+    }
+
     /** 创建局部线性定价模型；只有完全属于当前块的行作为局部硬约束。
      * / Build local linear pricing; only wholly local rows become local hard constraints.
      * @param request 当前定价请求 / Current pricing request
@@ -436,8 +593,12 @@ class ColumnProjection<V>(
         val valid = requireCurrent(request.revision)
         if (valid is Failed) return Failed(valid.error)
         if (valid is Fatal) return Fatal(valid.errors)
-        val local = decisions.filter { it.blockId == request.blockId }
-        if (request.blockId !in blockIds || local.map { it.id }.toSet() != request.coefficients.keys ||
+        return pricingModel(request, projectionIndex!!)
+    }
+
+    private fun pricingModel(request: ColumnPricingRequest<V>, index: ColumnProjectionIndex<V>): Ret<LinearMetaModel<V>> {
+        val local = index.decisionsByBlock[request.blockId].orEmpty()
+        if (request.blockId !in blockIds || index.idsByBlock[request.blockId] != request.coefficients.keys ||
             request.coefficients.values.any { !it.isFinite() } || !request.convexityPrice.isFinite()) {
             return Failed(ErrorCode.IllegalArgument, "定价请求结构无效 / Invalid pricing-request structure")
         }
@@ -445,12 +606,17 @@ class ColumnProjection<V>(
         for (decision in local) {
             when (val result = model.add(decision.variable)) {
                 is Ok -> {}
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
+                is Failed -> {
+                    model.close()
+                    return Failed(result.error)
+                }
+                is Fatal -> {
+                    model.close()
+                    return Fatal(result.errors)
+                }
             }
         }
-        val variables = local.map { it.variable }.toSet()
-        for (row in current!!.rows.filter { variables.containsAll(it.coefficients.keys) }) {
+        for (row in index.localRows.getValue(request.blockId)) {
             val relation = LinearInequality(
                 lhs = LinearPolynomial(row.coefficients.map { LinearMonomial(it.value, it.key) }, zero),
                 rhs = LinearPolynomial(constant = row.rhs),
@@ -458,15 +624,27 @@ class ColumnProjection<V>(
             )
             when (val result = model.addConstraint(relation = relation, name = row.id)) {
                 is Ok -> {}
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
+                is Failed -> {
+                    model.close()
+                    return Failed(result.error)
+                }
+                is Fatal -> {
+                    model.close()
+                    return Fatal(result.errors)
+                }
             }
         }
         val objective = LinearPolynomial(local.map { LinearMonomial(request.coefficients.getValue(it.id), it.variable) }, -request.convexityPrice)
         when (val result = model.minimize(objective)) {
             is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
+            is Failed -> {
+                model.close()
+                return Failed(result.error)
+            }
+            is Fatal -> {
+                model.close()
+                return Fatal(result.errors)
+            }
         }
         return Ok(model)
     }
@@ -489,14 +667,16 @@ class ColumnProjection<V>(
             return Failed(ErrorCode.IllegalArgument, "主问题解向量不完整或非有限 / Incomplete or nonfinite master solution")
         }
         fun value(variable: AbstractVariableItem<*, *>): V? = registration.model.tokens.indexOf(variable)?.let { values.getOrNull(it) }
-        val mapped = decisions.map { it.variable }.toSet()
+        val index = projectionIndex!!
+        val mapped = index.mappedVariables
         val full = linkedMapOf<AbstractVariableItem<*, *>, V>()
         for (state in current!!.variables.filter { it.variable !in mapped || it.variable in registration.refinedResources }) {
             full[state.variable] = value(state.variable) ?: return Failed(ErrorCode.DataNotFound, "缺少全局变量值 / Missing global variable value")
         }
+        val columnsByBlock = registration.columns.groupBy { it.blockId }
         for (block in blockIds) {
             val selected = arrayListOf<ProjectedColumn<V>>()
-            for (column in registration.columns.filter { it.blockId == block }) {
+            for (column in columnsByBlock[block].orEmpty()) {
                 val amount = value(registration.columnVariables.getValue(column.id))
                     ?: return Failed(ErrorCode.DataNotFound, "缺少列选择变量值 / Missing column-selection value")
                 when {
@@ -506,7 +686,8 @@ class ColumnProjection<V>(
                 }
             }
             if (selected.size != 1) return Failed(ErrorCode.IllegalArgument, "每个配置块必须恰选一列 / Each configuration block must select exactly one column")
-            for (decision in decisions.filter { it.blockId == block && it.variable !in registration.refinedResources }) {
+            for (decision in index.decisionsByBlock[block].orEmpty()) {
+                if (decision.variable in registration.refinedResources) continue
                 full[decision.variable] = selected.single().values.getValue(decision.id)
             }
         }

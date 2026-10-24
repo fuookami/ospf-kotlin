@@ -123,7 +123,9 @@ class PrimeCache {
             if (limit > current) {
                 extendSieve(limit)
             }
-            return primes.filter { it <= limit }
+            val index = primes.binarySearch(limit)
+            val end = if (index >= 0) index + 1 else -index - 1
+            return primes.subList(0, end).toList()
         }
     }
 
@@ -140,7 +142,9 @@ class PrimeCache {
         synchronized(lock) {
             if (num > current) {
                 if (num <= UInt64(1000000UL)) {
-                    extendSieve(num)
+                    // 几何扩容避免连续素性查询逐整数复制整张筛表。
+                    // Grow geometrically so consecutive primality checks do not copy the sieve per integer.
+                    extendSieve(maxOf(num, minOf(current * UInt64.two, UInt64(1000000UL))))
                     return isPrime[num.toInt()]
                 } else {
                     return isPrimeQuickCheck(num)
@@ -272,6 +276,9 @@ fun <I> getPrimesImpl(num: I, constants: RealNumberConstants<I>): List<I> where 
     while (current <= num) {
         if (isPrime(current)) {
             primes.add(current)
+        }
+        if (current == num) {
+            break
         }
         current += constants.one
     }

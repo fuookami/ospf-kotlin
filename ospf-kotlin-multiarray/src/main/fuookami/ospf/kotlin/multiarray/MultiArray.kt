@@ -85,7 +85,7 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
     */
     protected fun init(ctor: (Int, IntArray) -> @UnsafeVariance T) {
         if (!::list.isInitialized) {
-            list = (0..<shape.size).map { ctor(it, shape.vectorUnchecked(it)) }.toMutableList()
+            list = MutableList(shape.size) { ctor(it, shape.vectorUnchecked(it)) }
         }
     }
 
@@ -239,9 +239,7 @@ open class MultiArray<out T : Any, S : Shape>(
                 String::class -> "" as T
                 else -> return null
             }
-            return MultiArray(shape) { _, _ ->
-                defaultValue
-            }
+            return newWith(shape, defaultValue)
         }
 
         /**
@@ -274,7 +272,9 @@ open class MultiArray<out T : Any, S : Shape>(
          * @return 使用指定值填充的多维数组 / Multi-array filled with specified value
         */
         fun <T : Any, S : Shape> newWith(shape: S, value: T): MultiArray<T, S> {
-            return MultiArray(shape) { _, _ -> value }
+            return MultiArray<T, S>(shape).also { array ->
+                array.list = MutableList(shape.size) { value }
+            }
         }
 
         /**
@@ -390,9 +390,7 @@ open class MutableMultiArray<T : Any, S : Shape>(
                 String::class -> "" as T
                 else -> return null
             }
-            return MutableMultiArray(shape) { _, _ ->
-                defaultValue
-            }
+            return newWith(shape, defaultValue)
         }
 
         /**
@@ -425,7 +423,9 @@ open class MutableMultiArray<T : Any, S : Shape>(
          * @return 使用指定值填充的可变多维数组 / Mutable multi-array filled with specified value
         */
         fun <T : Any, S : Shape> newWith(shape: S, value: T): MutableMultiArray<T, S> {
-            return MutableMultiArray(shape) { _, _ -> value }
+            return MutableMultiArray<T, S>(shape).also { array ->
+                array.list = MutableList(shape.size) { value }
+            }
         }
 
         /**

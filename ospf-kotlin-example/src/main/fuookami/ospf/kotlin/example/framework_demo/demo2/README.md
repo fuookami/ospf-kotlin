@@ -179,3 +179,9 @@ For isolated verification without unrelated example modules:
 mvn -B -ntp -pl ospf-kotlin-example -am test -Pdemo2-only '-Dospf.demo2.isolated=true' -T 0.75C *> "$env:TEMP/demo2-tests.log"
 mvn -B -ntp -pl ospf-kotlin-example -am test -Pdemo2-gurobi-e2e '-Dospf.demo2.isolated=true' -T 0.75C *> "$env:TEMP/demo2-gurobi.log"
 ```
+
+### Pair preparation
+
+Sequential, express-priority and item-order preparation sort each input once and enumerate ordered suffixes without copying them. Registration uses operation-local first-occurrence indices, preserving the original `indexOf` behavior for equal entries and reading current lists when an expression is first initialized. Priority-order ranks intentionally retain the original last-rank behavior for equal positions. Pair output and matrix terms still have their inherent quadratic/product cost; these changes remove repeated sorting and searching, not required output.
+
+Trailer-change and divide-empty preparation classify items once per group and reuse position-local amount expressions within each initialization stage. `Load.itemIndicesOf` and `loadAmountsOf` expose explicit batch preparation: indices retain their order and duplicates and must be rebuilt after item-list structural changes. The original predicate-based `loadAmountOf` still evaluates its predicate on every call; no lambda or cross-registration cache is introduced.

@@ -149,9 +149,10 @@ fun Collection<IntermediateSymbol<*>>.register(
     } else {
         tokenTable
     }
+    // 判空不转换所有系数；求解器转换仍在 prepare 后执行，避免复用过期多项式。 / Inspect emptiness without converting all coefficients; solver conversion stays after prepare to avoid stale polynomials.
     val (emptySymbols, notEmptySymbols) = this@register.partition {
-        it !is MathFunctionSymbolBase<*> && it is LinearIntermediateSymbol<*> && it.solverFlattenedMonomials.run {
-            monomials.isEmpty() && constant eq Flt64.zero
+        it !is MathFunctionSymbolBase<*> && it is LinearIntermediateSymbol<*> && it.toLinearPolynomial().run {
+            monomials.isEmpty() && constant.toFlt64() eq Flt64.zero
         }
     }
     tokenTable.cache(emptySymbols.associateWith { Flt64.zero }.mapKeys { it.key as IntermediateSymbol<*> })
@@ -165,7 +166,7 @@ fun Collection<IntermediateSymbol<*>>.register(
             totalSymbolAmount = tokenTable.symbols.usize
         )
     )
-    var dependencies = notEmptySymbols.associateWith { symbol ->
+    val dependencies = notEmptySymbols.associateWith { symbol ->
         symbol.dependencies.filter { dependency ->
             dependency !in completedSymbols
         }.toMutableSet()
@@ -173,9 +174,7 @@ fun Collection<IntermediateSymbol<*>>.register(
     for ((symbol, deps) in dependencies) {
         tokenTable.addSymbolWithDependencies(symbol, deps)
     }
-    var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
-    dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
-    while (readySymbols.isNotEmpty()) {
+    for (readySymbols in buildDependencyLayers(dependencies)) {
         for (symbol in readySymbols) {
             // 为函数符号注册辅助 token；函数约束由 MetaModel/MechanismModel 注册，不属于 token 注册阶段。
             // Register auxiliary tokens for function symbols; function constraints are registered by MetaModel/MechanismModel, not this phase.
@@ -203,18 +202,6 @@ fun Collection<IntermediateSymbol<*>>.register(
         )
 
         completedSymbols.addAll(readySymbols)
-        val newReadySymbols = dependencies.filter {
-            !completedSymbols.contains(it.key) && it.value.all { dependency ->
-                completedSymbols.contains(
-                    dependency
-                )
-            }
-        }.keys.toSet()
-        dependencies = dependencies.filter { !newReadySymbols.contains(it.key) }
-        for ((_, dependency) in dependencies) {
-            dependency.removeAll(readySymbols)
-        }
-        readySymbols = newReadySymbols
         MemoryCleanupPolicy.cleanupAfterBatch()
     }
 
@@ -246,9 +233,10 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
         } else {
             tokenTable
         }
+        // 判空不转换所有系数，缓存阶段再做边界转换。 / Inspect emptiness without converting all coefficients; convert at the cache boundary.
         val (emptySymbols, notEmptySymbols) = this@register.partition {
-            it !is MathFunctionSymbolBase<*> && it is LinearIntermediateSymbol<*> && it.solverFlattenedMonomials.run {
-                monomials.isEmpty() && constant eq Flt64.zero
+            it !is MathFunctionSymbolBase<*> && it is LinearIntermediateSymbol<*> && it.toLinearPolynomial().run {
+                monomials.isEmpty() && constant.toFlt64() eq Flt64.zero
             }
         }
         tokenTable.cache(emptySymbols.associateWith { Flt64.zero }.mapKeys { it.key as IntermediateSymbol<*> })
@@ -262,7 +250,7 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
                 totalSymbolAmount = tokenTable.symbols.usize
             )
         )
-        var dependencies = notEmptySymbols.associateWith { symbol ->
+        val dependencies = notEmptySymbols.associateWith { symbol ->
             symbol.dependencies.filter { dependency ->
                 dependency !in completedSymbols
             }.toMutableSet()
@@ -270,9 +258,7 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
         for ((symbol, deps) in dependencies) {
             tokenTable.addSymbolWithDependencies(symbol, deps)
         }
-        var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
-        dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
-        while (readySymbols.isNotEmpty()) {
+        for (readySymbols in buildDependencyLayers(dependencies)) {
             for (symbol in readySymbols) {
                 // 为函数符号注册辅助 token；函数约束由 MetaModel/MechanismModel 注册，不属于 token 注册阶段。
                 // Register auxiliary tokens for function symbols; function constraints are registered by MetaModel/MechanismModel, not this phase.
@@ -355,18 +341,6 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
                 }
 
                 completedSymbols.addAll(readySymbols)
-                val newReadySymbols = dependencies.filter {
-                    !completedSymbols.contains(it.key) && it.value.all { dependency ->
-                        completedSymbols.contains(
-                            dependency
-                        )
-                    }
-                }.keys.toSet()
-                dependencies = dependencies.filter { !newReadySymbols.contains(it.key) }
-                for ((_, dependency) in dependencies) {
-                    dependency.removeAll(readySymbols)
-                }
-                readySymbols = newReadySymbols
                 jobs.joinAll()
                 MemoryCleanupPolicy.cleanupAfterBatch()
             } else {
@@ -386,18 +360,6 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
                 )
 
                 completedSymbols.addAll(readySymbols)
-                val newReadySymbols = dependencies.filter {
-                    !completedSymbols.contains(it.key) && it.value.all { dependency ->
-                        completedSymbols.contains(
-                            dependency
-                        )
-                    }
-                }.keys.toSet()
-                dependencies = dependencies.filter { !newReadySymbols.contains(it.key) }
-                for ((_, dependency) in dependencies) {
-                    dependency.removeAll(readySymbols)
-                }
-                readySymbols = newReadySymbols
                 MemoryCleanupPolicy.cleanupAfterBatch()
             }
         }

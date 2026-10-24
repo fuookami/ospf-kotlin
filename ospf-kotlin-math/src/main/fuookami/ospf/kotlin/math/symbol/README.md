@@ -523,6 +523,17 @@ mvn -pl ospf-kotlin-math -Dtest=SerializationTest,PolynomialTest,MutableCombineT
 mvn -pl ospf-kotlin-math -Dtest=FastSumTest test
 ```
 
+## Compiled Canonical Gradients
+
+For built-in integer types, compiled gradients share powers and prefix/suffix products,
+with logarithmic integer scaling prepared at compilation. Fixed-width wraparound and
+arbitrary-precision integer results are retained without dividing by inputs. Flt32/Flt64/FltX
+prepare repeated-addition coefficients at compilation and share only identical strict left
+prefixes: each derivative keeps its original floating-point multiplication order. Floating
+suffix work can still be quadratic in factor count; this is not algebraic reassociation.
+Custom Ring implementations retain the original runtime arithmetic path. Compilation cost
+and evaluation cost must be reported separately; these changes target repeatedly evaluated closures.
+
 ## Related
 
 - [Main README](../README.md)

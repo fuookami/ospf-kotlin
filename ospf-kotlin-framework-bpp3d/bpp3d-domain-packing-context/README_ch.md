@@ -33,8 +33,10 @@
 | `MaterialPackingSolverExecutor` | 物料装箱的求解器执行策略。 |
 | `ExhaustiveMaterialPackingSolverExecutor` | 穷举搜索策略，尝试所有物料装箱组合。 |
 | `PackingGeometryContract` | 几何契约，定义长方体和圆柱装箱的能力路径。 |
-| `PackingGeometryGuard` | 守卫，针对真实圆柱形状验证装箱几何（重叠、包含、支撑）。 |
+| `PackingGeometryGuard` | 守卫，针对真实圆柱形状验证装箱几何（重叠、包含、支撑）；保守扫掠 broad-phase 只剪枝非圆柱 pair，再调用精确重叠 predicate。 |
 | `PackingRendererAdapter` | 将装箱结果转换为渲染器 DTO 输出的适配器。 |
+
+重叠 broad-phase 只扫掠非圆柱 pair 已捕获的端点；任何包含 `CylinderPackingShape3` 的 pair 始终保留并执行精确检查。只有所选坐标轴上的保守扩展范围不相交时，才会排除非圆柱 pair；报告前会恢复候选 pair 的原始顺序。自定义非圆柱 `PackingShape3` 直接复用已捕获端点，不会再次读取形状 getter。物品数较少、候选过密或数值范围存在风险时会回退穷举检查。数值边界和误差分析记录在临时 F19 设计说明中。
 
 ## 依赖
 

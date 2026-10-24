@@ -18,6 +18,45 @@ import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
+private fun Shape.hasCanonicalReductionIndexing(): Boolean {
+    if (this !is Shape1 && this !is Shape2 && this !is Shape3 && this !is Shape4 && this !is DynShape) {
+        return false
+    }
+    var stride = 1
+    val axes = if (storageOrder == StorageOrder.RowMajor) (dimension - 1 downTo 0) else (0 until dimension)
+    for (axis in axes) {
+        if (offsets[axis] != stride) return false
+        stride *= this[axis]
+    }
+    return true
+}
+
+private fun <T : Ring<T>> AbstractMultiArray<T, *>.sumCanonicalAxes(
+    removedAxes: Set<Int>,
+    dimensions: IntArray,
+    result: MutableMultiArray<T, DynShape>
+) {
+    val coordinates = IntArray(dimensions.size)
+    var retainedAxis = 0
+    val outputStrides = IntArray(dimensions.size) { axis ->
+        if (axis in removedAxes) 0 else result.shape.offsets[retainedAxis++]
+    }
+    val carryAxes = if (shape.storageOrder == StorageOrder.RowMajor) dimensions.indices.reversed() else dimensions.indices
+    var outputIndex = 0
+    // 保留原始线性遍历和每组左折叠，只用进位更新目标地址。
+    // Retain source-linear traversal and each group's left fold; update output addresses with carries only.
+    for (linearIndex in 0 until size) {
+        result[outputIndex] = result[outputIndex] + this[linearIndex]
+        for (axis in carryAxes) {
+            ++coordinates[axis]
+            outputIndex += outputStrides[axis]
+            if (coordinates[axis] < dimensions[axis]) break
+            coordinates[axis] = 0
+            outputIndex -= dimensions[axis] * outputStrides[axis]
+        }
+    }
+}
+
 // ============================================================================
 // FastSum - High-performance summation for MultiArray
 // ============================================================================
@@ -82,6 +121,15 @@ fun <T> AbstractMultiArray<T, *>.sumAxisSafe(axis: Int, zero: T): Ret<MultiArray
 
     // Create mutable result array for accumulation / 创建可变结果数组用于累加
     val result = MutableMultiArray.newWith(newShape, zero)
+
+    if (shape.hasCanonicalReductionIndexing()) {
+        sumCanonicalAxes(
+            removedAxes = setOf(axis),
+            dimensions = currentShape,
+            result = result
+        )
+        return Ok(result.toImmutable())
+    }
 
     // Iterate all elements and accumulate to result / 遍历所有元素并累加到结果
     for (linearIdx in 0 until size) {
@@ -149,6 +197,15 @@ fun <T> AbstractMultiArray<T, *>.sumAxesSafe(axes: IntArray, zero: T): Ret<Multi
     // Create mutable result array for accumulation / 创建可变结果数组用于累加
     val result = MutableMultiArray.newWith(newShape, zero)
 
+    if (shape.hasCanonicalReductionIndexing()) {
+        sumCanonicalAxes(
+            removedAxes = axesSet,
+            dimensions = currentShape,
+            result = result
+        )
+        return Ok(result.toImmutable())
+    }
+
     // Iterate all elements and accumulate to result / 遍历所有元素并累加到结果
     for (linearIdx in 0 until size) {
         val vector = when (val result = shape.vector(linearIdx)) {
@@ -203,6 +260,18 @@ fun <T> AbstractMultiArray<T, *>.cumsumAxisSafe(axis: Int, zero: T): Ret<MultiAr
     // Create mutable result array (same shape) / 创建可变结果数组（相同形状）
     val newShape = DynShape(currentShape)
     val result = MutableMultiArray.newWith(newShape, zero)
+
+    if (shape.hasCanonicalReductionIndexing()) {
+        val axisStride = shape.offsets[axis]
+        for (linearIndex in 0 until size) {
+            result[linearIndex] = if ((linearIndex / axisStride) % currentShape[axis] == 0) {
+                this[linearIndex]
+            } else {
+                result[linearIndex - axisStride] + this[linearIndex]
+            }
+        }
+        return Ok(result.toImmutable())
+    }
 
     // For each "slice" along other dimensions, compute cumulative sum / 对每个切片沿指定轴计算累积和
     for (linearIdx in 0 until size) {

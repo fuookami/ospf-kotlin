@@ -6,6 +6,11 @@ Column-generation master problem for the gantt-scheduling framework. Handles bun
 
 ## Key Types
 
+`BunchCompilation.addColumns` builds task/executor membership buckets once per new
+batch. Standard bunches use their existing task-key membership; subclasses retain
+their overridden `contains` predicate. Stable bunch order, repeated task occurrences
+and incremental variable groups are unchanged.
+
 | Type | Description |
 |------|-------------|
 | `BunchCompilation` | Compilation context for bunch-level decisions |

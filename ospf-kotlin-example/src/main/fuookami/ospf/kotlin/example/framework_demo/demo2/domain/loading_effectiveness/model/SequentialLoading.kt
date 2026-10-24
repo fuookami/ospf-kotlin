@@ -47,20 +47,12 @@ class SequentialLoading(
             orderedPositions: List<PositionPair>,
             stowage: Stowage
         ): SequentialLoading {
-            val orderedItems = items
+            val sortedItems = items
                 .filter { it.order?.order != null }
                 .sortedWith(compareBy<Item> { it.order!!.order!! }.thenBy { it.id })
-                .flatMapIndexed { index, item ->
-                    items
-                        .filter { it.order?.order != null }
-                        .sortedWith(compareBy<Item> { it.order!!.order!! }.thenBy { it.id })
-                        .drop(index + 1)
-                        .mapNotNull { other ->
-                            (item to other).takeIf {
-                                item.order!!.order!! < other.order!!.order!!
-                            }
-                        }
-                }
+            val orderedItems = orderedPairs(sortedItems) { item, other ->
+                item.order!!.order!! < other.order!!.order!!
+            }
 
             return SequentialLoading(
                 items = items,
@@ -85,13 +77,15 @@ class SequentialLoading(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::itemOrderReverse.isInitialized) {
+            val itemIndices = firstOccurrenceIndices(items)
+            val positionIndices = firstOccurrenceIndices(positions)
             itemOrderReverse = LinearIntermediateSymbols2<Flt64>("item_order_reverse", Shape2(orderedItems.size, orderedPositions.size)) { _, v ->
                 val (item1, item2) = orderedItems[v[0]]
-                val i1 = items.indexOf(item1)
-                val i2 = items.indexOf(item2)
+                val i1 = itemIndices[item1] ?: -1
+                val i2 = itemIndices[item2] ?: -1
                 val (position1, position2) = orderedPositions[v[1]]
-                val j1 = positions.indexOf(position1)
-                val j2 = positions.indexOf(position2)
+                val j1 = positionIndices[position1] ?: -1
+                val j2 = positionIndices[position2] ?: -1
 
                 if (Stowage.stowageNeeded(item2, position1) && Stowage.stowageNeeded(item1, position2)) {
                     LinearFunctionSymbolAdapter(

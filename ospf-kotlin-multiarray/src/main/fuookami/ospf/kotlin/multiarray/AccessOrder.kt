@@ -362,9 +362,33 @@ fun <T : Any, S : Shape> MultiArrayView<T, S>.iterWithOrder(
 fun <T : Any, S : Shape> AbstractMultiArray<T, S>.iterWithOrder(
     accessOrder: AccessOrder = AccessOrder.Default
 ): Sequence<T> = sequence {
-    for (vec in shape.iterate(accessOrder)) {
-        yield(this@iterWithOrder[vec])
+    val canonicalShape = shape.hasCanonicalTraversalIndexing()
+    val matchingOrder = (accessOrder == AccessOrder.RowMajor && shape.storageOrder == StorageOrder.RowMajor) ||
+        (accessOrder == AccessOrder.ColumnMajor && shape.storageOrder == StorageOrder.ColumnMajor)
+    if (canonicalShape && matchingOrder) {
+        // 内置同序形状无需坐标往返；自定义形状和视图仍保留原索引扩展行为。
+        // Built-in matching-order shapes need no coordinate round trip; custom shapes and views retain indexing behavior.
+        for (index in 0 until size) {
+            yield(this@iterWithOrder[index])
+        }
+    } else {
+        for (vec in shape.iterate(accessOrder)) {
+            yield(this@iterWithOrder[vec])
+        }
     }
+}
+
+private fun Shape.hasCanonicalTraversalIndexing(): Boolean {
+    if (this !is Shape1 && this !is Shape2 && this !is Shape3 && this !is Shape4 && this !is DynShape) {
+        return false
+    }
+    var stride = 1
+    val axes = if (storageOrder == StorageOrder.RowMajor) (dimension - 1 downTo 0) else (0 until dimension)
+    for (axis in axes) {
+        if (offsets[axis] != stride) return false
+        stride *= this[axis]
+    }
+    return true
 }
 
 /**

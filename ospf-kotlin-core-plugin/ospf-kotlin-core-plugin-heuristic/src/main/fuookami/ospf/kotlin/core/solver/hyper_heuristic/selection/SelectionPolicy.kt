@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.solver.hyper_heuristic.selection
 
+import java.util.Collections
 import kotlin.math.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
@@ -168,7 +169,7 @@ interface PolicyCarrier {
  */
 class TabularSelectionPolicy(
     val type: String,
-    val actions: List<String>,
+    actions: List<String>,
     val learning: Boolean = true,
     val epsilon: Double = 0.1,
     val alpha: Double = 0.5,
@@ -176,6 +177,12 @@ class TabularSelectionPolicy(
     val states: Int = 64,
     val stagnationLimit: Long = 10
 ) : SelectionPolicy {
+    val actions: List<String> = Collections.unmodifiableList(actions.toList())
+    private val actionIndices = buildMap {
+        for ((index, action) in this@TabularSelectionPolicy.actions.withIndex()) {
+            putIfAbsent(action, index)
+        }
+    }
     override val stateCount: Int get() = states
 
     override var revision: Long = 0
@@ -200,15 +207,16 @@ class TabularSelectionPolicy(
         available: List<String>,
         random: SearchRandom
     ): Ret<String> {
-        if (available.isEmpty() || available.distinct().size != available.size || available.any { it !in actions }) return searchInvalid("empty or invalid action mask")
+        if (available.isEmpty() || available.distinct().size != available.size || available.any { it !in actionIndices }) return searchInvalid("empty or invalid action mask")
         if (context.state !in 0 until states || context.features.any { !it.toDouble().isFinite() }) return searchInvalid("invalid selection state")
-        val indices = available.map { actions.indexOf(it) }
+        val indices = available.map { actionIndices.getValue(it) }
         fun randomIndex(): Int = indices[(random().toDouble() * indices.size).toInt().coerceIn(indices.indices)]
         val index = when (type) {
             "random" -> randomIndex()
             "fixed", "round-robin" -> {
                 val start = (cursor % actions.size).toInt()
-                val chosen = (0 until actions.size).map { (start + it) % actions.size }.first { it in indices }
+                val mask = indices.toHashSet()
+                val chosen = (0 until actions.size).asSequence().map { (start + it) % actions.size }.first { it in mask }
                 cursor = chosen.toLong() + 1
                 chosen
             }
@@ -230,10 +238,10 @@ class TabularSelectionPolicy(
     private fun mean(index: Int): Double = if (counts[index] == 0L) 0.0 else sums[index] / counts[index]
 
     override fun observe(transition: SelectionTransition): Try {
-        val index = actions.indexOf(transition.action)
-        if (index < 0 || transition.action !in transition.available || !transition.reward.toDouble().isFinite() || transition.evaluations < 0 ||
+        val index = actionIndices[transition.action] ?: return searchInvalid("invalid observed transition")
+        if (transition.action !in transition.available || !transition.reward.toDouble().isFinite() || transition.evaluations < 0 ||
             transition.before.state !in 0 until states || transition.after.state !in 0 until states ||
-            transition.available.any { it !in actions } || transition.nextAvailable.any { it !in actions }) return searchInvalid("invalid observed transition")
+            transition.available.any { it !in actionIndices } || transition.nextAvailable.any { it !in actionIndices }) return searchInvalid("invalid observed transition")
         if (!learning) return ok
         if (type == "q-learning") {
             val result = table.update(
@@ -244,7 +252,7 @@ class TabularSelectionPolicy(
                 alpha = Flt64(alpha),
                 gamma = Flt64(gamma),
                 terminal = transition.terminal,
-                availableActions = transition.nextAvailable.map { actions.indexOf(it) }
+                availableActions = transition.nextAvailable.map { actionIndices.getValue(it) }
             )
             if (result !is Ok) return result.map { success }
         }
@@ -259,7 +267,7 @@ class TabularSelectionPolicy(
     override fun snapshot(): PolicySnapshot {
         return PolicySnapshot(
             type = type,
-            actions = actions,
+            actions = actions.toList(),
             revision = revision,
             cursor = cursor,
             counts = counts.toList(),
@@ -273,7 +281,8 @@ class TabularSelectionPolicy(
             snapshot.actions.size != actions.size || snapshot.revision < 0 || snapshot.cursor < 0 ||
             snapshot.counts.size != actions.size || snapshot.sums.size != actions.size ||
             snapshot.counts.any { it < 0 } || snapshot.sums.any { !it.isFinite() }) return searchInvalid("incompatible policy snapshot")
-        val permutation = actions.map { snapshot.actions.indexOf(it) }
+        val snapshotIndices = snapshot.actions.withIndex().associate { it.value to it.index }
+        val permutation = actions.map { snapshotIndices.getValue(it) }
         if (type == "q-learning") {
             if (snapshot.table.size != states || snapshot.table.any { it.size != actions.size }) return searchInvalid("incompatible Q table")
             val result = table.restore(snapshot.table.map { row -> permutation.map { Flt64(row[it]) } })

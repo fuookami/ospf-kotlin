@@ -40,30 +40,16 @@ class ItemOrderLimit(
             stowage: Stowage,
             name: String = "item_order_limit"
         ): ItemOrderLimit {
-            val orderedItems = items
+            val sortedItems = items
                 .sortedWith(compareByDescending<Item> { it.cargo.priority.priority }.thenBy { it.id })
-                .flatMapIndexed { index, item ->
-                    items
-                        .sortedWith(compareByDescending<Item> { it.cargo.priority.priority }.thenBy { it.id })
-                        .drop(index + 1)
-                        .mapNotNull { other ->
-                            (item to other).takeIf {
-                                item.cargo.priority.priority > other.cargo.priority.priority
-                            }
-                        }
-                }
-            val orderedPositions = positions
+            val orderedItems = orderedPairs(sortedItems) { item, other ->
+                item.cargo.priority.priority > other.cargo.priority.priority
+            }
+            val sortedPositions = positions
                 .sortedWith(compareBy<Position> { it.loadingOrder.order }.thenBy { it.id.toString() })
-                .flatMapIndexed { index, position ->
-                    positions
-                        .sortedWith(compareBy<Position> { it.loadingOrder.order }.thenBy { it.id.toString() })
-                        .drop(index + 1)
-                        .mapNotNull { other ->
-                            (position to other).takeIf {
-                                position.loadingOrder.order < other.loadingOrder.order
-                            }
-                        }
-                }
+            val orderedPositions = orderedPairs(sortedPositions) { position, other ->
+                position.loadingOrder.order < other.loadingOrder.order
+            }
 
             return ItemOrderLimit(
                 items = items,
@@ -77,13 +63,15 @@ class ItemOrderLimit(
     }
 
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
+        val itemIndices = firstOccurrenceIndices(items)
+        val positionIndices = firstOccurrenceIndices(positions)
         for ((item1, item2) in orderedItems) {
-            val i1 = items.indexOf(item1)
-            val i2 = items.indexOf(item2)
+            val i1 = itemIndices[item1] ?: -1
+            val i2 = itemIndices[item2] ?: -1
 
             for ((position1, position2) in orderedPositions) {
-                val j1 = positions.indexOf(position1)
-                val j2 = positions.indexOf(position2)
+                val j1 = positionIndices[position1] ?: -1
+                val j2 = positionIndices[position2] ?: -1
 
                 if (Stowage.stowageNeeded(item1, position2) && Stowage.stowageNeeded(item2, position1)) {
                     when (val result = model.addConstraint(

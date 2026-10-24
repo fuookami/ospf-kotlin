@@ -62,6 +62,38 @@ class PartitionLoadingTest {
     }
 
     @Test
+    fun `pricing buckets retain empty uniqueness rows layout order and mutable assignment visibility`(): Unit = runBlocking {
+        val registered = registration()
+        val context = assertIs<Ok<PartitionLoadingContext<Flt64>, *, *>>(PartitionLoadingContext.create(
+            registered.context, registered.model, partitions
+        )).value
+        registered.context.aggregation.assignments.remove(AssignmentKey("one", "big"))
+        for (partition in partitions) {
+            val pricing = assertIs<Ok<LinearMetaModel<Flt64>, *, *>>(context.pricingModel(request(context, partition.id, true))).value
+            pricing.use { model ->
+                val snapshot = assertIs<Ok<LinearModelSnapshot<Flt64>, *, *>>(model.state.refresh()).value
+                for (item in registered.context.problem.items) {
+                    val row = snapshot.rows.single { it.sourceName == "local_unique_${item.id}" }
+                    val expected = registered.context.aggregation.assignments.filterKeys {
+                        it.itemId == item.id && it.positionId in partition.positionIds
+                    }.values.associateWith { Flt64.one }
+                    assertEquals<Any>(expected, row.coefficients)
+                }
+                val choice = snapshot.rows.single { it.sourceName == "local_layout_choose_0" }
+                val layouts = choice.coefficients.keys.sortedBy { it.name }
+                assertEquals(2, layouts.size)
+                for (position in partition.positionIds) {
+                    val row = snapshot.rows.single { it.sourceName == "local_layout_0_$position" }
+                    assertEquals(Flt64.one, row.coefficients[registered.context.aggregation.occupied.getValue(position)])
+                    for ((index, layout) in registered.context.problem.layoutGroups.single().layouts.withIndex()) {
+                        assertEquals(if (position in layout.positionIds) -Flt64.one else Flt64.zero, row.coefficients[layouts[index]] ?: Flt64.zero)
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun `partition combinations match sparse MILP with cross partition overlap layouts uniqueness and fixed cargo`(): Unit = runBlocking {
         val solver = EnumerationSolver()
         for (fixed in listOf(false, true)) {
@@ -121,6 +153,101 @@ class PartitionLoadingTest {
         assertEquals("Feasible", result.loading.status)
         assertFalse(result.lpConverged)
         assertEquals(2, result.columnCount)
+    }
+
+    @Test
+    fun `batch pricing stays opt in and prepares models only for built in oracle`(): Unit = runBlocking {
+        assertFalse(PartitionColumnGenerationConfig().batchPricingEnabled)
+        val solver = BatchPricingSolver()
+        val result = PartitionColumnGenerationApplicationService<Flt64>(solver).solve(
+            registration = registration(),
+            partitions = partitions,
+            config = PartitionColumnGenerationConfig(batchPricingEnabled = true)
+        )
+        assertIs<Ok<PartitionColumnGenerationResult<Flt64>, *, *>>(result)
+        assertEquals(partitions.size * 2, solver.pricingCalls)
+
+        val customSolver = BatchPricingSolver()
+        val oracle = CountingPricingOracle()
+        val customResult = PartitionColumnGenerationApplicationService(customSolver, oracle).solve(
+            registration = registration(),
+            partitions = partitions,
+            config = PartitionColumnGenerationConfig(batchPricingEnabled = true)
+        )
+        assertIs<Ok<PartitionColumnGenerationResult<Flt64>, *, *>>(customResult)
+        assertEquals(partitions.size * 2, oracle.calls)
+        assertEquals(0, customSolver.pricingCalls)
+    }
+
+    @Test
+    fun `batch pricing rejects source changes made during asynchronous solve`(): Unit = runBlocking {
+        val registered = registration()
+        val solver = BatchPricingSolver { call ->
+            if (call == partitions.size + 1) {
+                assertIs<Ok<*, *, *>>(registered.model.state.registerRow(
+                    ConstraintId("async-batch-source-change"),
+                    sum(registered.context.aggregation.occupied.values.toList()) leq Flt64(10)
+                ))
+            }
+        }
+        val result = PartitionColumnGenerationApplicationService<Flt64>(solver).solve(
+            registration = registered,
+            partitions = partitions,
+            config = PartitionColumnGenerationConfig(batchPricingEnabled = true)
+        )
+        assertEquals(ErrorCode.IllegalArgument, assertIs<Failed<*, *, *>>(result).error.code)
+        assertEquals(partitions.size + 1, solver.pricingCalls)
+    }
+
+    @Test
+    fun `batch pricing rejects master changes made during asynchronous solve`(): Unit = runBlocking {
+        val solver = BatchPricingSolver()
+        solver.onPricing = { call ->
+            if (call == partitions.size + 1) {
+                val master = assertNotNull(solver.lastMasterModel)
+                assertIs<Ok<*, *, *>>(master.add(fuookami.ospf.kotlin.core.variable.URealVar("async-master-change")))
+            }
+        }
+        val result = PartitionColumnGenerationApplicationService<Flt64>(solver).solve(
+            registration = registration(),
+            partitions = partitions,
+            config = PartitionColumnGenerationConfig(batchPricingEnabled = true)
+        )
+        assertEquals(ErrorCode.IllegalArgument, assertIs<Failed<*, *, *>>(result).error.code)
+        assertEquals(partitions.size + 1, solver.pricingCalls)
+    }
+
+    @Test
+    fun `scalar pricing rejects first invalid candidate before invoking later oracle`(): Unit = runBlocking {
+        val solver = BatchPricingSolver()
+        val oracle = InvalidCandidateOracle(invalidOnCall = partitions.size + 1)
+        val result = PartitionColumnGenerationApplicationService(solver, oracle).solve(
+            registration = registration(),
+            partitions = partitions
+        )
+        assertEquals(ErrorCode.IllegalArgument, assertIs<Failed<*, *, *>>(result).error.code)
+        assertEquals(partitions.size + 1, oracle.calls)
+    }
+
+    @Test
+    fun `scalar pricing solver failure keeps precedence over stale request freshness`(): Unit = runBlocking {
+        val registered = registration()
+        val solver = BatchPricingSolver()
+        solver.failPricingAt = partitions.size + 1
+        solver.onPricing = { call ->
+            if (call == partitions.size + 1) {
+                assertIs<Ok<*, *, *>>(registered.model.state.registerRow(
+                    ConstraintId("async-scalar-source-change"),
+                    sum(registered.context.aggregation.occupied.values.toList()) leq Flt64(10)
+                ))
+            }
+        }
+        val result = PartitionColumnGenerationApplicationService<Flt64>(solver).solve(
+            registration = registered,
+            partitions = partitions
+        )
+        assertEquals(ErrorCode.ApplicationError, assertIs<Failed<*, *, *>>(result).error.code)
+        assertEquals(partitions.size + 1, solver.pricingCalls)
     }
 
     @Test
@@ -233,6 +360,81 @@ class PartitionLoadingTest {
             val model = assertIs<Ok<LinearMetaModel<Flt64>, *, *>>(context.pricingModel(request)).value
             val vectors = enumerate(model).map { (_, values) -> context.decisions.filter { it.partitionId == request.partitionId }.associate { it.id to values[model.tokens.indexOf(it.variable)!!] } }.distinct()
             return Ok(PartitionPricingResult(vectors, true))
+        }
+    }
+
+    private class CountingPricingOracle : PartitionPricingOracle<Flt64> {
+        var calls = 0
+
+        override suspend fun price(context: PartitionLoadingContext<Flt64>, request: PartitionPricingRequest): Ret<PartitionPricingResult> {
+            calls++
+            return Ok(PartitionPricingResult(listOf(context.decisions.filter { it.partitionId == request.partitionId }.associate { it.id to Flt64.zero }), true))
+        }
+    }
+
+    private class InvalidCandidateOracle(private val invalidOnCall: Int) : PartitionPricingOracle<Flt64> {
+        var calls = 0
+
+        override suspend fun price(context: PartitionLoadingContext<Flt64>, request: PartitionPricingRequest): Ret<PartitionPricingResult> {
+            calls++
+            val values = if (calls == invalidOnCall) emptyMap<String, Flt64>() else {
+                context.decisions.filter { it.partitionId == request.partitionId }.associate { it.id to Flt64.zero }
+            }
+            return Ok(PartitionPricingResult(listOf(values), true))
+        }
+    }
+
+    private class BatchPricingSolver(var onPricing: (Int) -> Unit = {}) : ColumnGenerationSolver {
+        override val name = "batch-pricing-test"
+        var pricingCalls = 0
+        var lastMasterModel: LinearMetaModel<Flt64>? = null
+        var failPricingAt: Int? = null
+
+        override suspend fun solveMILP(
+            name: String,
+            metaModel: LinearMetaModel<Flt64>,
+            toLogModel: Boolean,
+            registrationStatusCallBack: RegistrationStatusCallBack?,
+            solvingStatusCallBack: SolvingStatusCallBack?
+        ): Ret<SolveReport<Flt64>> {
+            if (metaModel.name == "column_pricing") {
+                pricingCalls++
+                onPricing(pricingCalls)
+                if (pricingCalls == failPricingAt) return Failed(ErrorCode.ApplicationError, "scalar pricing sentinel")
+                return Ok(SolverStatus.Optimal.toSolveReport(
+                    objective = Flt64.zero,
+                    values = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
+                    solveTime = Duration.ZERO,
+                    bestBound = Flt64.zero,
+                    gap = Flt64.zero
+                ))
+            }
+            return EnumerationSolver().solveMILP(metaModel)
+        }
+
+        override suspend fun solveLP(
+            name: String,
+            metaModel: LinearMetaModel<Flt64>,
+            toLogModel: Boolean,
+            registrationStatusCallBack: RegistrationStatusCallBack?,
+            solvingStatusCallBack: SolvingStatusCallBack?
+        ): Ret<ColumnGenerationSolver.LPResult> {
+            lastMasterModel = metaModel
+            val expanded = assertIs<Ok<LinearMechanismModel<Flt64>, *, *>>(LinearMechanismModel(metaModel)).value
+            return expanded.use { model ->
+                @Suppress("UNCHECKED_CAST")
+                val dual = model.constraints.associate { row ->
+                    (row as Constraint<Flt64, Linear>) to Flt64.zero
+                }
+                Ok(ColumnGenerationSolver.LPResult(
+                    SolverStatus.Optimal.toSolveReport(
+                        objective = Flt64.one,
+                        values = List(model.tokens.tokensInSolver.size) { Flt64.zero },
+                        solveTime = Duration.ZERO
+                    ),
+                    dual
+                ))
+            }
         }
     }
 

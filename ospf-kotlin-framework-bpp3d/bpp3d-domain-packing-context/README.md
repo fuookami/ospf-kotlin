@@ -33,8 +33,10 @@
 | `MaterialPackingSolverExecutor` | Solver execution strategy for material packing. |
 | `ExhaustiveMaterialPackingSolverExecutor` | Exhaustive search strategy that tries all material packing combinations. |
 | `PackingGeometryContract` | Geometry contract defining capability paths for cuboid and cylinder packing. |
-| `PackingGeometryGuard` | Guard that validates packing geometry (overlap, containment, support) against real cylinder shape. |
+| `PackingGeometryGuard` | Guard that validates packing geometry (overlap, containment, support) against real cylinder shape, using a conservative sweep broad phase to prune non-cylinder pairs before the exact overlap predicates. |
 | `PackingRendererAdapter` | Adapter that converts packing results into renderer DTO output. |
+
+The overlap broad phase sweeps captured endpoints for non-cylinder pairs only; every pair containing a `CylinderPackingShape3` remains an exact-check candidate. It removes a non-cylinder pair only when the conservatively expanded ranges are disjoint on the selected axis, then restores original pair order before reporting. Custom non-cylinder `PackingShape3` implementations use their already-captured endpoints without rereading shape getters. Small inputs, dense candidate sets, and numerically risky ranges use exhaustive checking. The numeric bounds and error analysis are recorded in the temporary F19 design note.
 
 ## Dependencies
 

@@ -316,6 +316,13 @@ mvn test
 mvn test -Dtest=ShapeColumnMajorInverseTest
 ```
 
+### 同序遍历
+
+`iterWithOrder` 与 `flatten` 对内置 Shape1-4/DynShape，在访问顺序等于存储顺序且公开
+`offsets` 保持规范 stride 时直接读取连续线性存储。外部改写 offsets、异序访问、自定义
+shape、坐标枚举与视图仍保留坐标路径；视图 Result 处理和
+独立坐标快照不变。序列保持惰性，随遍历推进读取元素的当前值。
+
 ### 许可证
 
 MIT License

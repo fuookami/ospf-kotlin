@@ -255,9 +255,27 @@ open class BunchCompilation<
                 bunch.cost.solverCostOrNull(Flt64.infinity)!! * xi[bunch]
         }
 
-        for (task in tasks) {
+        val taskIndicesByKey = tasks.withIndex().groupBy(keySelector = { it.value.key }, valueTransform = { it.index })
+        val bunchesByTask = List(tasks.size) { ArrayList<B>() }
+        val bunchesByTaskExecutor = List(tasks.size) { LinkedHashMap<E, MutableList<B>>() }
+        val bunchesByExecutor = LinkedHashMap<E, MutableList<B>>()
+        for (bunch in unduplicatedBunches) {
+            bunchesByExecutor.getOrPut(bunch.executor) { ArrayList() }.add(bunch)
+            // 标准实现按 key 归属；子类可覆写 contains，需保留其业务谓词。 / Standard membership uses keys; subclasses may override contains, so preserve their predicate.
+            val indices = if (bunch.javaClass == AbstractTaskBunch::class.java) {
+                bunch.keys.keys.flatMap { taskIndicesByKey[it].orEmpty() }
+            } else {
+                tasks.indices.filter { bunch.contains(tasks[it]) }
+            }
+            for (index in indices) {
+                bunchesByTask[index].add(bunch)
+                bunchesByTaskExecutor[index].getOrPut(bunch.executor) { ArrayList() }.add(bunch)
+            }
+        }
+
+        for ((taskIndex, task) in tasks.withIndex()) {
             for (executor in executors) {
-                val thisBunches = unduplicatedBunches.filter { it.contains(task) && it.executor == executor }
+                val thisBunches = bunchesByTaskExecutor[taskIndex][executor].orEmpty()
                 if (thisBunches.isNotEmpty()) {
                     val assign = taskAssignment[task, executor]
                     assign.flush()
@@ -266,8 +284,8 @@ open class BunchCompilation<
             }
         }
 
-        for (task in tasks) {
-            val thisBunches = unduplicatedBunches.filter { it.contains(task) }
+        for ((taskIndex, task) in tasks.withIndex()) {
+            val thisBunches = bunchesByTask[taskIndex]
             if (thisBunches.isNotEmpty()) {
                 val compilation = taskCompilation[task]
                 compilation.flush()
@@ -276,7 +294,7 @@ open class BunchCompilation<
         }
 
         for (executor in executors) {
-            val thisBunches = unduplicatedBunches.filter { it.executor == executor }
+            val thisBunches = bunchesByExecutor[executor].orEmpty()
             if (thisBunches.isNotEmpty()) {
                 val compilation = executorCompilation[executor]
                 compilation.flush()

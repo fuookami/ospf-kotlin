@@ -123,6 +123,49 @@ class RouteGraphGeneratorTest {
         assertTrue(orderChangeGraph.connected(laterOrderChange, earlierOrderChange))
     }
 
+    @Test
+    fun `wide BFS retains callback order node reuse and diagnostics`() {
+        val fixture = demo4TestFixture()
+        val roots = List(64) { index ->
+            demo4FlightTask(
+                fixture = fixture,
+                actualId = "WIDE-$index",
+                no = "W$index"
+            )
+        }
+        val calls = ArrayList<Pair<FlightTask?, FlightTask>>()
+        val generator = RouteGraphGenerator(
+            reverse = FlightTaskReverse.invoke(
+                pairs = emptyList(),
+                originBunches = emptyList(),
+                lock = Lock(),
+                timeDifferenceLimit = FlightTaskReverse.defaultTimeDifferenceLimit
+            ),
+            configuration = Configuration(),
+            feasibilityJudger = { _, previous, task ->
+                calls.add(previous to task)
+                previous == null || previous in roots && task == fixture.secondTask
+            }
+        )
+        val result = generator(
+            aircraft = fixture.aircraft,
+            aircraftUsability = fixture.usability,
+            flightTasks = (roots + fixture.secondTask).groupBy { it.dep }
+        )
+        assertTrue(result is Ok)
+        val graph = (result as Ok).value
+        assertEquals(roots.map { null to it } + roots.map { it to fixture.secondTask } +
+            roots.map { fixture.secondTask to it }, calls)
+        assertEquals(RouteGraphDiagnostics(192, 128, 64), generator.diagnostics)
+        assertEquals(67, graph.nodes.size)
+        assertEquals(1, graph.nodes.values.filterIsInstance<TaskNode>().count { it.task == fixture.secondTask })
+        for ((index, task) in roots.withIndex()) {
+            val node = taskNode(graph, task)
+            assertEquals(UInt64((index + 2).toULong()), node.index)
+            assertTrue(graph.connected(node, taskNode(graph, fixture.secondTask)))
+        }
+    }
+
     private fun generate(
         fixture: Demo4TestFixture,
         withOrderChange: Boolean,

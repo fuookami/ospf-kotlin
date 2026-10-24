@@ -75,13 +75,17 @@ class DivideEmptyLoading(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::emptyBetweenCargo.isInitialized) {
+            val groupedAmounts by lazy {
+                load.loadAmountsOf(
+                    positions = adjacentPositions.map { it.first },
+                    itemIndices = load.itemIndicesOf { !it.cargo.contains(CargoCode.Empty) }
+                )
+            }
             emptyBetweenCargo = LinearIntermediateSymbols1<Flt64>("empty_between_cargo", Shape1(adjacentPositions.size)) { p, _ ->
                 val position1 = adjacentPositions[p].first
                 val position2 = adjacentPositions[p].second
                 val j2 = positions.indexOf(position2)
-                val loadAmount1 = load.loadAmountOf(position1) { item ->
-                    !item.cargo.contains(CargoCode.Empty)
-                }
+                val loadAmount1 = groupedAmounts.getValue(position1)
                 val loadAmount2 = load.loadAmount[j2]
                 if (loadAmount1.range.fixedValue?.let { it eq Flt64.zero } == true) {
                     LinearExpressionSymbol(
@@ -125,16 +129,24 @@ class DivideEmptyLoading(
         }
 
         if (!::emptyCargoBetweenCargo.isInitialized) {
+            val emptyAmounts by lazy {
+                load.loadAmountsOf(
+                    positions = adjacentPositions.map { it.first },
+                    itemIndices = load.itemIndicesOf { it.cargo.contains(CargoCode.Empty) }
+                )
+            }
+            val cargoAmounts by lazy {
+                load.loadAmountsOf(
+                    positions = adjacentPositions.map { it.second },
+                    itemIndices = load.itemIndicesOf { !it.cargo.contains(CargoCode.Empty) }
+                )
+            }
             emptyCargoBetweenCargo = LinearIntermediateSymbols1<Flt64>("empty_cargo_between_cargo", Shape1(adjacentPositions.size)) { p, _ ->
                 val position1 = adjacentPositions[p].first
                 val position2 = adjacentPositions[p].second
 
-                val loadAmount1 = load.loadAmountOf(position1) { item ->
-                    item.cargo.contains(CargoCode.Empty)
-                }
-                val loadAmount2 = load.loadAmountOf(position2) { item ->
-                    !item.cargo.contains(CargoCode.Empty)
-                }
+                val loadAmount1 = emptyAmounts.getValue(position1)
+                val loadAmount2 = cargoAmounts.getValue(position2)
 
                 if (loadAmount1.range.fixedValue?.let { it eq Flt64.zero } == true) {
                     LinearExpressionSymbol(
@@ -178,14 +190,18 @@ class DivideEmptyLoading(
         }
 
         if (!::emptyBetweenEmptyCargo.isInitialized) {
+            val groupedAmounts by lazy {
+                load.loadAmountsOf(
+                    positions = adjacentPositions.map { it.first },
+                    itemIndices = load.itemIndicesOf { it.cargo.contains(CargoCode.Empty) }
+                )
+            }
             emptyBetweenEmptyCargo = LinearIntermediateSymbols1<Flt64>("empty_between_empty_cargo", Shape1(adjacentPositions.size)) { p, _ ->
                 val position1 = adjacentPositions[p].first
                 val j1 = positions.indexOf(position1)
                 val position2 = adjacentPositions[p].second
                 val j2 = positions.indexOf(position2)
-                val loadAmount1 = load.loadAmountOf(position1) { item ->
-                    item.cargo.contains(CargoCode.Empty)
-                }
+                val loadAmount1 = groupedAmounts.getValue(position1)
                 val loadAmount2 = load.loadAmount[j2]
                 if (loadAmount1.range.fixedValue?.let { it eq Flt64.zero } == true) {
                     LinearExpressionSymbol(

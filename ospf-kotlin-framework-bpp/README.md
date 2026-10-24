@@ -80,6 +80,10 @@ single-slot patterns or ordinary bin-packing patterns. This is not combined CG/B
 - `PartitionDecision` explicitly owns estimated/recommended weights or other local decisions; unowned
   variables remain global. `PartitionPricingOracle` is replaceable; the default local MILP pricer retains
   continuous estimates and integer recommendations.
+- `PartitionColumnGenerationConfig.batchPricingEnabled` is off by default. When enabled, only the built-in
+  `MilpPartitionPricingOracle` batch-prepares non-seed pricing models. Custom oracles and the per-partition
+  seed-registration stage keep the scalar path. `PartitionLoadingContext` still adds BPP-local rules, and the
+  complete source/master revision is revalidated after every asynchronous solve.
 - Registration, adding/removing columns, shadow refresh, restricted LP, final integer master and extraction
   are explicit lifecycle operations. Masters are rebuilt so flattened objectives, rows and tokens stay current.
   A separate artificial-variable feasibility objective avoids arbitrary big-M penalties.

@@ -75,6 +75,58 @@ class Bpp1dTest {
     }
 
     @Test
+    fun `batch pricing matches row ordered scalar pricing and observes refreshed duals`() {
+        var extensionCalls = 0
+        val extension = object : PatternModelingExtension<Flt64> {
+            override fun register(context: PatternAssignmentContext<Flt64>): Try = ok
+
+            override fun reducedCost(pattern: PackingPattern<Flt64>, context: PatternAssignmentContext<Flt64>, dual: MetaDualSolution): Flt64 {
+                extensionCalls++
+                return Flt64(0.25)
+            }
+        }
+        val model = LinearMetaModel<Flt64>(name = "batch-pricing", converter = IntoValue.Identity)
+        val context = PatternAssignmentContext(
+            problem = problem(),
+            adapter = Flt64PackingValueAdapter,
+            model = model,
+            stage = PackingModelStage.LP,
+            extensions = listOf(extension)
+        )
+        assertIs<Ok<*, *, *>>(context.register(emptyList()))
+        val args = listOf("demand:a", "inventory:small", "demand:missing", "demand:a", 17, "inventory:large", "demand:a")
+        for ((index, arg) in args.withIndex()) {
+            assertIs<Ok<*, *, *>>(model.addConstraint(
+                relation = LinearPolynomial(Flt64.zero) leq Flt64.one,
+                name = "extra_$index",
+                group = null,
+                args = arg
+            ))
+        }
+        val rows = model.constraints.takeLast(args.size)
+        val prices = listOf(1e16, 0.5, 11.0, -1e16, 8.0, -3.0, 1.0)
+        val candidates = listOf(
+            PackingPattern<Flt64>("small", linkedMapOf("a" to UInt64.one)),
+            PackingPattern<Flt64>("large", linkedMapOf("a" to UInt64(2))),
+            PackingPattern<Flt64>("small", emptyMap())
+        )
+        for (scale in listOf(1.0, -2.0, 0.0)) {
+            val mutablePrices = rows.zip(prices.map { Flt64(it * scale) }).toMap(LinkedHashMap())
+            val dual = MetaDualSolution(mutablePrices, emptyMap())
+            assertIs<Ok<*, *, *>>(context.refreshShadowPrice(dual))
+            val expected = candidates.map { context.reducedCost(it) }
+            extensionCalls = 0
+            val actual = context.reducedCosts(candidates)
+            assertEquals(candidates.size, extensionCalls)
+            assertEquals(expected.map { it.toDouble().toRawBits() }, actual.map { it.toDouble().toRawBits() })
+            mutablePrices[rows[2]] = Flt64(Double.NaN)
+            val nonFiniteExpected = candidates.map { context.reducedCost(it).toDouble().isNaN() }
+            assertEquals(nonFiniteExpected, context.reducedCosts(candidates).map { it.toDouble().isNaN() })
+        }
+        assertEquals(emptyList(), context.reducedCosts(emptyList()))
+    }
+
+    @Test
     fun `MILP and column finalization match exhaustive integer optimum and exact materials`(): Unit = runBlocking {
         val solver = ExhaustiveSolver()
         val direct = assertIs<Ok<Bpp1dSolution<Flt64>, *, *>>(Bpp1dMilp(solver, Flt64PackingValueAdapter).solve(problem())).value

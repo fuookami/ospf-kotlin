@@ -266,6 +266,68 @@ class PartitionLoadingContext<V : FloatingNumber<V>> private constructor(
         )
     }
 
+    /** 为多个分区同步准备同一版本的请求与局部模型，包含 BPP 局部约束。
+     * / Prepare same-revision requests and local models for multiple partitions, including BPP-local constraints.
+     * @param partitionIds 按输出顺序排列的不同分区 / Distinct partition IDs in desired output order
+     * @param phaseOne 是否人工变量阶段 / Artificial-variable phase
+     * @param seed 是否零对偶种子阶段 / Whether pricing seeds with zero duals
+     * @return 定价批次；失败时关闭所有已创建模型 / Pricing batch; closes all created models on failure
+     */
+    suspend fun preparePricingBatch(
+        partitionIds: List<String>,
+        phaseOne: Boolean,
+        seed: Boolean = false
+    ): Ret<ColumnPricingBatch<Flt64>> {
+        val batch = when (val result = projection.preparePricingBatch(
+            blockIds = partitionIds,
+            phaseOne = phaseOne,
+            seed = seed
+        )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        val partitionsById = linkedMapOf<String, LoadingPartition>()
+        for (partition in partitions) partitionsById.putIfAbsent(partition.id, partition)
+        for (entry in batch.entries) {
+            val partition = partitionsById[entry.request.partitionId]
+            if (partition == null) {
+                batch.entries.forEach { it.model.close() }
+                return Failed(ErrorCode.IllegalArgument, "未知定价分区 / Unknown pricing partition: ${entry.request.partitionId}")
+            }
+            when (val result = appendLocalPricingConstraints(entry.model, partition)) {
+                is Ok -> {}
+                is Failed -> {
+                    batch.entries.forEach { it.model.close() }
+                    return Failed(result.error)
+                }
+                is Fatal -> {
+                    batch.entries.forEach { it.model.close() }
+                    return Fatal(result.errors)
+                }
+            }
+        }
+        return Ok(batch)
+    }
+
+    /** 验证定价请求或批次在异步求解后仍对应当前完整模型。
+     * / Revalidate that a pricing request or batch still matches the full model after asynchronous solving.
+     * @param revision 定价请求使用的版本 / Revision used by a pricing request
+     * @return 当前状态验证 / Current-state validation
+     */
+    suspend fun requireCurrent(revision: ColumnProjectionRevision): Try {
+        return projection.requireCurrent(revision)
+    }
+
+    /** 验证整个定价批次在异步求解后仍对应当前完整模型。
+     * / Revalidate that the whole pricing batch still matches the full model after asynchronous solving.
+     * @param batch 待验证批次 / Batch to validate
+     * @return 当前状态验证 / Current-state validation
+     */
+    suspend fun requireCurrent(batch: ColumnPricingBatch<Flt64>): Try {
+        return projection.requireCurrent(batch)
+    }
+
     /** 构造包含所有局部硬行的定价模型，可保留连续预估重量。 / Build a pricing model retaining local hard rows and continuous estimated weights.
      * @param request 定价请求 / Pricing request
      * @return 局部 MILP / Local MILP
@@ -278,10 +340,27 @@ class PartitionLoadingContext<V : FloatingNumber<V>> private constructor(
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
         }
+        when (val result = appendLocalPricingConstraints(model, partition)) {
+            is Ok -> return Ok(model)
+            is Failed -> {
+                model.close()
+                return Failed(result.error)
+            }
+            is Fatal -> {
+                model.close()
+                return Fatal(result.errors)
+            }
+        }
+    }
+
+    private fun appendLocalPricingConstraints(model: LinearMetaModel<Flt64>, partition: LoadingPartition): Try {
         val positions = partition.positionIds
+        val assignmentsByItem = loading.aggregation.assignments.entries.asSequence()
+            .filter { it.key.positionId in positions }
+            .groupBy(keySelector = { it.key.itemId }, valueTransform = { it.value })
         for (item in loading.problem.items) {
-            val assignments = loading.aggregation.assignments.filterKeys { it.itemId == item.id && it.positionId in positions }.values
-            val added = model.addConstraint(sum(assignments.toList()) leq Flt64.one, name = "local_unique_${item.id}")
+            val assignments = assignmentsByItem[item.id].orEmpty()
+            val added = model.addConstraint(sum(assignments) leq Flt64.one, name = "local_unique_${item.id}")
             if (added is Failed) return Failed(added.error)
             if (added is Fatal) return Fatal(added.errors)
         }
@@ -293,26 +372,33 @@ class PartitionLoadingContext<V : FloatingNumber<V>> private constructor(
             if (added is Fatal) return Fatal(added.errors)
         }
         for ((index, group) in loading.problem.layoutGroups.withIndex()) {
-            if (group.positionIds.intersect(positions).isEmpty()) continue
+            val localPositions = group.positionIds.intersect(positions)
+            if (localPositions.isEmpty()) continue
             val layouts = group.layouts.mapIndexed { layoutIndex, layout -> layout to BinVar("local_layout_${index}_$layoutIndex") }
+            val layoutsByPosition = linkedMapOf<String, MutableList<BinVar>>()
             for ((_, variable) in layouts) {
                 val added = model.add(variable)
                 if (added is Failed) return Failed(added.error)
                 if (added is Fatal) return Fatal(added.errors)
             }
+            for ((layout, variable) in layouts) {
+                for (position in layout.positionIds) {
+                    if (position in localPositions) layoutsByPosition.getOrPut(position) { ArrayList() }.add(variable)
+                }
+            }
             val choice = model.addConstraint(sum(layouts.map { it.second }) eq Flt64.one, name = "local_layout_choose_$index")
             if (choice is Failed) return Failed(choice.error)
             if (choice is Fatal) return Fatal(choice.errors)
-            for (position in group.positionIds.intersect(positions)) {
+            for (position in localPositions) {
                 val added = model.addConstraint(
-                    LinearPolynomial(loading.aggregation.occupied.getValue(position)) leq sum(layouts.filter { position in it.first.positionIds }.map { it.second }),
+                    LinearPolynomial(loading.aggregation.occupied.getValue(position)) leq sum(layoutsByPosition[position].orEmpty()),
                     name = "local_layout_${index}_$position"
                 )
                 if (added is Failed) return Failed(added.error)
                 if (added is Fatal) return Fatal(added.errors)
             }
         }
-        return Ok(model)
+        return ok
     }
 
     /** 重建受限 LP 或最终整数主问题；全局业务变量仍按原模型注册。 / Rebuild the restricted LP or final integer master, retaining original global variables.

@@ -43,6 +43,21 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp1d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp1d-domain-pattern-assignment-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp3d-domain-item-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp3d-domain-packing-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-core</artifactId>
             <version>${jmh.version}</version>

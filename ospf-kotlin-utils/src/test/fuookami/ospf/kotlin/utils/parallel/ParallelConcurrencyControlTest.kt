@@ -319,6 +319,65 @@ class ParallelConcurrencyControlTest {
 
     // ==================== 边界情况测试 ====================
 
+    @Test
+    fun plainWorkerPoolPreservesIndexedNullableResultsUnderOutOfOrderCompletion() = runBlocking {
+        val input = List(257) { it % 5 }
+        for (limit in listOf(1uL, 3uL, 512uL)) {
+            val result = input.mapIndexedParallelly(concurrentAmount = limit) { index, value ->
+                if (index % 7 == 0) delay(1) else yield()
+                if (index % 3 == 0) null else index to value
+            }
+            assertEquals(input.mapIndexed { index, value -> if (index % 3 == 0) null else index to value }, result)
+        }
+    }
+
+    @Test
+    fun plainWorkerPoolPropagatesFailureAndCancelsRemainingWorkers() = runBlocking {
+        val active = AtomicInteger(0)
+        val waiting = CompletableDeferred<Unit>()
+        val finished = withTimeout(5_000) {
+            runCatching {
+                (0 until 20).mapIndexedParallelly(concurrentAmount = 2uL) { index, _ ->
+                    active.incrementAndGet()
+                    try {
+                        if (index == 0) {
+                            waiting.await()
+                            throw IllegalStateException("worker failure")
+                        }
+                        waiting.complete(Unit)
+                        awaitCancellation()
+                    } finally {
+                        active.decrementAndGet()
+                    }
+                }
+            }
+        }
+        assertTrue(finished.exceptionOrNull() is IllegalStateException)
+        assertEquals(0, active.get())
+    }
+
+    @Test
+    fun plainWorkerPoolCallerCancellationCompletesWorkerCleanup() = runBlocking {
+        val active = AtomicInteger(0)
+        val started = CompletableDeferred<Unit>()
+        withTimeout(5_000) {
+            val caller = launch {
+                (0 until 20).mapParallelly(concurrentAmount = 2uL) {
+                    active.incrementAndGet()
+                    try {
+                        started.complete(Unit)
+                        awaitCancellation()
+                    } finally {
+                        active.decrementAndGet()
+                    }
+                }
+            }
+            started.await()
+            caller.cancelAndJoin()
+        }
+        assertEquals(0, active.get())
+    }
+
     /**
      * 测试空集合并发控制
      *

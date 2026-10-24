@@ -223,9 +223,7 @@ sealed interface IntegerDomain {
 
             return ok(
                 Values(
-                    converted
-                        .distinct()
-                        .sortedBy { it.toLong() }
+                    SortedIntegerValues(converted.distinct().sortedBy { it.toLong() })
                 )
             )
         }
@@ -267,6 +265,19 @@ sealed interface IntegerDomain {
 
 /** Sparse-domain semantic alias. / 稀疏值域语义别名。 */
 typealias SparseIntegerDomain = IntegerDomain.Values
+
+// 仅工厂的不可变有序副本使用二分，直接构造/复制的任意 List 保留 contains 语义。 / Only factory-owned immutable sorted copies use binary search; arbitrary constructor/copy lists retain contains semantics.
+private class SortedIntegerValues(
+    private val data: List<Int64>
+) : AbstractList<Int64>(), RandomAccess {
+    override val size: Int get() = data.size
+
+    override fun get(index: Int): Int64 = data[index]
+
+    override fun contains(element: Int64): Boolean {
+        return data.binarySearchBy(element.toLong()) { it.toLong() } >= 0
+    }
+}
 
 private fun inclusiveCardinality(lowerBound: Long, upperBound: Long): ULong? {
     if (lowerBound > upperBound) {

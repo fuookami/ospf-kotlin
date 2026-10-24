@@ -30,3 +30,9 @@
 
 - **task** — 提供 `FlightTask`、`FlightTaskBunch`、`PassengerClass`。
 - **bunch_compilation** — 提供 `FlightCapacity`、`TaskTime`。
+
+## 准备过程与前置条件
+
+替代航班按出发/到达机场一次分桶。数量注册在原入站阶段建立反向索引，保留重复乘客 occurrence，重复候选航班只算一次成员匹配。后继准备保留相等前序的首匹配，包括分叉行程。索引仅用于初始化或本次管线调用，不持久缓存可变输入。
+
+既有 `PassengerAmount` 路径无条件读取航班变更变量。非空乘客应显式启用 `PassengerChange(withFlightChange = true)`，并先注册变更组件再注册数量组件。默认禁用路径仍会因航班变更变量未初始化而失败；本次性能优化不静默改变该业务开关及失败边界。

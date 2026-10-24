@@ -28,8 +28,12 @@ class MutableLinearPolynomial<T : NumberField<T>>(
     monomials: List<LinearMonomial<T>> = emptyList(),
     constant: T
 ) {
-    internal val _monomials: MutableList<LinearMonomial<T>> = monomials.toMutableList()
-    internal var _constant: T = constant
+    private val _monomials: MutableList<LinearMonomial<T>> = monomials.toMutableList()
+    private var _constant: T = constant
+
+    /** 内容写入版本，用于检测调用方对可变表达式的修改，不参与值相等性。 / Content-write version for detecting mutable-expression edits, excluded from value equality. */
+    var mutationVersion: Long = 0
+        private set
 
     /**
      * 线性单项式列表（只读） / List of linear monomials (read-only)
@@ -97,7 +101,25 @@ class MutableLinearPolynomial<T : NumberField<T>>(
      * @param monomial 要添加的线性单项式 / The linear monomial to add
     */
     fun addMonomial(monomial: LinearMonomial<T>) {
+        mutationVersion++
         _monomials.add(monomial)
+    }
+
+    internal fun addMonomials(monomials: List<LinearMonomial<T>>) {
+        mutationVersion++
+        _monomials.addAll(monomials)
+    }
+
+    internal fun transformMonomials(transform: (LinearMonomial<T>) -> LinearMonomial<T>) {
+        mutationVersion++
+        for (index in _monomials.indices) _monomials[index] = transform(_monomials[index])
+    }
+
+    internal fun replaceMonomials(transform: (List<LinearMonomial<T>>) -> List<LinearMonomial<T>>) {
+        val replacement = transform(_monomials)
+        mutationVersion++
+        _monomials.clear()
+        _monomials.addAll(replacement)
     }
 
     /**
@@ -106,6 +128,7 @@ class MutableLinearPolynomial<T : NumberField<T>>(
      * @param value 要增加的值 / The value to add
     */
     fun addConstant(value: T) {
+        mutationVersion++
         _constant = _constant + value
     }
 
@@ -115,6 +138,7 @@ class MutableLinearPolynomial<T : NumberField<T>>(
      * @param value 新的常数项值 / The new constant term value
     */
     fun setConstant(value: T) {
+        mutationVersion++
         _constant = value
     }
 
@@ -122,6 +146,7 @@ class MutableLinearPolynomial<T : NumberField<T>>(
      * 清除所有单项式 / Clears all monomials
     */
     fun clear() {
+        mutationVersion++
         _monomials.clear()
     }
 
@@ -205,8 +230,8 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.plusAssign(rhs: Lin
  * @param rhs 线性多项式 / Linear polynomial
 */
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.plusAssign(rhs: LinearPolynomial<T>) {
-    _monomials.addAll(rhs.monomials)
-    _constant = _constant + rhs.constant
+    addMonomials(rhs.monomials)
+    addConstant(rhs.constant)
 }
 
 /**
@@ -216,8 +241,8 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.plusAssign(rhs: Lin
  * @param rhs 可变线性多项式 / Mutable linear polynomial
 */
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.plusAssign(rhs: MutableLinearPolynomial<T>) {
-    _monomials.addAll(rhs.monomials)
-    _constant = _constant + rhs.constant
+    addMonomials(rhs.monomials)
+    addConstant(rhs.constant)
 }
 
 /**
@@ -227,7 +252,7 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.plusAssign(rhs: Mut
  * @param rhs 标量值 / Scalar value
 */
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.plusAssign(rhs: T) {
-    _constant = _constant + rhs
+    addConstant(rhs)
 }
 
 /**
@@ -237,7 +262,7 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.plusAssign(rhs: T) 
  * @param rhs 线性单项式 / Linear monomial
 */
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssign(rhs: LinearMonomial<T>) {
-    _monomials.add(-rhs)
+    addMonomial(-rhs)
 }
 
 /**
@@ -247,8 +272,8 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssign(rhs: Li
  * @param rhs 线性多项式 / Linear polynomial
 */
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssign(rhs: LinearPolynomial<T>) {
-    _monomials.addAll(rhs.monomials.map { -it })
-    _constant = _constant - rhs.constant
+    addMonomials(rhs.monomials.map { -it })
+    setConstant(constant - rhs.constant)
 }
 
 /**
@@ -258,8 +283,8 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssign(rhs: Li
  * @param rhs 可变线性多项式 / Mutable linear polynomial
 */
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssign(rhs: MutableLinearPolynomial<T>) {
-    _monomials.addAll(rhs.monomials.map { -it })
-    _constant = _constant - rhs.constant
+    addMonomials(rhs.monomials.map { -it })
+    setConstant(constant - rhs.constant)
 }
 
 /**
@@ -269,7 +294,7 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssign(rhs: Mu
  * @param rhs 标量值 / Scalar value
 */
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssign(rhs: T) {
-    _constant = _constant - rhs
+    setConstant(constant - rhs)
 }
 
 /**
@@ -279,10 +304,8 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssign(rhs: T)
  * @param rhs 标量值 / Scalar value
 */
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.timesAssign(rhs: T) {
-    for (i in _monomials.indices) {
-        _monomials[i] = _monomials[i] * rhs
-    }
-    _constant = _constant * rhs
+    transformMonomials { it * rhs }
+    setConstant(constant * rhs)
 }
 
 /**
@@ -292,8 +315,6 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.timesAssign(rhs: T)
  * @param rhs 标量值 / Scalar value
 */
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.divAssign(rhs: T) {
-    for (i in _monomials.indices) {
-        _monomials[i] = _monomials[i] / rhs
-    }
-    _constant = _constant / rhs
+    transformMonomials { it / rhs }
+    setConstant(constant / rhs)
 }

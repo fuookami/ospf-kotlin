@@ -5,10 +5,13 @@ import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.Token
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.path_compilation.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.path_compilation.service.*
@@ -316,27 +319,16 @@ class PathCompilationAggregation<V : RealNumber<V>, C>(
         return ok(snapshot)
     }
 
-    /** 以注册时同一完整列定义计算 reduced cost，不忽略缺失行。 / Compute reduced cost from the exact registered column definition.
-     * @param candidate 完整业务候选 / Complete business candidate
-     * @param duals 当前对偶快照 / Current dual snapshot
-     * @param scope 当前业务定价范围 / Current business pricing scope
-     * @return solver 边界的 reduced cost / Reduced cost at the solver boundary
-     */
-    fun reducedCost(
-        candidate: PathColumn<V, C>,
-        duals: PathCompilationDuals,
-        scope: String
-    ): Ret<Flt64> {
+    private fun validatePricingState(duals: PathCompilationDuals, scope: String): Try {
         if (!usable || duals !== currentDuals || duals.owner !== this || duals.revision != revision ||
             duals.scope != scope || dualModelSignature != modelSignature()) {
             return networkSchedulingFailure("对偶已过期或定价范围不匹配 / Stale duals or mismatched pricing scope")
         }
         val target = model ?: return networkSchedulingFailure("路径模型不存在 / Path model is absent")
-        when (val result = validateObjective(target)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
+        return validateObjective(target)
+    }
+
+    private fun calculateReducedCost(candidate: PathColumn<V, C>, duals: PathCompilationDuals): Ret<Flt64> {
         val column = when (val result = compile(candidate)) {
             is Ok -> result.value
             is Failed -> return Failed(result.error)
@@ -348,6 +340,77 @@ class PathCompilationAggregation<V : RealNumber<V>, C>(
             if (!value.isFinite()) return networkSchedulingFailure("reduced cost 必须有限 / Reduced costs must be finite")
         }
         return ok(value)
+    }
+
+    /** 以注册时同一完整列定义计算 reduced cost，不忽略缺失行。 / Compute reduced cost from the exact registered column definition.
+     * @param candidate 完整业务候选 / Complete business candidate
+     * @param duals 当前对偶快照 / Current dual snapshot
+     * @param scope 当前业务定价范围 / Current business pricing scope
+     * @return solver 边界的 reduced cost / Reduced cost at the solver boundary
+     */
+    fun reducedCost(
+        candidate: PathColumn<V, C>,
+        duals: PathCompilationDuals,
+        scope: String
+    ): Ret<Flt64> {
+        when (val result = validatePricingState(duals, scope)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+
+        return calculateReducedCost(candidate, duals)
+    }
+
+    /** 在完整前后模型审计之间按输入顺序编译并计算一批候选。
+     * / Compile and price candidates in input order between complete before/after model audits.
+     *
+     * 每个候选仍独立调用列编译及数值适配器，不假设适配器无状态。本方法不挂起；若外部适配器在
+     * 编译期间改动模型，后置审计会拒绝整批结果。逐个异步定价仍应使用原标量入口，或在异步返回后
+     * 重新刷新/校验，不得把批次审计跨越异步边界复用。
+     * Each candidate still runs column compilation and the value adapter independently. This method does not
+     * suspend; if an adapter changes the model during compilation, the trailing audit rejects the whole batch.
+     * For separately asynchronous pricing, retain the scalar API or perform a fresh audit after the async return.
+     *
+     * @param candidates 按调用方优先级排列的完整候选 / Complete candidates in caller priority order
+     * @param duals 当前对偶快照 / Current dual snapshot
+     * @param scope 当前业务定价范围 / Current business pricing scope
+     * @return 与输入顺序对应的 reduced costs；首个候选错误或模型陈旧错误 / Reduced costs in input order, or the first candidate/model freshness error
+     */
+    fun reducedCosts(
+        candidates: List<PathColumn<V, C>>,
+        duals: PathCompilationDuals,
+        scope: String
+    ): Ret<List<Flt64>> {
+        when (val result = validatePricingState(duals, scope)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+
+        val reducedCosts = mutableListOf<Flt64>()
+        var candidateFailure: Ret<List<Flt64>>? = null
+        for (candidate in candidates) {
+            when (val result = calculateReducedCost(candidate, duals)) {
+                is Ok -> reducedCosts.add(result.value)
+                is Failed -> {
+                    candidateFailure = Failed(result.error)
+                    break
+                }
+                is Fatal -> {
+                    candidateFailure = Fatal(result.errors)
+                    break
+                }
+            }
+        }
+
+        when (val result = validatePricingState(duals, scope)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        candidateFailure?.let { return it }
+        return ok(reducedCosts.toList())
     }
 
     /** 提取并独立复核二元解，结果只对最终候选集合有效。 / Extract and independently validate a binary solution for the final pool only.
@@ -364,9 +427,27 @@ class PathCompilationAggregation<V : RealNumber<V>, C>(
         val selected = mutableListOf<PathColumn<V, C>>()
         val usage = problem.rows.associate { it.id to Flt64.zero }.toMutableMap()
         var cost = Flt64.zero
+        val tokens = target.tokens.tokens
+        // 内置变量以 identifier 判归属；自定义变量可覆写 belongsTo，保留原扫描。 / Built-ins use identifier membership; custom variables may override belongsTo, so retain the original scan.
+        val tokensByIdentifier = if (tokens.all {
+            it.variable is IndependentVariableItem<*, *> || it.variable is CombinationVariableItem<*, *>
+        }) {
+            buildMap<UInt64, Token<Flt64>> {
+                for (token in tokens) {
+                    putIfAbsent(token.variable.identifier, token)
+                }
+            }
+        } else {
+            null
+        }
         for ((id, compiled) in columns) {
             val variable = compilation.variables.getValue(id)
-            val value = target.tokens.tokens.firstOrNull { it.belongsTo(variable) }?.result
+            val token = if (tokensByIdentifier != null) {
+                tokensByIdentifier[variable.identifier]
+            } else {
+                tokens.firstOrNull { it.belongsTo(variable) }
+            }
+            val value = token?.result
                 ?: return networkSchedulingFailure("缺少路径列解值：$id / Missing path-column value: $id")
             if (!value.isFinite() || (value.abs() > Flt64(1e-6) && (value - Flt64.one).abs() > Flt64(1e-6))) {
                 return networkSchedulingFailure("路径列解不是二元值 / Path-column solution is not binary")

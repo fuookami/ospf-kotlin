@@ -40,13 +40,15 @@ class SolutionAnalyzer(
     operator fun invoke(model: LinearMetaModel<Flt64>, result: List<Flt64>): Ret<List<List<Node>>> {
         val nodeSolution = NodeSolution()
         val edgeSolution = EdgeSolution()
+        val servicesByIndex = services.groupBy { it.index }.mapValues { it.value.first() }
+        val nodesByIndex = graph.nodes.groupBy { it.index }.mapValues { it.value.first() }
+        val edgesByIndex = graph.edges.groupBy { it.index }.mapValues { it.value.first() }
 
         for (token in model.tokens.tokens) {
             if (token.variable.belongsTo(assignment.x)) {
                 if (result[token.solverIndex] eq Flt64.one) {
                     val vector = token.variable.vectorView
-                    nodeSolution[services.find { it.index == vector[1] }!!] =
-                        graph.nodes.find { it.index == vector[0] }!!
+                    nodeSolution[servicesByIndex[vector[1]]!!] = nodesByIndex[vector[0]]!!
                 }
             }
         }
@@ -58,14 +60,14 @@ class SolutionAnalyzer(
                     if (edgeSolution.containsKey(service)) {
                         edgeSolution[service]!!.add(
                             Pair(
-                                graph.edges.find { it.index == vector[0] }!!,
+                                edgesByIndex[vector[0]]!!,
                                 result[token.solverIndex].toUInt64()
                             )
                         )
                     } else {
                         edgeSolution[service] = arrayListOf(
                             Pair(
-                                graph.edges.find { it.index == vector[0] }!!,
+                                edgesByIndex[vector[0]]!!,
                                 result[token.solverIndex].toUInt64()
                             )
                         )
@@ -91,49 +93,13 @@ class SolutionAnalyzer(
             val service = pair.key
             val firstNode = pair.value
             if (edgeSolution.containsKey(service)) {
-                val thisEdges = edgeSolution[service]!!
-
-                for (edge in thisEdges) {
-                    val link = ArrayList<Node>()
-                    if (edge.first.from == firstNode) {
-                        link.add(firstNode)
-                        link.add(edge.first.to)
-                        findLink(thisEdges, edge.first.to, link, links)
-                    }
-                }
+                appendServicePaths(
+                    firstNode = firstNode,
+                    edges = edgeSolution[service]!!,
+                    links = links
+                )
             }
         }
         return links
-    }
-
-    /**
-     * Recursively traces edges using DFS to build service paths from the current node to client nodes.
-     * 使用 DFS 递归追踪边，从当前节点到客户端节点构建服务路径。
-     *
-     * @param edges 当前服务的边-带宽对列表 / the list of edge-bandwidth pairs for the current service
-     * @param currentNode 当前访问的节点 / the node being visited
-     * @param currentLike 目前累积的路径 / the path accumulated so far
-     * @param links 收集所有完整路径的可变列表 / the mutable list collecting all completed paths
-    */
-    // DFS
-    private fun findLink(
-        edges: List<Pair<Edge, UInt64>>,
-        currentNode: Node,
-        currentLike: List<Node>,
-        links: MutableList<List<Node>>
-    ) {
-        if (currentNode is ClientNode) {
-            links.add(currentLike)
-        } else {
-            for (edge in edges) {
-                if (edge.first.from == currentNode
-                    && !currentLike.contains(edge.first.to)
-                ) {
-                    val link = currentLike.toMutableList()
-                    link.add(edge.first.to)
-                    findLink(edges, edge.first.to, link, links)
-                }
-            }
-        }
     }
 }

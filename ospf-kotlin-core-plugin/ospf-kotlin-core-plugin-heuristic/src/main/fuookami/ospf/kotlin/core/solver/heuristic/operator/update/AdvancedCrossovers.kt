@@ -216,15 +216,16 @@ data object CycleCross : Cross {
         val size = cycleSource.size
         val child = otherSource.toMutableList()
         val assigned = BooleanArray(size)
+        val firstIndices = HashMap<V, Int>()
+        for ((position, value) in otherSource.withIndex()) {
+            firstIndices.putIfAbsent(value, position)
+        }
         var index = 0
         var guard = 0
         while (index in 0 until size && !assigned[index] && guard <= size) {
             assigned[index] = true
             child[index] = cycleSource[index]
-            val next = otherSource.indexOf(cycleSource[index])
-            if (next < 0) {
-                break
-            }
+            val next = firstIndices[cycleSource[index]] ?: break
             index = next
             ++guard
         }

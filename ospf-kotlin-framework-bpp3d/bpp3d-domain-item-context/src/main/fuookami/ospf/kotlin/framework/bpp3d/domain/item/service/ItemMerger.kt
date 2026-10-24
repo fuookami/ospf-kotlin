@@ -341,15 +341,24 @@ data object ItemMerger {
             .sortedWith(compareByDescending<Item> { it.weight.value.toDouble() })
             .map { it.view() }
             .toMutableList()
+        val stableViews = restItems.all {
+            it.javaClass == ItemView::class.java &&
+                (it.unit.javaClass == ActualItem::class.java || it.unit.javaClass == PatternedItem::class.java)
+        }
         while (restItems.isNotEmpty()) {
             var flag = false
 
             for (i in restItems.indices) {
                 val thisBottomItem = restItems[i]
-                val enabledItems = restItems
-                    .subList(i + 1, restItems.size)
-                    .sortedWith(compareByDescending<ItemView> { it.weight.value.toDouble() })
-                val visited = enabledItems.map { false }.toMutableList()
+                // 内置不可变重量视图的后缀已保序；自定义视图仍保留原排序扩展行为。
+                // Built-in immutable-weight views retain sorted suffixes; custom views keep the original sort.
+                val suffix = restItems.subList(i + 1, restItems.size)
+                val enabledItems = if (stableViews) {
+                    suffix
+                } else {
+                    suffix.sortedWith(compareByDescending<ItemView> { it.weight.value.toDouble() })
+                }
+                val visited = BooleanArray(enabledItems.size)
                 val pileItems = arrayListOf(thisBottomItem)
                 for (j in enabledItems.indices) {
                     if (pileItems.sumOfQuantity { it.weight } geq averagePileWeight) {
@@ -397,8 +406,32 @@ data object ItemMerger {
 
                 if (pileItems.size > 1) {
                     mergedItems.add(Pile(pileItems))
-                    for (item in pileItems) {
-                        restItems.remove(item)
+                    if (stableViews && pileItems.indices.all { restItems[it] == pileItems[it] }) {
+                        // 连续首段等价于逐项删首项，直接一次搬移，无需整表哈希压缩。
+                        // A matching prefix equals repeated first-item removal and needs only one shift.
+                        restItems.subList(0, pileItems.size).clear()
+                    } else if (stableViews) {
+                        val removals = HashMap<ItemView, Int>()
+                        for (item in pileItems) {
+                            removals[item] = (removals[item] ?: 0) + 1
+                        }
+                        // 按相等类计数并删首次 occurrence，与逐项 remove 的口径相同。
+                        // Remove the first occurrences per equality class, matching repeated remove calls.
+                        var write = 0
+                        for (read in restItems.indices) {
+                            val item = restItems[read]
+                            val remaining = removals[item] ?: 0
+                            if (remaining > 0) {
+                                removals[item] = remaining - 1
+                            } else {
+                                restItems[write++] = item
+                            }
+                        }
+                        restItems.subList(write, restItems.size).clear()
+                    } else {
+                        for (item in pileItems) {
+                            restItems.remove(item)
+                        }
                     }
                     flag = true
                     break

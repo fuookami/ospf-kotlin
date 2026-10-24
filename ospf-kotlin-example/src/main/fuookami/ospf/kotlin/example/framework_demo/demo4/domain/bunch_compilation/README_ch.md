@@ -27,3 +27,5 @@
 - **task** — 提供 `FlightTask`、`Aircraft`、`FlightTaskBunch`、`FlightTaskAssignment`、`ShadowPriceMap`。
 - **rule** — 提供 `Link`、`LinkMap`、`Flow`。
 - **framework (gantt_scheduling)** — 提供基础 `BunchCompilationContext`、`BunchCompilationAggregation`、`BunchSchedulingTaskTime`、`BunchSchedulingConnectionResourceUsage`。
+
+车队平衡准备按飞机保留首个原始任务束，每批新增列按 `(到达机场, 子机型)` 分发；每个命中 fleet 表达式只 flush 一次，项保持批次原 occurrence 顺序，未命中到达仍忽略。索引只作用于 limits 的惰性初始化或本次加列，不跨公开可变数据生命周期缓存。

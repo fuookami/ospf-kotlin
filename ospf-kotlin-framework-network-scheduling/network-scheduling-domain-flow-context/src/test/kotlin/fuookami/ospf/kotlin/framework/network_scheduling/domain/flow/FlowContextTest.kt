@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.network_scheduling.domain.flow
 
 import kotlin.test.*
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -12,6 +13,68 @@ import fuookami.ospf.kotlin.framework.network_scheduling.domain.flow.model.*
 
 /** 用独立可行见证验证模型，不依赖原生求解器。 / Validate independent witnesses without native solvers. */
 class FlowContextTest {
+    @Test
+    fun indexedBalancesMatchFullArcReferenceForMultigraphAndIsolatedNodes() = runBlocking {
+        val arcs = listOf(
+            arc("forward", "s", "a", 1.0),
+            arc("parallel", "s", "a", 2.0),
+            arc("loop", "a", "a", 3.0),
+            arc("finish", "a", "t", 4.0),
+            arc("reverse", "t", "s", 5.0)
+        )
+        val products = listOf(
+            product("all", 2.0),
+            CommodityFlow(
+                commodity = product("restricted", 1.0).commodity,
+                unit = NoneUnit,
+                allowedArcs = setOf(NetworkArcId("forward"), NetworkArcId("finish"))
+            )
+        )
+        val base = problem(arcs, products)
+        val graph = assertNotNull(NetworkGraph(base.graph.nodes + node("isolated"), arcs).value)
+        val problem = FlowProblem(graph = graph, arcs = base.arcs, commodities = products, zero = Flt64.zero)
+        val context = FlowContext(problem, Flt64NetworkSchedulingSolverValueAdapter)
+        val model = LinearMetaModel(name = "indexed_balances")
+        try {
+            assertTrue(context.register(model).ok)
+            val snapshot = assertNotNull(model.state.refresh().value)
+            for (product in products) {
+                for (node in graph.nodes) {
+                    val expected = linkedMapOf<String, Flt64>()
+                    for (arc in arcs) {
+                        if (product.allowedArcs?.contains(arc.id) == false) continue
+                        val variableName = "network_flow_${product.commodity.id}_${arc.id.value}"
+                        var coefficient = Flt64.zero
+                        if (arc.from == node.id) coefficient += Flt64.one
+                        if (arc.to == node.id) coefficient -= Flt64.one
+                        if (coefficient != Flt64.zero) expected[variableName] = coefficient
+                    }
+                    val row = snapshot.rows.single { it.sourceName == "network_flow_balance_${product.commodity.id}_${node.id.value}" }
+                    assertEquals(expected, row.coefficients.entries.associate { it.key.name to it.value })
+                    assertEquals(
+                        product.commodity.supplyDemands.firstOrNull { it.nodeId == node.id }?.net?.value ?: Flt64.zero,
+                        row.rhs
+                    )
+                }
+            }
+            model.setSolution(List(model.tokens.tokensInSolver.size) { Flt64.zero })
+            val solution = assertNotNull(context.extractSolution(model).value)
+            for (product in products) {
+                for (node in graph.nodes) {
+                    val expected = product.commodity.supplyDemands.firstOrNull { it.nodeId == node.id }?.net
+                        ?: Quantity(Flt64.zero, product.unit)
+                    assertEquals(expected, solution.satisfiedBalances.getValue(product.commodity.id to node.id))
+                }
+            }
+            for ((key, amount) in solution.flows) {
+                assertEquals(products.first { it.commodity.id == key.commodity }.unit, amount.unit)
+                assertEquals(Flt64.zero, amount.value)
+            }
+        } finally {
+            model.close()
+        }
+    }
+
     @Test
     fun knownTransshipmentOptimumAndParallelServicesAreExtractedByIdentity() {
         val arcs = listOf(arc("sa", "s", "a", 10.0), arc("sb", "s", "b", 0.0),

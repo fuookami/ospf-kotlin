@@ -239,7 +239,7 @@ internal suspend inline fun <R, T> executeWithWorkerPool(
     // 使用 Channel + Worker Pool 方案
     // Use Channel + Worker Pool approach
     val taskChannel = Channel<WorkerPoolTask<T>>(capacity = limit)
-    val resultChannel = Channel<WorkerPoolResult<R>>(capacity = elementList.size)
+    val orderedResults = arrayOfNulls<Any?>(elementList.size)
 
     return kotlinx.coroutines.coroutineScope {
         // 启动固定数量的 worker 协程
@@ -249,8 +249,7 @@ internal suspend inline fun <R, T> executeWithWorkerPool(
                 // 每个 worker 从 Channel 接收任务并执行
                 // Each worker receives tasks from Channel and executes
                 for (task in taskChannel) {
-                    val result = extractor(task.index, task.element)
-                    resultChannel.send(WorkerPoolResult(task.index, result))
+                    orderedResults[task.index] = extractor(task.index, task.element)
                 }
             }
         }
@@ -271,16 +270,9 @@ internal suspend inline fun <R, T> executeWithWorkerPool(
         for (worker in workers) {
             worker.join()
         }
-        resultChannel.close()
-
-        // 收集结果并按索引排序（保持原顺序）
-        // Collect results and sort by index (preserves original order)
-        val results = mutableListOf<WorkerPoolResult<R>>()
-        for (result in resultChannel) {
-            results.add(result)
-        }
-        results.sortBy { it.index }
-        results.map { it.result }
+        // 每项仅有一个写入者，join 后才读取；空值是有效结果，不用作完成标记。
+        // Each slot has one writer and is read after join; null is a value, not a completion marker.
+        castWorkerPoolResultList(orderedResults)
     }
 }
 

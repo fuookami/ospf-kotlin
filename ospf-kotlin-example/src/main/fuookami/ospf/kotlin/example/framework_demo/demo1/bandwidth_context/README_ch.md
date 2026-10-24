@@ -91,3 +91,7 @@ bandwidthContext.construct(model)
 // 求解后分析结果
 val paths = bandwidthContext.analyze(model, solverResult)
 ```
+
+### 准备与提取顺序
+
+服务度数表达式在首次初始化时从当前图边表构建入边/出边索引，不假定 `Node.edges` 已完整维护；自环、平行边及重复 occurrence 保留原序。路径提取按源节点索引已选边，以路径局部 visited 和 push/pop 缓冲区搜索，仅复制完整输出，保留分支、重复 occurrence 和原先初始自环的行为。全路径输出最坏仍可能指数增长，不使用全局 visited 剪掉合法路径。token 回填保留实体 index 首匹配，以及带宽变量原有的 service 列表下标口径。

@@ -10,12 +10,48 @@ import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.framework.network_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.path.*
 import fuookami.ospf.kotlin.framework.network_scheduling.domain.path_compilation.model.*
 
 /** 有限候选枚举作为独立 oracle，不要求原生求解器。 / Independent finite-pool enumeration oracle without native solvers. */
 class PathCompilationContextTest {
+    @Test
+    fun customMembershipUsesTheSameFirstMatchingTokenAsTheReferenceScan() {
+        val columns = listOf(
+            column(id = "a", cost = 1.0, usage = mapOf("limit" to 1.0)),
+            column(id = "b", cost = 2.0, usage = mapOf("limit" to 1.0))
+        )
+        val context = context(listOf(upper("limit", 3.0)), columns)
+        val model = LinearMetaModel(name = "custom_membership")
+        try {
+            val custom = object : AbstractVariableItem<Flt64, Continuous>(
+                type = Continuous,
+                name = "custom",
+                constants = Flt64
+            ) {
+                override val identifier = RealVar("custom_identifier").identifier
+                override val dimension = 0
+                override val index = 0
+                override val vectorView = intArrayOf(0)
+                override fun belongsTo(item: AbstractVariableItem<*, *>): Boolean = true
+            }
+            assertTrue(model.add(custom).ok)
+            assertTrue(context.register(model).ok)
+            model.setSolution(model.tokens.tokensInSolver.map { if (it.variable === custom) Flt64.one else Flt64.zero })
+            val expected = columns.filter { column ->
+                val variable = context.aggregation.compilation.variables.getValue(column.id)
+                model.tokens.tokens.first { it.belongsTo(variable) }.result == Flt64.one
+            }.map { it.id }
+            val solution = assertNotNull(context.extractSolution(model).value)
+            assertEquals(expected, solution.selected.map { it.id })
+            assertEquals(Flt64(expected.fold(0) { sum, id -> sum + if (id == "a") 1 else 2 }), solution.cost.value)
+        } finally {
+            model.close()
+        }
+    }
+
     @Test
     fun indivisibleOrdersCompeteForSharedCapacityAndMatchEnumeration() {
         val rows = listOf(exact("order1"), exact("order2"), upper("truck", 3.0))
@@ -123,6 +159,126 @@ class PathCompilationContextTest {
             duals = next,
             scope = "next"
         ).ok)
+    }
+
+    @Test
+    fun reducedCostBatchPreservesInputOrderAndCallsTheAdapterForEveryCandidate() {
+        val normalized = mutableListOf<Flt64>()
+        var failedValue: Flt64? = null
+        val adapter = object : NetworkSchedulingSolverValueAdapter<Flt64> {
+            override fun toSolverValue(value: Flt64): Ret<Flt64> = ok(value)
+
+            override fun fromSolverValue(value: Flt64): Ret<Flt64> = ok(value)
+
+            override fun normalize(quantity: Quantity<Flt64>, targetUnit: PhysicalUnit): Ret<Flt64> {
+                normalized.add(quantity.value)
+                return if (quantity.value == failedValue) {
+                    networkSchedulingFailure("批次适配失败：${quantity.value} / Batch adapter rejected ${quantity.value}")
+                } else {
+                    ok(quantity.value)
+                }
+            }
+        }
+        val context = PathCompilationContext(
+            problem = PathCompilationProblem(
+                rows = listOf(exact("order")),
+                columns = emptyList<PathColumn<Flt64, String>>(),
+                costUnit = NoneUnit
+            ),
+            adapter = adapter
+        )
+        val model = LinearMetaModel(name = "pricing_batch_order")
+        assertTrue(context.register(model).ok)
+        val duals = assertNotNull(context.aggregation.refreshShadowPrices(
+            target = model,
+            duals = MetaDualSolution(model.constraints.associateWith { Flt64.zero }, emptyMap()),
+            scope = "batch"
+        ).value)
+        val later = column(id = "later", cost = 9.0, usage = mapOf("order" to 2.0))
+        val earlier = column(id = "earlier", cost = 5.0, usage = mapOf("order" to 1.0))
+
+        normalized.clear()
+        assertEquals(listOf(Flt64(9.0), Flt64(5.0)), assertNotNull(context.aggregation.reducedCosts(
+            candidates = listOf(later, earlier),
+            duals = duals,
+            scope = "batch"
+        ).value))
+        assertEquals(listOf(Flt64(9.0), Flt64(2.0), Flt64(5.0), Flt64.one), normalized)
+
+        normalized.clear()
+        failedValue = Flt64(9.0)
+        val firstFailure = assertIs<Failed<*, *, *>>(context.aggregation.reducedCosts(
+            candidates = listOf(later, earlier),
+            duals = duals,
+            scope = "batch"
+        ))
+        assertTrue(firstFailure.error.message?.contains("Batch adapter rejected") == true)
+        assertEquals(listOf(Flt64(9.0)), normalized)
+        model.close()
+    }
+
+    @Test
+    fun reducedCostBatchRejectsStaleDualsAndAuditsAdapterModelChangesAfterPricing() {
+        var target: LinearMetaModel<Flt64>? = null
+        var mutateModel = false
+        val adapter = object : NetworkSchedulingSolverValueAdapter<Flt64> {
+            override fun toSolverValue(value: Flt64): Ret<Flt64> = ok(value)
+
+            override fun fromSolverValue(value: Flt64): Ret<Flt64> = ok(value)
+
+            override fun normalize(quantity: Quantity<Flt64>, targetUnit: PhysicalUnit): Ret<Flt64> {
+                if (mutateModel) {
+                    mutateModel = false
+                    val current = target
+                        ?: return networkSchedulingFailure("缺少测试模型 / Missing test model")
+                    val extension = BinVar("adapter_extension")
+                    if (current.add(extension) !is Ok || current.addConstraint(
+                        relation = LinearPolynomial(extension) leq Flt64.one,
+                        name = "adapter_extension_limit"
+                    ) !is Ok) {
+                        return networkSchedulingFailure("测试扩展注册失败 / Test extension registration failed")
+                    }
+                }
+                return ok(quantity.value)
+            }
+        }
+        val context = PathCompilationContext(
+            problem = PathCompilationProblem(
+                rows = listOf(exact("order")),
+                columns = emptyList<PathColumn<Flt64, String>>(),
+                costUnit = NoneUnit
+            ),
+            adapter = adapter
+        )
+        val model = LinearMetaModel(name = "pricing_batch_freshness")
+        target = model
+        assertTrue(context.register(model).ok)
+        val oldDuals = assertNotNull(context.aggregation.refreshShadowPrices(
+            target = model,
+            duals = MetaDualSolution(model.constraints.associateWith { Flt64.zero }, emptyMap()),
+            scope = "batch"
+        ).value)
+        val firstColumn = column(id = "registered", cost = 1.0, usage = mapOf("order" to 1.0))
+        assertTrue(context.addColumns(listOf(firstColumn), model).ok)
+        val staleFailure = assertIs<Failed<*, *, *>>(context.aggregation.reducedCosts(
+            candidates = listOf(column(id = "", cost = 2.0, usage = mapOf("order" to 1.0))),
+            duals = oldDuals,
+            scope = "batch"
+        ))
+        assertTrue(staleFailure.error.message?.contains("Stale duals") == true)
+
+        val currentDuals = assertNotNull(context.aggregation.refreshShadowPrices(
+            target = model,
+            duals = MetaDualSolution(model.constraints.associateWith { Flt64.zero }, emptyMap()),
+            scope = "batch"
+        ).value)
+        mutateModel = true
+        assertFalse(context.aggregation.reducedCosts(
+            candidates = listOf(column(id = "candidate", cost = 2.0, usage = mapOf("order" to 1.0))),
+            duals = currentDuals,
+            scope = "batch"
+        ).ok)
+        model.close()
     }
 
     @Test

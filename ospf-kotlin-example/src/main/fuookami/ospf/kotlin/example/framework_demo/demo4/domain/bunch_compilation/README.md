@@ -27,3 +27,5 @@ Bounded context responsible for compiling flight task bunches into the column ge
 - **task** — provides `FlightTask`, `Aircraft`, `FlightTaskBunch`, `FlightTaskAssignment`, `ShadowPriceMap`.
 - **rule** — provides `Link`, `LinkMap`, `Flow`.
 - **framework (gantt_scheduling)** — provides base `BunchCompilationContext`, `BunchCompilationAggregation`, `BunchSchedulingTaskTime`, `BunchSchedulingConnectionResourceUsage`.
+
+Fleet balance preparation uses the first original bunch per aircraft and distributes each new batch by `(arrival airport, aircraft minor type)`. Each matching fleet expression is flushed once and receives terms in the original batch occurrence order; unmatched arrivals remain ignored. The index is local to the lazy limits initialization or add-columns call, not a cache across mutable source lifecycles.

@@ -57,6 +57,8 @@ BPP1D/BPP2D 的几何 context 均可使用。**不是**单舱位方案列，也�
   资源、力矩、目标及辅助变量自动参与列系数和对偶定价，不能只在最终整数模型补规则。
 - `PartitionDecision` 显式声明预估、推荐重量等局部变量身份及归属；未归属的变量保留为全局主问题变量。
   `PartitionPricingOracle` 可替换局部 MILP 定价；默认 `MilpPartitionPricingOracle` 保留连续预估重量及整数推荐重量。
+- `PartitionColumnGenerationConfig.batchPricingEnabled` 默认关闭；显式开启后仅为内置 `MilpPartitionPricingOracle` 批量准备非种子定价模型。
+  自定义 oracle 与逐分区注册的种子阶段仍走标量路径。批次继续由 `PartitionLoadingContext` 追加局部领域约束，且每次异步求解后均完整复核源模型及主问题版本。
 - 生命周期覆盖 `register`、`addColumns`、`removeColumns`、`refreshShadowPrice`、受限 LP、最终整数主问题和 `extractSolution`。
   每轮重新注册主问题，确保所有业务行、目标和 token 随增删列同步。可行性阶段最小化人工变量，不使用任意大 M。
 - 最终可在**已有分配/占位轮廓**内补全下游资源，并将补全结果物化为新的完整列，再求恰选一列的整数主问题。

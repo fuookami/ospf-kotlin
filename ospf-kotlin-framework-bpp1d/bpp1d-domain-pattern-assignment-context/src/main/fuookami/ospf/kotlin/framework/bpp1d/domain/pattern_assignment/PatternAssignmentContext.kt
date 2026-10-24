@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.quantities.unit.Meter
@@ -13,6 +14,8 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.framework.bpp.infrastructure.PackingValueAdapter
+import fuookami.ospf.kotlin.framework.bpp.infrastructure.Flt64PackingValueAdapter
+import fuookami.ospf.kotlin.framework.bpp.infrastructure.FltXPackingValueAdapter
 import fuookami.ospf.kotlin.framework.bpp1d.domain.item.model.*
 
 /** 模型注册阶段。 / Model registration stage. */
@@ -78,6 +81,25 @@ class PatternAssignmentContext<V : FloatingNumber<V>>(
     private var shadowPrice = MetaDualSolution(emptyMap(), emptyMap())
     private var registered = false
     private var extensionsRegistered = false
+    private data class PatternState(
+        val poolKey: String,
+        val key: String,
+        val bin: String,
+        val amounts: Map<String, UInt64>,
+        val variable: UIntVar,
+        val cost: Flt64
+    )
+
+    private data class SymbolState(
+        val id: String,
+        val symbol: LinearExpressionSymbol<Flt64>,
+        val version: Long
+    )
+
+    private var columnStates = emptyList<PatternState>()
+    private var demandStates = emptyList<SymbolState>()
+    private var inventoryStates = emptyList<SymbolState>()
+    private var objectiveVersion: Long? = null
 
     /** 注册初始模型。 / Register the initial model.
      * @param initialPatterns 初始列 / Initial columns
@@ -168,7 +190,7 @@ class PatternAssignmentContext<V : FloatingNumber<V>>(
         if (!registered) return Failed(ErrorCode.IllegalArgument, "方案上下文未注册 / Pattern context not registered")
         val variables = keys.mapNotNull { aggregation.variables.remove(it) }
         keys.forEach { pool.remove(it) }
-        val result = refresh()
+        val result = refresh(rebuild = true)
         if (result !is Ok) return result
         val objectiveResult = model.removeObjectiveTerms(variables.toSet())
         if (objectiveResult !is Ok) return objectiveResult
@@ -176,23 +198,102 @@ class PatternAssignmentContext<V : FloatingNumber<V>>(
         return ok
     }
 
-    private fun refresh(): Try {
-        fun replace(symbol: LinearExpressionSymbol<Flt64>, polynomial: LinearPolynomial<Flt64>) {
+    private fun refresh(rebuild: Boolean = false): Try {
+        if (adapter !== Flt64PackingValueAdapter && adapter !== FltXPackingValueAdapter) return rebuildExpressions()
+        fun unchanged(symbols: Map<String, LinearExpressionSymbol<Flt64>>, states: List<SymbolState>): Boolean {
+            return symbols.size == states.size && symbols.entries.withIndex().all { (index, entry) ->
+                val state = states[index]
+                entry.key == state.id && entry.value === state.symbol && entry.value.asMutable().mutationVersion == state.version
+            }
+        }
+        var append = !rebuild && objectiveVersion == aggregation.objective.asMutable().mutationVersion &&
+            unchanged(aggregation.demands, demandStates) && unchanged(aggregation.inventories, inventoryStates) &&
+            pool.size >= columnStates.size
+        val columns = pool.toList()
+        val states = columns.mapIndexed { index, (poolKey, pattern) ->
+            val key = pattern.key
+            val variable = aggregation.variables.getValue(key)
+            val previous = columnStates.getOrNull(index)
+            val same = previous != null && previous.poolKey == poolKey && previous.key == key &&
+                previous.bin == pattern.binTypeId && previous.variable === variable && previous.amounts == pattern.amounts
+            if (index < columnStates.size && !same) append = false
+            if (same) previous!! else PatternState(
+                poolKey = poolKey,
+                key = key,
+                bin = pattern.binTypeId,
+                amounts = pattern.amounts.toMap(),
+                variable = variable,
+                cost = previous?.cost ?: Flt64.zero
+            )
+        }
+        // 公开 Map/adapter 没有修改通知，仍逐列核验；未变历史项不再构造或复制。 / Public maps/adapters have no mutation notifications: validate each column, but never rebuild or copy unchanged historical terms.
+        val terms = if (append) states.drop(columnStates.size) else states
+        fun update(
+            symbol: LinearExpressionSymbol<Flt64>,
+            monomials: List<LinearMonomial<Flt64>>,
+            replace: Boolean = !append
+        ) {
             symbol.flush()
-            symbol.asMutable().clear()
-            symbol.asMutable() += polynomial
+            if (replace) symbol.asMutable().clear()
+            symbol.asMutable() += LinearPolynomial(monomials, Flt64.zero)
         }
         for ((id, symbol) in aggregation.demands) {
-            var polynomial = LinearPolynomial()
-            for (pattern in patterns) polynomial += LinearPolynomial((pattern.amounts[id] ?: UInt64.zero).toFlt64() * aggregation.variables.getValue(pattern.key))
-            replace(symbol, polynomial)
+            update(symbol, terms.map { (it.amounts[id] ?: UInt64.zero).toFlt64() * it.variable })
         }
         for ((id, symbol) in aggregation.inventories) {
-            replace(symbol, sum(patterns.filter { it.binTypeId == id }.map { aggregation.variables.getValue(it.key) }))
+            update(symbol, terms.filter { it.bin == id }.map { Flt64.one * it.variable })
         }
-        var objective = LinearPolynomial()
-        for (pattern in patterns) objective += LinearPolynomial(cost(pattern) * aggregation.variables.getValue(pattern.key))
-        replace(aggregation.objective, objective)
+        fun capture(symbols: Map<String, LinearExpressionSymbol<Flt64>>) = symbols.map { (id, symbol) ->
+            SymbolState(
+                id = id,
+                symbol = symbol,
+                version = symbol.asMutable().mutationVersion
+            )
+        }
+        val nextDemandStates = capture(aggregation.demands)
+        val nextInventoryStates = capture(aggregation.inventories)
+        var appendObjective = append
+        // adapter 调用仍晚于需求/库存刷新；转换失败时保留原部分更新边界。 / Invoke adapters after demand/inventory refresh, preserving the original partial-update boundary on conversion failure.
+        val pricedStates = states.mapIndexed { index, state ->
+            val cost = cost(columns[index].second)
+            if (index < columnStates.size && columnStates[index].cost.toDouble().toRawBits() != cost.toDouble().toRawBits()) {
+                appendObjective = false
+            }
+            if (state.cost.toDouble().toRawBits() == cost.toDouble().toRawBits()) state else state.copy(cost = cost)
+        }
+        val objectiveTerms = if (appendObjective) pricedStates.drop(columnStates.size) else pricedStates
+        update(
+            symbol = aggregation.objective,
+            monomials = objectiveTerms.map { it.cost * it.variable },
+            replace = !appendObjective
+        )
+        columnStates = pricedStates
+        demandStates = nextDemandStates
+        inventoryStates = nextInventoryStates
+        objectiveVersion = aggregation.objective.asMutable().mutationVersion
+        return refreshExtensions()
+    }
+
+    private fun rebuildExpressions(): Try {
+        // 任意 adapter 可能有副作用，保留旧求值阶段和读取顺序；只消除不可变列表的累计复制。 / Arbitrary adapters may have side effects: retain legacy evaluation phases and read order, removing only cumulative immutable-list copies.
+        fun replace(symbol: LinearExpressionSymbol<Flt64>, monomials: List<LinearMonomial<Flt64>>) {
+            symbol.flush()
+            symbol.asMutable().clear()
+            symbol.asMutable() += LinearPolynomial(monomials, Flt64.zero)
+        }
+        for ((id, symbol) in aggregation.demands) {
+            replace(symbol, patterns.map { pattern ->
+                (pattern.amounts[id] ?: UInt64.zero).toFlt64() * aggregation.variables.getValue(pattern.key)
+            })
+        }
+        for ((id, symbol) in aggregation.inventories) {
+            replace(symbol, patterns.filter { it.binTypeId == id }.map { Flt64.one * aggregation.variables.getValue(it.key) })
+        }
+        replace(aggregation.objective, patterns.map { cost(it) * aggregation.variables.getValue(it.key) })
+        return refreshExtensions()
+    }
+
+    private fun refreshExtensions(): Try {
         for (extension in extensions.filter { extensionsRegistered }) {
             val result = extension.refresh(this)
             if (result !is Ok) return result
@@ -243,6 +344,44 @@ class PatternAssignmentContext<V : FloatingNumber<V>>(
         }
         for (extension in extensions) result += extension.reducedCost(pattern, this, dual)
         return result
+    }
+
+    /**
+     * 在只读定价批次内共享稀疏价格索引，仍按原对偶行顺序累加。 / Share a sparse price index within a read-only pricing batch, retaining dual-row accumulation order.
+     * 定价期间调用方及扩展不得修改模型或对偶；单项重载保持原读取行为。 / Callers and extensions must not mutate the model or duals during pricing; single-item overloads retain their original read behavior.
+     * @param patterns 待报价候选，顺序不变 / Candidates in unchanged order
+     * @return 对应候选的完整检验数，包含扩展项 / Complete reduced costs including extension contributions
+     */
+    fun reducedCosts(patterns: List<PackingPattern<V>>): List<Flt64> {
+        val dual = shadowPrice
+        if (dual.constraints.values.any { !it.isFinite() }) {
+            return patterns.map { reducedCost(it, dual) }
+        }
+        val demandPrices = HashMap<String, MutableList<Pair<Int, Flt64>>>()
+        val inventoryPrices = HashMap<String, MutableList<Pair<Int, Flt64>>>()
+        for ((index, entry) in dual.constraints.entries.withIndex()) {
+            val key = entry.key.args as? String ?: continue
+            if (key.startsWith("demand:")) {
+                demandPrices.getOrPut(key.removePrefix("demand:")) { ArrayList() }.add(index to entry.value)
+            }
+            if (key.startsWith("inventory:")) {
+                inventoryPrices.getOrPut(key.removePrefix("inventory:")) { ArrayList() }.add(index to entry.value)
+            }
+        }
+        return patterns.map { pattern ->
+            val contributions = ArrayList<Pair<Int, Flt64>>()
+            for ((item, amount) in pattern.amounts) {
+                for ((index, price) in demandPrices[item].orEmpty()) {
+                    contributions.add(index to amount.toFlt64() * price)
+                }
+            }
+            contributions.addAll(inventoryPrices[pattern.binTypeId].orEmpty())
+            contributions.sortBy { it.first }
+            var result = cost(pattern)
+            for ((_, contribution) in contributions) result -= contribution
+            for (extension in extensions) result += extension.reducedCost(pattern, this, dual)
+            result
+        }
     }
 
     /** 提取整数列份数。 / Extract integer pattern usages.

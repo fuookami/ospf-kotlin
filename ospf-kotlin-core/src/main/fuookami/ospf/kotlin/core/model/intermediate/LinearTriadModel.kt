@@ -1268,25 +1268,20 @@ data class LinearTriadModel(
         val coefficients = this@LinearTriadModel.variables.indices.map {
             cellGroups[it]?.map { cell -> Pair(cell.rowIndex, cell.coefficient) } ?: emptyList()
         }
-        val lhs = coroutineScope {
-            val constraintPromises = this@LinearTriadModel.variables.indices.map { col ->
-                async(Dispatchers.Default) {
-                    coefficients[col].map { cell ->
-                        LinearConstraintCell(
-                            rowIndex = col,
-                            colIndex = cell.first,
-                            coefficient = cell.second
-                        )
-                    } + listOfNotNull(boundDualVariables[col].first, boundDualVariables[col].second).map {
-                        LinearConstraintCell(
-                            rowIndex = col,
-                            colIndex = it.index,
-                            coefficient = Flt64.one
-                        )
-                    }
-                }
+        val lhs = mapTriadColumns(variables.size) { col ->
+            coefficients[col].map { cell ->
+                LinearConstraintCell(
+                    rowIndex = col,
+                    colIndex = cell.first,
+                    coefficient = cell.second
+                )
+            } + listOfNotNull(boundDualVariables[col].first, boundDualVariables[col].second).map {
+                LinearConstraintCell(
+                    rowIndex = col,
+                    colIndex = it.index,
+                    coefficient = Flt64.one
+                )
             }
-            constraintPromises.awaitAll()
         }
         val signs = this.variables.map {
             if (!it.normalized) {
@@ -1574,8 +1569,8 @@ data class LinearTriadModel(
         }
 
         val lhs = coroutineScope {
-            val constraintPromises = this@LinearTriadModel.variables.indices.map { col ->
-                async(Dispatchers.Default) {
+            val constraintPromises = async {
+                mapTriadColumns(this@LinearTriadModel.variables.size) { col ->
                     coefficients[col].map { cell ->
                         LinearConstraintCell(
                             rowIndex = col,
@@ -1590,7 +1585,8 @@ data class LinearTriadModel(
                         )
                     }
                 }
-            } + listOf(async(Dispatchers.Default) {
+            }
+            val normalizationPromise = async(Dispatchers.Default) {
                 this@LinearTriadModel.constraints.indices.map {
                     LinearConstraintCell(
                         rowIndex = this@LinearTriadModel.variables.size,
@@ -1615,7 +1611,7 @@ data class LinearTriadModel(
                         }
                     )
                 }
-            })
+            }
             val slackConstraintPromises = async(Dispatchers.Default) {
                 var rowIndex = this@LinearTriadModel.variables.size + 1
                 var i = 0
@@ -1650,7 +1646,7 @@ data class LinearTriadModel(
                     }
                 }
             }
-            constraintPromises.awaitAll() + slackConstraintPromises.await()
+            constraintPromises.await() + listOf(normalizationPromise.await()) + slackConstraintPromises.await()
         }
 
         val signs = this.variables.indices.map { ConstraintRelation.Equal } + listOf(ConstraintRelation.Equal) + this.constraints.indices.mapNotNull {

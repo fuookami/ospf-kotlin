@@ -3,6 +3,7 @@
 */
 package fuookami.ospf.kotlin.core.token
 
+import java.util.IdentityHashMap
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.*
@@ -36,11 +37,12 @@ sealed class AbstractTokenList<T : RealNumber<T>> : AutoCloseable {
         return find(index)!!
     }
 
-    private val cache = HashMap<Token<T>, Int?>()
+    @Volatile
+    private var cache: Map<VariableItemKey, Int>? = null
 
     /** 清除 token 索引缓存 / Clears the token index cache */
     protected fun clearIndexCache() {
-        cache.clear()
+        cache = null
     }
 
     /**
@@ -50,19 +52,16 @@ sealed class AbstractTokenList<T : RealNumber<T>> : AutoCloseable {
      * @return 求解器索引，未找到返回 null / Solver index, or null if not found
     */
     open fun indexOf(token: Token<T>): Int? {
-        return if (tokensInSolver.isNotEmpty()) {
-            cache.getOrPut(token) {
-                tokensInSolver.indexOf(token).let {
-                    if (it != -1) {
-                        it
-                    } else {
-                        null
-                    }
-                }
+        val indices = cache ?: run {
+            // Token 相等性只依赖 key；位置不是可能有空洞的 solverIndex。 / Token equality uses only key; positions are not potentially sparse solverIndex values.
+            val built = HashMap<VariableItemKey, Int>()
+            for ((index, candidate) in tokensInSolver.withIndex()) {
+                built.putIfAbsent(candidate.key, index)
             }
-        } else {
-            null
+            cache = built
+            built
         }
+        return indices[token.key]
     }
 
     /**
@@ -152,7 +151,7 @@ sealed class AbstractTokenList<T : RealNumber<T>> : AutoCloseable {
 
     /** 关闭并释放内部缓存 / Closes and releases internal cache */
     override fun close() {
-        cache.clear()
+        clearIndexCache()
     }
 }
 
@@ -176,9 +175,9 @@ class TokenList<T : RealNumber<T>>(
 
     init {
         list.forEach { (_, value) ->
-            value.refreshCallbacks[this] = {
+            value.refreshCallbacks[this] = { hasResult ->
                 synchronized(lock) {
-                    _cachedSolution = tokens.any { it.resultFlt64 != null }
+                    _cachedSolution = if (hasResult) true else null
                 }
             }
         }
@@ -229,7 +228,7 @@ class TokenList<T : RealNumber<T>>(
         synchronized(lock) {
             assert(solution.size >= tokensInSolver.size)
             for ((index, token) in tokensInSolver.withIndex()) {
-                token.__result = solution[index]
+                token._result = solution[index]
             }
             _cachedSolution = tokens.any { it.resultFlt64 != null }
         }
@@ -238,7 +237,7 @@ class TokenList<T : RealNumber<T>>(
     override fun setSolverSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
         synchronized(lock) {
             for ((variable, value) in solution) {
-                find(variable)?.__result = value
+                find(variable)?._result = value
             }
             _cachedSolution = tokens.any { it.resultFlt64 != null }
         }
@@ -247,7 +246,7 @@ class TokenList<T : RealNumber<T>>(
     override fun clearSolution() {
         synchronized(lock) {
             for (token in tokens) {
-                token.__result = null
+                token._result = null
             }
             _cachedSolution = tokens.any { it.resultFlt64 != null }
         }
@@ -367,6 +366,22 @@ sealed class MutableTokenList<T : RealNumber<T>>(
             return _tokensInSolver
         }
     protected var _cachedSolution: Boolean? = null
+
+    init {
+        for (token in list.values) {
+            attachRefreshCallback(token)
+        }
+    }
+
+    private fun attachRefreshCallback(token: Token<T>) {
+        token.refreshCallbacks[this] = { hasResult ->
+            synchronized(lock) {
+                // 非空值可直接证明存在解；清空时延迟到读取再扫描。 / A non-null value proves a solution exists; defer scans after clearing until the next read.
+                _cachedSolution = if (hasResult) true else null
+            }
+        }
+    }
+
     override val cachedSolution: Boolean
         get() {
             return synchronized(lock) {
@@ -396,8 +411,10 @@ sealed class MutableTokenList<T : RealNumber<T>>(
         return synchronized(lock) {
             try {
                 val listOwner = this as AbstractTokenList<T>
+                val originalTokens = IdentityHashMap<Token<T>, Boolean>()
+                snapshot.list.values.forEach { originalTokens[it] = true }
                 for (token in list.values) {
-                    if (snapshot.list.values.none { original -> original === token }) {
+                    if (!originalTokens.containsKey(token)) {
                         token.refreshCallbacks.remove(listOwner)
                     }
                 }
@@ -429,16 +446,16 @@ sealed class MutableTokenList<T : RealNumber<T>>(
 
     /** 清除按求解器排序的 token 缓存 / Invalidates the solver-order token cache. */
     protected fun invalidateTokensInSolver() {
-        _tokensInSolver = ArrayList()
+        _tokensInSolver = emptyList()
     }
 
     /** 创建带当前列表回调的 token / Creates a token with the current-list refresh callback. */
     protected fun createToken(item: AbstractVariableItem<*, *>): Token<T> {
-        return Token(item, currentIndex, mutableMapOf(this as AbstractTokenList<T> to {
-            synchronized(lock) {
-                _cachedSolution = tokens.any { it.resultFlt64 != null }
-            }
-        }))
+        return Token<T>(
+            variable = item,
+            solverIndex = currentIndex,
+            refreshCallbacks = mutableMapOf()
+        ).also { attachRefreshCallback(it) }
     }
 
     /** 将 token 注册异常转换为失败结果 / Convert a token-registration exception into a failure result. */
@@ -450,101 +467,51 @@ sealed class MutableTokenList<T : RealNumber<T>>(
         )
     }
 
-    /** 恢复 token 列表及其回调状态 / Restore token-list contents and callback state. */
-    private fun rollbackTo(
-        originalList: Map<VariableItemKey, Token<T>>,
-        originalIndex: Int,
-        originalCachedSolution: Boolean?,
-        originalCallbacks: List<Pair<Token<T>, ((Boolean) -> Unit)?>>
-    ) {
-        val listOwner = this as AbstractTokenList<T>
-        for (token in list.values) {
-            if (originalList.values.none { it === token }) {
-                token.refreshCallbacks.remove(listOwner)
-            }
-        }
-        for ((token, callback) in originalCallbacks) {
-            if (callback == null) {
-                token.refreshCallbacks.remove(listOwner)
-            } else {
-                token.refreshCallbacks[listOwner] = callback
-            }
-        }
-        list.clear()
-        list.putAll(originalList)
-        currentIndex = originalIndex
-        invalidateTokensInSolver()
-        clearIndexCache()
-        _cachedSolution = originalCachedSolution
-    }
-
     override fun add(item: AbstractVariableItem<*, *>): Try {
-        return synchronized(lock) {
-            val originalList = list.toMap()
-            val originalIndex = currentIndex
-            val originalCachedSolution = _cachedSolution
-            val listOwner = this as AbstractTokenList<T>
-            val originalCallbacks = originalList.values.map { token ->
-                token to token.refreshCallbacks[listOwner]
-            }
-            try {
-                addOne(item)
-            } catch (error: RuntimeException) {
-                rollbackTo(
-                    originalList = originalList,
-                    originalIndex = originalIndex,
-                    originalCachedSolution = originalCachedSolution,
-                    originalCallbacks = originalCallbacks
-                )
-                runtimeRegistrationFailure(error)
-            }
-        }
-    }
-
-    private fun addOne(
-        item: AbstractVariableItem<*, *>,
-        addedTokens: MutableList<Token<T>>? = null
-    ): Try {
-        if (checkTokenExisted && list.containsKey(item.key)) {
-            return Failed(code = ErrorCode.TokenExisted)
-        }
-        val token = createToken(item)
-        val replacedToken = list.put(item.key, token)
-        replacedToken?.refreshCallbacks?.remove(this as AbstractTokenList<T>)
-        addedTokens?.add(token)
-        ++currentIndex
-        invalidateTokensInSolver()
-        clearIndexCache()
-        if (replacedToken?.resultFlt64 != null) {
-            _cachedSolution = tokens.any { it.resultFlt64 != null }
-        }
-        return ok
+        return add(listOf(item))
     }
 
     override fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
         return synchronized(lock) {
-            val originalList = list.toMap()
             val originalIndex = currentIndex
             val originalCachedSolution = _cachedSolution
-            val addedTokens = ArrayList<Token<T>>()
             val listOwner = this as AbstractTokenList<T>
-            val originalCallbacks = originalList.values.map { token ->
-                token to token.refreshCallbacks[listOwner]
+            // 只记录本批触及的 key，重复替换仍恢复最初 token 和回调。 / Journal only touched keys; repeated replacements restore the original token and callback.
+            val originals = if (checkTokenExisted) {
+                null
+            } else {
+                LinkedHashMap<VariableItemKey, Pair<Token<T>?, ((Boolean) -> Unit)?>>()
             }
+            // 禁止替换时只记录新增 key，无需为每项分配原状态 Map entry/Pair。
+            // Without replacements, journal only new keys, not per-item original-state entries/pairs.
+            val addedKeys = if (checkTokenExisted) ArrayList<VariableItemKey>() else null
+            val addedTokens = ArrayList<Token<T>>()
+            var solutionChanged = false
 
             fun rollback() {
                 for (token in addedTokens) {
                     token.refreshCallbacks.remove(listOwner)
                 }
-                for ((token, callback) in originalCallbacks) {
-                    if (callback == null) {
-                        token.refreshCallbacks.remove(listOwner)
-                    } else {
-                        token.refreshCallbacks[listOwner] = callback
+                if (addedKeys != null) {
+                    for (key in addedKeys) {
+                        list.remove(key)
                     }
                 }
-                list.clear()
-                list.putAll(originalList)
+                if (originals != null) {
+                    for ((key, state) in originals) {
+                        val (token, callback) = state
+                        if (token == null) {
+                            list.remove(key)
+                        } else {
+                            list[key] = token
+                            if (callback == null) {
+                                token.refreshCallbacks.remove(listOwner)
+                            } else {
+                                token.refreshCallbacks[listOwner] = callback
+                            }
+                        }
+                    }
+                }
                 currentIndex = originalIndex
                 invalidateTokensInSolver()
                 clearIndexCache()
@@ -553,19 +520,30 @@ sealed class MutableTokenList<T : RealNumber<T>>(
 
             try {
                 for (item in items) {
-                    when (val result = addOne(item, addedTokens)) {
-                        is Ok -> {}
-
-                        is Failed -> {
-                            rollback()
-                            return@synchronized Failed(result.error)
-                        }
-
-                        is Fatal -> {
-                            rollback()
-                            return@synchronized Fatal(result.errors)
-                        }
+                    val key = item.key
+                    if (checkTokenExisted && list.containsKey(key)) {
+                        rollback()
+                        return@synchronized Failed(code = ErrorCode.TokenExisted)
                     }
+                    if (originals != null && !originals.containsKey(key)) {
+                        val original = list[key]
+                        originals[key] = original to original?.refreshCallbacks?.get(listOwner)
+                    }
+                    val token = createToken(item)
+                    addedTokens.add(token)
+                    addedKeys?.add(key)
+                    val replaced = list.put(key, token)
+                    replaced?.refreshCallbacks?.remove(listOwner)
+                    ++currentIndex
+                    invalidateTokensInSolver()
+                    clearIndexCache()
+                    if (replaced?.resultFlt64 != null) {
+                        _cachedSolution = null
+                        solutionChanged = true
+                    }
+                }
+                if (solutionChanged) {
+                    _cachedSolution = tokens.any { it.resultFlt64 != null }
                 }
             } catch (error: RuntimeException) {
                 rollback()
@@ -597,8 +575,8 @@ sealed class MutableTokenList<T : RealNumber<T>>(
             assert(solution.size >= tokensInSolver.size)
             for ((index, token) in tokensInSolver.withIndex()) {
                 token.setResult(solution[index])
-                _cachedSolution = tokens.any { it.resultFlt64 != null }
             }
+            _cachedSolution = tokens.any { it.resultFlt64 != null }
         }
     }
 
@@ -615,16 +593,16 @@ sealed class MutableTokenList<T : RealNumber<T>>(
         synchronized(lock) {
             assert(solution.size >= tokensInSolver.size)
             for ((index, token) in tokensInSolver.withIndex()) {
-                token.__result = solution[index]
-                _cachedSolution = tokens.any { it.resultFlt64 != null }
+                token._result = solution[index]
             }
+            _cachedSolution = tokens.any { it.resultFlt64 != null }
         }
     }
 
     override fun setSolverSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
         synchronized(lock) {
             for ((variable, value) in solution) {
-                find(variable)?.__result = value
+                find(variable)?._result = value
             }
             _cachedSolution = tokens.any { it.resultFlt64 != null }
         }
@@ -633,7 +611,7 @@ sealed class MutableTokenList<T : RealNumber<T>>(
     override fun clearSolution() {
         synchronized(lock) {
             for (token in tokens) {
-                token.__result = null
+                token._result = null
             }
             _cachedSolution = false
         }
@@ -713,7 +691,6 @@ class AutoTokenList<T : RealNumber<T>> private constructor(
                 invalidateTokensInSolver()
                 clearIndexCache()
             }
-            _cachedSolution = tokens.any { it.resultFlt64 != null }
             token
         }
     }

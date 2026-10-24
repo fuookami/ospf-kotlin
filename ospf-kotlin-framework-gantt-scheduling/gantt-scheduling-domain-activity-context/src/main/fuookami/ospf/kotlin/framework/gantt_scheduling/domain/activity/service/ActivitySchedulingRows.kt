@@ -36,40 +36,7 @@ internal class ActivitySchedulingRows<V : RealNumber<V>>(private val data: Compi
                 ))
             }
         }
-        val horizon = data.problem.horizon
-        for ((resourceIndex, entry) in data.resources.entries.withIndex()) {
-            val (resourceId, resource) = entry
-            val events = sortedSetOf(horizon.start, horizon.end)
-            fun addEvent(time: Instant) {
-                if (time > horizon.start && time < horizon.end) events.add(time)
-            }
-            val reservations = data.choices.flatMap { it.reservations } + data.fixedReservations
-            for (reservation in reservations.filter { it.resource == resourceId }) {
-                addEvent(reservation.time.start)
-                addEvent(reservation.time.end)
-            }
-            for (time in resource.source.unavailableTimes + resource.capacities.map { it.first }) {
-                addEvent(time.start)
-                addEvent(time.end)
-            }
-            for ((eventIndex, time) in events.toList().dropLast(1).withIndex()) {
-                val coefficients = linkedMapOf<Int, Flt64>()
-                for ((choiceIndex, choice) in data.choices.withIndex()) {
-                    val usage = choice.reservations.filter { it.resource == resourceId && time >= it.time.start && time < it.time.end }
-                        .fold(Flt64.zero) { sum, reservation -> sum + reservation.quantity }
-                    if (usage.toDouble() != 0.0) coefficients[choiceIndex] = usage
-                }
-                val fixed = data.fixedReservations.filter { it.resource == resourceId && time >= it.time.start && time < it.time.end }
-                    .fold(Flt64.zero) { sum, reservation -> sum + reservation.quantity }
-                if (coefficients.isNotEmpty() || fixed.toDouble() != 0.0) {
-                    rows.add(CompiledActivityRow(
-                        id = "capacity_${resourceIndex}_$eventIndex",
-                        coefficients = coefficients,
-                        upper = resource.capacityAt(time) - fixed
-                    ))
-                }
-            }
-        }
+        rows.addAll(ActivityCapacityRows(data).rows())
         val facts = data.problem.executions.associate { it.placement.key.task to it.placement.time }
         fun choices(task: TaskId): List<Pair<Int?, TimeRange>> = facts[task]?.let { listOf(null to it) }
             ?: data.choices.mapIndexedNotNull { index, choice ->

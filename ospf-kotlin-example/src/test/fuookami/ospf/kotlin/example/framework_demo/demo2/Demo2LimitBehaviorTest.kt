@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.Aggregation as AircraftAggregation
@@ -17,10 +18,15 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_se
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.PipelineListGenerator as AirworthinessPipelineListGenerator
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.Aggregation as ExpressAggregation
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.model.RelativeOrder
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.service.AggregationInitializer as ExpressAggregationInitializer
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.service.PipelineListGenerator as ExpressPipelineListGenerator
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.service.limits.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.Aggregation as LoadingAggregation
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model.SequentialLoading
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model.Trailer
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model.TrailerLoading
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model.TrailerType
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.service.AggregationInitializer as LoadingAggregationInitializer
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.service.PipelineListGenerator as LoadingPipelineListGenerator
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.service.limits.*
@@ -32,6 +38,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weig
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.service.limits.ItemOrderLimit
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.service.limits.RecommendedWeightDeviationObjective
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.Aggregation as StowageAggregation
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.model.DivideEmptyLoading
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.PipelineListGenerator as StowagePipelineListGenerator
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits.AppointmentLimit
@@ -467,6 +474,226 @@ class Demo2LimitBehaviorTest {
     }
 
     @Test
+    fun `pair factories preserve sorted ties and strict comparison order`() {
+        val fixture = limitFixture(
+            itemCount = 4,
+            positionCount = 3,
+            priorities = listOf(1UL, 10UL, 10UL, 5UL),
+            orders = listOf(UInt8.two, UInt8.zero, UInt8.two, UInt8.one)
+        )
+        val sequential = SequentialLoading.invoke(
+            items = fixture.items,
+            positions = fixture.positions,
+            orderedPositions = fixture.positions.zipWithNext(),
+            stowage = fixture.stowage
+        )
+        val relative = RelativeOrder.invoke(
+            items = fixture.items,
+            positions = fixture.positions,
+            stowage = fixture.stowage
+        )
+        assertEquals(listOf("I1:I3", "I1:I0", "I1:I2", "I3:I0", "I3:I2"),
+            sequential.orderedItems.map { "${it.first.id}:${it.second.id}" })
+        assertEquals(listOf("I1:I3", "I1:I0", "I2:I3", "I2:I0", "I3:I0"),
+            relative.orderedItems.map { "${it.first.id}:${it.second.id}" })
+        assertEquals(fixture.positions.flatMapIndexed { index, position ->
+            fixture.positions.drop(index + 1).map { position to it }
+        }, relative.orderedPositions)
+        assertTrue(sequential.register(fixture.model()) is Ok)
+        assertTrue(relative.register(fixture.model()) is Ok)
+    }
+
+    @Test
+    fun `priority order retains last rank for equal repeated positions`() {
+        val fixture = limitFixture(itemCount = 2, positionCount = 3)
+        val model = fixture.model()
+        val positions = listOf(fixture.positions[2], fixture.positions[0], fixture.positions[2])
+        assertTrue(PriorityOrderLimit(
+            items = fixture.items,
+            positions = positions,
+            stowage = fixture.stowage
+        )(model) is Ok)
+        assertEquals(listOf(5.0, 1.0, 3.0, 3.0, 5.0, 1.0),
+            model.relationConstraints.single().inequality.lhs.monomials.map { it.coefficient.toDouble() })
+    }
+
+    @Test
+    fun `pair matrix retains first equal item and position indices`() {
+        val fixture = limitFixture(itemCount = 3, positionCount = 3)
+        val sequential = SequentialLoading(
+            items = listOf(fixture.items[0], fixture.items[0], fixture.items[1]),
+            positions = listOf(fixture.positions[0], fixture.positions[0], fixture.positions[1]),
+            orderedItems = listOf(fixture.items[0] to fixture.items[1]),
+            orderedPositions = listOf(fixture.positions[0] to fixture.positions[1]),
+            stowage = fixture.stowage
+        )
+        assertTrue(sequential.register(fixture.model()) is Ok)
+        val function = (sequential.itemOrderReverse[0, 0] as LinearFunctionSymbolAdapter<Flt64>).delegate as IfFunction<Flt64>
+        val expected = fixture.stowage.stowage[0, 2] + fixture.stowage.stowage[2, 0]
+        assertEquals(expected.monomials, function.condition.monomials)
+    }
+
+    @Test
+    fun `indexed load groups match predicate amounts without caching predicates or mutable lists`() {
+        val fixture = limitFixture(itemCount = 4, positionCount = 3)
+        val items = fixture.items.toMutableList()
+        val positions = fixture.positions.toMutableList()
+        val load = Load(
+            aircraftModel = fixture.aircraftModel,
+            formula = fixture.formula,
+            items = items,
+            positions = positions,
+            withMultiLoadingSchema = false,
+            stowage = fixture.stowage
+        )
+        var calls = 0
+        val selected = load.itemIndicesOf { ++calls; it.id == "I0" || it.id == "I2" }
+        assertEquals(items.size, calls)
+        assertEquals(listOf(0, 2), selected)
+        val amounts = load.loadAmountsOf(listOf(positions[2], positions[0], positions[2]), selected)
+        assertEquals(2, amounts.size)
+        for ((position, amount) in amounts) {
+            assertEquals(load.loadAmountOf(position) { it.id == "I0" || it.id == "I2" }.polynomial.monomials,
+                amount.polynomial.monomials)
+        }
+        val repeated = load.loadAmountsOf(listOf(positions[0]), listOf(2, 0, 2)).getValue(positions[0])
+        assertEquals(sum(listOf(2, 0, 2).map { fixture.stowage.stowage[it, 0] }).monomials, repeated.polynomial.monomials)
+        var selectedId = "I0"
+        val predicate: (Item) -> Boolean = { it.id == selectedId }
+        val before = load.loadAmountOf(positions[0], predicate)
+        selectedId = "I1"
+        val after = load.loadAmountOf(positions[0], predicate)
+        assertNotSame(before, after)
+        assertNotEquals(before.polynomial.monomials, after.polynomial.monomials)
+        items[0] = fixture.items[2]
+        items[2] = fixture.items[0]
+        positions[0] = fixture.positions[2]
+        positions[2] = fixture.positions[0]
+        val freshIndices = load.itemIndicesOf { it.id == "I0" }
+        assertEquals(listOf(2), freshIndices)
+        val fresh = load.loadAmountsOf(listOf(positions[0]), freshIndices).getValue(positions[0])
+        assertEquals(load.loadAmountOf(positions[0]) { it.id == "I0" }.polynomial.monomials, fresh.polynomial.monomials)
+        assertTrue(load.loadAmountsOf(listOf(positions[0]), emptyList()).getValue(positions[0]).polynomial.monomials.isEmpty())
+    }
+
+    @Test
+    fun `trailer and empty cargo preparation classify once per group rather than per cell`() {
+        val fixture = limitFixture(itemCount = 4, positionCount = 3, emptyItems = setOf(2, 3))
+        var reads = 0
+        val countedItems = object : AbstractList<Item>() {
+            override val size get() = fixture.items.size
+            override fun get(index: Int): Item {
+                ++reads
+                return fixture.items[index]
+            }
+        }
+        val load = Load(
+            aircraftModel = fixture.aircraftModel,
+            formula = fixture.formula,
+            items = countedItems,
+            positions = fixture.positions,
+            withMultiLoadingSchema = false,
+            stowage = fixture.stowage
+        )
+        load.loadAmount = LinearIntermediateSymbols1("load_amount", Shape1(fixture.positions.size)) { j, _ ->
+            LinearExpressionSymbol(sum(fixture.stowage.stowage[_a, j]), name = "load_amount_$j")
+        }
+        val trailers = List(3) { index ->
+            Trailer(
+                type = TrailerType.Hardstand,
+                order = UInt8(index.toUByte()),
+                name = "T$index",
+                items = fixture.items.subList(index, index + 2)
+            )
+        }
+        val pairs = listOf(
+            fixture.positions[0] to fixture.positions[1],
+            fixture.positions[0] to fixture.positions[2],
+            fixture.positions[1] to fixture.positions[2]
+        )
+        val trailer = TrailerLoading.invoke(
+            items = fixture.items,
+            positions = fixture.positions,
+            trailers = trailers,
+            adjacentPositions = pairs,
+            stowage = fixture.stowage,
+            load = load
+        )
+        val trailerModel = fixture.model()
+        assertTrue(trailer.register(trailerModel) is Ok)
+        assertEquals(trailers.size * fixture.items.size, reads)
+        reads = 0
+        val empty = DivideEmptyLoading(
+            positions = fixture.positions,
+            adjacentPositions = pairs,
+            load = load
+        )
+        val emptyModel = fixture.model()
+        assertTrue(empty.register(emptyModel) is Ok)
+        assertEquals(4 * fixture.items.size, reads)
+        assertEquals(pairs.size, empty.emptyCargoBetweenCargo.size)
+
+        for ((t, trailersInOrder) in trailer.orderedTrailers.withIndex()) {
+            for ((p, adjacent) in pairs.withIndex()) {
+                val original = load.loadAmountOf(adjacent.first) { it in trailersInOrder.second.items } +
+                    load.loadAmountOf(adjacent.second) { it in trailersInOrder.first.items } -
+                    Flt64.two + Flt64(NONZERO_TOLERANCE)
+                assertExpandedCondition(original, trailer.trailerChange[t, p])
+            }
+        }
+        for ((p, adjacent) in pairs.withIndex()) {
+            val nextIndex = fixture.positions.indexOf(adjacent.second)
+            val nonempty = load.loadAmountOf(adjacent.first) { !it.cargo.contains(CargoCode.Empty) }
+            val emptyCargo = load.loadAmountOf(adjacent.first) { it.cargo.contains(CargoCode.Empty) }
+            val nextNonempty = load.loadAmountOf(adjacent.second) { !it.cargo.contains(CargoCode.Empty) }
+            assertExpandedCondition(
+                LinearPolynomial(nonempty) - (LinearPolynomial(load.loadAmount[nextIndex]) + Flt64.one) + Flt64(NONZERO_TOLERANCE),
+                empty.emptyBetweenCargo[p]
+            )
+            assertExpandedCondition(
+                LinearPolynomial(emptyCargo) + LinearPolynomial(nextNonempty) - Flt64.two + Flt64(NONZERO_TOLERANCE),
+                empty.emptyCargoBetweenCargo[p]
+            )
+            assertExpandedCondition(
+                LinearPolynomial(emptyCargo) - (LinearPolynomial(load.loadAmount[nextIndex]) + Flt64.one) + Flt64(NONZERO_TOLERANCE),
+                empty.emptyBetweenEmptyCargo[p]
+            )
+        }
+        runBlocking {
+            for (model in listOf(trailerModel, emptyModel)) {
+                assertTrue(model.add(fixture.stowage.loadingContext.aggregation.assignments.values.toList()) is Ok)
+                assertTrue(model.add(fixture.stowage.stowage) is Ok)
+                assertTrue(model.add(load.loadAmount) is Ok)
+                val built = LinearMechanismModel(model)
+                assertTrue(built is Ok, built.toString())
+                (built as Ok).value.close()
+            }
+        }
+    }
+
+    private fun assertExpandedCondition(expected: LinearPolynomial<Flt64>, actual: LinearIntermediateSymbol<Flt64>) {
+        val condition = ((actual as LinearFunctionSymbolAdapter<Flt64>).delegate as IfFunction<Flt64>).condition
+        val before = expandLoadExpressions(expected)
+        val after = expandLoadExpressions(condition)
+        assertEquals(before.monomials, after.monomials)
+        assertEquals(before.constant.toDouble().toRawBits(), after.constant.toDouble().toRawBits())
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun expandLoadExpressions(polynomial: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
+        var expanded = LinearPolynomial(constant = polynomial.constant)
+        for (term in polynomial.monomials) {
+            val symbol = term.symbol
+            if (symbol is LinearExpressionSymbol<*>) {
+                expanded += term.coefficient * expandLoadExpressions((symbol as LinearExpressionSymbol<Flt64>).polynomial)
+            } else {
+                expanded += LinearPolynomial(monomials = listOf(term), constant = Flt64.zero)
+            }
+        }
+        return expanded
+    }
+
+    @Test
     fun `recommended weight pipeline is only active in recommendation mode`() {
         val fixture = limitFixture(
             itemCount = 2,
@@ -632,7 +859,9 @@ class Demo2LimitBehaviorTest {
         priorities: List<ULong> = List(itemCount) { (itemCount - it).toULong() },
         recommendedWeightNeeded: Boolean = false,
         predicateWeightNeeded: Boolean = false,
-        withMultiLoadingSchema: Boolean = false
+        withMultiLoadingSchema: Boolean = false,
+        orders: List<UInt8?> = List(itemCount) { null },
+        emptyItems: Set<Int> = emptySet()
     ): LimitFixture {
         val aircraftModel = AircraftModel(AircraftMinorModel("B737"))
         val positions = List(positionCount) { index ->
@@ -700,7 +929,7 @@ class Demo2LimitBehaviorTest {
                 weight = Quantity(Flt64(1.0), aircraftModel.weightUnit),
                 location = ItemLocation.normalMain,
                 cargo = ItemCargo(
-                    types = setOf(CargoType("GENERAL")),
+                    types = setOf(if (index in emptyItems) CargoType(CargoCode.Empty) else CargoType("GENERAL")),
                     priority = CargoPriority(
                         name = "P$index",
                         priority = UInt64(priorities[index]),
@@ -708,7 +937,14 @@ class Demo2LimitBehaviorTest {
                     )
                 ),
                 status = ItemStatus.Optional,
-                order = null
+                order = orders[index]?.let {
+                    ItemOrder(
+                        hardstand = null,
+                        reweighed = null,
+                        carBoard = null,
+                        order = it
+                    )
+                }
             )
         }
         val stowage = Stowage(items, positions)

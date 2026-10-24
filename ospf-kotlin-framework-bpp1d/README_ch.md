@@ -31,6 +31,17 @@ discrete-loading、packing 和 application。
 扩展的模型私有状态必须按 context 隔离，不能把 LP 变量带入最终新模型。
 `Flt64PackingValueAdapter`、`FltXPackingValueAdapter` 集中处理求解器边界转换。
 
+内置数值 adapter 保留未变历史基础表达式项，仅追加新列。公开 map 没有修改通知，因此每轮仍核验
+历史方案件数、变量绑定和成本；历史内容或基础表达式变化时重建，删除列也始终重建。扩展 refresh
+保留原顺序和失败行为，其对基础表达式的写入会在下一轮检测到。任意自定义 adapter 可能有副作用，
+仍保持原完整刷新阶段和读取行为。两条路径的重建均一次构造项列表，不再反复拼接增长的不可变
+多项式。这不代表 addColumns 总成本为常量：输入核验、缓存失效和实际输出系数仍有成本。
+
+`PatternAssignmentContext.reducedCosts(candidates)` 在一次只读定价批次内共享稀疏对偶索引，
+保留候选顺序、对偶行累加顺序和扩展贡献；调用期间调用方和扩展不得修改模型或对偶 map。
+独立调用仍可使用单项 `reducedCost` 重载；每个新批次使用 `refreshShadowPrice` 提供的当前价格。
+内置求解器仅在没有建模扩展时自动使用批量快路径；既有扩展仍保留单项定价及逐候选状态读取行为。
+
 只有候选完备且最终整数求解证明最优，才返回 `Optimal`。候选或节点预算截断时，
 `candidateComplete=false`，受限池的整数最优也只返回 `Feasible`；LP 定价收敛本身不证明整数最优。
 失败统一使用 `Ret`/`Try`。

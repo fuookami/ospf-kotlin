@@ -1536,14 +1536,14 @@ object ConstraintProgrammingCheckpointCodec {
     private fun ConstraintProgrammingSolution.toPortable(
         snapshot: ConstraintProgrammingModelSnapshot
     ): Ret<PortableConstraintProgrammingIncumbent> {
-        val expectedIds = snapshot.variables.map { it.id }.toSet()
-        if (values.keys != expectedIds) {
+        val variables = snapshot.indexVariables()
+        if (values.keys != variables.keys) {
             return Failed(
                 ErrorCode.IllegalArgument,
                 "checkpoint incumbent 变量集合不匹配 / Checkpoint incumbent variable set mismatch"
             )
         }
-        if (values.any { (id, value) -> snapshot.variable(id)?.domain?.contains(value) != true }) {
+        if (values.any { (id, value) -> variables[id]?.domain?.contains(value) != true }) {
             return Failed(
                 ErrorCode.IllegalArgument,
                 "checkpoint incumbent 超出变量值域 / Checkpoint incumbent is outside a variable domain"
@@ -1603,13 +1603,14 @@ object ConstraintProgrammingCheckpointCodec {
     private fun PortableConstraintProgrammingIncumbent.toSolution(
         snapshot: ConstraintProgrammingModelSnapshot
     ): Ret<ConstraintProgrammingSolution> {
-        val expectedIds = snapshot.variables.map { it.id.value }.toSet()
+        val variables = snapshot.indexVariables()
+        val expectedIds = variables.keys.map { it.value }.toSet()
         if (valuesById.keys != expectedIds) {
             return Failed(ErrorCode.IllegalArgument, "checkpoint incumbent 变量集合不匹配 / Checkpoint incumbent variable set mismatch")
         }
         val values = valuesById.mapKeys { VariableId(it.key) }
             .mapValues { Int64(it.value) }
-        if (values.any { (id, value) -> snapshot.variable(id)?.domain?.contains(value) != true }) {
+        if (values.any { (id, value) -> variables[id]?.domain?.contains(value) != true }) {
             return Failed(ErrorCode.IllegalArgument, "checkpoint incumbent 超出变量值域 / Checkpoint incumbent is outside a variable domain")
         }
         for (constraint in snapshot.constraints) {

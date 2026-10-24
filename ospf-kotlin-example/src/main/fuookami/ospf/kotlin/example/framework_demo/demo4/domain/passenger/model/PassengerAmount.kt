@@ -40,6 +40,17 @@ class PassengerAmount(
     */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (!::passengerAmount.isInitialized) {
+            // 延迟到原入站阶段才读取替代关系，保留未初始化变更变量的失败边界。
+            // Read alternatives at the original inbound phase to preserve uninitialized-variable failures.
+            val incoming by lazy {
+                val indexed = HashMap<FlightTask, MutableList<FlightPassenger>>()
+                for (passenger in passengers.values.flatten()) {
+                    for (target in (change.toFlights[passenger.flight] ?: emptyList()).distinct()) {
+                        indexed.getOrPut(target) { ArrayList() }.add(passenger)
+                    }
+                }
+                indexed
+            }
             passengerAmount = flights.associateWith { flight ->
                 PassengerClass.entries.associateWith { cls ->
                     var poly = LinearPolynomial()
@@ -55,11 +66,8 @@ class PassengerAmount(
                             poly += Flt64.one * change.passengerClassChange[passenger, cls]!!
                         }
                     }
-                    for (passenger in passengers.values.flatten()) {
-                        val toFlights = change.toFlights[passenger.flight] ?: emptyList()
-                        if (toFlights.contains(flight)) {
-                            poly += Flt64.one * change.passengerFlightChange[passenger, flight, cls]!!
-                        }
+                    for (passenger in incoming[flight] ?: emptyList()) {
+                        poly += Flt64.one * change.passengerFlightChange[passenger, flight, cls]!!
                     }
                     LinearExpressionSymbol(
                         poly,

@@ -13,6 +13,8 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 private const val PackingGeometryOverlapTolerance = 1e-7
+private const val PackingGeometryBroadPhaseMaxMagnitude = 1e6
+private const val PackingGeometryBroadPhaseMinItemCount = 16
 
 /**
  * PackingGeometry data class.
@@ -31,6 +33,32 @@ private data class PackingGeometry(
 
     val diagnostic: String
         get() = "shape=${shape.algorithmShapeType}, axis=${shape.axis ?: "none"}"
+}
+
+/** 保守的一维扫掠范围。 / Conservative one-dimensional sweep bounds. */
+private data class PackingGeometrySweepBounds(
+    val minX: Double,
+    val maxX: Double,
+    val minY: Double,
+    val maxY: Double,
+    val minZ: Double,
+    val maxZ: Double
+) {
+    fun min(axis: Axis3): Double {
+        return when (axis) {
+            Axis3.X -> minX
+            Axis3.Y -> minY
+            Axis3.Z -> minZ
+        }
+    }
+
+    fun max(axis: Axis3): Double {
+        return when (axis) {
+            Axis3.X -> maxX
+            Axis3.Y -> maxY
+            Axis3.Z -> maxZ
+        }
+    }
 }
 
 /**
@@ -327,6 +355,212 @@ private fun PackingGeometry.overlaps(rhs: PackingGeometry): Boolean {
 }
 
 /**
+ * 仅从已捕获的几何端点构造保守扫掠范围；数值风险输入返回 null 并使用穷举回退。 / Build conservative sweep bounds only from captured geometry endpoints; return null for numerically risky inputs so callers can fall back to exhaustive checks.
+ * @return 扫掠范围，无法证明安全时为 null / sweep bounds, or null when safety cannot be established
+*/
+private fun PackingGeometry.sweepBoundsOrNull(): PackingGeometrySweepBounds? {
+    val coordinates = listOf(minX, minY, minZ, maxX, maxY, maxZ)
+    if (coordinates.any { coordinate ->
+            !coordinate.isFinite() || abs(coordinate) > PackingGeometryBroadPhaseMaxMagnitude
+        }
+    ) {
+        return null
+    }
+    if (maxX <= minX || maxY <= minY || maxZ <= minZ) {
+        return null
+    }
+
+    // Expand captured endpoints by the same linear overlap tolerance used by the box predicate.
+    // 使用箱体 predicate 的同一线性重叠容差扩展已捕获端点。
+    val padding = PackingGeometryOverlapTolerance
+    return PackingGeometrySweepBounds(
+        minX = minX - padding,
+        maxX = maxX + padding,
+        minY = minY - padding,
+        maxY = maxY + padding,
+        minZ = minZ - padding,
+        maxZ = maxZ + padding
+    )
+}
+
+/**
+ * 对含圆柱 pair 全保留，仅用一维 sweep 剪除非圆柱 pair 中确定不相交的箱体 pair，并恢复原始顺序。 / Keep every cylinder-related pair and use a one-dimensional sweep only to prune definitely disjoint box-like pairs, restoring the original order afterward.
+ * @param geometries 箱内几何列表 / geometries inside the bin
+ * @return 有序 pair 编码；无法证明 sweep 安全时为 null / ordered pair encodings, or null when the sweep is not proven safe
+*/
+private fun candidateGeometryPairs(geometries: List<PackingGeometry>): List<Long>? {
+    if (geometries.size < PackingGeometryBroadPhaseMinItemCount) {
+        return null
+    }
+
+    val isCylinder = geometries.map { geometry -> geometry.shape is CylinderPackingShape3 }
+    val maxCandidatePairs = maxOf(64L, geometries.size.toLong() * 16L)
+    val pairs = ArrayList<Long>()
+    for (lhsIndex in geometries.indices) {
+        if (!isCylinder[lhsIndex]) {
+            continue
+        }
+        for (rhsIndex in geometries.indices) {
+            if (rhsIndex == lhsIndex || (rhsIndex < lhsIndex && isCylinder[rhsIndex])) {
+                continue
+            }
+            val firstIndex = min(lhsIndex, rhsIndex)
+            val secondIndex = max(lhsIndex, rhsIndex)
+            pairs.add((firstIndex.toLong() shl 32) or secondIndex.toLong())
+            if (pairs.size.toLong() > maxCandidatePairs) {
+                return null
+            }
+        }
+    }
+
+    val boxIndices = geometries.indices.filter { index -> !isCylinder[index] }
+    if (boxIndices.size < 2) {
+        pairs.sort()
+        return pairs
+    }
+
+    val bounds = HashMap<Int, PackingGeometrySweepBounds>()
+    for (index in boxIndices) {
+        bounds[index] = geometries[index].sweepBoundsOrNull() ?: return null
+    }
+    val boxBounds = boxIndices.map { index -> bounds.getValue(index) }
+    val sweepAxis = Axis3.entries.maxBy { axis -> sweepScore(bounds = boxBounds, axis = axis) }
+    val orderedIndices = boxIndices.sortedBy { index -> bounds.getValue(index).min(sweepAxis) }
+    val active = ArrayList<Int>()
+    for (index in orderedIndices) {
+        val minValue = bounds.getValue(index).min(sweepAxis)
+        var activeIndex = 0
+        while (activeIndex < active.size) {
+            val otherIndex = active[activeIndex]
+            if (bounds.getValue(otherIndex).max(sweepAxis) < minValue) {
+                active.removeAt(activeIndex)
+            } else {
+                val lhsIndex = min(index, otherIndex)
+                val rhsIndex = max(index, otherIndex)
+                pairs.add((lhsIndex.toLong() shl 32) or rhsIndex.toLong())
+                if (pairs.size.toLong() > maxCandidatePairs) {
+                    return null
+                }
+                activeIndex++
+            }
+        }
+        active.add(index)
+    }
+    pairs.sort()
+    return pairs
+}
+
+/**
+ * 估算各轴区间的稀疏程度，选择更可能剪枝的 sweep 轴。 / Estimate interval sparsity on each axis and choose the most selective sweep axis.
+ * @param bounds 几何范围列表 / geometry bounds
+ * @param axis 待评估坐标轴 / axis to score
+ * @return 全局跨度与平均物品跨度之比 / global span divided by average item span
+*/
+private fun sweepScore(bounds: List<PackingGeometrySweepBounds>, axis: Axis3): Double {
+    var globalMin = Double.POSITIVE_INFINITY
+    var globalMax = Double.NEGATIVE_INFINITY
+    var totalItemSpan = 0.0
+    for (bound in bounds) {
+        val minValue = bound.min(axis)
+        val maxValue = bound.max(axis)
+        globalMin = min(globalMin, minValue)
+        globalMax = max(globalMax, maxValue)
+        totalItemSpan += maxValue - minValue
+    }
+    return (globalMax - globalMin) * bounds.size / totalItemSpan
+}
+
+/**
+ * 为一个已知重叠 pair 创建错误结果。 / Create the error result for a known overlapping pair.
+ * @param geometries 箱内几何列表 / geometries inside the bin
+ * @param binName 箱子名称 / bin name
+ * @param source 调用来源标识 / caller source identifier
+ * @param lhsIndex 左侧物品索引 / left item index
+ * @param rhsIndex 右侧物品索引 / right item index
+ * @return 精确的重叠错误 / overlap failure with the existing diagnostic message
+*/
+private fun overlapFailure(
+    geometries: List<PackingGeometry>,
+    binName: String,
+    source: String,
+    lhsIndex: Int,
+    rhsIndex: Int
+): Try {
+    return Failed(
+        ErrorCode.IllegalArgument,
+        unsupportedPlacementOverlapMessage(
+            source = source,
+            binName = binName,
+            lhsIndex = lhsIndex,
+            lhsDiagnostic = geometries[lhsIndex].diagnostic,
+            rhsIndex = rhsIndex,
+            rhsDiagnostic = geometries[rhsIndex].diagnostic
+        )
+    )
+}
+
+/**
+ * 按原始字典序检查精确几何 predicate。 / Check exact geometry predicates in the original lexical pair order.
+ * @param geometries 箱内几何列表 / geometries inside the bin
+ * @param binName 箱子名称 / bin name
+ * @param source 调用来源标识 / caller source identifier
+ * @return 首个重叠错误或成功 / the first overlap failure or success
+*/
+private fun requireNoOverlappingGeometries(
+    geometries: List<PackingGeometry>,
+    binName: String,
+    source: String
+): Try {
+    if (geometries.size >= PackingGeometryBroadPhaseMinItemCount
+        && geometries.size >= 2
+        && geometries[0].shape !is CylinderPackingShape3
+        && geometries[1].shape !is CylinderPackingShape3
+        && geometries[0].overlaps(geometries[1])
+    ) {
+        return overlapFailure(
+            geometries = geometries,
+            binName = binName,
+            source = source,
+            lhsIndex = 0,
+            rhsIndex = 1
+        )
+    }
+
+    val candidates = candidateGeometryPairs(geometries)
+    if (candidates == null) {
+        for (lhsIndex in geometries.indices) {
+            for (rhsIndex in (lhsIndex + 1) until geometries.size) {
+                if (geometries[lhsIndex].overlaps(geometries[rhsIndex])) {
+                    return overlapFailure(
+                        geometries = geometries,
+                        binName = binName,
+                        source = source,
+                        lhsIndex = lhsIndex,
+                        rhsIndex = rhsIndex
+                    )
+                }
+            }
+        }
+        return ok
+    }
+
+    for (pair in candidates) {
+        val lhsIndex = (pair ushr 32).toInt()
+        val rhsIndex = pair.toInt()
+        if (geometries[lhsIndex].overlaps(geometries[rhsIndex])) {
+            return overlapFailure(
+                geometries = geometries,
+                binName = binName,
+                source = source,
+                lhsIndex = lhsIndex,
+                rhsIndex = rhsIndex
+            )
+        }
+    }
+    return ok
+}
+
+/**
  * 校验已装箱物品的几何约束：形状不超出箱体边界、水平圆柱体有足够支撑、物品之间无重叠。 / Validate geometric constraints of packed items: shapes do not exceed bin boundaries, horizontal cylinders have sufficient support, and no overlaps between items.
  *
  * @param bin 已装箱的箱子 / packed bin to validate
@@ -375,22 +609,14 @@ internal fun requirePackedBinShapeGeometry(
         }
     }
 
-    for (lhsIndex in geometries.indices) {
-        for (rhsIndex in (lhsIndex + 1) until geometries.size) {
-            if (geometries[lhsIndex].overlaps(geometries[rhsIndex])) {
-                return Failed(
-                    ErrorCode.IllegalArgument,
-                    unsupportedPlacementOverlapMessage(
-                        source = source,
-                        binName = bin.name,
-                        lhsIndex = lhsIndex,
-                        lhsDiagnostic = geometries[lhsIndex].diagnostic,
-                        rhsIndex = rhsIndex,
-                        rhsDiagnostic = geometries[rhsIndex].diagnostic
-                    )
-                )
-            }
-        }
+    when (val overlap = requireNoOverlappingGeometries(
+        geometries = geometries,
+        binName = bin.name,
+        source = source
+    )) {
+        is Ok -> {}
+        is Failed -> return Failed(overlap.error)
+        is Fatal -> return Fatal(overlap.errors)
     }
     return ok
 }

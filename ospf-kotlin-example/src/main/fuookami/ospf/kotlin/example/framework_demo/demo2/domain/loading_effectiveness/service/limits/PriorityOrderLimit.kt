@@ -33,6 +33,9 @@ class PriorityOrderLimit(
     override val name: String = "priority_order_limit"
 ) : Pipeline<AbstractLinearMetaModel<Flt64>> {
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
+        // 相等位置保留原 associate 的末次排名；货物/位置索引则保留首次匹配。
+        // Equal positions retain the original associate's last rank, unlike first-match indices.
+        val order = positions.sortedBy { it.base.linearLoadingOrder }.withIndex().associate { it.value to it.index }
         // For cargo pairs where priority[i] > priority[j], ensure higher priority gets better position
         for (i in items.indices) {
             for (j in items.indices) {
@@ -42,7 +45,6 @@ class PriorityOrderLimit(
 
                 // sum((p + bigM) * x[i][p] for all p) + sum((-p + bigM) * x[j][p] for all p) <= 2 * bigM
                 var lhs = LinearPolynomial()
-                val order = positions.sortedBy { it.base.linearLoadingOrder }.withIndex().associate { it.value to it.index }
                 for (p in positions.indices) {
                     val rank = order.getValue(positions[p]).toDouble()
                     lhs += Flt64(rank + bigM) * stowage.stowage[i, p]

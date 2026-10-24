@@ -19,6 +19,8 @@ This module builds a binary master over complete, indivisible path candidates. I
 
 Every row that can affect a candidate must be declared in the problem. Refresh rejects unregistered model constraints and missing/non-finite row duals instead of treating them as zero. `reducedCost` applies the signed formula `fullCost - sum(rowCoefficient * rowDual)` to the same normalized full-column definition used for registration. Supply a valid current LP dual solution; the context does not create a continuous relaxation or establish an optimality certificate.
 
+For synchronous groups of ready candidates, `reducedCosts(candidates, duals, scope)` performs one complete model-signature/objective audit before and after pricing the list. Compilation keeps candidate order and stops at the first candidate error; a trailing freshness failure takes precedence over that error. Each candidate still passes through `compile` and the configured adapter; do not assume the adapter is stateless or reuse cached coefficients. The API does not suspend, so do not carry its audit across an asynchronous pricing operation. Use the scalar `reducedCost` for asynchronous one-at-a-time work, which retains its original full freshness check.
+
 Use `addColumns` and `removeColumns` to keep managed row expressions and objective terms synchronized. Either operation invalidates prior dual snapshots. `extractSolution` checks binary values and declared row bounds, and reports the candidate IDs represented by the returned finite-pool solution.
 
 ## API
@@ -26,6 +28,7 @@ Use `addColumns` and `removeColumns` to keep managed row expressions and objecti
 - `PathCompilationProblem` defines rows, initial candidates and cost unit.
 - `PathCompilationContext` registers the initial master, adds/removes columns and extracts a final finite-pool solution.
 - `PathCompilationAggregation` exposes normalized column compilation, dual refresh and reduced-cost evaluation for an external pricing loop.
+- `PathCompilationAggregation.reducedCosts` prices an ordered synchronous batch with complete pre/post audits; `reducedCost` remains the scalar compatibility entry point.
 - `PathCompilationRows` owns the row-bound constraints and their dual mapping.
 
-Objective audit: path costs use the standard flattened-objective API. Core's read-only `objectiveSnapshot()` exposes the same effective linear objectives used by the backend. Dual refresh, reduced-cost evaluation and extraction verify managed column coefficients against complete-column costs. Mixed flattened/symbolic objectives and altered managed costs are conservatively rejected rather than silently mispriced. Unrelated objective terms are not included in the reported path-only cost.
+Objective audit: path costs use the standard flattened-objective API. Core's read-only `objectiveSnapshot()` exposes the same effective linear objectives used by the backend. Dual refresh, reduced-cost evaluation and extraction verify managed column coefficients against complete-column costs. Mixed flattened/symbolic objectives and altered managed costs are conservatively rejected rather than silently mispriced. Unrelated objective terms are not included in the reported path-only cost. The batch API keeps this protection by auditing the full model before and after every candidate has been compiled.

@@ -334,3 +334,7 @@ data class Timing(
 ```bash
 mvn -pl ospf-kotlin-utils test -DskipITs
 ```
+
+普通有界 worker-pool 按输入下标独写结果槽，在所有 worker join 后读取，保留空值与输入顺序，
+不再依靠结果 channel 排序。提取器异常和调用方取消仍取消结构化 worker 作用域；
+聚合错误的变体继续使用独立的 Result 策略。

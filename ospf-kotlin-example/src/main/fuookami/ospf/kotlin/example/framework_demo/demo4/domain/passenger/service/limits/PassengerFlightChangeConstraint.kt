@@ -49,6 +49,10 @@ class PassengerFlightChangeConstraint(
      * @return 注册结果 / Registration result
     */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
+        val successors = HashMap<FlightPassenger, FlightPassenger>()
+        for (passenger in passengers) {
+            passenger.prev?.let { successors.putIfAbsent(it, passenger) }
+        }
         for (passenger in passengers) {
             if (passenger.prev != null) {
                 for (toFlight in change.toFlights[passenger.flight] ?: emptyList()) {
@@ -110,7 +114,7 @@ class PassengerFlightChangeConstraint(
                 }
             }
 
-            val next = passengers.find { it.prev == passenger }
+            val next = successors[passenger]
             if (next != null) {
                 for (toFlight in change.toFlights[passenger.flight] ?: emptyList()) {
                     val lastestEndTime = LinearPolynomial(

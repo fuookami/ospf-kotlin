@@ -89,12 +89,18 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
      * 当前有效产能列到真实决策变量的权威映射 / Authoritative mapping from active capacity columns to their actual decision variables
      */
     val variableByColumn: Map<CapacityColumn<E, A, V>, CombinationVariableItem<UInt64, UInteger>>
-        get() = buildMap {
+        get() = currentVariableByColumn()
+
+    private fun currentVariableByColumn(): Map<CapacityColumn<E, A, V>, CombinationVariableItem<UInt64, UInteger>> {
+        return buildMap {
             for ((executor, columnAggregation) in columnsByExecutor) {
                 val executorVariable = _x[executor] ?: continue
+                // Keep membership call-local because columns may retain caller-owned mutable allocation maps.
+                // 列可能引用调用方可变分配映射，因此成员视图仅在本次读取内使用。
+                val activeColumns = columnAggregation.columns.toHashSet()
                 for ((iterationIndex, columns) in columnAggregation.columnsIteration.withIndex()) {
                     for ((columnIndex, column) in columns.withIndex()) {
-                        if (column !in columnAggregation.columns ||
+                        if (column !in activeColumns ||
                             iterationIndex >= executorVariable.shape[0] ||
                             columnIndex >= executorVariable.shape[1]
                         ) {
@@ -105,18 +111,21 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
                 }
             }
         }
+    }
 
     /**
      * 执行器-时隙选列表达式 / Executor-slot column selection expressions
      */
     val executorSlotCompilation: Map<Pair<E, TimeSlot>, LinearExpressionSymbol<Flt64>> = buildMap {
+        val slotIndices = HashMap<TimeSlot, Int>()
+        slots.forEachIndexed { index, slot -> slotIndices.putIfAbsent(slot, index) }
         for (executor in executors) {
             for (slot in slots) {
                 put(
                     executor to slot,
                     LinearExpressionSymbol(
                         Flt64,
-                        name = "capacity_column_selection_${executor.id}_${slots.indexOf(slot)}"
+                        name = "capacity_column_selection_${executor.id}_${slotIndices.getValue(slot)}"
                     )
                 )
             }
@@ -143,11 +152,16 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
      * @return 注册操作的成功或失败 / Success or failure of the registration
     */
     fun register(model: LinearMetaModel<Flt64>): Try {
+        val slotIndices = HashMap<TimeSlot, Int>()
+        slots.forEachIndexed { index, slot -> slotIndices.putIfAbsent(slot, index) }
+        val actionIndices = HashMap<A, Int>()
+        actions.forEachIndexed { index, action -> actionIndices.putIfAbsent(action, index) }
+        val actionsByExecutor = actions.groupBy { it.executor }
         // Initialize variables for each executor
         // 为每个执行器初始化变量
         for (executor in executors) {
             if (!_x.containsKey(executor)) {
-                val executorActions = actions.filter { it.executor == executor }
+                val executorActions = actionsByExecutor[executor].orEmpty()
                 if (executorActions.isEmpty()) continue
 
                 val variable = UIntVariable2(
@@ -177,7 +191,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
                 objs1 = actions,
                 objs2 = slots,
                 ctor = { action, slot ->
-                    val s = slots.indexOf(slot)
+                    val s = slotIndices.getValue(slot)
                     val executor = executorByRef[action.executor]
                     val executorVar = if (executor != null) {
                         _x[executor]
@@ -232,11 +246,11 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
                 objs1 = executors,
                 objs2 = slots,
                 ctor = { executor, slot ->
-                    val s = slots.indexOf(slot)
-                    val executorActions = actions.filter { it.executor == executor }
+                    val s = slotIndices.getValue(slot)
+                    val executorActions = actionsByExecutor[executor].orEmpty()
                     var poly = LinearPolynomial()
                     for (action in executorActions) {
-                        val a = actions.indexOf(action)
+                        val a = actionIndices.getValue(action)
                         poly += operationTime[a, s].polynomial
                     }
                     poly
@@ -438,6 +452,9 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
         if (_cost == null || !::operationTime.isInitialized || !::capacity.isInitialized) {
             return ok
         }
+        val actionIndices = HashMap<A, Int>()
+        actions.forEachIndexed { index, action -> actionIndices.putIfAbsent(action, index) }
+        val actionsByExecutor = actions.withIndex().groupBy { it.value.executor }
 
         for ((a, _) in actions.withIndex()) {
             for ((s, _) in slots.withIndex()) {
@@ -458,8 +475,8 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
                         if (amount <= UInt64.zero) {
                             continue
                         }
-                        val actionIndex = actions.indexOf(action)
-                        if (actionIndex < 0 || column.slotIndex !in slots.indices) {
+                        val actionIndex = actionIndices[action]
+                        if (actionIndex == null || column.slotIndex !in slots.indices) {
                             continue
                         }
                         val unitOperationTime = if (action.discrete && action.batchDuration != null) {
@@ -478,11 +495,20 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
             for ((s, _) in slots.withIndex()) {
                 capacity[e, s].asMutable().clear()
                 capacity[e, s].flush()
-                for ((a, action) in actions.withIndex()) {
-                    if (action.executor == executor) {
-                        capacity[e, s].asMutable() += operationTime[a, s].polynomial
-                    }
+                for ((a, _) in actionsByExecutor[executor].orEmpty()) {
+                    capacity[e, s].asMutable() += operationTime[a, s].polynomial
                 }
+            }
+        }
+
+        val slotIndices = HashMap<TimeSlot, Int>()
+        slots.forEachIndexed { index, slot -> slotIndices.putIfAbsent(slot, index) }
+        val variablesByExecutorSlot = HashMap<Pair<E, Int>, MutableList<CombinationVariableItem<UInt64, UInteger>>>()
+        // Take one current column-variable view and bucket it before refreshing selection rows.
+        // 只获取一次当前列变量视图，然后分桶刷新选列表达式。
+        for ((column, variable) in currentVariableByColumn()) {
+            if (column.slotIndex in slots.indices) {
+                variablesByExecutorSlot.getOrPut(column.executor to column.slotIndex) { ArrayList() }.add(variable)
             }
         }
 
@@ -490,14 +516,12 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
             compilation.asMutable().clear()
             compilation.flush()
             val (executor, slot) = group
-            val slotIndex = slots.indexOf(slot)
-            if (slotIndex < 0) {
+            val slotIndex = slotIndices[slot] ?: continue
+            if (slotIndex !in slots.indices) {
                 continue
             }
-            for ((column, variable) in variableByColumn) {
-                if (column.executor == executor && column.slotIndex == slotIndex) {
-                    compilation.asMutable() += Flt64.one * variable
-                }
+            for (variable in variablesByExecutorSlot[executor to slotIndex].orEmpty()) {
+                compilation.asMutable() += Flt64.one * variable
             }
         }
 

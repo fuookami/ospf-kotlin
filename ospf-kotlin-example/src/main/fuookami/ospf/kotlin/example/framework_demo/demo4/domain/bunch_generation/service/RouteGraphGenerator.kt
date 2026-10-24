@@ -58,12 +58,12 @@ class RouteGraphGenerator(
         graph.put(RootNode)
         graph.put(EndNode)
         val location = aircraftUsability.location
-        val nodes = arrayListOf<Pair<Airport, Node>>(Pair(location, RootNode))
+        val nodes = ArrayDeque<Pair<Airport, Node>>()
+        nodes.addLast(Pair(location, RootNode))
         val nodeMap = HashMap<FlightTask, Node>()
         // BFS
         while (nodes.isNotEmpty()) {
-            val (airport, node) = nodes.first()
-            nodes.removeFirst()
+            val (airport, node) = nodes.removeFirst()
 
             if (!flightTasks.containsKey(airport)) {
                 graph.put(node, EndNode)
@@ -94,7 +94,7 @@ class RouteGraphGenerator(
 */
     private fun searchAndInsertFlightTasks(
         graph: Graph,
-        nodes: MutableList<Pair<Airport, Node>>,
+        nodes: ArrayDeque<Pair<Airport, Node>>,
         nodeMap: MutableMap<FlightTask, Node>,
         node: Node,
         aircraft: Aircraft,
@@ -168,7 +168,7 @@ class RouteGraphGenerator(
 */
     private fun insertFlightTask(
         graph: Graph,
-        nodes: MutableList<Pair<Airport, Node>>,
+        nodes: ArrayDeque<Pair<Airport, Node>>,
         nodeMap: MutableMap<FlightTask, Node>,
         prevNode: Node,
         flightTask: FlightTask
@@ -180,9 +180,9 @@ class RouteGraphGenerator(
             graph.put(node)
             graph.put(prevNode, node)
             nodeMap[flightTask] = node
-            nodes.add(Pair(flightTask.arr, node))
+            nodes.addLast(Pair(flightTask.arr, node))
             for (dep in flightTask.depBackup) {
-                flightTask.actualArr(dep)?.let { nodes.add(Pair(it, node)) }
+                flightTask.actualArr(dep)?.let { nodes.addLast(Pair(it, node)) }
             }
         } else {
             graph.put(prevNode, nodeMap[flightTask]!!)

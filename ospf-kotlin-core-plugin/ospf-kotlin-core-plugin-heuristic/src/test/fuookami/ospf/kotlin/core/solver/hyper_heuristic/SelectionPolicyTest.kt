@@ -38,6 +38,28 @@ private fun transition(action: String, reward: Double, terminal: Boolean = false
 
 class SelectionPolicyTest {
     @Test
+    fun actionDefinitionsAreFrozenAndRoundRobinPreservesMasksAndOrder() {
+        val actions = mutableListOf("a", "b", "c", "d")
+        val policy = TabularSelectionPolicy("round-robin", actions)
+        actions.clear()
+        assertTrue(policy.validate() is Ok)
+        assertEquals(listOf("a", "b", "c", "d"), policy.actions)
+        val random = SearchRandom(1)
+        val actual = List(6) {
+            value(policy.select(
+                context = SelectionContext(),
+                available = listOf("d", "b"),
+                random = random
+            ))
+        }
+        assertEquals(listOf("b", "d", "b", "d", "b", "d"), actual)
+        assertTrue(policy.select(SelectionContext(), listOf("b", "b"), random) is Failed)
+        assertTrue(policy.select(SelectionContext(), listOf("missing"), random) is Failed)
+        assertTrue(policy.observe(transition("missing", 1.0)) is Failed)
+        assertTrue(policy.observe(transition("a", 1.0).copy(nextAvailable = listOf("missing"))) is Failed)
+    }
+
+    @Test
     fun qLearningShouldCreditTheExecutedActionIncludingTheTerminalTransition() {
         val policy = TabularSelectionPolicy("q-learning", listOf("a", "b"), epsilon = 0.0, alpha = 0.5, gamma = 0.9)
         value(policy.observe(transition("a", 2.0)))

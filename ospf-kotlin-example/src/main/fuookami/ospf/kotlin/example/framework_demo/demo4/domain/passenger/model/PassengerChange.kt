@@ -26,10 +26,11 @@ class PassengerChange(
 
     /** 将每个航班映射到具有相同始发地和目的地的替代航班。Maps each flight to alternative flights with the same origin and destination. */
     val toFlights: Map<FlightTask, List<FlightTask>> by lazy {
+        val flightsByRoute = flights.groupBy { it.dep to it.arr }
         val toFlights = HashMap<FlightTask, List<FlightTask>>()
         for (flight in passengers.map { it.flight }.distinct()) {
-            toFlights[flight] = flights.filter {
-                it != flight && it.dep == flight.dep && it.arr == flight.arr
+            toFlights[flight] = (flightsByRoute[flight.dep to flight.arr] ?: emptyList()).filter {
+                it != flight
             }
         }
         toFlights

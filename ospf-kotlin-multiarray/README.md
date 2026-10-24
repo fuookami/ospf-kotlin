@@ -316,6 +316,15 @@ mvn test
 mvn test -Dtest=ShapeColumnMajorInverseTest
 ```
 
+### Matching-Order Traversal
+
+`iterWithOrder` and `flatten` read contiguous linear storage directly for built-in
+Shape1-4/DynShape when access order matches storage order and public `offsets` retain
+canonical strides. Externally modified offsets, opposite-order traversal,
+custom shapes, coordinate enumeration and views retain the coordinate-based path;
+view Result handling and independent coordinate snapshots are unchanged. Sequences
+remain lazy and observe element updates as traversal advances.
+
 ### License
 
 MIT License

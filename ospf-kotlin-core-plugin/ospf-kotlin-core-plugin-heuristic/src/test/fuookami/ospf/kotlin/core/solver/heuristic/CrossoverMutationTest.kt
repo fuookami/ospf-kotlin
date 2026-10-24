@@ -93,6 +93,33 @@ class CrossoverMutationTest {
     private val model = buildModel()
     private val iteration = Iteration()
 
+    @Test
+    fun cycleCrossoverMatchesFirstOccurrenceReferenceIncludingNonPermutations() {
+        fun reference(source: List<Flt64>, other: List<Flt64>): List<Flt64> {
+            val child = other.toMutableList()
+            val assigned = BooleanArray(source.size)
+            var index = 0
+            while (index in source.indices && !assigned[index]) {
+                assigned[index] = true
+                child[index] = source[index]
+                index = other.indexOf(source[index])
+            }
+            return child
+        }
+        val random = kotlin.random.Random(731)
+        for (size in listOf(1, 2, 8, 128)) {
+            repeat(20) {
+                val first = List(size) { Flt64(random.nextInt(size + 1)) }
+                val second = List(size) { Flt64(random.nextInt(size + 1)) }
+                val children = cross(CycleCross, listOf(
+                    SolutionWithFitness(first, Flt64.zero),
+                    SolutionWithFitness(second, Flt64.zero)
+                ))
+                assertEquals(listOf(reference(first, second), reference(second, first)), children)
+            }
+        }
+    }
+
     private fun cross(
         operator: Cross,
         parents: List<SolutionWithFitness<Flt64, Flt64>>,

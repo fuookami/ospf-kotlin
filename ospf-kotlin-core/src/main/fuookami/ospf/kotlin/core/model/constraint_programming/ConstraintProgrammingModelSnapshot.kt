@@ -126,6 +126,20 @@ data class ConstraintProgrammingModelSnapshot(
     val identityNamespace: String = "model-local"
 ) {
     /**
+     * 为一次批量校验建立变量索引，重复 ID 保留首项；不跨调用缓存可变输入。
+     * Build a variable index for one validation batch, keeping the first duplicate without caching mutable inputs.
+     *
+     * @return 按 ID 索引的变量定义 / Variable definitions indexed by ID
+     */
+    internal fun indexVariables(): Map<VariableId, ConstraintProgrammingVariableSnapshot> {
+        val indexed = LinkedHashMap<VariableId, ConstraintProgrammingVariableSnapshot>(variables.size)
+        for (variable in variables) {
+            indexed.putIfAbsent(variable.id, variable)
+        }
+        return indexed
+    }
+
+    /**
      * 按 ID 查找标量变量。 / Find a scalar variable by ID.
      *
      * @param id 稳定变量 ID / Stable variable ID

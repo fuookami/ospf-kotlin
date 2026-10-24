@@ -3,6 +3,8 @@
 */
 package fuookami.ospf.kotlin.core.model.intermediate
 
+import kotlinx.coroutines.*
+
 /**
  * 批处理切片，表示左闭右开区间 / Batch slice representing a half-open interval
  *
@@ -98,5 +100,31 @@ internal fun buildBatchSlices(
             fromIndex = fromIndex,
             toIndexExclusive = minOf(normalizedItemCount, fromIndex + safeSegment)
         )
+    }
+}
+
+/**
+ * 按有界 worker 分块映射，并保持输入顺序。 / Map using bounded worker chunks while preserving input order.
+ * @param itemCount 元素数量 / Item count
+ * @param availableProcessors 可用处理器数 / Available processor count
+ * @param transform 单项转换 / Item transform
+ * @return 按原序排列的转换结果 / Results in input order
+ */
+internal suspend fun <R> mapTriadColumns(
+    itemCount: Int,
+    availableProcessors: Int = Runtime.getRuntime().availableProcessors(),
+    transform: (Int) -> R
+): List<R> {
+    val plan = computeBatchDispatchPlan(itemCount, availableProcessors)
+    if (!plan.shouldUseParallelPath) {
+        return List(itemCount, transform)
+    }
+    val segmentSize = itemCount / plan.workerCount + if (itemCount % plan.workerCount == 0) 0 else 1
+    return coroutineScope {
+        buildBatchSlices(itemCount, segmentSize).map { slice ->
+            async(Dispatchers.Default) {
+                List(slice.toIndexExclusive - slice.fromIndex) { offset -> transform(slice.fromIndex + offset) }
+            }
+        }.awaitAll().flatten()
     }
 }

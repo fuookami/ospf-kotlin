@@ -19,6 +19,8 @@
 
 任何可能影响候选的行都必须在问题中声明。刷新会拒绝未注册的模型约束以及缺失或非有限行对偶，不会将其默认为零。`reducedCost` 对注册时相同的规范化完整列定义应用有符号公式 `完整费用 - sum(行系数 * 行对偶)`。调用方必须提供当前有效 LP 松弛的对偶；本上下文不会创建连续松弛，也不构成最优性证书。
 
+对已同步就绪的一组候选，可使用 `reducedCosts(candidates, duals, scope)`：它在批次前后各执行一次完整模型签名与目标审计。编译保持候选顺序并在首个候选错误处停止；后置 freshness 审计失败优先于该候选错误。每个候选仍单独通过 `compile` 和配置的数值适配器处理；不能假定适配器无状态或缓存列系数。此 API 不挂起，不能跨异步定价操作复用其审计。异步逐候选定价请使用原标量 `reducedCost`，其仍会逐次完整检查 freshness。
+
 请通过 `addColumns` 和 `removeColumns` 更新列，以同步受管行表达式和目标项。任一操作都会使旧对偶快照失效。`extractSolution` 会检查二元取值和声明行的上下界，并在有限候选集结果中返回其对应候选 ID。
 
 ## API
@@ -26,6 +28,7 @@
 - `PathCompilationProblem` 定义行、初始候选和费用单位。
 - `PathCompilationContext` 注册初始主问题、增删列并提取有限候选集解。
 - `PathCompilationAggregation` 为外部定价循环提供列归一化、对偶刷新和 reduced cost 计算。
+- `PathCompilationAggregation.reducedCosts` 对有序同步批次做完整前后审计；`reducedCost` 保留标量兼容入口。
 - `PathCompilationRows` 管理行边界约束及其对偶映射。
 
-目标审计：路径列通过标准扁平目标 API 注册；Core 的只读 `objectiveSnapshot()` 暴露与后端一致的有效线性目标。刷新对偶、计算 reduced cost 和提取时均核对受管列的总目标系数与完整列费用。混用扁平/符号目标或受管列费用被改变时保守失败，不继续输出失真的 reduced cost。无关目标项不计入返回的路径费用。
+目标审计：路径列通过标准扁平目标 API 注册；Core 的只读 `objectiveSnapshot()` 暴露与后端一致的有效线性目标。刷新对偶、计算 reduced cost 和提取时均核对受管列的总目标系数与完整列费用。混用扁平/符号目标或受管列费用被改变时保守失败，不继续输出失真的 reduced cost。批量 API 会在每批候选编译前后检查完整模型，保持相同保护。无关目标项不计入返回的路径费用。
