@@ -116,6 +116,33 @@ benchmark 的正确性和回放元数据统一使用 `SolveReport<V>`；新增�
 诊断、provenance 以及模型/配置指纹。旧 solver output 仅作为兼容适配视图保留。其余插件迁移与能力范围
 见 [`plans/solver_cp.md`](../plans/solver_cp.md)。
 
+## 跨版本验证 runbook
+
+正式前后对照必须比较两个固定版本，而不是当前工作树。仓库提供两个脚本支持该流程；它们产生的日志、JSON 与分析文件
+一律放在仓库外的临时运行根目录，且都不得提交。
+
+1. `scripts/prepare-cross-version-run.ps1`：解析两个版本、建立两个独立 clone、把同一份仅含测量支撑的夹具补丁移植到
+   基线、各用独立 Maven 仓库构建，并校验类路径隔离与两端 JMH 入口集合一致。必须使用与仓库 `jvmTarget` 一致的 JDK；
+   构建还需 `-Dgpg.skip=true`，因为根 POM 把 GPG 签名绑在 `verify`，而 `install` 会触发 `verify`。
+   两个各浪费一整轮的陷阱在此记录：不带 `-Pbench` 的全仓构建会重编译 benchmark 模块但不运行 JMH 生成器，从而抹掉
+   `target/classes/META-INF/BenchmarkList`，之后每次 `org.openjdk.jmh.Main` 都会报
+   `Unable to find the resource: /META-INF/BenchmarkList`。因此任何非 `bench` 构建之后，必须在两端重新执行
+   `mvn -pl ospf-kotlin-benchmark -Pbench compile`，并用 `-l` 确认入口清单仍非空且两端一致。
+2. 用 `org.openjdk.jmh.Main` 配各侧导出的 classpath 逐个参数 cell 计时，每对交替基线/候选顺序，每次调用只起 1 个
+   JVM fork，两端不得并行，也不得与构建并行。分配（`-prof gc`）、JFR 与 heap 诊断都是独立轮次，其数值不得混入时间轮。
+3. `scripts/analyze-paired-benchmark.ps1`：把配对 fork 结果转成比率，以配对 log 比的 Student t 区间为主判据，
+   以精确枚举 bootstrap 区间作稳健性交叉核对；两者判定不一致时输出 `INCONCLUSIVE-METHODS`，不择优报告。
+   实用等效区间默认 `[0.95, 1.05]`。自测：`scripts/test-analyze-paired-benchmark.ps1`。
+4. `CrossVersionSemanticDump`：把共有输出语义（方案集合、必要顺序、数值视图、可达集合、索引结果、缓存计数）渲染为
+   稳定文本行，两端运行后逐行 diff。它必须也能在基线编译，这正是“只调用两版本共有入口”的证明。
+   该入口同时覆盖完整输出与预算截断两种负载（终止原因分别为 `Exhausted` 与 `MaxPlans`）；截断段刻意只用 `workers = 1`。
+   多 worker 时到达方案上限的顺序可能与协程调度交错有关，因此该段不对并行截断负载声明逐项顺序等价；
+   单 worker 截断路径做严格逐行差分，交错顺序本身需另设重跑协议才可断言。
+
+
+没有独占 CPU/内存配额的单机无法支撑小效应结论：先对同一实现重复测量得到噪声底，凡效应低于该底一律记为证据不足，
+不得当作提速或回退。
+
 ## 说明
 
 `SharedPrimeReadBenchmark.readyRead` 共享一份生产 `PrimeCache`，初始建表不计时。通过标准
@@ -125,5 +152,31 @@ benchmark 的正确性和回放元数据统一使用 `SolveReport<V>`；新增�
 `workers=1,4` 下执行完整生产 DFS；custom 场景关闭模板复用。返回值是包含缓存命中、miss 和
 访问节点数的真实报告。这些是受控负载，不代表生产命中率或尾延迟。比较时保持 JVM、fork、预热一致，
 启用 `-prof gc`，保留置信区间和临时输出路径；不要与构建同时运行。
+
+并发与跨版本夹具（仅测量支撑，不含生产逻辑）：
+
+- `NetworkSharedGraphBenchmark` 让所有 JMH 线程共享同一张不可变图，暴露 `Scope.Thread` 的
+  `NetworkIndexBuildBenchmark` 测不到的共享锁竞争。冷批次作为一次完整操作计时，包含执行器调度、
+  屏障对齐与全部 reader 完成，`dispatchOnly` 是同协议的空调度对照。内部并发由 `readers` 表达，
+  因此保持 `-t 1`。
+- `TokenSharedReadBenchmark` 覆盖同一固定列表的并发首次读、同一已就绪列表的稳态读与 `dispatchOnly`
+  对照。`coldBuildWork` 统计变量标识符读取次数，用于暴露实际建表次数；该计数属诊断，不是时间结果。
+  保持 `-t 1`。
+- `TokenInvalidateRebuildBenchmark` 测量“索引失效后的下一代首次读”：每周期先增后删同一 token（触发缓存清除），
+  再读取稳定 token 迫使重建，净结构变化为零。`warmReadsOnly` 与 `mutationOnly` 分别分离读取成本与结构修改成本。
+  失效由调用线程自身的增删触发，因此不需要并发写契约。状态为 `Scope.Thread`，即每个 JMH 线程持有独立列表；
+  提高 `-t` 只是成倍占用内存而非共享争用，与“单写者”结论对照时请保持 `-t 1`。
+
+- `GenerationScaleBenchmark` 补齐 NSum 与 FullSum（只用 DFS 不能代替另两种算法）以及
+  `workers=1,2,4,8` 梯度，并区分完整输出与预算截断负载。workers 是内部并行度，保持 `-t 1`。
+- `PrimeMixedExpansionBenchmark` 每轮用全新缓存代把 reader 与一条显式 writer 扩容序列配对，
+  并提供 `readyControl`、`writerOnly`、`readerOnly` 对照，使扩容成本、reader 成本与调度成本可分离。
+  内部含线程池与屏障，保持 `-t 1`。
+- `PrimeReaderLatencyBenchmark` 在单一 writer 持续扩容的窗口内采样 reader 尾延迟；序列到达上界后
+  重建一整代并继续，避免扩容跑完使结果退化为纯就绪读。此处 `-t` 即 reader 数（1,2,4,8），
+  夹具内部无线程池。每轮打印 writer 步数、重建次数与最终范围，用于检查饥饿与退化。
+
+上述夹具只调用被比较版本共同具备的生产入口，因此基线 checkout 无需接收候选实现代码即可编译运行。
+smoke 只证明可运行；冷热分离、建表次数与每轮 writer 进度属于诊断轮，不构成加速结论。
 
 JMH 分数对机器环境敏感。CI smoke 应验证 benchmark 可运行并保留 artifact，不应把绝对分数比较作为硬门禁。

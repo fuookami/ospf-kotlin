@@ -143,6 +143,43 @@ fixtures should record the report's termination reason, solution presence, diagn
 and model/configuration fingerprints; legacy solver output views are compatibility adapters only.
 The remaining plugin migration and capability scope is tracked in [`plans/solver_cp.md`](../plans/solver_cp.md).
 
+## Cross-version verification runbook
+
+Formal before/after timing must compare two pinned revisions, not the working tree. The repository ships two
+scripts for that; all logs, JSON and analysis files they produce belong in a temporary run root outside the
+repository, and none of them may be committed.
+
+1. `scripts/prepare-cross-version-run.ps1` resolves both revisions, creates two independent clones, ports one
+   measurement-only fixture patch onto the baseline, builds each side against its own Maven repository, then
+   verifies classpath isolation and that both sides expose identical JMH entry sets. Run with the JDK that
+   matches the repository `jvmTarget` (the build also needs `-Dgpg.skip=true` because the root POM binds GPG
+   signing to `verify`, which `install` triggers).
+   Two traps cost a wasted round each, so they are checked by the script or here: a full-repository build without
+   `-Pbench` recompiles the benchmark module without the JMH generators, which erases
+   `target/classes/META-INF/BenchmarkList`; every later `org.openjdk.jmh.Main` run then fails with
+   `Unable to find the resource: /META-INF/BenchmarkList`. After any non-`bench` build, re-run
+   `mvn -pl ospf-kotlin-benchmark -Pbench compile` on each side before timing, and confirm with `-l` that both
+   entry lists are still non-empty and identical.
+2. Time one parameter cell at a time with `org.openjdk.jmh.Main` and that side's exported classpath, alternating
+   baseline/candidate order per pair, one JVM fork per invocation, never both sides concurrently and never
+   concurrently with a build. Allocation (`-prof gc`), JFR and heap diagnostics are separate rounds whose scores
+   must not be mixed into the time round.
+3. `scripts/analyze-paired-benchmark.ps1` turns paired fork results into a ratio, a Student t interval of paired
+   log ratios as the primary decision, and an exact-enumeration bootstrap interval as a robustness cross-check;
+   disagreements are reported as `INCONCLUSIVE-METHODS` instead of picking a verdict. Practical equivalence band
+   defaults to `[0.95, 1.05]`. Self-test: `scripts/test-analyze-paired-benchmark.ps1`.
+4. `CrossVersionSemanticDump` renders shared output semantics (plan sets, required order, numeric views,
+   reachability, index results, cache counters) as stable lines. Run it on both sides and diff line by line; it
+   must compile on the baseline as well, which is what proves the comparison only touches entries both revisions
+   expose. It covers both full-output and budget-truncated generation loads (`stop=MaxPlans` versus
+   `Exhausted`); the truncated section deliberately uses `workers = 1` only. With several workers, arrival order at the
+   budget limit can depend on coroutine scheduling interleaves, so order equality there is not asserted without a
+   dedicated re-run protocol; single-worker truncation is compared strictly, line by line.
+
+A single host without exclusive CPU/memory quotas cannot support small-effect claims: measure the same build
+repeatedly first, then treat any effect below the observed fork-level noise floor as insufficient evidence rather
+than as a speedup or a regression.
+
 ## Notes
 
 `SharedPrimeReadBenchmark.readyRead` uses one shared production `PrimeCache` with its
@@ -154,5 +191,41 @@ scenario disables template reuse. It returns the real report, including cache hi
 misses and visited nodes. These are controlled workloads, not production hit-rate or
 tail-latency evidence. Keep matching JVM/forks/warmup, `-prof gc`, confidence intervals
 and temporary output paths; do not run builds concurrently with measurements.
+
+Concurrent and cross-version fixtures (measurement support only, no production logic):
+
+- `NetworkSharedGraphBenchmark` shares one immutable graph across all JMH threads, which
+  the `Scope.Thread` `NetworkIndexBuildBenchmark` cannot expose. Cold batches are timed as
+  one complete operation including dispatch, barrier alignment and completion of all
+  readers, with `dispatchOnly` as the empty-dispatch control under the same protocol.
+  Internal concurrency is the `readers` parameter, so keep `-t 1`.
+- `TokenSharedReadBenchmark` performs first concurrent reads of one shared fixed list and
+  steady reads of one ready list, plus a `dispatchOnly` control. `coldBuildWork` counts
+  variable-identifier reads to expose the actual number of index builds; that counter is
+  diagnostic and is not a time result. Keep `-t 1`.
+- `TokenInvalidateRebuildBenchmark` measures the first read of the next generation after the
+  index is invalidated: each cycle adds and removes one token (which clears the cache), then
+  reads a stable token to force the rebuild, so net structure change is zero. `warmReadsOnly`
+  and `mutationOnly` separate read cost from structural-mutation cost. Invalidation is driven
+  by the calling thread's own add/remove, so no concurrent-write contract is required. State is
+  `Scope.Thread`, meaning every JMH thread owns its own list; raising `-t` multiplies memory
+  rather than sharing contention, so keep `-t 1` when comparing against the single-writer claim.
+- `GenerationScaleBenchmark` adds NSum and FullSum (the DFS-only fixture cannot stand in
+  for them) and the `workers=1,2,4,8` gradient, separating full-output from
+  budget-truncated loads. Workers are internal parallelism, so keep `-t 1`.
+- `PrimeMixedExpansionBenchmark` pairs readers with one explicit writer expansion
+  sequence per operation on a fresh generation, with `readyControl`, `writerOnly` and
+  `readerOnly` controls so expansion cost, reader cost and scheduling cost stay separable.
+  Keep `-t 1` because the pool and barrier are internal.
+- `PrimeReaderLatencyBenchmark` samples reader latency while a single writer expands
+  continuously across the measurement window and rebuilds the generation at the ceiling,
+  so covered reads are never measured against a finished sequence. Here `-t` is the reader
+  count (1,2,4,8); there is no internal pool. Each iteration prints writer steps, rebuilds
+  and final bound for starvation and degradation checks.
+
+These fixtures call only production entries shared by the compared revisions, so a
+baseline checkout can compile and run them without receiving candidate implementation
+code. A smoke run confirms executability only; cold/warm separation, build counts and
+per-iteration writer progress belong to diagnostic rounds, not speedup conclusions.
 
 JMH scores are machine-sensitive. CI smoke runs should validate benchmark executability and preserve artifacts, not compare absolute scores as hard gates.
