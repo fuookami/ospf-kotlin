@@ -22,6 +22,21 @@
 
 仓库内大多数模块直接继承本父 POM。模块自己的 POM 应只保留局部坐标、打包类型、依赖、profile 和必要的插件例外配置。
 
+## 测试 jar 发布开关
+
+本父 POM 默认在 `package` 阶段执行 `maven-jar-plugin` 的 `test-jar` 目标，产出
+`classifier=tests` 的测试 jar，便于本地 `install` 后跨模块复用测试产物。Maven 中央仓库
+并不要求该附件（只强制要求 `-sources.jar` 与 `-javadoc.jar`），且仓库内没有任何模块依赖
+兄弟模块的 `tests.jar`，因此发布时可以不上传。
+
+属性 `ospf.test-jar.phase` 控制该执行的绑定阶段，默认为 `package`；发布时将其置为 `none`
+即可不生成、不 attach、不上传 `tests.jar`，而测试的编译与执行完全不受影响：
+
+```powershell
+# 发布：不产出也不上传 tests.jar
+mvn -B -ntp deploy "-Dospf.test-jar.phase=none"
+```
+
 ## 本地验证
 
 ```powershell

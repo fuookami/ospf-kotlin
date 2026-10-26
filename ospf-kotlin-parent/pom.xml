@@ -30,6 +30,11 @@
         <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
         <maven-dokka-plugin.version>2.2.0</maven-dokka-plugin.version>
         <ospf.test.reportsDirectory>${java.io.tmpdir}/ospf-kotlin-test-reports</ospf.test.reportsDirectory>
+        <!-- 测试 jar（classifier=tests）绑定的生命周期阶段。默认 package，本地构建照常产出； -->
+        <!-- 发布时置为 none 即可不生成、不 attach、不上传 tests.jar，测试的编译与执行不受影响。 -->
+        <!-- The phase the test jar (classifier=tests) is bound to. Defaults to package so local builds still produce it; -->
+        <!-- set it to none when publishing to skip generating, attaching and uploading tests.jar without affecting test compilation or execution. -->
+        <ospf.test-jar.phase>package</ospf.test-jar.phase>
     </properties>
 
     <dependencyManagement>
@@ -298,6 +303,8 @@
                 <inherited>true</inherited>
                 <executions>
                     <execution>
+                        <id>test-jar</id>
+                        <phase>${ospf.test-jar.phase}</phase>
                         <goals>
                             <goal>test-jar</goal>
                         </goals>
