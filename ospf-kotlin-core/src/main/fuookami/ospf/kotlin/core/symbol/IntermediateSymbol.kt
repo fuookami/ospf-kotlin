@@ -177,6 +177,16 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
     fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try = ok
 
     /**
+     * 该符号的中间变量（若以中间变量实现）。
+     *
+     * 非 null 时，约束与目标应引用该变量而不是原地展开符号的定义。
+     * The intermediate variable realizing this symbol (if realized as one).
+     * When non-null, constraints and objectives must reference this variable instead of
+     * inlining the symbol definition.
+    */
+    val intermediateVariable: AbstractVariableItem<*, *>? get() = null
+
+    /**
      * 获取符号的原始字符串表示。 / Get raw string representation of the symbol.
      *
      * @param unfold 展开深度 / Unfold depth

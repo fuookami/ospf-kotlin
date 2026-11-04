@@ -88,7 +88,7 @@ interface MetaConstraintGroup {
         args: Any? = null,
         withRangeSet: Boolean? = false
     ): Try where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
-        val lhs = constraint.toLinearPolynomial()
+        val lhs = constraint.realizationPolynomial(converter)
         val rhs = LinearPolynomial(emptyList(), converter.one)
         return addConstraint(
             relation = LinearInequality(lhs, rhs, Comparison.EQ),
@@ -184,7 +184,7 @@ interface MetaConstraintGroup {
         args: Any? = null,
         withRangeSet: Boolean? = null
     ): Try where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
-        val lhs = constraint.toQuadraticPolynomial()
+        val lhs = constraint.realizationPolynomial(converter)
         val rhs = QuadraticPolynomial(emptyList(), converter.one)
         return addConstraint(
             relation = QuadraticInequalityOf(lhs, rhs, Comparison.EQ),
@@ -217,7 +217,7 @@ interface MetaConstraintGroup {
     ): Try where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
         return partition(
             polynomial = QuadraticPolynomial(
-                monomials = symbols.flatMap { it.toQuadraticPolynomial().monomials }.toList(),
+                monomials = symbols.flatMap { it.realizationPolynomial(converter).monomials }.toList(),
                 constant = converter.zero
             ),
             group = this@MetaConstraintGroup,

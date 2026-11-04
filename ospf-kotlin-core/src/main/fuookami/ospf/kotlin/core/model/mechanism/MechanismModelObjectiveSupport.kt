@@ -72,7 +72,8 @@ internal fun <V> buildQuadraticObjectiveSubObjects(
             QuadraticSubObject(
                 category = source.category,
                 cells = ArrayList(
-                    source.flattenData.monomials.mapNotNull { monomial ->
+                    source.flattenData.monomials.mapNotNull { rawMonomial ->
+                        val monomial = rawMonomial.realized()
                         val variable1 = monomial.symbol1 as? AbstractVariableItem<*, *> ?: return@mapNotNull null
                         val token1 = tokens.find(variable1) ?: return@mapNotNull null
                         val token2 = if (monomial.symbol2 != null) {

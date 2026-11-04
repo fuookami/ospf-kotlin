@@ -8,19 +8,24 @@
 package fuookami.ospf.kotlin.core.symbol
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
+import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.reciprocal
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * IntermediateSymbol 表达式求值与缓存支持。
@@ -323,6 +328,65 @@ class LinearExpressionSymbol<V>(
     override var displayName: String? = displayName
 
     override val operationCategory: Category = Linear
+
+    /**
+     * 是否以中间变量实现（默认为否）。
+     *
+     * 开启后，约束与目标引用一个辅助变量，并额外生成一条 `aux == 定义表达式` 的等式约束，
+     * 而不是把定义表达式原地展开到每处使用。须在符号加入模型或首次转储之前设置。
+     * Whether to realize the expression through an intermediate variable (default false).
+     *
+     * When enabled, constraints and objectives reference an auxiliary variable and one extra
+     * equality constraint `aux == definition` is generated instead of inlining the definition
+     * into every use site. Set before the symbol is added to a model or dumped.
+    */
+    var useIntermediateVariable: Boolean = false
+
+    /**
+     * 中间变量实现使用的辅助变量（惰性创建，跨转储稳定）。
+     * Auxiliary variable used by the intermediate-variable realization (lazily created, stable across dumps).
+    */
+    // ponytail: 辅助变量恒为连续变量，靠等式钉住取值；需要更紧的松弛时按 category 改用 IntVar/BinVar。
+    // ponytail: the auxiliary stays continuous and the equality pins its value; pick IntVar/BinVar by category for a tighter relaxation.
+    internal val realizationVariable: AbstractVariableItem<*, *> by lazy {
+        RealVar("${name}__realization")
+    }
+
+    override val intermediateVariable: AbstractVariableItem<*, *>?
+        get() = if (useIntermediateVariable) realizationVariable else null
+
+    override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
+        return if (useIntermediateVariable) {
+            tokens.add(realizationVariable)
+        } else {
+            ok
+        }
+    }
+
+    /**
+     * 注册中间变量实现所需的等式约束 `aux == 定义表达式`。
+     * Register the equality constraint `aux == definition` required by the intermediate-variable realization.
+     *
+     * @param model 机制模型 / Mechanism model
+     * @param converter 值类型转换器 / Value converter
+     * @return 操作结果 / Operation result
+    */
+    internal fun registerRealizationConstraint(model: AbstractLinearMechanismModel<V>, converter: IntoValue<V>): Try {
+        if (!useIntermediateVariable) {
+            return ok
+        }
+        // 辅助变量未进入令牌表时跳过：符号未加入模型或定义为空表达式。
+        // Skip when the auxiliary variable is absent: the symbol is not registered or the definition is empty.
+        if (model.tokens.find(realizationVariable) == null) {
+            return ok
+        }
+        val lhs = LinearPolynomial(listOf(LinearMonomial(converter.one, realizationVariable)), converter.zero)
+        return model.addConstraint(
+            relation = LinearInequality(lhs, toLinearPolynomial(), Comparison.EQ),
+            name = "${name}__realization",
+            from = this to false
+        )
+    }
 
     companion object {
         /**
@@ -990,6 +1054,66 @@ class QuadraticExpressionSymbol<V>(
     override var displayName: String? = displayName
 
     override val operationCategory: Category = Quadratic
+
+    /**
+     * 是否以中间变量实现（默认为否）。
+     *
+     * 开启后，约束与目标引用一个辅助变量，并额外生成一条 `aux == 定义表达式` 的二次等式约束，
+     * 而不是把定义表达式原地展开到每处使用。须在符号加入模型或首次转储之前设置。
+     * Whether to realize the expression through an intermediate variable (default false).
+     *
+     * When enabled, constraints and objectives reference an auxiliary variable and one extra
+     * quadratic equality constraint `aux == definition` is generated instead of inlining the
+     * definition into every use site. Set before the symbol is added to a model or dumped.
+    */
+    var useIntermediateVariable: Boolean = false
+
+    /**
+     * 中间变量实现使用的辅助变量（惰性创建，跨转储稳定）。
+     * Auxiliary variable used by the intermediate-variable realization (lazily created, stable across dumps).
+    */
+    // ponytail: 辅助变量恒为连续变量，靠等式钉住取值；需要更紧的松弛时按 category 改用 IntVar/BinVar。
+    // ponytail: the auxiliary stays continuous and the equality pins its value; pick IntVar/BinVar by category for a tighter relaxation.
+    internal val realizationVariable: AbstractVariableItem<*, *> by lazy {
+        RealVar("${name}__realization")
+    }
+
+    override val intermediateVariable: AbstractVariableItem<*, *>?
+        get() = if (useIntermediateVariable) realizationVariable else null
+
+    override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
+        return if (useIntermediateVariable) {
+            tokens.add(realizationVariable)
+        } else {
+            ok
+        }
+    }
+
+    /**
+     * 注册中间变量实现所需的二次等式约束 `aux == 定义表达式`。
+     * Register the quadratic equality constraint `aux == definition` required by the intermediate-variable realization.
+     *
+     * @param model 机制模型 / Mechanism model
+     * @param converter 值类型转换器 / Value converter
+     * @return 操作结果 / Operation result
+    */
+    internal fun registerRealizationConstraint(model: AbstractQuadraticMechanismModel<V>, converter: IntoValue<V>): Try {
+        if (!useIntermediateVariable) {
+            return ok
+        }
+        if (model.tokens.find(realizationVariable) == null) {
+            return ok
+        }
+        val lhs = LinearPolynomial(
+            monomials = listOf(LinearMonomial(converter.one, realizationVariable)),
+            constant = converter.zero
+        ).toQuadraticPolynomial()
+        return model.addConstraint(
+            relation = QuadraticInequalityOf(lhs, toQuadraticPolynomial(), Comparison.EQ),
+            name = "${name}__realization",
+            from = this to false
+        )
+    }
 
     companion object {
         /**
@@ -1881,3 +2005,44 @@ internal val <V> LinearIntermediateSymbol<V>.solverFlattenedMonomials: LinearFla
 internal val <V> QuadraticIntermediateSymbol<V>.solverFlattenedMonomials: QuadraticFlattenData<Flt64>
     where V : RealNumber<V>, V : Ring<V>, V : NumberField<V>
     get() = SolverBoundaryCasts.quadraticSolverFlattenedMonomials(this)
+
+// 中间变量实现：注册期把符号转换成“在模型中使用”的多项式。
+// Intermediate-variable realization: convert a symbol into the polynomial used in a model at registration time.
+
+/**
+ * 获取线性中间符号在模型中使用的多项式。
+ *
+ * 以中间变量实现时返回 `1 * aux`，否则返回符号的定义多项式。
+ * Get the polynomial used in a model for a linear intermediate symbol.
+ * Returns `1 * aux` when realized through an intermediate variable, otherwise the definition.
+ *
+ * @param converter 值类型转换器 / Value converter
+ * @return 模型中使用的线性多项式 / Linear polynomial used in the model
+*/
+internal fun <V> LinearIntermediateSymbol<V>.realizationPolynomial(converter: IntoValue<V>): LinearPolynomial<V>
+    where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+    val realization = intermediateVariable ?: return toLinearPolynomial()
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(converter.one, realization)),
+        constant = converter.zero
+    )
+}
+
+/**
+ * 获取二次中间符号在模型中使用的多项式。
+ *
+ * 以中间变量实现时返回 `1 * aux`，否则返回符号的定义多项式。
+ * Get the polynomial used in a model for a quadratic intermediate symbol.
+ * Returns `1 * aux` when realized through an intermediate variable, otherwise the definition.
+ *
+ * @param converter 值类型转换器 / Value converter
+ * @return 模型中使用的二次多项式 / Quadratic polynomial used in the model
+*/
+internal fun <V> QuadraticIntermediateSymbol<V>.realizationPolynomial(converter: IntoValue<V>): QuadraticPolynomial<V>
+    where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+    val realization = intermediateVariable ?: return toQuadraticPolynomial()
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(converter.one, realization)),
+        constant = converter.zero
+    ).toQuadraticPolynomial()
+}

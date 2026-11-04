@@ -503,7 +503,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         displayName: String? = null,
         withRangeSet: Boolean? = false
     ): Try {
-        val lhs = constraint.toLinearPolynomial()
+        val lhs = constraint.realizationPolynomial(converter)
         val rhs = LinearPolynomial<V>(emptyList(), converter.one)
         return addConstraint(
             relation = LinearInequality(lhs, rhs, Comparison.EQ),
@@ -808,7 +808,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         name: String? = null,
         displayName: String? = null
     ): Try {
-        val polynomial = symbol.toLinearPolynomial()
+        val polynomial = symbol.realizationPolynomial(converter)
         return addObject(
             category = ObjectCategory.Minimum,
             flattenData = LinearFlattenData(polynomial.monomials, polynomial.constant),
@@ -830,7 +830,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         name: String? = null,
         displayName: String? = null
     ): Try {
-        val polynomial = symbol.toLinearPolynomial()
+        val polynomial = symbol.realizationPolynomial(converter)
         return addObject(
             category = ObjectCategory.Maximum,
             flattenData = LinearFlattenData(polynomial.monomials, polynomial.constant),
@@ -1030,7 +1030,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         name: String? = null,
         displayName: String? = null
     ): Try {
-        val polynomial = symbol.toQuadraticPolynomial()
+        val polynomial = symbol.realizationPolynomial(converter)
         return addObject(
             category = ObjectCategory.Minimum,
             flattenData = QuadraticFlattenData(polynomial.monomials, polynomial.constant),
@@ -1052,7 +1052,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         name: String? = null,
         displayName: String? = null
     ): Try {
-        val polynomial = symbol.toQuadraticPolynomial()
+        val polynomial = symbol.realizationPolynomial(converter)
         return addObject(
             category = ObjectCategory.Maximum,
             flattenData = QuadraticFlattenData(polynomial.monomials, polynomial.constant),
@@ -1141,7 +1141,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         displayName: String? = null,
         withRangeSet: Boolean? = null
     ): Try {
-        val lhs = constraint.toQuadraticPolynomial()
+        val lhs = constraint.realizationPolynomial(converter)
         val rhs = QuadraticPolynomial<V>(emptyList(), converter.one)
         return addConstraint(
             relation = QuadraticInequalityOf(lhs, rhs, Comparison.EQ),
@@ -1173,7 +1173,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
     ): Try {
         return partition(
             polynomial = QuadraticPolynomial(
-                monomials = symbols.map { it.toQuadraticPolynomial() }.flatMap { it.monomials }.toList(),
+                monomials = symbols.map { it.realizationPolynomial(converter) }.flatMap { it.monomials }.toList(),
                 constant = converter.zero
             ),
             lazy = lazy,

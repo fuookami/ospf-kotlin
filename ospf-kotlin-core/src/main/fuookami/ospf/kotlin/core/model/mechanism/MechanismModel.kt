@@ -695,6 +695,11 @@ class LinearMechanismModel<V>(
                         } else {
                             when (symbol) {
                                 is MathFunctionSymbolBase<*> -> symbol.registerConstraintsUnchecked(model)
+                                is LinearExpressionSymbol<*> -> SolverBoundaryCasts.registerRealizationConstraintLinearStar<V>(
+                                    symbol = symbol,
+                                    model = model,
+                                    converter = metaModel.converter
+                                )
                                 else -> ok
                             }
                         }
@@ -1388,6 +1393,16 @@ class QuadraticMechanismModel<V>(
                         val result = when (symbol) {
                             is QuadraticMathFunctionSymbolBase<*> -> symbol.registerConstraintsUnchecked(model)
                             is MathFunctionSymbolBase<*> -> symbol.registerConstraintsUnchecked(model)
+                            is QuadraticExpressionSymbol<*> -> SolverBoundaryCasts.registerRealizationConstraintQuadraticStar<V>(
+                                symbol = symbol,
+                                model = model,
+                                converter = metaModel.converter
+                            )
+                            is LinearExpressionSymbol<*> -> SolverBoundaryCasts.registerRealizationConstraintLinearStar<V>(
+                                symbol = symbol,
+                                model = model,
+                                converter = metaModel.converter
+                            )
                             else -> ok
                         }
                         when (result) {
