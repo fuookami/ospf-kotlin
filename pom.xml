@@ -131,6 +131,13 @@
                 <extensions>true</extensions>
                 <configuration>
                     <publishingServerId>central</publishingServerId>
+                    <!-- Maven 中央仓库只强制要求 .md5 与 .sha1，.sha256/.sha512 属于可选校验和。 -->
+                    <!-- 默认值 all 会为每个文件额外生成两种可选校验和；required 仅生成必需的 .md5 与 .sha1。 -->
+                    <!-- 每个部署文件仍需 .asc 签名；.asc 自身不需要校验和，校验和文件也不需要 .asc 签名。 -->
+                    <!-- Maven Central only mandates .md5 and .sha1; .sha256/.sha512 are optional checksums. -->
+                    <!-- The default value all also emits the two optional checksums per file; required emits only the mandatory .md5 and .sha1. -->
+                    <!-- Every deployed file still needs a .asc signature; .asc files need no checksums and checksum files need no .asc signatures. -->
+                    <checksums>required</checksums>
                 </configuration>
             </plugin>
         </plugins>

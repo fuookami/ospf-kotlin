@@ -196,6 +196,27 @@ If you need to use the network scheduling development package, add the dependenc
 `ospf-kotlin-core` exposes an integer-domain constraint-programming model with immutable snapshots, stable IDs, source verification, and a unified solver report. The generic MIP lowerer uses checked arithmetic internally and only crosses the existing floating-point solver boundary when every integer coefficient, bound, and generated Big-M is exactly representable.
 
 The SCIP CP entry point is a strict finite MIP-backed facade. It is not a native SCIP/CIP CP backend. The declared CP capability scope is complete: generic MIP lowering returns verified exact lowering for the supported finite subset and structured unsupported errors for `Cumulative`, `Circuit`, `Automaton`, and `Reservoir`; raw cumulative FFI is a conditional research probe, and true incremental CP sessions remain unsupported. Snapshot-rebuild sessions are correct but must not be described as native incremental resume. The fake CP solver is for contract tests and small exhaustive oracles, not production search.
+## Publishing to Maven Central
+
+Publishing runs through `central-publishing-maven-plugin` declared in the root POM. Every
+deployed file needs a `.asc` signature plus `.md5` and `.sha1` checksums; `.sha256` and
+`.sha512` are optional. This repository disables the two optional checksums via
+`<checksums>required</checksums>`, cutting the sidecar files per artifact from five
+(`.asc` + four checksums) to three (`.asc` + `.md5` + `.sha1`).
+
+Publish command (which also skips `tests.jar`):
+
+```powershell
+mvn -B -ntp deploy "-Dospf.test-jar.phase=none"
+```
+
+Pom-packaged aggregator and BOM modules produce no jar at all, and Maven Central only requires a
+javadoc jar for non-pom packaging, so the parent skips their javadoc placeholder jar
+automatically and uploads the `.pom` only.
+
+See [ospf-kotlin-parent](ospf-kotlin-parent/README.md) for the default value and purpose of
+`ospf.test-jar.phase`.
+
 ## Changelog
 
 The current release version is **1.1.2**. See the [1.1.2 release notes](changelog/1.1.2.md)

@@ -198,6 +198,24 @@ ospf-kotlin 已经发布到 maven 中央仓库，因此，如果你使用 maven 
 </dependency>
 ```
 
+## 发布到 Maven Central
+
+发布由根 POM 中的 `central-publishing-maven-plugin` 执行。每个部署文件都需要 `.asc` 签名，
+并且需要 `.md5` 与 `.sha1` 校验和；`.sha256` / `.sha512` 属于可选校验和。本仓库已通过
+`<checksums>required</checksums>` 关闭两种可选校验和，使每个制品的附属文件从 5 个
+（`.asc` + 4 种校验和）降到 3 个（`.asc` + `.md5` + `.sha1`）。
+
+发布命令（同时不产出 `tests.jar`）：
+
+```powershell
+mvn -B -ntp deploy "-Dospf.test-jar.phase=none"
+```
+
+`pom` 打包的聚合模块与 BOM 模块不产出任何 jar，中央仓库也只对非 `pom` 打包要求 javadoc
+jar，因此父 POM 会按 `packaging` 自动跳过它们的 javadoc 占位 jar，仅上传 `.pom`。
+
+`ospf.test-jar.phase` 的默认值与用途见 [ospf-kotlin-parent](ospf-kotlin-parent/README_ch.md)。
+
 ## 版本记录
 
 当前发布版本为 **1.1.2**。装箱/下料框架、网络与活动调度、启发式搜索、共享分解能力，

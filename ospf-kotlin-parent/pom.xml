@@ -289,8 +289,18 @@
                         </goals>
                         <configuration>
                             <target>
-                                <mkdir dir="${project.build.directory}/javadoc-placeholder" />
-                                <echo file="${project.build.directory}/javadoc-placeholder/README.md">Javadoc is not generated for this Kotlin module. See https://github.com/fuookami/ospf-kotlin for project documentation.</echo>
+                                <!-- pom 打包模块不产出 jar，中央仓库也只对非 pom 打包要求 javadoc jar。 -->
+                                <!-- 因此把占位文件写到 jar 插件不读取的目录，配合 skipIfEmpty 让 javadoc jar 既不生成也不 attach。 -->
+                                <!-- Pom-packaged modules produce no jar, and Maven Central only requires a javadoc jar for non-pom packaging. -->
+                                <!-- The placeholder is therefore written outside the directory read by the jar plugin so that skipIfEmpty drops the javadoc jar entirely. -->
+                                <condition property="ospf.javadoc.placeholder.dir"
+                                           value="${project.build.directory}/javadoc-placeholder-pom">
+                                    <equals arg1="${project.packaging}" arg2="pom" />
+                                </condition>
+                                <property name="ospf.javadoc.placeholder.dir"
+                                          value="${project.build.directory}/javadoc-placeholder" />
+                                <mkdir dir="${ospf.javadoc.placeholder.dir}" />
+                                <echo file="${ospf.javadoc.placeholder.dir}/README.md">Javadoc is not generated for this Kotlin module. See https://github.com/fuookami/ospf-kotlin for project documentation.</echo>
                             </target>
                         </configuration>
                     </execution>
@@ -319,7 +329,9 @@
                             <classifier>javadoc</classifier>
                             <classesDirectory>${project.build.directory}/javadoc-placeholder</classesDirectory>
                             <forceCreation>true</forceCreation>
-                            <skipIfEmpty>false</skipIfEmpty>
+                            <!-- 目录缺失（pom 打包模块）时不打包，避免上传仅含占位 README 的 javadoc jar。 -->
+                            <!-- When the directory is absent (pom-packaged modules) nothing is packaged, so no placeholder-only javadoc jar is uploaded. -->
+                            <skipIfEmpty>true</skipIfEmpty>
                         </configuration>
                     </execution>
                 </executions>
