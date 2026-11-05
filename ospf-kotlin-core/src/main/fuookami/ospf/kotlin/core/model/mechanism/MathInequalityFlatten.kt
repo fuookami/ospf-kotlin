@@ -4,11 +4,13 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -39,20 +41,53 @@ private fun <V> expandLinearMonomial(mono: LinearMonomial<V>): Result<Pair<List<
     return when (val sym = mono.symbol) {
         is AbstractVariableItem<*, *> -> Result.success(Pair(listOf(mono), (mono.coefficient - mono.coefficient)))
         is LinearIntermediateSymbol<*> -> {
-            val intermediate = sym as LinearIntermediateSymbol<V>
-            val expanded = mutableListOf<LinearMonomial<V>>()
-            var constantContribution = mono.coefficient * intermediate.polynomial.constant
-            for (inner in intermediate.polynomial.monomials) {
-                val scaled = LinearMonomial(mono.coefficient * inner.coefficient, inner.symbol)
-                val innerResult = expandLinearMonomial(scaled).getOrElse { return Result.failure(it) }
-                expanded.addAll(innerResult.first)
-                constantContribution += innerResult.second
+            val realization = sym.intermediateVariable
+            if (realization != null) {
+                // 以中间变量实现的符号视为叶子：使用辅助变量，保留原系数。
+                // Symbols realized through an intermediate variable are treated as leaves: use the
+                // auxiliary variable and keep the original coefficient.
+                Result.success(
+                    Pair(
+                        listOf(LinearMonomial(mono.coefficient, realization)),
+                        mono.coefficient - mono.coefficient
+                    )
+                )
+            } else {
+                val intermediate = sym as LinearIntermediateSymbol<V>
+                val expanded = mutableListOf<LinearMonomial<V>>()
+                var constantContribution = mono.coefficient * intermediate.polynomial.constant
+                for (inner in intermediate.polynomial.monomials) {
+                    val scaled = LinearMonomial(mono.coefficient * inner.coefficient, inner.symbol)
+                    val innerResult = expandLinearMonomial(scaled).getOrElse { return Result.failure(it) }
+                    expanded.addAll(innerResult.first)
+                    constantContribution += innerResult.second
+                }
+                Result.success(Pair(expanded, constantContribution))
             }
-            Result.success(Pair(expanded, constantContribution))
         }
         else -> Result.failure(
             IllegalArgumentException("Cannot flatten monomial with symbol type ${sym::class.simpleName}: ${sym.name}")
         )
+    }
+}
+
+/**
+ * 将符号替换为其中间变量（若该符号以中间变量实现）。 / Replace a symbol by its intermediate variable when it is realized as one.
+*/
+private fun Symbol.realizedSymbol(): Symbol {
+    return (this as? IntermediateSymbol<*>)?.intermediateVariable ?: this
+}
+
+/**
+ * 将二次单项量的符号替换为中间变量。 / Replace the symbols of a quadratic monomial by their intermediate variables.
+*/
+internal fun <V> QuadraticMonomial<V>.realized(): QuadraticMonomial<V> where V : Ring<V> {
+    val realized1 = symbol1.realizedSymbol()
+    val realized2 = symbol2?.realizedSymbol()
+    return if (realized1 !== symbol1 || realized2 !== symbol2) {
+        QuadraticMonomial(coefficient, realized1, realized2)
+    } else {
+        this
     }
 }
 
@@ -202,7 +237,7 @@ internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenData(): QuadraticFla
         where V : RealNumber<V>, V : NumberField<V> {
     val merged = HashMap<QuadraticMonomialKey, QuadraticMonomial<V>>()
 
-    for (mono in lhs.monomials) {
+    for (mono in lhs.monomials.map { it.realized() }) {
         val key = QuadraticMonomialKey.from(mono)
         mergeQuadraticMonomial(
             merged = merged,
@@ -211,7 +246,7 @@ internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenData(): QuadraticFla
             coefficient = mono.coefficient
         )
     }
-    for (mono in rhs.monomials) {
+    for (mono in rhs.monomials.map { it.realized() }) {
         val key = QuadraticMonomialKey.from(mono)
         mergeQuadraticMonomial(
             merged = merged,
@@ -278,7 +313,7 @@ internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenDataFlt64(converter:
         where V : RealNumber<V>, V : NumberField<V> {
     val merged = HashMap<QuadraticMonomialKey, QuadraticMonomial<Flt64>>()
 
-    for (mono in lhs.monomials) {
+    for (mono in lhs.monomials.map { it.realized() }) {
         val key = QuadraticMonomialKey.from(mono, converter)
         val flt64Coeff = converter.fromValue(mono.coefficient)
         mergeQuadraticMonomial(
@@ -288,7 +323,7 @@ internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenDataFlt64(converter:
             coefficient = flt64Coeff
         )
     }
-    for (mono in rhs.monomials) {
+    for (mono in rhs.monomials.map { it.realized() }) {
         val key = QuadraticMonomialKey.from(mono, converter)
         val flt64Coeff = converter.fromValue(mono.coefficient)
         mergeQuadraticMonomial(

@@ -592,7 +592,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
         args: Any? = null,
         withRangeSet: Boolean? = false
     ): Try {
-        val lhs = constraint.toLinearPolynomial()
+        val lhs = constraint.realizationPolynomial(converter)
         val rhs = LinearPolynomial<V>(emptyList(), converter.one)
         val relation = LinearInequality<V>(lhs, rhs, Comparison.EQ)
         return addConstraint(
@@ -806,7 +806,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
         args: Any? = null,
         withRangeSet: Boolean? = null
     ): Try {
-        val vPoly = constraint.toQuadraticPolynomial()
+        val vPoly = constraint.realizationPolynomial(converter)
         val onePoly = QuadraticPolynomial<V>(emptyList(), converter.one)
         return addConstraint(
             relation = QuadraticInequalityOf<V>(vPoly, onePoly, Comparison.EQ),
@@ -867,7 +867,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
     ): Try {
         return partition(
             polynomial = QuadraticPolynomial(
-                monomials = symbols.map { it.toQuadraticPolynomial() }.flatMap { it.monomials }.toList(),
+                monomials = symbols.map { it.realizationPolynomial(converter) }.flatMap { it.monomials }.toList(),
                 constant = converter.zero
             ),
             group = group,

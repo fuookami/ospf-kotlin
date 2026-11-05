@@ -57,6 +57,23 @@ An intermediate symbol convertible to a quadratic polynomial (`QuadraticPolynomi
 - `polynomial` — The associated quadratic polynomial
 - `asMutable()` — Get mutable quadratic polynomial representation
 
+### Intermediate-Variable Realization of Expression Symbols
+
+`LinearExpressionSymbol` / `QuadraticExpressionSymbol` expose the `useIntermediateVariable` configuration (default `false`) controlling how the expression is realized when a meta model is dumped into a mechanism model:
+
+| Configuration | Dump result |
+|---------------|-------------|
+| `false` (default) | In-place expansion: every use site (constraints, objectives) is replaced by the definition expression |
+| `true` | Intermediate-variable realization: one auxiliary continuous variable `"${name}__realization"` plus an equality constraint `aux == definition` are generated, and use sites reference `aux` |
+
+Notes:
+
+- Set the configuration before adding the symbol to a model (`model.add(symbol)`) or before the first dump; re-dump after changing it.
+- The symbol must be added to the model (same precondition as function symbols), otherwise the auxiliary variable is not registered and the definition constraint is skipped.
+- Symbol values, `range`, and `discrete` are still derived from the definition and the underlying variables, so post-solve `evaluate()` is unaffected.
+- Other realized symbols inside the definition appear through their own auxiliary variables in the definition constraint (nesting is supported).
+- Combining symbols into polynomials through the `+` / `-` operators still inlines the definition (equivalent result, just without the auxiliary variable).
+
 ### Symbol Combination (`SymbolCombination.kt`)
 
 `MultiArray`-based multi-dimensional symbol combination containers for batch creation and management of intermediate symbols.

@@ -107,6 +107,48 @@ internal object SolverBoundaryCasts {
     }
 
     /**
+     * 注册线性表达式符号的中间变量定义约束（星投影版本）。
+     * Register the intermediate-variable definition constraint of a linear expression symbol (star-projected version).
+     *
+     * @param symbol 中间符号实例 / Intermediate symbol instance
+     * @param model 线性机制模型实例 / Linear mechanism model instance
+     * @param converter 值类型转换器 / Value converter
+     * @return 操作结果 / Operation result
+    */
+    fun <V> registerRealizationConstraintLinearStar(
+        symbol: Any,
+        model: Any,
+        converter: Any
+    ): Try where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+        val expression = symbol as? LinearExpressionSymbol<V> ?: return ok
+        return expression.registerRealizationConstraint(
+            model = model as AbstractLinearMechanismModel<V>,
+            converter = converter as IntoValue<V>
+        )
+    }
+
+    /**
+     * 注册二次表达式符号的中间变量定义约束（星投影版本）。
+     * Register the intermediate-variable definition constraint of a quadratic expression symbol (star-projected version).
+     *
+     * @param symbol 中间符号实例 / Intermediate symbol instance
+     * @param model 二次机制模型实例 / Quadratic mechanism model instance
+     * @param converter 值类型转换器 / Value converter
+     * @return 操作结果 / Operation result
+    */
+    fun <V> registerRealizationConstraintQuadraticStar(
+        symbol: Any,
+        model: Any,
+        converter: Any
+    ): Try where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+        val expression = symbol as? QuadraticExpressionSymbol<V> ?: return ok
+        return expression.registerRealizationConstraint(
+            model = model as AbstractQuadraticMechanismModel<V>,
+            converter = converter as IntoValue<V>
+        )
+    }
+
+    /**
      * 将机制模型转换为线性机制模型（Flt64 类型）。 / Cast mechanism model to linear mechanism model (Flt64 type).
      *
      * @param model 机制模型 / Mechanism model

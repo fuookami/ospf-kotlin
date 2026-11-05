@@ -217,5 +217,52 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>bench-solvers</id>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+                    <artifactId>ospf-kotlin-core-plugin-gurobi</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+                    <artifactId>ospf-kotlin-core-plugin-scip</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>gurobi</groupId>
+                    <artifactId>gurobi</artifactId>
+                    <version>1.0.0</version>
+                </dependency>
+                <dependency>
+                    <groupId>scip</groupId>
+                    <artifactId>jscip</artifactId>
+                    <version>1.0.0</version>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>compile</id>
+                                <configuration>
+                                    <sourceDirs combine.self="override">
+                                        <sourceDir>${project.basedir}/src/main</sourceDir>
+                                        <sourceDir>${project.basedir}/src/bench-solvers</sourceDir>
+                                    </sourceDirs>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>

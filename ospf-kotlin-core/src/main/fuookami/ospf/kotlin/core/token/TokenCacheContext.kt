@@ -534,7 +534,10 @@ internal fun boundTokenTableContext(symbol: IntermediateSymbol<*>): AbstractToke
 */
 internal fun <V> LinearFlattenData<V>.toQuadraticFlattenData(): QuadraticFlattenData<V> where V : RealNumber<V>, V : NumberField<V> {
     val monomials = this.monomials.mapNotNull {
-        val sym = it.symbol as? AbstractVariableItem<*, *> ?: return@mapNotNull null
+        // 以中间变量实现的符号替换为其辅助变量。
+        // Symbols realized through an intermediate variable are replaced by their auxiliary variable.
+        val realized = (it.symbol as? IntermediateSymbol<*>)?.intermediateVariable ?: it.symbol
+        val sym = realized as? AbstractVariableItem<*, *> ?: return@mapNotNull null
         QuadraticMonomial(
             coefficient = it.coefficient,
             symbol1 = sym,

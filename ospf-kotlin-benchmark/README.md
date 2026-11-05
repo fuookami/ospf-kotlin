@@ -18,6 +18,7 @@ Current benchmark coverage includes:
 | `coreplugin` | Core plugin dumping hot paths |
 | `constraintprogramming` | CP snapshot encoding, Fake enumeration, fixed/optional/variable scheduling, exact MIP lowering, and portable checkpoint capture |
 | `preparation` | Production prime-cache queries, constant arrays, cold token positions, sparse-domain membership, and checkpoint capture/restore |
+| `core` + solvers (optional profile) | Modeling/solving time comparison between in-place expansion and intermediate-variable realization of expression symbols (Gurobi 10 / SCIP 9) |
 
 `PreparationHotPathBenchmark` calls production APIs rather than copying their algorithms. The
 `small`/`medium`/`large` fixtures use N/2N/4N sizes: 10k/20k/40k consecutive cold-cache prime
@@ -59,6 +60,20 @@ Native SCIP solve timings, node counts, and peak memory remain a separate integr
 and must be recorded with the plugin integration suite. / CP 夹具的可移植 smoke 使用 Fake solver，
 并提供固定、可选和可变时长 interval 的 exact MIP 降阶构建基准；SCIP 原生求解耗时、节点数和峰值内存
 仍需由插件集成套件单独记录。
+
+Run the expression realization comparison (requires the `bench-solvers` profile and native solver libraries):
+
+```powershell
+mvn -B -ntp -pl ospf-kotlin-benchmark -am -Pbench,bench-solvers -DskipTests compile
+$result = Join-Path $env:TEMP "ospf-realization-small.json"
+mvn -pl ospf-kotlin-benchmark -Pbench,bench-solvers -DskipTests exec:java "-Dexec.args=ExpressionRealizationSolveBenchmark.* small 1 1 3 json $result"
+```
+
+`ExpressionRealizationSolveBenchmark` builds the same model with `realization=inline|intermediate` and
+compares `modeling` (meta model dumped into a mechanism model) against `solving` (dump + solve), with
+`solver=gurobi|scip` selecting the backend. `@Setup` asserts both modes reach the same objective and
+fails otherwise. Only this profile pulls in the solver plugins and native jars, so the default build
+stays solver-free. Native libraries must be on `PATH` (or set `java.library.path` through `MAVEN_OPTS`).
 
 ## Result Reports
 

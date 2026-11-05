@@ -23,6 +23,7 @@ addColumns 与关闭入口，不执行求解。small/medium/large 分别为256/5
 | `coreplugin` | core plugin dumping 热点路径 |
 | `constraintprogramming` | CP snapshot 编码、Fake 穷举、固定/可选/可变时长排程、exact MIP 降阶和 portable checkpoint 捕获 |
 | `preparation` | 生产素数缓存、常量数组、冷 token 位置索引、稀疏整数域查询、带 incumbent 的 checkpoint 捕获/恢复 |
+| `core` + 求解器（可选 profile） | 表达式符号“原地展开”与“中间变量实现”两种模式的建模/求解耗时对比（Gurobi 10 / SCIP 9） |
 
 `PreparationHotPathBenchmark` 直接调用生产 API，不复制被测算法。`small`/`medium`/`large`
 采用 N/2N/4N：冷缓存连续素性查询 1万/2万/4万次，数组 1024/2048/4096 个元素，checkpoint
@@ -57,6 +58,19 @@ mvn -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java "-Dexec.args=.*Const
 
 CP 夹具的可移植 smoke 刻意使用 Fake solver，并提供固定、可选和可变时长 interval 的 exact MIP 降阶构建基准；
 SCIP 原生求解耗时、节点数和峰值内存仍需由插件集成套件单独记录。
+
+运行表达式中间变量实现对比（需 `bench-solvers` profile 与原生求解器库）：
+
+```powershell
+mvn -B -ntp -pl ospf-kotlin-benchmark -am -Pbench,bench-solvers -DskipTests compile
+$result = Join-Path $env:TEMP "ospf-realization-small.json"
+mvn -pl ospf-kotlin-benchmark -Pbench,bench-solvers -DskipTests exec:java "-Dexec.args=ExpressionRealizationSolveBenchmark.* small 1 1 3 json $result"
+```
+
+`ExpressionRealizationSolveBenchmark` 用同一模型分别以 `realization=inline|intermediate` 构建，对比
+`modeling`（元模型转储为机制模型）与 `solving`（转储 + 求解）耗时，`solver=gurobi|scip` 选择后端；
+`@Setup` 会校验两种模式的目标值一致，不一致直接失败。该 profile 才引入求解器插件与原生 jar，
+默认构建不依赖它们。原生库需在 `PATH`（或通过 `MAVEN_OPTS` 指定 `java.library.path`）中。
 
 ## 结果报告
 
