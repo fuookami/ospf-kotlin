@@ -100,6 +100,13 @@ Optional interval 和 variable duration 在 MIP-backed 路径上是精确支持�
 
 多目标求解器（NSGA-II、NSGA-III）位于 `MultiObjectiveSolvers`；记忆型变体位于 `MemeticSolvers`。
 
+### ONNX 模型插件
+
+`ospf-kotlin-core-plugin-onnx` 不是求解器插件。它通过两条独立路径把 ONNX 模型接入 OSPF：
+一条用 ONNX Runtime 推理并适配为回调模型的目标与约束，另一条把支持的图降阶为
+`IntermediateSymbol` 表达式参与 LP/QP 建模。支持的算子子集与示例见
+[README_ch](ospf-kotlin-core-plugin-onnx/README_ch.md)。
+
 ## 通用插件架构
 
 每个数学规划求解器插件遵循相同的分层结构：

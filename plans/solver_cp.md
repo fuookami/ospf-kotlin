@@ -4,8 +4,9 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 状态 | Proposed |
+| 状态 | In Progress（reference backend 已完成；后续插件尚未验收） |
 | 日期 | 2026-08-02 |
+| 最近核查 | 2026-11-06；基于当前源码、测试和提交历史复核 |
 | 前置计划 | 原 CP 基础计划已归档至 `plans/release.md`，已完成 SCIP direct CP 与 Gurobi MIP-backed CP |
 | 公共契约 | 本文件“后续插件强制公共合同”；已完成源码证据见 `plans/release.md` |
 | 承接范围 | SCIP/Gurobi 首阶段合同已关闭；其余插件的通用求解合同与 CP 支持由本计划承接 |
@@ -14,6 +15,19 @@
 | 条件范围 | CPLEX CP Optimizer、Hexaly 原生/启发式 CP、Lingo、OPTVerse、通用 heuristic CP、JSCIPOpt 上游增强 |
 | 上游阻塞 | JSCIPOpt 源码修改当前为 `BlockedByUpstream`，获得明确修改/合并权限或采用受维护 fork 后方可启动 |
 | 兼容策略 | 复用 core CP AST、精确 lowerer、统一报告和三态 capability，不复制插件私有 CP 协议 |
+
+### 1.1 进度快照（2026-11-06）
+
+| 范围 | 当前状态 | 证据与边界 |
+| --- | --- | --- |
+| core `MipBackedConstraintProgrammingSolver` 与 CP lowerer | 已完成前置基线 | `ospf-kotlin-core/src/main/.../MipBackedConstraintProgrammingSolver.kt` 已提供统一 MIP-backed 适配；通用适配器本身不计作任何具体插件的 CP 验收。 |
+| SCIP direct CP | 已完成 reference backend | `ScipConstraintProgrammingSolver` 已发布 CP descriptor，并有 solver、probe、diagnostic 和 differential 测试。 |
+| 现有 Gurobi MIP-backed CP | 已完成 reference backend | `GurobiConstraintProgrammingSolverIT`、`ConstraintProgrammingDifferentialIT` 覆盖 CP 求解和 SCIP/Gurobi 对照。 |
+| Gurobi 11、COPT、CPLEX MIP、MindOPT、Mosek | 未验收 | 尚无本计划要求的插件级 CP contract、终态/proof、取消/资源和 differential 闭环；继续保持 `Unsupported`。 |
+| Hexaly、CPLEX CP Optimizer、Lingo、OPTVerse、Heuristic CP | 未验收或条件阻塞 | 路线探针、统一报告/身份合同和能力发布门禁尚未完成；不能因存在线性求解器或启发式算法而声明 CP。 |
+| JSCIPOpt 后续增强 | `BlockedByUpstream` | 当前没有上游修改/合并权限或受维护 fork；J0～J10 不启动。 |
+
+本快照只记录已验证的 reference 能力和未完成边界，不将 core 适配器的可注入类型、SDK 可加载或占位类视为插件 CP 支持。
 
 ## 2. 背景与当前状态
 
@@ -62,7 +76,7 @@ CP 接入还必须满足以下冻结边界：
 4. 未接入稳定身份的插件继续保持 `ModelLocal`；未通过报告、取消、诊断、指纹和 replay 门禁的插件
    不得进入远程 capability、Exact Benders 或生产 solver selection。
 
-当前未声明 CP 支持的插件盘点如下：
+当前未声明 CP 支持的插件盘点如下（2026-11-06 复核）：
 
 | 插件 | 当前基础 | CP 计划分类 | 初始优先级 |
 | --- | --- | --- | --- |
@@ -77,6 +91,18 @@ CP 接入还必须满足以下冻结边界：
 | Heuristic | 只有领域无关元启发式算法，不是 `LinearSolver` | 单独的 Heuristic CP 路径 | P3/Conditional |
 
 SCIP 与现有 Gurobi 插件作为 reference backend，不重复纳入本计划的“新增支持”计数，但必须参与 differential test。
+
+### 2.2 本次核查后的阶段状态
+
+- [x] 已确认 core CP lowerer、SCIP direct CP 和现有 Gurobi MIP-backed CP 的实现及测试范围；这些属于前置 reference 基线，不计入本计划的新增插件完成数。
+- [ ] `SCP-0` 目标插件公共合同、SDK/license 矩阵和共享 contract fixture 尚未对所有目标插件闭环。
+- [ ] `SCP-1` Gurobi 11 兼容补齐尚未接入 `MipBackedConstraintProgrammingSolver`，也没有版本 differential 测试。
+- [ ] `SCP-2` COPT、CPLEX MIP、MindOPT、Mosek 尚无插件级 CP contract、终态/proof、取消/资源和 differential 验收。
+- [ ] `SCP-3`～`SCP-6` Hexaly、CPLEX CP Optimizer、Lingo、OPTVerse 和 Heuristic CP 尚未形成有证据的路线结论。
+- [ ] `SCP-7` 远程 capability、文档矩阵和发布门禁尚未按插件验收结果更新。
+- [ ] JSCIPOpt `J0`～`J10` 继续保持 `BlockedByUpstream`，解阻条件未满足。
+
+核查依据包括：Gurobi 11 descriptor 当前仅发布 `LP`/`MIP`；仓库中 `MipBackedConstraintProgrammingSolver(...)` 的插件级使用仅见现有 Gurobi 与 SCIP reference 测试；Lingo 和 OPTVerse 仍是未实现统一接口的占位类。
 
 ## 3. 目标
 

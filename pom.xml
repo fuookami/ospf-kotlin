@@ -103,6 +103,9 @@
         <apache-commons-math3.version>3.6.1</apache-commons-math3.version>
         <ktorm.version>4.2.1</ktorm.version>
         <http4k.version>6.18.1.0</http4k.version>
+        <!-- onnx -->
+        <onnxruntime.version>1.31.1</onnxruntime.version>
+        <onnx-protobuf.version>0.9.24</onnx-protobuf.version>
     </properties>
 
     <build>

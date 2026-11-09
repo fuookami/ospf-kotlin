@@ -26,6 +26,7 @@
         <module>ospf-kotlin-core-plugin-scip</module>
         <module>ospf-kotlin-core-plugin-optverse</module>
         <module>ospf-kotlin-core-plugin-heuristic</module>
+        <module>ospf-kotlin-core-plugin-onnx</module>
     </modules>
 
     <dependencies>

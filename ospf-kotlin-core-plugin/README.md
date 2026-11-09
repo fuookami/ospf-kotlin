@@ -101,6 +101,13 @@ reachable through `ComposedSolvers` (or `MultiObjectiveSolvers` / `MemeticSolver
 Multi-objective solvers (NSGA-II, NSGA-III) live in `MultiObjectiveSolvers`; memetic variants in
 `MemeticSolvers`.
 
+### ONNX model plugin
+
+`ospf-kotlin-core-plugin-onnx` is not a solver plugin. It brings ONNX models into OSPF through two
+independent paths: ONNX Runtime inference adapted into call-back objectives/constraints, and an
+LP/QP lowering path that turns supported graphs into `IntermediateSymbol` expressions. See
+[README](ospf-kotlin-core-plugin-onnx/README.md) for the supported operator subset and examples.
+
 ## Common Plugin Architecture
 
 Each mathematical programming solver plugin follows the same layered structure:
