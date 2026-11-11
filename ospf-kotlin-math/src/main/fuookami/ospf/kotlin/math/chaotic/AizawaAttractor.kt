@@ -40,11 +40,16 @@ data class AizawaAttractor<V : FloatingNumber<V>>(
 ) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(x: Point<Dim3, V>): Point<Dim3, V> {
         val v = alpha
+        // B311：回到标准 Aizawa 式（`dx` 用 `d·y`、`dz` 的线性项用 `a·z`，输出 `(dx, dy, dz)`）。
+        // 原实现 `dx` 减的是完整 `dy`、`dz` 用 `a·x`、并把 `dz`/`dy` 置换到第二/三分量。
+        // 权威来源：pattingalloang / Etherscan 的 Aizawa 条目（见 python 端 B311 记录）。
+        // B311: back to the standard Aizawa form (dx uses d*y, dz's linear term uses a*z,
+        // outputs in (dx, dy, dz) order). The previous form deviated in all three respects.
+        val dx = (x[2] - beta) * x[0] - delta * x[1]
         val dy = delta * x[0] + (x[2] - beta) * x[1]
-        val dx = (x[2] - beta) * x[0] - dy
         val dz =
-            gamma + alpha * x[0] - x[2].cub() / v.constants.three - (x[0].sqr() + x[1].sqr()) * (v.constants.one + epsilon * x[2]) + zeta * x[2] * x[0].cub()
-        return Point<Dim3, V>(listOf(x[0] + h * dx, x[1] + h * dz, x[2] + h * dy), Dim3)
+            gamma + alpha * x[2] - x[2].cub() / v.constants.three - (x[0].sqr() + x[1].sqr()) * (v.constants.one + epsilon * x[2]) + zeta * x[2] * x[0].cub()
+        return Point<Dim3, V>(listOf(x[0] + h * dx, x[1] + h * dy, x[2] + h * dz), Dim3)
     }
 
     companion object {

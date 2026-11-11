@@ -26,8 +26,11 @@ data class WimolBanlueAttractor<V : FloatingNumber<V>>(val alpha: V, val h: V) :
         val y = p[1];
         val z = p[2]
         val dx = y - x
-        val dy = -z * (x.tan() as V)
-        val dz = -alpha + x * y + x.abs()
+        // B311：回到标准 Wimol-Banlue 式 —— `tanh(x)`（不是 `tan`）、`|y|`（不是 `|x|`）。
+        // 权威来源：TU Delft 论文（采用 β→0 时 √(y²+β²)→|y| 的可微逼近），见 python 端 B311 记录。
+        // B311: back to the standard Wimol-Banlue form — tanh(x) (not tan), |y| (not |x|).
+        val dy = -z * (x.tanh() as V)
+        val dz = -alpha + x * y + y.abs()
         return Point<Dim3, V>(listOf(x + h * dx, y + h * dy, z + h * dz), Dim3)
     }
 
