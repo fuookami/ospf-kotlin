@@ -27,7 +27,6 @@
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
         <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
-        <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
         <maven-dokka-plugin.version>2.2.0</maven-dokka-plugin.version>
         <ospf.test.reportsDirectory>${java.io.tmpdir}/ospf-kotlin-test-reports</ospf.test.reportsDirectory>
         <!-- 测试 jar（classifier=tests）绑定的生命周期阶段。默认 package，本地构建照常产出； -->

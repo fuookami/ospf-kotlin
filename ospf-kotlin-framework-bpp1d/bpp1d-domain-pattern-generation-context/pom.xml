@@ -8,6 +8,7 @@
         <relativePath>..</relativePath>
     </parent>
     <groupId>io.github.fuookami.ospf.kotlin.framework.bpp1d</groupId>
+    <name>ospf-kotlin-framework-bpp1d-domain-pattern-generation-context</name>
     <artifactId>ospf-kotlin-framework-bpp1d-domain-pattern-generation-context</artifactId>
 
     <dependencies>

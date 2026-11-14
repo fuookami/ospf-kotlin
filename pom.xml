@@ -64,6 +64,7 @@
     <properties>
         <!-- maven -->
         <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
+        <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
         <gpg.skip>false</gpg.skip>
         <nexus-staging-maven-plugin.version>1.7.0</nexus-staging-maven-plugin.version>
         <!-- kotlin -->
@@ -142,6 +143,34 @@
                     <!-- Every deployed file still needs a .asc signature; .asc files need no checksums and checksum files need no .asc signatures. -->
                     <checksums>required</checksums>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven-enforcer-plugin.version}</version>
+                <inherited>true</inherited>
+                <executions>
+                    <execution>
+                        <id>enforce-project-name</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireProperty>
+                                    <!-- 中央仓库要求被部署的 POM 必须带有非空的 <name>，缺失时整批 Deployment 会被拒绝。 -->
+                                    <!-- project.name 在缺失时会回退为 artifactId，无法用于检测；project.model.name 读取原始模型值。 -->
+                                    <!-- Maven Central requires a non-empty <name> on every deployed POM and rejects the whole Deployment otherwise. -->
+                                    <!-- project.name falls back to the artifactId when absent and cannot detect this; project.model.name exposes the raw model value. -->
+                                    <property>project.model.name</property>
+                                    <regex>^.+$</regex>
+                                    <message>Missing &lt;name&gt; in pom.xml: Maven Central rejects deployed POMs without a non-empty project name.</message>
+                                </requireProperty>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

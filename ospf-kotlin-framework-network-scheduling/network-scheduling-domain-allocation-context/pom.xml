@@ -8,6 +8,7 @@
         <artifactId>ospf-kotlin-framework-network-scheduling</artifactId>
         <version>1.1.2</version>
     </parent>
+    <name>ospf-kotlin-framework-network-scheduling-domain-allocation-context</name>
     <artifactId>ospf-kotlin-framework-network-scheduling-domain-allocation-context</artifactId>
 
     <dependencies>

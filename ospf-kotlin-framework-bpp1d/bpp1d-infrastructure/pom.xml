@@ -8,6 +8,7 @@
         <relativePath>..</relativePath>
     </parent>
     <groupId>io.github.fuookami.ospf.kotlin.framework.bpp1d</groupId>
+    <name>ospf-kotlin-framework-bpp1d-infrastructure</name>
     <artifactId>ospf-kotlin-framework-bpp1d-infrastructure</artifactId>
 
     <dependencies>
