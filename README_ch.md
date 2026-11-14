@@ -205,16 +205,18 @@ ospf-kotlin 已经发布到 maven 中央仓库，因此，如果你使用 maven 
 `<checksums>required</checksums>` 关闭两种可选校验和，使每个制品的附属文件从 5 个
 （`.asc` + 4 种校验和）降到 3 个（`.asc` + `.md5` + `.sha1`）。
 
-发布命令（同时不产出 `tests.jar`）：
+发布命令：
 
 ```powershell
-mvn -B -ntp deploy "-Dospf.test-jar.phase=none"
+mvn -B -ntp deploy
 ```
+
+`tests.jar` 默认不产出也不上传（`ospf.test-jar.phase` 默认 `none`），无需额外参数。
 
 `pom` 打包的聚合模块与 BOM 模块不产出任何 jar，中央仓库也只对非 `pom` 打包要求 javadoc
 jar，因此父 POM 会按 `packaging` 自动跳过它们的 javadoc 占位 jar，仅上传 `.pom`。
 
-`ospf.test-jar.phase` 的默认值与用途见 [ospf-kotlin-parent](ospf-kotlin-parent/README_ch.md)。
+`ospf.test-jar.phase` 的用途与本地开启方式见 [ospf-kotlin-parent](ospf-kotlin-parent/README_ch.md)。
 
 ## 版本记录
 

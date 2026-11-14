@@ -24,19 +24,22 @@ Most repository modules inherit this parent directly. Module-specific POM files 
 
 ## Test Jar Publishing Toggle
 
-By default this parent runs the `maven-jar-plugin` `test-jar` goal at the `package` phase,
-producing a `classifier=tests` jar so local `install` builds can reuse test artifacts across
-modules. Maven Central does not require this attachment (only `-sources.jar` and `-javadoc.jar`
-are mandatory), and no module in the repository depends on a sibling's `tests.jar`, so it can be
-skipped when publishing.
+The `maven-jar-plugin` `test-jar` goal produces a `classifier=tests` jar so local `install`
+builds can reuse test artifacts across modules. Maven Central does not require this attachment
+(only `-sources.jar` and `-javadoc.jar` are mandatory), and no module in the repository depends
+on a sibling's `tests.jar`, so it is not published.
 
 The `ospf.test-jar.phase` property controls the phase this execution is bound to and defaults to
-`package`; set it to `none` when publishing to skip generating, attaching, and uploading
-`tests.jar` while leaving test compilation and execution untouched:
+`none`, so neither `package` nor `deploy` produces or uploads `tests.jar` unless asked to. Pass
+`package` explicitly to produce it locally; test compilation and execution are unaffected either
+way:
 
 ```powershell
-# Publish: neither build nor upload tests.jar
-mvn -B -ntp deploy "-Dospf.test-jar.phase=none"
+# Publish: plain deploy, no tests.jar (the default)
+mvn -B -ntp deploy
+
+# Local: also produce tests.jar for cross-module reuse
+mvn -B -ntp install "-Dospf.test-jar.phase=package"
 ```
 
 ## Local Validation

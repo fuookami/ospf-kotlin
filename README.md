@@ -204,11 +204,14 @@ deployed file needs a `.asc` signature plus `.md5` and `.sha1` checksums; `.sha2
 `<checksums>required</checksums>`, cutting the sidecar files per artifact from five
 (`.asc` + four checksums) to three (`.asc` + `.md5` + `.sha1`).
 
-Publish command (which also skips `tests.jar`):
+Publish command:
 
 ```powershell
-mvn -B -ntp deploy "-Dospf.test-jar.phase=none"
+mvn -B -ntp deploy
 ```
+
+`tests.jar` is neither built nor uploaded by default (`ospf.test-jar.phase` defaults to `none`),
+so no extra flag is needed.
 
 Pom-packaged aggregator and BOM modules produce no jar at all, and Maven Central only requires a
 javadoc jar for non-pom packaging, so the parent skips their javadoc placeholder jar

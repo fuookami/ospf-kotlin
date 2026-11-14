@@ -29,11 +29,13 @@
         <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
         <maven-dokka-plugin.version>2.2.0</maven-dokka-plugin.version>
         <ospf.test.reportsDirectory>${java.io.tmpdir}/ospf-kotlin-test-reports</ospf.test.reportsDirectory>
-        <!-- 测试 jar（classifier=tests）绑定的生命周期阶段。默认 package，本地构建照常产出； -->
-        <!-- 发布时置为 none 即可不生成、不 attach、不上传 tests.jar，测试的编译与执行不受影响。 -->
-        <!-- The phase the test jar (classifier=tests) is bound to. Defaults to package so local builds still produce it; -->
-        <!-- set it to none when publishing to skip generating, attaching and uploading tests.jar without affecting test compilation or execution. -->
-        <ospf.test-jar.phase>package</ospf.test-jar.phase>
+        <!-- 测试 jar（classifier=tests）绑定的生命周期阶段。默认为 none：不生成、不 attach、不上传 tests.jar， -->
+        <!-- 中央仓库不要求该附件，仓库内也没有模块依赖兄弟模块的 tests.jar，这样发布命令无需额外参数即可保持精简。 -->
+        <!-- 本地需要复用测试产物时，显式传 -Dospf.test-jar.phase=package 即可产出；测试的编译与执行不受该属性影响。 -->
+        <!-- The phase the test jar (classifier=tests) is bound to. Defaults to none: no tests.jar is generated, attached or uploaded, -->
+        <!-- because Maven Central does not require it and no module depends on a sibling's tests.jar, keeping publish commands lean. -->
+        <!-- Pass -Dospf.test-jar.phase=package explicitly to produce it locally; test compilation and execution are unaffected. -->
+        <ospf.test-jar.phase>none</ospf.test-jar.phase>
     </properties>
 
     <dependencyManagement>

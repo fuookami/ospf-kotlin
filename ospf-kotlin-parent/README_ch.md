@@ -24,17 +24,20 @@
 
 ## 测试 jar 发布开关
 
-本父 POM 默认在 `package` 阶段执行 `maven-jar-plugin` 的 `test-jar` 目标，产出
-`classifier=tests` 的测试 jar，便于本地 `install` 后跨模块复用测试产物。Maven 中央仓库
-并不要求该附件（只强制要求 `-sources.jar` 与 `-javadoc.jar`），且仓库内没有任何模块依赖
-兄弟模块的 `tests.jar`，因此发布时可以不上传。
+`maven-jar-plugin` 的 `test-jar` 目标产出 `classifier=tests` 的测试 jar，便于本地 `install`
+后跨模块复用测试产物。Maven 中央仓库并不要求该附件（只强制要求 `-sources.jar` 与
+`-javadoc.jar`），且仓库内没有任何模块依赖兄弟模块的 `tests.jar`，因此默认不发布。
 
-属性 `ospf.test-jar.phase` 控制该执行的绑定阶段，默认为 `package`；发布时将其置为 `none`
-即可不生成、不 attach、不上传 `tests.jar`，而测试的编译与执行完全不受影响：
+属性 `ospf.test-jar.phase` 控制该执行的绑定阶段，默认为 `none`：`package` 与 `deploy` 都不会
+生成或上传 `tests.jar`，除非显式要求。本地需要该产物时传 `package` 即可；测试的编译与执行
+两种情况都不受影响：
 
 ```powershell
-# 发布：不产出也不上传 tests.jar
-mvn -B -ntp deploy "-Dospf.test-jar.phase=none"
+# 发布：裸跑 deploy 即可，不产出也不上传 tests.jar（默认行为）
+mvn -B -ntp deploy
+
+# 本地：额外产出 tests.jar 以便跨模块复用
+mvn -B -ntp install "-Dospf.test-jar.phase=package"
 ```
 
 ## 本地验证
