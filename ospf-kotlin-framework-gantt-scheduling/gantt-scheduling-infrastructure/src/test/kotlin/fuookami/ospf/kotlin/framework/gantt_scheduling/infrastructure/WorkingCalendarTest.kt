@@ -6,6 +6,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.DurationUnit
 import kotlin.time.Instant
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.assertEquals
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -35,6 +36,42 @@ class WorkingCalendarTest {
             fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
+    }
+
+    @Test
+    fun productivityCalendarCarriesAccumulatedDurationWithoutUnavailableTimes() {
+        val start = Instant.parse("2020-08-30T08:00:00Z")
+        val range = TimeRange(start, start + 4.hours)
+        val calendar = DiscreteProductivityCalendar(
+            timeWindow = minutesTimeWindow(range),
+            productivity = listOf(
+                Productivity(
+                    timeWindow = range,
+                    capacities = mapOf(1 to 1.minutes)
+                )
+            )
+        )
+        val cleaning = DurationRange(60.minutes, 70.minutes) to 10.minutes
+
+        val crossing = calendar.actualTimeFrom(
+            material = 1,
+            quantity = UInt64(40),
+            startTime = start,
+            currentDuration = 50.minutes,
+            breakTime = cleaning
+        )
+        assertEquals(listOf(TimeRange(start + 10.minutes, start + 20.minutes)), crossing.breakTimes)
+        assertEquals(start + 50.minutes, crossing.time.end)
+
+        val overdue = calendar.actualTimeFrom(
+            material = 1,
+            quantity = UInt64(40),
+            startTime = start,
+            currentDuration = 65.minutes,
+            breakTime = cleaning
+        )
+        assertEquals(listOf(TimeRange(start, start + 10.minutes)), overdue.breakTimes)
+        assertEquals(start + 50.minutes, overdue.time.end)
     }
 
     @Test

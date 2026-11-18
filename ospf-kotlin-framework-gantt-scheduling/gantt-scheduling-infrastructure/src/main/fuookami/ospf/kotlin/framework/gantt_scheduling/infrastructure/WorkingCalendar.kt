@@ -628,6 +628,7 @@ open class WorkingCalendar<V : RealNumber<V>>(
                 if (breakTime != null) {
                     val (validTimes, breakTimes) = time.split(
                         unit = breakTime.first,
+                        currentDuration = currentDuration,
                         maxDuration = maxDuration,
                         breakTime = breakTime.second
                     )
@@ -3277,7 +3278,8 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
-            currentDuration = currentDuration, breakTime = breakTime
+            currentDuration = currentDuration,
+            breakTime = breakTime
         )
     }
 
@@ -3320,7 +3322,8 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
-            currentDuration = currentDuration, breakTime = breakTime
+            currentDuration = currentDuration,
+            breakTime = breakTime
         )
     }
 
@@ -3356,7 +3359,9 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
         if (productivityCalendar.isEmpty()) {
             return ActualTime(
                 time = TimeRange(start = startTime, end = Instant.DISTANT_FUTURE),
-                workingTimes = emptyList(), breakTimes = emptyList(), connectionTimes = emptyList()
+                workingTimes = emptyList(),
+                breakTimes = emptyList(),
+                connectionTimes = emptyList()
             )
         }
         return actualTimeFromInternal(
@@ -3411,7 +3416,8 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
-            currentDuration = currentDuration, breakTime = breakTime
+            currentDuration = currentDuration,
+            breakTime = breakTime
         )
     }
 
@@ -3626,7 +3632,8 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
-            currentDuration = currentDuration, breakTime = breakTime
+            currentDuration = currentDuration,
+            breakTime = breakTime
         )
     }
 
@@ -3665,7 +3672,8 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
-            currentDuration = currentDuration, breakTime = breakTime
+            currentDuration = currentDuration,
+            breakTime = breakTime
         )
     }
 
@@ -3706,7 +3714,8 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
-            currentDuration = currentDuration, breakTime = breakTime
+            currentDuration = currentDuration,
+            breakTime = breakTime
         )
     }
 
@@ -3745,7 +3754,8 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
-            currentDuration = currentDuration, breakTime = breakTime
+            currentDuration = currentDuration,
+            breakTime = breakTime
         )
     }
 
@@ -3826,12 +3836,16 @@ sealed class QuantityProductivityCalendar<W, V, P, T, U>(
         return if (produceQuantity eq quantityValue) {
             ActualTime(
                 time = TimeRange(start = startTime, end = currentTime),
-                workingTimes = workingTimes, breakTimes = breakTimes, connectionTimes = connectionTimes
+                workingTimes = workingTimes,
+                breakTimes = breakTimes,
+                connectionTimes = connectionTimes
             )
         } else {
             ActualTime(
                 time = TimeRange(start = startTime, end = Instant.DISTANT_FUTURE),
-                workingTimes = workingTimes, breakTimes = breakTimes, connectionTimes = connectionTimes
+                workingTimes = workingTimes,
+                breakTimes = breakTimes,
+                connectionTimes = connectionTimes
             )
         }
     }
